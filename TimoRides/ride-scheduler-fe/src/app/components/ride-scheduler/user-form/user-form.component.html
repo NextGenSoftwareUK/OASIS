@@ -1,0 +1,70 @@
+<div class="app-user-form">
+  <div style="display: flex; flex-direction: column; gap: 1rem">
+    <h3 style="color: white">Enter Biodata!</h3>
+
+    <!-- text name -->
+    <app-input-group
+      [inputConfig]="{
+        label: 'Full Name',
+        isRequired: true,
+        placeholder: 'E.g. John Smith',
+        id: 'fullName',
+        theme: 'light'
+      }"
+      inputType="text"
+      controlName="fullName"
+      [form]="bookingForm"
+    ></app-input-group>
+
+    <!-- Text Email -->
+    <app-input-group
+      [inputConfig]="{
+        label: 'Email',
+        isRequired: true,
+        placeholder: 'E.g. your_email@domain.com',
+        id: 'email',
+        theme: 'light'
+      }"
+      inputType="email"
+      controlName="email"
+      [form]="bookingForm"
+    ></app-input-group>
+
+    <!-- Text Phone -->
+    <app-input-group
+      [inputConfig]="{
+        label: 'Phone Number (WhatsApp preferably)',
+        isRequired: true,
+        placeholder: 'E.g. +2348123456789',
+        id: 'phoneNumber',
+        theme: 'light'
+      }"
+      inputType="tel"
+      controlName="phoneNumber"
+      [form]="bookingForm"
+    ></app-input-group>
+
+    <!-- Action button -->
+    <ng-container *ngIf="bookingForm.valid">
+      <flutterwave-make-payment
+        #flutter
+        (mouseenter)="generateReference()"
+        (mousedown)="generateReference()"
+        [public_key]="publicKey"
+        [amount]="getAmount()"
+        [currency]="defaultCurrency"
+        payment_options="card"
+        redirect_url="ride-schedule/pay"
+        text="Proceed to payment"
+        [customer]="getCustomerDetails()"
+        [customizations]="customizations"
+        [meta]="meta"
+        [tx_ref]="referenceId"
+        (callback)="makePaymentCallback($event)"
+        (close)="closedPaymentModal()"
+        class="custom-flutterwave-button"
+      >
+      </flutterwave-make-payment>
+    </ng-container>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+.book-info-container {
+  align-items: center;
+  border-bottom: 2px solid rgb(223, 218, 218);
+  display: flex;
+  gap: 1rem;
+}
+
+.book-info-container h3 {
+  flex: 1;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.book-info-container p {
+  font-size: 16px;
+}

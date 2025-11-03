@@ -21,10 +21,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             CreateMap<API.Core.Holons.Avatar, IAvatar>();
             
             // Avatar Session mappings
-            CreateMap<API.Core.Objects.Avatar.AvatarSession, Models.Avatar.AvatarSession>();
-            CreateMap<Models.Avatar.AvatarSession, API.Core.Objects.Avatar.AvatarSession>();
-            CreateMap<API.Core.Objects.Avatar.AvatarSessionStats, Models.Avatar.AvatarSessionStats>();
-            CreateMap<Models.Avatar.AvatarSessionStats, API.Core.Objects.Avatar.AvatarSessionStats>();
+            // TODO: Re-enable when Models.Avatar.AvatarSession and AvatarSessionStats are added
+            //CreateMap<API.Core.Objects.Avatar.AvatarSession, Models.Avatar.AvatarSession>();
+            //CreateMap<Models.Avatar.AvatarSession, API.Core.Objects.Avatar.AvatarSession>();
+            //CreateMap<API.Core.Objects.Avatar.AvatarSessionStats, Models.Avatar.AvatarSessionStats>();
+            //CreateMap<Models.Avatar.AvatarSessionStats, API.Core.Objects.Avatar.AvatarSessionStats>();
 
             CreateMap<UpdateRequest, IAvatar>()
                 .ForAllMembers(x => x.Condition(

@@ -1,0 +1,31 @@
+.summary-card {
+  background: #2847bcde;
+  border-radius: 5px;
+  color: #eae4e4;
+  max-height: 70px;
+  min-width: 200px;
+  overflow: hidden;
+  padding: 1rem;
+  position: relative;
+}
+
+.summary-card__title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.summary-icon {
+  bottom: 0;
+  max-width: 50px;
+  opacity: 0.2;
+  position: absolute;
+  right: 0;
+  transform: rotate(332deg);
+  width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+  .summary-card {
+    min-width: 180px;
+  }
+}

@@ -1,12 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
-using System;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -49,10 +51,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("upload-file")]
-        public async Task<OASISResult<StoredFile>> UploadFile([FromBody] string fileName, [FromBody] byte[] fileData, [FromBody] string contentType, [FromBody] Dictionary<string, object> metadata = null)
+        public async Task<OASISResult<StoredFile>> UploadFile([FromForm] string fileName, [FromForm] IFormFile file, [FromForm] string contentType = null, [FromForm] string metadata = null)
         {
+            // Read file data from IFormFile
+            byte[] fileData;
+            using (var ms = new MemoryStream())
+            {
+                await file.CopyToAsync(ms);
+                fileData = ms.ToArray();
+            }
+            
+            // Parse metadata if provided
+            Dictionary<string, object> metadataDict = null;
+            if (!string.IsNullOrEmpty(metadata))
+            {
+                metadataDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(metadata);
+            }
+            
             // Use FilesManager for business logic
-            return await FilesManager.Instance.UploadFileAsync(Avatar.Id, fileName, fileData, contentType, metadata);
+            return await FilesManager.Instance.UploadFileAsync(Avatar.Id, fileName, fileData, contentType ?? file.ContentType, metadataDict);
         }
 
         /// <summary>

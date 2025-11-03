@@ -1,0 +1,16 @@
+.mat-mdc-card-header {
+  justify-content: center;
+  padding: 0 !important;
+}
+
+.summary-title {
+  border-bottom: 2px solid grey;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>OASIS_ASSETRAIL_VALUE_PROPOSITION_CLEAN</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#how-oasis-assetrail-enhance-kleros">HOW OASIS + ASSETRAIL ENHANCE KLEROS</a>
+<ul>
+<li><a href="#executive-summary">🎯 EXECUTIVE SUMMARY</a></li>
+<li><a href="#enhancement-1-multi-chain-contract-deployment">🔧 ENHANCEMENT #1: MULTI-CHAIN CONTRACT DEPLOYMENT</a>
+<ul>
+<li><a href="#current-state-without-oasisassetrail">Current State (Without OASIS/AssetRail)</a></li>
+<li><a href="#with-oasis-assetrail">With OASIS + AssetRail</a></li>
+</ul></li>
+<li><a href="#enhancement-2-kleros-oracle-multi-chain">🔮 ENHANCEMENT #2: KLEROS ORACLE MULTI-CHAIN</a>
+<ul>
+<li><a href="#current-state">Current State</a></li>
+<li><a href="#with-oasis-enhancement">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-3-kleros-curate-multi-chain">📊 ENHANCEMENT #3: KLEROS CURATE MULTI-CHAIN</a>
+<ul>
+<li><a href="#current-state-1">Current State</a></li>
+<li><a href="#with-oasis-enhancement-1">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-4-kleros-escrow-everywhere">💰 ENHANCEMENT #4: KLEROS ESCROW EVERYWHERE</a>
+<ul>
+<li><a href="#current-state-2">Current State</a></li>
+<li><a href="#with-oasis-enhancement-2">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-5-kleros-governor-multi-chain-daos">🏛️ ENHANCEMENT #5: KLEROS GOVERNOR MULTI-CHAIN DAOS</a>
+<ul>
+<li><a href="#current-state-3">Current State</a></li>
+<li><a href="#with-oasis-enhancement-3">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-6-unified-monitoring-dashboard">🔥 ENHANCEMENT #6: UNIFIED MONITORING DASHBOARD</a>
+<ul>
+<li><a href="#current-state-4">Current State</a></li>
+<li><a href="#with-oasis-enhancement-4">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-7-partner-sdk-auto-generation">🚀 ENHANCEMENT #7: PARTNER SDK AUTO-GENERATION</a>
+<ul>
+<li><a href="#current-state-5">Current State</a></li>
+<li><a href="#with-oasis-enhancement-5">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-8-multi-chain-testing-framework">🧪 ENHANCEMENT #8: MULTI-CHAIN TESTING FRAMEWORK</a>
+<ul>
+<li><a href="#current-state-6">Current State</a></li>
+<li><a href="#with-oasis-enhancement-6">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-9-cross-chain-disputes">📱 ENHANCEMENT #9: CROSS-CHAIN DISPUTES</a>
+<ul>
+<li><a href="#new-capability-not-possible-today">New Capability (Not Possible Today)</a></li>
+</ul></li>
+<li><a href="#enhancement-10-better-evidence-management">🎨 ENHANCEMENT #10: BETTER EVIDENCE MANAGEMENT</a>
+<ul>
+<li><a href="#current-state-7">Current State</a></li>
+<li><a href="#with-oasis-enhancement-7">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-11-cost-optimization">📈 ENHANCEMENT #11: COST OPTIMIZATION</a>
+<ul>
+<li><a href="#current-state-8">Current State</a></li>
+<li><a href="#with-oasis-enhancement-8">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-12-non-evm-chain-support">🌐 ENHANCEMENT #12: NON-EVM CHAIN SUPPORT</a>
+<ul>
+<li><a href="#current-state-9">Current State</a></li>
+<li><a href="#with-oasis-assetrail-enhancement">With OASIS + AssetRail Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-13-analytics-insights">📊 ENHANCEMENT #13: ANALYTICS &amp; INSIGHTS</a>
+<ul>
+<li><a href="#current-state-10">Current State</a></li>
+<li><a href="#with-oasis-enhancement-9">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-14-partner-onboarding-automation">🎯 ENHANCEMENT #14: PARTNER ONBOARDING AUTOMATION</a>
+<ul>
+<li><a href="#current-state-11">Current State</a></li>
+<li><a href="#with-oasis-enhancement-10">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-15-kleros-oracle-everywhere">🔮 ENHANCEMENT #15: KLEROS ORACLE EVERYWHERE</a>
+<ul>
+<li><a href="#current-limitation">Current Limitation</a></li>
+<li><a href="#with-oasis-enhancement-11">With OASIS Enhancement</a></li>
+</ul></li>
+<li><a href="#enhancement-16-integration-templates-library">💡 ENHANCEMENT #16: INTEGRATION TEMPLATES LIBRARY</a>
+<ul>
+<li><a href="#what-assetrail-can-generate">What AssetRail Can Generate</a></li>
+</ul></li>
+<li><a href="#enhancement-17-web2-integration-no-blockchain-knowledge-required">🌍 ENHANCEMENT #17: WEB2 INTEGRATION (NO BLOCKCHAIN KNOWLEDGE REQUIRED)</a>
+<ul>
+<li><a href="#current-state-12">Current State</a></li>
+<li><a href="#with-oasis-assetrail-enhancement-1">With OASIS + AssetRail Enhancement</a></li>
+<li><a href="#use-case-1-freelance-platform-upworkfiverr-competitor">Use Case #1: Freelance Platform (Upwork/Fiverr Competitor)</a></li>
+<li><a href="#use-case-2-e-commerce-platform-shopify-alternative">Use Case #2: E-Commerce Platform (Shopify Alternative)</a></li>
+<li><a href="#use-case-3-saas-platform-subscription-disputes">Use Case #3: SaaS Platform (Subscription Disputes)</a></li>
+</ul></li>
+<li><a href="#web2-integration-value-summary">🎯 WEB2 INTEGRATION VALUE SUMMARY</a>
+<ul>
+<li><a href="#for-non-blockchain-companies">For Non-Blockchain Companies</a></li>
+<li><a href="#web2-market-opportunity">Web2 Market Opportunity</a></li>
+<li><a href="#how-oasis-enables-this">How OASIS Enables This</a></li>
+</ul></li>
+<li><a href="#the-complete-value-story">🎯 THE COMPLETE VALUE STORY</a>
+<ul>
+<li><a href="#for-kleros-team">For Kleros Team</a></li>
+<li><a href="#for-partners">For Partners</a></li>
+</ul></li>
+<li><a href="#the-pitch-refined-with-this-knowledge">🏆 THE PITCH (REFINED WITH THIS KNOWLEDGE)</a>
+<ul>
+<li><a href="#to-kleros-team">To Kleros Team</a></li>
+<li><a href="#to-partners-example-magic-eden-on-solana">To Partners (Example: Magic Eden on Solana)</a></li>
+</ul></li>
+<li><a href="#bottom-line">🎯 BOTTOM LINE</a>
+<ul>
+<li><a href="#what-oasis-assetrail-add-to-kleros">What OASIS + AssetRail Add to Kleros</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="how-oasis-assetrail-enhance-kleros">HOW OASIS + ASSETRAIL ENHANCE KLEROS</h1>
+<p><strong>Specific value-adds for each Kleros product</strong></p>
+<hr />
+<h2 id="executive-summary">🎯 EXECUTIVE SUMMARY</h2>
+<p><strong>Current State</strong>: Kleros has 5 great products, mostly on Ethereum + some EVM chains, accessible only to crypto-native developers</p>
+<p><strong>With OASIS + AssetRail</strong>: All 5 products on 15+ chains, deployed 90% faster, monitored in one dashboard, <strong>accessible to Web2 companies via REST API</strong></p>
+<p><strong>Key Enhancement</strong>: <strong>Multi-chain operations platform</strong> that makes Kleros a truly universal arbitration layer for <strong>Web3 AND Web2</strong>, not just an Ethereum protocol.</p>
+<p><strong>Market Impact</strong>: Opens Kleros to 100,000+ Web2 companies (freelance platforms, e-commerce, SaaS, gig economy) who would never touch blockchain directly - <strong>10x+ market expansion</strong>.</p>
+<hr />
+<h2 id="enhancement-1-multi-chain-contract-deployment">🔧 ENHANCEMENT #1: MULTI-CHAIN CONTRACT DEPLOYMENT</h2>
+<h3 id="current-state-without-oasisassetrail">Current State (Without OASIS/AssetRail)</h3>
+<p><strong>Kleros today</strong>: - Kleros Arbitrator deployed manually on Ethereum - Manual deployment to Polygon - Considering Gnosis, Arbitrum - Each chain requires: - Custom deployment scripts - Manual testing - Separate contract addresses - Different gas optimization strategies - 2-4 weeks per chain</p>
+<p><strong>Chains supported</strong>: ~3-5 (Ethereum, Polygon, Gnosis, maybe Arbitrum)</p>
+<h3 id="with-oasis-assetrail">With OASIS + AssetRail</h3>
+<p><strong>AssetRail SC-Gen workflow</strong>:</p>
+<p><strong>Step 1: Create Template</strong> (One-time) - Create a universal smart contract template with chain-specific parameters - Use Handlebars templating for conditional logic (L2 vs L1 optimization) - Single template generates contracts for all chains</p>
+<p><strong>Step 2: Generate for All Chains</strong> (10 minutes) - Generate chain-specific contracts from the template - Customize parameters per chain (gas costs, native token amounts) - Support both EVM chains (Solidity) and non-EVM chains (Solana/Rust)</p>
+<p><strong>Step 3: Deploy to All Chains</strong> (1 hour) - Deploy to 15+ chains simultaneously via OASIS Multi-Chain Deployer - Includes: Ethereum, Polygon, Arbitrum, Base, Avalanche, Optimism, BNB Chain, Solana, and more - Returns all contract addresses in a single operation</p>
+<p><strong>Time savings</strong>: 2-4 weeks × 15 chains = <strong>6-12 months</strong> → <strong>1-2 days</strong></p>
+<p><strong>Cost savings</strong>: $500k-1M in engineering time</p>
+<hr />
+<h2 id="enhancement-2-kleros-oracle-multi-chain">🔮 ENHANCEMENT #2: KLEROS ORACLE MULTI-CHAIN</h2>
+<h3 id="current-state">Current State</h3>
+<p><strong>Kleros Oracle</strong> uses Reality.eth + Kleros arbitration: - Reality.eth deployed on Ethereum, Gnosis - Kleros arbitration on same chains - Separate per chain</p>
+<p><strong>Limitation</strong>: Can’t ask cross-chain questions easily</p>
+<h3 id="with-oasis-enhancement">With OASIS Enhancement</h3>
+<p><strong>Cross-Chain Oracle Queries</strong>: - Ask questions on the CHEAPEST chain, get answers on ANY chain - Automatically select optimal chain based on bond size and gas costs - Query Reality.eth via OASIS unified API - Monitor answers across all chains from a single interface</p>
+<p><strong>Use case</strong>: - Ask “Who won Ethereum Name Service auction #123?” on Polygon (cheap gas) - Get answer with Kleros arbitration - Use answer on Ethereum mainnet - <strong>Saves 95% on gas costs</strong></p>
+<p><strong>Value</strong>: Kleros Oracle becomes <strong>truly multi-chain</strong>, not limited to where Reality.eth is deployed</p>
+<hr />
+<h2 id="enhancement-3-kleros-curate-multi-chain">📊 ENHANCEMENT #3: KLEROS CURATE MULTI-CHAIN</h2>
+<h3 id="current-state-1">Current State</h3>
+<p><strong>Kleros Curate</strong> (token lists, registries): - Deployed on Ethereum primarily - Some on Polygon - Each chain has separate lists</p>
+<p><strong>Limitation</strong>: Uniswap’s Polygon token list is separate from Ethereum token list</p>
+<h3 id="with-oasis-enhancement-1">With OASIS Enhancement</h3>
+<p><strong>Cross-Chain List Synchronization</strong>: - Add items to lists on MULTIPLE chains simultaneously - Aggregate token lists from ALL chains into unified view - If challenged on ANY chain, dispute can be handled on CHEAPEST chain - Single source of truth synchronized across all deployments</p>
+<p><strong>Use case</strong>: - Maintain ONE universal token list - Synchronized across Ethereum, Polygon, Arbitrum, Base, etc. - Dispute on ONE chain applies to ALL chains - <strong>Massive UX improvement</strong> for multi-chain dApps</p>
+<p><strong>Value</strong>: Kleros Curate becomes the <strong>universal registry layer</strong> for Web3</p>
+<hr />
+<h2 id="enhancement-4-kleros-escrow-everywhere">💰 ENHANCEMENT #4: KLEROS ESCROW EVERYWHERE</h2>
+<h3 id="current-state-2">Current State</h3>
+<p><strong>Kleros Escrow</strong>: - Standalone product on https://escrow.kleros.io - Ethereum primarily - Partners can white-label</p>
+<p><strong>Limitation</strong>: High gas costs on Ethereum limit adoption</p>
+<h3 id="with-oasis-enhancement-2">With OASIS Enhancement</h3>
+<p><strong>Intelligent Chain Routing</strong>: - Automatically select optimal chain based on transaction amount - Small amounts → Route to Polygon or Base (low gas costs) - Large amounts → Route to Ethereum (maximum security) - Platform can optimize for cost, speed, or security</p>
+<p><strong>Example</strong>: - Freelancer payment: $50 → Auto-routes to Polygon (gas: $0.01) - House sale: $500k → Auto-routes to Ethereum (max security)</p>
+<p><strong>Value</strong>: Makes Kleros Escrow <strong>economically viable</strong> for micro-transactions</p>
+<hr />
+<h2 id="enhancement-5-kleros-governor-multi-chain-daos">🏛️ ENHANCEMENT #5: KLEROS GOVERNOR MULTI-CHAIN DAOS</h2>
+<h3 id="current-state-3">Current State</h3>
+<p><strong>Kleros Governor</strong>: - DAO governance enforcement - Primarily Ethereum DAOs - Gnosis Chain support</p>
+<p><strong>Limitation</strong>: Can’t help DAOs on Solana, Cosmos, etc.</p>
+<h3 id="with-oasis-enhancement-3">With OASIS Enhancement</h3>
+<p><strong>Universal DAO Arbitration</strong>: - DAO can be on ANY chain (Solana, Arbitrum, etc.) - Arbitration happens on CHEAPEST chain (e.g., Polygon) - Ruling automatically bridged back to DAO’s native chain - Cross-chain dispute resolution via LayerZero, Wormhole, or Axelar</p>
+<p><strong>Use case</strong>: - Arbitrum DAO (on Arbitrum) uses Kleros arbitration on Polygon (90% cheaper) - Solana DAO uses Kleros arbitration on Base - <strong>Cross-chain dispute resolution</strong></p>
+<p><strong>Value</strong>: Kleros Governor works for <strong>any DAO on any chain</strong></p>
+<hr />
+<h2 id="enhancement-6-unified-monitoring-dashboard">🔥 ENHANCEMENT #6: UNIFIED MONITORING DASHBOARD</h2>
+<h3 id="current-state-4">Current State</h3>
+<p><strong>Kleros team must</strong>: - Monitor Ethereum disputes separately - Monitor Polygon disputes separately - Check Gnosis disputes separately - Different block explorers, different tools</p>
+<p><strong>Problem</strong>: Can’t see full picture</p>
+<h3 id="with-oasis-enhancement-4">With OASIS Enhancement</h3>
+<p><strong>Multi-Chain Kleros Dashboard</strong>: - Aggregate data from all chains in real-time - Single view of all active and resolved disputes - Track fees collected across all chains - Monitor average resolution times and appeal rates - Identify trending subcourts and growth patterns</p>
+<p><strong>Dashboard shows</strong>: - <strong>Total disputes</strong>: 1,247 (across ALL chains) - <strong>Total fees</strong>: $248k (this month, all chains) - <strong>Per-chain breakdown</strong>: Ethereum (547), Polygon (423), Arbitrum (187), Base (90) - <strong>Hottest subcourts</strong>: NFT (342), General (198), Blockchain (156) - <strong>Average resolution</strong>: 13.2 days - <strong>Appeal rate</strong>: 12% (industry benchmark)</p>
+<p><strong>Value</strong>: Kleros team sees <strong>global operations at a glance</strong>, not fragmented per chain</p>
+<hr />
+<h2 id="enhancement-7-partner-sdk-auto-generation">🚀 ENHANCEMENT #7: PARTNER SDK AUTO-GENERATION</h2>
+<h3 id="current-state-5">Current State</h3>
+<p><strong>Kleros provides</strong>: - Documentation for ERC-792 integration - Code examples - Partners write integration code manually</p>
+<p><strong>Problem</strong>: Each partner reinvents the wheel</p>
+<h3 id="with-oasis-enhancement-5">With OASIS Enhancement</h3>
+<p><strong>Auto-Generated SDKs per Chain</strong>: - Generate JavaScript/TypeScript SDKs automatically for each chain - Generate Solidity helper contracts (Arbitrable templates) - Generate complete integration documentation - Publish as NPM packages (<span class="citation" data-cites="kleros/sdk-polygon">@kleros/sdk-polygon</span>, <span class="citation" data-cites="kleros/sdk-arbitrum">@kleros/sdk-arbitrum</span>, etc.)</p>
+<p><strong>Partners get</strong>: - Chain-specific SDK (one per chain) - Human-readable subcourt names (not just IDs) - Auto-filled contract addresses and RPC URLs - Type-safe TypeScript interfaces - Complete documentation and examples</p>
+<p><strong>Time savings for partners</strong>: 1-2 weeks → 2-3 hours</p>
+<p><strong>Value</strong>: <strong>10x easier partner integration</strong>, faster adoption</p>
+<hr />
+<h2 id="enhancement-8-multi-chain-testing-framework">🧪 ENHANCEMENT #8: MULTI-CHAIN TESTING FRAMEWORK</h2>
+<h3 id="current-state-6">Current State</h3>
+<p><strong>Kleros testing</strong>: - Test on Ethereum testnet - Separately test on Polygon testnet - Manual testing per chain - Hard to ensure consistency</p>
+<h3 id="with-oasis-enhancement-6">With OASIS Enhancement</h3>
+<p><strong>Automated Multi-Chain Testing</strong>: - Run full integration test suite on ALL target chains simultaneously - Test scenarios: Create dispute, Submit evidence, Wait for ruling, Execute ruling, Appeal ruling - Generate comparison report across chains - Identify chain-specific issues early (e.g., gas problems on specific chains)</p>
+<p><strong>Value</strong>: Ensure Kleros works perfectly on every chain, catch issues early</p>
+<hr />
+<h2 id="enhancement-9-cross-chain-disputes">📱 ENHANCEMENT #9: CROSS-CHAIN DISPUTES</h2>
+<h3 id="new-capability-not-possible-today">New Capability (Not Possible Today)</h3>
+<p><strong>Scenario</strong>: Dispute on one chain, arbitration on cheaper chain</p>
+<p><strong>Use case</strong>: - High-value NFT sale on Ethereum (security) - But arbitration costs $50 on Ethereum - Cheaper to arbitrate on Polygon ($2)</p>
+<p><strong>Solution with OASIS</strong>: - Escrow holds funds on Ethereum (high security) - Dispute created on Polygon (low cost arbitration) - Jurors vote on Polygon - Ruling bridged back to Ethereum via LayerZero/Wormhole/Axelar - Ethereum escrow executes ruling</p>
+<p><strong>Example Flow</strong>: 1. Ethereum NFT escrow holds 10 ETH 2. Dispute created on Polygon (arbitration cost: $2) 3. Jurors vote on Polygon 4. Ruling bridged to Ethereum via LayerZero 5. Ethereum escrow executes ruling</p>
+<p><strong>Savings</strong>: $50 → $2 per dispute (96% reduction)</p>
+<p><strong>Value</strong>: Makes Kleros arbitration <strong>affordable for any transaction size</strong></p>
+<hr />
+<h2 id="enhancement-10-better-evidence-management">🎨 ENHANCEMENT #10: BETTER EVIDENCE MANAGEMENT</h2>
+<h3 id="current-state-7">Current State</h3>
+<p><strong>Evidence submission</strong>: - Partners manually upload to IPFS - Submit hash via Evidence event (ERC-1497) - Different IPFS providers per partner</p>
+<p><strong>Problem</strong>: Inconsistent, sometimes evidence disappears (IPFS pinning issues)</p>
+<h3 id="with-oasis-enhancement-7">With OASIS Enhancement</h3>
+<p><strong>Unified Evidence Management via PinataOASIS</strong>: - Upload to Pinata with guaranteed pinning - Attach metadata (dispute ID, submitter, timestamp, chain) - Submit evidence hash to Kleros contract automatically - Store backup in MongoDB (via MongoOASIS) - Never lose evidence due to unpinned IPFS content</p>
+<p><strong>Benefits</strong>: - <strong>Guaranteed pinning</strong>: Evidence never disappears - <strong>Metadata</strong>: Easy to query “all evidence for dispute X” - <strong>Backup</strong>: MongoDB backup if IPFS fails - <strong>Analytics</strong>: Track evidence submission patterns</p>
+<p><strong>Value</strong>: <strong>100% evidence availability</strong>, better UX for jurors</p>
+<hr />
+<h2 id="enhancement-11-cost-optimization">📈 ENHANCEMENT #11: COST OPTIMIZATION</h2>
+<h3 id="current-state-8">Current State</h3>
+<p><strong>Arbitration costs vary by chain</strong>: - Ethereum: ~$50 (high gas) - Polygon: ~$2 (low gas) - But partners deploy on ONE chain only</p>
+<h3 id="with-oasis-enhancement-8">With OASIS Enhancement</h3>
+<p><strong>Automatic Chain Selection</strong>: - Evaluate all available chains for each dispute - Consider: Arbitration cost, gas cost, security level, juror availability - For small disputes (&lt;$100) → choose cheapest chain (Polygon) - For medium disputes ($100-$10k) → balance cost and security (Arbitrum) - For large disputes (&gt;$10k) → choose most secure (Ethereum)</p>
+<p><strong>Routing logic</strong>: - Dispute &lt; $100: Polygon ($2 arbitration) - Dispute $100-$10k: Arbitrum ($5 arbitration) - Dispute &gt; $10k: Ethereum ($50 arbitration, max security)</p>
+<p><strong>Savings</strong>: 50-95% cost reduction for most disputes</p>
+<p><strong>Value</strong>: Makes Kleros <strong>affordable for any transaction size</strong>, not just high-value</p>
+<hr />
+<h2 id="enhancement-12-non-evm-chain-support">🌐 ENHANCEMENT #12: NON-EVM CHAIN SUPPORT</h2>
+<h3 id="current-state-9">Current State</h3>
+<p><strong>Kleros</strong>: - EVM chains only (Ethereum, Polygon, etc.) - Can’t serve Solana, Cosmos, Near, Aptos, etc.</p>
+<p><strong>Market limitation</strong>: Missing $50B+ in non-EVM ecosystem</p>
+<h3 id="with-oasis-assetrail-enhancement">With OASIS + AssetRail Enhancement</h3>
+<p><strong>Solana Kleros Port</strong>: - AssetRail SC-Gen generates Anchor/Rust version from EVM template - Port core arbitration logic to Solana program architecture - Deploy via OASIS to Solana mainnet - Optimize for Solana’s unique architecture (accounts model, no global state)</p>
+<p><strong>OASIS deploys</strong>: - One command deployment to Solana mainnet-beta - Returns Program ID for integration</p>
+<p><strong>Value</strong>: Unlocks <strong>entire Solana ecosystem</strong> for Kleros - Magic Eden (Solana NFT marketplace): $100M+ monthly volume - Marinade Finance (Solana DeFi): $1B+ TVL - StepN (Solana gaming): 1M+ users</p>
+<p><strong>Market expansion</strong>: +50% addressable market</p>
+<hr />
+<h2 id="enhancement-13-analytics-insights">📊 ENHANCEMENT #13: ANALYTICS &amp; INSIGHTS</h2>
+<h3 id="current-state-10">Current State</h3>
+<p><strong>Kleros analytics</strong>: - Basic stats on court.kleros.io - Per-chain, siloed data - Hard to get insights</p>
+<h3 id="with-oasis-enhancement-9">With OASIS Enhancement</h3>
+<p><strong>Cross-Chain Analytics Platform</strong>: - Aggregate data from all chains - Volume metrics: Total disputes, disputes by chain, disputes by subcourt, disputes by partner - Financial metrics: Total fees, average fee per dispute, fees in USD across all chains - Performance metrics: Average resolution time, appeal rate, juror coherence - Growth metrics: Month-over-month growth, new partners, trending subcourts - AI-generated insights: “NFT Court growing 50% MoM - consider hiring specialized jurors”</p>
+<p><strong>Value</strong>: <strong>Data-driven decision making</strong> for Kleros team</p>
+<hr />
+<h2 id="enhancement-14-partner-onboarding-automation">🎯 ENHANCEMENT #14: PARTNER ONBOARDING AUTOMATION</h2>
+<h3 id="current-state-11">Current State</h3>
+<p><strong>Kleros onboarding</strong>: - Partner reads docs - Partner writes code - Partner tests manually - Partner deploys - Kleros team helps via Discord/Telegram</p>
+<p><strong>Problem</strong>: Slow, manual, doesn’t scale</p>
+<h3 id="with-oasis-enhancement-10">With OASIS Enhancement</h3>
+<p><strong>Automated Partner Onboarding</strong>: - Generate custom smart contract template based on use case (NFT marketplace, freelance platform, DAO, etc.) - Generate frontend integration code (React, Vue, or vanilla JS) - Generate complete test suite with common scenarios - Generate integration documentation customized for the partner - Deploy testnet contracts automatically - ready to test immediately</p>
+<p><strong>Partner receives</strong>: - ✅ Smart contract code (customized for their use case) - ✅ Frontend integration code (React/Vue/vanilla JS) - ✅ Complete test suite - ✅ Integration documentation - ✅ Deployed testnet contracts (ready to test)</p>
+<p><strong>Time savings</strong>: 2 weeks → 1 day (partner just needs to review/customize)</p>
+<p><strong>Value</strong>: <strong>Scale partner onboarding from 5-10/year to 50-100/year</strong></p>
+<hr />
+<h2 id="enhancement-15-kleros-oracle-everywhere">🔮 ENHANCEMENT #15: KLEROS ORACLE EVERYWHERE</h2>
+<h3 id="current-limitation">Current Limitation</h3>
+<p><strong>Kleros Oracle</strong> requires Reality.eth<br />
+<strong>Reality.eth</strong> only on: Ethereum, Gnosis, Polygon</p>
+<p><strong>Problem</strong>: Can’t use Oracle on Base, Arbitrum, Solana, etc.</p>
+<h3 id="with-oasis-enhancement-11">With OASIS Enhancement</h3>
+<p><strong>Reality.eth Deployment + Kleros Oracle Package</strong>: - Deploy Reality.eth to any new chain (if not already present) - Deploy Kleros Arbitrator (if not already present) - Deploy Kleros&lt;&gt;Reality bridge/proxy contract - Configure connection between all components - Total time: 2 hours (vs weeks manually)</p>
+<p><strong>Result</strong>: Kleros Oracle available on <strong>every chain</strong> OASIS supports</p>
+<p><strong>Use cases unlocked</strong>: - Base prediction markets (Coinbase users) - Solana oracle (Marinade, Orca, Magic Eden) - Avalanche oracle (Trader Joe, Pangolin)</p>
+<p><strong>Value</strong>: <strong>10x Oracle market</strong> (from 3 chains to 15+ chains)</p>
+<hr />
+<h2 id="enhancement-16-integration-templates-library">💡 ENHANCEMENT #16: INTEGRATION TEMPLATES LIBRARY</h2>
+<h3 id="what-assetrail-can-generate">What AssetRail Can Generate</h3>
+<p><strong>Pre-built Templates for Common Use Cases</strong>:</p>
+<p><strong>Template 1: NFT Marketplace Escrow</strong> - Auto-configured Arbitrator integration for specific chain - Subcourt pre-set to NFT category - Standard marketplace logic (create sale, complete sale, dispute sale) - Automatic dispute creation with proper evidence handling - Rule execution logic (refund buyer vs release to seller)</p>
+<p><strong>Template 2: Freelance Escrow</strong> - Milestone-based escrow with Kleros arbitration - Multiple payment releases per project - Evidence submission for each milestone - Auto-configured for target chain</p>
+<p><strong>Template 3: DAO Governance</strong> - Proposal execution with Kleros validation - Dispute mechanism for controversial proposals - Multi-sig integration for added security</p>
+<p><strong>Template 4: Token Curate</strong> - Token list registry with Kleros Curate integration - Challenge/dispute mechanism for token submissions - Bounty system for curators</p>
+<p><strong>Value</strong>: Partners get <strong>80% done</strong> before writing any code</p>
+<hr />
+<h2 id="enhancement-17-web2-integration-no-blockchain-knowledge-required">🌍 ENHANCEMENT #17: WEB2 INTEGRATION (NO BLOCKCHAIN KNOWLEDGE REQUIRED)</h2>
+<h3 id="current-state-12">Current State</h3>
+<p><strong>Kleros today</strong>: - Requires understanding of blockchain wallets, gas fees, smart contracts - Partners must know Solidity, ERC-792 standard, IPFS - Web2 companies intimidated by crypto complexity - Missing $100B+ traditional tech market</p>
+<p><strong>Market limitation</strong>: Freelance platforms, e-commerce, gig economy, SaaS - none can use Kleros</p>
+<h3 id="with-oasis-assetrail-enhancement-1">With OASIS + AssetRail Enhancement</h3>
+<p><strong>Blockchain-Abstracted API for Traditional Companies</strong>:</p>
+<p>OASIS WEB4 provides a <strong>REST API</strong> that completely hides blockchain complexity:</p>
+<p><strong>Simple Integration Flow</strong>: 1. Get API key from OASIS 2. Make standard HTTP POST request to create dispute 3. Provide dispute details in JSON (parties identified by email, amounts in USD) 4. OASIS handles: wallet creation, gas fees, IPFS upload, blockchain transaction 5. Receive dispute ID and tracking URL 6. Monitor via polling or webhooks 7. Execute ruling in your platform’s existing system</p>
+<p><strong>Key Features</strong>: - ✅ <strong>No wallets required</strong>: OASIS manages custody for non-crypto users - ✅ <strong>No gas fees</strong>: Platform pays flat fee in fiat ($2-5 per dispute) - ✅ <strong>No IPFS knowledge</strong>: Upload files via standard URLs/CDN - ✅ <strong>No smart contracts</strong>: REST API handles everything - ✅ <strong>Email notifications</strong>: Users get updates via email, not on-chain events - ✅ <strong>Fiat pricing</strong>: Show costs in USD, not ETH/MATIC</p>
+<hr />
+<h3 id="use-case-1-freelance-platform-upworkfiverr-competitor">Use Case #1: Freelance Platform (Upwork/Fiverr Competitor)</h3>
+<p><strong>Company</strong>: “WorkDirect” - freelance marketplace with 50,000 monthly transactions</p>
+<p><strong>Problem</strong>: - 200 disputes/month (0.4% of transactions) - Current solution: Internal support team (5 people, $300k/year) - Slow (7-14 days), inconsistent, clients distrust platform decisions - Scaling problem: More users = more disputes = more support staff</p>
+<p><strong>Kleros via OASIS Solution</strong>: - Integrate via simple REST API calls in existing Node.js backend - Create dispute with project details, parties identified by email - Store dispute ID in database - Receive webhook when ruling is ready - Execute ruling (refund or release payment) in platform’s system - Send email notifications to both parties</p>
+<p><strong>Benefits for WorkDirect</strong>: - <strong>Cost</strong>: $2.50/dispute (Polygon) × 200 = $500/month vs $300k/year support team - <strong>99.8% cost reduction</strong> - <strong>Faster</strong>: 7 days average (Kleros) vs 14 days (internal team) - <strong>Trust</strong>: Independent jury, transparent process, no platform bias - <strong>Scalability</strong>: 200 disputes/month or 20,000/month - same integration - <strong>No blockchain complexity</strong>: Just HTTP API calls in existing backend</p>
+<p><strong>User Experience</strong> (No crypto knowledge needed): 1. Client clicks “Open Dispute” in WorkDirect UI 2. Fills out form (same as before) 3. Gets email: “Independent jury will review in 5-7 days” 4. Evidence submitted via WorkDirect’s interface (uploaded to IPFS behind the scenes) 5. Jury votes (on court.kleros.io - optional embed in WorkDirect UI) 6. Client gets email: “Dispute resolved - $500 refunded to your account” 7. <strong>Never sees blockchain, wallets, gas, or crypto</strong></p>
+<hr />
+<h3 id="use-case-2-e-commerce-platform-shopify-alternative">Use Case #2: E-Commerce Platform (Shopify Alternative)</h3>
+<p><strong>Company</strong>: “MerchX” - e-commerce platform for independent sellers (10,000 stores)</p>
+<p><strong>Problem</strong>: - Seller vs buyer disputes: counterfeit items, non-delivery, quality issues - Current solution: PayPal/Stripe disputes (heavily favor buyers, 80% chargeback rate) - Sellers lose merchandise + money + chargeback fees - Sellers leaving platform due to unfair dispute process</p>
+<p><strong>Kleros via OASIS Solution</strong>: - Create escrow dispute via OASIS Kleros API when buyer files complaint - Hold funds until resolution - Both sides submit evidence - Jury makes fair decision based on evidence - Platform executes ruling (refund, release payment, or split)</p>
+<p><strong>Benefits for MerchX</strong>: - <strong>Fair process</strong>: 50/50 win rate (vs 80% buyer wins with PayPal) - <strong>Seller retention</strong>: Sellers stay because disputes are fair - <strong>Cost</strong>: $2-5/dispute vs $15-25 chargeback fees - <strong>Reputation</strong>: “First e-commerce platform with decentralized dispute resolution” - <strong>Evidence-based</strong>: Jury sees both sides, not automatic buyer favor</p>
+<p><strong>Market Expansion</strong>: - MerchX can market to sellers fleeing Amazon/eBay due to unfair dispute policies - “Fair arbitration” becomes competitive advantage</p>
+<hr />
+<h3 id="use-case-3-saas-platform-subscription-disputes">Use Case #3: SaaS Platform (Subscription Disputes)</h3>
+<p><strong>Company</strong>: “CloudTools” - B2B SaaS ($5M ARR, 2,000 customers)</p>
+<p><strong>Problem</strong>: - Refund disputes: “Software didn’t work as advertised” - Support team spends 20 hours/week on dispute resolution - Customers threaten chargebacks, negative reviews - No independent third party</p>
+<p><strong>Kleros via OASIS Solution</strong>: - Create dispute via OASIS API when customer requests refund - Submit evidence: Usage logs, support ticket history, feature availability - Custom jury questions: “Did software provide advertised features?”, “Did customer receive adequate support?”, “Is full/partial/no refund appropriate?” - Independent technical jury reviews case - Execute ruling based on jury decision</p>
+<p><strong>Benefits for CloudTools</strong>: - <strong>Time savings</strong>: 20 hours/week → 2 hours/week (80% reduction) - <strong>Customer satisfaction</strong>: Independent review = fairer perception - <strong>Chargeback prevention</strong>: “Let’s submit to neutral arbitration” stops chargebacks - <strong>Cost</strong>: $5/dispute vs $500 staff time + potential chargeback fees - <strong>Technical jury</strong>: Kleros “SaaS Subcourt” has technical jurors who understand software</p>
+<hr />
+<h2 id="web2-integration-value-summary">🎯 WEB2 INTEGRATION VALUE SUMMARY</h2>
+<h3 id="for-non-blockchain-companies">For Non-Blockchain Companies</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Traditional Arbitration</th>
+<th>Kleros via OASIS</th>
+<th>Advantage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Cost</strong></td>
+<td>$500-5000 per case</td>
+<td>$2-5 per case</td>
+<td>99% cheaper</td>
+</tr>
+<tr class="even">
+<td><strong>Speed</strong></td>
+<td>30-90 days</td>
+<td>5-10 days</td>
+<td>80% faster</td>
+</tr>
+<tr class="odd">
+<td><strong>Integration</strong></td>
+<td>Legal contracts, manual</td>
+<td>REST API, 1 week</td>
+<td>10x easier</td>
+</tr>
+<tr class="even">
+<td><strong>Transparency</strong></td>
+<td>Opaque process</td>
+<td>Public record</td>
+<td>Full audit trail</td>
+</tr>
+<tr class="odd">
+<td><strong>Bias</strong></td>
+<td>Platform-controlled</td>
+<td>Independent jury</td>
+<td>Trustless</td>
+</tr>
+<tr class="even">
+<td><strong>Scalability</strong></td>
+<td>Hire more staff</td>
+<td>Automatic</td>
+<td>Infinite scale</td>
+</tr>
+<tr class="odd">
+<td><strong>Blockchain Knowledge</strong></td>
+<td>N/A</td>
+<td><strong>ZERO required</strong></td>
+<td>Accessible</td>
+</tr>
+</tbody>
+</table>
+<h3 id="web2-market-opportunity">Web2 Market Opportunity</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Industry</th>
+<th>Companies</th>
+<th>Dispute Volume</th>
+<th>Potential Revenue</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Freelance Platforms</td>
+<td>Upwork, Fiverr, 100+ others</td>
+<td>50k/month</td>
+<td>$125k/month</td>
+</tr>
+<tr class="even">
+<td>E-commerce</td>
+<td>Shopify stores, Etsy, WooCommerce</td>
+<td>200k/month</td>
+<td>$500k/month</td>
+</tr>
+<tr class="odd">
+<td>Gig Economy</td>
+<td>Uber, DoorDash, Instacart</td>
+<td>30k/month</td>
+<td>$75k/month</td>
+</tr>
+<tr class="even">
+<td>SaaS</td>
+<td>10,000+ B2B SaaS companies</td>
+<td>20k/month</td>
+<td>$50k/month</td>
+</tr>
+<tr class="odd">
+<td>Gaming</td>
+<td>Roblox, Epic, indie studios</td>
+<td>40k/month</td>
+<td>$100k/month</td>
+</tr>
+<tr class="even">
+<td>Content Platforms</td>
+<td>YouTube, Twitch, Patreon</td>
+<td>100k/month</td>
+<td>$250k/month</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total Web2 Market</strong>: 440k disputes/month = <strong>$1.1M/month</strong> = <strong>$13M/year</strong></p>
+<p><strong>Current Kleros Market</strong> (crypto-native): ~$1-2M/year<br />
+<strong>With Web2 Access</strong>: <strong>10x market expansion</strong></p>
+<hr />
+<h3 id="how-oasis-enables-this">How OASIS Enables This</h3>
+<p><strong>Without OASIS</strong>: Web2 companies would need to: 1. Hire blockchain developers 2. Learn Solidity, deploy contracts 3. Manage wallets, gas fees 4. Integrate IPFS 5. Handle multiple chains 6. <strong>6-12 months, $200k+ dev cost</strong></p>
+<p><strong>With OASIS</strong>: Web2 companies just: 1. Get API key 2. Read REST API docs (like Stripe, Twilio) 3. Make HTTP calls from existing backend 4. <strong>1 week, $0 dev cost</strong></p>
+<p><strong>OASIS abstracts</strong>: - ✅ Wallet management (custodial for non-crypto users) - ✅ Gas fee payment (platform pays flat fee) - ✅ IPFS uploads (accept standard URLs) - ✅ Chain selection (auto-optimize) - ✅ Smart contract interaction (HTTP → blockchain) - ✅ Event monitoring (webhooks instead of blockchain events)</p>
+<p><strong>Value</strong>: Makes Kleros accessible to <strong>100,000+ Web2 companies</strong> that would never touch blockchain directly</p>
+<hr />
+<h2 id="the-complete-value-story">🎯 THE COMPLETE VALUE STORY</h2>
+<h3 id="for-kleros-team">For Kleros Team</h3>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 25%" />
+<col style="width: 37%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Enhancement</th>
+<th>Current State</th>
+<th>With OASIS/AssetRail</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Chain Support</strong></td>
+<td>3-5 EVM chains</td>
+<td>15+ chains (EVM + Solana + more)</td>
+<td>+200% market</td>
+</tr>
+<tr class="even">
+<td><strong>Deployment Time</strong></td>
+<td>2-4 weeks per chain</td>
+<td>1-2 days for ALL chains</td>
+<td>90% faster</td>
+</tr>
+<tr class="odd">
+<td><strong>Monitoring</strong></td>
+<td>Fragmented per chain</td>
+<td>Unified dashboard</td>
+<td>10x efficiency</td>
+</tr>
+<tr class="even">
+<td><strong>Partner SDKs</strong></td>
+<td>Manual per chain</td>
+<td>Auto-generated</td>
+<td>99% faster</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing</strong></td>
+<td>Manual per chain</td>
+<td>Automated multi-chain</td>
+<td>85% faster</td>
+</tr>
+<tr class="even">
+<td><strong>Cost per Dispute</strong></td>
+<td>$50 (Ethereum)</td>
+<td>$2-50 (auto-optimized)</td>
+<td>96% savings</td>
+</tr>
+<tr class="odd">
+<td><strong>Oracle Availability</strong></td>
+<td>3 chains</td>
+<td>15+ chains</td>
+<td>5x reach</td>
+</tr>
+<tr class="even">
+<td><strong>Evidence Management</strong></td>
+<td>Partner’s responsibility</td>
+<td>Unified via Pinata</td>
+<td>100% reliability</td>
+</tr>
+<tr class="odd">
+<td><strong>Partner Onboarding</strong></td>
+<td>2 weeks</td>
+<td>1 day (templates)</td>
+<td>93% faster</td>
+</tr>
+<tr class="even">
+<td><strong>Cross-Chain Disputes</strong></td>
+<td>Not possible</td>
+<td>Enabled</td>
+<td>NEW capability</td>
+</tr>
+<tr class="odd">
+<td><strong>Web2 Accessibility</strong></td>
+<td>Crypto-native only</td>
+<td>REST API (Stripe-like)</td>
+<td>10x market expansion</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total Value</strong>: <strong>$500k-1M/year</strong> in cost savings + <strong>10-13x market expansion</strong> (Web3 + Web2)</p>
+<hr />
+<h3 id="for-partners">For Partners</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 34%" />
+<col style="width: 27%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Benefit</th>
+<th>Without OASIS</th>
+<th>With OASIS</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Integration Time</strong></td>
+<td>1-2 weeks</td>
+<td>2-3 hours (SDK + templates)</td>
+<td>95% faster</td>
+</tr>
+<tr class="even">
+<td><strong>Multi-Chain Support</strong></td>
+<td>Deploy per chain manually</td>
+<td>Use same SDK, deploy everywhere</td>
+<td>10x reach</td>
+</tr>
+<tr class="odd">
+<td><strong>Arbitration Cost</strong></td>
+<td>Fixed per chain</td>
+<td>Auto-optimized ($2-50)</td>
+<td>50-95% savings</td>
+</tr>
+<tr class="even">
+<td><strong>Evidence Upload</strong></td>
+<td>Manual IPFS</td>
+<td>Handled by SDK</td>
+<td>Better UX</td>
+</tr>
+<tr class="odd">
+<td><strong>Testing</strong></td>
+<td>Manual</td>
+<td>Automated test suite provided</td>
+<td>80% faster</td>
+</tr>
+<tr class="even">
+<td><strong>Maintenance</strong></td>
+<td>Track multiple chains</td>
+<td>One SDK, auto-updated</td>
+<td>90% easier</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="the-pitch-refined-with-this-knowledge">🏆 THE PITCH (REFINED WITH THIS KNOWLEDGE)</h2>
+<h3 id="to-kleros-team">To Kleros Team</h3>
+<p>"Kleros has 5 amazing products. But they’re mostly on Ethereum - limited reach, high costs.</p>
+<p>I bring OASIS + AssetRail - your multi-chain operations platform:</p>
+<p><strong>Deploy</strong>: Generate contracts from templates, deploy to 15+ chains in 1 day<br />
+<strong>Monitor</strong>: See all disputes across all chains in one dashboard<br />
+<strong>Optimize</strong>: Auto-route disputes to cheapest chain (save partners 50-95%)<br />
+<strong>Expand</strong>: Enable Solana, Avalanche, Cosmos (unlock $50B+ ecosystem)<br />
+<strong>Scale</strong>: Auto-generate partner SDKs, reduce integration from 2 weeks to 2 hours</p>
+<p>This isn’t theory - these are production tools. AssetRail has deployed to 15 chains. OASIS has 50+ providers integrated.</p>
+<p><strong>ROI</strong>: Save $500k-1M/year in engineering costs, expand market 3-5x.</p>
+<p>And I’m not just bringing tools - I’m bringing integration methodology. I know which partners need Court vs Oracle vs Curate vs Escrow vs Governor. I know how to pitch each one."</p>
+<hr />
+<h3 id="to-partners-example-magic-eden-on-solana">To Partners (Example: Magic Eden on Solana)</h3>
+<p>"Magic Eden - you’re the #2 NFT marketplace, but you’re on Solana. Kleros is only on Ethereum/Polygon.</p>
+<p><strong>Problem</strong>: No decentralized arbitration for Solana NFTs.</p>
+<p><strong>Solution</strong>: I can deploy Kleros to Solana for you via AssetRail SC-Gen.</p>
+<p><strong>How it works</strong>: 1. We port Kleros arbitrator contract to Anchor/Rust (2 weeks) 2. Deploy to Solana via OASIS (1 day) 3. You integrate via simple SDK (2 hours) 4. Your users file disputes on Magic Eden UI (never leave your site) 5. Jurors vote on court.kleros.io (cross-chain jurors) 6. Ruling executed on Solana (automatic)</p>
+<p><strong>Differentiation</strong>: First Solana marketplace with decentralized disputes.</p>
+<p><strong>Cost</strong>: Arbitration on Solana is ~$0.50 (vs $50 on Ethereum).</p>
+<p><strong>Timeline</strong>: 4-6 weeks (port + deploy + integrate).</p>
+<p><strong>Result</strong>: Lower fraud, higher trust, competitive advantage.</p>
+<p>Let me show you the demo…"</p>
+<hr />
+<h2 id="bottom-line">🎯 BOTTOM LINE</h2>
+<h3 id="what-oasis-assetrail-add-to-kleros">What OASIS + AssetRail Add to Kleros</h3>
+<p>Not just “multi-chain support” - that’s too vague.</p>
+<p><strong>Specifically</strong>:</p>
+<ol type="1">
+<li><strong>Product Deployment</strong>: All 5 Kleros products on 15+ chains (vs 3-5 today)</li>
+<li><strong>Cost Optimization</strong>: Route to optimal chain, save partners 50-95%</li>
+<li><strong>Market Expansion</strong>: Solana, Cosmos, Avalanche (unlock $50B+)</li>
+<li><strong>Partner Velocity</strong>: Onboard 10x more partners (auto-SDKs, templates)</li>
+<li><strong>Operational Efficiency</strong>: $500k-1M/year savings (unified monitoring, automated deployment)</li>
+<li><strong>New Capabilities</strong>: Cross-chain disputes, universal oracle, synchronized registries</li>
+<li><strong>Evidence Management</strong>: Guaranteed pinning, backups, analytics</li>
+<li><strong>Integration Templates</strong>: 80% done before partner writes code</li>
+<li><strong>Web2 Accessibility</strong>: REST API makes Kleros available to 100,000+ non-blockchain companies (freelance platforms, e-commerce, SaaS, gig economy) - unlocking $13M+/year market</li>
+</ol>
+<p><strong>The difference</strong>: Kleros goes from <strong>Ethereum-focused arbitration</strong> to <strong>universal dispute resolution infrastructure for Web3 AND Web2</strong>.</p>
+<hr />
+<p><strong>Next Steps</strong>: Update the frontend POC to showcase these specific enhancements visually.</p>
+</body>
+</html>

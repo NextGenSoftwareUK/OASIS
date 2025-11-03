@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/splash_screen"
+    tools:context=".IntroActivity">
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/splash_screen"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="@dimen/m130dp"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/txtX"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorAccent"/>
+        <TextView
+            android:id="@+id/txtStore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"/>
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/layoutDots"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/dots_margin_bottom"
+        android:visibility="gone"
+        android:gravity="center"
+        android:orientation="horizontal"/>
+    <!-- Temporarily commented out - old library incompatible
+    <me.huseyinozer.TooltipIndicator
+        android:id="@+id/todays_dot_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/m20dp"
+        android:layout_marginTop="@dimen/m30dp"
+        android:layout_marginBottom="@dimen/dots_margin_bottom"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="bottom|center_horizontal"
+        android:layout_gravity="center_horizontal|bottom"
+        app:ti_lineHeight="5dp"
+        app:ti_lineMargin="5dp"
+        app:ti_lineWidth="@dimen/m50dp"
+        app:ti_lineWidthSelected="50dp"
+        app:ti_selectedLineDrawable="@drawable/tooltrip_active"
+        app:ti_unselectedLineDrawable="@drawable/tooltrip_unselected" />
+    -->
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:alpha=".5"
+        android:visibility="gone"
+        android:layout_above="@id/layoutDots"
+        android:background="@android:color/white" />
+
+
+
+</RelativeLayout>

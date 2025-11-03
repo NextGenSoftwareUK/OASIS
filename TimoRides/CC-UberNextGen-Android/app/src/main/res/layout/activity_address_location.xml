@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    tools:context=".home.AddressLocationActivity">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context="com.example.currentplacedetailsonmap.MapsActivityCurrentPlace"/>
+
+        <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/imgMyLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            card_view:cardElevation="@dimen/m15dp"
+            card_view:cardBackgroundColor="@color/colorWhite"
+            android:padding="@dimen/m5dp"
+            android:layout_margin="@dimen/m20dp"
+            card_view:cardCornerRadius="@dimen/m35dp"
+            card_view:cardUseCompatPadding="false"
+            android:background="@drawable/ic_menu_icon" >
+            <ImageView
+                android:id="@+id/ivBack"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:layout_margin="@dimen/m15dp"
+                android:tint="@color/colorGrey"
+                android:src="@drawable/ic_left_arrow"/>
+            <EditText
+                android:id="@+id/edtAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/Margin15dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="@dimen/m30dp"
+                android:text="1003,Abhishree Adroit,India"
+                android:background="@null"
+                android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/ivCancel"
+                android:layout_width="30dp"
+                android:layout_height="@dimen/m30dp"
+                android:layout_gravity="end"
+                android:layout_margin="@dimen/m20dp"
+                android:src="@drawable/ic_cancle"/>
+        </androidx.cardview.widget.CardView>
+
+
+        <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:card_view="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/cvCancel"
+            android:layout_width="@dimen/m50dp"
+            android:layout_height="@dimen/m50dp"
+            android:src="@drawable/ic_gps_fixed_indicator"
+            android:layout_marginBottom="@dimen/m100dp"
+            android:layout_marginRight="@dimen/Margin20dp"
+            android:layout_gravity="bottom|end"
+            card_view:cardBackgroundColor="@color/colorWhite"
+            card_view:cardCornerRadius="@dimen/m30dp"
+            card_view:cardUseCompatPadding="false">
+            <ImageView
+                android:layout_width="@dimen/m50dp"
+                android:layout_height="@dimen/m50dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_gps_fixed_indicator"/>
+        </androidx.cardview.widget.CardView>
+        <LinearLayout
+            android:id="@+id/llLetsgo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/Margin15dp"
+            android:background="@color/colorBlack"
+            android:gravity="center"
+            android:layout_gravity="bottom">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/colorWhite"
+                android:textSize="@dimen/s16sp"
+                android:text="Let's Go"/>
+        </LinearLayout>
+    </FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -97,3 +97,7 @@ public class OwnershipRecord
     public DateTimeOffset? AsOfTime { get; set; }
 }
 
+
+
+
+

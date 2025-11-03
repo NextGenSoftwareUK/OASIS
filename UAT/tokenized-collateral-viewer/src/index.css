@@ -1,0 +1,194 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050510;
+  --background-secondary: #0b1120;
+  --foreground: #e2f4ff;
+  --accent: #22d3ee;
+  --accent-soft: rgba(45, 212, 191, 0.12);
+  --accent-strong: rgba(14, 116, 144, 0.8);
+  --card: rgba(15, 23, 42, 0.6);
+  --card-border: rgba(56, 189, 248, 0.2);
+  --muted: rgba(148, 163, 184, 0.75);
+  --negative: rgba(239, 68, 68, 0.8);
+  --positive: rgba(34, 197, 94, 0.85);
+  --warning: rgba(250, 204, 21, 0.85);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-negative: var(--negative);
+  --color-positive: var(--positive);
+  --color-warning: var(--warning);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.1), transparent 45%),
+    radial-gradient(circle at 80% 10%, rgba(129, 140, 248, 0.12), transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.08), transparent 50%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.95) 0%, rgba(5, 5, 16, 0.95) 100%);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-attachment: fixed;
+}
+
+.gradient-ring::before {
+  background: linear-gradient(120deg, rgba(34, 211, 238, 0.85), rgba(191, 219, 254, 0.15), rgba(59, 130, 246, 0.65));
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0.5cm;
+    background-color: #050510;
+  }
+  
+  html, body {
+    background: #050510 !important;
+    background-image: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.1), transparent 45%),
+      radial-gradient(circle at 80% 10%, rgba(129, 140, 248, 0.12), transparent 40%),
+      radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.08), transparent 50%),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.95) 0%, rgba(5, 5, 16, 0.95) 100%) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    margin: 0;
+    padding: 0;
+  }
+  
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  /* Compact spacing for print */
+  h1 {
+    font-size: 20pt !important;
+  }
+  
+  h2 {
+    font-size: 14pt !important;
+    margin-bottom: 8pt !important;
+  }
+  
+  h3, h4 {
+    font-size: 11pt !important;
+  }
+  
+  p, li {
+    font-size: 9pt !important;
+    line-height: 1.3 !important;
+  }
+  
+  /* Reduce padding for print */
+  .p-10 {
+    padding: 1rem !important;
+  }
+  
+  .p-8 {
+    padding: 0.75rem !important;
+  }
+  
+  .py-8 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  
+  .gap-8 {
+    gap: 1rem !important;
+  }
+  
+  .gap-6 {
+    gap: 0.75rem !important;
+  }
+  
+  .mb-10 {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .mb-6 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Ensure grid columns work */
+  .grid {
+    display: grid !important;
+  }
+  
+  /* Force page breaks where needed */
+  .break-after {
+    page-break-after: always;
+  }
+  
+  /* Avoid breaking inside cards */
+  .rounded-lg {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Preserve grid layouts for print */
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  
+  /* Compact card padding */
+  .p-4 {
+    padding: 0.5rem !important;
+  }
+  
+  /* Smaller gaps in grids */
+  .gap-4 {
+    gap: 0.5rem !important;
+  }
+  
+  /* Smaller text in cards */
+  .text-xs {
+    font-size: 8pt !important;
+  }
+  
+  .text-sm {
+    font-size: 9pt !important;
+  }
+  
+  /* Make container full width for print */
+  .max-w-6xl {
+    max-width: 100% !important;
+  }
+  
+  /* Remove outer padding */
+  .min-h-screen {
+    min-height: auto !important;
+  }
+  
+  /* Compact header */
+  .text-4xl {
+    font-size: 24pt !important;
+  }
+  
+  .text-xl {
+    font-size: 14pt !important;
+  }
+  
+  .text-2xl {
+    font-size: 16pt !important;
+  }
+}

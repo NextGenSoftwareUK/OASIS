@@ -1,0 +1,30 @@
+.star-icon:hover {
+  cursor: pointer;
+}
+
+.primary {
+  color: var(--color-main);
+}
+
+.secondary {
+  color: var(--color-alt);
+}
+
+.dark {
+  color: var(--color-dark);
+}
+
+.sm {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.md {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.lg {
+  font-size: 20px;
+  font-weight: 800;
+}

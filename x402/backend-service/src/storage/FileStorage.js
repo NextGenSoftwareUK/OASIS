@@ -146,11 +146,33 @@ async function getAllX402EnabledNFTs() {
   }
 }
 
-module.exports = {
-  storeX402Config,
-  getX402Config,
-  recordX402Distribution,
-  getX402Distributions,
-  getAllX402EnabledNFTs
-};
+class FileStorage {
+  constructor(dataDir) {
+    this.dataDir = dataDir || path.join(__dirname, '../../data');
+    this.X402_CONFIG_FILE = path.join(this.dataDir, 'x402-config.json');
+    this.X402_DISTRIBUTIONS_FILE = path.join(this.dataDir, 'x402-distributions.json');
+  }
+
+  async storeConfig(nftMintAddress, x402Config) {
+    return await storeX402Config(nftMintAddress, x402Config);
+  }
+
+  async getConfig(nftMintAddress) {
+    return await getX402Config(nftMintAddress);
+  }
+
+  async recordDistribution(distribution) {
+    return await recordX402Distribution(distribution);
+  }
+
+  async getDistributions(nftMintAddress, limit) {
+    return await getX402Distributions(nftMintAddress, limit);
+  }
+
+  async getAllEnabledNFTs() {
+    return await getAllX402EnabledNFTs();
+  }
+}
+
+module.exports = FileStorage;
 

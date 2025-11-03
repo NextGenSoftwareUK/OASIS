@@ -108,7 +108,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         /// <summary>
         /// Handle text messages and commands
         /// </summary>
-        private async Task HandleMessageAsync(Message message, CancellationToken cancellationToken)
+        private async Task HandleMessageAsync(Telegram.Bot.Types.Message message, CancellationToken cancellationToken)
         {
             var chatId = message.Chat.Id;
             var text = message.Text;
@@ -880,7 +880,7 @@ Keep crushing it! 🚀
         /// Caption format: wallet | title | description
         /// Example: 7vXZK6... | Achievement Badge | Completed my challenge!
         /// </summary>
-        private async Task HandlePhotoMessageAsync(Message message, CancellationToken cancellationToken)
+        private async Task HandlePhotoMessageAsync(Telegram.Bot.Types.Message message, CancellationToken cancellationToken)
         {
             try
             {

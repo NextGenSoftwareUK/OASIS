@@ -1,0 +1,27 @@
+<main class="booked-trips">
+  <h2>All Booked Trips</h2>
+  <div class="table-section">
+    <table>
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Driver</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let trip of trips$ | async">
+          <td>{{ trip.fullName }}</td>
+          <td>{{ trip.car.driver.fullName }}</td>
+          <td>{{ trip.tripAmount }}</td>
+          <td>{{ trip.status }}</td>
+          <td>
+            <button (click)="editTripAmount(trip)">Edit Amount</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>

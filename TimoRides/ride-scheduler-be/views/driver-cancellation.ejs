@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Car Listings</title>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      tr {
+        padding: 8px;
+      }
+      img {
+        width: 100px;
+        height: auto;
+      }
+      .btn {
+        background-color: #4caf50;
+        border: none;
+        padding: 0.5rem 1rem;
+        color: #fff;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .see-more-btn {
+        margin-top: 50px;
+      }
+      .spacer {
+        height: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <table>
+      <tbody>
+        <tr>
+          <td
+            style="
+              font-family: sans-serif;
+              font-size: 14px;
+              vertical-align: top;
+            "
+            valign="top"
+          >
+            <h3
+              style="
+                color: #06090f;
+                font-family: sans-serif;
+                line-height: 1.4;
+                margin: 0;
+                margin-bottom: 30px;
+                font-size: 35px;
+                font-weight: 300;
+                text-align: center;
+                text-transform: capitalize;
+              "
+            >
+              Hi <%= booker %>, we are so sorry
+            </h3>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <p>
+              Driver canceled the ride request, please book other available
+              drivers.
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table>
+      <tbody>
+        <% if (cars.length > 0) { %> <% cars.forEach(function(car) { %>
+        <tr>
+          <td class="">
+            <tr>
+              <td>
+                <% if (car.imagePath && car.imagePath !== "null") { %>
+                <img src="<%= car.imagePath %>" alt="Car Image" />
+                <% } else { %> No Image Available <% } %>
+              </td>
+              <td>
+                <strong>Model:</strong> <%= car.vehicleModel %><br />
+                <strong>Rating:</strong> <%= car.rating %><br />
+                <strong>Color:</strong> <%= car.vehicleColor %>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top: 1rem">
+                <a
+                  href="<%=baseUrl %>/ride-schedule/cars/<%= car.id %>?sourceLat=<%= sourceLatitude %>&sourceLong=<%= sourceLongitude %>&destLat=<%= destinationLatitude %>&destLong=<%= destinationLongitude %>&state=<%= state %>&bookingId=<%= bookingId %>&scheduledDate=<%= scheduledDate %>"
+                  target="_blank"
+                  class="btn"
+                  >Select car</a
+                >
+              </td>
+            </tr>
+            <tr>
+              <td
+                colspan="2"
+                class="td-div"
+                style="
+                  font-family: sans-serif;
+                  font-size: 14px;
+                  vertical-align: top;
+                  border-bottom: #eee 1px solid;
+                  padding-top: 1rem;
+                "
+                valign="top"
+              ></td>
+            </tr>
+            <tr class="spacer">
+              <td colspan="2"></td>
+            </tr>
+            <% }); %> <% } %>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="see-more-btn">
+      <a
+        href="<%=baseUrl %>/ride-schedule/cars?sourceLat=<%= sourceLatitude %>&sourceLong=<%= sourceLongitude %>&destLat=<%= destinationLatitude %>&destLong=<%= destinationLongitude %>&state=<%= state %>&bookingId=<%= bookingId %>&scheduledDate=<%= scheduledDate %>"
+        target="_blank"
+        class="btn"
+        >See more</a
+      >
+    </div>
+  </body>
+</html>

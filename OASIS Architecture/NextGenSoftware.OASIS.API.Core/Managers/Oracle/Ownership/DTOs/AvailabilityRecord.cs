@@ -18,3 +18,7 @@ public class AvailabilityRecord
     public int ConsensusLevel { get; set; }
 }
 
+
+
+
+
