@@ -515,22 +515,22 @@
 
 //        #region IOASISNFTProvider
 
-//        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+//        public OASISResult<IWeb4NFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
 //        {
 //            throw new NotImplementedException();
 //        }
 
-//        public Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+//        public Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
 //        {
 //            throw new NotImplementedException();
 //        }
 
-//        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+//        public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
 //        {
 //            throw new NotImplementedException();
 //        }
 
-//        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+//        public Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
 //        {
 //            throw new NotImplementedException();
 //        }

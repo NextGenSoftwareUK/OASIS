@@ -23,8 +23,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddres, decimal amount, string memoText);
 
         //TODO: Implement ASAP!
-        //public OASISResult<INFTTransactionRespone> MintToken(IMintNFTTransactionRequest transation);
-        //public Task<OASISResult<INFTTransactionRespone>> MintTokenAsync(IMintNFTTransactionRequest transation);
+        //public OASISResult<IWeb4NFTTransactionRespone> MintToken(IMintNFTTransactionRequest transation);
+        //public Task<OASISResult<IWeb4NFTTransactionRespone>> MintTokenAsync(IMintNFTTransactionRequest transation);
 
         //public OASISResult<ITransactionRespone> BurnToken(string tokenAddress);
         //public Task<OASISResult<ITransactionRespone>> BurnTokenAsync(string tokenAddress);

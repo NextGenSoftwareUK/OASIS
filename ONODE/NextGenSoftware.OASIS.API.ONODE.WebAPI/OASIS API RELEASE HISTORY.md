@@ -838,10 +838,10 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/1d5df5e1efec249cbf1cb36d3407638be0d36798
 - Started upgradding OASIS to .NET 7 making it even faster, more reliable, secure than ever! :).NET 7 is the fastest .NET yet!
 - Added CheckForTransactionErrors method to ErrorHandling in NextGenSoftware.OASIS.Core.
-- SendNFT & SendNFTAsync methods in IOASISNFTProvider interface now return OASISResult<TransactionRespone> instead of OASISResult<NFTTransactionRespone>.
-- Renamed NFTTransactionRespone to TransactionRespone in OASIS.Core.
+- SendNFT & SendNFTAsync methods in IOASISNFTProvider interface now return OASISResult<TransactionRespone> instead of OASISResult<Web4NFTTransactionRespone>.
+- Renamed Web4NFTTransactionRespone to TransactionRespone in OASIS.Core.
 - Renamed ProviderActivated to IsProviderActivated in OASISProvider in OASIS.Core.
-- CreateNftTransaction in NFTManager in OASIS.API.ONODE.Core now returns OASISResult<TransactionRespone> instead of OASISResult<NFTTransactionRespone>.
+- CreateNftTransaction in NFTManager in OASIS.API.ONODE.Core now returns OASISResult<TransactionRespone> instead of OASISResult<Web4NFTTransactionRespone>.
 - Renamed NextGenSoftware.OASIS.API.ONODE.BLL to NextGenSoftware.OASIS.API.ONODE.Core.
 - Renamed NextGenSoftware.OASIS.API.ONODE.BLL.TestHarness to NextGenSoftware.OASIS.API.ONODE.Core.TestHarness.
 - Renamed all instances of GetAndActivateDefaultProvider to GetAndActivateDefaultStorageProvider across the OASIS.

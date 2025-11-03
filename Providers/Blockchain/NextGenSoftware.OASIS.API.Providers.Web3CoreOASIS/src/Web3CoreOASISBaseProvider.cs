@@ -1888,13 +1888,13 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transaction)
+    public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transaction)
         => SendNFTAsync(transaction).Result;
 
 
-    public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transaction)
+    public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transaction)
     {
-        OASISResult<INFTTransactionRespone> result = new();
+        OASISResult<IWeb4NFTTransactionRespone> result = new();
         string errorMessage = "Error in SendNFTAsync method in Web3CoreOASIS while sending nft. Reason: ";
 
         if (transaction.Amount <= 0)
@@ -1923,9 +1923,9 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
                 transaction.MemoText
             );
 
-            INFTTransactionRespone response = new NFTTransactionRespone
+            IWeb4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new OASISNFT()
+                Web4OASISNFT = new Web4OASISNFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = transactionHash
@@ -1953,12 +1953,12 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+    public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
         => MintNFTAsync(transation).Result;
 
-    public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transaction)
+    public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transaction)
     {
-        OASISResult<INFTTransactionRespone> result = new();
+        OASISResult<IWeb4NFTTransactionRespone> result = new();
         string errorMessage = "Error in MintNFTAsync method in Web3CoreOASIS while minting nft. Reason: ";
 
         if (_web3CoreOASIS is null)
@@ -1974,9 +1974,9 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             //string transactionHash = await _web3CoreOASIS.MintAsync(transaction.MintWalletAddress, metadataJson);
             string transactionHash = await _web3CoreOASIS.MintAsync(transaction.SendToAddressAfterMinting, metadataJson);
 
-            INFTTransactionRespone response = new NFTTransactionRespone
+            IWeb4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new OASISNFT()
+                Web4OASISNFT = new Web4OASISNFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = transactionHash
@@ -2004,12 +2004,12 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+    public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress)
     {
         throw new NotImplementedException();
     }
 
-    public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    public Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
         throw new NotImplementedException();
     }

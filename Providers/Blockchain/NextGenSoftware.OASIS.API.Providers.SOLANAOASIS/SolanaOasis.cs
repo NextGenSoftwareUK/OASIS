@@ -1768,19 +1768,19 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transaction)
+    public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transaction)
         => SendNFTAsync(transaction).Result;
 
 
-    public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transaction)
+    public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transaction)
     {
         ArgumentNullException.ThrowIfNull(transaction);
 
-        OASISResult<INFTTransactionRespone> result = new();
+        OASISResult<IWeb4NFTTransactionRespone> result = new();
         try
         {
             OASISResult<SendTransactionResult> solanaNftTransactionResult =
-                await _solanaService.SendNftAsync(transaction as NFTWalletTransactionRequest);
+                await _solanaService.SendNftAsync(transaction as Web4NFTWalletTransactionRequest);
 
             if (solanaNftTransactionResult.IsError ||
                 string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
@@ -1793,7 +1793,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             result.IsError = false;
             result.IsSaved = true;
-            result.Result = new NFTTransactionRespone()
+            result.Result = new Web4NFTTransactionRespone()
             {
                 TransactionResult = solanaNftTransactionResult.Result.TransactionHash
             };
@@ -2291,22 +2291,22 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     //    throw new NotImplementedException();
     //}
 
-    public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+    public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
     {
         return MintNFTAsync(transation).Result;
     }
 
-    public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(
-        IMintNFTTransactionRequest transaction)
+    public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(
+        IMintWeb4NFTTRequest transaction)
     {
         ArgumentNullException.ThrowIfNull(transaction);
 
-        OASISResult<INFTTransactionRespone> result = new(new NFTTransactionRespone());
+        OASISResult<IWeb4NFTTransactionRespone> result = new(new Web4NFTTransactionRespone());
 
         try
         {
             OASISResult<MintNftResult> solanaNftTransactionResult
-                = await _solanaService.MintNftAsync(transaction as MintNFTTransactionRequest);
+                = await _solanaService.MintNftAsync(transaction as MintWeb4NFTRequest);
 
             if (solanaNftTransactionResult.IsError ||
                 string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
@@ -2320,7 +2320,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             result.IsError = false;
             result.IsSaved = true;
 
-            OASISNFT OASISNFT = new OASISNFT()
+            Web4OASISNFT Web4OASISNFT = new Web4OASISNFT()
             {
                 MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash,
                 NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount,
@@ -2329,20 +2329,20 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 Symbol = transaction.Symbol
             };
 
-            //OASISResult<IOASISNFT> oasisNFT = await LoadOnChainNFTDataAsync(solanaNftTransactionResult.Result.MintAccount);
+            //OASISResult<IWeb4OASISNFT> oasisNFT = await LoadOnChainNFTDataAsync(solanaNftTransactionResult.Result.MintAccount);
 
             //if (oasisNFT != null && oasisNFT.Result != null && !oasisNFT.IsError)
             //{
             //    oasisNFT.Result.NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount;
             //    oasisNFT.Result.MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash;
             //    oasisNFT.Result.OASISMintWalletAddress = _oasisSolanaAccount.PublicKey;
-            //    OASISNFT = (OASISNFT)oasisNFT.Result;
+            //    Web4OASISNFT = (Web4OASISNFT)oasisNFT.Result;
             //}
 
             //This is now handled by NFTManager! ;-)
             //if (!string.IsNullOrEmpty(transaction.SendToAddressAfterMinting))
             //{
-            //    OASISResult<INFTTransactionRespone> sendNftResult = await SendNFTAsync(new NFTWalletTransactionRequest()
+            //    OASISResult<IWeb4NFTTransactionRespone> sendNftResult = await SendNFTAsync(new NFTWalletTransactionRequest()
             //    {
             //        FromWalletAddress = _oasisSolanaAccount.PublicKey,
             //        ToWalletAddress = transaction.SendToAddressAfterMinting,
@@ -2358,7 +2358,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             //        result.Result.SendNFTTransactionResult = sendNftResult.Result.TransactionResult;
             //}
 
-            result.Result.OASISNFT = OASISNFT;
+            result.Result.Web4OASISNFT = Web4OASISNFT;
             result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
            
         }
@@ -2370,14 +2370,14 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+    public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress)
     {
         return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
     }
 
-    public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    public async Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
-        OASISResult<IOASISNFT> result = new();
+        OASISResult<IWeb4OASISNFT> result = new();
 
         try
         {
