@@ -1,0 +1,91 @@
+<div class="app-ride-form">
+  <form (submit)="handleSubmit($event)">
+    <h3>Book your ride today!</h3>
+
+    <!-- Search pickup location -->
+    <app-input-group
+      [inputConfig]="{
+        label: 'Pickup Location',
+        isRequired: true,
+        placeholder: 'E.g. St. John\'s Street',
+        id: 'pickupLocation',
+        theme: 'light'
+      }"
+      inputType="text"
+      controlName="pickupLocation"
+      [form]="bookingForm"
+    ></app-input-group>
+
+    <!-- Search Drop off location -->
+    <app-input-group
+      [inputConfig]="{
+        label: 'DropOff Location',
+        isRequired: true,
+        placeholder: 'E.g. St. John\'s Street',
+        id: 'dropOffLocation',
+        theme: 'light'
+      }"
+      inputType="text"
+      controlName="dropOffLocation"
+      [form]="bookingForm"
+    ></app-input-group>
+
+    <div class="date-time-container">
+      <!-- Pick up Date -->
+      <app-input-group
+        class="date-picker"
+        [inputConfig]="{
+          label: 'Trip Date',
+          isRequired: true,
+          placeholder: 'E.g. 01/01/2024',
+          id: 'rideDate',
+          theme: 'light',
+          min: currentDate
+        }"
+        inputType="date"
+        controlName="rideDate"
+        [form]="bookingForm"
+      ></app-input-group>
+      <!-- time -->
+      <app-input-group
+        class="time-picker"
+        [inputConfig]="{
+          label: 'Time',
+          isRequired: true,
+          placeholder: 'E.g. 12:00',
+          id: 'rideTime',
+          theme: 'light'
+        }"
+        inputType="time"
+        controlName="rideTime"
+        [form]="bookingForm"
+      ></app-input-group>
+    </div>
+
+    <!-- text name -->
+    <app-input-group
+      [inputConfig]="{
+        label: 'Number of Passengers',
+        isRequired: true,
+        placeholder: '2',
+        id: 'passengers',
+        theme: 'light',
+        min: '1'
+      }"
+      inputType="number"
+      controlName="passengers"
+      [form]="bookingForm"
+    ></app-input-group>
+
+    <!-- Action button -->
+    <app-button
+      [btnConfig]="{
+        label: 'Confirm Car Booking',
+        size: 'sm',
+        theme: 'primary',
+        block: true,
+        disabled: bookingForm.invalid
+      }"
+    ></app-button>
+  </form>
+</div>

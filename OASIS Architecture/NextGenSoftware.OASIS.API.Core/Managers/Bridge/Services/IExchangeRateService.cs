@@ -22,3 +22,7 @@ public interface IExchangeRateService
         CancellationToken token = default);
 }
 
+
+
+
+

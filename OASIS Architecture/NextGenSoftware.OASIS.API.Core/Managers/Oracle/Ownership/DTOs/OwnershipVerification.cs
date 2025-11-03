@@ -15,3 +15,7 @@ public class OwnershipVerification
     public DateTimeOffset VerifiedAt { get; set; }
 }
 
+
+
+
+

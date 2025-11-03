@@ -1,0 +1,39 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Polygon Logo - Hexagon with connected nodes -->
+  <g filter="url(#glow)">
+    <path d="M24 4L40 14V34L24 44L8 34V14L24 4Z" stroke="url(#grad1)" strokeWidth="2.5" fill="none"/>
+    <path d="M24 4L40 14L24 24L8 14L24 4Z" fill="url(#grad2)" opacity="0.6"/>
+    <path d="M24 24L40 34L24 44L8 34L24 24Z" fill="url(#grad3)" opacity="0.4"/>
+    <circle cx="24" cy="24" r="3" fill="#A855F7"/>
+    <circle cx="24" cy="4" r="2" fill="#C084FC"/>
+    <circle cx="40" cy="14" r="2" fill="#C084FC"/>
+    <circle cx="40" cy="34" r="2" fill="#C084FC"/>
+    <circle cx="24" cy="44" r="2" fill="#C084FC"/>
+    <circle cx="8" cy="34" r="2" fill="#C084FC"/>
+    <circle cx="8" cy="14" r="2" fill="#C084FC"/>
+  </g>
+  <defs>
+    <linearGradient id="grad1" x1="24" y1="4" x2="24" y2="44">
+      <stop offset="0%" stopColor="#C084FC"/>
+      <stop offset="100%" stopColor="#A855F7"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="24" y1="4" x2="24" y2="24">
+      <stop offset="0%" stopColor="#C084FC"/>
+      <stop offset="100%" stopColor="#A855F7"/>
+    </linearGradient>
+    <linearGradient id="grad3" x1="24" y1="24" x2="24" y2="44">
+      <stop offset="0%" stopColor="#A855F7"/>
+      <stop offset="100%" stopColor="#7C3AED"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
+
+

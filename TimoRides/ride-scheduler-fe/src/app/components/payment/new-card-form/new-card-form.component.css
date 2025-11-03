@@ -1,0 +1,36 @@
+.new-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.payment-cards-container {
+  border: 2px solid #cec7c7;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+
+.required {
+  color: var(--error);
+}
+
+.card-exp-ccv-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.card-section,
+.ccv-section {
+  flex: 1;
+}
+
+@media screen and (max-width: 523px) {
+  .card-exp-ccv-container {
+    flex-direction: column;
+  }
+
+  .new-card-form {
+    padding: 10px 0;
+  }
+}

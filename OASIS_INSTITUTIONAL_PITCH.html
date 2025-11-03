@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS - Infrastructure for Cross-Chain Finance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Play:wght@400;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #050510;
+            color: #e2f4ff;
+            overflow: hidden;
+        }
+        
+        .slide {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            padding: 80px 120px;
+            position: relative;
+        }
+        
+        .slide.active { display: flex; flex-direction: column; justify-content: center; }
+        
+        h1 {
+            font-family: 'Play', sans-serif;
+            font-size: 4.5em;
+            font-weight: 700;
+            color: #22d3ee;
+            margin-bottom: 40px;
+            line-height: 1.1;
+        }
+        
+        h2 {
+            font-family: 'Play', sans-serif;
+            font-size: 2.8em;
+            font-weight: 700;
+            color: #e2f4ff;
+            margin: 40px 0 30px 0;
+        }
+        
+        h3 {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #22d3ee;
+            margin: 25px 0 15px 0;
+        }
+        
+        p, li {
+            font-size: 1.4em;
+            line-height: 1.7;
+            color: #94a3b8;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            font-size: 1.3em;
+        }
+        
+        th {
+            background: rgba(34, 211, 238, 0.1);
+            color: #22d3ee;
+            padding: 20px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid #22d3ee;
+        }
+        
+        td {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            color: #e2f4ff;
+        }
+        
+        tr:hover { background: rgba(34, 211, 238, 0.05); }
+        
+        .stat-box {
+            background: rgba(8, 10, 25, 0.85);
+            border: 2px solid rgba(34, 211, 238, 0.3);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .stat-number {
+            font-size: 4.5em;
+            font-weight: 800;
+            color: #22d3ee;
+            font-family: 'Play', sans-serif;
+        }
+        
+        .stat-label {
+            font-size: 1.3em;
+            color: #94a3b8;
+            margin-top: 15px;
+        }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
+        
+        .highlight {
+            background: rgba(34, 211, 238, 0.1);
+            border-left: 5px solid #22d3ee;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        
+        .nav-button {
+            position: fixed;
+            bottom: 40px;
+            background: #22d3ee;
+            color: #041321;
+            border: none;
+            padding: 15px 35px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-button:hover { background: #38e0ff; transform: translateY(-2px); }
+        .nav-prev { left: 40px; }
+        .nav-next { right: 40px; }
+        
+        .page-num {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #22d3ee;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .section-header {
+            font-size: 1.6em;
+            color: #22d3ee;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+        
+        ul { list-style: none; }
+        li:before { content: "•"; color: #22d3ee; font-weight: bold; margin-right: 12px; }
+        
+        .center { text-align: center; }
+        .large { font-size: 2em; }
+        .huge { font-size: 3em; font-weight: 800; color: #22d3ee; }
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Cover -->
+<div class="slide active center">
+    <h1 style="font-size: 6em; margin-bottom: 50px;">OASIS</h1>
+    <h2 style="color: #22d3ee;">infrastructure for cross-chain finance</h2>
+    <p style="margin-top: 100px; font-size: 1.5em;">Version 1.0 | November 2025</p>
+</div>
+
+<!-- Slide 2: Agenda -->
+<div class="slide">
+    <h1>AGENDA</h1>
+    <div style="font-size: 2.5em; line-height: 2.5; margin-top: 80px;">
+        <p><strong style="color: #22d3ee;">1</strong> Why Cross-Chain Infrastructure</p>
+        <p><strong style="color: #22d3ee;">2</strong> Why OASIS as Infrastructure</p>
+        <p><strong style="color: #22d3ee;">3</strong> Why Web4 Tokens as an Asset</p>
+    </div>
+</div>
+
+<!-- Slide 3: Internet Disruption -->
+<div class="slide">
+    <h1>Internet is a $trillion disruption</h1>
+    <p class="large" style="margin-bottom: 50px;">The internet disrupted industries creating $tn companies</p>
+    
+    <table>
+        <tr>
+            <th>Media</th>
+            <th>Commerce</th>
+            <th>Finance (Web2)</th>
+            <th>Finance (Web3)</th>
+        </tr>
+        <tr>
+            <td><strong>FROM</strong><br>Blockbuster<br>Peak: $5bn (2004)<br>Bankrupt 2010</td>
+            <td><strong>FROM</strong><br>Borders<br>Peak: $23bn (2007)<br>Bankrupt 2018</td>
+            <td><strong>FROM</strong><br>Traditional Finance<br>Local, slow, fragmented<br>$500T+ locked</td>
+            <td><strong>FROM</strong><br>Fragmented Chains<br>50+ isolated networks<br>Bridge hacks: $2.5B+</td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.1);">
+            <td><strong style="color: #22d3ee;">TO</strong><br>Netflix<br>$520bn market cap</td>
+            <td><strong style="color: #22d3ee;">TO</strong><br>Amazon<br>$2.5tn market cap</td>
+            <td><strong style="color: #22d3ee;">TO</strong><br>DeFi<br>$100B TVL<br>24/7 global</td>
+            <td><strong style="color: #22d3ee;">TO</strong><br><strong>OASIS</strong><br>Unified, bridge-less<br>$68T opportunity</td>
+        </tr>
+    </table>
+</div>
+
+<!-- Slide 4: Blockchain Fragmentation -->
+<div class="slide">
+    <h1>Blockchain fragmentation is a $2 trillion problem</h1>
+    
+    <div class="grid-2" style="margin-top: 60px;">
+        <div>
+            <h3>Bridge Vulnerability Crisis</h3>
+            <table style="font-size: 1.2em;">
+                <tr><th>Bridge Hack</th><th>Amount Lost</th><th>Date</th></tr>
+                <tr><td>Ronin</td><td style="color: #ef4444;">$625M</td><td>March 2022</td></tr>
+                <tr><td>Wormhole</td><td style="color: #ef4444;">$325M</td><td>Feb 2022</td></tr>
+                <tr><td>Multichain</td><td style="color: #ef4444;">$1B+</td><td>July 2023</td></tr>
+                <tr><td>Nomad</td><td style="color: #ef4444;">$190M</td><td>Aug 2022</td></tr>
+                <tr><td>Harmony</td><td style="color: #ef4444;">$100M</td><td>June 2022</td></tr>
+                <tr style="background: rgba(239, 68, 68, 0.1);"><td><strong>TOTAL</strong></td><td><strong style="color: #ef4444; font-size: 1.3em;">$2.5B+</strong></td><td></td></tr>
+            </table>
+        </div>
+        
+        <div>
+            <h3>Liquidity Fragmentation</h3>
+            <p style="margin: 20px 0;">USDC Supply: $30B (fragmented across 15+ chains)</p>
+            <table style="font-size: 1.2em;">
+                <tr><th>Chain</th><th>USDC Supply</th><th>%</th></tr>
+                <tr><td>Ethereum</td><td>$20B</td><td>67%</td></tr>
+                <tr><td>Solana</td><td>$3B</td><td>10%</td></tr>
+                <tr><td>Polygon</td><td>$2B</td><td>7%</td></tr>
+                <tr><td>Arbitrum</td><td>$2B</td><td>7%</td></tr>
+                <tr><td>Optimism</td><td>$1B</td><td>3%</td></tr>
+                <tr><td>Others</td><td>$2B</td><td>6%</td></tr>
+            </table>
+            <p style="margin-top: 20px; font-size: 1.1em;"><strong style="color: #ef4444;">Result:</strong> Capital inefficiency, poor UX, no unified liquidity</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: RWA Market Blocked -->
+<div class="slide">
+    <h1>Finance has not yet been tokenized (largest category)</h1>
+    <p class="large">Traditional finance is massive (>$500tn), but fragmentation blocks tokenization</p>
+    
+    <div class="grid-2" style="margin-top: 60px;">
+        <div>
+            <h3>Global Traditional Finance Market Size</h3>
+            <table>
+                <tr><th>Asset Class</th><th>Market Size</th></tr>
+                <tr><td>Derivatives (notional)</td><td>$600-800T</td></tr>
+                <tr><td>Real Estate</td><td>$380T</td></tr>
+                <tr><td>Global Debt</td><td>$310T</td></tr>
+                <tr><td>Public Equities</td><td>$110T</td></tr>
+                <tr><td>Insurance</td><td>$40T</td></tr>
+                <tr><td>Gold</td><td>$23T</td></tr>
+                <tr><td>Private Markets / PE</td><td>$13T</td></tr>
+                <tr><td>Private Credit</td><td>$3T</td></tr>
+                <tr style="background: rgba(34, 211, 238, 0.15);"><td><strong>TOTAL</strong></td><td><strong style="color: #22d3ee; font-size: 1.3em;">$900T+</strong></td></tr>
+            </table>
+        </div>
+        
+        <div>
+            <h3>Current State: Tokenized</h3>
+            <div class="stat-box" style="margin-top: 40px;">
+                <div class="stat-number">$300B</div>
+                <div class="stat-label">Today (0.03% of market)</div>
+            </div>
+            
+            <h3 style="margin-top: 50px;">Why So Low?</h3>
+            <ul style="font-size: 1.2em; margin-top: 20px;">
+                <li>Must choose ONE blockchain</li>
+                <li>Excludes investors on other chains</li>
+                <li>Compliance nightmare per chain</li>
+                <li>No unified liquidity</li>
+                <li>Bridge risk blocks institutions</li>
+            </ul>
+            
+            <p style="margin-top: 40px; font-size: 1.5em;"><strong style="color: #ef4444;">99.97% of global assets remain untokenized</strong></p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 6: Tokenization Growth -->
+<div class="slide">
+    <h1>Tokenization transforms finance</h1>
+    <p class="large">By 2030, $68tn of financial assets will be tokenized</p>
+    
+    <div class="grid-3" style="margin-top: 80px;">
+        <div class="stat-box">
+            <div class="stat-number">$300B</div>
+            <div class="stat-label">2024<br>Current State</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">$16T</div>
+            <div class="stat-label">2027<br>53x growth (BCG)</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">$68T</div>
+            <div class="stat-label">2030<br>227x growth (McKinsey)</div>
+        </div>
+    </div>
+    
+    <h3 style="margin-top: 80px;">Enablers of Growth</h3>
+    <ul style="font-size: 1.3em;">
+        <li><strong>Cross-chain infrastructure scaling</strong> (OASIS eliminates bridges)</li>
+        <li><strong>Regulatory clarity</strong> and institutional standards</li>
+        <li><strong>Institutional adoption</strong> (banks, asset managers)</li>
+        <li><strong>Demand for fractionalization</strong>, 24/7 trading, global access</li>
+    </ul>
+    
+    <p class="large" style="margin-top: 60px; text-align: center;">
+        <strong>OASIS solves the infrastructure problem blocking this growth</strong>
+    </p>
+</div>
+
+<!-- Slide 7: Section 2 Intro -->
+<div class="slide">
+    <h1>AGENDA</h1>
+    <div style="font-size: 2.5em; line-height: 2.5; margin-top: 80px;">
+        <p style="opacity: 0.4;"><strong>1</strong> Why Cross-Chain Infrastructure</p>
+        <p><strong style="color: #22d3ee;">2</strong> Why OASIS as Infrastructure</p>
+        <p style="opacity: 0.4;"><strong>3</strong> Why Web4 Tokens as an Asset</p>
+    </div>
+</div>
+
+<!-- Slide 8: OASIS vs Competitors -->
+<div class="slide">
+    <h1>OASIS is early, but leads on all metrics</h1>
+    
+    <table>
+        <tr>
+            <th>Metric</th>
+            <th>OASIS</th>
+            <th>LayerZero ($3B)</th>
+            <th>Wormhole ($2.5B)</th>
+            <th>Axelar ($1B)</th>
+        </tr>
+        <tr>
+            <td><strong>Bridge-Less Architecture</strong></td>
+            <td style="color: #22d3ee;">✓ YES</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+        </tr>
+        <tr>
+            <td><strong>Bridge Hacks (Total)</strong></td>
+            <td style="color: #22d3ee;"><strong>$0</strong></td>
+            <td style="color: #facc15;">At Risk</td>
+            <td style="color: #ef4444;"><strong>$325M</strong></td>
+            <td style="color: #facc15;">At Risk</td>
+        </tr>
+        <tr>
+            <td><strong>100% Uptime Guarantee</strong></td>
+            <td style="color: #22d3ee;">✓ YES</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+        </tr>
+        <tr>
+            <td><strong>Auto-Optimization (Gas/Speed)</strong></td>
+            <td style="color: #22d3ee;">✓ YES (60-90% savings)</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+        </tr>
+        <tr>
+            <td><strong>Chains/Providers Supported</strong></td>
+            <td style="color: #22d3ee;"><strong>50+</strong></td>
+            <td>50+</td>
+            <td>30</td>
+            <td>45</td>
+        </tr>
+        <tr>
+            <td><strong>RWA Tokenization Support</strong></td>
+            <td style="color: #22d3ee;">✓ Built-in (UAT)</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+        </tr>
+        <tr>
+            <td><strong>Compliance Infrastructure</strong></td>
+            <td style="color: #22d3ee;">✓ Cross-chain KYC/AML</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+            <td style="color: #ef4444;">✗ NO</td>
+        </tr>
+        <tr>
+            <td><strong>Years in Production</strong></td>
+            <td style="color: #22d3ee;"><strong>4+</strong></td>
+            <td>2</td>
+            <td>3</td>
+            <td>3</td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.1);">
+            <td><strong>Current Valuation</strong></td>
+            <td><strong style="color: #22d3ee; font-size: 1.2em;">$500M-$1B*</strong></td>
+            <td>$3B</td>
+            <td>$2.5B</td>
+            <td>$1B</td>
+        </tr>
+    </table>
+    
+    <p style="margin-top: 30px; font-size: 1.1em;">*Series A pre-money target</p>
+</div>
+
+<!-- Slide 9: Scale Comparison -->
+<div class="slide">
+    <h1>OASIS has the scale needed for digital finance</h1>
+    
+    <table>
+        <tr>
+            <th>Feature</th>
+            <th>Traditional Bridges</th>
+            <th>Single Chain</th>
+            <th>OASIS Web4</th>
+        </tr>
+        <tr>
+            <td><strong>Cross-chain transfer time</strong></td>
+            <td>10-30 minutes</td>
+            <td>N/A (single chain only)</td>
+            <td style="color: #22d3ee;"><strong>5-30 seconds</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Transaction cost</strong></td>
+            <td>$10-$50 (bridge + gas)</td>
+            <td>$0.001-$50 (varies by chain)</td>
+            <td style="color: #22d3ee;"><strong>$0.001-$0.01</strong> (auto-optimized)</td>
+        </tr>
+        <tr>
+            <td><strong>Chains accessible</strong></td>
+            <td>2 at a time</td>
+            <td>1</td>
+            <td style="color: #22d3ee;"><strong>50+ simultaneously</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Bridge hack risk</strong></td>
+            <td style="color: #ef4444;">HIGH ($2.5B+ lost)</td>
+            <td>None (but isolated)</td>
+            <td style="color: #22d3ee;"><strong>ZERO (no bridges)</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Uptime guarantee</strong></td>
+            <td>~99% (single bridge)</td>
+            <td>~99.9% (single chain)</td>
+            <td style="color: #22d3ee;"><strong>100% (multi-provider)</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Liquidity</strong></td>
+            <td>Fragmented</td>
+            <td>Single chain only</td>
+            <td style="color: #22d3ee;"><strong>Unified across all chains</strong></td>
+        </tr>
+    </table>
+    
+    <div class="highlight" style="margin-top: 50px;">
+        <p class="large" style="text-align: center;">
+            <strong>OASIS is the only infrastructure that eliminates bridges while providing access to all chains</strong>
+        </p>
+    </div>
+</div>
+
+<!-- Slide 10: Transaction Metrics -->
+<div class="slide">
+    <h1>OASIS eliminates the bridge tax</h1>
+    <p class="large">Traditional bridges charge 2-5% + gas fees. OASIS charges 0.1%</p>
+    
+    <h2 style="margin-top: 80px;">Cost Comparison (Transferring $10,000)</h2>
+    
+    <table>
+        <tr>
+            <th>Method</th>
+            <th>Bridge Fee</th>
+            <th>Gas Fee</th>
+            <th>Total Cost</th>
+            <th>Time</th>
+        </tr>
+        <tr>
+            <td><strong>Wormhole Bridge</strong></td>
+            <td>$50 (0.5%)</td>
+            <td>$30-$100</td>
+            <td style="color: #ef4444;"><strong>$80-$150</strong></td>
+            <td>15-30 min</td>
+        </tr>
+        <tr>
+            <td><strong>LayerZero</strong></td>
+            <td>$30 (0.3%)</td>
+            <td>$20-$80</td>
+            <td style="color: #ef4444;"><strong>$50-$110</strong></td>
+            <td>10-20 min</td>
+        </tr>
+        <tr>
+            <td><strong>Axelar</strong></td>
+            <td>$40 (0.4%)</td>
+            <td>$25-$90</td>
+            <td style="color: #ef4444;"><strong>$65-$130</strong></td>
+            <td>12-25 min</td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.1);">
+            <td><strong>OASIS Web4</strong></td>
+            <td>$10 (0.1%)</td>
+            <td>$0.001-$0.01 (optimized)</td>
+            <td style="color: #22d3ee;"><strong>$10-$10.01</strong></td>
+            <td style="color: #22d3ee;"><strong>5-30 sec</strong></td>
+        </tr>
+    </table>
+    
+    <div class="stat-box" style="margin-top: 60px;">
+        <div class="stat-number">93%</div>
+        <div class="stat-label">Cost Savings vs Bridges<br>($10 vs $80-$150)</div>
+    </div>
+</div>
+
+<!-- Slide 11: Market Opportunity -->
+<div class="slide">
+    <h1>Market Opportunity: $70 Trillion</h1>
+    
+    <h2>Total Addressable Market (2030)</h2>
+    
+    <table>
+        <tr>
+            <th>Market Segment</th>
+            <th>2024</th>
+            <th>2027</th>
+            <th>2030</th>
+            <th>OASIS Target</th>
+        </tr>
+        <tr>
+            <td><strong>RWA Tokenization</strong></td>
+            <td>$300B</td>
+            <td>$16T</td>
+            <td style="color: #22d3ee;"><strong>$68T</strong></td>
+            <td>1-5% share</td>
+        </tr>
+        <tr>
+            <td><strong>Cross-Chain Infrastructure</strong></td>
+            <td>$10B</td>
+            <td>$50B</td>
+            <td style="color: #22d3ee;"><strong>$200B</strong></td>
+            <td>10-20% share</td>
+        </tr>
+        <tr>
+            <td><strong>DeFi Yield Aggregation</strong></td>
+            <td>$100B TVL</td>
+            <td>$500B TVL</td>
+            <td style="color: #22d3ee;"><strong>$2T TVL</strong></td>
+            <td>5-10% share</td>
+        </tr>
+        <tr>
+            <td><strong>Compliance/KYC Services</strong></td>
+            <td>$10B</td>
+            <td>$50B</td>
+            <td style="color: #22d3ee;"><strong>$150B</strong></td>
+            <td>2-5% share</td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.15);">
+            <td><strong>TOTAL TAM</strong></td>
+            <td><strong>$420B</strong></td>
+            <td><strong>$16.6T</strong></td>
+            <td><strong style="color: #22d3ee; font-size: 1.3em;">$70.35T</strong></td>
+            <td><strong style="color: #22d3ee;">$700B-$3.5T</strong></td>
+        </tr>
+    </table>
+    
+    <p class="large" style="margin-top: 50px; text-align: center;">
+        Revenue opportunity: <strong style="color: #22d3ee; font-size: 1.5em;">$700B - $3.5T</strong> by 2030
+    </p>
+</div>
+
+<!-- Slide 12: How OASIS Works -->
+<div class="slide">
+    <h1>How OASIS Works: HyperDrive Engine</h1>
+    
+    <h2>Real-time cross-chain optimization without bridges</h2>
+    
+    <div class="grid-2" style="margin-top: 60px;">
+        <div class="glass-card" style="background: rgba(8, 10, 25, 0.85); border: 1px solid rgba(34, 211, 238, 0.3); padding: 30px; border-radius: 16px;">
+            <h3 style="margin-top: 0;">Step 1: Analyze All Chains</h3>
+            <table style="font-size: 1.1em; margin-top: 20px;">
+                <tr><th>Chain</th><th>Gas Cost</th><th>Speed</th><th>Status</th></tr>
+                <tr><td>Ethereum</td><td style="color: #ef4444;">$45</td><td>12s</td><td>✗ Too expensive</td></tr>
+                <tr style="background: rgba(34, 211, 238, 0.1);"><td>Solana</td><td style="color: #22d3ee;">$0.001</td><td>0.4s</td><td style="color: #22d3ee;">✓ OPTIMAL</td></tr>
+                <tr><td>Polygon</td><td>$0.01</td><td>2s</td><td>✓ Good</td></tr>
+                <tr><td>Arbitrum</td><td>$2</td><td>1s</td><td>⚠ Moderate</td></tr>
+            </table>
+        </div>
+        
+        <div>
+            <div class="glass-card" style="background: rgba(8, 10, 25, 0.85); border: 1px solid rgba(34, 211, 238, 0.3); padding: 30px; border-radius: 16px; margin-bottom: 20px;">
+                <h3 style="margin-top: 0;">Step 2: Execute on Optimal Chain</h3>
+                <p style="margin-top: 15px;">Transaction executes on Solana<br>Cost: $0.001 | Time: 0.4s</p>
+            </div>
+            
+            <div class="glass-card" style="background: rgba(8, 10, 25, 0.85); border: 1px solid rgba(34, 211, 238, 0.3); padding: 30px; border-radius: 16px; margin-bottom: 20px;">
+                <h3 style="margin-top: 0;">Step 3: Sync to All Chains</h3>
+                <p style="margin-top: 15px;">State broadcast to all 50 chains<br>Merkle proof + consensus<br>Time: 5-30 seconds</p>
+            </div>
+            
+            <div class="glass-card" style="background: rgba(8, 10, 25, 0.85); border: 1px solid rgba(34, 211, 238, 0.3); padding: 30px; border-radius: 16px;">
+                <h3 style="margin-top: 0;">Result</h3>
+                <p style="margin-top: 15px; color: #22d3ee;">User saved: <strong>$44.999</strong><br>40x faster than bridges<br>Zero bridge risk</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional slides following similar pattern... -->
+<!-- For brevity, I'll create a few key slides and you can expand -->
+
+<!-- Slide 13: Revenue Model -->
+<div class="slide">
+    <h1>Revenue Model: 5 High-Margin Streams</h1>
+    
+    <table>
+        <tr>
+            <th>Revenue Stream</th>
+            <th>Fee Structure</th>
+            <th>Year 1</th>
+            <th>Year 3</th>
+            <th>Year 5</th>
+        </tr>
+        <tr>
+            <td><strong>Transaction Fees</strong></td>
+            <td>0.1% per transaction</td>
+            <td>$3.7M</td>
+            <td>$182M</td>
+            <td style="color: #22d3ee;"><strong>$730M</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Enterprise Licensing</strong></td>
+            <td>$1k-$500k/month</td>
+            <td>$6.6M-$33.6M</td>
+            <td>$66M-$336M</td>
+            <td style="color: #22d3ee;"><strong>$300M-$1.38B</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Yield Distribution</strong></td>
+            <td>0.5% of yield</td>
+            <td>$500K</td>
+            <td>$5M</td>
+            <td style="color: #22d3ee;"><strong>$50M</strong></td>
+        </tr>
+        <tr>
+            <td><strong>RWA Tokenization</strong></td>
+            <td>0.5-1% of AUM</td>
+            <td>$1M-$10M</td>
+            <td>$50M-$100M</td>
+            <td style="color: #22d3ee;"><strong>$500M-$1B</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Compliance-as-a-Service</strong></td>
+            <td>$5-$100 per user</td>
+            <td>$2M-$5M</td>
+            <td>$34M-$44M</td>
+            <td style="color: #22d3ee;"><strong>$75M-$100M</strong></td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.15);">
+            <td><strong>TOTAL REVENUE</strong></td>
+            <td></td>
+            <td><strong>$14M-$52M</strong></td>
+            <td><strong>$337M-$667M</strong></td>
+            <td><strong style="color: #22d3ee; font-size: 1.3em;">$1.66B-$3.26B</strong></td>
+        </tr>
+    </table>
+    
+    <div class="grid-2" style="margin-top: 60px;">
+        <div class="stat-box">
+            <div class="stat-number">70%+</div>
+            <div class="stat-label">EBITDA Margin<br>(software infrastructure)</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">18-24mo</div>
+            <div class="stat-label">Path to Profitability</div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 14: UAT Specification -->
+<div class="slide">
+    <h1>Universal Asset Token (UAT) Standard</h1>
+    <p class="large">OASIS's answer to RWA tokenization fragmentation</p>
+    
+    <h2>Example: $1.89M Beverly Hills Property</h2>
+    
+    <table>
+        <tr><th>UAT Layer</th><th>Description</th><th>Benefit</th></tr>
+        <tr>
+            <td><strong>Core Metadata</strong></td>
+            <td>BHE token, 3,500 supply @ $540<br>Universal across all chains</td>
+            <td style="color: #22d3ee;">Single token standard</td>
+        </tr>
+        <tr>
+            <td><strong>Asset Details</strong></td>
+            <td>3,500 sq ft, 5BR/4.5BA<br>GPS: 34.0736°N, 118.4004°W</td>
+            <td style="color: #22d3ee;">Real-world verification</td>
+        </tr>
+        <tr>
+            <td><strong>Trust Structure</strong></td>
+            <td>Wyoming Statutory Trust<br>Professional trustee</td>
+            <td style="color: #22d3ee;">Legal certainty</td>
+        </tr>
+        <tr>
+            <td><strong>Yield Distribution</strong></td>
+            <td>$94,500 annual rental income<br>$15.27 per token/year (2.8% yield)</td>
+            <td style="color: #22d3ee;">Passive income</td>
+        </tr>
+        <tr>
+            <td><strong>Compliance</strong></td>
+            <td>SEC Reg D 506(c), KYC required<br>Enforced on all chains</td>
+            <td style="color: #22d3ee;">Institutional grade</td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.1);">
+            <td><strong>Cross-Chain Addresses</strong></td>
+            <td>50+ blockchain deployments<br>Synchronized state</td>
+            <td style="color: #22d3ee;"><strong>Universal access</strong></td>
+        </tr>
+    </table>
+</div>
+
+<!-- Slide 15: Traction -->
+<div class="slide">
+    <h1>Current Traction & Milestones</h1>
+    
+    <div class="grid-2">
+        <div>
+            <h2>Technology Milestones</h2>
+            <table>
+                <tr><th>Milestone</th><th>Status</th><th>Date</th></tr>
+                <tr><td>Core infrastructure</td><td style="color: #22d3ee;">✓ Complete</td><td>2021</td></tr>
+                <tr><td>50+ provider integration</td><td style="color: #22d3ee;">✓ Complete</td><td>2022-2024</td></tr>
+                <tr><td>HyperDrive v2</td><td style="color: #22d3ee;">✓ Complete</td><td>2024</td></tr>
+                <tr><td>UAT specification</td><td style="color: #22d3ee;">✓ Complete</td><td>Q3 2025</td></tr>
+                <tr><td>Smart contracts deployed</td><td style="color: #22d3ee;">✓ Complete</td><td>2024</td></tr>
+                <tr><td>Production testing (4+ years)</td><td style="color: #22d3ee;">✓ Complete</td><td>2021-2025</td></tr>
+                <tr><td>Zero security incidents</td><td style="color: #22d3ee;">✓ Verified</td><td>Ongoing</td></tr>
+            </table>
+        </div>
+        
+        <div>
+            <h2>Key Metrics</h2>
+            <div class="stat-box">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Blockchain Providers Integrated</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">$0</div>
+                <div class="stat-label">Bridge Hack Losses<br>(vs $2.5B+ industry)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Uptime Since Launch<br>(4+ years)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 16: Valuation Framework -->
+<div class="slide">
+    <h1>Valuation Framework</h1>
+    
+    <h2>Comparable Company Analysis</h2>
+    
+    <table>
+        <tr>
+            <th>Company</th>
+            <th>Amount Raised</th>
+            <th>Valuation</th>
+            <th>Stage</th>
+            <th>Technology</th>
+        </tr>
+        <tr>
+            <td><strong>LayerZero Labs</strong></td>
+            <td>$293M</td>
+            <td>$3.0B</td>
+            <td>Series B</td>
+            <td>Cross-chain messaging, bridge-based</td>
+        </tr>
+        <tr>
+            <td><strong>Wormhole</strong></td>
+            <td>$225M</td>
+            <td>$2.5B</td>
+            <td>Series A</td>
+            <td>Cross-chain bridge, $325M hacked</td>
+        </tr>
+        <tr>
+            <td><strong>Axelar Network</strong></td>
+            <td>$98M</td>
+            <td>$1.0B</td>
+            <td>Series B</td>
+            <td>Cross-chain communication</td>
+        </tr>
+        <tr>
+            <td><strong>Polygon</strong></td>
+            <td>$450M</td>
+            <td>$13B</td>
+            <td>Public</td>
+            <td>L2 scaling solution</td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.15);">
+            <td><strong>OASIS</strong></td>
+            <td><strong style="color: #22d3ee;">$50-100M (raising)</strong></td>
+            <td><strong style="color: #22d3ee;">$500M-$1B</strong></td>
+            <td>Series A</td>
+            <td><strong>Bridge-less, 50+ providers, RWA-ready</strong></td>
+        </tr>
+    </table>
+    
+    <div class="highlight" style="margin-top: 60px;">
+        <p class="large center">
+            <strong>OASIS offers superior technology at 1/3 to 1/6 the valuation of inferior competitors</strong>
+        </p>
+    </div>
+</div>
+
+<!-- Slide 17: Investment Ask -->
+<div class="slide">
+    <h1>The Investment</h1>
+    
+    <div class="stat-box" style="margin-top: 80px; padding: 60px;">
+        <h2 style="color: #e2f4ff; margin-bottom: 40px;">Series A Round</h2>
+        <div style="font-size: 2em; line-height: 2.2;">
+            <p><strong>RAISING:</strong> <span style="color: #22d3ee; font-size: 1.4em;">$50M-$100M</span></p>
+            <p><strong>PRE-MONEY:</strong> <span style="color: #22d3ee; font-size: 1.4em;">$500M-$1B</span></p>
+            <p><strong>POST-MONEY:</strong> <span style="color: #22d3ee; font-size: 1.4em;">$550M-$1.1B</span></p>
+            <p><strong>DILUTION:</strong> <span style="color: #22d3ee; font-size: 1.4em;">5-10%</span></p>
+        </div>
+    </div>
+    
+    <h2 style="margin-top: 80px;">Use of Funds</h2>
+    <table>
+        <tr><th>Category</th><th>Allocation</th><th>Amount</th></tr>
+        <tr><td>Team Expansion (engineering, sales)</td><td>30%</td><td>$15M-$30M</td></tr>
+        <tr><td>Marketing & GTM</td><td>25%</td><td>$12.5M-$25M</td></tr>
+        <tr><td>Product Development</td><td>20%</td><td>$10M-$20M</td></tr>
+        <tr><td>Legal & Compliance</td><td>15%</td><td>$7.5M-$15M</td></tr>
+        <tr><td>Operations & Reserve</td><td>10%</td><td>$5M-$10M</td></tr>
+    </table>
+</div>
+
+<!-- Slide 18: Return Scenarios -->
+<div class="slide">
+    <h1>Return Potential: 15x-30x</h1>
+    
+    <table>
+        <tr>
+            <th>Exit Scenario</th>
+            <th>Timeline</th>
+            <th>Valuation</th>
+            <th>Revenue</th>
+            <th>Investor Return</th>
+        </tr>
+        <tr>
+            <td><strong>IPO</strong></td>
+            <td>2028-2029 (4-5 years)</td>
+            <td style="color: #22d3ee;">$15B-$25B</td>
+            <td>$1.5B-$3B annual</td>
+            <td style="color: #22d3ee;"><strong>15x-25x</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Strategic Acquisition</strong></td>
+            <td>2027-2028 (3-4 years)</td>
+            <td style="color: #22d3ee;">$10B-$30B</td>
+            <td>$500M-$1.5B annual</td>
+            <td style="color: #22d3ee;"><strong>10x-30x</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Token Launch</strong></td>
+            <td>2026-2027 (2-3 years)</td>
+            <td style="color: #22d3ee;">$5B-$15B</td>
+            <td>$250M-$750M annual</td>
+            <td style="color: #22d3ee;"><strong>5x-15x + token</strong></td>
+        </tr>
+    </table>
+    
+    <div class="grid-2" style="margin-top: 80px;">
+        <div class="stat-box">
+            <div class="stat-number">60-120%</div>
+            <div class="stat-label">Risk-Adjusted IRR</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">$6B</div>
+            <div class="stat-label">Current Fair Value<br>(moderate case)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 19: Section 3 -->
+<div class="slide">
+    <h1>AGENDA</h1>
+    <div style="font-size: 2.5em; line-height: 2.5; margin-top: 80px;">
+        <p style="opacity: 0.4;"><strong>1</strong> Why Cross-Chain Infrastructure</p>
+        <p style="opacity: 0.4;"><strong>2</strong> Why OASIS as Infrastructure</p>
+        <p><strong style="color: #22d3ee;">3</strong> Why Web4 Tokens as an Asset</p>
+    </div>
+</div>
+
+<!-- Slide 20: Web4 Token Benefits -->
+<div class="slide">
+    <h1>Web4 Tokens: Superior to single-chain tokens</h1>
+    
+    <table>
+        <tr>
+            <th>Feature</th>
+            <th>Traditional Token<br>(ERC-20, SPL)</th>
+            <th>Wrapped Token<br>(wUSDC, wETH)</th>
+            <th>OASIS Web4 Token</th>
+        </tr>
+        <tr>
+            <td><strong>Chains Accessible</strong></td>
+            <td>1 chain only</td>
+            <td>2 chains (via bridge)</td>
+            <td style="color: #22d3ee;"><strong>50+ chains simultaneously</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Bridge Required</strong></td>
+            <td>Yes (to move)</td>
+            <td>Yes (always)</td>
+            <td style="color: #22d3ee;"><strong>NO</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Bridge Hack Risk</strong></td>
+            <td style="color: #ef4444;">HIGH</td>
+            <td style="color: #ef4444;">VERY HIGH</td>
+            <td style="color: #22d3ee;"><strong>ZERO</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Transfer Cost</strong></td>
+            <td>$0.001-$50 (depends on chain)</td>
+            <td>$10-$100 (bridge + gas)</td>
+            <td style="color: #22d3ee;"><strong>$0.001-$0.01 (optimized)</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Transfer Speed</strong></td>
+            <td>0.4s-12s (varies by chain)</td>
+            <td>10-30 minutes</td>
+            <td style="color: #22d3ee;"><strong>5-30 seconds</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Liquidity</strong></td>
+            <td>Single chain pool</td>
+            <td>Fragmented across chains</td>
+            <td style="color: #22d3ee;"><strong>Unified across all chains</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Compliance</strong></td>
+            <td>Per chain (manual)</td>
+            <td>Per chain (manual)</td>
+            <td style="color: #22d3ee;"><strong>Universal (automatic)</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Yield Distribution</strong></td>
+            <td>Single chain only</td>
+            <td>Fragmented</td>
+            <td style="color: #22d3ee;"><strong>Any chain (user choice)</strong></td>
+        </tr>
+    </table>
+</div>
+
+<!-- Slide 21: Roadmap -->
+<div class="slide">
+    <h1>Roadmap to $1B+ Revenue</h1>
+    
+    <table>
+        <tr>
+            <th>Period</th>
+            <th>Milestones</th>
+            <th>Revenue</th>
+            <th>Valuation</th>
+        </tr>
+        <tr>
+            <td><strong>Q1-Q4 2026</strong></td>
+            <td>
+                • Series A close ($50-100M)<br>
+                • 50 enterprise customers<br>
+                • $100B assets tokenized<br>
+                • 100K transactions/month
+            </td>
+            <td>$10M-$40M</td>
+            <td>$500M-$1B</td>
+        </tr>
+        <tr>
+            <td><strong>2027</strong></td>
+            <td>
+                • Series B ($150-300M)<br>
+                • 500 enterprise customers<br>
+                • $1T assets tokenized<br>
+                • 1M+ transactions/day
+            </td>
+            <td style="color: #22d3ee;">$250M-$750M</td>
+            <td>$10B-$20B</td>
+        </tr>
+        <tr>
+            <td><strong>2028</strong></td>
+            <td>
+                • IPO preparation<br>
+                • 2,000 enterprise customers<br>
+                • $5T assets tokenized<br>
+                • Market leader position
+            </td>
+            <td style="color: #22d3ee;">$750M-$1.5B</td>
+            <td>$15B-$30B</td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.1);">
+            <td><strong>2029-2030</strong></td>
+            <td>
+                • Public market debut<br>
+                • 5,000+ customers<br>
+                • $20T+ assets tokenized<br>
+                • Industry standard
+            </td>
+            <td style="color: #22d3ee;"><strong>$1.5B-$3B</strong></td>
+            <td style="color: #22d3ee;"><strong>$30B-$75B</strong></td>
+        </tr>
+    </table>
+</div>
+
+<!-- Slide 22: Investment Thesis -->
+<div class="slide center">
+    <h1 style="font-size: 3.5em;">Investment Thesis</h1>
+    
+    <div class="highlight" style="margin: 100px auto; max-width: 1200px; padding: 60px;">
+        <p style="font-size: 2em; line-height: 1.8; color: #e2f4ff; text-align: center;">
+            <strong>"OASIS is the only bridge-less cross-chain infrastructure positioned to capture significant share of the $68T RWA tokenization market while eliminating $2B+/year in bridge hack losses,offering <span style="color: #22d3ee; font-size: 1.3em;">15x-25x</span> return potential to early investors."</strong>
+        </p>
+    </div>
+</div>
+
+<!-- Slide 23: Three Key Takeaways -->
+<div class="slide">
+    <h1>Three Key Takeaways</h1>
+    
+    <div style="margin-top: 100px;">
+        <div class="stat-box" style="margin: 40px 0; padding: 50px;">
+            <h2 style="color: #22d3ee; margin-bottom: 20px;">1. We Eliminate Bridges</h2>
+            <p class="large">No bridge = no $2B/year hack problem</p>
+        </div>
+        
+        <div class="stat-box" style="margin: 40px 0; padding: 50px;">
+            <h2 style="color: #22d3ee; margin-bottom: 20px;">2. We Enable RWAs</h2>
+            <p class="large">Universal token standard unlocks $68T market</p>
+        </div>
+        
+        <div class="stat-box" style="margin: 40px 0; padding: 50px;">
+            <h2 style="color: #22d3ee; margin-bottom: 20px;">3. We're Production-Ready</h2>
+            <p class="large">4+ years tested, 50+ chains, zero incidents</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 24: Why Now -->
+<div class="slide">
+    <h1>Why Invest in OASIS Now</h1>
+    
+    <h2>Market Timing</h2>
+    <div class="grid-3" style="margin-top: 40px;">
+        <div class="glass-card" style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; padding: 30px; border-radius: 16px;">
+            <h3 style="margin-top: 0;">RWA Market Inflection</h3>
+            <p>$300B → $16T (2027)<br>53x growth in 2 years<br><strong style="color: #22d3ee;">Perfect timing for infrastructure</strong></p>
+        </div>
+        <div class="glass-card" style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; padding: 30px; border-radius: 16px;">
+            <h3 style="margin-top: 0;">Bridge Crisis Worsening</h3>
+            <p>$2.5B+ lost (2022-2024)<br>Increasing frequency<br><strong style="color: #22d3ee;">Bridge-less solution needed NOW</strong></p>
+        </div>
+        <div class="glass-card" style="background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee; padding: 30px; border-radius: 16px;">
+            <h3 style="margin-top: 0;">Technology Ready</h3>
+            <p>4+ years in production<br>50+ chains integrated<br><strong style="color: #22d3ee;">No development risk</strong></p>
+        </div>
+    </div>
+    
+    <h2 style="margin-top: 60px;">Competitive Window Closing</h2>
+    <table>
+        <tr><th>Factor</th><th>Current State</th><th>In 12 Months</th></tr>
+        <tr><td>OASIS First-Mover Advantage</td><td style="color: #22d3ee;"><strong>WIDE OPEN</strong></td><td style="color: #facc15;">Narrowing</td></tr>
+        <tr><td>Competitor Bridge-Less Tech</td><td style="color: #22d3ee;">None exist</td><td style="color: #facc15;">May emerge</td></tr>
+        <tr><td>RWA Market Maturity</td><td style="color: #22d3ee;">Early (perfect for us)</td><td style="color: #facc15;">More crowded</td></tr>
+        <tr><td>OASIS Valuation</td><td style="color: #22d3ee;"><strong>$500M-$1B (Series A)</strong></td><td style="color: #ef4444;">$3B-$6B (Series B)</td></tr>
+    </table>
+    
+    <div class="highlight" style="margin-top: 50px;">
+        <p class="large center"><strong>Invest now at Series A pricing before valuation increases 3-6x</strong></p>
+    </div>
+</div>
+
+<!-- Slide 25: Risk Mitigation -->
+<div class="slide">
+    <h1>Risk Mitigation</h1>
+    
+    <h2>How OASIS Reduces Investment Risk</h2>
+    
+    <table>
+        <tr><th>Risk Category</th><th>Traditional Crypto</th><th>OASIS Mitigation</th></tr>
+        <tr>
+            <td><strong>Technology Risk</strong></td>
+            <td>Unproven, early stage</td>
+            <td style="color: #22d3ee;"><strong>4+ years production</strong>, 50+ providers integrated, zero incidents</td>
+        </tr>
+        <tr>
+            <td><strong>Security Risk</strong></td>
+            <td>Bridge hacks ($2.5B+ lost)</td>
+            <td style="color: #22d3ee;"><strong>No bridges = no hack risk</strong>, proven security model</td>
+        </tr>
+        <tr>
+            <td><strong>Market Risk</strong></td>
+            <td>Unproven product-market fit</td>
+            <td style="color: #22d3ee;"><strong>$68T RWA market</strong> validated by BCG/McKinsey</td>
+        </tr>
+        <tr>
+            <td><strong>Execution Risk</strong></td>
+            <td>Unproven team, long roadmap</td>
+            <td style="color: #22d3ee;"><strong>Production-ready today</strong>, proven team, clear GTM</td>
+        </tr>
+        <tr>
+            <td><strong>Competitive Risk</strong></td>
+            <td>Me-too products, no moat</td>
+            <td style="color: #22d3ee;"><strong>Only bridge-less solution</strong>, 4-year head start</td>
+        </tr>
+        <tr>
+            <td><strong>Regulatory Risk</strong></td>
+            <td>Unclear compliance path</td>
+            <td style="color: #22d3ee;"><strong>Built-in KYC/AML</strong>, SEC-compliant UAT standard</td>
+        </tr>
+    </table>
+    
+    <div class="grid-2" style="margin-top: 60px;">
+        <div class="stat-box">
+            <div class="stat-number">LOW</div>
+            <div class="stat-label">Overall Risk Profile<br>(vs typical crypto)</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number">HIGH</div>
+            <div class="stat-label">Return Potential<br>(15x-30x)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 26: Strategic Acquirers -->
+<div class="slide">
+    <h1>Strategic Acquisition Potential</h1>
+    
+    <h2>Tier 1: Cloud/Tech Giants ($15B-$30B)</h2>
+    <table>
+        <tr><th>Acquirer</th><th>Market Cap</th><th>Strategic Rationale</th><th>Est. Price</th></tr>
+        <tr><td>AWS/Amazon</td><td>$2.1T</td><td>Complete Web3 offering for enterprise</td><td style="color: #22d3ee;">$20B-$30B</td></tr>
+        <tr><td>Microsoft Azure</td><td>$3.1T</td><td>Cloud + blockchain integration</td><td style="color: #22d3ee;">$15B-$25B</td></tr>
+        <tr><td>Google Cloud</td><td>$2.0T</td><td>Web3 infrastructure play</td><td style="color: #22d3ee;">$12B-$20B</td></tr>
+    </table>
+    
+    <h2>Tier 2: Crypto Exchanges ($8B-$20B)</h2>
+    <table>
+        <tr><th>Acquirer</th><th>Valuation</th><th>Strategic Rationale</th><th>Est. Price</th></tr>
+        <tr><td>Coinbase</td><td>$50B</td><td>Own the infrastructure layer</td><td style="color: #22d3ee;">$10B-$15B</td></tr>
+        <tr><td>Binance</td><td>Private</td><td>Eliminate bridge dependency</td><td style="color: #22d3ee;">$12B-$20B</td></tr>
+        <tr><td>Kraken</td><td>$10B</td><td>Enterprise blockchain services</td><td style="color: #22d3ee;">$5B-$10B</td></tr>
+    </table>
+    
+    <h2>Tier 3: Blockchain Foundations ($5B-$10B)</h2>
+    <table>
+        <tr><th>Acquirer</th><th>Rationale</th><th>Est. Price</th></tr>
+        <tr><td>Ethereum Foundation</td><td>Become multi-chain standard</td><td style="color: #22d3ee;">$8B-$10B</td></tr>
+        <tr><td>Solana Labs</td><td>Expand beyond single chain</td><td style="color: #22d3ee;">$5B-$8B</td></tr>
+        <tr><td>Polygon</td><td>Own cross-chain layer</td><td style="color: #22d3ee;">$6B-$9B</td></tr>
+    </table>
+</div>
+
+<!-- Slide 27: Conclusion - Why Web4 Tokens -->
+<div class="slide">
+    <h1>Conclusion: Why Web4 Tokens</h1>
+    
+    <p class="large" style="margin: 60px 0;">Web4 tokens are the only asset that combines...</p>
+    
+    <table style="font-size: 1.3em;">
+        <tr>
+            <th>Feature</th>
+            <th>Web4 Token</th>
+            <th>ETH</th>
+            <th>BTC</th>
+            <th>Traditional Token</th>
+        </tr>
+        <tr>
+            <td><strong>Cross-chain native</strong></td>
+            <td style="color: #22d3ee;">✓</td>
+            <td>✗</td>
+            <td>✗</td>
+            <td>✗</td>
+        </tr>
+        <tr>
+            <td><strong>Bridge-less</strong></td>
+            <td style="color: #22d3ee;">✓</td>
+            <td>✗</td>
+            <td>✗</td>
+            <td>✗</td>
+        </tr>
+        <tr>
+            <td><strong>Auto-optimization</strong></td>
+            <td style="color: #22d3ee;">✓</td>
+            <td>✗</td>
+            <td>✗</td>
+            <td>✗</td>
+        </tr>
+        <tr>
+            <td><strong>Yield-bearing</strong></td>
+            <td style="color: #22d3ee;">✓</td>
+            <td>Limited (3%)</td>
+            <td>✗ (0%)</td>
+            <td>Varies</td>
+        </tr>
+        <tr>
+            <td><strong>RWA-compatible</strong></td>
+            <td style="color: #22d3ee;">✓ (UAT)</td>
+            <td>✗</td>
+            <td>✗</td>
+            <td>Limited</td>
+        </tr>
+        <tr>
+            <td><strong>Compliance built-in</strong></td>
+            <td style="color: #22d3ee;">✓</td>
+            <td>✗</td>
+            <td>✗</td>
+            <td>✗</td>
+        </tr>
+        <tr>
+            <td><strong>Unified liquidity</strong></td>
+            <td style="color: #22d3ee;">✓</td>
+            <td>✗</td>
+            <td>✗</td>
+            <td>✗</td>
+        </tr>
+    </table>
+    
+    <div class="highlight" style="margin-top: 60px;">
+        <p class="huge center">Web4 tokens are the only asset class that solves fragmentation</p>
+    </div>
+</div>
+
+<!-- Slide 28: Market Comparisons -->
+<div class="slide">
+    <h1>OASIS vs The Field</h1>
+    <p class="large">Only OASIS eliminates bridges while providing universal access</p>
+    
+    <table style="margin-top: 60px;">
+        <tr>
+            <th>Capability</th>
+            <th style="background: rgba(34, 211, 238, 0.2);">OASIS</th>
+            <th>LayerZero</th>
+            <th>Wormhole</th>
+            <th>Axelar</th>
+            <th>Multichain</th>
+        </tr>
+        <tr>
+            <td><strong>Valuation</strong></td>
+            <td style="color: #22d3ee;"><strong>$500M-$1B</strong></td>
+            <td>$3B</td>
+            <td>$2.5B</td>
+            <td>$1B</td>
+            <td>$0 (Failed)</td>
+        </tr>
+        <tr>
+            <td><strong>Bridge Architecture</strong></td>
+            <td style="color: #22d3ee;">NO BRIDGES</td>
+            <td>Bridge-based</td>
+            <td>Bridge-based</td>
+            <td>Bridge-based</td>
+            <td>Bridge-based</td>
+        </tr>
+        <tr>
+            <td><strong>Security Incidents</strong></td>
+            <td style="color: #22d3ee;"><strong>0</strong></td>
+            <td>At risk</td>
+            <td style="color: #ef4444;">$325M hacked</td>
+            <td>At risk</td>
+            <td style="color: #ef4444;">$1B+ lost</td>
+        </tr>
+        <tr>
+            <td><strong>Transaction Cost</strong></td>
+            <td style="color: #22d3ee;"><strong>$0.001-$0.01</strong></td>
+            <td>$10-$50</td>
+            <td>$15-$60</td>
+            <td>$12-$55</td>
+            <td>N/A</td>
+        </tr>
+        <tr>
+            <td><strong>Transaction Time</strong></td>
+            <td style="color: #22d3ee;"><strong>5-30 seconds</strong></td>
+            <td>10-20 min</td>
+            <td>15-30 min</td>
+            <td>12-25 min</td>
+            <td>N/A</td>
+        </tr>
+        <tr>
+            <td><strong>Uptime Guarantee</strong></td>
+            <td style="color: #22d3ee;"><strong>100%</strong></td>
+            <td>~99%</td>
+            <td>~99%</td>
+            <td>~99%</td>
+            <td>0% (failed)</td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.1);">
+            <td><strong>Technology Advantage</strong></td>
+            <td style="color: #22d3ee;"><strong>SUPERIOR</strong></td>
+            <td>Inferior</td>
+            <td>Inferior</td>
+            <td>Inferior</td>
+            <td>Failed</td>
+        </tr>
+    </table>
+</div>
+
+<!-- Slide 25: Enterprise Use Cases -->
+<div class="slide">
+    <h1>Enterprise Use Cases</h1>
+    
+    <h2>Real-World Applications</h2>
+    
+    <div class="grid-2" style="margin-top: 50px;">
+        <div class="glass-card" style="background: rgba(8, 10, 25, 0.85); border: 1px solid rgba(34, 211, 238, 0.3); padding: 35px; border-radius: 16px;">
+            <h3 style="margin-top: 0;">Real Estate Tokenization</h3>
+            <p><strong>Customer:</strong> Property tokenization platform</p>
+            <p><strong>Problem:</strong> Limited to Ethereum (high gas, excludes Solana investors)</p>
+            <p><strong>OASIS Solution:</strong> UAT tokens on all chains, unified investor base</p>
+            <p style="color: #22d3ee; margin-top: 20px;"><strong>Revenue:</strong> 0.5-1% of $10B AUM = $50M-$100M/year</p>
+        </div>
+        
+        <div class="glass-card" style="background: rgba(8, 10, 25, 0.85); border: 1px solid rgba(34, 211, 238, 0.3); padding: 35px; border-radius: 16px;">
+            <h3 style="margin-top: 0;">Institutional DeFi</h3>
+            <p><strong>Customer:</strong> Asset manager</p>
+            <p><strong>Problem:</strong> Manual cross-chain yield farming, high costs</p>
+            <p><strong>OASIS Solution:</strong> Automated yield aggregation across all chains</p>
+            <p style="color: #22d3ee; margin-top: 20px;"><strong>Revenue:</strong> 0.5% of $100B TVL = $50M/year</p>
+        </div>
+    </div>
+    
+    <div class="grid-2" style="margin-top: 40px;">
+        <div class="glass-card" style="background: rgba(8, 10, 25, 0.85); border: 1px solid rgba(34, 211, 238, 0.3); padding: 35px; border-radius: 16px;">
+            <h3 style="margin-top: 0;">Stablecoin Issuers</h3>
+            <p><strong>Customer:</strong> Circle (USDC), Tether (USDT)</p>
+            <p><strong>Problem:</strong> Fragmented liquidity across 15+ chains</p>
+            <p><strong>OASIS Solution:</strong> Single Web4 stablecoin, unified liquidity</p>
+            <p style="color: #22d3ee; margin-top: 20px;"><strong>Revenue:</strong> 0.1% of $1T volume = $1B/year</p>
+        </div>
+        
+        <div class="glass-card" style="background: rgba(8, 10, 25, 0.85); border: 1px solid rgba(34, 211, 238, 0.3); padding: 35px; border-radius: 16px;">
+            <h3 style="margin-top: 0;">Enterprise Blockchain</h3>
+            <p><strong>Customer:</strong> Fortune 500 companies</p>
+            <p><strong>Problem:</strong> Don't know which blockchain to choose</p>
+            <p><strong>OASIS Solution:</strong> Deploy once, accessible on all chains</p>
+            <p style="color: #22d3ee; margin-top: 20px;"><strong>Revenue:</strong> $50k-$500k/month licensing</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 26: Team & Advisors (Placeholder) -->
+<div class="slide">
+    <h1>Team & Advisors</h1>
+    
+    <h2>Leadership Team</h2>
+    <div class="highlight" style="margin: 40px 0; padding: 40px;">
+        <p class="large">4+ years building production cross-chain infrastructure<br>
+        50+ blockchain integrations completed<br>
+        Zero security incidents<br>
+        Deep expertise in Web3, compliance, and enterprise software</p>
+    </div>
+    
+    <h2>Strategic Advisors</h2>
+    <div class="highlight" style="margin: 40px 0; padding: 40px;">
+        <p class="large">Blockchain technology experts<br>
+        RWA tokenization specialists<br>
+        Regulatory compliance advisors<br>
+        Enterprise GTM consultants</p>
+    </div>
+    
+    <p class="center large" style="margin-top: 80px; color: #22d3ee;">
+        <strong>Team details available in data room</strong>
+    </p>
+</div>
+
+<!-- Slide 27: Competitive Moat -->
+<div class="slide">
+    <h1>Sustainable Competitive Advantage</h1>
+    
+    <h2>OASIS's Moat</h2>
+    
+    <table>
+        <tr><th>Moat Type</th><th>Description</th><th>Defensibility</th></tr>
+        <tr>
+            <td><strong>Technology Moat</strong></td>
+            <td>Only bridge-less architecture<br>4+ years development lead<br>50+ provider integrations</td>
+            <td style="color: #22d3ee;"><strong>HIGH</strong><br>3-4 year replication time</td>
+        </tr>
+        <tr>
+            <td><strong>Network Effects</strong></td>
+            <td>More providers = better optimization<br>More users = more liquidity<br>More assets = more volume</td>
+            <td style="color: #22d3ee;"><strong>VERY HIGH</strong><br>Winner-take-most</td>
+        </tr>
+        <tr>
+            <td><strong>Standard Moat</strong></td>
+            <td>UAT becomes industry standard<br>First-mover in Web4 tokens<br>Like ERC-20 for cross-chain</td>
+            <td style="color: #22d3ee;"><strong>VERY HIGH</strong><br>Hard to displace standards</td>
+        </tr>
+        <tr>
+            <td><strong>Data/Compliance Moat</strong></td>
+            <td>KYC/AML database<br>Cross-chain compliance state<br>Institutional relationships</td>
+            <td style="color: #22d3ee;"><strong>HIGH</strong><br>Switching costs</td>
+        </tr>
+        <tr style="background: rgba(34, 211, 238, 0.1);">
+            <td><strong>Combined Moat</strong></td>
+            <td colspan="2" style="color: #22d3ee; text-align: center;"><strong>EXCEPTIONAL - Multiple reinforcing advantages creating sustainable leadership position</strong></td>
+        </tr>
+    </table>
+</div>
+
+<!-- Slide 28: Why OASIS Wins -->
+<div class="slide">
+    <h1>Why OASIS Wins</h1>
+    
+    <div style="margin-top: 80px;">
+        <div class="stat-box" style="margin: 30px 0; padding: 50px; background: rgba(34, 211, 238, 0.1); border: 2px solid #22d3ee;">
+            <h2 style="color: #e2f4ff;">OASIS is the only platform that is...</h2>
+        </div>
+        
+        <div class="grid-2" style="margin-top: 50px;">
+            <div>
+                <div class="highlight" style="padding: 40px; margin: 20px 0;">
+                    <h3 style="color: #e2f4ff;">Bridge-Less</h3>
+                    <p class="large">Eliminates $2B+/year industry problem</p>
+                </div>
+                
+                <div class="highlight" style="padding: 40px; margin: 20px 0;">
+                    <h3 style="color: #e2f4ff;">100% Uptime</h3>
+                    <p class="large">No competitor can match this guarantee</p>
+                </div>
+                
+                <div class="highlight" style="padding: 40px; margin: 20px 0;">
+                    <h3 style="color: #e2f4ff;">Auto-Optimizing</h3>
+                    <p class="large">60-90% cost savings automatically</p>
+                </div>
+            </div>
+            
+            <div>
+                <div class="highlight" style="padding: 40px; margin: 20px 0;">
+                    <h3 style="color: #e2f4ff;">RWA-Ready</h3>
+                    <p class="large">UAT standard enables $68T market</p>
+                </div>
+                
+                <div class="highlight" style="padding: 40px; margin: 20px 0;">
+                    <h3 style="color: #e2f4ff;">Compliance-Native</h3>
+                    <p class="large">KYC/AML across all chains</p>
+                </div>
+                
+                <div class="highlight" style="padding: 40px; margin: 20px 0;">
+                    <h3 style="color: #e2f4ff;">Production-Proven</h3>
+                    <p class="large">4+ years, zero incidents</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 29: Final Investment Summary -->
+<div class="slide">
+    <h1>Investment Summary</h1>
+    
+    <div class="grid-2" style="margin-top: 60px;">
+        <div>
+            <h2>The Opportunity</h2>
+            <table>
+                <tr><th>Metric</th><th>Value</th></tr>
+                <tr><td>TAM (2030)</td><td style="color: #22d3ee;">$70.35T</td></tr>
+                <tr><td>Target Market Share</td><td>1-5%</td></tr>
+                <tr><td>Revenue Opportunity</td><td style="color: #22d3ee;">$700B-$3.5T</td></tr>
+                <tr><td>Year 5 Revenue</td><td style="color: #22d3ee;">$1.5B-$3B</td></tr>
+                <tr><td>EBITDA Margin</td><td style="color: #22d3ee;">70%+</td></tr>
+            </table>
+        </div>
+        
+        <div>
+            <h2>The Investment</h2>
+            <table>
+                <tr><th>Term</th><th>Value</th></tr>
+                <tr><td>Round</td><td>Series A</td></tr>
+                <tr><td>Raising</td><td style="color: #22d3ee;">$50M-$100M</td></tr>
+                <tr><td>Pre-Money</td><td style="color: #22d3ee;">$500M-$1B</td></tr>
+                <tr><td>Expected Return</td><td style="color: #22d3ee;"><strong>15x-30x</strong></td></tr>
+                <tr><td>Risk Profile</td><td style="color: #22d3ee;">LOW (proven tech)</td></tr>
+            </table>
+        </div>
+    </div>
+    
+    <div class="stat-box" style="margin-top: 80px; padding: 60px;">
+        <h2 style="color: #e2f4ff; margin-bottom: 30px;">Investment Decision</h2>
+        <p style="font-size: 2.5em; color: #22d3ee; font-weight: 700;">
+            Superior technology at 1/3 the valuation with 15x-30x upside
+        </p>
+    </div>
+</div>
+
+<!-- Slide 30: Next Steps -->
+<div class="slide">
+    <h1>Next Steps</h1>
+    
+    <div style="margin-top: 100px;">
+        <h2>Due Diligence Process</h2>
+        <table style="margin-top: 40px;">
+            <tr><th>Phase</th><th>Activities</th><th>Timeline</th></tr>
+            <tr>
+                <td><strong>Phase 1: Initial Review</strong></td>
+                <td>
+                    • This presentation<br>
+                    • Technical deep dive (120-page doc)<br>
+                    • UAT specification review<br>
+                    • Q&A session
+                </td>
+                <td>Week 1</td>
+            </tr>
+            <tr>
+                <td><strong>Phase 2: Deep Dive</strong></td>
+                <td>
+                    • Code review (GitHub access)<br>
+                    • Live platform demo<br>
+                    • Technical team interviews<br>
+                    • Reference calls
+                </td>
+                <td>Week 2-3</td>
+            </tr>
+            <tr>
+                <td><strong>Phase 3: Legal & Commercial</strong></td>
+                <td>
+                    • Term sheet negotiation<br>
+                    • Legal due diligence<br>
+                    • Financial model review<br>
+                    • Investment committee approval
+                </td>
+                <td>Week 4-6</td>
+            </tr>
+            <tr style="background: rgba(34, 211, 238, 0.1);">
+                <td><strong>Phase 4: Closing</strong></td>
+                <td>
+                    • Final documentation<br>
+                    • Wire transfer<br>
+                    • Board seat (if applicable)<br>
+                    • Onboarding
+                </td>
+                <td style="color: #22d3ee;"><strong>Week 7-8</strong></td>
+            </tr>
+        </table>
+        
+        <div class="highlight" style="margin-top: 60px;">
+            <p class="large center">
+                <strong>Contact investors@oasis.one to begin due diligence</strong>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 31: Contact -->
+<div class="slide center">
+    <h1 style="font-size: 6em; margin-bottom: 50px;">OASIS</h1>
+    <h2 style="color: #22d3ee; margin-bottom: 150px;">Building the future of cross-chain infrastructure</h2>
+    
+    <div style="font-size: 2em; line-height: 2.5;">
+        <p><strong>investors@oasis.one</strong></p>
+        <p><strong>oasis.one</strong></p>
+        <p><strong>docs.oasis.one</strong></p>
+    </div>
+    
+    <p style="margin-top: 150px; font-size: 1.5em; color: #22d3ee; font-weight: 700;">
+        Series A Closes: Q1 2026 | Limited Spots Available
+    </p>
+</div>
+
+<!-- Slide 25: Disclaimer -->
+<div class="slide">
+    <h1>Disclaimer</h1>
+    <p style="font-size: 1.1em; line-height: 1.8; margin-top: 40px;">
+        This presentation and the information contained herein (the "Information") are provided on a strictly confidential basis to a limited number of selected sophisticated investors (the "Recipients") at their request and solely for the purpose of evaluating a potential transaction with OASIS Platform or its affiliates ("OASIS"). By accepting this presentation, each Recipient confirms that it is a sophisticated investor (and, where applicable, an "accredited investor" or "qualified investor" within the meaning of applicable securities laws) and agrees to be bound by the confidentiality obligations set forth herein.
+    </p>
+    <p style="font-size: 1.1em; line-height: 1.8; margin-top: 30px;">
+        This presentation is for informational purposes only and does not constitute, and should not be construed as, an offer to sell, a solicitation of an offer to buy, or a recommendation to purchase any securities or other financial instruments. No part of this presentation, nor the fact of its distribution, should form the basis of, or be relied upon in connection with, any contract or commitment. Any offer or sale will be made only pursuant to definitive legal documentation and in compliance with applicable securities laws and regulations.
+    </p>
+    <p style="font-size: 1.1em; line-height: 1.8; margin-top: 30px;">
+        This presentation contains forward-looking statements that involve risks, uncertainties, and assumptions. Actual results may differ materially from those expressed or implied. OASIS undertakes no obligation to update or revise any forward-looking statements.
+    </p>
+</div>
+
+<script>
+let current = 0;
+const slides = document.querySelectorAll('.slide');
+
+function show(n) {
+    slides[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    document.querySelector('.page-num').textContent = `${current + 1} / ${slides.length}`;
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1); }
+});
+</script>
+
+<button class="nav-button nav-prev" onclick="show(current - 1)">←</button>
+<button class="nav-button nav-next" onclick="show(current + 1)">→</button>
+<div class="page-num">1 / 13</div>
+
+</body>
+</html>
+

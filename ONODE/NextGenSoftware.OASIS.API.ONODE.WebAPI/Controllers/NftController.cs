@@ -278,12 +278,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("place-geo-nft")]
         public async Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(PlaceGeoSpatialNFTRequest request)
         {
-            // Use the ProviderType directly
+            // Use the ProviderType directly from the EnumValue
             ProviderType originalOASISNFTProviderType = request.OriginalOASISNFTOffChainProvider.Value;
-
-
-            // No need to parse - ProviderType is already a ProviderType enum
-            ProviderType providerType = request.ProviderType;
 
             API.Core.Objects.NFT.Request.PlaceGeoSpatialNFTRequest placeRequest = new API.Core.Objects.NFT.Request.PlaceGeoSpatialNFTRequest()
             {
@@ -295,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 PermSpawn = request.PermSpawn,
                 GlobalSpawnQuantity = request.GlobalSpawnQuantity,
                 PlayerSpawnQuantity = request.PlayerSpawnQuantity,
-                ProviderType = providerType,
+                //ProviderType = providerType, // TODO: Re-add when PlaceGeoSpatialNFTRequest model has ProviderType property
                 PlacedByAvatarId = AvatarId
             };
 

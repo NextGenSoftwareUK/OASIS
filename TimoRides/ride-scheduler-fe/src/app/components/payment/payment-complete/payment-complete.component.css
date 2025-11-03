@@ -1,0 +1,41 @@
+.booking-section {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+  height: calc(100vh - 20px);
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.booking-header {
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.booking-confirmed {
+  max-width: 40%;
+}
+
+.booking-id {
+  font-weight: 600;
+}
+
+@media screen and (max-width: 768px) {
+  .booking-confirmed {
+    max-width: 70%;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .booking-confirmed {
+    max-width: 80%;
+  }
+}
+
+@media screen and (max-width: 375px) {
+  .booking-confirmed {
+    max-width: 100%;
+  }
+}

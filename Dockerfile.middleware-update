@@ -1,0 +1,5 @@
+# Use the existing working OASIS API image as base
+FROM 881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api:mainnet-update
+
+# Copy the updated middleware file
+COPY NextGenSoftware.OASIS.API.ONODE.WebAPI/Middleware/OASISMiddleware.cs /app/Middleware/OASISMiddleware.cs

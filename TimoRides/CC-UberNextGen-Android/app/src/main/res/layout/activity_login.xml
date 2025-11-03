@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorBlack"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:background="@drawable/city_building"
+            android:layout_marginTop="@dimen/m50dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.6" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_alignParentBottom="true"
+            android:layout_weight="0.5"
+            android:scaleType="fitXY"
+            android:src="@color/colorWhite" />
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+    <LinearLayout
+        android:id="@+id/lllogo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginLeft="@dimen/Margin15dp"
+        android:layout_marginTop="@dimen/m50dp"
+        android:layout_marginBottom="@dimen/m20dp"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/logoicon"
+            android:layout_gravity="center"/>
+
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/llMain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lllogo"
+        android:orientation="vertical">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="@dimen/Margin5dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="@dimen/m70dp"
+            card_view:cardCornerRadius="15dp"
+            card_view:cardElevation="5dp"
+            card_view:cardUseCompatPadding="false">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorWhite"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/m30dp"
+                    android:layout_marginRight="@dimen/m30dp"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_margin="@dimen/m10dp"
+                        android:gravity="center">
+
+                        <LinearLayout
+                            android:id="@+id/llSignup"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:gravity="center"
+                            android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/tvSignup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sign Up"
+                            android:textStyle="bold"
+                            android:textColor="@color/colorBlack"
+                            android:textSize="@dimen/txt24"
+                            android:gravity="center"
+                            />
+                          <!--  android:fontFamily="fonts/news_gothic_b.ttf"-->
+
+                            <View
+                                android:id="@+id/vSignup"
+                                android:layout_width="50dp"
+                                android:layout_height="5dp"
+                                android:layout_margin="@dimen/m10dp"
+                                android:background="@drawable/bg_view" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:id="@+id/llSignin"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:gravity="center"
+                            android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/tvSignin"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sign In"
+                            android:textStyle="bold"
+                            android:textColor="@color/colorBlack"
+                            android:textSize="@dimen/txt24"
+                            android:gravity="center"/>
+                            <View
+                            android:id="@+id/vSignin"
+                            android:layout_width="50dp"
+                            android:layout_height="5dp"
+                            android:layout_margin="@dimen/m10dp"
+                            android:background="@drawable/bg_view"/>
+
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/layoutSignin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:visibility="gone"
+                        android:layout_marginTop="@dimen/m30dp"
+                        android:gravity="center"
+                        android:background="@drawable/edt_phone">
+                        <EditText
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:background="@null"
+                            android:inputType="number"
+                            android:maxLength="3"
+                            android:layout_marginRight="@dimen/m10dp"
+                            android:layout_marginLeft="@dimen/m10dp"
+                            android:padding="@dimen/m10dp"
+                            android:hint="+91"/>
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="@color/colorGrey"/>
+                    <EditText
+                        android:id="@+id/edtPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/m15dp"
+                        android:background="@null"
+                        android:hint="9033332103"
+                        android:imeOptions="actionNext"
+                        android:inputType="number"
+                        android:maxLength="15"
+                        android:textSize="16dp"/>
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/layoutSignup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="@dimen/m30dp"
+                        android:gravity="center"
+                        android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/edtEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/m15dp"
+                        android:hint="Email address"
+                        android:layout_marginBottom="@dimen/m10dp"
+                        android:background="@drawable/edt_phone"
+                        android:imeOptions="actionNext"
+                        android:inputType="textEmailAddress"
+                        android:maxLength="50"
+                        android:textSize="16dp" />
+                    <EditText
+                        android:id="@+id/edtPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/m15dp"
+                        android:background="@drawable/edt_phone"
+                        android:hint="Mobile number"
+                        android:imeOptions="actionNext"
+                        android:inputType="textEmailAddress"
+                        android:maxLength="50"
+                        android:textSize="16dp"
+                    />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/llInBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/m50dp"
+                        android:layout_marginTop="@dimen/m30dp"
+                        android:layout_marginBottom="@dimen/m10dp"
+                        android:gravity="center"
+                        android:visibility="gone"
+                        android:orientation="vertical">
+
+                            <Button
+                                android:id="@+id/btnNext"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/signin_btn_grad"
+                                app:cornerRadius="30dp"
+                                android:text="Next"
+                                android:textAllCaps="false"
+                                android:textColor="@color/colorWhite"
+                                android:textSize="18sp" />
+
+                        <ProgressBar
+                            android:id="@+id/progress_signin"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                     <LinearLayout
+                        android:id="@+id/llUpbtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/m50dp"
+                        android:layout_marginTop="@dimen/m30dp"
+                        android:layout_marginBottom="@dimen/m10dp"
+                        android:gravity="center"
+                        android:visibility="gone"
+                        android:orientation="vertical">
+
+                            <Button
+                                android:id="@+id/btnSignup"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/signin_btn_grad"
+                                app:cornerRadius="30dp"
+                                android:text="Sign Up"
+                                android:textAllCaps="false"
+                                android:textColor="@color/colorWhite"
+                                android:textSize="18sp" />
+
+                        <ProgressBar
+                            android:id="@+id/progress_signup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/m50dp"
+                        android:layout_marginTop="@dimen/m10dp"
+                        android:layout_marginBottom="@dimen/m10dp"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                            <Button
+                                android:id="@+id/btnFb"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/edt_fb"
+                                app:cornerRadius="30dp"
+                                android:text="Connect with Facebook"
+                                android:textAllCaps="false"
+                                android:textColor="@color/colorWhite"
+                                android:textSize="18sp" />
+
+                        <ProgressBar
+                            android:id="@+id/progress_fb"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <!--  <TextView
+                          android:id="@+id/tvForgotPw"
+                          style="@style/PrimaryTextView"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:layout_gravity="center"
+                          android:layout_marginTop="@dimen/_10sdp"
+                          android:layout_marginBottom="@dimen/_10sdp"
+                          android:ellipsize="end"
+                          android:padding="@dimen/_5sdp"
+                          android:singleLine="true"
+                          android:text="Forgot password?"
+                          android:textColor="@color/SecondaryTextColor"
+                          android:textSize="@dimen/_14sdp" />-->
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+            <TextView
+                android:id="@+id/tvTerms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorfontBlack"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="@dimen/m20dp"
+                android:gravity="center"
+                android:text="@string/by_clicking_start_you_are_agree_to_our_terms_and_conditions"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,27 @@
+[features]
+seeds = false
+skip-lint = false
+
+[programs.localnet]
+dat_integration = "DAtYXMpDEZL8RqQ7KVZp9YvKj8TqPSxKjHD2nNKFZC3L"
+nft_airdrop = "NftAirDRqP5vZXMpDEZL8RqQ7KVZp9YvKj8TqPSxKj"
+
+[programs.devnet]
+dat_integration = "DAtYXMpDEZL8RqQ7KVZp9YvKj8TqPSxKjHD2nNKFZC3L"
+nft_airdrop = "NftAirDRqP5vZXMpDEZL8RqQ7KVZp9YvKj8TqPSxKj"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+
+
+
+
+

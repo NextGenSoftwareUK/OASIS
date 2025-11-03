@@ -1,0 +1,10 @@
+.blurred {
+  color: #473cd9;
+  font-size: 20px;
+}
+
+.book-info-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

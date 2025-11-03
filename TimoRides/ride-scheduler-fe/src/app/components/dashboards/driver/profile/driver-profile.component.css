@@ -1,0 +1,173 @@
+.profile-container {
+  display: flex;
+  max-width: 1000px;
+  margin: auto;
+  min-height: calc(100vh - 20px);
+  align-items: center;
+  padding: 80px 0;
+}
+
+.left-column {
+  flex: 1;
+  padding: 20px;
+  background-color: #f8f8f8;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 350px;
+  justify-content: center;
+}
+
+.right-column h2 {
+  text-align: center;
+}
+
+.profile-picture,
+.basic-info {
+  text-align: center;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+app-button {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.right-column {
+  flex: 2;
+  padding: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.profile-picture img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+}
+
+label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.nok-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.basic-info h2 {
+  margin: 0;
+}
+
+.form-grouped {
+  justify-content: space-between;
+  display: flex;
+  gap: 20px;
+}
+.form-grouped .form-group {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.uploadStatus {
+  font-size: 13px;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.uploadSuccess {
+  color: green;
+}
+
+.uploadFailed {
+  color: red;
+}
+
+.uploadPending {
+  color: rgb(162, 12, 176);
+}
+
+.required {
+  color: var(--error);
+}
+
+.profileImg {
+  overflow-wrap: break-word;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.license-img-text {
+  color: green;
+  font-style: italic;
+  word-break: break-all; /* Breaks long words at arbitrary points to prevent overflow */
+  overflow-wrap: break-word; /* Ensures the text wraps inside the container */
+}
+
+@media screen and (max-width: 630px) {
+  .profile-container {
+    flex-direction: column;
+  }
+
+  app-button {
+    width: fit-content;
+  }
+}
+
+@media screen and (max-width: 530px) {
+  app-button {
+    width: 100%;
+  }
+}

@@ -47,10 +47,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("register-social-provider")]
-        public async Task<OASISResult<bool>> RegisterSocialProvider([FromBody] string providerName, [FromBody] string accessToken, [FromBody] Dictionary<string, object> settings = null)
+        public async Task<OASISResult<bool>> RegisterSocialProvider([FromBody] RegisterSocialProviderRequest request)
         {
             // Use SocialManager for business logic
-            return await SocialManager.Instance.RegisterSocialProviderAsync(Avatar.Id, providerName, accessToken, settings);
+            return await SocialManager.Instance.RegisterSocialProviderAsync(Avatar.Id, request.ProviderName, request.AccessToken, request.Settings);
+        }
+        
+        public class RegisterSocialProviderRequest
+        {
+            public string ProviderName { get; set; }
+            public string AccessToken { get; set; }
+            public Dictionary<string, object> Settings { get; set; }
         }
 
         /// <summary>
@@ -62,10 +69,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("share-holon")]
-        public async Task<OASISResult<bool>> ShareHolon([FromBody] Guid holonId, [FromBody] string message, [FromBody] List<string> providerIds = null)
+        public async Task<OASISResult<bool>> ShareHolon([FromBody] ShareHolonRequest request)
         {
             // Use SocialManager for business logic
-            return await SocialManager.Instance.ShareHolonAsync(Avatar.Id, holonId, message, providerIds);
+            return await SocialManager.Instance.ShareHolonAsync(Avatar.Id, request.HolonId, request.Message, request.ProviderIds);
+        }
+        
+        public class ShareHolonRequest
+        {
+            public Guid HolonId { get; set; }
+            public string Message { get; set; }
+            public List<string> ProviderIds { get; set; }
         }
 
         /// <summary>

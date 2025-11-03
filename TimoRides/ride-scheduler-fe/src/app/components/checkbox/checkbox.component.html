@@ -1,0 +1,29 @@
+<ng-container *ngIf="config.type === 'checkbox'">
+  <div class="chkbox-group" [class.clicked]="isClicked" (click)="toggleClick()">
+    <!-- Display label if label property is provided -->
+    <ng-container *ngIf="config.isRequired">
+      <label class="tr-input-grp__label" for="{{ config.id }}"
+        >{{ config.label
+        }}<span [class.required]="config.isRequired" *ngIf="config.isRequired"
+          >*</span
+        ></label
+      >
+    </ng-container>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <g id="icon" [style.display]="isClicked ? 'inline' : 'none'">
+        <path
+          id="Vector"
+          d="M11.255 4.34452C11.3545 4.23594 11.4755 4.14925 11.6102 4.08994C11.745 4.03063 11.8906 4 12.0379 4C12.1851 4 12.3308 4.03063 12.4655 4.08994C12.6003 4.14925 12.7213 4.23594 12.8207 4.34452C13.0292 4.57143 13.1449 4.86836 13.1449 5.17652C13.1449 5.48467 13.0292 5.7816 12.8207 6.00852L7.51789 11.6542C7.41842 11.7628 7.29746 11.8495 7.16269 11.9088C7.02792 11.9681 6.88228 11.9987 6.73503 11.9987C6.58779 11.9987 6.44215 11.9681 6.30738 11.9088C6.1726 11.8495 6.05164 11.7628 5.95218 11.6542L3.18418 8.71252C2.97568 8.4856 2.85999 8.18867 2.85999 7.88052C2.85999 7.57236 2.97568 7.27543 3.18418 7.04852C3.28364 6.93994 3.4046 6.85325 3.53938 6.79394C3.67415 6.73463 3.81979 6.704 3.96703 6.704C4.11428 6.704 4.25992 6.73463 4.39469 6.79394C4.52946 6.85325 4.65042 6.93994 4.74989 7.04852L6.73389 9.15823L11.2539 4.34452H11.255Z"
+          fill="white"
+        />
+      </g>
+    </svg>
+    <p class="chkbox-group__text">{{ config.chkLabel }}</p>
+  </div>
+</ng-container>

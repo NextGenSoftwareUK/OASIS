@@ -1,0 +1,29 @@
+<ng-container *ngIf="car">
+  <div class="car-card" (click)="emitCarId($event, car.id)">
+    <div class="car-container">
+      <img src="{{ car.imagePath }}" class="car-image" alt="car image" />
+    </div>
+    <div class="car-summary-section">
+      <div
+        class="car-summary-section__a distance_container"
+        *ngIf="isProxyCar(car)"
+      >
+        <img src="assets/images/cars/location.png" alt="" />
+        <p>{{ car.durationAway }} away</p>
+      </div>
+      <div class="car-summary-section__a">
+        <p class="car-model">{{ car.vehicleModel | nice }}</p>
+        <app-rating-widget
+          class="rating-container"
+          [rated]="car.rating"
+        ></app-rating-widget>
+      </div>
+      <div class="car-summary-section__a">
+        <p class="car-number">{{ car.vehicleRegNumber | nice }}</p>
+        <p class="car-amount" *ngIf="isProxyCar(car)">
+          R{{ car.rideAmount || 0 }}
+        </p>
+      </div>
+    </div>
+  </div>
+</ng-container>

@@ -1,0 +1,47 @@
+{
+  "name": "assetrail-solana-contracts",
+  "version": "0.1.0",
+  "description": "AssetRail Solana Smart Contracts - DAT Integration & NFT Airdrop",
+  "scripts": {
+    "test": "anchor test",
+    "build": "anchor build",
+    "deploy-localnet": "anchor deploy --provider.cluster localnet",
+    "deploy-devnet": "anchor deploy --provider.cluster devnet",
+    "deploy-mainnet": "anchor deploy --provider.cluster mainnet",
+    "lint": "prettier --check .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/spl-token": "^0.4.1",
+    "@solana/web3.js": "^1.91.1"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.5",
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "chai": "^4.4.1",
+    "mocha": "^10.2.0",
+    "prettier": "^3.2.4",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "solana",
+    "anchor",
+    "dat",
+    "treasury",
+    "nft",
+    "airdrop",
+    "defi",
+    "tokenization"
+  ],
+  "author": "AssetRail Team",
+  "license": "MIT"
+}
+
+
+
+
+
+

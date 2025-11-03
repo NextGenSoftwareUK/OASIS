@@ -1,0 +1,141 @@
+<main class="driver-dashboard">
+  <div class="summary-section">
+    <ng-container
+      *ngFor="let summary of driverSummary; let i = index; trackBy: trackByFn"
+    >
+      <ng-container *ngIf="getObservableByIndex(i) | async as value">
+        <app-dashboard-summary
+          [summaryInfo]="{
+            title: summary.title,
+            value: value.toString(),
+            imagePath: summary.imagePath
+          }"
+          style="width: 100%"
+        ></app-dashboard-summary>
+      </ng-container>
+    </ng-container>
+  </div>
+
+  <br />
+  <hr />
+  <br />
+
+  <!-- Add Wallet here -->
+  <ng-container *ngIf="profile$ | async as profile; else Loading">
+    <div class="wallet-section" *ngIf="profile.id; else NoProfileFound">
+      <p class="wallet">
+        Wallet:
+        <span class="wallet-amount">{{ profile.wallet | currency : "R" }}</span>
+      </p>
+
+      <app-button
+        [btnConfig]="{
+          label: 'Top-up',
+          size: 'sm',
+          theme: 'primary',
+          block: true
+        }"
+        class="additional-class"
+        id="additional-id"
+        (click)="showControl(true, 'topup')"
+      >
+      </app-button>
+
+      <app-button
+        [btnConfig]="{
+          label: 'Withdraw funds',
+          size: 'sm',
+          theme: 'primary',
+          block: true
+        }"
+        class="additional-class"
+        id="additional-id"
+        (click)="showControl(true, 'withdraw')"
+      >
+      </app-button>
+
+      <!-- Withdrawal -->
+      <ng-container *ngIf="showWidget">
+        <div class="withdraw-widget">
+          <app-input-group
+            [inputConfig]="{
+              placeholder: 'Enter amount',
+              isRequired: true,
+              id: 'amountControl',
+              theme: 'dark',
+            }"
+            inputType="number"
+            controlName="amountControl"
+            [form]="withdrawForm"
+          ></app-input-group>
+
+          <ng-container *ngIf="transactionType === 'withdraw'">
+            <app-button
+              [btnConfig]="{
+                label: 'Send',
+                size: 'sm',
+                theme: 'primary',
+                block: true
+              }"
+              class="additional-class"
+              id="additional-id"
+              (click)="withdraw()"
+            >
+            </app-button>
+          </ng-container>
+
+          <!-- Topup with Flutterwave -->
+          <ng-container *ngIf="transactionType === 'topup'">
+            <ng-container *ngIf="profile && withdrawForm.valid">
+              <flutterwave-make-payment
+                (mouseenter)="getReference()"
+                (mousedown)="getReference()"
+                [public_key]="getKey()"
+                [amount]="+getControl('amountControl').value"
+                [currency]="defaultCurrency"
+                [payment_options]="getPaymentOption()"
+                redirect_url=""
+                text="Topup wallet"
+                [customer]="getCustomerDetails()"
+                [customizations]="getCustomizations()"
+                [meta]="getMeta()"
+                [tx_ref]="referenceId"
+                (callback)="makePaymentCallback($event)"
+                (close)="closedPaymentModal($event)"
+              >
+              </flutterwave-make-payment>
+            </ng-container>
+          </ng-container>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+  <ng-template #Loading> Loading... </ng-template>
+  <ng-template #NoProfileFound>
+    <span class="error-text">No Profile Found</span>
+  </ng-template>
+
+  <br />
+  <hr />
+  <br />
+
+  <h2>Recent Rides</h2>
+
+  <ng-container *ngIf="bookings$ | async as bookedRides; else LoadingBookings">
+    <div class="table-section" *ngIf="bookedRides.bookings.length; else NoRide">
+      <app-table
+        [tableData]="{
+          type: 'booked rides',
+          value: bookedRides.bookings
+        }"
+      ></app-table>
+    </div>
+  </ng-container>
+  <ng-template #NoRide>
+    <span class="error-text">No Rides Found</span>
+  </ng-template>
+
+  <ng-template #LoadingBookings>
+    <span class="error-text">Getting Rides...</span>
+  </ng-template>
+</main>

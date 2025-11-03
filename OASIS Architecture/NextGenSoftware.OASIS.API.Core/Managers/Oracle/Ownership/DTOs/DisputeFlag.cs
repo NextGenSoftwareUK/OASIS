@@ -19,3 +19,7 @@ public class DisputeFlag
     public string Resolution { get; set; }
 }
 
+
+
+
+

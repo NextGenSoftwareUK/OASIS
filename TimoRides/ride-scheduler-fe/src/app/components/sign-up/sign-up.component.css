@@ -1,0 +1,214 @@
+.app-signup {
+  background-color: var(--bg-color-main);
+  height: calc(100vh - 20px);
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-signup__form-con {
+  max-width: 480px;
+  width: 90%;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 4rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+  z-index: 2;
+  max-height: 95vh;
+  overflow-y: auto;
+}
+
+.app-signup__form-con ::-webkit-scrollbar-track,
+.app-signup__form-con::-webkit-scrollbar {
+  appearance: none;
+}
+
+.signup-title {
+  margin: 0;
+}
+
+.signup-choice-con {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.signup-choice-con label {
+  font-size: 1.2rem;
+}
+
+.signup-choice {
+  max-width: 320px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background-color: var(--text-color-light);
+}
+
+.signup-choice-title {
+  white-space: nowrap;
+}
+
+.signup-choice span {
+  width: 100%;
+  height: 100%;
+  padding: 0.6rem 1.3rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+}
+
+.active-signup-choice {
+  background-color: var(--color-main);
+  transition: all 0.5s ease-in-out;
+}
+
+.app-signup__form-con h1 {
+  color: var(--text-color-main);
+  text-align: center;
+}
+
+.app-signup__form-con form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.app-signup__form-con-input-con {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.app-signup__form-con-input-con label {
+  color: var(--text-color-main);
+  font-size: 1rem;
+}
+
+.app-signup__form-con-input-con .input-text {
+  width: 100%;
+  padding: 0 1rem;
+  background-color: #ffffff;
+  color: var(--text-color-mid);
+  height: 45px;
+  border: 2px solid var(--text-color-light);
+  border-radius: 25px;
+  font-size: 1rem;
+}
+
+.app-signup__form-con-input-con input:focus {
+  outline: none;
+}
+
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.form-divider__line {
+  width: 100%;
+  height: 2px;
+  background-color: var(--text-color-light);
+}
+
+.input-icon {
+  opacity: 0.55;
+}
+
+.input-icon-pass {
+  cursor: pointer;
+}
+
+.app-signup__form-con-input-con__inner {
+  width: 100%;
+  padding: 0 1rem;
+  background-color: #ffffff;
+  color: var(--text-color-mid);
+  height: 45px;
+  border: 2px solid var(--text-color-light);
+  border-radius: 25px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-signup__form-con-input-con__inner .input-pass {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+}
+
+.btn-con-form {
+  width: 100%;
+  align-self: center;
+}
+
+.signup {
+  color: var(--text-color-main);
+}
+
+.signup__action {
+  color: var(--color-main);
+  cursor: pointer;
+}
+
+/* Decoration */
+.bg-ellipse {
+  position: absolute;
+  top: 3rem;
+  left: 0;
+  z-index: 1;
+}
+
+.bg-ellipse2 {
+  position: absolute;
+  right: 0;
+  bottom: 3rem;
+  z-index: 1;
+}
+
+.bg-ellipse9-right-top {
+  position: absolute;
+  right: 0;
+  top: 3rem;
+  z-index: 1;
+}
+
+.left-bottom-small {
+  position: absolute;
+  bottom: -2rem;
+  left: 0;
+  z-index: 1;
+}
+.back-buttton {
+  cursor: pointer;
+  margin-top: 1.5rem;
+}
+
+.app-signup__form-con-input-con .error-text {
+  margin-bottom: -1rem;
+}
+
+@media screen and (max-width: 425px) {
+  .signup-choice-con {
+    flex-direction: column;
+  }
+}

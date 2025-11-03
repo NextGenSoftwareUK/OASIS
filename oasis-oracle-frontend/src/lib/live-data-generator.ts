@@ -93,3 +93,6 @@ export class LiveDataGenerator {
 // Singleton instance
 export const liveDataGenerator = new LiveDataGenerator();
 
+
+
+

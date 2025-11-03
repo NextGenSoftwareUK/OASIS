@@ -1,0 +1,20 @@
+.app-text-input {
+  width: 100%;
+  padding: 0 0.5rem;
+  background-color: #ffffff;
+  color: var(--text-color-mid);
+  height: 40px;
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.app-text-input::placeholder {
+  color: var(--text-color-light);
+}
+
+.app-text-input:focus {
+  outline: none;
+  border: none;
+}

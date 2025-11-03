@@ -1,0 +1,67 @@
+{
+  "family": "oasis-api-task-devnet",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::881490134703:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::881490134703:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "oasis-api-container",
+      "image": "881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api:devnet",
+      "cpu": 512,
+      "memory": 1024,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "ConnectionStrings__MongoDBOASIS",
+          "value": "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4"
+        },
+        {
+          "name": "ASPNETCORE_ENVIRONMENT",
+          "value": "Production"
+        },
+        {
+          "name": "ASPNETCORE_URLS",
+          "value": "http://+:80"
+        },
+        {
+          "name": "ConnectionStrings__SolanaOASIS",
+          "value": "https://api.devnet.solana.com"
+        },
+        {
+          "name": "SolanaOASIS__WalletMnemonicWords",
+          "value": "adapt afford abandon above age adult ahead accident aim advice agree accuse"
+        },
+        {
+          "name": "SolanaOASIS__PrivateKey",
+          "value": "kNln1+y3r9Xa1HbiakTDUmdpyzImmnpEs/+et8D6Jr2eE+KoOZJtHXdOOoNyP1NRDcfa44LE4y6llK9JaMpCEA=="
+        },
+        {
+          "name": "SolanaOASIS__PublicKey",
+          "value": "Be51B1n3m1MCtZYvH8JEX3LnZZwoREyH4rYoyhMrkxJs"
+        }
+      ],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/oasis-api-devnet",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "systemControls": []
+    }
+  ]
+}
+

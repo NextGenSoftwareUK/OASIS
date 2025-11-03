@@ -1,0 +1,27 @@
+<div>
+  <div class="card-basic-info">
+    <mat-radio-button color="primary" class="mat-terms"></mat-radio-button>
+    <div class="asdf">
+      <div class="side">
+        <img [src]="cardInfo.cardType.cardImagepath" alt="" />
+        <div>
+          <h2 class="payment-card-header">
+            {{ cardInfo.cardType.cardName | titlecase }} -
+            {{ cardInfo.cardNumber.toString().substring(12) }}
+          </h2>
+          <p>
+            {{ cardInfo.cardholderName }} | exp.
+            {{ cardInfo.cardExpiration | date : "MM/YY" }}
+          </p>
+          <div class="btn-actions">
+            <button mat-button routerLink="" class="btn-flat">Edit</button>
+            <mat-divider vertical="true"></mat-divider>
+            <button mat-button (click)="deleteCard()" class="btn-flat">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

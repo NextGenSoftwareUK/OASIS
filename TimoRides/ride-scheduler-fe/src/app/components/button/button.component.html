@@ -1,0 +1,10 @@
+<button
+  (click)="triggerEmit($event, 'my text')"
+  class="button {{ buttonWidth() }} button-{{ btnConfig?.size }} button-{{
+    btnConfig?.theme
+  }}"
+  [class.active]="btnConfig?.isActive"
+  [disabled]="btnConfig?.disabled"
+>
+  {{ btnConfig?.label }}
+</button>

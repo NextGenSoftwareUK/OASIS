@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+  
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Remove any visible page dividers */
+  .page-break, .page-divider {
+    display: none !important;
+  }
+  
+  /* Ensure grid columns work in print - force the inline styles to apply */
+  .grid[style*="gridTemplateColumns"] {
+    display: grid !important;
+  }
+  
+  /* Make container full width for print */
+  .max-w-6xl {
+    max-width: 100% !important;
+  }
+  
+  /* Allow sections to break across pages naturally */
+  .p-8, .p-6 {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+  
+  /* Only prevent breaks inside individual cards */
+  .rounded-lg > div, 
+  .rounded-xl > div,
+  .bg-white.rounded-lg,
+  .bg-white\/10.rounded-lg {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Remove shadows for cleaner print */
+  .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm {
+    box-shadow: none !important;
+  }
+  
+  /* Remove outer container styling that creates page borders */
+  .max-w-6xl.rounded-xl {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  /* Remove background gradient container borders */
+  .min-h-screen {
+    background: white !important;
+  }
+  
+  /* Keep rounded corners on photo and inner cards */
+  .rounded-full {
+    border-radius: 9999px !important;
+  }
+  
+  .rounded-lg {
+    border-radius: 0.5rem !important;
+  }
+  
+  /* Compact spacing for better page utilization */
+  .p-8 {
+    padding: 1rem !important;
+  }
+  
+  .p-6 {
+    padding: 0.75rem !important;
+  }
+  
+  .py-8 {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  
+  .gap-6 {
+    gap: 1rem !important;
+  }
+  
+  .gap-4 {
+    gap: 0.75rem !important;
+  }
+  
+  .mb-6 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .mb-4 {
+    margin-bottom: 0.375rem !important;
+  }
+  
+  .mb-3 {
+    margin-bottom: 0.375rem !important;
+  }
+  
+  .mb-2 {
+    margin-bottom: 0.25rem !important;
+  }
+  
+  /* Reduce spacing after headings */
+  h2 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .border-b-2 {
+    padding-bottom: 0.375rem !important;
+  }
+  
+  /* Make text slightly smaller for better fit */
+  .text-4xl {
+    font-size: 1.75rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.125rem !important;
+  }
+  
+  .text-xl {
+    font-size: 1rem !important;
+  }
+  
+  .text-lg {
+    font-size: 0.95rem !important;
+  }
+  
+  .text-sm {
+    font-size: 0.8rem !important;
+  }
+  
+  /* Keep photo at original size */
+  .h-32 {
+    height: 8rem !important;
+  }
+  
+  .w-32 {
+    width: 8rem !important;
+  }
+  
+  /* Make header more compact and left-aligned for print */
+  .bg-gradient-to-r.from-blue-900 {
+    padding: 1rem !important;
+  }
+  
+  /* Force flex row layout in print */
+  .flex-col.md\:flex-row {
+    flex-direction: row !important;
+  }
+  
+  /* Force left alignment in print */
+  .text-center.md\:text-left {
+    text-align: left !important;
+  }
+  
+  /* Force left justification for items */
+  .justify-center.md\:justify-start {
+    justify-content: flex-start !important;
+  }
+  
+  /* Reduce logo size in print */
+  .h-16 {
+    height: 3rem !important;
+  }
+  
+  /* Compact credentials badges */
+  .text-xs {
+    font-size: 0.65rem !important;
+    padding: 0.125rem 0.375rem !important;
+  }
+}
+

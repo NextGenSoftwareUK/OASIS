@@ -1,0 +1,60 @@
+.driver-dashboard {
+  max-width: 1200px;
+  margin: auto;
+  padding: 5rem 3rem 5rem;
+  padding-top: 100px;
+}
+
+.summary-section {
+  display: flex;
+  gap: 3rem;
+  justify-content: space-between;
+  overflow-x: auto;
+}
+
+.summary-section,
+.table-section {
+  padding: 1rem 0;
+}
+
+.wallet-section {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.wallet,
+.wallet-amount {
+  font-weight: bold;
+}
+
+.wallet-amount {
+  font-size: 20px;
+  font-style: italic;
+  color: rebeccapurple;
+}
+
+.withdraw-widget {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+@media screen and (max-width: 768px) {
+  .driver-dashboard {
+    padding: 3rem 1rem;
+    padding-top: 100px;
+  }
+
+  .wallet-section {
+    flex-direction: column;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .summary-section {
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 5rem;
+  }
+}

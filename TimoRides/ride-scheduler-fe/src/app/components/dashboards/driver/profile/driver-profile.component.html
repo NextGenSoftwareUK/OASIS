@@ -1,0 +1,1634 @@
+<div class="profile-container">
+  <!-- Left column -->
+  <div class="left-column">
+    <div class="profile-picture">
+      <img
+        [src]="
+          savedImageFiles['profileImg'] || 'assets/images/profile-default.svg'
+        "
+        alt="User Profile Image"
+      />
+    </div>
+    <div class="basic-info">
+      <h2>{{ driverDetailsForm.get("fullName")?.value }}</h2>
+      <p>{{ driverDetailsForm.get("email")?.value }}</p>
+    </div>
+
+    <!-- Upload profile picture -->
+    <div class="form-group">
+      <ng-container>
+        <ng-container>
+          <app-input-group
+            [inputConfig]="{
+              label: 'Profile Picture',
+              isRequired: false,
+              id: 'profileImg',
+              theme: 'dark',
+              accept: 'image/*'
+            }"
+            inputType="file"
+            controlName="profileImg"
+            [form]="driverDetailsForm"
+          ></app-input-group>
+        </ng-container>
+      </ng-container>
+      <ng-container
+        *ngIf="
+          profileImageUploadProgress.status !== 'none' &&
+          currentUploadingImage === 'profileImg' &&
+          !attachments.includes('profileImg')
+        "
+      >
+        <p
+          class="uploadStatus"
+          [class.uploadFailed]="
+            currentUploadingImage === 'profileImg' &&
+            profileImageUploadProgress.status === 'failed'
+          "
+          [class.uploadPending]="
+            currentUploadingImage === 'profileImg' &&
+            profileImageUploadProgress.status === 'pending'
+          "
+        >
+          {{ profileImageUploadProgress.message }}
+        </p>
+      </ng-container>
+      <ng-container *ngIf="attachments.includes('profileImg')">
+        <p
+          class="uploadStatus"
+          [class.uploadSuccess]="attachments.includes('profileImg')"
+        >
+          file name: {{ fileUploads["profileImg"]["rawFile"] }}
+        </p>
+      </ng-container>
+    </div>
+
+    <div class="navigation-buttons">
+      <app-button
+        [btnConfig]="{
+            label: 'Driver Details',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            isActive: columnTitle === 'Driver Details',
+          }"
+        (click)="showSection('driverDetails')"
+      ></app-button>
+
+      <app-button
+        [class.active]="activeSection === 'attachments'"
+        [btnConfig]="{
+            label: 'Attachments',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            isActive: columnTitle === 'Attachments',
+          }"
+        (click)="showSection('attachments')"
+      ></app-button>
+
+      <app-button
+        [class.active]="activeSection === 'nextOfKin'"
+        [btnConfig]="{
+            label: 'Next of Kin',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            isActive: columnTitle === 'Next of Kin',
+          }"
+        (click)="showSection('nextOfKin')"
+      ></app-button>
+
+      <app-button
+        [class.active]="activeSection === 'accountDetails'"
+        [btnConfig]="{
+            label: 'Account Details',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            isActive: columnTitle === 'Account Details',
+          }"
+        (click)="showSection('accountDetails')"
+      ></app-button>
+
+      <app-button
+        [class.active]="activeSection === 'vehicleDetails'"
+        [btnConfig]="{
+            label: 'Vehicle Details',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            isActive: columnTitle === 'Vehicle Details',
+          }"
+        (click)="showSection('vehicleDetails')"
+      ></app-button>
+
+      <app-button
+        [class.active]="activeSection === 'termsConditions'"
+        [btnConfig]="{
+            label: 'Terms & Conditions',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            isActive: columnTitle === 'Terms & Conditions',
+          }"
+        (click)="showSection('termsConditions')"
+      ></app-button>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="right-column">
+    <h2>{{ columnTitle }}</h2>
+
+    <!-- Driver Details -->
+    <div
+      *ngIf="
+        activeSection === 'driverDetails' && profile && isDriverProfile(profile)
+      "
+    >
+      <form [formGroup]="driverDetailsForm">
+        <div class="form-group">
+          <label for="title">Title</label>
+          <ng-container>
+            <app-dropdown
+              class="block w-full"
+              [dropdownConfiguration]="titles"
+              [formControl]="getFormControl(driverDetailsForm, 'title')"
+              [selectedOptionDisplay]="profile.title"
+            ></app-dropdown>
+          </ng-container>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Full Name',
+              isRequired: true,
+              placeholder: 'E.g. John Doe',
+              id: 'fullName',
+              theme: 'dark',
+              readonly: true
+            }"
+            inputType="text"
+            controlName="fullName"
+            [form]="driverDetailsForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Email',
+              isRequired: true,
+              placeholder: 'E.g. abc@123.com',
+              id: 'email',
+              theme: 'dark',
+              readonly: true
+            }"
+            inputType="email"
+            controlName="email"
+            [form]="driverDetailsForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Residential Address',
+              isRequired: true,
+              placeholder: 'E.g. Block 12, St. John\'s Street',
+              id: 'homeAddress',
+              theme: 'dark'
+            }"
+            controlName="homeAddress"
+            inputType="text"
+            [form]="driverDetailsForm"
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Phone',
+              isRequired: true,
+              placeholder: '',
+              id: 'phone',
+              theme: 'dark'
+            }"
+            controlName="phone"
+            inputType="tel"
+            [form]="driverDetailsForm"
+          ></app-input-group>
+        </div>
+
+        <!-- Alt Phone -->
+        <ng-container *ngIf="profile && isDriverProfile(profile)">
+          <div class="form-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Alternate Phone',
+                isRequired: false,
+                placeholder: '',
+                id: 'altPhone',
+                theme: 'dark'
+              }"
+              controlName="altPhone"
+              inputType="tel"
+              [form]="driverDetailsForm"
+            ></app-input-group>
+          </div>
+        </ng-container>
+
+        <!-- Means of ID -->
+        <ng-container *ngIf="profile && isDriverProfile(profile)">
+          <ng-container
+            *ngIf="
+              !profile.identityNumber || !profile.identityType;
+              else IdentityProvided
+            "
+          >
+            <div class="form-group">
+              <label for="idType"
+                >Means of Identity<span class="required">&nbsp;*</span></label
+              >
+              <ng-container>
+                <app-dropdown
+                  class="block w-full"
+                  [dropdownConfiguration]="idOptions"
+                  [formControl]="getFormControl(driverDetailsForm, 'idType')"
+                ></app-dropdown>
+              </ng-container>
+            </div>
+            <div class="form-group">
+              <app-input-group
+                [inputConfig]="{
+                  label: 'Identity No/Passport No',
+                  isRequired: true,
+                  placeholder: '',
+                  id: 'idNumber',
+                  theme: 'dark'
+                }"
+                controlName="idNumber"
+                inputType="text"
+                [form]="driverDetailsForm"
+              ></app-input-group>
+            </div>
+          </ng-container>
+          <ng-template #IdentityProvided>
+            <div class="form-group">
+              <label for="idType">Means of Identity</label>
+              <div class="license-img-text">
+                {{ profile.identityType }}
+              </div>
+            </div>
+          </ng-template>
+        </ng-container>
+      </form>
+    </div>
+
+    <!-- Attachments -->
+    <div *ngIf="activeSection === 'attachments'">
+      <ng-container *ngIf="profile && isDriverProfile(profile)">
+        <form [formGroup]="attachmentsForm">
+          <ng-container
+            *ngIf="!profile.driverLicenseImg; else IdentityProvided"
+          >
+            <div class="form-group">
+              <app-input-group
+                [inputConfig]="{
+                  label: 'Driving License',
+                  isRequired: true,
+                  placeholder: '',
+                  id: 'driverLicenseImg',
+                  theme: 'dark',
+                  accept: 'image/*',
+                }"
+                [inputType]="'file'"
+                controlName="driverLicenseImg"
+                [form]="attachmentsForm"
+              ></app-input-group>
+              <ng-container
+                *ngIf="
+                  profileImageUploadProgress.status !== 'none' &&
+                  currentUploadingImage === 'driverLicenseImg' &&
+                  !attachments.includes('driverLicenseImg')
+                "
+              >
+                <p
+                  class="uploadStatus"
+                  [class.uploadFailed]="
+                    currentUploadingImage === 'driverLicenseImg' &&
+                    profileImageUploadProgress.status === 'failed'
+                  "
+                  [class.uploadPending]="
+                    currentUploadingImage === 'driverLicenseImg' &&
+                    profileImageUploadProgress.status === 'pending'
+                  "
+                >
+                  {{ profileImageUploadProgress.message }}
+                </p>
+              </ng-container>
+              <ng-container *ngIf="attachments.includes('driverLicenseImg')">
+                <p
+                  class="uploadStatus"
+                  [class.uploadSuccess]="
+                    attachments.includes('driverLicenseImg')
+                  "
+                >
+                  file name: {{ fileUploads["driverLicenseImg"]["rawFile"] }}
+                </p>
+              </ng-container>
+            </div>
+          </ng-container>
+          <ng-template #IdentityProvided>
+            <div class="form-group">
+              <label for="idType">Driving License</label>
+              <div class="license-img-text">
+                {{ profile.driverLicenseImg }}
+              </div>
+            </div>
+          </ng-template>
+
+          <!-- Valid ID Card -->
+          <ng-container>
+            <ng-container
+              *ngIf="!profile.driverIdentityCardImg; else ValidIdProvided"
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Valid ID Card',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'driverIdentityCardImg',
+                    theme: 'dark',
+                    accept: 'image/*',
+                  }"
+                  [inputType]="'file'"
+                  controlName="driverIdentityCardImg"
+                  [form]="attachmentsForm"
+                ></app-input-group>
+                <ng-container
+                  *ngIf="
+                    profileImageUploadProgress.status !== 'none' &&
+                    currentUploadingImage === 'driverIdentityCardImg' &&
+                    !attachments.includes('driverIdentityCardImg')
+                  "
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadFailed]="
+                      currentUploadingImage === 'driverIdentityCardImg' &&
+                      profileImageUploadProgress.status === 'failed'
+                    "
+                    [class.uploadPending]="
+                      currentUploadingImage === 'driverIdentityCardImg' &&
+                      profileImageUploadProgress.status === 'pending'
+                    "
+                  >
+                    {{ profileImageUploadProgress.message }}
+                  </p>
+                </ng-container>
+                <ng-container
+                  *ngIf="attachments.includes('driverIdentityCardImg')"
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadSuccess]="
+                      attachments.includes('driverIdentityCardImg')
+                    "
+                  >
+                    file name:
+                    {{ fileUploads["driverIdentityCardImg"]["rawFile"] }}
+                  </p>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #ValidIdProvided>
+              <div class="form-group">
+                <label for="idType">Valid ID Card</label>
+                <div class="license-img-text">
+                  {{ profile.driverIdentityCardImg }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Professional Driver Permit (PrDP) -->
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !profile.professionalDriverPermitImg;
+                else ProfessionalDriverPermitProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Professional Driver Permit (PrDP)',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'professionalDriverPermitImg',
+                    theme: 'dark',
+                    accept: 'image/*',
+                  }"
+                  [inputType]="'file'"
+                  controlName="professionalDriverPermitImg"
+                  [form]="attachmentsForm"
+                ></app-input-group>
+                <ng-container
+                  *ngIf="
+                    profileImageUploadProgress.status !== 'none' &&
+                    currentUploadingImage === 'professionalDriverPermitImg' &&
+                    !attachments.includes('professionalDriverPermitImg')
+                  "
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadFailed]="
+                      currentUploadingImage === 'professionalDriverPermitImg' &&
+                      profileImageUploadProgress.status === 'failed'
+                    "
+                    [class.uploadPending]="
+                      currentUploadingImage === 'professionalDriverPermitImg' &&
+                      profileImageUploadProgress.status === 'pending'
+                    "
+                  >
+                    {{ profileImageUploadProgress.message }}
+                  </p>
+                </ng-container>
+                <ng-container
+                  *ngIf="attachments.includes('professionalDriverPermitImg')"
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadSuccess]="
+                      attachments.includes('professionalDriverPermitImg')
+                    "
+                  >
+                    file name:
+                    {{ fileUploads["professionalDriverPermitImg"]["rawFile"] }}
+                  </p>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #ProfessionalDriverPermitProvided>
+              <div class="form-group">
+                <label for="idType">Professional Driver Permit (PrDP)</label>
+                <div class="license-img-text">
+                  {{ profile.professionalDriverPermitImg }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Comprehensive Insurance -->
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !profile.comprehensiveInsuranceImg;
+                else ComprehensiveInsuranceImgProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Comprehensive Insurance',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'comprehensiveInsuranceImg',
+                    theme: 'dark',
+                    accept: 'image/*',
+                  }"
+                  [inputType]="'file'"
+                  controlName="comprehensiveInsuranceImg"
+                  [form]="attachmentsForm"
+                ></app-input-group>
+                <ng-container
+                  *ngIf="
+                    profileImageUploadProgress.status !== 'none' &&
+                    currentUploadingImage === 'comprehensiveInsuranceImg' &&
+                    !attachments.includes('comprehensiveInsuranceImg')
+                  "
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadFailed]="
+                      currentUploadingImage === 'comprehensiveInsuranceImg' &&
+                      profileImageUploadProgress.status === 'failed'
+                    "
+                    [class.uploadPending]="
+                      currentUploadingImage === 'comprehensiveInsuranceImg' &&
+                      profileImageUploadProgress.status === 'pending'
+                    "
+                  >
+                    {{ profileImageUploadProgress.message }}
+                  </p>
+                </ng-container>
+                <ng-container
+                  *ngIf="attachments.includes('comprehensiveInsuranceImg')"
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadSuccess]="
+                      attachments.includes('comprehensiveInsuranceImg')
+                    "
+                  >
+                    file name:
+                    {{ getFileName("comprehensiveInsuranceImg") }}
+                  </p>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #ComprehensiveInsuranceImgProvided>
+              <div class="form-group">
+                <label for="idType">Comprehensive Insurance</label>
+                <div class="license-img-text">
+                  {{ profile.comprehensiveInsuranceImg }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Operator Card (Double Disc) -->
+          <ng-container>
+            <ng-container
+              *ngIf="!profile.operatorCardImg; else OperatorCardImgProvided"
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Operator Card (Double Disc)',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'operatorCardImg',
+                    theme: 'dark',
+                    accept: 'image/*',
+                  }"
+                  [inputType]="'file'"
+                  controlName="operatorCardImg"
+                  [form]="attachmentsForm"
+                ></app-input-group>
+                <ng-container
+                  *ngIf="
+                    profileImageUploadProgress.status !== 'none' &&
+                    currentUploadingImage === 'operatorCardImg' &&
+                    !attachments.includes('operatorCardImg')
+                  "
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadFailed]="
+                      currentUploadingImage === 'operatorCardImg' &&
+                      profileImageUploadProgress.status === 'failed'
+                    "
+                    [class.uploadPending]="
+                      currentUploadingImage === 'operatorCardImg' &&
+                      profileImageUploadProgress.status === 'pending'
+                    "
+                  >
+                    {{ profileImageUploadProgress.message }}
+                  </p>
+                </ng-container>
+                <ng-container *ngIf="attachments.includes('operatorCardImg')">
+                  <p
+                    class="uploadStatus"
+                    [class.uploadSuccess]="
+                      attachments.includes('operatorCardImg')
+                    "
+                  >
+                    file name: {{ fileUploads["operatorCardImg"]["rawFile"] }}
+                  </p>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #OperatorCardImgProvided>
+              <div class="form-group">
+                <label for="idType">Operator Card (Double Disc)</label>
+                <div class="license-img-text">
+                  {{ profile.operatorCardImg }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <ng-container>
+            <ng-container
+              *ngIf="!profile.inspectionCertImg; else InspectionCertImgProvided"
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Inspection Certificate',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'inspectionCertImg',
+                    theme: 'dark',
+                    accept: 'image/*',
+                  }"
+                  [inputType]="'file'"
+                  controlName="inspectionCertImg"
+                  [form]="attachmentsForm"
+                ></app-input-group>
+                <ng-container
+                  *ngIf="
+                    profileImageUploadProgress.status !== 'none' &&
+                    currentUploadingImage === 'inspectionCertImg' &&
+                    !attachments.includes('inspectionCertImg')
+                  "
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadFailed]="
+                      currentUploadingImage === 'inspectionCertImg' &&
+                      profileImageUploadProgress.status === 'failed'
+                    "
+                    [class.uploadPending]="
+                      currentUploadingImage === 'inspectionCertImg' &&
+                      profileImageUploadProgress.status === 'pending'
+                    "
+                  >
+                    {{ profileImageUploadProgress.message }}
+                  </p>
+                </ng-container>
+                <ng-container *ngIf="attachments.includes('inspectionCertImg')">
+                  <p
+                    class="uploadStatus"
+                    [class.uploadSuccess]="
+                      attachments.includes('inspectionCertImg')
+                    "
+                  >
+                    file name: {{ fileUploads["inspectionCertImg"]["rawFile"] }}
+                  </p>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #InspectionCertImgProvided>
+              <div class="form-group">
+                <label for="idType">Inspection Certificate</label>
+                <div class="license-img-text">
+                  {{ profile.inspectionCertImg }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+        </form>
+      </ng-container>
+    </div>
+
+    <!-- Next of Kin -->
+    <div *ngIf="activeSection === 'nextOfKin'">
+      <form [formGroup]="nextOfKinForm" class="nok-form">
+        <div *ngFor="let kin of nextOfKinControls; let i = index">
+          <h3>Next of Kin {{ i + 1 }}</h3>
+          <div class="form-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Full Name',
+                isRequired: i === 0,
+                placeholder: 'E.g. John Doe',
+                id: 'nokFullName' + i,
+                theme: 'dark'
+              }"
+              controlName="{{ 'nokFullName' + i }}"
+              inputType="text"
+              [form]="nextOfKinForm"
+            ></app-input-group>
+          </div>
+
+          <div class="form-group">
+            <app-input-group
+              [inputConfig]="{
+                  label: 'Email',
+                  isRequired: false,
+                  placeholder: 'E.g. abc@123.com',
+                  id: 'nokEmail' + i,
+                  theme: 'dark',
+                }"
+              controlName="{{ 'nokEmail' + i }}"
+              inputType="email"
+              [form]="nextOfKinForm"
+            ></app-input-group>
+          </div>
+          <div class="form-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Relationship to Driver',
+                isRequired: i === 0,
+                placeholder: 'E.g. Brother',
+                id: 'nokRelationship' + i,
+                theme: 'dark'
+              }"
+              controlName="{{ 'nokRelationship' + i }}"
+              inputType="text"
+              [form]="nextOfKinForm"
+            ></app-input-group>
+          </div>
+
+          <div class="form-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Phone Number',
+                isRequired: i === 0,
+                placeholder: 'E.g. John Doe',
+                id: 'nokContactCell' + i,
+                theme: 'dark'
+              }"
+              controlName="{{ 'nokContactCell' + i }}"
+              inputType="tel"
+              [form]="nextOfKinForm"
+            ></app-input-group>
+          </div>
+
+          <div class="form-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Alternate Phone Number',
+                isRequired: false,
+                placeholder: 'E.g. John Doe',
+                id: 'nokContactHome' + i,
+                theme: 'dark'
+              }"
+              controlName="{{ 'nokContactHome' + i }}"
+              inputType="tel"
+              [form]="nextOfKinForm"
+            ></app-input-group>
+          </div>
+
+          <div class="form-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Residential Address',
+                isRequired: i === 0,
+                placeholder: 'E.g. Block 12, St. John\'s Street',
+                id: 'address' + i,
+                theme: 'dark'
+              }"
+              [controlName]="'nokAddress' + i"
+              inputType="text"
+              [form]="nextOfKinForm"
+            ></app-input-group>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Account Details -->
+    <div
+      *ngIf="
+        activeSection === 'accountDetails' &&
+        profile &&
+        isDriverProfile(profile)
+      "
+    >
+      <form [formGroup]="accountDetailsForm">
+        <ng-container
+          *ngIf="!profile.nameOfAccountHolder; else AccountHolderProvided"
+        >
+          <div class="form-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Account Holder',
+                isRequired: true,
+                placeholder: 'E.g. John Doe',
+                id: 'nameOfAccountHolder',
+                theme: 'dark'
+              }"
+              controlName="nameOfAccountHolder"
+              inputType="text"
+              [form]="accountDetailsForm"
+            ></app-input-group>
+          </div>
+        </ng-container>
+        <ng-template #AccountHolderProvided>
+          <div class="form-group">
+            <label for="idType">Account Holder</label>
+            <div class="license-img-text">
+              {{ profile.nameOfAccountHolder }}
+            </div>
+          </div>
+        </ng-template>
+
+        <ng-container *ngIf="!profile.bankName; else BankNameProvided">
+          <div class="form-group">
+            <label for="bankName">Bank Name</label>
+            <ng-container *ngIf="banks">
+              <app-dropdown
+                class="block w-full"
+                [dropdownConfiguration]="banks"
+                [formControl]="getFormControl(accountDetailsForm, 'bankName')"
+                [selectedOptionDisplay]="profile.bankName"
+              ></app-dropdown>
+            </ng-container>
+          </div>
+        </ng-container>
+        <ng-template #BankNameProvided>
+          <div class="form-group">
+            <label for="idType">Bank Name</label>
+            <div class="license-img-text">
+              {{ profile.bankName }}
+            </div>
+          </div>
+        </ng-template>
+
+        <ng-container
+          *ngIf="!profile.bankAccountNumber; else BankAccountNumberProvided"
+        >
+          <div class="form-group">
+            <app-input-group
+              [inputConfig]="{
+                label: 'Account Number',
+                isRequired: true,
+                placeholder: 'E.g. 0123456789',
+                id: 'bankAccountNumber',
+                theme: 'dark',
+                min: '1'
+              }"
+              controlName="bankAccountNumber"
+              inputType="number"
+              [form]="accountDetailsForm"
+            ></app-input-group>
+          </div>
+        </ng-container>
+        <ng-template #BankAccountNumberProvided>
+          <div class="form-group">
+            <label for="idType">Account Number</label>
+            <div class="license-img-text">
+              {{ profile.bankAccountNumber }}
+            </div>
+          </div>
+        </ng-template>
+      </form>
+    </div>
+
+    <!-- Vehicle Details: -->
+    <div *ngIf="activeSection === 'vehicleDetails'">
+      <form [formGroup]="vehicleDetailsForm">
+        <ng-container *ngIf="profile && isDriverProfile(profile)">
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !selectCreatedCar?.vehicleRegNumber;
+                else vehicleRegNumberProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Vehicle Registration Number',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'vehicleRegistrationNumber',
+                    theme: 'dark',
+                  }"
+                  inputType="text"
+                  controlName="vehicleRegistrationNumber"
+                  [form]="vehicleDetailsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #vehicleRegNumberProvided>
+              <div class="form-group">
+                <label for="idType">Vehicle Registration Number</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.vehicleRegNumber }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Year of Vehicle Model -->
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !selectCreatedCar?.vehicleModelYear;
+                else VehicleModelYearProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Year of Vehicle Model',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'vehicleModelYear',
+                    theme: 'dark',
+                    min: '1800',
+                    max: '9999',
+                  }"
+                  inputType="number"
+                  controlName="vehicleModelYear"
+                  [form]="vehicleDetailsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #VehicleModelYearProvided>
+              <div class="form-group">
+                <label for="idType">Year of Vehicle Model</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.vehicleModelYear }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Vehicle Make -->
+          <ng-container>
+            <ng-container
+              *ngIf="!selectCreatedCar?.vehicleMake; else VehicleMakeProvided"
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Vehicle Make',
+                    isRequired: true,
+                    placeholder: 'E.g Toyota',
+                    id: 'vehicleMake',
+                    theme: 'dark',
+                  }"
+                  inputType="text"
+                  controlName="vehicleMake"
+                  [form]="vehicleDetailsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #VehicleMakeProvided>
+              <div class="form-group">
+                <label for="idType">Vehicle Make</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.vehicleMake }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Vehicle Model -->
+          <ng-container>
+            <ng-container
+              *ngIf="!selectCreatedCar?.vehicleModel; else VehicleModelProvided"
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Vehicle Model',
+                    isRequired: true,
+                    placeholder: 'E.g. Camry LE',
+                    id: 'vehicleModel',
+                    theme: 'dark',
+                  }"
+                  inputType="text"
+                  controlName="vehicleModel"
+                  [form]="vehicleDetailsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #VehicleModelProvided>
+              <div class="form-group">
+                <label for="idType">Vehicle Model</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.vehicleModel }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Engine Number -->
+          <ng-container>
+            <ng-container
+              *ngIf="!selectCreatedCar?.engineNumber; else EngineNumberProvided"
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                label: 'Engine Number',
+                isRequired: true,
+                placeholder: '',
+                id: 'engineNumber',
+                theme: 'dark',
+              }"
+                  inputType="text"
+                  controlName="engineNumber"
+                  [form]="vehicleDetailsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #EngineNumberProvided>
+              <div class="form-group">
+                <label for="idType">Engine Number</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.engineNumber }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Colour of Vehicle -->
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !selectCreatedCar?.vehicleColor;
+                else VehicleColourProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                label: 'Colour of Vehicle',
+                isRequired: true,
+                placeholder: '',
+                id: 'vehicleColour',
+                theme: 'dark',
+              }"
+                  inputType="text"
+                  controlName="vehicleColour"
+                  [form]="vehicleDetailsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #VehicleColourProvided>
+              <div class="form-group">
+                <label for="idType">Colour of Vehicle</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.vehicleColor }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Insurance Broker -->
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !selectCreatedCar?.insuranceBroker;
+                else InsuranceBrokerProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                label: 'Insurance Broker',
+                isRequired: true,
+                placeholder: '',
+                id: 'insuranceBroker',
+                theme: 'dark',
+              }"
+                  inputType="text"
+                  controlName="insuranceBroker"
+                  [form]="vehicleDetailsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #InsuranceBrokerProvided>
+              <div class="form-group">
+                <label for="idType">Insurance Broker</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.insuranceBroker }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Insurance Policy Number -->
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !selectCreatedCar?.insurancePolicyNumber;
+                else InsurancePolicyNumberProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                label: 'Insurance Policy Number',
+                isRequired: true,
+                placeholder: '',
+                id: 'insurancePolicyNumber',
+                theme: 'dark',
+              }"
+                  inputType="text"
+                  controlName="insurancePolicyNumber"
+                  [form]="vehicleDetailsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #InsurancePolicyNumberProvided>
+              <div class="form-group">
+                <label for="idType">Insurance Policy Number</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.insurancePolicyNumber }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Location Address -->
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !selectCreatedCar?.vehicleAddress;
+                else VehicleAddressProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                label: 'Location Address',
+                isRequired: true,
+                placeholder: 'E.g. Block 12, St. John\'s Street',
+                id: 'vehicleAddress',
+                theme: 'dark',
+              }"
+                  inputType="text"
+                  controlName="vehicleAddress"
+                  [form]="vehicleDetailsForm"
+                ></app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #VehicleAddressProvided>
+              <div class="form-group">
+                <label for="idType">Location Address</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.vehicleAddress }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Driver-Car-Collage Image -->
+          <ng-container>
+            <ng-container
+              *ngIf="!selectCreatedCar?.imagePath; else ImagePathProvided"
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Driver-Car-Collage Image',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'driverCarImage',
+                    theme: 'dark',
+                    accept: 'image/*',
+                  }"
+                  [inputType]="'file'"
+                  controlName="driverCarImage"
+                  [form]="vehicleDetailsForm"
+                ></app-input-group>
+                <ng-container
+                  *ngIf="
+                    profileImageUploadProgress.status !== 'none' &&
+                    currentUploadingImage === 'driverCarImage' &&
+                    !attachments.includes('driverCarImage') &&
+                    getControl(vehicleDetailsForm, 'driverCarImage').valid
+                  "
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadFailed]="
+                      currentUploadingImage === 'driverCarImage' &&
+                      profileImageUploadProgress.status === 'failed'
+                    "
+                    [class.uploadPending]="
+                      currentUploadingImage === 'driverCarImage' &&
+                      profileImageUploadProgress.status === 'pending'
+                    "
+                  >
+                    {{ profileImageUploadProgress.message }}
+                  </p>
+                </ng-container>
+                <ng-container *ngIf="attachments.includes('driverCarImage')">
+                  <p
+                    class="uploadStatus"
+                    [class.uploadSuccess]="
+                      attachments.includes('driverCarImage')
+                    "
+                  >
+                    file name:
+                    {{ fileUploads["driverCarImage"]["rawFile"] }}
+                  </p>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #ImagePathProvided>
+              <div class="form-group">
+                <label for="idType">Driver-Car-Collage Image</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.imagePath }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Car Exterior Image -->
+          <ng-container>
+            <ng-container
+              *ngIf="!selectCreatedCar?.altImagePath; else AltImagePathProvided"
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                label: 'Car Exterior Image',
+                isRequired: true,
+                placeholder: '',
+                id: 'carExteriorImage',
+                theme: 'dark',
+                accept: 'image/*',
+              }"
+                  [inputType]="'file'"
+                  controlName="carExteriorImage"
+                  [form]="vehicleDetailsForm"
+                ></app-input-group>
+                <ng-container
+                  *ngIf="
+                    profileImageUploadProgress.status !== 'none' &&
+                    currentUploadingImage === 'carExteriorImage' &&
+                    !attachments.includes('carExteriorImage') &&
+                    getControl(vehicleDetailsForm, 'carExteriorImage').valid
+                  "
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadFailed]="
+                      currentUploadingImage === 'carExteriorImage' &&
+                      profileImageUploadProgress.status === 'failed'
+                    "
+                    [class.uploadPending]="
+                      currentUploadingImage === 'carExteriorImage' &&
+                      profileImageUploadProgress.status === 'pending'
+                    "
+                  >
+                    {{ profileImageUploadProgress.message }}
+                  </p>
+                </ng-container>
+                <ng-container *ngIf="attachments.includes('carExteriorImage')">
+                  <p
+                    class="uploadStatus"
+                    [class.uploadSuccess]="
+                      attachments.includes('carExteriorImage')
+                    "
+                  >
+                    file name: {{ fileUploads["carExteriorImage"]["rawFile"] }}
+                  </p>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #AltImagePathProvided>
+              <div class="form-group">
+                <label for="idType">Car Exterior Image</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.altImagePath }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Car Interior Image -->
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !selectCreatedCar?.interiorImagePath;
+                else InteriorImagePathProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                label: 'Car Interior Image',
+                isRequired: true,
+                placeholder: '',
+                id: 'carInteriorImage',
+                theme: 'dark',
+                accept: 'image/*',
+              }"
+                  [inputType]="'file'"
+                  controlName="carInteriorImage"
+                  [form]="vehicleDetailsForm"
+                ></app-input-group>
+                <ng-container
+                  *ngIf="
+                    profileImageUploadProgress.status !== 'none' &&
+                    currentUploadingImage === 'carInteriorImage' &&
+                    !attachments.includes('carInteriorImage') &&
+                    getControl(vehicleDetailsForm, 'carInteriorImage').valid
+                  "
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadFailed]="
+                      currentUploadingImage === 'carInteriorImage' &&
+                      profileImageUploadProgress.status === 'failed'
+                    "
+                    [class.uploadPending]="
+                      currentUploadingImage === 'carInteriorImage' &&
+                      profileImageUploadProgress.status === 'pending'
+                    "
+                  >
+                    {{ profileImageUploadProgress.message }}
+                  </p>
+                </ng-container>
+                <ng-container *ngIf="attachments.includes('carInteriorImage')">
+                  <p
+                    class="uploadStatus"
+                    [class.uploadSuccess]="
+                      attachments.includes('carInteriorImage')
+                    "
+                  >
+                    file name: {{ fileUploads["carInteriorImage"]["rawFile"] }}
+                  </p>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #InteriorImagePathProvided>
+              <div class="form-group">
+                <label for="idType">Car Interior Image</label>
+                <div class="license-img-text">
+                  {{ selectCreatedCar?.interiorImagePath }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+        </ng-container>
+      </form>
+    </div>
+
+    <!-- Commission Deduction -->
+    <div *ngIf="activeSection === 'commissionDeduction'">
+      <form [formGroup]="commissionDeductionForm">
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Consent',
+              chkLabel:
+                'I, the undersigned, hereby authorize Timo Rides (Pty) Ltd to deduct 15% from each ride I make on the TIMO platform.',
+              isRequired: true,
+              id: 'commissionAuthorization',
+            }"
+            controlName="commissionAuthorization"
+            [form]="commissionDeductionForm"
+            inputType="checkbox"
+            (onChecked)="
+              setConsent(
+                commissionDeductionForm,
+                'commissionAuthorization',
+                $event
+              )
+            "
+            [isClicked]="
+              getControl(commissionDeductionForm, 'commissionAuthorization')
+                .value
+            "
+          ></app-input-group>
+        </div>
+        <div class="form-group">
+          <label for="commissionSignature">Duly Authorised Signature</label>
+          <input
+            type="file"
+            id="commissionSignature"
+            formControlName="commissionSignature"
+          />
+        </div>
+        <div class="form-group">
+          <app-input-group
+            class="date-picker"
+            [inputConfig]="{
+            label: 'Date',
+            isRequired: true,
+            placeholder: 'E.g. 01/01/2024',
+            id: 'commissionDate',
+            theme: 'dark',
+          }"
+            controlName="commissionDate"
+            inputType="date"
+            [form]="commissionDeductionForm"
+          >
+          </app-input-group>
+        </div>
+        <div class="form-group">
+          <app-input-group
+            [inputConfig]="{
+              label: 'Name in Print',
+              isRequired: true,
+              placeholder: 'E.g. John Doe',
+              id: 'commissionNameInPrint',
+              theme: 'dark'
+            }"
+            controlName="commissionNameInPrint"
+            inputType="text"
+            [form]="commissionDeductionForm"
+          ></app-input-group>
+        </div>
+      </form>
+    </div>
+
+    <!-- Terms and Conditions -->
+    <div *ngIf="activeSection === 'termsConditions'">
+      <form [formGroup]="termsConditionsForm">
+        <ng-container *ngIf="profile && isDriverProfile(profile)">
+          <!-- Consent -->
+          <ng-container>
+            <ng-container *ngIf="!profile.tcConsent; else TcConsentProvided">
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                label: 'Consent',
+                chkLabel:
+                  'By signing this agreement, you accept that you read and fully understand and agree to be bound by the contents of this Agreement, including the Terms and conditions attached hereto.',
+                isRequired: true,
+                id: 'tcConsent',
+              }"
+                  controlName="tcConsent"
+                  [form]="termsConditionsForm"
+                  inputType="checkbox"
+                  (onChecked)="
+                    setConsent(termsConditionsForm, 'tcConsent', $event)
+                  "
+                  [isClicked]="
+                    getControl(termsConditionsForm, 'tcConsent').value
+                  "
+                ></app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #TcConsentProvided>
+              <div class="form-group">
+                <label for="idType">Consent</label>
+                <div class="license-img-text">
+                  {{ profile.tcConsent }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Full Name -->
+          <ng-container>
+            <ng-container *ngIf="!profile.tcFullName; else TcFullNameProvided">
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Full Name',
+                    isRequired: true,
+                    placeholder: 'E.g. John Doe',
+                    id: 'tcFullName',
+                    theme: 'dark'
+                  }"
+                  controlName="tcFullName"
+                  inputType="text"
+                  [form]="termsConditionsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #TcFullNameProvided>
+              <div class="form-group">
+                <label for="idType">Full Name</label>
+                <div class="license-img-text">
+                  {{ profile.tcFullName }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Duly Authorised Signature -->
+          <ng-container>
+            <ng-container
+              *ngIf="
+                !profile.tcAuthorizedSignatureImg;
+                else TcAuthorizedSignatureImgProvided
+              "
+            >
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Duly Authorised Signature',
+                    isRequired: true,
+                    placeholder: 'E.g. 0123456789',
+                    id: 'tcAuthorizedSignatureImg',
+                    theme: 'dark',
+                    accept: 'image/*',
+                  }"
+                  [inputType]="'file'"
+                  controlName="tcAuthorizedSignatureImg"
+                  [form]="termsConditionsForm"
+                >
+                </app-input-group>
+                <ng-container
+                  *ngIf="
+                    profileImageUploadProgress.status !== 'none' &&
+                    currentUploadingImage === 'tcAuthorizedSignatureImg' &&
+                    !attachments.includes('tcAuthorizedSignatureImg')
+                  "
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadFailed]="
+                      currentUploadingImage === 'tcAuthorizedSignatureImg' &&
+                      profileImageUploadProgress.status === 'failed'
+                    "
+                    [class.uploadPending]="
+                      currentUploadingImage === 'tcAuthorizedSignatureImg' &&
+                      profileImageUploadProgress.status === 'pending'
+                    "
+                  >
+                    {{ profileImageUploadProgress.message }}
+                  </p>
+                </ng-container>
+                <ng-container
+                  *ngIf="attachments.includes('tcAuthorizedSignatureImg')"
+                >
+                  <p
+                    class="uploadStatus"
+                    [class.uploadSuccess]="
+                      attachments.includes('tcAuthorizedSignatureImg')
+                    "
+                  >
+                    file name:
+                    {{ fileUploads["tcAuthorizedSignatureImg"]["rawFile"] }}
+                  </p>
+                </ng-container>
+              </div>
+            </ng-container>
+            <ng-template #TcAuthorizedSignatureImgProvided>
+              <div class="form-group">
+                <label for="idType">Duly Authorised Signature</label>
+                <div class="license-img-text">
+                  {{ profile.tcAuthorizedSignatureImg }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Date -->
+          <ng-container>
+            <ng-container *ngIf="!profile.tcFullName; else TcDateProvided">
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Date',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'tcDate',
+                    theme: 'dark'
+                  }"
+                  controlName="tcDate"
+                  inputType="date"
+                  [form]="termsConditionsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #TcDateProvided>
+              <div class="form-group">
+                <label for="idType">Date</label>
+                <div class="license-img-text">
+                  {{ profile.tcDate | date }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+
+          <!-- Place -->
+          <ng-container>
+            <ng-container *ngIf="!profile.tcPlace; else TcPlaceProvided">
+              <div class="form-group">
+                <app-input-group
+                  [inputConfig]="{
+                    label: 'Place',
+                    isRequired: true,
+                    placeholder: '',
+                    id: 'tcPlace',
+                    theme: 'dark'
+                  }"
+                  controlName="tcPlace"
+                  inputType="text"
+                  [form]="termsConditionsForm"
+                >
+                </app-input-group>
+              </div>
+            </ng-container>
+            <ng-template #TcPlaceProvided>
+              <div class="form-group">
+                <label for="idType">Place</label>
+                <div class="license-img-text">
+                  {{ profile.tcPlace }}
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+        </ng-container>
+      </form>
+    </div>
+    <app-button
+      [btnConfig]="{
+        label: 'Save ' + columnTitle,
+        size: 'sm',
+        theme: 'primary',
+        block: false,
+        disabled: isButtonDisabled
+      }"
+      (click)="saveInfo()"
+    ></app-button>
+  </div>
+</div>

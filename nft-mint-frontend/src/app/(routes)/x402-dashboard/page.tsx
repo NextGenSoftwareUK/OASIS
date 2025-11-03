@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ManualDistributionPanel } from "@/components/x402/manual-distribution-panel";
 import { DistributionDashboard } from "@/components/x402/distribution-dashboard";
 import { TreasuryActivityFeed } from "@/components/x402/treasury-activity-feed";
@@ -57,6 +58,15 @@ export default function X402DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">
+          <Link 
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--accent)] transition mb-4"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Mint Studio
+          </Link>
           <h1 className="text-4xl font-bold mb-2">
             x402 Revenue Dashboard
           </h1>
