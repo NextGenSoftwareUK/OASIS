@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+	  <!--<GeneratePackageOnBuild>True</GeneratePackageOnBuild>-->
+	  <PackageId>NextGenSoftware.OASIS.API.Native.Integrated.EndPoint</PackageId>
+	  <Company>NextGen Software Ltd</Company>
+	  <Product>WEB4 OASIS API Native Integrated EndPoint</Product>
+	  <Title>WEB4 OASIS API Native Integrated EndPoint</Title>
+	  <Summary>The OASIS API Native Integrated EndPoint. To be used to integrate the OASIS API directly into target applications (including Unity) instead of using the existing REST API. Can be used for offline/poor connection use cases, etc. This version will also of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.</Summary>
+	  <Description>The OASIS API Native Integrated EndPoint. To be used to integrate the OASIS API directly into target applications (including Unity) instead of using the existing REST API. Can be used for offline/poor connection use cases, etc. This version will also of course be faster than the REST API. This version also contains some functionality not currently implemented in the REST API.</Description>
+	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <PackageTags>OASIS API; Native; Integrated; WEB3; WEB4; WEB5; Blockchain; NFT; Tokens; Crypto; Future-Prove; Metaverse; Aggregation; HOT-Swappable-Architecture; P2P; Decentralised; Distributed; Interoprability; Abstraction-Layer; Multi-Network; Multi-Chain; Bridging; Network-Of-Networks; SSO; Avatar-API; Karma-API; Data-API; Providers-API; SEEDS-API; "Keys/Wallets-API", Auto-FailOver; Auto-LoadBalancing; Auto-Replication; Auto-Sync; Offline-Support; Write-Once-Deploy-Everywhere; Triple-Level-Quantum-Resistant-Encryption; Quantum; Encryption; Smart-Contracts; Intelligent-Key-Management; Zero-Lag; Zero-Downtime; Agent-Centric; Smart-City-Ready; WEB/2D/3D/AR/VR/IR/Map/Meta-Visusalization; Bio-feedback-Ready; IR-(Infinite-Reality)-Ready; Infinite-Players-Online-At-Same-Time; LAN/Bluetooth-Support; AI/Machine-Learning-Over-All-Of-World's-Aggregated-Data; HTTP-REST/gRPC/GraphQL/CLI/Native-Endpoints; Best-Of-All-Worlds; GOD-Protocol/API; Our-World-Geo-Location/AR/IR/Map-UI-(Game-of-Games-Engine); One-World-Open-World-MMO-(VR)-UI-(Game-of-Games-Engine); ActivityPub; AzureCosmosDB; BlockStack; Chainlink; COSMOS; Elrond; EOSIO; Ethereum; Hashgraph; Holochain; IPFS; MapBox; MongoDB; Neo4j; OrionProtocol; PLAN; Scuttlebutt; SEEDS; SOLANA; SOLID; SqlLiteDB; Telos; ThreeFold; TRON; WRLD3D; More-Coming...</PackageTags>
+	  <PackageReleaseNotes>Updated Tags</PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2023</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>1.0.6</Version>
+	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
+
+	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="E:\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+    <ProjectReference Include="..\..\Providers\Other\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>

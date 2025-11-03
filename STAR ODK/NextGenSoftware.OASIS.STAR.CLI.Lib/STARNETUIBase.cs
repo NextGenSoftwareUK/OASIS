@@ -1,18 +1,23 @@
-﻿using System.Linq;
+﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
+using Org.BouncyCastle.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -38,7 +43,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public virtual string InstalledSTARDNAKey { get; set; }
 
         public int DisplayFieldLength { get; set; } = DEFAULT_FIELD_LENGTH;
-
 
         public STARNETUIBase(ISTARNETManagerBase<T1, T2, T3, T4> starManager, string createHeader, List<string> createIntroParagraphs, string sourcePath = "", string sourceSTARDNAKey = "", string publishedPath = "", string publishedSTARDNAKey = "", string downloadedPath = "", string downloadSTARDNAKey = "", string installedPath = "", string installedSTARDNAKey = "", int displayFieldLength = DEFAULT_FIELD_LENGTH)
         {
@@ -70,7 +74,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STARNETManager.OnUploadStatusChanged -= OnUploadStatusChanged;
         }
 
-        public virtual async Task<OASISResult<T1>> CreateAsync(object createParams, T1 newHolon = default, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, T4 STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        //public virtual async Task<OASISResult<T1>> CreateAsync(object createParams, T1 newHolon = default, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, T4 STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        //public virtual async Task<OASISResult<T1>> CreateAsync(object createParams, T1 newHolon = default, T4 STARNETDNA = default, object holonSubType = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> CreateAsync(ISTARNETCreateOptions<T1, T4> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
 
@@ -143,7 +149,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage($"Generating {STARNETManager.STARNETHolonUIName}...");
                 //OASISResult<T1> starHolonResult = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, Type, holonPath, providerType);
-                result = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, newHolon: newHolon, checkIfSourcePathExists: checkIfSourcePathExists, metaData: metaData, STARNETDNA: STARNETDNA, providerType: providerType);
+                //result = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, newHolon: newHolon, checkIfSourcePathExists: checkIfSourcePathExists, metaData: metaData, STARNETDNA: STARNETDNA, providerType: providerType);
+                //result = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, newHolon: newHolon, checkIfSourcePathExists: checkIfSourcePathExists, STARNETDNA: STARNETDNA, providerType: providerType);
+                result = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, createOptions: createOptions, providerType: providerType);
 
                 if (result != null)
                 {
@@ -196,14 +204,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return (result, defaultPath);
         }
 
-        public virtual async Task EditAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
+        public virtual async Task UpdateAsync(string idOrName = "", object editParams = null, bool editLaunchTarget = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> loadResult = await FindAsync("edit", idOrName, true, providerType: providerType);
+            OASISResult<T1> loadResult = await FindAsync("update", idOrName, true, providerType: providerType);
             bool changesMade = false;
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
-                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARNETManager.STARNETHolonUIName} Name?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to update the {STARNETManager.STARNETHolonUIName} Name? (currently is {loadResult.Result.Name})."))
                 {
                     Console.WriteLine("");
                     loadResult.Result.STARNETDNA.Name = CLIEngine.GetValidInput($"What is the new name of the {STARNETManager.STARNETHolonUIName}?");
@@ -212,7 +220,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     Console.WriteLine("");
 
-                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARNETManager.STARNETHolonUIName} Description?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to update the {STARNETManager.STARNETHolonUIName} Description? (currently is {loadResult.Result.Description}.)"))
                 {
                     Console.WriteLine("");
                     loadResult.Result.STARNETDNA.Description = CLIEngine.GetValidInput($"What is the new description of the {STARNETManager.STARNETHolonUIName}?");
@@ -221,10 +229,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     Console.WriteLine("");
 
-                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARNETManager.STARNETHolonUIName} Type?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to update the {STARNETManager.STARNETHolonUIName} Category? (currently is {Enum.GetName(STARNETManager.STARNETCategory.GetType(), loadResult.Result.STARNETDNA.STARNETCategory)})."))
                 {
                     Console.WriteLine("");
-                    object holonSubType = CLIEngine.GetValidInputForEnum($"What is the new type of the {STARNETManager.STARNETHolonUIName}?", STARNETManager.STARNETCategory);
+                    object holonSubType = CLIEngine.GetValidInputForEnum($"What is the new category of the {STARNETManager.STARNETHolonUIName}?", STARNETManager.STARNETCategory);
 
                     if (holonSubType != null)
                     {
@@ -238,7 +246,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     Console.WriteLine("");
 
-                if (CLIEngine.GetConfirmation("Do you wish to edit the launch target?"))
+                if (editLaunchTarget && CLIEngine.GetConfirmation($"Do you wish to update the launch target? (currently is {loadResult.Result.STARNETDNA.LaunchTarget}).)"))
                 {
                     Console.WriteLine("");
                     loadResult.Result.STARNETDNA.LaunchTarget = CLIEngine.GetValidInput($"What is the new launch target of the {STARNETManager.STARNETHolonUIName}?");
@@ -275,233 +283,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {loadResult.Message}");
             }
         }
-
-        //public virtual async Task<OASISResult<T1>> AddRuntimeAsync(string idOrNameOfParent = "", string idOrNameOfRuntime = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    return await AddDependencyAsync(DependencyType.Runtime, idOrNameOfParent, idOrNameOfRuntime, providerType);
-        //}
-
-        //public virtual async Task<OASISResult<T1>> AddLibAsync(string idOrNameOfParent = "", string idOrNameOfLib = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    return await AddDependencyAsync(DependencyType.Library, idOrNameOfParent, idOrNameOfLib, providerType);
-        //}
-
-        //public virtual async Task<OASISResult<T1>> AddTemplateAsync(string idOrNameOfParent = "", string idOrNameOfTemplate = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    return await AddDependencyAsync(DependencyType.Template, idOrNameOfParent, idOrNameOfTemplate, providerType);
-        //}
-
-        //public virtual async Task<OASISResult<T1>> RemoveRuntimeAsync(string idOrNameOfParent = "", string idOrNameOfRuntime = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    return await RemoveDependencyAsync(DependencyType.Runtime, idOrNameOfParent, idOrNameOfRuntime, providerType);
-        //}
-
-        //public virtual async Task<OASISResult<T1>> RemoveLibAsync(string idOrNameOfParent = "", string idOrNameOfLib = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    return await RemoveDependencyAsync(DependencyType.Library, idOrNameOfParent, idOrNameOfLib, providerType);
-        //}
-
-        //public virtual async Task<OASISResult<T1>> RemoveTemplateAsync(string idOrNameOfParent = "", string idOrNameOfTemplate = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    return await RemoveDependencyAsync(DependencyType.Template, idOrNameOfParent, idOrNameOfTemplate, providerType);
-        //}
-
-        //public virtual async Task AddRuntimeAsync(string idOrNameOfParent = "", string idOrNameOfRuntime = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<T1> result = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
-
-        //    if (result != null && !result.IsError && result.Result != null)
-        //    {
-        //        OASISResult<InstalledRuntime> installedRuntime = await STARCLI.Runtimes.FindAndInstallIfNotInstalledAsync("use", idOrNameOfRuntime, providerType: providerType);
-
-        //        if (installedRuntime != null && installedRuntime.Result != null && !installedRuntime.IsError)
-        //        {
-        //            CLIEngine.ShowWorkingMessage($"Installing Runtime '{installedRuntime.Result.STARNETDNA.Name}' Into {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'...");
-        //            OASISResult<T1> addRuntimeResult = await STARNETManager.AddRuntimeAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, installedRuntime.Result, providerType);
-
-        //            if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
-        //                CLIEngine.ShowSuccessMessage($"Runtime '{installedRuntime.Result.STARNETDNA.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
-        //            else
-        //                CLIEngine.ShowErrorMessage($"Failed to add runtime '{installedRuntime.Result.STARNETDNA.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {addRuntimeResult.Message}");
-        //        }
-        //        else
-        //            CLIEngine.ShowErrorMessage($"Failed to add runtime to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {installedRuntime.Message}");
-        //    }
-        //}
-
-        //public virtual async Task RemoveRuntimeAsync(string idOrNameOfParent = "", string idOrNameOfRuntime = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<T1> result = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
-
-        //    if (result != null && !result.IsError && result.Result != null)
-        //    {
-        //        IRuntime selectedRuntime = null;
-
-        //        do
-        //        {
-        //            if (string.IsNullOrEmpty(idOrNameOfRuntime))
-        //            {
-        //                foreach (ISTARNETDependency metaData in result.Result.STARNETDNA.Dependencies.Runtimes)
-        //                {
-        //                    ShowDependency(metaData, DisplayFieldLength);
-        //                    CLIEngine.ShowDivider();
-        //                }
-
-        //                idOrNameOfRuntime = CLIEngine.GetValidInput("What ID/Name of the Runtime do you wish to remove from STARNET? (or type 'exit' to cancel)");
-        //            }
-
-        //            if (Guid.TryParse(idOrNameOfRuntime, out Guid runtimeId))
-        //            {
-        //                OASISResult<Runtime> runtimeResult = await STAR.STARAPI.Runtimes.LoadAsync(STAR.BeamedInAvatar.Id, runtimeId, providerType: providerType);
-
-        //                if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
-        //                    selectedRuntime = runtimeResult.Result;
-        //                else
-        //                    CLIEngine.ShowErrorMessage($"Failed to load runtime with ID '{runtimeId}'. Error: {runtimeResult.Message}");
-        //            }
-        //            else
-        //                CLIEngine.ShowErrorMessage($"Invalid Runtime ID '{idOrNameOfRuntime}'. Please provide a valid GUID.");
-
-        //        } while (selectedRuntime == null && idOrNameOfRuntime.ToLower() != "exit");
-
-        //        //Im super happy Im super happy Im super happy Im super happy! :) ;) :) :) :) :)
-        //        CLIEngine.ShowWorkingMessage($"Removing Runtime '{selectedRuntime.STARNETDNA.Name}' From {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'...");
-        //        OASISResult<T1> removeResult = await STARNETManager.RemoveRuntimeAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, selectedRuntime.STARNETDNA.Id, selectedRuntime.STARNETDNA.Version, providerType);
-
-        //        if (removeResult != null && removeResult.Result != null && !removeResult.IsError)
-        //            CLIEngine.ShowSuccessMessage($"Runtime '{selectedRuntime.STARNETDNA.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
-        //        else
-        //            CLIEngine.ShowErrorMessage($"Failed to remove runtime '{selectedRuntime.STARNETDNA.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine("");
-        //        CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName} for id/name {idOrNameOfParent}. Reason: {result.Message}");
-        //    }
-        //}
-
-        //public virtual async Task AddLibAsync(string idOrNameOfParent = "", string idOrNameOfRuntime = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<T1> result = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
-
-        //    if (result != null && !result.IsError && result.Result != null)
-        //    {
-        //        OASISResult<InstalledLibrary> installedLib = await STARCLI.Libs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfRuntime, providerType: providerType);
-
-        //        if (installedLib != null && installedLib.Result != null && !installedLib.IsError)
-        //        {
-        //            CLIEngine.ShowWorkingMessage($"Installing Library '{installedLib.Result.STARNETDNA.Name}' Into {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'...");
-        //            OASISResult<T1> addLibResult = await STARNETManager.AddLibraryAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, installedLib.Result, providerType);
-
-        //            if (addLibResult != null && addLibResult.Result != null && !addLibResult.IsError)
-        //                CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.STARNETDNA.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
-        //            //CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
-        //            else
-        //                OASISErrorHandling.HandleError(ref result, $"Failed to add library '{installedLib.Result.STARNETDNA.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Reason: {addLibResult.Message}");
-        //        }
-        //        else
-        //            OASISErrorHandling.HandleError(ref result, $"Failed to add library to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Reason: {installedLib.Message}");
-        //    }
-        //}
-
-        //public virtual async Task RemoveLibAsync(string idOrNameOfParent = "", string idOrNameOfLib = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<T1> result = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
-
-        //    if (result != null && !result.IsError && result.Result != null)
-        //    {
-        //        ISTARNETDependency selectedLib = null;
-
-        //        do
-        //        {
-        //            if (string.IsNullOrEmpty(idOrNameOfLib))
-        //            {
-        //                foreach (ISTARNETDependency metaData in result.Result.STARNETDNA.Dependencies.Libraries)
-        //                {
-        //                    ShowDependency(metaData, DisplayFieldLength);
-        //                    CLIEngine.ShowDivider();
-        //                }
-
-        //                idOrNameOfLib = CLIEngine.GetValidInput("What is the ID/Name of the Library you wish to remove from STARNET? (or type 'exit' to cancel)");
-        //            }
-
-        //            if (Guid.TryParse(idOrNameOfLib, out Guid runtimeId))
-        //                selectedLib = result.Result.STARNETDNA.Dependencies.Libraries.FirstOrDefault(x => x.STARNETHolonId == runtimeId);
-        //            else
-        //            {
-        //                selectedLib = result.Result.STARNETDNA.Dependencies.Libraries.FirstOrDefault(x => x.Name == idOrNameOfLib);
-
-        //                if (selectedLib == null)
-        //                {
-        //                    IEnumerable<ISTARNETDependency> results = result.Result.STARNETDNA.Dependencies.Libraries.Where(x => x.Name.ToLower().Contains(idOrNameOfLib.ToLower()));
-        //                    CLIEngine.ShowWarningMessage("No exact match was found for that name, but the libraries below are similar:");
-
-        //                    foreach (ISTARNETDependency lib in results)
-        //                    {
-        //                        ShowDependency(lib, DisplayFieldLength);
-        //                        CLIEngine.ShowDivider();
-        //                    }
-
-        //                    idOrNameOfLib = CLIEngine.GetValidInput("Please make sure you enter the EXACT name (case sensitive) and try again!");
-        //                    selectedLib = result.Result.STARNETDNA.Dependencies.Libraries.FirstOrDefault(x => x.Name == idOrNameOfLib);
-        //                }
-        //            }
-
-        //            if (selectedLib != null)
-        //            {
-        //                ShowDependency(selectedLib, DisplayFieldLength);
-
-        //                if (!CLIEngine.GetConfirmation($"Please confirm you wish to remove the '{selectedLib.Name}' library from the {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'?", ConsoleColor.Magenta))
-        //                    selectedLib = null;
-
-        //                Console.WriteLine("");
-        //            }
-        //            else
-        //                CLIEngine.ShowErrorMessage("Library was not found, please try again!");
-
-        //            idOrNameOfLib = "";
-
-        //        } while (selectedLib == null && idOrNameOfLib.ToLower() != "exit");
-
-        //        //Im super happy Im super happy Im super happy Im super happy! :) ;) :) :) :) :)
-        //        CLIEngine.ShowWorkingMessage($"Removing Library '{selectedLib.Name}' From {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'...");
-        //        OASISResult<T1> removeResult = await STARNETManager.RemoveLibraryAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, result.Result.HolonType, selectedLib.STARNETHolonId, selectedLib.Version, providerType);
-
-        //        if (removeResult != null && removeResult.Result != null && !removeResult.IsError)
-        //            CLIEngine.ShowSuccessMessage($"Library '{selectedLib.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
-        //        else
-        //            CLIEngine.ShowErrorMessage($"Failed to remove library '{selectedLib.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine("");
-        //        CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName} for id/name {idOrNameOfParent}. Reason: {result.Message}");
-        //    }
-        //}
-
-        //public virtual async Task AddTemplateAsync(string idOrNameOfParent = "", string idOrNameOfTemplate = "", ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<T1> result = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
-
-        //    if (result != null && !result.IsError && result.Result != null)
-        //    {
-        //        OASISResult<InstalledOAPPTemplate> installedTemplate = await STARCLI.OAPPTemplates.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
-
-        //        if (installedTemplate != null && installedTemplate.Result != null && !installedTemplate.IsError)
-        //        {
-        //            CLIEngine.ShowWorkingMessage($"Installing Template '{installedTemplate.Result.STARNETDNA.Name}' Into {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'...");
-        //            OASISResult<T1> addTemplateResult = await STARNETManager.AddOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, (IInstalledOAPPTemplate)installedTemplate.Result, providerType);
-
-        //            if (addTemplateResult != null && addTemplateResult.Result != null && !addTemplateResult.IsError)
-        //                CLIEngine.ShowSuccessMessage($"Template '{installedTemplate.Result.STARNETDNA.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
-        //            else
-        //                CLIEngine.ShowErrorMessage($"Failed to add template '{installedTemplate.Result.STARNETDNA.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {addTemplateResult.Message}");
-        //        }
-        //        else
-        //            CLIEngine.ShowErrorMessage($"Failed to add template to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {installedTemplate.Message}");
-        //    }
-        //}
-
         public virtual async Task<OASISResult<T1>> AddDependencyAsync(string idOrNameOfParent = "", string idOrNameOfDependency = "", string dependencyType = "", ISTARNETDNA STARNETDNA = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
@@ -603,6 +384,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     case DependencyType.GeoNFT:
                         {
                             OASISResult<InstalledGeoNFT> installedHolon = await STARCLI.GeoNFTs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
+                            installedDependency.Result = installedHolon.Result;
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
+                        }
+                        break;
+
+                    case DependencyType.NFTCollection:
+                        {
+                            OASISResult<InstalledNFTCollection> installedHolon = await STARCLI.NFTCollections.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
+                            installedDependency.Result = installedHolon.Result;
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
+                        }
+                        break;
+
+                    case DependencyType.GeoNFTCollection:
+                        {
+                            OASISResult<InstalledGeoNFTCollection> installedHolon = await STARCLI.GeoNFTCollections.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -754,6 +551,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             case DependencyType.NFT:
                                 result = await STARNETManager.AddDependencyAsync<InstalledNFT>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledNFT, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                break;
+
+                            case DependencyType.GeoNFTCollection:
+                                result = await STARNETManager.AddDependencyAsync<InstalledGeoNFT>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledGeoNFTCollection, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                break;
+
+                            case DependencyType.NFTCollection:
+                                result = await STARNETManager.AddDependencyAsync<InstalledNFT>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledNFTCollection, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.GeoNFT:
@@ -951,6 +756,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.GeoNFT:
                         result = await STARNETManager.RemoveDependencyAsync<InstalledGeoNFT>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, selectedLib.STARNETHolonId, selectedLib.Version, HolonType.InstalledGeoNFT, dependencyTypeEnum, providerType);
+                        break;
+
+                    case DependencyType.NFTCollection:
+                        result = await STARNETManager.RemoveDependencyAsync<InstalledNFTCollection>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, selectedLib.STARNETHolonId, selectedLib.Version, HolonType.InstalledNFTCollection, dependencyTypeEnum, providerType);
+                        break;
+
+                    case DependencyType.GeoNFTCollection:
+                        result = await STARNETManager.RemoveDependencyAsync<InstalledGeoNFTCollection>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, selectedLib.STARNETHolonId, selectedLib.Version, HolonType.InstalledGeoNFTCollection, dependencyTypeEnum, providerType);
                         break;
 
                     case DependencyType.GeoHotSpot:
@@ -1167,6 +980,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             case DependencyType.GeoNFT:
                                 await STARCLI.GeoNFTs.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.NFTCollection:
+                                await STARCLI.NFTCollections.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.GeoNFTCollection:
+                                await STARCLI.GeoNFTCollections.CreateAsync(null, providerType: providerType);
                                 break;
 
                             case DependencyType.Chapter:
@@ -2083,7 +1904,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public virtual async Task SearchsAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task SearchAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
         {
             if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
             {
@@ -2106,10 +1927,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             OASISResult<T1> result = await FindAsync("view", idOrName, true, providerType: providerType);
 
-            if (result != null && !result.IsError && result.Result != null)
-                Show(result.Result, showDetailedInfo: showDetailed);
-            else
-                CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
+            //if (result != null && !result.IsError && result.Result != null)
+            //    Show(result.Result, showDetailedInfo: showDetailed);
+            //else
+            //    CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
         public virtual void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH, object customData = null) where T : ISTARNETHolon
@@ -2249,32 +2070,72 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             string tip = "";
 
+            //if (!showDetailed)
+            //    tip = "(use show/list detailed to view)";
+
+            Console.WriteLine("");
+            DisplayProperty("DEPENDENCIES", "", displayFieldLength, false);
+            Console.WriteLine("");
+            DisplayDependencyType("OAPPs", starHolon.STARNETDNA.Dependencies.OAPPs, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Runtimes", starHolon.STARNETDNA.Dependencies.Runtimes, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Libs", starHolon.STARNETDNA.Dependencies.Libraries, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Templates", starHolon.STARNETDNA.Dependencies.Templates, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Holons", starHolon.STARNETDNA.Dependencies.Holons, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Zomes", starHolon.STARNETDNA.Dependencies.Zomes, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("CelestialSpaces", starHolon.STARNETDNA.Dependencies.CelestialSpaces, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("CelestialBodies", starHolon.STARNETDNA.Dependencies.CelestialBodies, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("CelestialBodiesMetaDataDNA", starHolon.STARNETDNA.Dependencies.CelestialBodiesMetaDataDNA, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("ZomesMetaDataDNA", starHolon.STARNETDNA.Dependencies.ZomesMetaDataDNA, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("HolonsMetaDataDNA", starHolon.STARNETDNA.Dependencies.HolonsMetaDataDNA, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("NFTs", starHolon.STARNETDNA.Dependencies.NFTs, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("NFTCollections", starHolon.STARNETDNA.Dependencies.NFTCollections, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("GeoNFTs", starHolon.STARNETDNA.Dependencies.GeoNFTs, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("GeoNFTCollections", starHolon.STARNETDNA.Dependencies.GeoNFTCollections, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("GeoHotSpots", starHolon.STARNETDNA.Dependencies.GeoHotSpots, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Chapters", starHolon.STARNETDNA.Dependencies.Chapters, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Missions", starHolon.STARNETDNA.Dependencies.Missions, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Quests", starHolon.STARNETDNA.Dependencies.Quests, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("InventoryItems", starHolon.STARNETDNA.Dependencies.InventoryItems, tip, showDetailed, displayFieldLength);
+
+            //DisplayDependencyType("OAPPS", starHolon.STARNETDNA.Dependencies.OAPPs, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("RUNTIMES", starHolon.STARNETDNA.Dependencies.Runtimes, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("LIBS", starHolon.STARNETDNA.Dependencies.Libraries, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("TEMPLATES", starHolon.STARNETDNA.Dependencies.Templates, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("HOLONS", starHolon.STARNETDNA.Dependencies.Holons, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("ZOMES", starHolon.STARNETDNA.Dependencies.Zomes, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("CELESTIALSPACES", starHolon.STARNETDNA.Dependencies.CelestialSpaces, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("CELESTIALBODIES", starHolon.STARNETDNA.Dependencies.CelestialBodies, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("CELESTIALBODYMETADATA", starHolon.STARNETDNA.Dependencies.CelestialBodiesMetaDataDNA, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("ZOMESMETADATA", starHolon.STARNETDNA.Dependencies.ZomesMetaDataDNA, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("HOLONSMETADATA", starHolon.STARNETDNA.Dependencies.HolonsMetaDataDNA, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("NFTS", starHolon.STARNETDNA.Dependencies.NFTs, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("NFTCOLLECTIONS", starHolon.STARNETDNA.Dependencies.NFTCollections, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("GEONFTS", starHolon.STARNETDNA.Dependencies.GeoNFTs, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("GEONFTCOLLECTIONS", starHolon.STARNETDNA.Dependencies.GeoNFTCollections, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("GEOHOTSPOTS", starHolon.STARNETDNA.Dependencies.GeoHotSpots, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("CHAPTERS", starHolon.STARNETDNA.Dependencies.Chapters, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("MISSIONS", starHolon.STARNETDNA.Dependencies.Missions, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("QUESTS", starHolon.STARNETDNA.Dependencies.Quests, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("INVENTORYITEMS", starHolon.STARNETDNA.Dependencies.InventoryItems, tip, showDetailed, displayFieldLength);
+
             if (!showDetailed)
-                tip = "(use show/list detailed to view)";
+            {
+                Console.WriteLine("");
+                DisplayProperty("Use 'show/list detailed' command to view dependency details.", "", displayFieldLength, false);
+            }
+        }
 
-            Console.WriteLine("");
-            DisplayProperty("RUNTIMES", "", displayFieldLength, false);
+        private void DisplayDependencyType(string dependencyType, List<STARNETDependency> dependencies, string tip, bool showDetailed, int displayFieldLength)
+        {
+            if (showDetailed)
+                Console.WriteLine("");
+            
+            DisplayProperty(string.Concat(dependencyType, " (", dependencies.Count, ")"), "", displayFieldLength, false);
 
             if (showDetailed)
-                ShowDependenices(starHolon.STARNETDNA.Dependencies.Runtimes, displayFieldLength);
+                ShowDependenices(dependencies, displayFieldLength);
 
-            CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Runtimes.Count} Found.", starHolon.STARNETDNA.Dependencies.Runtimes.Count > 0 ? tip : ""), false);
-
-            Console.WriteLine("");
-            DisplayProperty("LIBS", "", displayFieldLength, false);
-
-            if (showDetailed)
-                ShowDependenices(starHolon.STARNETDNA.Dependencies.Libraries, displayFieldLength);
-
-            CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Libraries.Count} Found.", starHolon.STARNETDNA.Dependencies.Libraries.Count > 0 ? tip : ""), false);
-
-            Console.WriteLine("");
-            DisplayProperty("TEMPLATES", "", displayFieldLength, false);
-
-            if (showDetailed)
-                ShowDependenices(starHolon.STARNETDNA.Dependencies.Templates, displayFieldLength);
-
-            CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found.", starHolon.STARNETDNA.Dependencies.Templates.Count > 0 ? tip : ""), false);
+            //CLIEngine.ShowMessage(string.Concat($"{dependencies.Count} Found.", dependencies.Count > 0 ? tip : ""), false);
         }
 
         //protected void ShowHolonMetaTagMappings(Dictionary<string, (string, string)> metaHolonTagMappings, bool showDetailedInfo, int displayFieldLength = DEFAULT_FIELD_LENGTH)
@@ -2828,6 +2689,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Error occured finding {STARNETManager.STARNETHolonUIName}. Reason: {findResult.Message}");
                 OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(findResult, result);
             }
+
+            return result;
+        }
+
+        public async Task<OASISResult<T1>> CloneAsync(object options = null)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            
+            //TODO: Implement ASAP! ;-)
 
             return result;
         }
@@ -3426,6 +3296,215 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             return result;
         }
+
+        //protected void ShowMetaData(Dictionary<string, object> metaData)
+        //{
+        //    if (metaData != null)
+        //    {
+        //        CLIEngine.ShowMessage($"MetaData:");
+
+        //        foreach (string key in metaData.Keys)
+        //            CLIEngine.ShowMessage(string.Concat("          key = ", GetMetaValue(metaData[key])), false);
+        //    }
+        //    else
+        //        CLIEngine.ShowMessage($"MetaData: None");
+        //}
+
+        //private string GetMetaValue(object value)
+        //{
+        //    return value != null ? IsBinary(value) ? "<binary>" : value.ToString() : "None";
+        //}
+
+        //protected bool IsBinary(object data)
+        //{
+        //    if (data == null)
+        //        return false;
+
+        //    if (data is byte[])
+        //        return true;
+
+        //    try
+        //    {
+        //        byte[] binaryData = Convert.FromBase64String(data.ToString());
+
+        //        for (int i = 0; i < binaryData.Length; i++)
+        //        {
+        //            if (binaryData[i] > 127)
+        //                return true;
+        //        }
+        //    }
+        //    catch { }
+
+        //    return false;
+        //}
+
+        //protected Dictionary<string, object> AddMetaData(string holonName)
+        //{
+        //    Dictionary<string, object> metaData = new Dictionary<string, object>();
+
+        //    if (CLIEngine.GetConfirmation($"Do you wish to add any metadata to this {holonName}?"))
+        //    {
+        //        metaData = AddItemToMetaData(metaData);
+        //        bool metaDataDone = false;
+
+        //        do
+        //        {
+        //            if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
+        //                metaData = AddItemToMetaData(metaData);
+        //            else
+        //                metaDataDone = true;
+        //        }
+        //        while (!metaDataDone);
+        //    }
+
+        //    return metaData;
+        //}
+
+        //protected Dictionary<string, object> AddItemToMetaData(Dictionary<string, object> metaData)
+        //{
+        //    Console.WriteLine("");
+        //    string key = CLIEngine.GetValidInput("What is the key?");
+        //    string value = "";
+        //    byte[] metaFile = null;
+
+        //    if (CLIEngine.GetConfirmation("Is the value a file?"))
+        //    {
+        //        Console.WriteLine("");
+        //        string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
+        //        metaFile = File.ReadAllBytes(metaPath);
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("");
+        //        value = CLIEngine.GetValidInput("What is the value?");
+        //    }
+
+        //    if (metaFile != null)
+        //        metaData[key] = metaFile;
+        //    else
+        //        metaData[key] = value;
+
+        //    return metaData;
+        //}
+
+        //protected Dictionary<string, object> ManageMetaData(Dictionary<string, object> metaData, string itemName)
+        //{
+        //    if (metaData == null)
+        //        metaData = new Dictionary<string, object>();
+
+        //    bool done = false;
+
+        //    while (!done)
+        //    {
+        //        Console.WriteLine("");
+        //        CLIEngine.ShowMessage($"Current {itemName} metadata:", false);
+
+        //        if (metaData.Count == 0)
+        //            CLIEngine.ShowMessage("  None", false);
+        //        else
+        //        {
+        //            int i = 1;
+        //            foreach (var kv in metaData)
+        //            {
+        //                CLIEngine.ShowMessage($"  {i}. {kv.Key} = {GetMetaValue(kv.Value)}", false);
+        //                i++;
+        //            }
+        //        }
+
+        //        Console.WriteLine("");
+        //        CLIEngine.ShowMessage("Choose an action: (A)dd, (E)dit, (D)elete, (Q)uit", false);
+        //        string choice = CLIEngine.GetValidInput("Enter A, E, D or Q:").ToUpper();
+
+        //        switch (choice)
+        //        {
+        //            case "A":
+        //                metaData = AddItemToMetaData(metaData);
+        //                break;
+
+        //            case "E":
+        //                if (metaData.Count == 0)
+        //                {
+        //                    CLIEngine.ShowErrorMessage("No metadata to edit.");
+        //                    break;
+        //                }
+
+        //                int editIndex = CLIEngine.GetValidInputForInt("Enter the number of the metadata entry to edit:", true, 1, metaData.Count);
+        //                string editKey = metaData.Keys.ElementAt(editIndex - 1);
+        //                object currentValue = metaData[editKey];
+
+        //                if (currentValue is byte[])
+        //                {
+        //                    if (CLIEngine.GetConfirmation("This value is binary. Do you want to replace it with a file? (Y) or replace with text (N)?"))
+        //                    {
+        //                        string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
+        //                        metaData[editKey] = File.ReadAllBytes(metaPath);
+        //                    }
+        //                    else
+        //                    {
+        //                        string newValue = CLIEngine.GetValidInput("Enter the new text value (or type 'clear' to remove):", addLineBefore: true);
+        //                        if (newValue.ToLower() == "clear")
+        //                            metaData.Remove(editKey);
+        //                        else
+        //                            metaData[editKey] = newValue;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    if (CLIEngine.GetConfirmation("Do you want to set this value from a file? (Y) or enter text value (N)?"))
+        //                    {
+        //                        string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
+        //                        metaData[editKey] = File.ReadAllBytes(metaPath);
+        //                    }
+        //                    else
+        //                    {
+        //                        string newValue = CLIEngine.GetValidInput("Enter the new text value (or type 'clear' to remove):");
+        //                        if (newValue.ToLower() == "clear")
+        //                            metaData.Remove(editKey);
+        //                        else
+        //                            metaData[editKey] = newValue;
+        //                    }
+        //                }
+
+        //                break;
+
+        //            case "D":
+        //                if (metaData.Count == 0)
+        //                {
+        //                    CLIEngine.ShowErrorMessage("No metadata to delete.");
+        //                    break;
+        //                }
+
+        //                int delIndex = CLIEngine.GetValidInputForInt("Enter the number of the metadata entry to delete:", true, 1, metaData.Count);
+        //                string delKey = metaData.Keys.ElementAt(delIndex - 1);
+
+        //                if (CLIEngine.GetConfirmation($"Are you sure you want to delete metadata '{delKey}'?"))
+        //                {
+        //                    metaData.Remove(delKey);
+        //                    CLIEngine.ShowSuccessMessage($"Metadata '{delKey}' deleted.", addLineBefore: true);
+        //                }
+        //                else
+        //                    Console.WriteLine("");
+
+        //                break;
+
+        //            case "Q":
+        //                done = true;
+        //                break;
+
+        //            default:
+        //                CLIEngine.ShowErrorMessage("Invalid choice. Please enter A, E, D or Q.");
+        //                break;
+        //        }
+        //    }
+
+        //    return metaData;
+        //}
+
+        //protected void DisplayMetaData(Dictionary<string, object> metaData)
+        //{
+        //    foreach (string key in metaData.Keys)
+        //        CLIEngine.ShowMessage(string.Concat("          key = ", metaData[key] is byte[]? "<binary>" : metaData[key]), false);
+        //}
 
         private OASISResult<T3> Install(T1 starHolon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
         {

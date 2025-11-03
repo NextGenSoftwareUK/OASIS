@@ -1,0 +1,78 @@
+// --------------------------------
+
+// (START) Global editor code https://codyhouse.co/ds/globals/typography
+
+// --------------------------------
+
+@import url("https://fonts.googleapis.com/css2?family=Titillium+Web:wght@200;400;500;700&display=swap");
+:root {
+  // font family
+  --font-primary: "Titillium Web", sans-serif;
+
+  // font size
+  --text-base-size: 1em; // body font-size
+  --text-scale-ratio: 1.2; // multiplier used to generate the type scale values 👇
+
+  // line-height
+  --heading-line-height: 2;
+  --body-line-height: 1.25;
+}
+
+/* --------------------------------
+
+main content
+
+-------------------------------- */
+
+html * {
+  @include fontSmooth;
+}
+
+*,
+*:after,
+*:before {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background: url("/src/assets/img/bg.gif");
+  background-position: top;
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+// .user--not-logged-in [data-display=loggedIn] {
+//   display: none !important
+// }
+
+// .user--logged-in [data-display=notLoggedIn] {
+//   display: none !important
+// }
+
+// --------------------------------
+
+// (END) Global editor code
+
+// --------------------------------
+
+// link style
+a,
+.link {
+  text-decoration: none;
+  color: var(--color-2);
+}
+
+*:focus {
+  outline: 0;
+}
+
+*::-moz-focus-inner {
+  border: 0;
+}

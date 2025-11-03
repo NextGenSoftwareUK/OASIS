@@ -2,6 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
@@ -27,21 +28,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultInventoryItemsInstalledPath, "DefaultInventoryItemsInstalledPath")
         { }
 
-        public override async Task<OASISResult<InventoryItem>> CreateAsync(object createParams, InventoryItem newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<InventoryItem>> CreateAsync(ISTARNETCreateOptions<InventoryItem, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<InventoryItem> result = new OASISResult<InventoryItem>();
 
-            if (newHolon == null)
-                newHolon = new InventoryItem();
+            if (createOptions == null)
+                createOptions = new STARNETCreateOptions<InventoryItem, STARNETDNA>() { STARNETHolon = new InventoryItem()};
 
             OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("InventoryItem");
 
             if (imageObjectResult != null && imageObjectResult.Result != null && !imageObjectResult.IsError)
             {
-                newHolon.Image2D = imageObjectResult.Result.Image2D;
-                newHolon.Image2DURI = imageObjectResult.Result.Image2DURI;
-                newHolon.Object3D = imageObjectResult.Result.Object3D;
-                newHolon.Object3DURI = imageObjectResult.Result.Object3DURI;
+                createOptions.STARNETHolon.Image2D = imageObjectResult.Result.Image2D;
+                createOptions.STARNETHolon.Image2DURI = imageObjectResult.Result.Image2DURI;
+                createOptions.STARNETHolon.Object3D = imageObjectResult.Result.Object3D;
+                createOptions.STARNETHolon.Object3DURI = imageObjectResult.Result.Object3DURI;
             }
             else
             {
@@ -50,7 +51,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return result;
             }
 
-            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
+            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
 
             if (result != null)
             {

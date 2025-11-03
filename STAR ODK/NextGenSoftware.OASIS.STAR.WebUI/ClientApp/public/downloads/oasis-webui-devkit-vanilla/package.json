@@ -1,0 +1,37 @@
+{
+  "name": "@oasis/webui-devkit-vanilla",
+  "version": "1.0.0",
+  "description": "OASIS Web UI Development Kit - Pure JavaScript/Web Components",
+  "main": "dist/oasis.min.js",
+  "module": "dist/oasis.esm.js",
+  "types": "dist/index.d.ts",
+  "unpkg": "dist/oasis.min.js",
+  "jsdelivr": "dist/oasis.min.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest"
+  },
+  "keywords": [
+    "oasis",
+    "vanilla-js",
+    "web-components",
+    "custom-elements",
+    "web3",
+    "no-framework"
+  ],
+  "author": "OASIS Network",
+  "license": "MIT",
+  "dependencies": {
+    "@oasis/api-client": "^2.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.0",
+    "rollup": "^3.29.0",
+    "typescript": "^5.0.0"
+  }
+}
+

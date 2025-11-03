@@ -1,0 +1,52 @@
+{
+  "name": "@oasis/web5-star-api-client",
+  "version": "1.0.0",
+  "description": "Official JavaScript/TypeScript client for the OASIS Web5 STAR API - Gamification, OAPPs, missions, quests, and STAR/STARNET functionality",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "oasis",
+    "web5",
+    "star",
+    "starnet",
+    "gamification",
+    "oapp",
+    "missions",
+    "quests",
+    "metaverse",
+    "ourworld"
+  ],
+  "author": "NextGen Software",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NextGenSoftwareUK/OASIS-STAR"
+  },
+  "homepage": "https://docs.oasis.network/web5-star-api",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "rollup": "^3.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0"
+  },
+  "peerDependencies": {
+    "@oasis/web4-api-client": "^1.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}

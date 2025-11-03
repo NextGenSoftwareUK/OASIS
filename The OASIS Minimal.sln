@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Architecture", "OASIS Architecture", "{08C4C7CB-9692-4671-8967-7D03747B5472}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Contracts", "OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj", "{52E2AFB2-C569-4840-966E-38436B535D9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core", "OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj", "{5DC3CB59-32ED-46FB-9DC4-B74F7233B37D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.DNA", "OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj", "{99519187-AFDB-4D8D-A3B7-1CD1A38B335B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Managers", "OASIS Architecture\NextGenSoftware.OASIS.API.Managers\NextGenSoftware.OASIS.API.Managers.csproj", "{BF300E1B-EDC7-4430-BF76-7AE10E881459}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.Common", "OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj", "{46F355EE-E8D5-4441-8588-AE29467EAD53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.OASISBootLoader", "OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj", "{8A231530-46FC-49CC-8550-1E95769F1CAB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{52E2AFB2-C569-4840-966E-38436B535D9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52E2AFB2-C569-4840-966E-38436B535D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52E2AFB2-C569-4840-966E-38436B535D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52E2AFB2-C569-4840-966E-38436B535D9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DC3CB59-32ED-46FB-9DC4-B74F7233B37D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DC3CB59-32ED-46FB-9DC4-B74F7233B37D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DC3CB59-32ED-46FB-9DC4-B74F7233B37D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DC3CB59-32ED-46FB-9DC4-B74F7233B37D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99519187-AFDB-4D8D-A3B7-1CD1A38B335B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99519187-AFDB-4D8D-A3B7-1CD1A38B335B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99519187-AFDB-4D8D-A3B7-1CD1A38B335B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99519187-AFDB-4D8D-A3B7-1CD1A38B335B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF300E1B-EDC7-4430-BF76-7AE10E881459}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF300E1B-EDC7-4430-BF76-7AE10E881459}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF300E1B-EDC7-4430-BF76-7AE10E881459}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF300E1B-EDC7-4430-BF76-7AE10E881459}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46F355EE-E8D5-4441-8588-AE29467EAD53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46F355EE-E8D5-4441-8588-AE29467EAD53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46F355EE-E8D5-4441-8588-AE29467EAD53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46F355EE-E8D5-4441-8588-AE29467EAD53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A231530-46FC-49CC-8550-1E95769F1CAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A231530-46FC-49CC-8550-1E95769F1CAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A231530-46FC-49CC-8550-1E95769F1CAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A231530-46FC-49CC-8550-1E95769F1CAB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{52E2AFB2-C569-4840-966E-38436B535D9F} = {08C4C7CB-9692-4671-8967-7D03747B5472}
+		{5DC3CB59-32ED-46FB-9DC4-B74F7233B37D} = {08C4C7CB-9692-4671-8967-7D03747B5472}
+		{99519187-AFDB-4D8D-A3B7-1CD1A38B335B} = {08C4C7CB-9692-4671-8967-7D03747B5472}
+		{BF300E1B-EDC7-4430-BF76-7AE10E881459} = {08C4C7CB-9692-4671-8967-7D03747B5472}
+		{46F355EE-E8D5-4441-8588-AE29467EAD53} = {08C4C7CB-9692-4671-8967-7D03747B5472}
+		{8A231530-46FC-49CC-8550-1E95769F1CAB} = {08C4C7CB-9692-4671-8967-7D03747B5472}
+	EndGlobalSection
+EndGlobal
