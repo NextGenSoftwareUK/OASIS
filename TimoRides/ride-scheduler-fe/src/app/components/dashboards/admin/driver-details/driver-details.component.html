@@ -1,0 +1,18 @@
+<main class="driver-details">
+  <h2>Driver Details</h2>
+  <div *ngIf="driver$ | async as driver">
+    <p>Name: {{ driver.fullName }}</p>
+    <p>Email: {{ driver.email }}</p>
+    <p>Phone: {{ driver.phone }}</p>
+    <h3>Documents</h3>
+    <ng-container *ngIf="car$ | async as car">
+      <div *ngIf="car.id">
+        <img [src]="car.imagePath" alt="Document" />
+        <img [src]="car.altImagePath" alt="Document" />
+        <img [src]="car.interiorImagePath" alt="Document" />
+      </div>
+    </ng-container>
+    <button (click)="verifyDriver(driver)">Verify Driver</button>
+    <button (click)="invalidateDriver(driver)">Invalidate Driver</button>
+  </div>
+</main>

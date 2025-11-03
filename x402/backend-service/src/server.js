@@ -30,15 +30,24 @@ async function startServer() {
   // Create and start service
   const service = new X402Service({
     storage,
-    solanaRpcUrl: process.env.SOLANA_RPC_URL,
+    solanaRpcUrl: process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
     useMockData: process.env.X402_USE_MOCK_DATA !== 'false',
-    webhookSecret: process.env.X402_WEBHOOK_SECRET
+    webhookSecret: process.env.X402_WEBHOOK_SECRET || 'demo_webhook_secret_123'
   });
 
   const port = parseInt(process.env.X402_PORT || '4000');
   const host = process.env.X402_HOST || '0.0.0.0';
 
-  await service.start({ port, host });
+  // Start the service (this creates the Express app)
+  const server = await service.start({ port, host });
+  
+  // Get the Express app and add MetaBricks routes
+  const express = require('express');
+  const metabricksRoutes = require('./routes/metabricks-routes');
+  
+  // Access the app through the service
+  // Note: We'll need to modify X402Service.start() to return the app
+  console.log('🧱 MetaBricks routes ready at /api/metabricks');
 
   // Handle graceful shutdown
   process.on('SIGTERM', () => {

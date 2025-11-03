@@ -13,8 +13,8 @@ class X402Service {
   constructor(options = {}) {
     this.options = {
       solanaRpcUrl: options.solanaRpcUrl || process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
-      useMockData: options.useMockData !== undefined ? options.useMockData : process.env.X402_USE_MOCK_DATA !== 'false',
-      webhookSecret: options.webhookSecret || process.env.X402_WEBHOOK_SECRET,
+      useMockData: options.useMockData !== undefined ? options.useMockData : (process.env.X402_USE_MOCK_DATA === 'false' ? false : true),
+      webhookSecret: options.webhookSecret || process.env.X402_WEBHOOK_SECRET || 'default_secret_change_in_production',
       platformFeePercent: options.platformFeePercent || 2.5,
       storage: options.storage,
       ...options
@@ -190,7 +190,16 @@ class X402Service {
     const app = express();
     
     app.use(cors());
+    app.use(express.json()); // Add body parser middleware
     app.use('/api/x402', this.router);
+    
+    // Mount MetaBricks routes
+    const metabricksRoutes = require('./routes/metabricks-routes');
+    app.use('/api/metabricks', metabricksRoutes);
+    
+    // Make storage and distributor available to routes
+    app.locals.storage = this.options.storage;
+    app.locals.x402Distributor = this.distributor;
     
     // Health check at root
     app.get('/health', (req, res) => {
@@ -206,6 +215,7 @@ class X402Service {
         console.log(`🚀 x402 Service running on http://${host}:${port}`);
         console.log(`📊 Health: http://${host}:${port}/health`);
         console.log(`🔌 API: http://${host}:${port}/api/x402`);
+        console.log(`🧱 MetaBricks: http://${host}:${port}/api/metabricks`);
         resolve(server);
       });
     });

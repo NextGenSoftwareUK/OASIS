@@ -33,37 +33,37 @@ Let me explain the **complete end-to-end flow** and what happens where.
 │         STEP 1: USER IN BROWSER (Frontend)             │
 ├────────────────────────────────────────────────────────┤
 │ 1. User opens NFT minting app                          │
-│ 2. Navigates wizard to Step 4 (x402 config)           │
+│ 2. Navigates wizard to Step 4 (x402 config)            │
 │ 3. Toggles "Enable x402 Revenue Sharing" ON            │
-│ 4. Selects revenue model (e.g., "Equal Split")        │
+│ 4. Selects revenue model (e.g., "Equal Split")         │
 │ 5. Enters payment endpoint:                            │
-│    "https://api.yourservice.com/x402/revenue"         │
+│    "https://api.yourservice.com/x402/revenue"          │
 │ 6. Clicks "Next" → Reviews payload                     │
-│ 7. Clicks "Mint via OASIS API"                        │
+│ 7. Clicks "Mint via OASIS API"                         │
 └────────────────────────┬───────────────────────────────┘
                          │ HTTP POST request
                          ▼
 ┌────────────────────────────────────────────────────────┐
-│      STEP 2: OASIS API BACKEND (Your Server)          │
+│      STEP 2: OASIS API BACKEND (Your Server)           │
 ├────────────────────────────────────────────────────────┤
-│ Endpoint: POST /api/nft/mint-nft-x402                 │
-│                                                         │
+│ Endpoint: POST /api/nft/mint-nft-x402                  │
+│                                                        │
 │ 1. Receives mint request with x402Config               │
 │ 2. Validates payload                                   │
-│ 3. Calls Solana blockchain to mint NFT                │
-│ 4. Stores x402 metadata in MongoDB:                   │
-│    - nftMintAddress: "ABC123..."                      │
-│    - paymentEndpoint: "https://api.yourservice..."   │
-│    - revenueModel: "equal"                            │
-│ 5. Returns success response to frontend               │
+│ 3. Calls Solana blockchain to mint NFT                 │
+│ 4. Stores x402 metadata in MongoDB:                    │
+│    - nftMintAddress: "ABC123..."                       │
+│    - paymentEndpoint: "https://api.yourservice..."     │
+│    - revenueModel: "equal"                             │
+│ 5. Returns success response to frontend                │
 └────────────────────────┬───────────────────────────────┘
                          │ NFT minted on Solana
                          ▼
 ┌────────────────────────────────────────────────────────┐
 │             SOLANA BLOCKCHAIN                          │
-│ • NFT created with SPL token standard                 │
-│ • Metadata stored (includes x402 info)                │
-│ • Transferred to user's wallet                        │
+│ • NFT created with SPL token standard                  │
+│ • Metadata stored (includes x402 info)                 │
+│ • Transferred to user's wallet                         │
 └────────────────────────────────────────────────────────┘
 
 AT THIS POINT: User has NFT in wallet with x402 config
@@ -77,46 +77,46 @@ BUT: No revenue distribution has happened yet
 ├────────────────────────────────────────────────────────┤
 │ Examples:                                              │
 │ • Spotify API generates streaming revenue              │
-│ • Property manager collects rent                      │
-│ • API usage generates fees                            │
-│ • YouTube sends ad revenue                            │
-│                                                         │
+│ • Property manager collects rent                       │
+│ • API usage generates fees                             │
+│ • YouTube sends ad revenue                             │
+│                                                        │
 │ Revenue source sends payment via x402:                 │
 │ POST https://api.yourservice.com/x402/revenue          │
 │ {                                                      │
-│   "amount": 1000000000,  // 1 SOL in lamports         │
-│   "currency": "SOL",                                  │
-│   "metadata": {                                       │
-│     "nftMintAddress": "ABC123..."                    │
-│   }                                                   │
-│ }                                                     │
+│   "amount": 1000000000,  // 1 SOL in lamports          │
+│   "currency": "SOL",                                   │
+│   "metadata": {                                        │
+│     "nftMintAddress": "ABC123..."                      │
+│   }                                                    │
+│ }                                                      │
 └────────────────────────┬───────────────────────────────┘
                          │ x402 webhook POST
                          ▼
 ┌────────────────────────────────────────────────────────┐
-│  STEP 4: YOUR x402 WEBHOOK HANDLER (Backend Server)   │
+│  STEP 4: YOUR x402 WEBHOOK HANDLER (Backend Server)    │
 ├────────────────────────────────────────────────────────┤
-│ Endpoint: POST /api/x402/webhook                      │
-│                                                         │
-│ 1. Receives x402 payment notification                 │
-│ 2. Validates x402 signature (security)                │
-│ 3. Calls X402PaymentDistributor.handleX402Payment()   │
-│ 4. Distributor queries Solana for NFT holders:        │
-│    - Finds 1,000 wallet addresses                     │
-│ 5. Calculates distribution:                           │
-│    - 1 SOL / 1,000 holders = 0.001 SOL each          │
-│    - Platform fee: 2.5% = 0.025 SOL                  │
-│ 6. Creates Solana transaction with 1,000 transfers   │
-│ 7. Signs and submits transaction to Solana           │
+│ Endpoint: POST /api/x402/webhook                       │
+│                                                        │
+│ 1. Receives x402 payment notification                  │
+│ 2. Validates x402 signature (security)                 │
+│ 3. Calls X402PaymentDistributor.handleX402Payment()    │
+│ 4. Distributor queries Solana for NFT holders:         │
+│    - Finds 1,000 wallet addresses                      │
+│ 5. Calculates distribution:                            │
+│    - 1 SOL / 1,000 holders = 0.001 SOL each            │
+│    - Platform fee: 2.5% = 0.025 SOL                    │
+│ 6. Creates Solana transaction with 1,000 transfers     │
+│ 7. Signs and submits transaction to Solana             │
 └────────────────────────┬───────────────────────────────┘
                          │ Batch transfer tx
                          ▼
 ┌────────────────────────────────────────────────────────┐
 │             SOLANA BLOCKCHAIN                          │
 │ • Processes multi-recipient transaction                │
-│ • Transfers 0.001 SOL to each of 1,000 holders       │
-│ • Confirms in 5-30 seconds                            │
-│ • Total cost: ~$1 for entire distribution             │
+│ • Transfers 0.001 SOL to each of 1,000 holders         │
+│ • Confirms in 5-30 seconds                             │
+│ • Total cost: ~$1 for entire distribution              │
 └────────────────────────┬───────────────────────────────┘
                          │ Funds arrive
                          ▼

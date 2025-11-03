@@ -1,0 +1,69 @@
+.app-ride-form {
+  background-color: rgba(32, 46, 69, 0.4);
+  border: 1px solid #4b5263;
+  border-radius: 5px;
+  padding: 2rem 3.125rem;
+  max-height: 740.33px;
+  overflow: auto;
+}
+
+.app-ride-form h4 {
+  text-transform: capitalize;
+}
+
+.app-ride-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.app-ride-form__container-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.date-time-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  align-items: flex-end;
+}
+
+.date-time-container > .date-picker {
+  flex: 2;
+  width: 100%;
+}
+
+.date-time-container > .time-picker {
+  flex: 1;
+  max-width: 136px;
+  width: 100%;
+}
+
+@media screen and (max-width: 941px) {
+  .app-ride-form {
+    max-height: none;
+  }
+}
+
+@media screen and (max-width: 479px) {
+  .app-ride-form {
+    background-color: rgba(32, 46, 69, 0.4);
+    border: 1px solid #4b5263;
+    padding: 2rem 1.5rem;
+  }
+
+  .app-ride-form__time-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .date-time-container {
+    flex-direction: column;
+  }
+
+  .date-time-container > .time-picker {
+    max-width: initial;
+  }
+}

@@ -86,3 +86,7 @@ public class AssetOwnership
     public DateTimeOffset LastUpdate { get; set; }
 }
 
+
+
+
+

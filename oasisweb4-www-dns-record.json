@@ -1,0 +1,18 @@
+{
+  "Comment": "Create CNAME record for www.oasisweb4.one pointing to oasisweb4.one",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "www.oasisweb4.one",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "oasisweb4.one"
+          }
+        ]
+      }
+    }
+  ]
+}

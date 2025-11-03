@@ -1,0 +1,166 @@
+{
+  "OASIS": {
+    "Terms": "Please be kind and respectful to everyone including animals and nature and work hard to co-create a better world for all! Enjoy your stay! :)",
+    "Logging": {
+      "LoggingFramework": "Default",
+      "AlsoUseDefaultLogProvider": false,
+      "FileLoggingMode": 0,
+      "ConsoleLoggingMode": 1,
+      "LogToConsole": true,
+      "ShowColouredLogs": true,
+      "DebugColour": 15,
+      "InfoColour": 10,
+      "WarningColour": 14,
+      "ErrorColour": 12,
+      "LogToFile": false,
+      "LogPath": "C:\\Users\\USER\\AppData\\Roaming\\NextGenSoftware\\OASIS",
+      "LogFileName": "C:\\Users\\USER\\AppData\\Roaming\\NextGenSoftware\\OASIS",
+      "MaxLogFileSize": 1000000,
+      "NumberOfRetriesToLogToFile": 3,
+      "RetryLoggingToFileEverySeconds": 1,
+      "InsertExtraNewLineAfterLogMessage": false,
+      "IndentLogMessagesBy": 1
+    },
+    "ErrorHandling": {
+      "ShowStackTrace": false,
+      "ThrowExceptionsOnErrors": false,
+      "ThrowExceptionsOnWarnings": false,
+      "LogAllErrors": true,
+      "LogAllWarnings": true,
+      "ErrorHandlingBehaviour": 1,
+      "WarningHandlingBehaviour": 1
+    },
+    "Security": {
+      "HideVerificationToken": true,
+      "HideRefreshTokens": true,
+      "SecretKey": "21AC8EB5-93BD-47F7-9566-0C21CD38B29C-E3FEFAA9-174F-4527-8808-B4C307CA0D70",
+      "RemoveOldRefreshTokensAfterXDays": 0,
+      "AvatarPassword": {
+        "BCryptEncryptionEnabled": true,
+        "Rijndael256EncryptionEnabled": true,
+        "Rijndael256Key": "",
+        "QuantumEncryptionEnabled": true
+      },
+      "OASISProviderPrivateKeys": {
+        "BCryptEncryptionEnabled": true,
+        "Rijndael256EncryptionEnabled": true,
+        "Rijndael256Key": "",
+        "QuantumEncryptionEnabled": true
+      }
+    },
+    "Email": {
+      "EmailFrom": "oasisweb4@gmail.com",
+      "SmtpHost": "smtp.gmail.com",
+      "SmtpPort": 587,
+      "SmtpUser": "oasisweb4@gmail.com",
+      "SmtpPass": "wera jvdk xoom sose",
+      "DisableAllEmails": false,
+      "SendVerificationEmail": true,
+      "OASISWebSiteURL": "https://localhost:5002/#"
+    },
+    "StorageProviders": {
+      "ProviderMethodCallTimeOutSeconds": 99,
+      "ActivateProviderTimeOutSeconds": 10,
+      "DectivateProviderTimeOutSeconds": 10,
+      "AutoReplicationEnabled": false,
+      "AutoFailOverEnabled": true,
+      "AutoLoadBalanceEnabled": true,
+      "AutoLoadBalanceReadPollIntervalMins": 10,
+      "AutoLoadBalanceWritePollIntervalMins": 10,
+      "AutoReplicationProviders": "MongoDBOASIS",
+      "AutoLoadBalanceProviders": "MongoDBOASIS",
+      "AutoFailOverProviders": "MongoDBOASIS",
+      "AutoFailOverProvidersForAvatarLogin": "MongoDBOASIS",
+      "AutoFailOverProvidersForCheckIfEmailAlreadyInUse": "MongoDBOASIS",
+      "AutoFailOverProvidersForCheckIfUsernameAlreadyInUse": "MongoDBOASIS",
+      "AutoFailOverProvidersForCheckIfOASISSystemAccountExists": "MongoDBOASIS",
+      "OASISProviderBootType": "Warm",
+      "AzureCosmosDBOASIS": {
+        "ServiceEndpoint": "",
+        "AuthKey": "",
+        "DBName": "",
+        "CollectionNames": "avatars, avatarDetails, holons"
+      },
+      "HoloOASIS": {
+        "UseLocalNode": true,
+        "UseHoloNetwork": true,
+        "HoloNetworkURI": "https://holo.host/",
+        "LocalNodeURI": "ws://localhost:8888",
+        "HoloNETORMUseReflection": false
+      },
+      "MongoDBOASIS": {
+        "DBName": "OASISAPI_DEV",
+        "ConnectionString": "mongodb+srv://OASISWEB4:Uppermall1%21@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4"
+      },
+      "EOSIOOASIS": {
+        "AccountName": "oasis",
+        "AccountPrivateKey": "",
+        "ChainId": "",
+        "ConnectionString": "http://localhost:8888"
+      },
+      "TelosOASIS": {
+        "ConnectionString": "https://node.hypha.earth"
+      },
+      "SEEDSOASIS": {
+        "ConnectionString": "https://node.hypha.earth"
+      },
+      "ThreeFoldOASIS": {
+        "ConnectionString": ""
+      },
+      "EthereumOASIS": {
+        "ChainPrivateKey": "0x88b002883021f592f2225fc91615c32c284c099192dced42c5ff325067c1d42f",
+        "ChainId": 11155111,
+        "ContractAddress": "0x0000000000000000000000000000000000000000",
+        "ConnectionString": "https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+      },
+      "ArbitrumOASIS": {
+        "ChainPrivateKey": "0xf86aeb1485e328b3fef9d8f3dabc868e00ecccfcd1097c3e07d3bd7479129662",
+        "ChainId": 421614,
+        "ContractAddress": "0xbC9f66E4A8076D1ce3Cb8db0A1d95d47061c34A9",
+        "ConnectionString": "https://sepolia-rollup.arbitrum.io/rpc"
+      },
+      "RootstockOASIS": {
+        "ChainPrivateKey": "0x88b002883021f592f2225fc91615c32c284c099192dced42c5ff325067c1d42f",
+        "ContractAddress": "0x0000000000000000000000000000000000000000",
+        "Abi": null,
+        "ConnectionString": "https://public-node.testnet.rsk.co"
+      },
+      "PolygonOASIS": {
+        "ChainPrivateKey": "0x88b002883021f592f2225fc91615c32c284c099192dced42c5ff325067c1d42f",
+        "ContractAddress": "0x0000000000000000000000000000000000000000",
+        "Abi": null,
+        "ConnectionString": "https://rpc-amoy.polygon.technology/"
+      },
+      "SQLLiteDBOASIS": {
+        "ConnectionString": "Data Source=OASISSQLLiteDB.db"
+      },
+      "IPFSOASIS": null,
+      "Neo4jOASIS": {
+        "Username": "neo4j",
+        "Password": "",
+        "ConnectionString": "bolt://localhost:7687"
+      },
+      "SolanaOASIS": {
+        "WalletMnemonicWords": "adapt afford abandon above age adult ahead accident aim advice agree accuse",
+        "PrivateKey": "kNln1+y3r9Xa1HbiakTDUmdpyzImmnpEs/+et8D6Jr2eE+KoOZJtHXdOOoNyP1NRDcfa44LE4y6llK9JaMpCEA==",
+        "PublicKey": "Be51B1n3m1MCtZYvH8JEX3LnZZwoREyH4rYoyhMrkxJs",
+        "ConnectionString": "https://api.devnet.solana.com"
+      },
+      "CargoOASIS": {
+        "SingingMessage": "",
+        "PrivateKey": "3p4mTDUt2zwsg8p828LbFL9SmmTKMhHjqRJt9o6daYw14gwEPap6WPF3KXezyQJRPF1TcRaaSZ8XEctUQWX4QmaT",
+        "HostUrl": "",
+        "ConnectionString": ""
+      },
+      "LocalFileOASIS": {
+        "FilePath": "wallets.json"
+      },
+      "PinataOASIS": {
+        "ConnectionString": "https://api.pinata.cloud?apiKey=1dc6c563e7dc75a613fb&secretKey=60b8092d4447d11f2cf7e160c2c61e625eba6fd4ac5b1816de98a02dd59eaabc&jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmMTg4ODA1Ny0yZDRhLTQ1MzMtOWI4ZS0wZGMxYjEwNmM4YzMiLCJlbWFpbCI6Im1heC5nZXJzaGZpZWxkMUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGU0ExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiMWRjNmM1NjNlN2RjNzVhNjEzZmIiLCJzY29wZWRLZXlTZWNyZXQiOiI2MGI4MDkyZDQ0NDdkMTFmMmNmN2UxNjBjMmM2MWU2MjVlYmE2ZmQ0YWM1YjE4MTZkZTk4YTAyZGQ1OWVhYWJjIiwiZXhwIjoxNzg2NTM0NTQ0fQ.564k1VU9XYgOTok3PvnyXg-Hgo4g0p4ZndOGLeZ7KWw&gateway=https://gateway.pinata.cloud"
+      }
+    },
+    "OASISSystemAccountId": "f3fbf32a-1864-4adf-b0e4-c9a9658deb68",
+    "OASISAPIURL": "https://oasisweb4.one"
+  }
+}
+

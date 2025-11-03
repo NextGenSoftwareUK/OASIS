@@ -1,0 +1,2 @@
+OASIS: universal Web4/Web5 API bridging 50+ blockchains (Ethereum, Solana, Base) and databases with auto-failover. Built with .NET 9, Node.js, React. Need AWS ECS, Lambda, DocumentDB, S3, SageMaker to scale from beta to 100K users.
+

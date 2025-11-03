@@ -9,6 +9,7 @@ const navItems = [
   { label: "Providers", href: "#providers" },
   { label: "Assets", href: "#assets" },
   { label: "Mint", href: "#mint" },
+  { label: "x402 Dashboard", href: "/x402-dashboard", isExternal: true },
 ];
 
 type AppLayoutProps = {

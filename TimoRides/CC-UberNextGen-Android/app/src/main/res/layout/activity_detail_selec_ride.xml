@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ride.DetailSelecRideActivity">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context="com.example.currentplacedetailsonmap.MapsActivityCurrentPlace"/>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cvMenu"
+            android:layout_width="@dimen/m40dp"
+            android:layout_height="@dimen/m40dp"
+            app:cardElevation="@dimen/m15dp"
+            android:src="@drawable/ic_gps_fixed_indicator"
+            android:layout_marginLeft="@dimen/Margin20dp"
+            android:layout_marginTop="@dimen/Margin20dp"
+            app:cardBackgroundColor="@color/colorWhite"
+            app:cardCornerRadius="@dimen/m20dp"
+            app:cardUseCompatPadding="false">
+
+            <ImageView
+                android:id="@+id/ivBack"
+                android:layout_width="@dimen/m40dp"
+                android:layout_height="@dimen/m40dp"
+                android:src="@drawable/ic_back" />
+        </androidx.cardview.widget.CardView>
+
+      <!--  <androidx.cardview.widget.CardView
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:card_view="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_bottom"
+            android:layout_marginTop="@dimen/m20dp"
+            card_view:cardBackgroundColor="@color/colorWhite">
+-->
+
+        <!-- </androidx.cardview.widget.CardView>-->
+        <LinearLayout
+            android:id="@+id/llRideSelecte"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_bottom"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/m30dp"
+                android:layout_marginLeft="@dimen/m10dp"
+                android:layout_marginRight="@dimen/m10dp"
+                android:layout_marginBottom="@dimen/m10dp"
+                android:orientation="horizontal">
+
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/ivproduct"
+                        android:layout_width="@dimen/m70dp"
+                        android:layout_height="@dimen/m50dp"
+                        android:layout_margin="@dimen/m10dp"
+                        android:src="@drawable/ic_sedan_car_model" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="2"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvReviewcount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:layout_marginRight="@dimen/m10dp"
+                        android:text="Nearby you"
+                        android:textColor="@color/colorGrey"
+                        android:textSize="@dimen/s14sp" />
+
+                    <TextView
+                        android:id="@+id/tvProductName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:text="Premium Sedan"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorfontBlack"
+                        android:textSize="@dimen/s16sp" />
+
+
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:layout_marginLeft="@dimen/m10dp"
+                    android:layout_marginRight="@dimen/m10dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:text="$50.00"
+                        android:textStyle="bold"
+                        android:layout_gravity="right"
+                        android:textColor="@color/colorPink"
+                        android:textSize="@dimen/s20sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:layout_gravity="right"
+                        android:text="05 min"
+                        android:textColor="@color/colorGrey"
+                        android:textSize="@dimen/s12sp" />
+
+
+                </LinearLayout>
+            </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/colorView"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/m15dp"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:id="@+id/llPayment"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="@dimen/m40dp"
+                        android:ellipsize="end"
+                        android:layout_margin="@dimen/m10dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_credit_card" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:layout_gravity="center"
+                        android:text="Payment"
+                        android:textColor="@color/colorGrey"
+                        android:textSize="@dimen/s16sp" />
+
+
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/llPromo"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+                    <ImageView
+                        android:layout_width="@dimen/m40dp"
+                        android:layout_height="@dimen/m40dp"
+                        android:ellipsize="end"
+                        android:layout_margin="@dimen/m10dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_promo_code" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:layout_gravity="center"
+                        android:text="Promocode"
+                        android:textColor="@color/colorGrey"
+                        android:textSize="@dimen/s16sp" />
+
+
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/llCancel"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+                <ImageView
+                    android:layout_width="@dimen/m40dp"
+                    android:layout_height="@dimen/m40dp"
+                    android:ellipsize="end"
+                    android:layout_margin="@dimen/m10dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_cancel" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:layout_gravity="center"
+                        android:text="Cancel"
+                        android:textColor="@color/colorGrey"
+                        android:textSize="@dimen/s16sp" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvBookingReq"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/signin_btn_grad"
+                android:layout_margin="@dimen/Margin20dp"
+                android:layout_alignParentBottom="true"
+                android:paddingTop="@dimen/m15dp"
+                android:paddingBottom="@dimen/m15dp"
+                android:paddingLeft="@dimen/m30dp"
+                android:paddingRight="@dimen/m20dp"
+                android:textSize="@dimen/s20sp"
+                android:gravity="center"
+                android:textColor="@color/colorWhite"
+                android:text="Booking Request"/>
+        </LinearLayout>
+
+
+
+
+    </FrameLayout>
+</LinearLayout>

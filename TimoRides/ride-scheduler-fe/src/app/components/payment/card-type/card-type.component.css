@@ -1,0 +1,20 @@
+.image {
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  text-decoration: none;
+  list-style: none;
+  padding: 2px;
+}
+
+.image:not(.focused):hover {
+  border-color: #bfeba3;
+}
+
+.image > img {
+  width: 44px;
+}
+
+.focused {
+  border-color: #4ecc4b;
+}

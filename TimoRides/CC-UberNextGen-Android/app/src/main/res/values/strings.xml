@@ -1,0 +1,41 @@
+<resources>
+
+    <string name="app_name">TimoRides</string>
+
+    <string name="request_nearby_texi_driver_and_get_pickup_within_10_minutes">Choose your premium driver and get\n picked up within minutes</string>
+    <string name="book_your_ride">Book your premium ride</string>
+    <string name="google_maps_key">AIzaSyDCF9ev6kg9bBtr4_nXwFA1SzEzvT8uc-s</string>
+    <string name="home">Home</string>
+    <string name="navigation_drawer_open">Open the navigation drawer</string>
+    <string name="navigation_drawer_close">Close the navigation drawer</string>
+    <string name="my_wallet">My Wallet</string>
+    <string name="notification">Notifications</string>
+    <string name="history">History</string>
+    <string name="invite_friends">Invite Friends</string>
+    <string name="settings">Settings</string>
+    <string name="logout">Logout</string>
+    <string name="confirm_your_ride">Confirm your ride</string>
+    <string name="driver_will_confirm_your_ride_and_notify_by_notification_within_5_minutes">Driver will confirm your ride and notify \n by notification within 5 minutes.</string>
+    <string name="you_can_track_taxi_by_app_map_anytime_anywhere">You can track taxi by app map \n anytime,anywhere</string>
+    <string name="by_clicking_start_you_are_agree_to_our_terms_and_conditions">By clicking start,You are agree to our \n <b>Terms and Conditions</b></string>
+    <string name="terms_amp_privacy_policy"><![CDATA[Terms & Privacy Policy]]></string>
+    <string name="contact_us">Contact us</string>
+    <string name="clear_cache">Clear cache</string>
+    <string name="language">Language</string>
+    <string name="security">Security</string>
+    <string name="notifications">Notifications</string>
+    <string name="invite_friends_get_2_coupons_each">Invite Friends \nGet 2 Coupons each!</string>
+    <string name="when_your_friend_sign_up_with_your_referral_code_you_ll_both_get_2_0_coupons">When your friend sign up with your referral \n code,you\'ll both get 2.0 coupons</string>
+    <string name="your_feedback_will_help_improve_driving_experience">Your feedback will help improve \ndriving experience</string>
+    <string name="choose_other_amount"><u>Choose other amount</u></string>
+    <string name="location_title">Permission denied</string>
+    <string name="location_message">This app wants to change your device settings:</string>
+    <string name="location_hint">Use GPS, WI-FI, and cell networks for location</string>
+    <string name="location_exit">DENY</string>
+    <string name="location_allow">ALLOW</string>
+
+    <string name="permission_denied_title">Location Permission</string>
+    <string name="permission_denied_message">Without this permission the app is unable to process your location.</string>
+    <string name="permission_denied_exit">EXIT</string>
+    <string name="permission_denied_retry">RETRY</string>
+</resources>

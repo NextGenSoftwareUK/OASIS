@@ -1,0 +1,33 @@
+<nav id="navbar" class="navbar">
+  <div class="navbar-brand">
+    <img src="assets/images/logo.png" alt="Logo" class="navbar-logo" />
+  </div>
+
+  <button class="navbar-toggle" (click)="toggleNavbar()">☰</button>
+  <ul class="navbar-links" [class.show]="isNavbarOpen">
+    <ng-container *ngIf="user$ | async as user">
+      <li *ngIf="
+          (isLoggedIn$ | async) &&
+          !isCurrentPage('/users') &&
+          !isCurrentPage('/drivers')
+        ">
+        <a *ngIf="user.role === 'user'" (click)="viewProfile()">User Profile</a>
+        <a *ngIf="user.role === 'driver'" (click)="viewProfile()">Driver Profile</a>
+        <a *ngIf="user.role === 'admin'" (click)="viewProfile()">Admin Profile</a>
+      </li>
+
+      <li *ngIf="!isCurrentPage('/dashboards')">
+        <a (click)="viewDashboard()">Dashboard</a>
+      </li>
+    </ng-container>
+    <li *ngIf="!(isLoggedIn$ | async) && !isCurrentPage('/login') && !isCurrentPage('/signup')">
+      <a routerLink="/login" (click)="toggleNavbar()">Login/Signup</a>
+    </li>
+    <li *ngIf="!isCurrentPage('/ride-schedule') && !(isLoggedIn$ | async)">
+      <a routerLink="/ride-schedule" (click)="toggleNavbar()">Ride Schedule</a>
+    </li>
+    <li *ngIf="isLoggedIn$ | async">
+      <a style="background: #bc2929" (click)="logout()">Logout</a>
+    </li>
+  </ul>
+</nav>
