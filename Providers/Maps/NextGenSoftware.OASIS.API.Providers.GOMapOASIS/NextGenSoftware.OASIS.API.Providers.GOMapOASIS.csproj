@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+	  <PackageId>NextGenSoftware.OASIS.API.Providers.GOMapOASIS</PackageId>
+	  <Company>NextGen Software Ltd</Company>
+	  <Product>WEB4 OASIS API GOMap OASIS Provider</Product>
+	  <Title>WEB4 OASIS API GOMap OASIS Provider</Title>
+	  <Summary>WEB4 OASIS API GOMap OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integrate into the OASIS.</Summary>
+	  <Description>WEB4 OASIS API GOMap OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integrate into the OASIS.</Description>
+	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider; GOMap; Unity; Our World; Mapbox</PackageTags>
+	  <PackageReleaseNotes>Initial release of GOMap OASIS Provider for Unity integration.</PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>1.0.0</Version>
+	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg" Link="OASISLogo128.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>

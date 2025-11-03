@@ -1,0 +1,124 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "OASIS": {
+    "Terms": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n",
+    "CurrentStagingVersion": "v2.3.0",
+    "CurrentLiveVersion": "v2.3.0",
+    "OASISVersion": "LIVE",
+    "Logging": {
+      "LoggingFramework": "NLog"
+    },
+    "ErrorHandling": {
+      "ShowStackTrace": "false",
+      "ThrowExceptionsOnErrors": "false",
+      "ThrowExceptionsOnWarnings": "false",
+      "LogAllErrors": "true",
+      "LogAllWarnings": "true"
+    },
+    "Security": {
+      "HideVerificationToken": "true",
+      "HideRefreshTokens": "true",
+      "SecretKey": "",
+      "AvatarPassword": {
+        "BCryptEncryptionEnabled": "true",
+        "Rijndael256EncryptionEnabled": "true",
+        "Rijndael256Key": "",
+        "QuantumEncryptionEnabled": "true"
+      },
+      "OASISProviderPrivateKeys": {
+        "BCryptEncryptionEnabled": "true",
+        "Rijndael256EncryptionEnabled": "true",
+        "Rijndael256Key": "",
+        "QuantumEncryptionEnabled": "true"
+      }
+    },
+    "Email": {
+      "EmailFrom": "anorak@theoasisplatform.world",
+      "SmtpHost": "",
+      // "SmtpPort": 587,
+      "SmtpPort": 25,
+      "SmtpUser": "",
+      "SmtpPass": "",
+      "DisableAllEmails": "false", //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
+      "SendVerificationEmail": "true",
+      "OASISWebSiteURL": "https://staging.oasisweb4.one"
+    },
+    "StorageProviders": {
+      "AutoReplicationEnabled": "false",
+      "AutoFailOverEnabled": "true",
+      "AutoLoadBalanceEnabled": "true",
+      "AutoLoadBalanceReadPollIntervalMins": "10",
+      "AutoLoadBalanceWritePollIntervalMins": "10",
+      "ProviderMethodCallTimeOutSeconds": "10",
+      "AutoReplicationProviders": "MongoDBOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoFailOverProviders": "MongoDBOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoLoadBalanceProviders": "MongoDBOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+
+      //Can be:
+      //Cold (will only register and activate (connect, etc) each provider when you fist make a call into it - fastest initial OASIS boot but slowest initial call into each OASIS Provider as it is registered and activated. Has the smallest initial memory footprint.
+      //Warm (will register each provider but not activate it - average boot and slight delay intially calling into an OASIS Provider as it activates for the first time).
+      //Hot (will register and activate each provider (connect, etc) - slower inital boot of OASIS but subsequent calls to OASIS Providers will be faster, also has slightly higher initial memory footprint).
+      "OASISProviderBootType": "Warm",
+
+      "HoloOASIS": {
+        "ConnectionString": "ws://localhost:8888",
+        "HolochainVersion": "Redux" //Can be Redux or RSM.
+      },
+      "MongoDBOASIS": {
+        "ConnectionString": "mongodb://localhost:27017",
+        "DBName": "OASISAPI_DEV"
+      },
+      "SQLLiteDBOASIS": {
+        "ConnectionString": "Data Source=OASISSQLLiteDB.db"
+      },
+      "EOSIOOASIS": {
+        "ConnectionString": "http://localhost:8888",
+        "AccountName": "oasis",
+        "AccountPrivateKey": "",
+        "ChainId": ""
+      },
+      "TelosOASIS": {
+        "ConnectionString": "https://node.hypha.earth"
+      },
+      "SEEDSOASIS": {
+        "ConnectionString": "https://node.hypha.earth"
+      },
+      "ThreeFoldOASIS": {
+        "ConnectionString": ""
+      },
+      "EthereumOASIS": {
+        "ConnectionString": "http://testchain.nethereum.com:8545",
+        "ChainPrivateKey": "",
+        "ChainId": 444444444500,
+        "ContractAddress": ""
+      },
+      "Neo4JOASIS": {
+        "ConnectionString": "http://localhost:7474",
+        "Username": "",
+        "Password": ""
+      },
+      "IPFSOASIS": {
+        "ConnectionString": "http://localhost:5001",
+        "LookUpIPFSAddress": ""
+      },
+      "SolanaOASIS": {
+        "WalletMnemonicWords": "",
+        "ConnectionString": "https://api.mainnet-beta.solana.com"
+      },
+      "CargoOASIS": {
+        "ConnectionString": "",
+        "SingingMessage": "",
+        "PrivateKey": "",
+        "HostUrl": ""
+      },
+      "LocalFileOASIS": {
+        "FilePath": "wallets.json" //TEMP FOR TESTING - NEVER USE LOCAL ON LIVE SERVER!
+      }
+    }
+  }
+}

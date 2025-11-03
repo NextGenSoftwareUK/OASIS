@@ -1,0 +1,48 @@
+{
+  "name": "@oasis/web4-api-client",
+  "version": "1.0.0",
+  "description": "Official JavaScript/TypeScript client for the OASIS Web4 API - Decentralized data storage and avatar management",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "oasis",
+    "web4",
+    "decentralized",
+    "blockchain",
+    "avatar",
+    "storage",
+    "holochain",
+    "ethereum",
+    "ipfs"
+  ],
+  "author": "NextGen Software",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NextGenSoftwareUK/OASIS-API"
+  },
+  "homepage": "https://docs.oasis.network/web4-api",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "rollup": "^3.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}

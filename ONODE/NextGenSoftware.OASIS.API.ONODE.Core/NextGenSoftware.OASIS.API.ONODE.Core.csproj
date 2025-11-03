@@ -1,0 +1,81 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+	  <PackageId>NextGenSoftware.OASIS.API.ONODE.Core</PackageId>
+	  <Company>NextGen Software Ltd</Company>
+	  <Product>WEB4 OASIS API ONODE Core</Product>
+	  <Title>WEB4 OASIS API ONODE Core</Title>
+	  <Summary>This sit's at a higher level of abstraction over OASIS API Core, and acts as the main Core (Business Logic Layer) to the OASIS API, whereas OASIS API Core is the core architecture and hosts the central managers such as ProviderManager, AvatarManager, HolonManager, etc, This package contains more higher level Managers (such as OLANDManager, MissionManager, ParksManager, MapManager, QuestManager, SEEDSManager, etc) and use cases built on top of OASIS API Core. This module also uses the OASISBootLoader to manage loading and using the OASISDNA/config for the ONODEONODE. OASIS API Core does not use the OASISBootLoader because it is at a lower level in the stack and so interface implementations (OASIS Providers) need to be manually injected into each Manager's constructor (DI) whereas this module and the OASISBootLoader manages all of this for you via the OASISDNA.json config file. Both OASIS.API.Native.Integrated.EndPoint &amp; the REST API both use this module/package and provide a wrapper around it and are the recommeneded ways to use the OASIS API.</Summary>
+	  <Description>This sit's at a higher level of abstraction over OASIS API Core, and acts as the main Core (Business Logic Layer) to the OASIS API, whereas OASIS API Core is the core architecture and hosts the central managers such as ProviderManager, AvatarManager, HolonManager, etc, This package contains more higher level Managers (such as OLANDManager, MissionManager, ParksManager, MapManager, QuestManager, SEEDSManager, etc) and use cases built on top of OASIS API Core. This module also uses the OASISBootLoader to manage loading and using the OASISDNA/config for the ONODEONODE. OASIS API Core does not use the OASISBootLoader because it is at a lower level in the stack and so interface implementations (OASIS Providers) need to be manually injected into each Manager's constructor (DI) whereas this module and the OASISBootLoader manages all of this for you via the OASISDNA.json config file. Both OASIS.API.Native.Integrated.EndPoint &amp; the REST API both use this module/package and provide a wrapper around it and are the recommeneded ways to use the OASIS API.</Description>
+	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <PackageTags>OASIS API; Native; Integrated; WEB3; WEB4; WEB5; Blockchain; NFT; Tokens; Crypto; Future-Prove; Metaverse; Aggregation; HOT-Swappable-Architecture; P2P; Decentralised; Distributed; Interoprability; Abstraction-Layer; Multi-Network; Multi-Chain; Bridging; Network-Of-Networks; SSO; Avatar-API; Karma-API; Data-API; Providers-API; SEEDS-API; "Keys/Wallets-API", Auto-FailOver; Auto-LoadBalancing; Auto-Replication; Auto-Sync; Offline-Support; Write-Once-Deploy-Everywhere; Triple-Level-Quantum-Resistant-Encryption; Quantum; Encryption; Smart-Contracts; Intelligent-Key-Management; Zero-Lag; Zero-Downtime; Agent-Centric; Smart-City-Ready; WEB/2D/3D/AR/VR/IR/Map/Meta-Visusalization; Bio-feedback-Ready; IR-(Infinite-Reality)-Ready; Infinite-Players-Online-At-Same-Time; LAN/Bluetooth-Support; AI/Machine-Learning-Over-All-Of-World's-Aggregated-Data; HTTP-REST/gRPC/GraphQL/CLI/Native-Endpoints; Best-Of-All-Worlds; GOD-Protocol/API; Our-World-Geo-Location/AR/IR/Map-UI-(Game-of-Games-Engine); One-World-Open-World-MMO-(VR)-UI-(Game-of-Games-Engine); ActivityPub; AzureCosmosDB; BlockStack; Chainlink; COSMOS; Elrond; EOSIO; Ethereum; Hashgraph; Holochain; IPFS; MapBox; MongoDB; Neo4j; OrionProtocol; PLAN; Scuttlebutt; SEEDS; SOLANA; SOLID; SqlLiteDB; Telos; ThreeFold; TRON; WRLD3D; More-Coming...</PackageTags>
+	  <PackageReleaseNotes>Updated Tags</PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2023</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>1.1.0</Version>
+	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
+
+	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Google.Cloud.Storage.V1" Version="4.11.0" />
+	  <PackageReference Include="Pinata.Client" Version="1.0.0" />
+	  <PackageReference Include="PinataNET" Version="1.0.2" />
+	  <PackageReference Include="SevenZip" Version="19.0.0" />
+	  <PackageReference Include="SharpCompress" Version="0.39.0" />
+	  <PackageReference Include="SharpZipLib" Version="1.4.2" />
+	  <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
+	  <PackageReference Include="Ipfs.Core" Version="0.55.0" />
+	</ItemGroup>
+
+	<!--<ItemGroup>
+	  <Reference Include="NextGenSoftware.OASIS.STAR">
+	    <HintPath>..\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\Runtimes\STAR ODK Runtime v2.0.2\NextGenSoftware.OASIS.STAR.dll</HintPath>
+	  </Reference>
+	</ItemGroup>-->
+
+	<ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Interfaces\Managers\COSMIC ORM\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+	  <ProjectReference Include="..\..\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj" />
+	  <ProjectReference Include="..\..\Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj" />
+	  <ProjectReference Include="..\..\Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
+		<EmbeddedResource Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
+		<None Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
+	</ItemGroup>
+
+</Project>
