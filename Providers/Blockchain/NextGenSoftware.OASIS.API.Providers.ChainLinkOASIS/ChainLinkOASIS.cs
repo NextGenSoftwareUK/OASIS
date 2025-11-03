@@ -1891,14 +1891,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1927,7 +1927,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = (INFTTransactionRespone)new ChainLinkTransactionResponse
+                    result.Result = (IWeb4Web4NFTTransactionRespone)new ChainLinkTransactionResponse
                     {
                         TransactionHash = responseData.GetProperty("result").GetString(),
                         Success = true
@@ -1947,9 +1947,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 // Mint NFT using ChainLink oracle
@@ -1959,7 +1959,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     Success = true,
                 };
 
-                response.Result = (INFTTransactionRespone)nftTransaction;
+                response.Result = (IWeb4Web4NFTTransactionRespone)nftTransaction;
                 response.Message = "NFT minted using ChainLink oracle successfully";
             }
             catch (Exception ex)
@@ -1970,9 +1970,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return response;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transation)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 // Mint NFT using ChainLink oracle
@@ -1982,7 +1982,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     Success = true,
                 };
 
-                response.Result = (INFTTransactionRespone)nftTransaction;
+                response.Result = (IWeb4Web4NFTTransactionRespone)nftTransaction;
                 response.Message = "NFT minted using ChainLink oracle successfully";
             }
             catch (Exception ex)
@@ -1999,7 +1999,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Load NFT data from ChainLink oracle
-                var nft = new OASISNFT
+                var nft = new Web4OASISNFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     MetaData = new Dictionary<string, object>
@@ -2028,7 +2028,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Load NFT data from ChainLink oracle
-                var nft = new OASISNFT
+                var nft = new Web4OASISNFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     MetaData = new Dictionary<string, object>

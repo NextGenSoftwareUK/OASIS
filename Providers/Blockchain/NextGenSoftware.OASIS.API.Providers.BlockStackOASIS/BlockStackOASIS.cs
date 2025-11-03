@@ -1867,26 +1867,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             OASISErrorHandling.HandleWarning(ref result, "NFT operations are not supported by BlockStack provider in this context.");
             return result;
         }
 
-        public Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transation)
         {
             return Task.FromResult(SendNFT(transation));
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             OASISErrorHandling.HandleWarning(ref result, "Minting NFTs is not supported by BlockStack provider in this context.");
             return result;
         }
 
-        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transation)
         {
             return Task.FromResult(MintNFT(transation));
         }
@@ -1986,24 +1986,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
 
-        public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
+        public OASISResult<List<IWeb4OASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
         {
-            return new OASISResult<List<IOASISGeoSpatialNFT>> { Result = new List<IOASISGeoSpatialNFT>() };
+            return new OASISResult<List<IWeb4OASISGeoSpatialNFT>> { Result = new List<IWeb4OASISGeoSpatialNFT>() };
         }
 
-        public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
+        public Task<OASISResult<List<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
         {
-            return Task.FromResult(new OASISResult<List<IOASISGeoSpatialNFT>> { Result = new List<IOASISGeoSpatialNFT>() });
+            return Task.FromResult(new OASISResult<List<IWeb4OASISGeoSpatialNFT>> { Result = new List<IWeb4OASISGeoSpatialNFT>() });
         }
 
-        public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
+        public OASISResult<List<IWeb4OASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
         {
-            return new OASISResult<List<IOASISGeoSpatialNFT>> { Result = new List<IOASISGeoSpatialNFT>() };
+            return new OASISResult<List<IWeb4OASISGeoSpatialNFT>> { Result = new List<IWeb4OASISGeoSpatialNFT>() };
         }
 
-        public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
+        public async Task<OASISResult<List<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            var response = new OASISResult<List<IOASISGeoSpatialNFT>>();
+            var response = new OASISResult<List<IWeb4OASISGeoSpatialNFT>>();
 
             try
             {
@@ -2030,7 +2030,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                         
                         if (geoNfts != null)
                         {
-                            response.Result = geoNfts.Cast<IOASISGeoSpatialNFT>().ToList();
+                            response.Result = geoNfts.Cast<IWeb4OASISGeoSpatialNFT>().ToList();
                             response.IsError = false;
                             response.Message = "GeoNFTs loaded from BlockStack Gaia storage successfully";
                         }
@@ -2041,7 +2041,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     }
                     else
                     {
-                        response.Result = new List<IOASISGeoSpatialNFT>();
+                        response.Result = new List<IWeb4OASISGeoSpatialNFT>();
                         response.IsError = false;
                         response.Message = "No GeoNFTs found in BlockStack storage";
                     }
@@ -2056,26 +2056,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return response;
         }
 
-        public OASISResult<IOASISGeoSpatialNFT> PlaceGeoNFT(IPlaceGeoSpatialNFTRequest request)
+        public OASISResult<IWeb4OASISGeoSpatialNFT> PlaceGeoNFT(IPlaceWeb4GeoSpatialNFTRequest request)
         {
-            var result = new OASISResult<IOASISGeoSpatialNFT>();
+            var result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
             OASISErrorHandling.HandleWarning(ref result, "Geo NFT placement not supported by BlockStack provider.");
             return result;
         }
 
-        public Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
+        public Task<OASISResult<IWeb4OASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceWeb4GeoSpatialNFTRequest request)
         {
             return Task.FromResult(PlaceGeoNFT(request));
         }
 
-        public OASISResult<IOASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceGeoSpatialNFTRequest request)
+        public OASISResult<IWeb4OASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceWeb4GeoSpatialNFTRequest request)
         {
-            var result = new OASISResult<IOASISGeoSpatialNFT>();
+            var result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
             OASISErrorHandling.HandleWarning(ref result, "Mint and place Geo NFT not supported by BlockStack provider.");
             return result;
         }
 
-        public Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
+        public Task<OASISResult<IWeb4OASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceWeb4GeoSpatialNFTRequest request)
         {
             return Task.FromResult(MintAndPlaceGeoNFT(request));
         }

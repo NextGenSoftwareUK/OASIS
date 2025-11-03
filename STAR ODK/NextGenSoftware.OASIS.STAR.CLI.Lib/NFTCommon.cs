@@ -16,9 +16,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     {
         public NFTManager NFTManager { get; set; } = new NFTManager(STAR.BeamedInAvatar.Id);
 
-        public async Task<IMintNFTTransactionRequest> GenerateNFTRequestAsync(string web3JSONMetaDataFile = "")
+        public async Task<IMintWeb4NFTTRequest> GenerateNFTRequestAsync(string web3JSONMetaDataFile = "")
         {
-            MintNFTTransactionRequest request = new MintNFTTransactionRequest();
+            MintWeb4NFTRequest request = new MintWeb4NFTRequest();
 
             request.MintedByAvatarId = STAR.BeamedInAvatar.Id;
             request.Title = CLIEngine.GetValidInput("What is the NFT's title?");

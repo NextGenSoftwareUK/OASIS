@@ -860,42 +860,42 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         }
 
         // IOASISNFTProvider Methods
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest request)
         {
             try
             {
                 // Placeholder implementation - would use Moralis API to send NFT
-                return new OASISResult<INFTTransactionRespone>(null) { Message = "Not implemented yet" };
+                return new OASISResult<IWeb4Web4NFTTransactionRespone>(null) { Message = "Not implemented yet" };
             }
             catch (Exception ex)
             {
-                var result = new OASISResult<INFTTransactionRespone>(null);
+                var result = new OASISResult<IWeb4Web4NFTTransactionRespone>(null);
                 OASISErrorHandling.HandleError(ref result, $"Error sending NFT: {ex.Message}", ex);
                 return result;
             }
         }
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest request)
         {
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest request)
         {
             try
             {
                 // Placeholder implementation - would use Moralis API to mint NFT
-                return new OASISResult<INFTTransactionRespone>(null) { Message = "Not implemented yet" };
+                return new OASISResult<IWeb4Web4NFTTransactionRespone>(null) { Message = "Not implemented yet" };
             }
             catch (Exception ex)
             {
-                var result = new OASISResult<INFTTransactionRespone>(null);
+                var result = new OASISResult<IWeb4Web4NFTTransactionRespone>(null);
                 OASISErrorHandling.HandleError(ref result, $"Error minting NFT: {ex.Message}", ex);
                 return result;
             }
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest request)
         {
             return MintNFTAsync(request).Result;
         }

@@ -1660,14 +1660,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1694,7 +1694,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
                     
-                    var nftTransactionResponse = new NFTTransactionRespone
+                    var nftTransactionResponse = new Web4NFTTransactionRespone
                     {
                         TransactionResult = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-transfer-completed",
                     };
@@ -1715,14 +1715,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
         {
             return MintNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1749,7 +1749,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
                     
-                    var nftTransactionResponse = new NFTTransactionRespone
+                    var nftTransactionResponse = new Web4NFTTransactionRespone
                     {
                         TransactionResult = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-mint-completed",
                     };
@@ -1978,14 +1978,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             // OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClientAppAgent.EndPoint.AbsoluteUri, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            var response = new OASISResult<IWeb4OASISNFT>();
             try
             {
                 // Load NFT data from Holochain using HoloNET
                 // This would query Holochain DHT for NFT metadata
-                var nft = new OASISNFT
+                var nft = new Web4OASISNFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     JSONMetaDataURL = $"holochain://{OASIS_HAPP_ID}/nft/{nftTokenAddress}",
@@ -2005,14 +2005,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return response;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            var response = new OASISResult<IWeb4OASISNFT>();
             try
             {
                 // Load NFT data from Holochain using HoloNET
                 // This would query Holochain DHT for NFT metadata
-                var nft = new OASISNFT
+                var nft = new Web4OASISNFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     JSONMetaDataURL = $"holochain://{OASIS_HAPP_ID}/nft/{nftTokenAddress}",

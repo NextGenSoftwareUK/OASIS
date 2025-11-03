@@ -42,13 +42,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
     /// <summary>
     /// NFT Transaction response for Cosmos blockchain
     /// </summary>
-    public class NFTTransactionRespone : INFTTransactionRespone
+    public class Web4NFTTransactionRespone : IWeb4NFTTransactionRespone
     {
         public string TransactionHash { get; set; }
         public bool Success { get; set; }
         public string Message { get; set; }
         public string TransactionResult { get; set; }
-        public IOASISNFT OASISNFT { get; set; }
+        public IWeb4OASISNFT Web4OASISNFT { get; set; }
     }
 
     /// <summary>
@@ -1674,14 +1674,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transation)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4NFTTransactionRespone>();
             try
             {
                 if (!_isActivated)
@@ -1762,7 +1762,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
                     
-                    var nftTransactionResponse = new NFTTransactionRespone
+                    var nftTransactionResponse = new Web4NFTTransactionRespone
                     {
                         TransactionHash = txResponse.TryGetProperty("tx_response", out var txResp) && 
                                         txResp.TryGetProperty("txhash", out var hash) ? hash.GetString() : "",
@@ -1789,14 +1789,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return response;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
         {
             return MintNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1814,7 +1814,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     return result;
                 }
 
-                result.Result = new NFTTransactionRespone { Success = true, Message = "NFT minted successfully" };
+                result.Result = new Web4NFTTransactionRespone { Success = true, Message = "NFT minted successfully" };
                 result.IsError = false;
                 result.Message = "NFT minted successfully on Cosmos blockchain";
             }
@@ -1825,14 +1825,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return result;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress)
         {
             return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var result = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb4OASISNFT>();
             try
             {
                 if (!IsProviderActivated)
@@ -1850,7 +1850,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     return result;
                 }
 
-                result.Result = new OASISNFT { Title = "Cosmos NFT", Description = "NFT from Cosmos blockchain" };
+                result.Result = new Web4OASISNFT { Title = "Cosmos NFT", Description = "NFT from Cosmos blockchain" };
                 result.IsError = false;
                 result.Message = "NFT data loaded successfully from Cosmos blockchain";
             }

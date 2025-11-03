@@ -1609,9 +1609,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
         #region IOASISNFTProvider
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1642,7 +1642,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var nftResponse = JsonSerializer.Deserialize<NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var nftResponse = JsonSerializer.Deserialize<Web4NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (nftResponse != null)
                     {
@@ -1667,14 +1667,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1707,7 +1707,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var nftResponse = JsonSerializer.Deserialize<NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var nftResponse = JsonSerializer.Deserialize<IWeb4NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (nftResponse != null)
                     {
@@ -1732,15 +1732,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
         {
             return MintNFTAsync(transation).Result;
         }
 
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var result = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb4OASISNFT>();
             try
             {
                 if (!IsProviderActivated)
@@ -1760,7 +1760,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var nft = JsonSerializer.Deserialize<OASISNFT>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var nft = JsonSerializer.Deserialize<Web4OASISNFT>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (nft != null)
                     {
@@ -1785,7 +1785,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress)
         {
             return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }

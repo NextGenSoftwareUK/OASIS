@@ -2398,13 +2398,13 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transaction)
+    public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transaction)
         => SendNFTAsync(transaction).Result;
 
 
-    public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transaction)
+    public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transaction)
     {
-        OASISResult<INFTTransactionRespone> result = new();
+        OASISResult<IWeb4NFTTransactionRespone> result = new();
         string errorMessage = "Error in SendNFTAsync method in ArbitrumOASIS while sending nft. Reason: ";
 
         try
@@ -2445,9 +2445,9 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            INFTTransactionRespone response = new NFTTransactionRespone
+            IWeb4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new OASISNFT()
+                Web4OASISNFT = new Web4OASISNFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2475,12 +2475,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+    public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
         => MintNFTAsync(transation).Result;
 
-    public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transaction)
+    public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transaction)
     {
-        OASISResult<INFTTransactionRespone> result = new();
+        OASISResult<IWeb4NFTTransactionRespone> result = new();
         string errorMessage = "Error in MintNFTAsync method in ArbitrumOASIS while minting nft. Reason: ";
 
         try
@@ -2515,9 +2515,9 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            INFTTransactionRespone response = new NFTTransactionRespone
+            IWeb4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new OASISNFT()
+                Web4OASISNFT = new Web4OASISNFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2545,14 +2545,14 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+    public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress)
     {
         return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
     }
 
-    public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    public async Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
-        var result = new OASISResult<IOASISNFT>();
+        var result = new OASISResult<IWeb4OASISNFT>();
         try
         {
             if (!IsProviderActivated)
@@ -2670,7 +2670,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         }
     }
 
-    private static IOASISNFT ParseArbitrumToNFT(object nftData)
+    private static IWeb4OASISNFT ParseArbitrumToNFT(object nftData)
     {
         try
         {
@@ -2681,7 +2681,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(nftData.ToString());
             if (dataDict == null) return null;
             
-            var nft = new OASISNFT
+            var nft = new Web4OASISNFT
             {
                 Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
                 Title = dataDict.GetValueOrDefault("title")?.ToString() ?? "Arbitrum NFT",
@@ -2905,12 +2905,12 @@ file static class ArbitrumContractHelper
 
 
 
-        private static OASISNFT ParseArbitrumToNFT(object nftData)
+        private static Web4OASISNFT ParseArbitrumToNFT(object nftData)
     {
         try
         {
             // Real implementation for parsing Arbitrum NFT data
-            var nft = new OASISNFT
+            var nft = new Web4OASISNFT
             {
                 Id = Guid.NewGuid(),
                 Title = "Arbitrum NFT",

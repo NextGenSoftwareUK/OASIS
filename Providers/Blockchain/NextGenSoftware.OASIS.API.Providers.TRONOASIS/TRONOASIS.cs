@@ -1430,14 +1430,14 @@
 
 //        #region IOASISNFTProvider
 
-//        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+//        public OASISResult<IWeb4NFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
 //        {
-//            return new OASISResult<INFTTransactionRespone> { Message = "SendNFT is not implemented yet for TRON provider." };
+//            return new OASISResult<IWeb4NFTTransactionRespone> { Message = "SendNFT is not implemented yet for TRON provider." };
 //        }
 
-//        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transaction)
+//        public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transaction)
 //        {
-//            var response = new OASISResult<INFTTransactionRespone>();
+//            var response = new OASISResult<IWeb4NFTTransactionRespone>();
 
 //            try
 //            {
@@ -1465,7 +1465,7 @@
 //                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
 //                    var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
 
-//                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+//                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web4NFTTransactionRespone
 //                    {
 //                        TransactionResult = tronResponse.TxID ?? "NFT transfer created successfully"
 //                    };
@@ -1485,14 +1485,14 @@
 //            return response;
 //        }
 
-//        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+//        public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
 //        {
-//            return new OASISResult<INFTTransactionRespone> { Message = "MintNFT is not implemented yet for TRON provider." };
+//            return new OASISResult<IWeb4NFTTransactionRespone> { Message = "MintNFT is not implemented yet for TRON provider." };
 //        }
 
-//        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transaction)
+//        public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transaction)
 //        {
-//            var response = new OASISResult<INFTTransactionRespone>();
+//            var response = new OASISResult<IWeb4NFTTransactionRespone>();
 
 //            try
 //            {
@@ -1520,7 +1520,7 @@
 //                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
 //                    var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
 
-//                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+//                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web4NFTTransactionRespone
 //                    {
 //                        TransactionResult = tronResponse.TxID ?? "NFT minted successfully"
 //                    };
