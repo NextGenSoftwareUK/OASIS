@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const TwitterService = require('./TwitterService');
+const NitterService = require('./NitterService');
 const ThermometerService = require('./ThermometerService');
 const TwitterCache = require('./TwitterCache');
 
@@ -13,6 +14,7 @@ const PORT = process.env.PORT || 3002;
 // Initialize services
 const thermometerService = new ThermometerService();
 const twitterService = new TwitterService();
+const nitterService = new NitterService();
 const twitterCache = new TwitterCache();
 
 // Connect services
@@ -213,6 +215,75 @@ app.get('/api/twitter/cache-status', (req, res) => {
   res.json({
     success: true,
     cache: cacheInfo
+  });
+});
+
+// =============================================================================
+// NITTER ENDPOINTS (Free, unlimited alternative to Twitter API)
+// =============================================================================
+
+// Fetch tweets via Nitter and cache them
+app.post('/api/nitter/refresh', async (req, res) => {
+  try {
+    console.log('🔄 Nitter refresh requested...');
+    
+    const hashtag = req.body.hashtag || '#billionshealed';
+    const maxResults = req.body.maxResults || 100;
+    
+    // Fetch from Nitter
+    const result = await nitterService.searchHashtag(hashtag, maxResults);
+    
+    if (result.success && result.tweets.length > 0) {
+      // Save to cache
+      twitterCache.saveTweets(result.tweets);
+      
+      console.log(`✅ Fetched ${result.tweets.length} tweets via Nitter from ${result.instance}`);
+      
+      res.json({
+        success: true,
+        message: `Fetched ${result.tweets.length} tweets via Nitter`,
+        tweets: result.tweets,
+        count: result.tweets.length,
+        source: 'nitter',
+        instance: result.instance,
+        cached_at: new Date().toISOString()
+      });
+    } else {
+      // Try to return cached data as fallback
+      const cachedData = twitterCache.loadTweets();
+      
+      if (cachedData.success && cachedData.tweets.length > 0) {
+        return res.json({
+          success: true,
+          message: 'Nitter unavailable - serving cached tweets',
+          tweets: cachedData.tweets,
+          count: cachedData.tweets.length,
+          cached: true,
+          cached_at: cachedData.cachedAt
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        error: result.error || 'Failed to fetch tweets from Nitter',
+        tweets: []
+      });
+    }
+  } catch (error) {
+    console.error('❌ Nitter refresh error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get Nitter service status
+app.get('/api/nitter/status', (req, res) => {
+  const status = nitterService.getStatus();
+  res.json({
+    success: true,
+    status: status
   });
 });
 
