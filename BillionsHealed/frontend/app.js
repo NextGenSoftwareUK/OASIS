@@ -6,37 +6,40 @@ let thermometerData = {
     totalMinted: 0,
     maxThermometers: 100,
     fillPercentage: 0,
-    currentLevel: { level: 'cold', name: '❄️ Cold', color: '#4FC3F7', price: 0.01 },
-    processedTweets: 0
+    currentLevel: { level: 'cold', name: 'Cold', color: '#4FC3F7', price: 0.01 },
+    processedTweets: 0,
+    tweets: [] // Store tweets for linking to thermometer
 };
 
 // Temperature levels
 const temperatureLevels = [
-    { level: 'cold', range: [0, 25], price: 0.01, color: '#4FC3F7', name: '❄️ Cold' },
-    { level: 'warm', range: [26, 50], price: 0.05, color: '#FFEB3B', name: '🌡️ Warm' },
-    { level: 'hot', range: [51, 75], price: 0.10, color: '#FF9800', name: '🔥 Hot' },
-    { level: 'boiling', range: [76, 100], price: 0.25, color: '#F44336', name: '🌋 Boiling' }
+    { level: 'cold', range: [0, 25], price: 0.01, color: '#4FC3F7', name: 'Cold' },
+    { level: 'warm', range: [26, 50], price: 0.05, color: '#FFEB3B', name: 'Warm' },
+    { level: 'hot', range: [51, 75], price: 0.10, color: '#FF9800', name: 'Hot' },
+    { level: 'boiling', range: [76, 100], price: 0.25, color: '#F44336', name: 'Boiling' }
 ];
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🌡️ BillionsHealed initialized');
+    console.log('BillionsHealed initialized');
     initializeApp();
 });
 
 async function initializeApp() {
     // Set up event listeners
-    document.getElementById('mint-btn').addEventListener('click', mintThermometer);
-    document.getElementById('refresh-btn').addEventListener('click', loadTweets);
+    document.getElementById('refresh-twitter-btn').addEventListener('click', manualRefreshTwitter);
+    document.getElementById('share-impact-btn')?.addEventListener('click', shareImpact);
     
     // Load initial data
     await loadThermometerStatus();
     await loadTweets();
+    await updateCacheStatus();
     
-    // Auto-refresh every minute
+    // Auto-refresh thermometer and cache status every minute
     setInterval(async () => {
         await loadThermometerStatus();
         await loadTweets();
+        await updateCacheStatus();
     }, 60000);
 }
 
@@ -75,22 +78,13 @@ function updateThermometerUI() {
     
     // Update info
     document.getElementById('current-level').textContent = thermometerData.currentLevel.name;
-    document.getElementById('nft-count').textContent = `${thermometerData.totalMinted}/${thermometerData.maxThermometers} NFTs`;
-    document.getElementById('current-price').textContent = `Price: ${thermometerData.currentLevel.price} SOL`;
     document.getElementById('fill-percentage').textContent = `${thermometerData.fillPercentage.toFixed(1)}%`;
-    document.getElementById('remaining-count').textContent = thermometerData.maxThermometers - thermometerData.totalMinted;
+    document.getElementById('tweet-count').textContent = thermometerData.tweets.length || 0;
     
-    // Update mint button
-    const mintBtn = document.getElementById('mint-btn');
-    mintBtn.textContent = `Mint Thermometer #${thermometerData.totalMinted + 1}`;
-    
-    if (thermometerData.totalMinted >= thermometerData.maxThermometers) {
-        mintBtn.disabled = true;
-        mintBtn.textContent = '🌋 All Minted!';
+    // Redraw markers if tweets are loaded
+    if (thermometerData.tweets && thermometerData.tweets.length > 0) {
+        drawThermometerMarkers();
     }
-    
-    // Update feed stats
-    document.getElementById('total-minted').textContent = thermometerData.totalMinted;
 }
 
 // Mint thermometer
@@ -150,30 +144,306 @@ async function mintThermometer() {
     }
 }
 
-// Load tweets
+// Load tweets (from cache or mock)
 async function loadTweets() {
     const container = document.getElementById('tweets-container');
-    const refreshBtn = document.getElementById('refresh-btn');
-    
-    refreshBtn.style.animation = 'spin 1s linear infinite';
     
     try {
         const response = await fetch(`${API_BASE_URL}/twitter/recent-tweets?limit=10`);
         const data = await response.json();
         
         if (data.success && data.tweets) {
+            thermometerData.tweets = data.tweets; // Store tweets for linking
+            calculateTweetContributions(data.tweets);
             renderTweets(data.tweets);
-            thermometerData.processedTweets = data.meta.result_count;
-            document.getElementById('processed-tweets').textContent = data.meta.result_count;
+            drawThermometerMarkers();
+            
+            // Show if tweets are cached or mock
+            if (data.meta.cached) {
+                console.log('Showing cached tweets from:', data.meta.cached_at);
+            } else if (data.meta.mock) {
+                console.log('Showing demo tweets (use Refresh from Twitter to get real tweets)');
+            }
         } else {
             container.innerHTML = '<div class="loading">No tweets available</div>';
         }
     } catch (error) {
         console.error('Error loading tweets:', error);
         container.innerHTML = '<div class="loading">Error loading tweets</div>';
+    }
+}
+
+// Calculate tweet contributions and update temperature
+function calculateTweetContributions(tweets) {
+    thermometerData.tweetContributions = [];
+    
+    if (!tweets || tweets.length === 0) return;
+    
+    // Process oldest first (reverse array)
+    const oldestFirst = [...tweets].reverse();
+    
+    let currentTemp = 0;
+    
+    oldestFirst.forEach((tweet, index) => {
+        const engagement = (tweet.public_metrics.like_count || 0) + 
+                         (tweet.public_metrics.retweet_count || 0) * 2 + 
+                         (tweet.public_metrics.reply_count || 0);
+        
+        // Each tweet contributes based on engagement (0.5-1.5 degrees) - smaller increments
+        const baseTempIncrease = 0.5; // Base contribution
+        const engagementBonus = Math.min(1, engagement / 100); // Small bonus for high engagement
+        const tempIncrease = baseTempIncrease + engagementBonus;
+        currentTemp += tempIncrease;
+        
+        thermometerData.tweetContributions.push({
+            tweet: tweet, // Store full tweet object
+            tweetId: tweet.id,
+            author: tweet.author?.username || 'user',
+            authorName: tweet.author?.name || 'User',
+            text: tweet.text,
+            temperature: Math.min(100, currentTemp),
+            tempIncrease: tempIncrease,
+            side: index % 2 === 0 ? 'left' : 'right', // Alternate sides
+            engagement: engagement
+        });
+    });
+    
+    // Reverse back so newest is first
+    thermometerData.tweetContributions.reverse();
+    
+    // Update thermometer data with calculated temperature
+    thermometerData.fillPercentage = Math.min(100, currentTemp);
+    thermometerData.totalMinted = Math.min(100, Math.floor(currentTemp));
+    
+    // Update the level based on temperature
+    for (const level of temperatureLevels) {
+        if (thermometerData.fillPercentage >= level.range[0] && 
+            thermometerData.fillPercentage <= level.range[1]) {
+            thermometerData.currentLevel = level;
+            break;
+        }
+    }
+    
+    // Update the UI
+    updateThermometerUI();
+}
+
+// Draw markers on thermometer with connecting lines
+function drawThermometerMarkers() {
+    // Remove existing markers and lines
+    document.querySelectorAll('.thermo-marker-container').forEach(el => el.remove());
+    const existingSvg = document.getElementById('marker-lines');
+    if (existingSvg) existingSvg.remove();
+    
+    if (thermometerData.tweetContributions.length === 0) return;
+    
+    const thermoSection = document.querySelector('.thermometer-section');
+    const thermoTube = document.querySelector('.thermometer-tube');
+    if (!thermoSection || !thermoTube) return;
+    
+    // Create SVG for lines
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'marker-lines';
+    svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;';
+    thermoSection.appendChild(svg);
+    
+    // Calculate marker spacing - spread evenly but leave room at top for growth
+    const numTweets = thermometerData.tweetContributions.length;
+    const maxSpread = 60; // Only use bottom 60% of thermometer for current tweets (leaves 40% for future)
+    const spacingPercent = maxSpread / (numTweets + 1);
+    
+    // Create markers - positioned evenly, but lines point to actual temperature
+    thermometerData.tweetContributions.forEach((contribution, index) => {
+        const container = document.createElement('div');
+        container.className = `thermo-marker-container ${contribution.side}`;
+        container.dataset.tweetIndex = index;
+        
+        // Visual position: spread evenly from bottom to 60%
+        const visualPosition = spacingPercent * (numTweets - index); // Reverse order (newest at top)
+        container.style.bottom = `${visualPosition}%`;
+        
+        // Add EXTREME horizontal offset for visual variety (30-150px variation)
+        const randomOffset = 30 + (index * 17) % 120; // Massive variation
+        if (contribution.side === 'left') {
+            container.style.left = `-${50 + randomOffset}px`;
+        } else {
+            container.style.right = `-${50 + randomOffset}px`;
+        }
+        
+        const marker = document.createElement('div');
+        marker.className = 'thermo-marker-badge';
+        
+        // Compact view
+        const compactView = document.createElement('div');
+        compactView.className = 'marker-compact-view';
+        compactView.innerHTML = `
+            <div class="marker-avatar-small">X</div>
+            <div class="marker-label">@${contribution.author}</div>
+        `;
+        
+        // Expanded view (shows on hover)
+        const expandedView = document.createElement('div');
+        expandedView.className = 'marker-expanded-view';
+        expandedView.innerHTML = `
+            <div class="expanded-header">
+                <div class="expanded-avatar">X</div>
+                <div class="expanded-author-info">
+                    <div class="expanded-name">${contribution.authorName}</div>
+                    <div class="expanded-handle">@${contribution.author}</div>
+                </div>
+            </div>
+            <div class="expanded-content">
+                ${formatTweetText(contribution.text)}
+            </div>
+            <div class="expanded-metrics">
+                <span>♥ ${contribution.tweet.public_metrics.like_count || 0}</span>
+                <span>↻ ${contribution.tweet.public_metrics.retweet_count || 0}</span>
+                <span>↵ ${contribution.tweet.public_metrics.reply_count || 0}</span>
+            </div>
+            <div class="expanded-impact">
+                +${contribution.tempIncrease.toFixed(1)}° → ${contribution.temperature.toFixed(1)}%
+            </div>
+        `;
+        
+        marker.appendChild(compactView);
+        marker.appendChild(expandedView);
+        
+        container.appendChild(marker);
+        thermoSection.appendChild(container);
+        
+        // Draw line to ACTUAL temperature point (not visual position)
+        setTimeout(() => drawMarkerLine(svg, container, contribution, thermoTube), 10);
+    });
+}
+
+// Draw line from marker to thermometer
+function drawMarkerLine(svg, markerEl, contribution, thermoTube) {
+    const markerRect = markerEl.getBoundingClientRect();
+    const thermoRect = thermoTube.getBoundingClientRect();
+    const svgRect = svg.getBoundingClientRect();
+    
+    // Calculate positions relative to SVG
+    const startX = contribution.side === 'left'
+        ? markerRect.right - svgRect.left
+        : markerRect.left - svgRect.left;
+    const startY = markerRect.top + markerRect.height / 2 - svgRect.top;
+    
+    const endX = contribution.side === 'left'
+        ? thermoRect.left - svgRect.left
+        : thermoRect.right - svgRect.left;
+    const endY = thermoRect.bottom - svgRect.top - (thermoRect.height * (contribution.temperature / 100));
+    
+    // Create line
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', startX);
+    line.setAttribute('y1', startY);
+    line.setAttribute('x2', endX);
+    line.setAttribute('y2', endY);
+    line.setAttribute('stroke', getColorForTemperature(contribution.temperature));
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-dasharray', '3,3');
+    line.setAttribute('opacity', '0.6');
+    
+    svg.appendChild(line);
+}
+
+// Get color based on temperature
+function getColorForTemperature(temp) {
+    if (temp <= 25) return '#4FC3F7';
+    if (temp <= 50) return '#FFEB3B';
+    if (temp <= 75) return '#FF9800';
+    return '#F44336';
+}
+
+// Highlight tweet in feed
+function highlightTweet(index) {
+    // Remove previous highlights
+    document.querySelectorAll('.tweet-item').forEach(el => el.classList.remove('highlighted'));
+    
+    // Find and highlight the tweet
+    const tweetItems = document.querySelectorAll('.tweet-item');
+    if (tweetItems[index]) {
+        tweetItems[index].classList.add('highlighted');
+        
+        // Scroll to tweet
+        tweetItems[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+            tweetItems[index].classList.remove('highlighted');
+        }, 3000);
+    }
+}
+
+// Manual refresh from Twitter API
+async function manualRefreshTwitter() {
+    const refreshBtn = document.getElementById('refresh-twitter-btn');
+    const originalText = refreshBtn.textContent;
+    
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = '⏳ Fetching from Twitter...';
+    refreshBtn.style.animation = 'pulse 1s infinite';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/twitter/manual-refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.rate_limited) {
+                alert(`Rate Limited!\n\n${data.message}\n\nShowing cached tweets from: ${new Date(data.cached_at).toLocaleString()}\n\nYou can refresh again in 24 hours.`);
+            } else {
+                alert(`Success!\n\nFetched ${data.count} fresh tweets with #billionshealed\n\nCached at: ${new Date(data.cached_at).toLocaleString()}`);
+            }
+            
+            // Reload tweets to show fresh data
+            await loadTweets();
+            await updateCacheStatus();
+        } else {
+            alert(`Error refreshing tweets:\n\n${data.error}\n\n${data.details || ''}`);
+        }
+    } catch (error) {
+        console.error('Error refreshing from Twitter:', error);
+        alert(`Error refreshing tweets:\n\n${error.message}`);
     } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = originalText;
         refreshBtn.style.animation = '';
     }
+}
+
+// Update cache status indicator
+async function updateCacheStatus() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/twitter/cache-status`);
+        const data = await response.json();
+        
+        const statusEl = document.getElementById('cache-status');
+        
+        if (data.success && data.cache.exists) {
+            statusEl.textContent = `Cached: ${data.cache.count} tweets (${data.cache.age})`;
+            statusEl.style.color = '#4FC3F7';
+        } else {
+            statusEl.textContent = 'Demo Mode - Click refresh for real tweets';
+            statusEl.style.color = '#FFA726';
+        }
+    } catch (error) {
+        console.error('Error updating cache status:', error);
+    }
+}
+
+// Share impact - opens Twitter with pre-filled tweet
+function shareImpact() {
+    const currentTemp = thermometerData.fillPercentage.toFixed(1);
+    const tweetCount = thermometerData.tweets.length || 0;
+    
+    const tweetText = `I'm part of the #billionshealed movement!\n\nCurrent temperature: ${currentTemp}%\nTotal healing tweets: ${tweetCount}\n\nJoin the healing: ${window.location.origin}`;
+    
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&hashtags=billionshealed`;
+    window.open(twitterUrl, '_blank');
 }
 
 // Render tweets
@@ -184,7 +454,7 @@ function renderTweets(tweets) {
         container.innerHTML = `
             <div class="no-tweets">
                 <div class="tweet-cta">
-                    Be the first to tweet with <strong>#billionshealed</strong> and watch the thermometer rise! 🌟
+                    Be the first to tweet with <strong>#billionshealed</strong> and watch the thermometer rise!
                 </div>
             </div>
         `;
@@ -214,9 +484,9 @@ function renderTweets(tweets) {
                 
                 <div class="tweet-engagement">
                     <div class="engagement-stats">
-                        ${tweet.public_metrics.like_count > 0 ? `<span class="engagement-item"><span class="engagement-icon">❤️</span> ${tweet.public_metrics.like_count}</span>` : ''}
-                        ${tweet.public_metrics.retweet_count > 0 ? `<span class="engagement-item"><span class="engagement-icon">🔄</span> ${tweet.public_metrics.retweet_count}</span>` : ''}
-                        ${tweet.public_metrics.reply_count > 0 ? `<span class="engagement-item"><span class="engagement-icon">💬</span> ${tweet.public_metrics.reply_count}</span>` : ''}
+                        ${tweet.public_metrics.like_count > 0 ? `<span class="engagement-item"><span class="engagement-icon">♥</span> ${tweet.public_metrics.like_count}</span>` : ''}
+                        ${tweet.public_metrics.retweet_count > 0 ? `<span class="engagement-item"><span class="engagement-icon">↻</span> ${tweet.public_metrics.retweet_count}</span>` : ''}
+                        ${tweet.public_metrics.reply_count > 0 ? `<span class="engagement-item"><span class="engagement-icon">↵</span> ${tweet.public_metrics.reply_count}</span>` : ''}
                     </div>
                     <div class="engagement-level ${engagementLevel}">
                         ${formatEngagement(tweet.public_metrics)}

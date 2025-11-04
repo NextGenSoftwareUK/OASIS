@@ -281,7 +281,7 @@ header.header-component {
 
 .thermometer {
     width: 120px;
-    height: 500px;
+    height: 780px;
     margin: 0 auto;
     position: relative;
     perspective: 1000px;
@@ -304,7 +304,7 @@ header.header-component {
 
 .thermometer-tube {
     width: 24px;
-    height: 420px;
+    height: 700px;
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
@@ -493,15 +493,15 @@ header.header-component {
         0 0 0 3px #000,
         0 0 0 6px rgba(0, 150, 255, 0.4),
         0 15px 50px rgba(0, 150, 255, 0.4);
-    max-height: 600px;
+    max-height: 400px;
     overflow-y: auto;
     width: 380px;
-    position: absolute;
-    right: -30px;
-    top: 50%;
-    transform: translateY(-50%);
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    transform: none;
     z-index: 10;
-    animation: slideInRight 0.5s ease-out;
+    animation: slideInLeft 0.5s ease-out;
 }
 
 @keyframes slideInRight {
@@ -512,6 +512,17 @@ header.header-component {
     to {
         opacity: 1;
         transform: translateY(-50%) translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
     }
 }
 
@@ -540,6 +551,8 @@ header.header-component {
     margin-bottom: 1rem;
     padding-bottom: 1rem;
     border-bottom: 2px solid rgba(0, 150, 255, 0.3);
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .feed-header h3 {
@@ -547,6 +560,51 @@ header.header-component {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.feed-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.cache-status {
+    font-size: 0.85rem;
+    color: #4FC3F7;
+    padding: 0.3rem 0.6rem;
+    background: rgba(79, 195, 247, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(79, 195, 247, 0.3);
+}
+
+.refresh-twitter-btn {
+    background: linear-gradient(135deg, #0096FF 0%, #00D4FF 100%);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 150, 255, 0.3);
+}
+
+.refresh-twitter-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 150, 255, 0.5);
+    background: linear-gradient(135deg, #00D4FF 0%, #0096FF 100%);
+}
+
+.refresh-twitter-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
 }
 
 .x-logo {
@@ -1204,4 +1262,309 @@ header.header-component {
     .modal-content {
         padding: 1rem;
     }
+}
+
+/* Share button */
+.share-btn {
+    background: linear-gradient(135deg, #FF9800 0%, #FFC107 100%);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    width: 100%;
+    margin: 0.5rem 0;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.5);
+    background: linear-gradient(135deg, #FFC107 0%, #FF9800 100%);
+}
+
+/* Tweet temperature markers */
+.tweet-temp-marker {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Tweet connections SVG */
+#tweet-connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Thermometer Markers */
+.thermo-marker {
+    position: absolute;
+    right: -8px;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #0096FF 0%, #00D4FF 100%);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    transform: translateY(50%);
+    box-shadow: 0 2px 8px rgba(0, 150, 255, 0.5);
+}
+
+.thermo-marker:hover {
+    transform: translateY(50%) scale(1.3);
+    box-shadow: 0 4px 16px rgba(0, 150, 255, 0.8);
+    z-index: 20;
+}
+
+.thermo-marker::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+}
+
+/* Highlighted Tweet */
+.tweet-item.highlighted {
+    animation: highlightPulse 0.5s ease;
+    background: rgba(0, 150, 255, 0.2) !important;
+    border: 2px solid rgba(0, 150, 255, 0.8) !important;
+    box-shadow: 0 8px 24px rgba(0, 150, 255, 0.5) !important;
+}
+
+@keyframes highlightPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Thermometer Marker Containers - Left and Right */
+.thermo-marker-container {
+    position: absolute;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.thermo-marker-container.left {
+    left: -80px;
+}
+
+.thermo-marker-container.right {
+    right: -80px;
+}
+
+.thermo-marker-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background: rgba(10, 10, 30, 0.95);
+    border: 2px solid rgba(0, 150, 255, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 150, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.thermo-marker-container:hover .thermo-marker-badge {
+    border-color: rgba(0, 150, 255, 0.9);
+    box-shadow: 0 4px 16px rgba(0, 150, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.marker-avatar-small {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #0096FF 0%, #00D4FF 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.marker-label {
+    font-size: 0.8rem;
+    color: #fff;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+/* Thermometer section needs relative positioning for markers */
+.thermometer-section {
+    position: relative;
+}
+
+/* SVG lines */
+#marker-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Highlighted Tweet (keep existing) */
+.tweet-item.highlighted {
+    animation: highlightPulse 0.5s ease;
+    background: rgba(0, 150, 255, 0.2) !important;
+    border: 2px solid rgba(0, 150, 255, 0.8) !important;
+    box-shadow: 0 8px 24px rgba(0, 150, 255, 0.5) !important;
+}
+
+@keyframes highlightPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Marker Compact and Expanded Views */
+.marker-compact-view {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.marker-expanded-view {
+    display: none;
+    position: absolute;
+    width: 300px;
+    padding: 1rem;
+    background: rgba(10, 10, 30, 0.98);
+    border: 2px solid rgba(0, 150, 255, 0.8);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 150, 255, 0.6);
+    z-index: 1000;
+    animation: expandIn 0.3s ease;
+}
+
+.thermo-marker-container.left .marker-expanded-view {
+    left: 100%;
+    margin-left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.thermo-marker-container.right .marker-expanded-view {
+    right: 100%;
+    margin-right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.thermo-marker-badge:hover .marker-compact-view {
+    display: none;
+}
+
+.thermo-marker-badge:hover .marker-expanded-view {
+    display: block;
+}
+
+@keyframes expandIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+.expanded-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.expanded-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #0096FF 0%, #00D4FF 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.expanded-author-info {
+    flex: 1;
+}
+
+.expanded-name {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.expanded-handle {
+    color: #888;
+    font-size: 0.85rem;
+}
+
+.expanded-content {
+    padding: 0.75rem;
+    background: rgba(0, 150, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    color: #fff;
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+.expanded-metrics {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.expanded-metrics span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.expanded-impact {
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 150, 255, 0.2);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4FC3F7;
+    text-align: center;
 }
