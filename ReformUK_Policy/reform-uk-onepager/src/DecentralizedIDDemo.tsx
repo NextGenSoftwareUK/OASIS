@@ -486,3 +486,4 @@ function TechStat({ label, value }: { label: string; value: string }) {
   );
 }
 
+

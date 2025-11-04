@@ -1,7 +1,15 @@
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+using NextGenSoftware.OASIS.Common;
+using Solnet.Rpc;
 using Solnet.Rpc.Models;
 using Solnet.Wallet;
+using Solnet.Wallet.Bip39;
 using Solnet.Programs;
 using System.Net;
 
@@ -49,8 +57,9 @@ public sealed class SolanaBridgeService : ISolanaBridgeService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<decimal>(ref result,
+            OASISErrorHandling.HandleError(ref result,
                 $"Error getting account balance: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -78,8 +87,9 @@ public sealed class SolanaBridgeService : ISolanaBridgeService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<(string, string, string)>(ref result,
+            OASISErrorHandling.HandleError(ref result,
                 $"Error creating account: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -114,8 +124,9 @@ public sealed class SolanaBridgeService : ISolanaBridgeService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<(string, string)>(ref result,
+            OASISErrorHandling.HandleError(ref result,
                 $"Error restoring account: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -149,8 +160,9 @@ public sealed class SolanaBridgeService : ISolanaBridgeService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
+            OASISErrorHandling.HandleError(ref result,
                 $"Error during withdrawal: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -179,8 +191,9 @@ public sealed class SolanaBridgeService : ISolanaBridgeService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
+            OASISErrorHandling.HandleError(ref result,
                 $"Error during deposit: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -271,8 +284,9 @@ public sealed class SolanaBridgeService : ISolanaBridgeService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
+            OASISErrorHandling.HandleError(ref result,
                 $"Error executing transaction: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -324,8 +338,9 @@ public sealed class SolanaBridgeService : ISolanaBridgeService
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<BridgeTransactionStatus>(ref result,
+            OASISErrorHandling.HandleError(ref result,
                 $"Error getting transaction status: {ex.Message}", ex);
+            return result;
         }
     }
 }

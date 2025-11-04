@@ -293,3 +293,4 @@ You don't just understand tech—you can explain it to anyone.
 **For**: Max Gershfield  
 **Role**: HSBC Director, Strategic Innovation
 
+
