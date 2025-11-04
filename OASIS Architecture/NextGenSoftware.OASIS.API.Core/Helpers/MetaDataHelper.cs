@@ -8,17 +8,18 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 { 
     public static class MetaDataHelper
     {
-        public static void ShowMetaData(Dictionary<string, object> metaData)
+        public static void ShowMetaData(Dictionary<string, object> metaData, int displayFieldLength)
         {
             if (metaData != null)
             {
-                CLIEngine.ShowMessage($"MetaData:");
+                CLIEngine.ShowMessage($"MetaData:", false);
 
                 foreach (string key in metaData.Keys)
-                    CLIEngine.ShowMessage(string.Concat("          ", key, " = ", GetMetaValue(metaData[key])), false);
+                    CLIEngine.ShowMessage(string.Concat("".PadRight(displayFieldLength), key, " = ", GetMetaValue(metaData[key])), false);
+                    //CLIEngine.ShowMessage(string.Concat("          ", key, " = ", GetMetaValue(metaData[key])), false);
             }
             else
-                CLIEngine.ShowMessage($"MetaData: None");
+                CLIEngine.ShowMessage(string.Concat("MetaData:".PadRight(displayFieldLength), "None"), false);
         }
 
         public static string GetMetaValue(object value)
@@ -108,30 +109,32 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             while (!done)
             {
                 Console.WriteLine("");
-                CLIEngine.ShowMessage($"Current {itemName} metadata:", false);
+                CLIEngine.ShowMessage($"Current {itemName} metadata:");
 
                 if (metaData.Count == 0)
-                    CLIEngine.ShowMessage("  None", false);
+                    CLIEngine.ShowMessage("  (none)");
                 else
                 {
                     int i = 1;
                     foreach (var kv in metaData)
                     {
-                        CLIEngine.ShowMessage($"  {i}. {kv.Key} = {GetMetaValue(kv.Value)}", false);
+                        CLIEngine.ShowMessage($"  {i}. {kv.Key} = {GetMetaValue(kv.Value)}");
                         i++;
                     }
                 }
 
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("Choose an action: (A)dd, (E)dit, (D)elete, (Q)uit", false);
-                string choice = CLIEngine.GetValidInput("Enter A, E, D or Q:").ToUpper();
+                CLIEngine.ShowMessage("Choose an action: (A)dd, (E)dit, (R)emove, (D)one", false);
+                string choice = CLIEngine.GetValidInput("Enter A, E, R or D:").ToUpper();
 
                 switch (choice)
                 {
+                    case "ADD":
                     case "A":
                         metaData = AddItemToMetaData(metaData);
                         break;
 
+                    case "EDIT":
                     case "E":
                         if (metaData.Count == 0)
                         {
@@ -178,32 +181,34 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
                         break;
 
-                    case "D":
+                    case "REMOVE":
+                    case "R":
                         if (metaData.Count == 0)
                         {
-                            CLIEngine.ShowErrorMessage("No metadata to delete.");
+                            CLIEngine.ShowErrorMessage("No metadata to remove.");
                             break;
                         }
 
-                        int delIndex = CLIEngine.GetValidInputForInt("Enter the number of the metadata entry to delete:", true, 1, metaData.Count);
+                        int delIndex = CLIEngine.GetValidInputForInt("Enter the number of the metadata entry to remove:", true, 1, metaData.Count);
                         string delKey = metaData.Keys.ElementAt(delIndex - 1);
 
-                        if (CLIEngine.GetConfirmation($"Are you sure you want to delete metadata '{delKey}'?"))
+                        if (CLIEngine.GetConfirmation($"Are you sure you want to remove metadata '{delKey}'?"))
                         {
                             metaData.Remove(delKey);
-                            CLIEngine.ShowSuccessMessage($"Metadata '{delKey}' deleted.", addLineBefore: true);
+                            CLIEngine.ShowSuccessMessage($"Metadata '{delKey}' removed.", addLineBefore: true);
                         }
                         else
                             Console.WriteLine("");
 
                         break;
 
-                    case "Q":
+                    case "DONE":
+                    case "D":
                         done = true;
                         break;
 
                     default:
-                        CLIEngine.ShowErrorMessage("Invalid choice. Please enter A, E, D or Q.");
+                        CLIEngine.ShowErrorMessage("Invalid choice. Please enter A, E, R or D.");
                         break;
                 }
             }

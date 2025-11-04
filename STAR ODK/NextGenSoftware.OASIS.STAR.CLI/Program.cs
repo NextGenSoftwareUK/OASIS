@@ -1045,8 +1045,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             {
                                 if (web4)
                                 {
+                                    id = "";
+
+                                    if (inputArgs.Length > 3)
+                                        id = inputArgs[3];
+
                                     if (updateWeb4Predicate != null)
-                                        await updateWeb4Predicate(null, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                        await updateWeb4Predicate(id, providerType); //TODO: Pass in params in a object or dynamic obj.
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }
@@ -1074,6 +1079,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 if (web4)
                                 {
+                                    id = "";
+
+                                    if (inputArgs.Length > 3)
+                                        id = inputArgs[3];
+
+                                    if (inputArgs.Length > 4)
+                                        bool.TryParse(inputArgs[4], out softDelete);
+
                                     if (deleteWeb4Predicate != null)
                                         await deleteWeb4Predicate(id, softDelete, providerType);
                                     else

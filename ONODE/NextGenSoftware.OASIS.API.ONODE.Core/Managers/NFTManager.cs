@@ -25,6 +25,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
@@ -1505,10 +1506,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISNFT>> UpdateOASISNFTAsync(IUpdateWeb4NFTRequest request, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISNFT>> UpdateNFTAsync(IUpdateWeb4NFTRequest request, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISNFT> result = new();
-            string errorMessage = "Error occured in UpdateOASISNFTAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in UpdateNFTAsync in NFTManager. Reason:";
 
             try
             {
@@ -1585,10 +1586,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> UpdateOASISGeoNFTAsync(IUpdateWeb4GeoNFTRequest request, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> UpdateGeoNFTAsync(IUpdateWeb4GeoNFTRequest request, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISGeoSpatialNFT> result = new();
-            string errorMessage = "Error occured in UpdateGeoOASISNFTAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in UpdateGeoNFTAsync in NFTManager. Reason:";
 
             try
             {
@@ -1656,10 +1657,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> DeleteOASISNFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteNFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new();
-            string errorMessage = "Error occured in DeleteOASISNFTAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in DeleteNFTAsync in NFTManager. Reason:";
 
             try
             {
@@ -1684,10 +1685,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> DeleteOASISGeoNFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteGeoNFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new();
-            string errorMessage = "Error occured in DeleteOASISGeoNFTAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in DeleteGeoNFTAsync in NFTManager. Reason:";
 
             try
             {
@@ -1813,10 +1814,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> CreateOASISNFTCollectionAsync(ICreateWeb4NFTCollectionRequest createOASISNFTCollectionRequest, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISNFTCollection>> CreateNFTCollectionAsync(ICreateWeb4NFTCollectionRequest createOASISNFTCollectionRequest, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISNFTCollection> result = new OASISResult<IWeb4OASISNFTCollection>();
-            string errorMessage = "Error occured in CreateOASISNFTCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in CreateNFTCollectionAsync in NFTManager. Reason:";
 
             Web4OASISNFTCollection OASISNFTCollection = new Web4OASISNFTCollection()
             {
@@ -1889,10 +1890,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> CreateWeb4OASISGeoNFTCollectionAsyc(ICreateWeb4GeoNFTCollectionRequest createWeb4OASISGeoNFTCollectionRequest, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> CreateGeoNFTCollectionAsyc(ICreateWeb4GeoNFTCollectionRequest createWeb4OASISGeoNFTCollectionRequest, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISGeoNFTCollection> result = new OASISResult<IWeb4OASISGeoNFTCollection>();
-            string errorMessage = "Error occured in CreateWeb4OASISGeoNFTCollectionAsyc in NFTManager. Reason:";
+            string errorMessage = "Error occured in CreateGeoNFTCollectionAsyc in NFTManager. Reason:";
 
             Web4OASISGeoNFTCollection Web4OASISGeoNFTCollection = new Web4OASISGeoNFTCollection()
             {
@@ -1966,10 +1967,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> UpdateOASISNFTCollectionAsync(IUpdateWeb4NFTCollectionRequest request, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISNFTCollection>> UpdateNFTCollectionAsync(IUpdateWeb4NFTCollectionRequest request, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISNFTCollection> result = new();
-            string errorMessage = "Error occured in UpdateOASISNFTCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in UpdateNFCollectionAsync in NFTManager. Reason:";
 
             try
             {
@@ -1992,7 +1993,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     holonResult.Result.ThumbnailUrl = !string.IsNullOrEmpty(request.ThumbnailUrl) ? request.ThumbnailUrl : holonResult.Result.ThumbnailUrl;
                     holonResult.Result.Thumbnail = request.Thumbnail != null ? request.Thumbnail : holonResult.Result.Thumbnail;
                     holonResult.Result.MetaData = request.MetaData != null ? request.MetaData : holonResult.Result.MetaData;
-                    holonResult.Result.Web4OASISNFTIds = request.Web4OASISNFTIds ?? holonResult.Result.Web4OASISNFTIds;
+                    //holonResult.Result.Web4OASISNFTIds = request.Web4OASISNFTIds ?? holonResult.Result.Web4OASISNFTIds;
                     holonResult.Result.Tags = request.Tags ?? holonResult.Result.Tags;
 
                     OASISResult<Web4OASISNFTCollection> saveResult = await Data.SaveHolonAsync<Web4OASISNFTCollection>(holonResult.Result);
@@ -2016,10 +2017,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> UpdateWeb4OASISGeoNFTCollectionAsync(IUpdateWeb4OASISGeoNFTCollectionRequest request, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> UpdateGeoNFTCollectionAsync(IUpdateWeb4OASISGeoNFTCollectionRequest request, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISGeoNFTCollection> result = new();
-            string errorMessage = "Error occured in UpdateWeb4OASISGeoNFTCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in UpdateGeoNFTCollectionAsync in NFTManager. Reason:";
 
             try
             {
@@ -2106,10 +2107,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> AddOASISNFTToCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISNFTCollection>> AddNFTToCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISNFTCollection> result = new();
-            string errorMessage = "Error occured in AddOASISNFTToCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in AddNFTToCollectionAsync in NFTManager. Reason:";
 
             try
             {
@@ -2144,15 +2145,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             return result;
         }
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> AddOASISNFTToCollectionAsync(Guid collectionId, IWeb4OASISNFT OASISNFT, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISNFTCollection>> AddNFTToCollectionAsync(Guid collectionId, IWeb4OASISNFT OASISNFT, ProviderType providerType = ProviderType.Default)
         {
-            return await AddOASISNFTToCollectionAsync(collectionId, OASISNFT.Id, providerType);
+            return await AddNFTToCollectionAsync(collectionId, OASISNFT.Id, providerType);
         }
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> RemoveOASISNFTFromCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISNFTCollection>> RemoveNFTFromCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISNFTCollection> result = new();
-            string errorMessage = "Error occured in RemoveOASISNFTFromCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in RemoveNFTFromCollectionAsync in NFTManager. Reason:";
 
             try
             {
@@ -2188,12 +2189,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> RemoveOASISNFTFromCollectionAsync(Guid collectionId, IWeb4OASISNFT OASISNFT, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISNFTCollection>> RemoveNFTFromCollectionAsync(Guid collectionId, IWeb4OASISNFT OASISNFT, ProviderType providerType = ProviderType.Default)
         {
-            return await RemoveOASISNFTFromCollectionAsync(collectionId, OASISNFT.Id, providerType);
+            return await RemoveNFTFromCollectionAsync(collectionId, OASISNFT.Id, providerType);
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> AddOASISGeoNFTToCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> AddGeoNFTToCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISGeoNFTCollection> result = new();
             string errorMessage = "Error occured in AddOASISGeoNFTToCollectionAsync in NFTManager. Reason:";
@@ -2232,15 +2233,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> AddOASISGeoNFTToCollectionAsync(Guid collectionId, IWeb4OASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> AddGeoNFTToCollectionAsync(Guid collectionId, IWeb4OASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default)
         {
-            return await AddOASISGeoNFTToCollectionAsync(collectionId, OASISGeoNFT.Id, providerType);
+            return await AddGeoNFTToCollectionAsync(collectionId, OASISGeoNFT.Id, providerType);
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> RemoveOASISGeoNFTFromCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> RemoveGeoNFTFromCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISGeoNFTCollection> result = new();
-            string errorMessage = "Error occured in RemoveOASISGeoNFTFromCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in RemoveGeoNFTFromCollectionAsync in NFTManager. Reason:";
 
             try
             {
@@ -2276,15 +2277,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> RemoveOASISGeoNFTFromCollectionAsync(Guid collectionId, IWeb4OASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> RemoveGeoNFTFromCollectionAsync(Guid collectionId, IWeb4OASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default)
         {
-            return await RemoveOASISGeoNFTFromCollectionAsync(collectionId, OASISGeoNFT.Id, providerType);
+            return await RemoveGeoNFTFromCollectionAsync(collectionId, OASISGeoNFT.Id, providerType);
         }
 
-        public async Task<OASISResult<bool>> DeleteOASISNFTCollectionAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteNFTCollectionAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new();
-            string errorMessage = "Error occured in DeleteOASISNFTCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in DeleteNFTCollectionAsync in NFTManager. Reason:";
 
             try
             {
@@ -2309,10 +2310,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> DeleteWeb4OASISGeoNFTCollectionAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteGeoNFTCollectionAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new();
-            string errorMessage = "Error occured in DeleteWeb4OASISGeoNFTCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in DeleteGeoNFTCollectionAsync in NFTManager. Reason:";
 
             try
             {
@@ -2387,10 +2388,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> LoadOASISNFTCollectionAsync(Guid id, bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISNFTCollection>> LoadNFTCollectionAsync(Guid id, bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISNFTCollection> result = new();
-            string errorMessage = "Error occured in LoadOASISNFTCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in LoadNFTCollectionAsync in NFTManager. Reason:";
 
             try
             {
@@ -2421,10 +2422,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> LoadWeb4OASISGeoNFTCollectionAsync(Guid id, bool loadChildGeoNFTs = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> LoadGeoNFTCollectionAsync(Guid id, bool loadChildGeoNFTs = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISGeoNFTCollection> result = new();
-            string errorMessage = "Error occured in LoadWeb4OASISGeoNFTCollectionAsync in NFTManager. Reason:";
+            string errorMessage = "Error occured in LoadGeoNFTCollectionAsync in NFTManager. Reason:";
 
             try
             {

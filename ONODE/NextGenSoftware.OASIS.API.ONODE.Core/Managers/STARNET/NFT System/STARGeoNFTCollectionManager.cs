@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             typeof(NFTType),
             HolonType.STARGeoNFTCollection,
             HolonType.InstalledGeoNFTCollection,
-            "GeoNFTCollection",
+            "GeoNFT Collection",
             //"NFTCollectionId",
             "STARNETHolonId",
             "GeoNFTCollectionName",

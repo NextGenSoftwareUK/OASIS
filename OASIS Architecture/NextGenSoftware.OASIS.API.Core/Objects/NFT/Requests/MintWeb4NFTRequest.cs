@@ -36,7 +36,13 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public decimal Discount { get; set; }
         public string MemoText { get; set; }
         // public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
-       
+
+
+        public int? RoyaltyPercentage { get; set; }
+        public bool? IsForSale { get; set; }
+        public DateTime? SaleStartDate { get; set; }
+        public DateTime? SaleEndDate { get; set; }
+
         public Dictionary<string, object> MetaData { get; set; }
         public List<string> Tags { get; set; }
         
