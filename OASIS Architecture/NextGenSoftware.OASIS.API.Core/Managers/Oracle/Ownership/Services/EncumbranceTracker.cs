@@ -26,6 +26,45 @@ public class EncumbranceTracker : IEncumbranceTracker
     }
 
     /// <summary>
+    /// Checks if an asset has any active encumbrances.
+    /// Quick check for availability before attempting operations.
+    /// </summary>
+    public async Task<OASISResult<bool>> CheckEncumbranceAsync(
+        string assetId,
+        CancellationToken token = default)
+    {
+        var result = new OASISResult<bool>();
+        
+        try
+        {
+            // Get all active encumbrances for the asset
+            var encumbrancesResult = await GetActiveEncumbrancesAsync(assetId, token);
+            
+            if (encumbrancesResult.IsError)
+            {
+                result.IsError = true;
+                result.Message = $"Error checking encumbrances: {encumbrancesResult.Message}";
+                return result;
+            }
+
+            // Asset is encumbered if there are any active encumbrances
+            result.Result = encumbrancesResult.Result?.Any() ?? false;
+            result.IsError = false;
+            result.Message = result.Result 
+                ? $"Asset {assetId} has {encumbrancesResult.Result?.Count ?? 0} active encumbrance(s)"
+                : $"Asset {assetId} is available (no active encumbrances)";
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result,
+                $"Error checking encumbrance status: {ex.Message}", ex);
+            return result;
+        }
+    }
+
+    /// <summary>
     /// Gets all active encumbrances for an asset.
     /// </summary>
     public async Task<OASISResult<List<Encumbrance>>> GetActiveEncumbrancesAsync(

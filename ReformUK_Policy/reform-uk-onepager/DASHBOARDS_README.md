@@ -580,3 +580,4 @@ Twitter: @maxgershfield
 **Status**: Demo-Ready (3D integration optional)  
 **Tech Stack**: React 18 + TypeScript + Tailwind CSS + (React Three Fiber ready)
 
+

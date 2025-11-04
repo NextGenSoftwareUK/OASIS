@@ -95,9 +95,19 @@ public class OwnershipOracle : IOwnershipOracle
 
             // Get encumbrance status
             var encumbranceResult = await _encumbranceTracker.CheckEncumbranceAsync(assetId, token);
-            if (!encumbranceResult.IsError && encumbranceResult.Result != null)
+            if (!encumbranceResult.IsError)
             {
-                ownershipRecord.Encumbrance = encumbranceResult.Result;
+                // Get detailed encumbrances
+                var detailedEncumbrances = await _encumbranceTracker.GetActiveEncumbrancesAsync(assetId, token);
+                
+                ownershipRecord.Encumbrance = new EncumbranceStatus
+                {
+                    IsEncumbered = encumbranceResult.Result,
+                    ActiveEncumbrances = detailedEncumbrances.IsError ? new List<Encumbrance>() : detailedEncumbrances.Result,
+                    TotalEncumberedValue = detailedEncumbrances.Result?.Sum(e => e.Amount) ?? 0,
+                    TotalValue = 0, // TODO: Get actual asset value
+                    AvailableValue = 0 // TODO: Calculate available value
+                };
             }
 
             result.Result = ownershipRecord;

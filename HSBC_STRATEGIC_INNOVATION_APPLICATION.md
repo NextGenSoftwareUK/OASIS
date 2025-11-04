@@ -643,3 +643,4 @@ You've spent 4 years solving harder versions of the problems HSBC will face. Now
 *Role: HSBC Director, Strategic Innovation*  
 *Status: Ready to Apply*
 
+

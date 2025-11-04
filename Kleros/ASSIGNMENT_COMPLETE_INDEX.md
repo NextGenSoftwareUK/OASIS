@@ -503,3 +503,4 @@ You're submitting work that's **at least 2-3x better** than what typical candida
 **Backed By**: 150+ pages of POC research + interactive demo  
 **Status**: Ready to dominate this application 💪
 
+
