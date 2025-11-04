@@ -16,24 +16,24 @@ using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
     public interface INFTManager
     {
         IPFSOASIS IPFS { get; }
         PinataOASIS Pinata { get; }
 
-        Task<OASISResult<IWeb4OASISGeoNFTCollection>> AddOASISGeoNFTToCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISGeoNFTCollection>> AddOASISGeoNFTToCollectionAsync(Guid collectionId, IWeb4OASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISNFTCollection>> AddOASISNFTToCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISNFTCollection>> AddOASISNFTToCollectionAsync(Guid collectionId, IWeb4OASISNFT OASISNFT, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISGeoNFTCollection>> AddGeoNFTToCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISGeoNFTCollection>> AddGeoNFTToCollectionAsync(Guid collectionId, IWeb4OASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISNFTCollection>> AddNFTToCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISNFTCollection>> AddNFTToCollectionAsync(Guid collectionId, IWeb4OASISNFT OASISNFT, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISGeoNFTCollection>> CreateGeoNFTCollectionAsyc(ICreateWeb4GeoNFTCollectionRequest createWeb4OASISGeoNFTCollectionRequest, ProviderType providerType = ProviderType.Default);
         string CreateMetaDataJson(IMintWeb4NFTTRequest request, NFTStandardType NFTStandardType);
-        Task<OASISResult<IWeb4OASISNFTCollection>> CreateOASISNFTCollectionAsync(ICreateWeb4NFTCollectionRequest createOASISNFTCollectionRequest, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISGeoNFTCollection>> CreateWeb4OASISGeoNFTCollectionAsyc(ICreateWeb4GeoNFTCollectionRequest createWeb4OASISGeoNFTCollectionRequest, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<bool>> DeleteOASISGeoNFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<bool>> DeleteOASISNFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<bool>> DeleteOASISNFTCollectionAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<bool>> DeleteWeb4OASISGeoNFTCollectionAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISNFTCollection>> CreateNFTCollectionAsync(ICreateWeb4NFTCollectionRequest createOASISNFTCollectionRequest, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<bool>> DeleteGeoNFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<bool>> DeleteGeoNFTCollectionAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<bool>> DeleteNFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<bool>> DeleteNFTCollectionAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4OASISGeoSpatialNFT>> ExportOASISGeoNFTAsync(Guid OASISGeoNFTId, string fullPathToExportTo, ProviderType providerType = ProviderType.Default, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         Task<OASISResult<IWeb4OASISGeoSpatialNFT>> ExportOASISGeoNFTAsync(IWeb4OASISGeoSpatialNFT OASISGeoNFT, string fullPathToExportTo, ProviderType providerType = ProviderType.Default, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         Task<OASISResult<IWeb4OASISNFT>> ExportOASISNFTAsync(Guid OASISNFTId, string fullPathToExportTo, ProviderType providerType = ProviderType.Default, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
@@ -69,14 +69,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         OASISResult<IWeb4OASISGeoSpatialNFT> LoadGeoNft(string onChainNftHash, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4OASISGeoSpatialNFT>> LoadGeoNftAsync(Guid id, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4OASISGeoSpatialNFT>> LoadGeoNftAsync(string onChainNftHash, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISGeoNFTCollection>> LoadGeoNFTCollectionAsync(Guid id, bool loadChildGeoNFTs = true, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<IWeb4OASISGeoNFTCollection>>> LoadGeoNFTCollectionsForAvatarAsync(Guid avatarId, bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default);
         OASISResult<IWeb4OASISNFT> LoadNft(Guid id, ProviderType providerType = ProviderType.Default);
         OASISResult<IWeb4OASISNFT> LoadNft(string onChainNftHash, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4OASISNFT>> LoadNftAsync(Guid id, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4OASISNFT>> LoadNftAsync(string onChainNftHash, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISNFTCollection>> LoadNFTCollectionAsync(Guid id, bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<IWeb4OASISNFTCollection>>> LoadNFTCollectionsForAvatarAsync(Guid avatarId, bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISNFTCollection>> LoadOASISNFTCollectionAsync(Guid id, bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISGeoNFTCollection>> LoadWeb4OASISGeoNFTCollectionAsync(Guid id, bool loadChildGeoNFTs = true, ProviderType providerType = ProviderType.Default);
         OASISResult<IWeb4OASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceWeb4GeoSpatialNFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         Task<OASISResult<IWeb4OASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceWeb4GeoSpatialNFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         OASISResult<IWeb4NFTTransactionRespone> MintNft(IMintWeb4NFTTRequest request, bool isGeoNFT = false, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
@@ -84,10 +84,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         Task<OASISResult<List<IWeb4NFTTransactionRespone>>> MintNFTBatchAsync(List<IMintWeb4NFTTRequest> requests, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         OASISResult<IWeb4OASISGeoSpatialNFT> PlaceGeoNFT(IPlaceWeb4GeoSpatialNFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         Task<OASISResult<IWeb4OASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceWeb4GeoSpatialNFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
-        Task<OASISResult<IWeb4OASISGeoNFTCollection>> RemoveOASISGeoNFTFromCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISGeoNFTCollection>> RemoveOASISGeoNFTFromCollectionAsync(Guid collectionId, IWeb4OASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISNFTCollection>> RemoveOASISNFTFromCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISNFTCollection>> RemoveOASISNFTFromCollectionAsync(Guid collectionId, IWeb4OASISNFT OASISNFT, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISGeoNFTCollection>> RemoveGeoNFTFromCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISGeoNFTCollection>> RemoveGeoNFTFromCollectionAsync(Guid collectionId, IWeb4OASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISNFTCollection>> RemoveNFTFromCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISNFTCollection>> RemoveNFTFromCollectionAsync(Guid collectionId, IWeb4OASISNFT OASISNFT, ProviderType providerType = ProviderType.Default);
         OASISResult<IEnumerable<IWeb4OASISGeoNFTCollection>> SearchGeoNFTCollections(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<IWeb4OASISGeoNFTCollection>>> SearchGeoNFTCollectionsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> SearchGeoNFTs(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default);
@@ -98,9 +98,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> SearchNFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default);
         OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
-        Task<OASISResult<IWeb4OASISGeoSpatialNFT>> UpdateOASISGeoNFTAsync(IUpdateWeb4GeoNFTRequest request, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISNFT>> UpdateOASISNFTAsync(IUpdateWeb4NFTRequest request, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISNFTCollection>> UpdateOASISNFTCollectionAsync(IUpdateWeb4NFTCollectionRequest request, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb4OASISGeoNFTCollection>> UpdateWeb4OASISGeoNFTCollectionAsync(IUpdateWeb4OASISGeoNFTCollectionRequest request, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISGeoSpatialNFT>> UpdateGeoNFTAsync(IUpdateWeb4GeoNFTRequest request, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISGeoNFTCollection>> UpdateGeoNFTCollectionAsync(IUpdateWeb4OASISGeoNFTCollectionRequest request, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISNFT>> UpdateNFTAsync(IUpdateWeb4NFTRequest request, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb4OASISNFTCollection>> UpdateNFTCollectionAsync(IUpdateWeb4NFTCollectionRequest request, ProviderType providerType = ProviderType.Default);
     }
 }

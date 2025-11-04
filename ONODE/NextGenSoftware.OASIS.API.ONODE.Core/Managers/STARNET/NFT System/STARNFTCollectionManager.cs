@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             typeof(NFTType),
             HolonType.STARNFTCollection,
             HolonType.InstalledNFTCollection,
-            "NFTCollection",
+            "NFT Collection",
             //"NFTCollectionId",
             "STARNETHolonId",
             "NFTCollectionName",

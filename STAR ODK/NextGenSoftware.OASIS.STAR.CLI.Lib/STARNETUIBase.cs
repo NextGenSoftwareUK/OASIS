@@ -158,7 +158,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!result.IsError && result.Result != null)
                     {
                         CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Generated.");
-                        Show(result.Result);
+                        await ShowAsync(result.Result);
                         Console.WriteLine("");
 
                         if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETHolonUIName} folder now?"))
@@ -266,7 +266,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         (result, bool saveResult) = ErrorHandling.HandleResponse(result, await STARNETManager.WriteDNAAsync(result.Result.STARNETDNA, result.Result.STARNETDNA.SourcePath), "Error occured saving the STARNETDNA. Reason: ", $"{STARNETManager.STARNETHolonUIName} Successfully Updated.");
 
                         if (saveResult)
-                            Show(result.Result);
+                            await ShowAsync(result.Result);
                     }
                     else
                         CLIEngine.ShowErrorMessage($"An error occured updating the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
@@ -1164,7 +1164,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 {
                     loadResult.Result.STARNETDNA.Version = DNAResult.Result.Version; //Update the version from the JSON file.
-                    Show(loadResult.Result);
+                    await ShowAsync(loadResult.Result);
 
                     if (!CLIEngine.GetConfirmation($"Is this the correct {STARNETManager.STARNETHolonUIName} you wish to publish?"))
                     {
@@ -1303,7 +1303,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
             {
-                Show(publishResult.Result);
+                await ShowAsync(publishResult.Result);
 
                 if (askToInstallAtEnd && CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} now?"))
                     await DownloadAndInstallAsync(publishResult.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
@@ -1339,7 +1339,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (unpublishResult != null && !unpublishResult.IsError && unpublishResult.Result != null)
                 {
                     CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Unpublished.");
-                    Show(result.Result);
+                    await ShowAsync(result.Result);
                 }
                 else
                     CLIEngine.ShowErrorMessage($"An error occured unpublishing the {STARNETManager.STARNETHolonUIName}. Reason: {unpublishResult.Message}");
@@ -1357,7 +1357,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (republishResult != null && !republishResult.IsError && republishResult.Result != null)
                 {
                     CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Republished.");
-                    Show(result.Result);
+                    await ShowAsync(result.Result);
                 }
                 else
                     CLIEngine.ShowErrorMessage($"An error occured unpublishing the {STARNETManager.STARNETHolonUIName}. Reason: {republishResult.Message}");
@@ -1377,7 +1377,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (activateResult != null && !activateResult.IsError && activateResult.Result != null)
                     {
                         CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Activated.");
-                        Show(result.Result);
+                        await ShowAsync(result.Result);
                     }
                     else
                         CLIEngine.ShowErrorMessage($"An error occured activating the {STARNETManager.STARNETHolonUIName}. Reason: {activateResult.Message}");
@@ -1400,7 +1400,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (deactivateResult != null && !deactivateResult.IsError && deactivateResult.Result != null)
                     {
                         CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Deactivated.");
-                        Show(result.Result);
+                        await ShowAsync(result.Result);
                     }
                     else
                         CLIEngine.ShowErrorMessage($"An error occured deactivating the {STARNETManager.STARNETHolonUIName}. Reason: {deactivateResult.Message}");
@@ -1664,7 +1664,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!uninstallResult.IsError && uninstallResult.Result != null)
                     {
                         CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Uninstalled.");
-                        Show(result.Result);
+                        await ShowAsync(result.Result);
                     }
                     else
                         CLIEngine.ShowErrorMessage($"Error installing {STARNETManager.STARNETHolonUIName}. Reason: {uninstallResult.Message}");
@@ -1689,7 +1689,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!uninstallResult.IsError && uninstallResult.Result != null)
                     {
                         CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Uninstalled.");
-                        Show(result.Result);
+                        ShowAsync(result.Result);
                     }
                     else
                         CLIEngine.ShowErrorMessage($"Error installing {STARNETManager.STARNETHolonUIName}. Reason: {uninstallResult.Message}");
@@ -1834,7 +1834,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             if (republishResult != null && !republishResult.IsError && republishResult.Result != null)
                             {
-                                Show(republishResult.Result);
+                                await ShowAsync(republishResult.Result);
                                 CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Republished");
                             }
                             else
@@ -1887,7 +1887,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             if (activateResult != null && !activateResult.IsError && activateResult.Result != null)
                             {
-                                Show(activateResult.Result);
+                                await ShowAsync(activateResult.Result);
                                 CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Reactivated");
                             }
                             else
@@ -1933,7 +1933,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //    CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public virtual void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH, object customData = null) where T : ISTARNETHolon
+        public virtual async Task ShowAsync<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH, object customData = null) where T : ISTARNETHolon
         {
             if (DisplayFieldLength > displayFieldLength)
                 displayFieldLength = DisplayFieldLength;
@@ -2007,7 +2007,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 displayFieldLength = DisplayFieldLength;
 
             //Show((T1)starHolon, showHeader, false, showNumbers, number, showDetailedInfo);
-            Show(ConvertFromT3ToT1(starHolon), showHeader, false, showNumbers, number, showDetailedInfo);
+            ShowAsync(ConvertFromT3ToT1(starHolon), showHeader, false, showNumbers, number, showDetailedInfo);
 
             Console.WriteLine("");
             CLIEngine.ShowMessage(string.Concat($"Downloaded On:".PadRight(displayFieldLength), starHolon.DownloadedOn != DateTime.MinValue ? starHolon.DownloadedOn.ToString() : "None"), false);
@@ -2300,7 +2300,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (result.Result != null && result.Result.STARNETDNA != null)
                 {
-                    Show(result.Result);
+                    await ShowAsync(result.Result);
 
                     if (result.Result.STARNETDNA.NumberOfVersions > 1)
                     {
@@ -2339,7 +2339,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             Console.WriteLine("");
 
                         if (operationName != "view")
-                            Show(result.Result);
+                            await ShowAsync(result.Result);
                     }
                 }
 
@@ -2484,7 +2484,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (result.Result != null && result.Result.STARNETDNA != null)
                 {
-                    Show(result.Result);
+                    ShowAsync(result.Result);
 
                     if (result.Result.STARNETDNA.NumberOfVersions > 1)
                     {
@@ -2522,7 +2522,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             Console.WriteLine("");
 
                         if (operationName != "view")
-                            Show(result.Result);
+                            ShowAsync(result.Result);
                     }
                 }
 
@@ -3036,7 +3036,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARNETManager.STARNETHolonUIName}s Found:");
 
                         for (int i = 0; i < starHolons.Result.Count(); i++)
-                            Show(starHolons.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
+                            ShowAsync(starHolons.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No {STARNETManager.STARNETHolonUIName}s Found.");
