@@ -259,3 +259,4 @@ export function getTotalBlockchainSavings(): number {
   return departmentNodes3D.reduce((sum, dept) => sum + calculateBlockchainSavings(dept), 0);
 }
 
+

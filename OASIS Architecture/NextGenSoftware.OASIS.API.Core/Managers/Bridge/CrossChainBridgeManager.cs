@@ -359,12 +359,12 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
                 FromAmount = order.FromAmount,
                 ToAmount = order.ToAmount,
                 ExchangeRate = order.ExchangeRate,
-                CurrentFromBalance = fromBalanceResult.IsError ? null : fromBalanceResult.Result,
-                CurrentToBalance = toBalanceResult.IsError ? null : toBalanceResult.Result,
+                CurrentFromBalance = fromBalanceResult.IsError ? 0 : fromBalanceResult.Result,
+                CurrentToBalance = toBalanceResult.IsError ? 0 : toBalanceResult.Result,
                 WithdrawTransactionId = order.WithdrawTransactionId,
                 DepositTransactionId = order.DepositTransactionId,
-                WithdrawStatus = withdrawStatus,
-                DepositStatus = depositStatus,
+                WithdrawStatus = withdrawStatus?.ToString(),
+                DepositStatus = depositStatus?.ToString(),
                 OrderStatus = order.Status,
                 IsCompleted = order.IsCompleted,
                 IsFailed = order.IsFailed,
@@ -374,7 +374,7 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
                 UpdatedAt = order.UpdatedAt,
                 CompletedAt = order.CompletedAt,
                 FailedAt = order.FailedAt,
-                ExpiresAt = order.ExpiresAt,
+                ExpiresAt = order.ExpiresAt ?? DateTime.UtcNow.AddMinutes(30),
                 HasSufficientBalance = fromBalanceResult.IsError ? false : fromBalanceResult.Result >= order.FromAmount
             };
 

@@ -14,6 +14,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.Oracle.Ownership.Interfaces;
 public interface IEncumbranceTracker
 {
     /// <summary>
+    /// Checks if an asset has any active encumbrances that would prevent its use.
+    /// Quick check for availability before attempting operations.
+    /// </summary>
+    /// <param name="assetId">Asset identifier</param>
+    /// <param name="token">Cancellation token</param>
+    /// <returns>True if encumbered, false if available</returns>
+    Task<OASISResult<bool>> CheckEncumbranceAsync(
+        string assetId,
+        CancellationToken token = default);
+
+    /// <summary>
     /// Gets all active encumbrances for an asset.
     /// Shows what pledges, liens, locks are currently active.
     /// </summary>

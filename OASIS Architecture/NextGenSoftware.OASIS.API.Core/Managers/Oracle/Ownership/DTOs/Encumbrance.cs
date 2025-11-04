@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers.Oracle.Ownership.DTOs;
