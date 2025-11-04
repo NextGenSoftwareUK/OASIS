@@ -1,7 +1,11 @@
+// Load environment variables
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const TwitterService = require('./TwitterService');
 const ThermometerService = require('./ThermometerService');
+const TwitterCache = require('./TwitterCache');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -9,6 +13,7 @@ const PORT = process.env.PORT || 3002;
 // Initialize services
 const thermometerService = new ThermometerService();
 const twitterService = new TwitterService();
+const twitterCache = new TwitterCache();
 
 // Connect services
 twitterService.setThermometerService(thermometerService);
@@ -70,14 +75,145 @@ app.get('/api/twitter/status', async (req, res) => {
   }
 });
 
-// Get recent tweets with hashtag
+// Get recent tweets with hashtag (from cache or mock data)
 app.get('/api/twitter/recent-tweets', async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   
-  // Return mock data for demo (Essential tier has strict limits)
-  console.log('📊 Returning mock tweets for demo');
+  // Try to load from cache first
+  const cachedData = twitterCache.loadTweets();
+  
+  if (cachedData.success && cachedData.tweets.length > 0) {
+    console.log(`📂 Serving ${cachedData.tweets.length} cached tweets`);
+    return res.json({
+      success: true,
+      tweets: cachedData.tweets.slice(0, limit),
+      meta: { 
+        result_count: Math.min(cachedData.tweets.length, limit),
+        cached: true,
+        cached_at: cachedData.cachedAt
+      }
+    });
+  }
+  
+  // Fall back to mock data if no cache
+  console.log('📊 No cache found, returning mock tweets');
   const mockTweets = generateMockTweets(limit);
-  res.json({ success: true, tweets: mockTweets, meta: { result_count: mockTweets.length } });
+  res.json({ 
+    success: true, 
+    tweets: mockTweets, 
+    meta: { 
+      result_count: mockTweets.length,
+      cached: false,
+      mock: true
+    } 
+  });
+});
+
+// Manual refresh: Fetch fresh tweets from Twitter and cache them
+app.post('/api/twitter/manual-refresh', async (req, res) => {
+  try {
+    console.log('🔄 Manual refresh requested...');
+    
+    if (!twitterService.isInitialized) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Twitter service not initialized. Call /api/twitter/initialize first.' 
+      });
+    }
+
+    // Try to fetch fresh tweets from Twitter
+    const axios = require('axios');
+    const bearerToken = process.env.TWITTER_BEARER_TOKEN;
+    
+    if (!bearerToken) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Twitter Bearer Token not configured' 
+      });
+    }
+
+    try {
+      const response = await axios.get('https://api.twitter.com/2/tweets/search/recent', {
+        params: {
+          query: '#billionshealed -is:retweet',
+          max_results: 100,
+          'tweet.fields': 'created_at,author_id,public_metrics',
+          'user.fields': 'username,name,profile_image_url',
+          'expansions': 'author_id'
+        },
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`
+        }
+      });
+
+      const tweets = response.data.data || [];
+      const users = response.data.includes?.users || [];
+      
+      // Enrich tweets with author info
+      const enrichedTweets = tweets.map(tweet => {
+        const author = users.find(u => u.id === tweet.author_id) || {};
+        return {
+          ...tweet,
+          author: {
+            username: author.username,
+            name: author.name,
+            profile_image_url: author.profile_image_url
+          }
+        };
+      });
+
+      // Save to cache
+      twitterCache.saveTweets(enrichedTweets);
+
+      console.log(`✅ Fetched and cached ${enrichedTweets.length} fresh tweets`);
+      
+      res.json({
+        success: true,
+        message: `Refreshed ${enrichedTweets.length} tweets from Twitter`,
+        tweets: enrichedTweets,
+        count: enrichedTweets.length,
+        cached_at: new Date().toISOString()
+      });
+
+    } catch (twitterError) {
+      // If rate limited or error, return cached data
+      if (twitterError.response?.status === 429) {
+        console.log('⚠️  Rate limited, loading from cache...');
+        const cachedData = twitterCache.loadTweets();
+        
+        if (cachedData.success && cachedData.tweets.length > 0) {
+          return res.json({
+            success: true,
+            message: 'Rate limited - serving cached tweets',
+            tweets: cachedData.tweets,
+            count: cachedData.tweets.length,
+            cached: true,
+            cached_at: cachedData.cachedAt,
+            rate_limited: true
+          });
+        }
+      }
+      
+      throw twitterError;
+    }
+
+  } catch (error) {
+    console.error('❌ Manual refresh error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      details: error.response?.data || 'No additional details'
+    });
+  }
+});
+
+// Get cache status
+app.get('/api/twitter/cache-status', (req, res) => {
+  const cacheInfo = twitterCache.getCacheInfo();
+  res.json({
+    success: true,
+    cache: cacheInfo
+  });
 });
 
 // Generate mock tweets for demo
