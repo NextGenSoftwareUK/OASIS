@@ -35,10 +35,16 @@
         <!-- Main Content -->
         <div class="main-content">
             
-            <!-- Twitter Feed Section (Above Thermometer) -->
+            <!-- Twitter Feed Section -->
             <div class="twitter-feed-section">
                 <div class="feed-header">
-                    <h3><span class="x-logo">𝕏</span> #billionshealed</h3>
+                    <h3><span class="x-logo">X</span> #billionshealed</h3>
+                    <div class="feed-controls">
+                        <span class="cache-status" id="cache-status">Loading...</span>
+                        <button class="refresh-twitter-btn" id="refresh-twitter-btn" title="Fetch fresh tweets from Twitter (1x per day)">
+                            Refresh from Twitter
+                        </button>
+                    </div>
                 </div>
 
                 <div class="tweets-container" id="tweets-container">
@@ -74,10 +80,7 @@
                 </div>
 
                 <div class="thermometer-info">
-                    <h3 id="current-level">❄️ Cold</h3>
-                    <p id="nft-count">0/100 NFTs</p>
-                    <p id="current-price">Price: 0.01 SOL</p>
-                    <button class="mint-btn" id="mint-btn">Mint Thermometer #1</button>
+                    <h3 id="current-level">Cold</h3>
                     
                     <div class="stats">
                         <div class="stat-item">
@@ -85,10 +88,12 @@
                             <span class="stat-value" id="fill-percentage">0%</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">Remaining:</span>
-                            <span class="stat-value" id="remaining-count">100</span>
+                            <span class="stat-label">Tweets:</span>
+                            <span class="stat-value" id="tweet-count">0</span>
                         </div>
                     </div>
+                    
+                    <button class="share-btn" id="share-impact-btn">Share My Impact</button>
                 </div>
             </div>
         </div>
@@ -96,7 +101,7 @@
         <!-- Footer -->
         <footer class="footer">
             <p>Part of the OASIS Ecosystem | Powered by Twitter API v2</p>
-            <p>Every tweet with #billionshealed helps raise the temperature 🌡️</p>
+            <p>Every tweet with #billionshealed helps raise the temperature</p>
         </footer>
     </div>
 
