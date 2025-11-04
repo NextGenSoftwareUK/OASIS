@@ -1,10 +1,15 @@
-﻿using NextGenSoftware.CLI.Engine;
+﻿using ADRaffy.ENSNormalize;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
@@ -33,6 +38,38 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation("Is there any Royalty Percentage?"))
+                request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false);
+            else
+                Console.WriteLine("");
+
+            SalesInfo salesInfo = UpdateSalesInfo(new SalesInfo());
+
+            request.IsForSale = salesInfo.IsForSale;
+            request.SaleStartDate = salesInfo.SaleStartDate;
+            request.SaleEndDate = salesInfo.SaleEndDate;
+
+            //request.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.");
+
+            //if (request.IsForSale.Value)
+            //{
+            //    request.SaleStartDate = CLIEngine.GetValidInputForDate("Please enter the Sale Start Date (YYYY-MM-DD)", addLineBefore: true);
+
+            //    if (request.SaleStartDate.HasValue)
+            //    {
+            //        do
+            //        {
+            //            request.SaleEndDate = CLIEngine.GetValidInputForDate("Please enter the Sale End Date (YYYY-MM-DD) or 'none' to have no end date:", addLineBefore: true);
+
+            //            if (request.SaleEndDate.HasValue && request.SaleEndDate.Value <= request.SaleEndDate.Value)
+            //                CLIEngine.ShowWarningMessage("The end date must be after the start date!");
+            //        }
+            //        while (request.SaleEndDate.HasValue && request.SaleEndDate.Value <= request.SaleStartDate.Value);
+            //    }
+            //    else
+            //        request.SaleEndDate = null;
+            //}
 
             object onChainProviderObj = CLIEngine.GetValidInputForEnum("What on-chain provider do you wish to mint on?", typeof(ProviderType));
             request.OnChainProvider = new EnumValue<ProviderType>((ProviderType)onChainProviderObj);
@@ -135,6 +172,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //    while (!metaDataDone);
             //}
 
+
+            request.Tags = TagHelper.ManageTags(request.Tags);
             MetaDataHelper.ManageMetaData(request.MetaData, "NFT");
             Console.WriteLine("");
             request.NumberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
@@ -311,6 +350,298 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 Console.WriteLine("");
                 result.Result.ThumbnailUrl = CLIEngine.GetValidURIAsync($"What is the URI to the image you want to represent the {itemName} Thumbnail?").Result.AbsoluteUri;
+            }
+
+            return result;
+        }
+
+        public OASISResult<IUpdateWeb4NFTRequest> UpdateWeb4NFT(IUpdateWeb4NFTRequest request, IWeb4OASISNFT nft, string displayName, bool updateTags = true, bool updateMetaData = true)
+        {
+            OASISResult<IUpdateWeb4NFTRequest> result = new OASISResult<IUpdateWeb4NFTRequest>();
+
+            request.Id = nft.Id;
+            request.ModifiedByAvatarId = STAR.BeamedInAvatar.Id;
+
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Title? (currently is: {nft.Title})"))
+                request.Title = CLIEngine.GetValidInput("Please enter the new title: ", addLineBefore: true);
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Description? (currently is: {nft.Description})"))
+                request.Description = CLIEngine.GetValidInput("Please enter the new description: ", addLineBefore: true);
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation("Do you wish to update the Image and Thumbnail?"))
+            {
+                Console.WriteLine("");
+                OASISResult<ImageAndThumbnail> imageAndThumbnailResult = ProcessImageAndThumbnail(displayName);
+
+                if (imageAndThumbnailResult != null && imageAndThumbnailResult.Result != null && !imageAndThumbnailResult.IsError)
+                {
+                    request.Image = imageAndThumbnailResult.Result.Image;
+                    request.ImageUrl = imageAndThumbnailResult.Result.ImageUrl;
+                    request.Thumbnail = imageAndThumbnailResult.Result.Thumbnail;
+                    request.ThumbnailUrl = imageAndThumbnailResult.Result.ThumbnailUrl;
+                }
+                else
+                {
+                    string msg = imageAndThumbnailResult != null ? imageAndThumbnailResult.Message : "";
+                    CLIEngine.ShowErrorMessage($"Error Occured Processing Image and Thumbnail: {msg}");
+                    return result;
+                    //OASISErrorHandling.HandleError(ref result, $"Error Occured Processing Image and Thumbnail: {msg}");
+                    //return result;
+                }
+            }
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Price? (currently is: {nft.Price})"))
+            {
+                Console.WriteLine("");
+                request.Price = CLIEngine.GetValidInputForDecimal("Please enter the new Price: ", addLineBefore: false);
+            }
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Discount? (currently is: {nft.Discount})"))
+            {
+                Console.WriteLine("");
+                request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount: ", addLineBefore: false);
+            }
+            else
+                Console.WriteLine("");
+
+            // Allow editing additional NFT-specific fields
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Royalty Percentage? (currently is: {nft.RoyaltyPercentage})"))
+                request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false, addLineBefore: true);
+            else
+                Console.WriteLine("");
+            //if (CLIEngine.GetConfirmation("Do you wish to edit the Previous Owner Avatar Id?"))
+            //    request.PreviousOwnerAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Previous Owner Avatar Id (GUID): ");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit the Current Owner Avatar Id?"))
+            //    request.CurrentOwnerAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Current Owner Avatar Id (GUID): ");
+
+            if (CLIEngine.GetConfirmation($"Do you wish to change the sale status (Is For Sale)? (currently is: {nft.IsForSale})"))
+            {
+                SalesInfo salesInfo = UpdateSalesInfo(new SalesInfo() { IsForSale = nft.IsForSale, SaleStartDate = nft.SaleStartDate, SaleEndDate = nft.SaleEndDate });
+                
+                request.IsForSale = salesInfo.IsForSale;
+                request.SaleStartDate = salesInfo.SaleStartDate;
+                request.SaleEndDate = salesInfo.SaleEndDate;
+            }
+            else
+                Console.WriteLine("");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Total Number Of Sales?"))
+            //    request.TotalNumberOfSales = CLIEngine.GetValidInputForInt("Please enter the total number of sales:", false);
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Transaction Hash?"))
+            //    request.LastSaleTransactionHash = CLIEngine.GetValidInput("Please enter the last sale transaction hash:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sold By Avatar Id?"))
+            //    request.LastSoldByAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Last Sold By Avatar Id (GUID): ");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Purchased By Avatar Id?"))
+            //    request.LastPurchasedByAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Last Purchased By Avatar Id (GUID): ");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Quantity?"))
+            //    request.LastSaleQuantity = CLIEngine.GetValidInputForInt("Please enter the last sale quantity:", false);
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Discount?"))
+            //    request.LastSaleDiscount = CLIEngine.GetValidInputForDecimal("Please enter the last sale discount:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Tax?"))
+            //    request.LastSaleTax = CLIEngine.GetValidInputForDecimal("Please enter the last sale tax:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Sales History?"))
+            //    request.SalesHistory = CLIEngine.GetValidInput("Please enter the sales history string:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Price?"))
+            //    request.LastSalePrice = CLIEngine.GetValidInputForDecimal("Please enter the last sale price:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Amount?"))
+            //    request.LastSaleAmount = CLIEngine.GetValidInputForDecimal("Please enter the last sale amount:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Date?"))
+            //{
+            //    string input = CLIEngine.GetValidInput("Please enter the Last Sale Date (YYYY-MM-DD) or 'none' to clear:");
+            //    if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime lastSaleDate))
+            //        request.LastSaleDate = lastSaleDate;
+            //    // Note: UpdateNFTRequest.LastSaleDate is non-nullable; if user doesn't set it will remain default(DateTime)
+            //}
+
+            if (updateTags)
+                request.Tags = TagHelper.ManageTags(nft.Tags);
+
+            if (updateMetaData)
+                request.MetaData = MetaDataHelper.ManageMetaData(nft.MetaData, displayName);
+
+            result.Result = request;
+
+            return result;
+        }
+
+        public SalesInfo UpdateSalesInfo(SalesInfo salesInfo, bool edit = true)
+        {
+            salesInfo.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.", addLineBefore: true);
+
+            if (salesInfo.IsForSale.HasValue && salesInfo.IsForSale.Value)
+            {
+                string existingSaleStartDate = salesInfo.SaleStartDate.HasValue ? salesInfo.SaleStartDate.Value == DateTime.MinValue ? "None" : salesInfo.SaleStartDate.Value.ToShortDateString() : "None";
+
+                if (!edit || (edit && CLIEngine.GetConfirmation($"Do you wish to edit the Sale Start Date? (currently is: {existingSaleStartDate})", addLineBefore: true)))
+                    salesInfo.SaleStartDate = CLIEngine.GetValidInputForDate("Please enter the Sale Start Date or 'none' to clear:", addLineBefore: true);
+                else
+                    Console.WriteLine("");
+
+                if (salesInfo.SaleStartDate.HasValue)
+                {
+                    string existingSaleEndDate = salesInfo.SaleEndDate.HasValue ? salesInfo.SaleEndDate.Value == DateTime.MinValue ? "None" : salesInfo.SaleEndDate.Value.ToShortDateString() : "None";
+
+                    if (!edit || (edit && CLIEngine.GetConfirmation($"Do you wish to edit Sale End Date? (currently is: {existingSaleEndDate})")))
+                    {
+                        do
+                        {
+                            salesInfo.SaleEndDate = CLIEngine.GetValidInputForDate("Please enter the Sale End Date or 'none' to clear:", addLineBefore: true);
+
+                            if (salesInfo.SaleEndDate.HasValue && salesInfo.SaleEndDate.Value <= salesInfo.SaleStartDate.Value)
+                                CLIEngine.ShowWarningMessage("The end date must be after the start date!");
+                        }
+                        while (salesInfo.SaleEndDate.HasValue && salesInfo.SaleEndDate.Value <= salesInfo.SaleStartDate.Value);
+                    }
+                    else
+                        Console.WriteLine("");
+                }
+                else
+                    salesInfo.SaleEndDate = null;
+            }
+
+            return salesInfo;
+        }
+
+        public OASISResult<IUpdateWeb4NFTCollectionRequestBase> UpdateWeb4NFTCollection(IUpdateWeb4NFTCollectionRequestBase request, IWeb4OASISNFTCollectionBase collection, string displayName, bool updateTags = true, bool updateMetaData = true)
+        {
+            OASISResult<IUpdateWeb4NFTCollectionRequestBase> result = new OASISResult<IUpdateWeb4NFTCollectionRequestBase>();
+
+            request.Id = collection.Id;
+            request.ModifiedBy = STAR.BeamedInAvatar.Id;
+
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Title? (currently is: {collection.Name})"))
+                request.Title = CLIEngine.GetValidInput("Please enter the new title: ", addLineBefore: true);
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Description? (currently is: {collection.Description})"))
+                request.Description = CLIEngine.GetValidInput("Please enter the new description: ", addLineBefore: true);
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation("Do you wish to update the Image and Thumbnail?"))
+            {
+                Console.WriteLine("");
+                OASISResult<ImageAndThumbnail> imageAndThumbnailResult = ProcessImageAndThumbnail(displayName);
+
+                if (imageAndThumbnailResult != null && imageAndThumbnailResult.Result != null && !imageAndThumbnailResult.IsError)
+                {
+                    request.Image = imageAndThumbnailResult.Result.Image;
+                    request.ImageUrl = imageAndThumbnailResult.Result.ImageUrl;
+                    request.Thumbnail = imageAndThumbnailResult.Result.Thumbnail;
+                    request.ThumbnailUrl = imageAndThumbnailResult.Result.ThumbnailUrl;
+                }
+                else
+                {
+                    string msg = imageAndThumbnailResult != null ? imageAndThumbnailResult.Message : "";
+                    CLIEngine.ShowErrorMessage($"Error Occured Processing Image and Thumbnail: {msg}");
+                    return result;
+                }
+            }
+            else
+                Console.WriteLine("");
+
+            if (updateTags)
+                request.Tags = TagHelper.ManageTags(collection.Tags);
+
+            if (updateMetaData)
+                request.MetaData = MetaDataHelper.ManageMetaData(collection.MetaData, displayName);
+
+            result.Result = request;
+            return result;
+        }
+
+        public async Task<OASISResult<T5>> UpdateSTARNETHolonAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, string starnetDNAKeyForWeb4Object, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, object> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default) 
+            where T1 : ISTARNETHolon, new()
+            where T2 : IDownloadedSTARNETHolon, new()
+            where T3 : IInstalledSTARNETHolon, new()
+            where T4 : ISTARNETDNA, new()
+        {
+            Guid web5Id = Guid.Empty;
+
+            if (metaData != null && metaData.ContainsKey(web5IdMetaDataKey) && metaData[web5IdMetaDataKey] != null && Guid.TryParse(metaData[web5IdMetaDataKey].ToString(), out web5Id))
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowWorkingMessage($"Updating WEB5 STAR {STARNETManager.STARNETHolonUIName} with updated WEB4 OASIS {STARNETManager.STARNETHolonUIName} data...");
+                OASISResult<T1> starNFTCollection = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, web5Id, providerType: providerType);
+
+                if (starNFTCollection != null && starNFTCollection.Result != null && !starNFTCollection.IsError)
+                {
+                    starNFTCollection.Result.STARNETDNA.MetaData[starnetDNAKeyForWeb4Object] = result.Result;
+                    starNFTCollection = await STARNETManager.UpdateAsync(STAR.BeamedInAvatar.Id, starNFTCollection.Result, updateDNAJSONFile: true, providerType: providerType);
+
+                    if (starNFTCollection != null && starNFTCollection.Result != null && !starNFTCollection.IsError)
+                        CLIEngine.ShowSuccessMessage($"WEB5 STAR {STARNETManager.STARNETHolonUIName} Successfully Updated.");
+                    else
+                    {
+                        string msg = starNFTCollection != null ? starNFTCollection.Message : "";
+                        OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB5 STAR {STARNETManager.STARNETHolonUIName} after updating WEB4 OASIS {STARNETManager.STARNETHolonUIName}. Reason: {msg}");
+                    }
+                }
+                else
+                {
+                    string msg = starNFTCollection != null ? starNFTCollection.Message : "";
+                    OASISErrorHandling.HandleError(ref result, $"Error Occured Loading WEB5 STAR {STARNETManager.STARNETHolonUIName}. Reason: {msg}");
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<T5>> DeleteAllSTARNETVersionsAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, object> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default)
+            where T1 : ISTARNETHolon, new()
+            where T2 : IDownloadedSTARNETHolon, new()
+            where T3 : IInstalledSTARNETHolon, new()
+            where T4 : ISTARNETDNA, new()
+        {
+            Guid web5Id = Guid.Empty;
+
+            if (metaData != null && metaData.ContainsKey(web5IdMetaDataKey) && metaData[web5IdMetaDataKey] != null && Guid.TryParse(metaData[web5IdMetaDataKey].ToString(), out web5Id))
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowWorkingMessage($"Deleting All WEB5 STAR {STARNETManager.STARNETHolonUIName} Versions...");
+
+                OASISResult<IEnumerable<T1>> versionsResult = await STARNETManager.LoadVersionsAsync(web5Id, providerType);
+
+                if (versionsResult != null && versionsResult.Result != null && !versionsResult.IsError)
+                {
+                    foreach (T1 version in versionsResult.Result)
+                    {
+                        OASISResult<T1> deleteResult = await STARNETManager.DeleteAsync(STAR.BeamedInAvatar.Id, web5Id, version.STARNETDNA.VersionSequence, providerType: providerType);
+
+                        if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
+                            CLIEngine.ShowSuccessMessage($"Successfully Deleted Version {version.STARNETDNA.VersionSequence}.");
+                        else
+                        {
+                            string msg = versionsResult != null ? versionsResult.Message : "";
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB5 STAR {STARNETManager.STARNETHolonUIName} Version {version.STARNETDNA.VersionSequence}. Reason: {msg}");
+                        }
+                    }
+                }
+                else
+                {
+                    string msg = versionsResult != null ? versionsResult.Message : "";
+                    OASISErrorHandling.HandleError(ref result, $"Error Occured Loading WEB5 STAR {STARNETManager.STARNETHolonUIName} versions. Reason: {msg}");
+                }   
             }
 
             return result;
