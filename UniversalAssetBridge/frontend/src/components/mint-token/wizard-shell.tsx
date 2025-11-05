@@ -62,7 +62,7 @@ export function WizardShell({ steps, activeStep, onStepChange, children, footer 
         </aside>
         <section className="min-h-[460px] rounded-2xl border p-8 shadow-inner" style={{
           borderColor: 'var(--oasis-card-border)',
-          background: 'rgba(6,11,26,0.7)'
+          background: 'rgba(3,7,18,0.85)'
         }}>
           {children}
           {footer ? <div className="mt-8 border-t pt-6" style={{borderColor: 'var(--oasis-card-border)'}}>{footer}</div> : null}
