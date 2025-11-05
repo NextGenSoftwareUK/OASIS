@@ -4,6 +4,7 @@ import { useState } from "react";
 import PoolGrid from "@/components/liquidity/PoolGrid";
 import PoolDetail from "@/components/liquidity/PoolDetail";
 import YourPositions from "@/components/liquidity/YourPositions";
+import HowItWorks from "@/components/shared/HowItWorks";
 
 export interface Pool {
   id: string;
@@ -124,6 +125,64 @@ export default function LiquidityContent() {
             </p>
           </button>
         </div>
+
+        <HowItWorks sections={[
+          {
+            title: "What are Unified Liquidity Pools?",
+            content: (
+              <div className="space-y-3">
+                <p>
+                  Unified liquidity pools solve the multi-chain liquidity fragmentation problem. Traditional AMMs require 
+                  separate pools on each chain - if you want to provide liquidity on 10 chains, you need 10x the capital 
+                  with each pool only earning fees from its own chain.
+                </p>
+                <p>
+                  HyperDrive creates a single logical pool that exists simultaneously across all chains. Deploy $1 million 
+                  liquidity once on Ethereum, and it serves trades on Solana, Polygon, Base, and all other chains. You earn 
+                  fees from all 10 chains with the same capital deployment.
+                </p>
+              </div>
+            )
+          },
+          {
+            title: "How do you earn from all chains?",
+            content: (
+              <div className="space-y-3">
+                <p>
+                  When someone swaps tokens on any chain, they use liquidity from the unified pool. HyperDrive tracks every 
+                  trade across all chains and calculates your proportional share of fees. If you own 1% of the pool, you 
+                  earn 1% of fees from Ethereum trades, 1% from Solana trades, 1% from Polygon trades, and so on.
+                </p>
+                <p>
+                  At the end of each period, HyperDrive aggregates all fees from all chains. On Solana, these are distributed 
+                  directly to your wallet via x402. On other chains, the pool's exchange rate increases, automatically 
+                  compounding your earnings.
+                </p>
+                <p>
+                  This creates a 10x income multiplier: the same capital earning from 10 chains instead of one, with no 
+                  additional risk or management overhead.
+                </p>
+              </div>
+            )
+          },
+          {
+            title: "What about impermanent loss?",
+            content: (
+              <div className="space-y-3">
+                <p>
+                  Unified pools actually reduce impermanent loss compared to fragmented pools. Because liquidity is combined 
+                  from all chains, the total pool depth is much greater. Deeper pools experience less price impact per trade, 
+                  which means less volatility and lower impermanent loss.
+                </p>
+                <p>
+                  Additionally, arbitrage opportunities are minimized since prices stay synchronized across all chains through 
+                  HyperDrive. When prices diverge, arbitrage bots quickly equalize them by trading on the cheaper chain and 
+                  selling on the more expensive one - these arbitrage trades pay fees to you as well.
+                </p>
+              </div>
+            )
+          }
+        ]} />
 
         {/* Pool Grid */}
         <PoolGrid pools={mockPools} onSelectPool={setSelectedPool} />
