@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const navLinks = [
   { name: "Bridge", path: "/" },
+  { name: "qUSDC", path: "/qusdc" },
   { name: "Liquidity", path: "/liquidity" },
   { name: "Token Portal", path: "/token-portal" },
   { name: "Create Token", path: "/mint-token" },

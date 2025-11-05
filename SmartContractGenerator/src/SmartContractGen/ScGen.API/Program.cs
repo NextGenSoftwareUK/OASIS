@@ -1,0 +1,1 @@
+WebApplication.CreateBuilder(args).AddServices().Build().UseMiddlewares();

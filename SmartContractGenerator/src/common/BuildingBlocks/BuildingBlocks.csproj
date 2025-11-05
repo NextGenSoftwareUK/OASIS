@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include=".\Resources\BaseMessages.restext"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DotNext" Version="5.21.0"/>
+        <PackageReference Include="MailKit" Version="4.13.0"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8"/>
+        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8"/>
+    </ItemGroup>
+
+</Project>
