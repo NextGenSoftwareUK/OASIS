@@ -34,6 +34,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Providers.BaseOASIS.Infrastructure.Services.Base;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS;
@@ -85,6 +86,17 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
     private HttpClient _httpClient;
     private HttpClient _baseClient;
     private bool _isActivated;
+    private BaseBridgeService _bridgeService;
+
+    public IBaseBridgeService BridgeService 
+    { 
+        get 
+        { 
+            if (_bridgeService == null && _web3Client != null && _oasisAccount != null)
+                _bridgeService = new BaseBridgeService(_web3Client, _oasisAccount, useTestnet: true); // Safe default: Base Sepolia
+            return _bridgeService;
+        }
+    }
 
     // HttpClient extension methods for BaseOASIS API
     private async Task<HttpResponseMessage> GetAccountByEmailAsync(string email)

@@ -24,16 +24,15 @@ export default function BridgePageClient() {
             }}>
               <span className="text-[9px] uppercase tracking-[0.4em]">Bridge Status</span>
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold" style={{color: 'var(--oasis-accent)'}}>Solana</span>
-                <span className="text-[var(--oasis-positive)]">✓ Active</span>
+                <span className="text-xs font-semibold" style={{color: 'var(--oasis-accent)'}}>10 Chains Active</span>
+                <span className="text-[var(--oasis-positive)]">✓ Live</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold" style={{color: 'var(--oasis-accent)'}}>Radix</span>
-                <span>⏳ Coming Soon</span>
+                <span className="text-xs" style={{color: 'var(--oasis-muted)'}}>SOL • ETH • MATIC • BASE • ARB • OP • BNB • AVAX • FTM • XRD</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs font-semibold" style={{color: 'var(--oasis-accent)'}}>Network</span>
-                <span>Devnet / Testnet</span>
+                <span>Testnet</span>
               </div>
             </div>
           </div>

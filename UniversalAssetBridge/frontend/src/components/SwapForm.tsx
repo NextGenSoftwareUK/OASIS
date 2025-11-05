@@ -17,6 +17,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { useSwap } from "@/hooks/swapHooks";
 import { useGetExchangeRate } from "@/requests/swap/getExchangeRate.request";
 import { useCreateOrder } from "@/requests/swap/createOrder.request";
+import { getTokenUSDPrice } from "@/lib/exchangeRateService";
 
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,8 @@ export default function SwapForm() {
 
   const [formData, setFormData] = useState<SwapFormData | null>(null);
   const [orderResponse, setOrderResponse] = useState<SwapResponse | null>(null);
+  const [fromUSDPrice, setFromUSDPrice] = useState<number>(0);
+  const [toUSDPrice, setToUSDPrice] = useState<number>(0);
 
   const prevFrom = useRef(selectedFrom);
   const prevTo = useRef(selectedTo);
@@ -84,6 +87,17 @@ export default function SwapForm() {
     prevFrom.current = selectedFrom;
     prevTo.current = selectedTo;
   }, [selectedFrom, selectedTo]);
+
+  // Fetch USD prices when tokens change
+  useEffect(() => {
+    const fetchPrices = async () => {
+      const fromPrice = await getTokenUSDPrice(selectedFrom.token);
+      const toPrice = await getTokenUSDPrice(selectedTo.token);
+      setFromUSDPrice(fromPrice);
+      setToUSDPrice(toPrice);
+    };
+    fetchPrices();
+  }, [selectedFrom.token, selectedTo.token]);
 
   useEffect(() => {
     if (isOrderCompleted) {
@@ -154,7 +168,7 @@ export default function SwapForm() {
             <SwapInput
               form={form}
               input={swapSchemaFields[0]}
-              description="$3 234,54"
+              description={`$${(fromAmount * fromUSDPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               token={selectedFrom}
               openCryptoModal={openCryptoModal}
               changeLastChanged={handleFromChange}
@@ -176,7 +190,7 @@ export default function SwapForm() {
             <SwapInput
               form={form}
               input={swapSchemaFields[1]}
-              description="$3 223,54 (-0.12%)"
+              description={`$${(toAmount * toUSDPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               token={selectedTo}
               openCryptoModal={openCryptoModal}
               changeLastChanged={handleToChange}
