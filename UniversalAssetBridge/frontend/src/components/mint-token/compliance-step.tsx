@@ -9,16 +9,19 @@ type ComplianceStepProps = {
 
 export function ComplianceStep({ config, updateConfig }: ComplianceStepProps) {
   return (
-    <div className="space-y-4">
-      <p className="text-sm" style={{color: 'var(--oasis-muted)'}}>
-        Configure optional compliance and access control settings. These apply across all chains.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-2xl font-bold" style={{color: 'var(--oasis-foreground)'}}>Compliance & Rules</h3>
+        <p className="mt-3 text-base" style={{color: 'var(--oasis-muted)'}}>
+          Configure optional compliance and access control settings. These apply across all chains.
+        </p>
+      </div>
       
-      <div className="rounded-lg border p-5" style={{
+      <div className="rounded-2xl border p-6" style={{
         borderColor: 'var(--oasis-card-border)',
-        background: 'rgba(15,118,110,0.05)'
+        background: 'rgba(6,11,26,0.8)'
       }}>
-        <p className="text-sm" style={{color: 'var(--oasis-foreground)'}}>
+        <p className="text-base font-medium" style={{color: 'var(--oasis-foreground)'}}>
           All tokens deployed without restrictions by default. Compliance features coming soon.
         </p>
       </div>
