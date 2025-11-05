@@ -1,14 +1,9 @@
-import axiosInstance from "@/lib/axiosInstance";
 import { useQuery } from "@tanstack/react-query";
+import { getExchangeRate as getExchangeRateFromService } from "@/lib/exchangeRateService";
 
 const getExchangeRate = async (fromToken: string, toToken: string) => {
-  const res = await axiosInstance.get("/exchange-rate", {
-    params: {
-      fromToken: fromToken,
-      toToken: toToken,
-    },
-  });
-  return res.data;
+  // Use client-side CoinGecko API (with fallback to mock rates)
+  return await getExchangeRateFromService(fromToken, toToken);
 };
 
 export const useGetExchangeRate = (fromToken: string, toToken: string) => {
@@ -16,6 +11,8 @@ export const useGetExchangeRate = (fromToken: string, toToken: string) => {
     queryKey: [fromToken, toToken, "exchange-rate"],
     queryFn: () => getExchangeRate(fromToken, toToken),
     gcTime: 0,
-    // refetchInterval: 300000,
+    refetchInterval: 30000, // Refresh every 30 seconds
+    retry: 3, // Retry failed requests
+    staleTime: 10000, // Consider data stale after 10 seconds
   });
 };

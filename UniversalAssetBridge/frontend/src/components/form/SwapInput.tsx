@@ -90,7 +90,7 @@ export default function SwapInput({
           }
         >
           <Image
-            src={`/${token?.token}.png`}
+            src={token?.token === "ARB" ? `/${token?.token}.png` : `/${token?.token}.svg`}
             alt=""
             width={24}
             height={24}

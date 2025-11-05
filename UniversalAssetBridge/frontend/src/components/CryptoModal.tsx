@@ -4,9 +4,8 @@ import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Modal from "@/components/Modal";
 import CryptoItem from "@/components/CryptoItem";
-import { useGetNetworks } from "@/requests/swap/getNetworks.request";
 import { SelectedCrypto, CryptoOption } from "@/types/crypto/crypto.type";
-import { networkIcons } from "@/lib/cryptoOptions";
+import { cryptoOptions, networkIcons } from "@/lib/cryptoOptions";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,14 +31,21 @@ export default function CryptoModal({
 }: CryptoModalProps) {
   const [search, setSearch] = useState("");
 
-  const { data } = useGetNetworks();
-  const networks = useMemo(() => data?.data?.data || [], [data]);
+  // Convert cryptoOptions to network format
+  const networks = useMemo(() => {
+    return cryptoOptions.map(opt => ({
+      id: opt.token,
+      name: opt.network,
+      tokens: [opt.token],
+      description: opt.description
+    }));
+  }, []);
 
   useEffect(() => {
     if (networks.length && !selectedNetwork?.name) {
-      selectNetwork(networks[1]);
+      selectNetwork(networks[0]);
     }
-  }, [networks, selectedNetwork?.name]);
+  }, [networks, selectedNetwork?.name, selectNetwork]);
 
   const selectedNetworkTokens = useMemo(() => {
     if (networks) {
@@ -48,11 +54,13 @@ export default function CryptoModal({
           ?.tokens || []
       );
     }
+    return [];
   }, [networks, selectedNetwork]);
 
   const handleClick = (token: string) => {
     if (selectedNetwork) {
       onSelect({ network: selectedNetwork.name, token });
+      onClose(); // Close modal after selection
     }
   };
 
@@ -60,11 +68,11 @@ export default function CryptoModal({
 
   return (
     <Modal isNonUrlModal onCloseFunc={onClose}>
-      <h2 className="h2 mb-6 text-black">Chose a token</h2>
+      <h2 className="h2 mb-6 text-black">Choose a token</h2>
 
       <p className="p-sm text-primary mb-[10px]">Networks</p>
       <div className="flex flex-col justify-center h-full">
-        <ul className="flex space-x-4">
+        <ul className="grid grid-cols-3 gap-3 mb-4">
           {networks.map((network: CryptoOption) => (
             <li key={network.id}>
               <CryptoItem
@@ -110,7 +118,7 @@ export default function CryptoModal({
                     onClick={() => handleClick(token)}
                   >
                     <Image
-                      src={`/${token}.svg`}
+                      src={token === "ARB" ? `/${token}.png` : `/${token}.svg`}
                       alt={token}
                       width={18}
                       height={18}

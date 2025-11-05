@@ -287,6 +287,14 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 
                 return new TelegramBotService(botToken, telegramProvider, avatarManager, logger, nftService, pinataService);
             });
+
+            // Register Universal Asset Bridge Service
+            services.AddSingleton<BridgeService>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<BridgeService>>();
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                return new BridgeService(logger, configuration);
+            });
             
             services.AddHttpContextAccessor();
 
