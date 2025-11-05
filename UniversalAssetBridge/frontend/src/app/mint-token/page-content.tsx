@@ -9,6 +9,7 @@ import { ComplianceStep } from "@/components/mint-token/compliance-step";
 import { ReviewStep } from "@/components/mint-token/review-step";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import HowItWorks from "@/components/shared/HowItWorks";
 
 export interface TokenConfig {
   name: string;
@@ -149,6 +150,62 @@ export default function PageContent() {
           Deploy your token natively to multiple blockchains simultaneously using OASIS HyperDrive. No bridges, no wrapped versions.
         </p>
       </div>
+
+      <HowItWorks sections={[
+        {
+          title: "What are Web4 Tokens?",
+          content: (
+            <div className="space-y-3">
+              <p>
+                Web4 tokens exist natively on multiple blockchains simultaneously. Unlike traditional tokens that live on 
+                one chain (requiring bridges to move elsewhere), Web4 tokens are deployed to all selected chains at once 
+                using HyperDrive.
+              </p>
+              <p>
+                When you spend 1 token on Solana, your balance updates on Ethereum, Polygon, Base, and all other chains 
+                instantly. This eliminates the need for bridges entirely, removing the $2 billion annual bridge hack risk.
+              </p>
+            </div>
+          )
+        },
+        {
+          title: "How does multi-chain deployment work?",
+          content: (
+            <div className="space-y-3">
+              <p>
+                The Smart Contract Generator creates platform-specific contracts from your configuration. Your token 
+                details (name, symbol, supply) remain identical across all chains, but the underlying smart contract 
+                code is optimized for each blockchain's architecture.
+              </p>
+              <p>
+                Deployment happens in parallel: Ethereum receives a Solidity contract, Solana gets a Rust program, 
+                and Radix receives Scrypto code - all in 2-5 minutes. HyperDrive then synchronizes the token state 
+                across all deployments, ensuring your balance is always consistent.
+              </p>
+            </div>
+          )
+        },
+        {
+          title: "Why is this better than traditional multi-chain launches?",
+          content: (
+            <div className="space-y-3">
+              <p>
+                Traditional approach: Launch on Ethereum ($50K), then separately launch on Polygon ($50K), Solana ($50K), etc. 
+                Each requires audits, liquidity setup, and bridge contracts. Total cost for 10 chains: $800K+. Time: 6+ months.
+              </p>
+              <p>
+                Web4 approach: Configure once, deploy to all 10 chains simultaneously for $300. Time: 5 minutes. No bridges 
+                means no bridge security audits needed. Liquidity is unified through HyperDrive Pools, so one deployment 
+                serves all chains.
+              </p>
+              <p>
+                The savings come from eliminating redundant work: one audit covers all chains, one liquidity pool serves all 
+                chains, and HyperDrive handles synchronization automatically.
+              </p>
+            </div>
+          )
+        }
+      ]} />
       
       <WizardShell
         steps={WIZARD_STEPS}

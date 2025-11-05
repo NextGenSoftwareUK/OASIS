@@ -8,6 +8,7 @@ import { MigrationSettingsStep } from "@/components/migrate-token/migration-sett
 import { ReviewMigrationStep } from "@/components/migrate-token/review-migration-step";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import HowItWorks from "@/components/shared/HowItWorks";
 
 export interface MigrationConfig {
   // Detected token info
@@ -150,6 +151,62 @@ export default function PageContent() {
           Upgrade your existing token to Web4. Lock tokens on your original chain and deploy Web4 version across multiple blockchains simultaneously.
         </p>
       </div>
+
+      <HowItWorks sections={[
+        {
+          title: "How does token migration work?",
+          content: (
+            <div className="space-y-3">
+              <p>
+                Token migration upgrades your existing single-chain token to a Web4 token that exists on multiple chains. 
+                Your original tokens are locked in an OASIS migration contract (held in escrow with cryptographic proof), 
+                and an equivalent amount of Web4 tokens is minted across all selected chains.
+              </p>
+              <p>
+                The migration maintains a 1:1 ratio: if you lock 10,000 tokens, exactly 10,000 Web4 tokens are created. 
+                All deployments happen in parallel, taking 2-5 minutes total regardless of how many chains you select.
+              </p>
+            </div>
+          )
+        },
+        {
+          title: "Is migration reversible?",
+          content: (
+            <div className="space-y-3">
+              <p>
+                Yes. Migration is fully reversible through the downgrade process. You can burn your Web4 tokens at any time 
+                to unlock your original tokens from the escrow contract. The 1:1 guarantee is enforced by smart contracts 
+                on all chains.
+              </p>
+              <p>
+                This means you can try Web4 without risk. If you decide multi-chain isn't needed, simply downgrade and 
+                retrieve your original tokens exactly as they were locked.
+              </p>
+            </div>
+          )
+        },
+        {
+          title: "What happens to liquidity and holders?",
+          content: (
+            <div className="space-y-3">
+              <p>
+                Existing token holders can migrate their tokens individually - there's no forced migration. This allows for 
+                a gradual transition where both versions coexist temporarily. Liquidity providers can migrate their LP positions 
+                or create new unified pools using HyperDrive.
+              </p>
+              <p>
+                Once migrated, your token gains instant access to HyperDrive Liquidity Pools, the Universal Asset Bridge, 
+                and the entire Web4 ecosystem. Users can trade on any of the 10+ chains without bridges, and liquidity 
+                providers earn fees from all chains simultaneously instead of just one.
+              </p>
+              <p>
+                For DAOs, migration enables governance participation from any chain. Token holders no longer need to bridge 
+                to Ethereum to vote - they can participate directly from Solana, Polygon, or any supported chain.
+              </p>
+            </div>
+          )
+        }
+      ]} />
       
       <WizardShell
         steps={WIZARD_STEPS}
