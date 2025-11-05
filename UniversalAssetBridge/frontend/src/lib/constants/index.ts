@@ -30,6 +30,26 @@ export const NETWORKS: SelectItems[] = [
     name: "Solana",
     value: "Solana",
   },
+  {
+    name: "Ethereum",
+    value: "Ethereum",
+  },
+  {
+    name: "Polygon",
+    value: "Polygon",
+  },
+  {
+    name: "Base",
+    value: "Base",
+  },
+  {
+    name: "Arbitrum",
+    value: "Arbitrum",
+  },
+  {
+    name: "Radix",
+    value: "Radix",
+  },
 ] as const;
 export const SORT_BY: SelectItems[] = [
   {

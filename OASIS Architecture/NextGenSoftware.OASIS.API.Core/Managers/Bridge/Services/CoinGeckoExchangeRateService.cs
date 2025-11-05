@@ -42,6 +42,13 @@ public class CoinGeckoExchangeRateService : IExchangeRateService
             { "MATIC", "matic-network" },
             { "AVAX", "avalanche-2" },
             { "OP", "optimism" },
+            { "BASE", "base" },
+            { "BNB", "binancecoin" },
+            { "FTM", "fantom" },
+            { "NEAR", "near" },
+            { "ADA", "cardano" },
+            { "DOT", "polkadot" },
+            { "ATOM", "cosmos" },
             { "USDC", "usd-coin" },
             { "USDT", "tether" }
         };
