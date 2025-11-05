@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { WizardShell } from "@/components/mint-token/wizard-shell";
-import { TokenDetailsStep } from "@/components/mint-token/token-details-step";
 import { ChainSelectionStep } from "@/components/mint-token/chain-selection-step";
 import { TokenEconomicsStep } from "@/components/mint-token/token-economics-step";
 import { TemplateSelectionStep } from "@/components/mint-token/template-selection-step";
@@ -17,6 +16,7 @@ export interface TokenConfig {
   description: string;
   totalSupply: string;
   decimals: number;
+  imageUrl: string;
   selectedChains: string[];
   distribution: {
     team: number;
@@ -29,14 +29,9 @@ export interface TokenConfig {
 
 const WIZARD_STEPS = [
   {
-    id: "token-details",
-    title: "Token Details",
-    description: "Configure name, symbol, and total supply for your Web4 token.",
-  },
-  {
     id: "chain-selection",
-    title: "Select Chains",
-    description: "Choose which blockchains to deploy your token on simultaneously.",
+    title: "Configure & Deploy",
+    description: "Set token details and select deployment chains.",
   },
   {
     id: "economics",
@@ -61,13 +56,14 @@ const WIZARD_STEPS = [
 ];
 
 export default function PageContent() {
-  const [activeStep, setActiveStep] = useState<string>(WIZARD_STEPS[0]?.id ?? "token-details");
+  const [activeStep, setActiveStep] = useState<string>(WIZARD_STEPS[0]?.id ?? "chain-selection");
   const [config, setConfig] = useState<TokenConfig>({
     name: "",
     symbol: "",
     description: "",
     totalSupply: "",
     decimals: 18,
+    imageUrl: "",
     selectedChains: [],
     distribution: { team: 20, public: 40, treasury: 30, rewards: 10 },
     template: "basic",
@@ -81,10 +77,8 @@ export default function PageContent() {
 
   const canProceed = useMemo(() => {
     switch (activeStep) {
-      case "token-details":
-        return Boolean(config.name && config.symbol && config.totalSupply);
       case "chain-selection":
-        return config.selectedChains.length > 0;
+        return Boolean(config.name && config.symbol && config.totalSupply && config.selectedChains.length > 0);
       case "economics":
         const total = Object.values(config.distribution).reduce((sum, val) => sum + val, 0);
         return total === 100;
@@ -134,8 +128,8 @@ export default function PageContent() {
         <p className="text-sm uppercase tracking-[0.4em]" style={{color: 'var(--oasis-muted)'}}>Web4 Token Factory</p>
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-4">
-            <h2 className="mt-2 text-3xl font-semibold" style={{color: 'var(--oasis-foreground)'}}>
-              Create Web4 Token
+            <h2 className="mt-2 text-4xl font-bold" style={{color: 'var(--oasis-foreground)'}}>
+              Create {config.name ? `${config.name}` : 'Web4'} Token
             </h2>
             <span
               className={cn(
@@ -192,9 +186,6 @@ export default function PageContent() {
           </div>
         }
       >
-        {activeStep === "token-details" ? (
-          <TokenDetailsStep config={config} updateConfig={updateConfig} />
-        ) : null}
         {activeStep === "chain-selection" ? (
           <ChainSelectionStep config={config} updateConfig={updateConfig} />
         ) : null}

@@ -20,8 +20,15 @@ const templates = [
 
 export function TemplateSelectionStep({ config, updateConfig }: TemplateSelectionStepProps) {
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-2xl font-bold" style={{color: 'var(--oasis-foreground)'}}>Select Token Template</h3>
+        <p className="mt-3 text-base" style={{color: 'var(--oasis-muted)'}}>
+          Choose the smart contract template that best fits your use case.
+        </p>
+      </div>
+
+      <div className="grid gap-5 grid-cols-3">
         {templates.map((template) => {
           const Icon = template.icon;
           const isSelected = config.template === template.id;
@@ -31,18 +38,21 @@ export function TemplateSelectionStep({ config, updateConfig }: TemplateSelectio
               type="button"
               onClick={() => updateConfig({ template: template.id })}
               className={cn(
-                "glass-card relative overflow-hidden rounded-2xl border p-5 text-left transition",
+                "glass-card relative overflow-hidden rounded-2xl border p-6 text-left transition hover:scale-105",
                 isSelected
                   ? "border-[var(--oasis-accent)]/80 shadow-[0_25px_60px_rgba(34,211,238,0.35)] ring-2 ring-[var(--oasis-accent)]/50"
                   : "hover:border-[var(--oasis-accent)]/50"
               )}
-              style={{borderColor: isSelected ? 'var(--oasis-accent)' : 'var(--oasis-card-border)'}}
+              style={{
+                borderColor: isSelected ? 'var(--oasis-accent)' : 'var(--oasis-card-border)',
+                background: isSelected ? 'rgba(3,7,18,0.9)' : 'rgba(6,11,26,0.6)'
+              }}
             >
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_60%)]" />
               <div className="relative">
-                <Icon size={24} color={isSelected ? 'var(--oasis-accent)' : 'var(--oasis-muted)'} />
-                <h3 className="text-lg font-semibold mt-3" style={{color: 'var(--oasis-foreground)'}}>{template.name}</h3>
-                <p className="mt-2 text-sm" style={{color: 'var(--oasis-muted)'}}>
+                <Icon size={32} color={isSelected ? 'var(--oasis-accent)' : 'var(--oasis-muted)'} />
+                <h3 className="text-lg font-bold mt-4" style={{color: 'var(--oasis-foreground)'}}>{template.name}</h3>
+                <p className="mt-3 text-sm leading-relaxed" style={{color: 'var(--oasis-muted)'}}>
                   {template.description}
                 </p>
               </div>
