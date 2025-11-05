@@ -1,0 +1,212 @@
+{{#if description}}//! {{{description}}}{{/if}}
+
+use scrypto::prelude::*;
+
+{{#if constants}}
+    // ================ Constants ================
+    {{#each constants}}
+        {{#if description}}/// {{{description}}}{{/if}}
+        pub const {{{name}}}: {{{type}}} = {{{value}}};
+    {{/each}}
+{{/if}}
+
+{{#if type_aliases}}
+    // ================ Type Aliases ================
+    {{#each type_aliases}}
+        {{#if description}}/// {{{description}}}{{/if}}
+        pub type {{{name}}} = {{{type}}};
+    {{/each}}
+{{/if}}
+
+{{#if structs}}
+    // ================ Structs ================
+    {{#each structs}}
+        #[derive({{#each derive}}{{this}}{{#unless @last}}, {{/unless}}{{/each}})]
+        pub struct {{{name}}} {
+        {{#each fields}}
+            pub {{{name}}}: {{{type}}},
+        {{/each}}
+        }
+    {{/each}}
+{{/if}}
+
+{{#if enums}}
+    // ================ Enums ================
+    {{#each enums}}
+        #[derive({{#each derive}}{{this}}{{#unless @last}}, {{/unless}}{{/each}})]
+        pub enum {{{name}}} {
+        {{#each variants}}
+            {{{name}}}{{#if fields}}({{#each fields}}{{{type}}}{{#unless @last}}, {{/unless}}{{/each}}){{/if}},
+        {{/each}}
+        }
+    {{/each}}
+{{/if}}
+
+{{#if events}}
+    // ================ Events ================
+    {{#each events}}
+        #[derive({{#each derive}}{{this}}{{#unless @last}}, {{/unless}}{{/each}})]
+        pub struct {{{name}}} {
+        {{#each fields}}
+            pub {{{name}}}: {{{type}}},
+        {{/each}}
+        }
+    {{/each}}
+{{/if}}
+
+{{#if errors}}
+    // ================ Custom Errors ================
+    #[derive(Debug, ScryptoSbor, PartialEq, Eq)]
+    pub enum Error {
+    {{#each errors}}
+        {{{name}}}{{#if params}}({{#each params}}{{{type}}}{{#unless @last}}, {{/unless}}{{/each}}){{/if}},
+    {{/each}}
+    }
+{{/if}}
+
+{{#if traits}}
+    // ================ Traits ================
+    {{#each traits}}
+        pub trait {{{name}}} {
+        {{#each methods}}
+            fn {{{name}}}(
+            {{#if selfType}}{{{selfType}}}{{#if params}}, {{/if}}{{/if}}
+            {{#if params}}
+                {{#each params}}
+                    {{{name}}}: {{{type}}}{{#unless @last}}, {{/unless}}
+                {{/each}}
+            {{/if}}
+            ){{#if returns}} -> {{{returns}}}{{/if}};
+        {{/each}}
+        }
+    {{/each}}
+{{/if}}
+
+{{#if trait_impls}}
+    // ================ Trait Implementations ================
+    {{#each trait_impls}}
+        impl {{{trait}}} for {{{for}}} {
+        {{#each methods}}
+            fn {{{name}}}(
+            {{#if selfType}}{{{selfType}}}{{#if params}}, {{/if}}{{/if}}
+            {{#if params}}
+                {{{name}}}: {{{type}}}{{#unless @last}}, {{/unless}}
+            {{/if}}
+            ){{#if returns}} -> {{{returns}}}{{/if}} {
+            {{#each body}}
+                {{{this}}}
+            {{/each}}
+            }
+        {{/each}}
+        }
+    {{/each}}
+{{/if}}
+
+{{#if free_functions}}
+    // ================ Free Functions (outside blueprint) ================
+    {{#each free_functions}}
+        pub fn {{{name}}}(
+        {{#if params}}
+            {{#each params}}
+                {{{name}}}: {{{type}}}{{#unless @last}}, {{/unless}}
+            {{/each}}
+        {{/if}}
+        ){{#if returns}} -> {{{returns}}}{{/if}} {
+        {{#each body}}
+            {{{this}}}
+        {{/each}}
+        }
+    {{/each}}
+{{/if}}
+
+{{#each blueprints}}
+    #[blueprint]
+    mod {{{snakeCase name}}} {
+
+    {{#if events}}
+        enable_events! {
+        {{#each events}}
+            {{{name}}},
+        {{/each}}
+        }
+    {{/if}}
+
+    {{#if access_rules}}
+        enable_method_auth! {
+        methods {
+        {{#each access_rules}}
+            {{{method}}} => {{rule}};
+        {{/each}}
+        }
+        }
+    {{/if}}
+
+    {{#if roles}}
+        // ================ Roles ================
+        roles! {
+        {{#each roles}}
+            {{{name}}} => updatable_by: [{{#each updaters}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}];
+        {{/each}}
+        }
+    {{/if}}
+
+    struct {{{name}}} {
+    {{#if state}}
+        {{#each state}}
+            pub {{{name}}}: {{{type}}},
+        {{/each}}
+    {{/if}}
+    }
+
+    impl {{{name}}} {
+    {{#if static_methods}}
+        {{#each static_methods}}
+            pub fn {{{name}}}(
+            {{#if params}}
+                {{#each params}}
+                    {{{name}}}: {{{type}}}{{#unless @last}}, {{/unless}}
+                {{/each}}
+            {{/if}}
+            ) -> Global<{{{../name}}}> {
+            {{#each body}}
+                {{{this}}}
+            {{/each}}
+            }
+        {{/each}}
+    {{/if}}
+
+    {{#if methods}}
+        {{#each methods}}
+            pub fn {{{name}}}(
+            &mut self
+            {{#if params}}, {{/if}}
+            {{#each params}}
+                {{{name}}}: {{{type}}}{{#unless @last}}, {{/unless}}
+            {{/each}}
+            ){{#if returns}} -> {{{returns}}}{{/if}} {
+            {{#each body}}
+                {{{this}}}
+            {{/each}}
+            }
+        {{/each}}
+    {{/if}}
+    }
+    }
+{{/each}}
+
+{{#if tests}}
+    // ================ Tests ================
+    #[cfg(test)]
+    mod tests {
+    use super::*;
+    use scrypto::prelude::*;
+    {{#each tests}}
+        #[test]
+        fn {{{name}}}() {
+        {{#each body}}
+            {{{this}}}
+        {{/each}}
+        }
+    {{/each}}
+    }
+{{/if}} 

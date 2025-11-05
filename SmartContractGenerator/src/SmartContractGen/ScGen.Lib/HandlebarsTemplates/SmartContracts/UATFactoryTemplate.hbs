@@ -1,0 +1,325 @@
+use anchor_lang::prelude::*;
+use anchor_spl::token::{self, Mint, Token, TokenAccount, MintTo};
+use anchor_spl::associated_token::AssociatedToken;
+
+declare_id!("{{programId}}");
+
+#[program]
+pub mod {{programName}} {
+    use super::*;
+
+    /// Initialize the UAT Factory
+    /// This is called once to set up the factory authority
+    pub fn initialize_factory(ctx: Context<InitializeFactory>) -> Result<()> {
+        let factory = &mut ctx.accounts.factory;
+        factory.authority = ctx.accounts.authority.key();
+        factory.total_properties = 0;
+        factory.bump = ctx.bumps.factory;
+        
+        msg!("UAT Factory initialized with authority: {}", factory.authority);
+        Ok(())
+    }
+
+    /// Create a new property token collection
+    /// This mints a collection of tokens backed by UAT metadata
+    pub fn create_property_token(
+        ctx: Context<CreatePropertyToken>,
+        metadata_uri: String,        // IPFS URI to UAT JSON
+        token_name: String,           // e.g., "Beverly Hills Estate Token"
+        token_symbol: String,         // e.g., "BHE"
+        total_supply: u64,            // Number of tokens to mint
+        decimals: u8,                 // Usually 0 for real estate (indivisible)
+    ) -> Result<()> {
+        require!(metadata_uri.starts_with("ipfs://"), ErrorCode::InvalidMetadataUri);
+        require!(token_symbol.len() <= 10, ErrorCode::SymbolTooLong);
+        require!(total_supply > 0, ErrorCode::InvalidSupply);
+        require!(decimals <= 9, ErrorCode::InvalidDecimals);
+
+        let factory = &mut ctx.accounts.factory;
+        let property = &mut ctx.accounts.property;
+        
+        // Initialize property account
+        property.factory = factory.key();
+        property.mint = ctx.accounts.mint.key();
+        property.authority = ctx.accounts.authority.key();
+        property.metadata_uri = metadata_uri.clone();
+        property.token_name = token_name.clone();
+        property.token_symbol = token_symbol.clone();
+        property.total_supply = total_supply;
+        property.minted_supply = 0;
+        property.decimals = decimals;
+        property.created_at = Clock::get()?.unix_timestamp;
+        property.is_active = true;
+        property.bump = ctx.bumps.property;
+
+        // Update factory stats
+        factory.total_properties += 1;
+
+        msg!("Property token created: {} ({})", token_name, token_symbol);
+        msg!("Metadata URI: {}", metadata_uri);
+        msg!("Total supply: {} tokens", total_supply);
+
+        Ok(())
+    }
+
+    /// Mint property tokens to a recipient
+    /// Can be called multiple times until total_supply is reached
+    pub fn mint_property_tokens(
+        ctx: Context<MintPropertyTokens>,
+        amount: u64,
+    ) -> Result<()> {
+        let property = &mut ctx.accounts.property;
+        
+        // Validation
+        require!(property.is_active, ErrorCode::PropertyInactive);
+        require!(
+            property.minted_supply + amount <= property.total_supply,
+            ErrorCode::ExceedsSupply
+        );
+
+        // Mint tokens using PDA as authority
+        let factory_key = property.factory;
+        let property_key = property.key();
+        let seeds = &[
+            b"property",
+            factory_key.as_ref(),
+            property_key.as_ref(),
+            &[property.bump],
+        ];
+        let signer = &[&seeds[..]];
+
+        let cpi_accounts = MintTo {
+            mint: ctx.accounts.mint.to_account_info(),
+            to: ctx.accounts.recipient_token_account.to_account_info(),
+            authority: property.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+
+        token::mint_to(cpi_ctx, amount)?;
+
+        // Update minted supply
+        property.minted_supply += amount;
+
+        msg!("Minted {} tokens to {}", amount, ctx.accounts.recipient.key());
+        msg!("Total minted: {}/{}", property.minted_supply, property.total_supply);
+
+        Ok(())
+    }
+
+    /// Update property metadata URI (trustee only)
+    /// Allows updating IPFS link if metadata changes
+    pub fn update_metadata_uri(
+        ctx: Context<UpdateMetadata>,
+        new_metadata_uri: String,
+    ) -> Result<()> {
+        require!(new_metadata_uri.starts_with("ipfs://"), ErrorCode::InvalidMetadataUri);
+        
+        let property = &mut ctx.accounts.property;
+        let old_uri = property.metadata_uri.clone();
+        property.metadata_uri = new_metadata_uri.clone();
+
+        msg!("Metadata URI updated");
+        msg!("Old: {}", old_uri);
+        msg!("New: {}", new_metadata_uri);
+
+        Ok(())
+    }
+
+    /// Deactivate a property token (emergency stop)
+    /// Authority can disable minting if needed
+    pub fn deactivate_property(ctx: Context<UpdateProperty>) -> Result<()> {
+        let property = &mut ctx.accounts.property;
+        property.is_active = false;
+        
+        msg!("Property token deactivated: {}", property.token_name);
+        Ok(())
+    }
+
+    /// Reactivate a property token
+    pub fn reactivate_property(ctx: Context<UpdateProperty>) -> Result<()> {
+        let property = &mut ctx.accounts.property;
+        property.is_active = true;
+        
+        msg!("Property token reactivated: {}", property.token_name);
+        Ok(())
+    }
+}
+
+// ============================================================================
+// Account Structures
+// ============================================================================
+
+#[account]
+pub struct Factory {
+    pub authority: Pubkey,          // Factory owner
+    pub total_properties: u64,      // Number of properties created
+    pub bump: u8,                   // PDA bump seed
+}
+
+impl Factory {
+    pub const LEN: usize = 8 + 32 + 8 + 1;
+}
+
+#[account]
+pub struct PropertyToken {
+    pub factory: Pubkey,            // Parent factory
+    pub mint: Pubkey,               // Token mint address
+    pub authority: Pubkey,          // Property authority (trustee)
+    pub metadata_uri: String,       // IPFS URI to UAT JSON (max 200 chars)
+    pub token_name: String,         // Token name (max 64 chars)
+    pub token_symbol: String,       // Token symbol (max 10 chars)
+    pub total_supply: u64,          // Maximum tokens
+    pub minted_supply: u64,         // Currently minted
+    pub decimals: u8,               // Token decimals
+    pub created_at: i64,            // Unix timestamp
+    pub is_active: bool,            // Can mint tokens?
+    pub bump: u8,                   // PDA bump seed
+}
+
+impl PropertyToken {
+    // 8 discriminator + 32*3 pubkeys + 4+200 uri + 4+64 name + 4+10 symbol + 8*2 supply + 1 decimals + 8 timestamp + 1 active + 1 bump
+    pub const LEN: usize = 8 + 96 + 204 + 68 + 14 + 16 + 1 + 8 + 1 + 1;
+}
+
+// ============================================================================
+// Context Structures
+// ============================================================================
+
+#[derive(Accounts)]
+pub struct InitializeFactory<'info> {
+    #[account(
+        init,
+        payer = authority,
+        space = Factory::LEN,
+        seeds = [b"factory"],
+        bump
+    )]
+    pub factory: Account<'info, Factory>,
+    
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(metadata_uri: String, token_name: String, token_symbol: String)]
+pub struct CreatePropertyToken<'info> {
+    #[account(
+        mut,
+        seeds = [b"factory"],
+        bump = factory.bump
+    )]
+    pub factory: Account<'info, Factory>,
+    
+    #[account(
+        init,
+        payer = authority,
+        space = PropertyToken::LEN,
+        seeds = [b"property", factory.key().as_ref(), mint.key().as_ref()],
+        bump
+    )]
+    pub property: Account<'info, PropertyToken>,
+    
+    #[account(
+        init,
+        payer = authority,
+        mint::decimals = 0,
+        mint::authority = property,
+    )]
+    pub mint: Account<'info, Mint>,
+    
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+pub struct MintPropertyTokens<'info> {
+    #[account(
+        mut,
+        seeds = [b"property", property.factory.as_ref(), property.mint.as_ref()],
+        bump = property.bump,
+        has_one = mint,
+        has_one = authority
+    )]
+    pub property: Account<'info, PropertyToken>,
+    
+    #[account(mut)]
+    pub mint: Account<'info, Mint>,
+    
+    #[account(
+        init_if_needed,
+        payer = authority,
+        associated_token::mint = mint,
+        associated_token::authority = recipient
+    )]
+    pub recipient_token_account: Account<'info, TokenAccount>,
+    
+    /// CHECK: Recipient can be any account
+    pub recipient: AccountInfo<'info>,
+    
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateMetadata<'info> {
+    #[account(
+        mut,
+        seeds = [b"property", property.factory.as_ref(), property.mint.as_ref()],
+        bump = property.bump,
+        has_one = authority
+    )]
+    pub property: Account<'info, PropertyToken>,
+    
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateProperty<'info> {
+    #[account(
+        mut,
+        seeds = [b"property", property.factory.as_ref(), property.mint.as_ref()],
+        bump = property.bump,
+        has_one = authority
+    )]
+    pub property: Account<'info, PropertyToken>,
+    
+    pub authority: Signer<'info>,
+}
+
+// ============================================================================
+// Error Codes
+// ============================================================================
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Metadata URI must start with 'ipfs://'")]
+    InvalidMetadataUri,
+    
+    #[msg("Token symbol must be 10 characters or less")]
+    SymbolTooLong,
+    
+    #[msg("Total supply must be greater than 0")]
+    InvalidSupply,
+    
+    #[msg("Decimals must be between 0 and 9")]
+    InvalidDecimals,
+    
+    #[msg("Property token is inactive")]
+    PropertyInactive,
+    
+    #[msg("Minting would exceed total supply")]
+    ExceedsSupply,
+}
+
