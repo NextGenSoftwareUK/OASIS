@@ -1,11 +1,12 @@
 import Web4Nav from "@/components/Web4Nav";
-import BridgePageClient from "@/app/BridgePageClient";
+import PageContent from "./page-content";
 
-export default function page() {
+export default function MigrateTokenPage() {
   return (
     <div className="min-h-screen">
       <Web4Nav />
-      <BridgePageClient />
+      <PageContent />
     </div>
   );
 }
+
