@@ -9,7 +9,7 @@ const navLinks = [
   { name: "Liquidity", path: "/liquidity" },
   { name: "Token Portal", path: "/token-portal" },
   { name: "Create Token", path: "/mint-token" },
-  { name: "Migrate Token", path: "/migrate-token" },
+  { name: "Upgrade Token", path: "/migrate-token" },
   { name: "Docs", path: "/docs" },
 ];
 

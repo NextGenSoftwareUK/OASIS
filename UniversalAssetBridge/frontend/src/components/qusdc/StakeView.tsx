@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, ArrowDownUp, Info } from "lucide-react";
+import { TrendingUp, ArrowDownUp, Info, ArrowRight } from "lucide-react";
 
 const mockData = {
   qUSDCBalance: 5000,
