@@ -20,13 +20,21 @@ export default async function Header({ searchParams }: SearchParams) {
           <Link href="/" className="text-2xl font-black mr-12">
             Quantum Street
           </Link>
-          <ul className="flex items-center gap-7 lg:gap-3">
+          <ul className="flex items-center gap-5 lg:gap-3">
             <li className="">
-              <Link href="/rwa">RWA Market</Link>
-              {/* <RwaLink /> */}
+              <Link href="/" className="hover:text-[var(--oasis-accent)] transition">Bridge</Link>
             </li>
             <li className="">
-              <Link href="/">Swap</Link>
+              <Link href="/token-portal" className="hover:text-[var(--oasis-accent)] transition">Token Portal</Link>
+            </li>
+            <li className="">
+              <Link href="/mint-token" className="hover:text-[var(--oasis-accent)] transition">Create Token</Link>
+            </li>
+            <li className="">
+              <Link href="/migrate-token" className="hover:text-[var(--oasis-accent)] transition">Migrate Token</Link>
+            </li>
+            <li className="">
+              <Link href="/docs" className="hover:text-[var(--oasis-accent)] transition">Docs</Link>
             </li>
           </ul>
         </div>
