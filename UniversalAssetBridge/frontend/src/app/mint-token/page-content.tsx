@@ -1,0 +1,217 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { WizardShell } from "@/components/mint-token/wizard-shell";
+import { TokenDetailsStep } from "@/components/mint-token/token-details-step";
+import { ChainSelectionStep } from "@/components/mint-token/chain-selection-step";
+import { TokenEconomicsStep } from "@/components/mint-token/token-economics-step";
+import { TemplateSelectionStep } from "@/components/mint-token/template-selection-step";
+import { ComplianceStep } from "@/components/mint-token/compliance-step";
+import { ReviewStep } from "@/components/mint-token/review-step";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+export interface TokenConfig {
+  name: string;
+  symbol: string;
+  description: string;
+  totalSupply: string;
+  decimals: number;
+  selectedChains: string[];
+  distribution: {
+    team: number;
+    public: number;
+    treasury: number;
+    rewards: number;
+  };
+  template: string;
+}
+
+const WIZARD_STEPS = [
+  {
+    id: "token-details",
+    title: "Token Details",
+    description: "Configure name, symbol, and total supply for your Web4 token.",
+  },
+  {
+    id: "chain-selection",
+    title: "Select Chains",
+    description: "Choose which blockchains to deploy your token on simultaneously.",
+  },
+  {
+    id: "economics",
+    title: "Token Economics",
+    description: "Define distribution percentages and allocation strategy.",
+  },
+  {
+    id: "template",
+    title: "Smart Contract Template",
+    description: "Select the contract type that matches your use case.",
+  },
+  {
+    id: "compliance",
+    title: "Compliance & Rules",
+    description: "Configure access controls and regulatory requirements.",
+  },
+  {
+    id: "review",
+    title: "Review & Deploy",
+    description: "Confirm configuration and deploy across all selected chains.",
+  },
+];
+
+export default function PageContent() {
+  const [activeStep, setActiveStep] = useState<string>(WIZARD_STEPS[0]?.id ?? "token-details");
+  const [config, setConfig] = useState<TokenConfig>({
+    name: "",
+    symbol: "",
+    description: "",
+    totalSupply: "",
+    decimals: 18,
+    selectedChains: [],
+    distribution: { team: 20, public: 40, treasury: 30, rewards: 10 },
+    template: "basic",
+  });
+
+  const updateConfig = (updates: Partial<TokenConfig>) => {
+    setConfig({ ...config, ...updates });
+  };
+
+  const currentIndex = WIZARD_STEPS.findIndex((s) => s.id === activeStep);
+
+  const canProceed = useMemo(() => {
+    switch (activeStep) {
+      case "token-details":
+        return Boolean(config.name && config.symbol && config.totalSupply);
+      case "chain-selection":
+        return config.selectedChains.length > 0;
+      case "economics":
+        const total = Object.values(config.distribution).reduce((sum, val) => sum + val, 0);
+        return total === 100;
+      default:
+        return true;
+    }
+  }, [activeStep, config]);
+
+  const totalCost = useMemo(() => {
+    const gasCosts: Record<string, number> = {
+      "Solana": 5, "Ethereum": 150, "Polygon": 2, "Base": 10,
+      "Arbitrum": 8, "Optimism": 12, "BNB Chain": 3, "Avalanche": 7,
+      "Fantom": 4, "Radix": 1,
+    };
+    return config.selectedChains.reduce((sum, chain) => sum + (gasCosts[chain] || 0), 0) + 100;
+  }, [config.selectedChains]);
+
+  const renderSessionSummary = (
+    <div className="flex flex-wrap items-center gap-4 rounded-2xl border px-4 py-3 text-[11px]" style={{
+      borderColor: 'var(--oasis-card-border)',
+      background: 'rgba(8,12,26,0.7)',
+      color: 'var(--oasis-muted)'
+    }}>
+      <span className="text-[9px] uppercase tracking-[0.4em]">Configuration Summary</span>
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-semibold" style={{color: 'var(--oasis-accent)'}}>Symbol</span>
+        <span>{config.symbol || "—"}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-semibold" style={{color: 'var(--oasis-accent)'}}>Chains</span>
+        <span>{config.selectedChains.length}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-semibold" style={{color: 'var(--oasis-accent)'}}>Template</span>
+        <span className="capitalize">{config.template}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-semibold" style={{color: 'var(--oasis-accent)'}}>Est. Cost</span>
+        <span>${totalCost}</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <section className="space-y-6 px-4 py-10 lg:px-10 xl:px-20">
+      <div>
+        <p className="text-sm uppercase tracking-[0.4em]" style={{color: 'var(--oasis-muted)'}}>Web4 Token Factory</p>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <h2 className="mt-2 text-3xl font-semibold" style={{color: 'var(--oasis-foreground)'}}>
+              Create Web4 Token
+            </h2>
+            <span
+              className={cn(
+                "mt-2 h-fit rounded-full border px-3 py-1 text-xs uppercase tracking-[0.4em]",
+                canProceed && activeStep === "review"
+                  ? "border-[var(--oasis-positive)]/60 bg-[rgba(20,118,96,0.25)]"
+                  : "border-[var(--oasis-accent)]/60 bg-[rgba(20,118,96,0.25)]"
+              )}
+              style={{color: canProceed && activeStep === "review" ? 'var(--oasis-positive)' : 'var(--oasis-accent)'}}
+            >
+              {canProceed && activeStep === "review" ? "Ready To Deploy" : "Configuring"}
+            </span>
+          </div>
+          {renderSessionSummary}
+        </div>
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed" style={{color: 'var(--oasis-muted)'}}>
+          Deploy your token natively to multiple blockchains simultaneously using OASIS HyperDrive. No bridges, no wrapped versions.
+        </p>
+      </div>
+      
+      <WizardShell
+        steps={WIZARD_STEPS}
+        activeStep={activeStep}
+        onStepChange={setActiveStep}
+        footer={
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap gap-2 text-[11px]" style={{color: 'var(--oasis-muted)'}}>
+              <span>Step {currentIndex + 1} of {WIZARD_STEPS.length}</span>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                disabled={currentIndex === 0}
+                onClick={() => {
+                  if (currentIndex > 0) {
+                    setActiveStep(WIZARD_STEPS[currentIndex - 1].id);
+                  }
+                }}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  if (currentIndex < WIZARD_STEPS.length - 1) {
+                    setActiveStep(WIZARD_STEPS[currentIndex + 1].id);
+                  }
+                }}
+                disabled={!canProceed}
+              >
+                {currentIndex === WIZARD_STEPS.length - 1 ? 'Deploy Token' : 'Next'}
+              </Button>
+            </div>
+          </div>
+        }
+      >
+        {activeStep === "token-details" ? (
+          <TokenDetailsStep config={config} updateConfig={updateConfig} />
+        ) : null}
+        {activeStep === "chain-selection" ? (
+          <ChainSelectionStep config={config} updateConfig={updateConfig} />
+        ) : null}
+        {activeStep === "economics" ? (
+          <TokenEconomicsStep config={config} updateConfig={updateConfig} />
+        ) : null}
+        {activeStep === "template" ? (
+          <TemplateSelectionStep config={config} updateConfig={updateConfig} />
+        ) : null}
+        {activeStep === "compliance" ? (
+          <ComplianceStep config={config} updateConfig={updateConfig} />
+        ) : null}
+        {activeStep === "review" ? (
+          <ReviewStep config={config} />
+        ) : null}
+      </WizardShell>
+    </section>
+  );
+}
+
