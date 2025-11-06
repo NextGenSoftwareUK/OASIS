@@ -37,16 +37,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>Sent gift details</returns>
         [Authorize]
         [HttpPost("send-gift/{toAvatarId}")]
-        public async Task<OASISResult<Gift>> SendGift(Guid toAvatarId, [FromBody] SendGiftRequest request)
+        //public async Task<OASISResult<Gift>> SendGift(Guid toAvatarId, [FromBody] GiftType giftType, [FromBody] string message = null, [FromBody] Dictionary<string, object> metadata = null)
+        public async Task<OASISResult<Gift>> SendGift(Guid toAvatarId, GiftType giftType, string message = null, Dictionary<string, object> metadata = null)
         {
-            return await GiftsManager.Instance.SendGiftAsync(Avatar.Id, toAvatarId, request.GiftType, request.Message, request.Metadata);
-        }
-        
-        public class SendGiftRequest
-        {
-            public GiftType GiftType { get; set; }
-            public string Message { get; set; }
-            public Dictionary<string, object> Metadata { get; set; }
+            return await GiftsManager.Instance.SendGiftAsync(Avatar.Id, toAvatarId, giftType, message, metadata);
         }
 
         /// <summary>
