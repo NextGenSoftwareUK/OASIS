@@ -983,7 +983,38 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => new OASISResult<bool> { Result = true };
-        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) => Task.FromResult(new OASISResult<bool> { Result = true });
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                var request = new
+                {
+                    function = "delete_avatar_by_provider_key",
+                    arguments = new[] { providerKey, softDelete.ToString().ToLower() }
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/transactions/simulate", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from Aptos";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar from Aptos: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Aptos: {ex.Message}", ex);
+            }
+            return result;
+        }
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => new OASISResult<bool> { Result = true };
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
@@ -1186,9 +1217,79 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => new OASISResult<ISearchResults>();
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IHolon>());
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IHolon>();
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IHolon>());
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var request = new
+                {
+                    function = "get_holon_by_id",
+                    arguments = new[] { id.ToString() }
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var holon = ParseAptosToHolon(responseContent);
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from Aptos";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Aptos: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Aptos: {ex.Message}", ex);
+            }
+            return result;
+        }
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var request = new
+                {
+                    function = "get_holon_by_provider_key",
+                    arguments = new[] { providerKey }
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var holon = ParseAptosToHolon(responseContent);
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from Aptos";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Aptos: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Aptos: {ex.Message}", ex);
+            }
+            return result;
+        }
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IHolon>();
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent is not supported by Aptos provider." });
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent is not supported by Aptos provider." };
@@ -1930,14 +2031,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         #region IOASISNFTProvider Implementation
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request)
+        public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest request)
         {
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest request)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb3NFTTransactionRespone>();
 
             try
             {
@@ -1982,10 +2083,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         var responseContent = await httpResponse.Content.ReadAsStringAsync();
                         var transactionResult = System.Text.Json.JsonSerializer.Deserialize<dynamic>(responseContent);
 
-                        response.Result = new NFTTransactionRespone
+                        response.Result = new Web3NFTTransactionRespone
                         {
                             TransactionResult = $"NFT transfer submitted successfully: {transactionResult}",
-                            OASISNFT = new OASISNFT
+                            Web3NFT = new Web3NFT
                             {
                                 Id = Guid.NewGuid(),
                                 Title = "Transferred NFT"
@@ -2012,9 +2113,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest request)
+        public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest request)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb3NFTTransactionRespone>();
 
             try
             {
@@ -2056,10 +2157,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var responseContent = httpResponse.Content.ReadAsStringAsync().Result;
                     var transactionResult = System.Text.Json.JsonSerializer.Deserialize<dynamic>(responseContent);
 
-                    response.Result = new NFTTransactionRespone
+                    response.Result = new Web3NFTTransactionRespone
                     {
                         TransactionResult = $"NFT minted successfully: {transactionResult}",
-                        OASISNFT = new OASISNFT
+                        Web3NFT = new Web3NFT
                         {
                             Id = Guid.NewGuid(),
                             Title = "OASIS NFT", // Use default title since NFTName doesn't exist
@@ -2082,9 +2183,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest request)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 // REAL Aptos implementation for minting NFT
@@ -2119,7 +2220,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var transactionResult = System.Text.Json.JsonSerializer.Deserialize<AptosTransactionResponse>(responseContent);
 
-                    response.Result = new NFTTransactionRespone
+                    response.Result = new Web3NFTTransactionRespone
                     {
                         TransactionResult = $"NFT minted successfully. Hash: {transactionResult.TransactionHash}"
                     };
@@ -2140,9 +2241,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            var response = new OASISResult<IWeb3NFT>();
 
             try
             {
@@ -2161,7 +2262,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var resources = System.Text.Json.JsonSerializer.Deserialize<dynamic>(responseContent);
 
                     // Parse NFT data from Aptos resources
-                    response.Result = new OASISNFT
+                    response.Result = new Web3NFT
                     {
                         Id = Guid.NewGuid(),
                         Title = "On-Chain NFT",
@@ -2184,9 +2285,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            var response = new OASISResult<IWeb3NFT>();
             try
             {
                 // REAL Aptos implementation for loading NFT data
@@ -2197,7 +2298,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var nftData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    response.Result = new OASISNFT
+                    response.Result = new Web3NFT
                     {
                         Id = Guid.NewGuid(),
                         Title = "OASIS NFT",

@@ -2123,14 +2123,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -2167,7 +2167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                         Success = true
                     };
 
-                    result.Result = (INFTTransactionRespone)nftTransactionResponse;
+                    result.Result = (IWeb4Web4NFTTransactionRespone)nftTransactionResponse;
                     result.IsError = false;
                     result.Message = "NFT transfer sent successfully via Elrond";
                 }
@@ -2183,14 +2183,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transation)
         {
             return MintNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -2227,7 +2227,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                         Success = true
                     };
 
-                    result.Result = (INFTTransactionRespone)nftTransactionResponse;
+                    result.Result = (IWeb4Web4NFTTransactionRespone)nftTransactionResponse;
                     result.IsError = false;
                     result.Message = "NFT minted successfully via Elrond";
                 }
@@ -2517,7 +2517,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
 
                 // Real Elrond implementation: Load NFT data from Elrond blockchain
-                var nft = new OASISNFT
+                var nft = new Web4OASISNFT
                 {
                     Id = Guid.NewGuid(),
                     Title = "Elrond NFT",

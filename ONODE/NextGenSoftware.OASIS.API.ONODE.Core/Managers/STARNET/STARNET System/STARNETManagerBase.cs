@@ -1098,7 +1098,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 oldPath = holon.STARNETDNA.SourcePath;
                 newPath = Path.Combine(new DirectoryInfo(holon.STARNETDNA.SourcePath).Parent.FullName, newSTARNETDNA.Name);
                 newSTARNETDNA.SourcePath = newPath;
-                newSTARNETDNA.LaunchTarget = newSTARNETDNA.LaunchTarget.Replace(holon.Name, newSTARNETDNA.Name);
+
+                if (newSTARNETDNA.LaunchTarget != null)
+                    newSTARNETDNA.LaunchTarget = newSTARNETDNA.LaunchTarget.Replace(holon.Name, newSTARNETDNA.Name);
+                
                 launchTarget = newSTARNETDNA.LaunchTarget;
 
                 holon.MetaData[STARNETHolonNameName] = newSTARNETDNA.Name;

@@ -10,8 +10,8 @@ using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
-using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+//using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
+//using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         PolygonOASIS _polygon;
         SolanaOASIS _solana;
         EOSIOOASIS _EOSIO;
-        TelosOASIS _telos;
+        //TelosOASIS _telos;
         //SEEDSOASIS _SEEDS;
         IPFSOASIS _IPFS;
         HoloOASIS _holochain;
@@ -215,26 +215,26 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             }
         }
 
-        public TelosOASIS Telos
-        {
-            get
-            {
-                if (_telos == null)
-                {
-                    Task.Run(async () =>
-                    {
-                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.TelosOASIS);
+        //public TelosOASIS Telos
+        //{
+        //    get
+        //    {
+        //        if (_telos == null)
+        //        {
+        //            Task.Run(async () =>
+        //            {
+        //                OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.TelosOASIS);
 
-                        if (result != null && !result.IsError)
-                            _telos = (TelosOASIS)result.Result;
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Telos Property Getter. Reason: {result.Message}");
-                    });
-                }
+        //                if (result != null && !result.IsError)
+        //                    _telos = (TelosOASIS)result.Result;
+        //                else
+        //                    OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Telos Property Getter. Reason: {result.Message}");
+        //            });
+        //        }
 
-                return _telos;
-            }
-        }
+        //        return _telos;
+        //    }
+        //}
 
         public HoloOASIS Holochain
         {

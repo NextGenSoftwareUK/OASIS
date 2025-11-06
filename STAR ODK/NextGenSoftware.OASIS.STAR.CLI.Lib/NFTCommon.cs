@@ -1,9 +1,15 @@
-﻿using NextGenSoftware.CLI.Engine;
+﻿using ADRaffy.ENSNormalize;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
@@ -15,69 +21,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     {
         public NFTManager NFTManager { get; set; } = new NFTManager(STAR.BeamedInAvatar.Id);
 
-        
-
-        private Dictionary<string, object> AddMetaDataToNFT(Dictionary<string, object> metaData)
+        public async Task<IMintWeb4NFTRequest> GenerateNFTRequestAsync(string web3JSONMetaDataFile = "")
         {
-            Console.WriteLine("");
-            string key = CLIEngine.GetValidInput("What is the key?");
-            string value = "";
-            byte[] metaFile = null;
-
-            if (CLIEngine.GetConfirmation("Is the value a file?"))
-            {
-                Console.WriteLine("");
-                string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
-                metaFile = File.ReadAllBytes(metaPath);
-            }
-            else
-            {
-                Console.WriteLine("");
-                value = CLIEngine.GetValidInput("What is the value?");
-            }
-
-            if (metaFile != null)
-                metaData[key] = metaFile;
-            else
-                metaData[key] = value;
-
-            return metaData;
-        }
-
-        public async Task<IMintNFTTransactionRequest> GenerateNFTRequestAsync(string web3JSONMetaDataFile = "")
-        {
-            MintNFTTransactionRequest request = new MintNFTTransactionRequest();
+            MintWeb4NFTRequest request = new MintWeb4NFTRequest();
 
             request.MintedByAvatarId = STAR.BeamedInAvatar.Id;
             request.Title = CLIEngine.GetValidInput("What is the NFT's title?");
             request.Description = CLIEngine.GetValidInput("What is the NFT's description?");
             request.MemoText = CLIEngine.GetValidInput("What is the NFT's memotext? (optional)");
-
-            if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT or input a URI to an online image? (Press Y for local or N for online)"))
-            {
-                Console.WriteLine("");
-                string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT?");
-                request.Image = File.ReadAllBytes(localImagePath);
-            }
-            else
-            {
-                Console.WriteLine("");
-                request.ImageUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT?").Result.AbsoluteUri;
-            }
-
-
-            if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT Thumbnail or input a URI to an online image? (Press Y for local or N for online)"))
-            {
-                Console.WriteLine("");
-                string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT Thumbnail?");
-                request.Thumbnail = File.ReadAllBytes(localImagePath);
-            }
-            else
-            {
-                Console.WriteLine("");
-                request.ThumbnailUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT Thumbnail?").Result.AbsoluteUri;
-            }
-
             request.Price = CLIEngine.GetValidInputForLong("What is the price for the NFT?");
 
             if (CLIEngine.GetConfirmation("Is there any discount for the NFT? (This can always be changed later)"))
@@ -87,6 +38,38 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation("Is there any Royalty Percentage?"))
+                request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false);
+            //else
+            //    Console.WriteLine("");
+
+            SalesInfo salesInfo = UpdateSalesInfo(new SalesInfo());
+
+            request.IsForSale = salesInfo.IsForSale;
+            request.SaleStartDate = salesInfo.SaleStartDate;
+            request.SaleEndDate = salesInfo.SaleEndDate;
+
+            //request.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.");
+
+            //if (request.IsForSale.Value)
+            //{
+            //    request.SaleStartDate = CLIEngine.GetValidInputForDate("Please enter the Sale Start Date (YYYY-MM-DD)", addLineBefore: true);
+
+            //    if (request.SaleStartDate.HasValue)
+            //    {
+            //        do
+            //        {
+            //            request.SaleEndDate = CLIEngine.GetValidInputForDate("Please enter the Sale End Date (YYYY-MM-DD) or 'none' to have no end date:", addLineBefore: true);
+
+            //            if (request.SaleEndDate.HasValue && request.SaleEndDate.Value <= request.SaleEndDate.Value)
+            //                CLIEngine.ShowWarningMessage("The end date must be after the start date!");
+            //        }
+            //        while (request.SaleEndDate.HasValue && request.SaleEndDate.Value <= request.SaleStartDate.Value);
+            //    }
+            //    else
+            //        request.SaleEndDate = null;
+            //}
 
             object onChainProviderObj = CLIEngine.GetValidInputForEnum("What on-chain provider do you wish to mint on?", typeof(ProviderType));
             request.OnChainProvider = new EnumValue<ProviderType>((ProviderType)onChainProviderObj);
@@ -128,7 +111,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (File.Exists(web3JSONMetaDataFile))
                 request.JSONMetaData = File.ReadAllText(web3JSONMetaDataFile);
             else
-                Console.WriteLine("The JSON meta data file path you entered does not exist. A new JSON meta data file will be generated instead.");
+                CLIEngine.ShowMessage("The JSON meta data file path you entered does not exist. A new JSON meta data file will be generated instead.", addLineBefore: true);
 
             bool validStandard = false;
             do
@@ -143,23 +126,55 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             } while (!validStandard);
 
-
-            if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
+            if (request.NFTOffChainMetaType.Value != NFTOffChainMetaType.ExternalJSONURL)
             {
-                request.MetaData = new Dictionary<string, object>();
-                request.MetaData = AddMetaDataToNFT(request.MetaData);
-                bool metaDataDone = false;
-
-                do
+                if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT or input a URI to an online image? (Press Y for local or N for online)"))
                 {
-                    if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
-                        request.MetaData = AddMetaDataToNFT(request.MetaData);
-                    else
-                        metaDataDone = true;
+                    Console.WriteLine("");
+                    string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT?");
+                    request.Image = File.ReadAllBytes(localImagePath);
                 }
-                while (!metaDataDone);
+                else
+                {
+                    Console.WriteLine("");
+                    request.ImageUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT?").Result.AbsoluteUri;
+                }
+
+
+                if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT Thumbnail or input a URI to an online image? (Press Y for local or N for online)"))
+                {
+                    Console.WriteLine("");
+                    string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT Thumbnail?");
+                    request.Thumbnail = File.ReadAllBytes(localImagePath);
+                }
+                else
+                {
+                    Console.WriteLine("");
+                    request.ThumbnailUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT Thumbnail?").Result.AbsoluteUri;
+                }
             }
 
+
+
+            //if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
+            //{
+            //    request.MetaData = new Dictionary<string, object>();
+            //    request.MetaData = AddMe(request.MetaData);
+            //    bool metaDataDone = false;
+
+            //    do
+            //    {
+            //        if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
+            //            request.MetaData = AddMetaDataToNFT(request.MetaData);
+            //        else
+            //            metaDataDone = true;
+            //    }
+            //    while (!metaDataDone);
+            //}
+
+
+            request.Tags = TagHelper.ManageTags(request.Tags);
+            MetaDataHelper.ManageMetaData(request.MetaData, "NFT");
             Console.WriteLine("");
             request.NumberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
 
@@ -304,7 +319,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             } while (!validStandard);
 
 
-            request.MetaData = AddMetaData("NFT");
+            request.MetaData = MetaDataHelper.AddMetaData("NFT");
             return request;
         }
 
@@ -340,250 +355,298 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public Dictionary<string, object> AddMetaData(string itemName)
+        public OASISResult<IUpdateWeb4NFTRequest> UpdateWeb4NFT(IUpdateWeb4NFTRequest request, IWeb4OASISNFT nft, string displayName, bool updateTags = true, bool updateMetaData = true)
         {
-            Dictionary<string, object> metaData = new Dictionary<string, object>();
+            OASISResult<IUpdateWeb4NFTRequest> result = new OASISResult<IUpdateWeb4NFTRequest>();
 
-            if (CLIEngine.GetConfirmation($"Do you wish to add any metadata to this {itemName}?"))
+            request.Id = nft.Id;
+            request.ModifiedByAvatarId = STAR.BeamedInAvatar.Id;
+
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Title? (currently is: {nft.Title})"))
+                request.Title = CLIEngine.GetValidInput("Please enter the new title: ", addLineBefore: true);
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Description? (currently is: {nft.Description})"))
+                request.Description = CLIEngine.GetValidInput("Please enter the new description: ", addLineBefore: true);
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation("Do you wish to update the Image and Thumbnail?"))
             {
-                metaData = AddMetaDataToNFT(metaData);
-                bool metaDataDone = false;
+                Console.WriteLine("");
+                OASISResult<ImageAndThumbnail> imageAndThumbnailResult = ProcessImageAndThumbnail(displayName);
 
-                do
+                if (imageAndThumbnailResult != null && imageAndThumbnailResult.Result != null && !imageAndThumbnailResult.IsError)
                 {
-                    if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
-                        metaData = AddMetaDataToNFT(metaData);
-                    else
-                        metaDataDone = true;
+                    request.Image = imageAndThumbnailResult.Result.Image;
+                    request.ImageUrl = imageAndThumbnailResult.Result.ImageUrl;
+                    request.Thumbnail = imageAndThumbnailResult.Result.Thumbnail;
+                    request.ThumbnailUrl = imageAndThumbnailResult.Result.ThumbnailUrl;
                 }
-                while (!metaDataDone);
+                else
+                {
+                    string msg = imageAndThumbnailResult != null ? imageAndThumbnailResult.Message : "";
+                    CLIEngine.ShowErrorMessage($"Error Occured Processing Image and Thumbnail: {msg}");
+                    return result;
+                    //OASISErrorHandling.HandleError(ref result, $"Error Occured Processing Image and Thumbnail: {msg}");
+                    //return result;
+                }
             }
+            else
+                Console.WriteLine("");
 
-            return metaData;
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Price? (currently is: {nft.Price})"))
+            {
+                Console.WriteLine("");
+                request.Price = CLIEngine.GetValidInputForDecimal("Please enter the new Price: ", addLineBefore: false);
+            }
+            else
+                Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Discount? (currently is: {nft.Discount})"))
+            {
+                Console.WriteLine("");
+                request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount: ", addLineBefore: false);
+            }
+            else
+                Console.WriteLine("");
+
+            // Allow editing additional NFT-specific fields
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Royalty Percentage? (currently is: {nft.RoyaltyPercentage})"))
+                request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false, addLineBefore: true);
+            else
+                Console.WriteLine("");
+            //if (CLIEngine.GetConfirmation("Do you wish to edit the Previous Owner Avatar Id?"))
+            //    request.PreviousOwnerAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Previous Owner Avatar Id (GUID): ");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit the Current Owner Avatar Id?"))
+            //    request.CurrentOwnerAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Current Owner Avatar Id (GUID): ");
+
+            if (CLIEngine.GetConfirmation($"Do you wish to change the sale status (Is For Sale)? (currently is: {nft.IsForSale})"))
+            {
+                SalesInfo salesInfo = UpdateSalesInfo(new SalesInfo() { IsForSale = nft.IsForSale, SaleStartDate = nft.SaleStartDate, SaleEndDate = nft.SaleEndDate });
+                
+                request.IsForSale = salesInfo.IsForSale;
+                request.SaleStartDate = salesInfo.SaleStartDate;
+                request.SaleEndDate = salesInfo.SaleEndDate;
+            }
+            else
+                Console.WriteLine("");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Total Number Of Sales?"))
+            //    request.TotalNumberOfSales = CLIEngine.GetValidInputForInt("Please enter the total number of sales:", false);
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Transaction Hash?"))
+            //    request.LastSaleTransactionHash = CLIEngine.GetValidInput("Please enter the last sale transaction hash:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sold By Avatar Id?"))
+            //    request.LastSoldByAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Last Sold By Avatar Id (GUID): ");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Purchased By Avatar Id?"))
+            //    request.LastPurchasedByAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Last Purchased By Avatar Id (GUID): ");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Quantity?"))
+            //    request.LastSaleQuantity = CLIEngine.GetValidInputForInt("Please enter the last sale quantity:", false);
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Discount?"))
+            //    request.LastSaleDiscount = CLIEngine.GetValidInputForDecimal("Please enter the last sale discount:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Tax?"))
+            //    request.LastSaleTax = CLIEngine.GetValidInputForDecimal("Please enter the last sale tax:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Sales History?"))
+            //    request.SalesHistory = CLIEngine.GetValidInput("Please enter the sales history string:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Price?"))
+            //    request.LastSalePrice = CLIEngine.GetValidInputForDecimal("Please enter the last sale price:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Amount?"))
+            //    request.LastSaleAmount = CLIEngine.GetValidInputForDecimal("Please enter the last sale amount:");
+
+            //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Date?"))
+            //{
+            //    string input = CLIEngine.GetValidInput("Please enter the Last Sale Date (YYYY-MM-DD) or 'none' to clear:");
+            //    if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime lastSaleDate))
+            //        request.LastSaleDate = lastSaleDate;
+            //    // Note: UpdateNFTRequest.LastSaleDate is non-nullable; if user doesn't set it will remain default(DateTime)
+            //}
+
+            if (updateTags)
+                request.Tags = TagHelper.ManageTags(nft.Tags);
+
+            if (updateMetaData)
+                request.MetaData = MetaDataHelper.ManageMetaData(nft.MetaData, displayName);
+
+            result.Result = request;
+
+            return result;
         }
 
-        //public async Task<OASISResult<IOASISNFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "NFT", ProviderType providerType = ProviderType.Default, int displayFieldLength = 40)
-        //{
-        //    OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
-        //    Guid id = Guid.Empty;
+        public SalesInfo UpdateSalesInfo(SalesInfo salesInfo, bool edit = true)
+        {
+            salesInfo.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.", addLineBefore: true);
 
-        //    if (idOrName == Guid.Empty.ToString())
-        //        idOrName = "";
+            if (salesInfo.IsForSale.HasValue && salesInfo.IsForSale.Value)
+            {
+                string existingSaleStartDate = salesInfo.SaleStartDate.HasValue ? salesInfo.SaleStartDate.Value == DateTime.MinValue ? "None" : salesInfo.SaleStartDate.Value.ToShortDateString() : "None";
 
-        //    do
-        //    {
-        //        if (string.IsNullOrEmpty(idOrName))
-        //        {
-        //            bool cont = true;
-        //            OASISResult<IEnumerable<IOASISNFT>> starHolonsResult = null;
+                if (!edit || (edit && CLIEngine.GetConfirmation($"Do you wish to edit the Sale Start Date? (currently is: {existingSaleStartDate})", addLineBefore: true)))
+                    salesInfo.SaleStartDate = CLIEngine.GetValidInputForDate("Please enter the Sale Start Date or 'none' to clear:", addLineBefore: true);
+                else
+                    Console.WriteLine("");
 
-        //            if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {UIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
-        //            {
-        //                Console.WriteLine("");
-        //                CLIEngine.ShowWorkingMessage($"Loading {UIName}'s...");
+                if (salesInfo.SaleStartDate.HasValue)
+                {
+                    string existingSaleEndDate = salesInfo.SaleEndDate.HasValue ? salesInfo.SaleEndDate.Value == DateTime.MinValue ? "None" : salesInfo.SaleEndDate.Value.ToShortDateString() : "None";
 
-        //                if (showOnlyForCurrentAvatar)
-        //                    starHolonsResult = await NFTManager.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.AvatarId, providerType);
-        //                else
-        //                    starHolonsResult = await NFTManager.LoadAllNFTsAsync(providerType);
+                    if (!edit || (edit && CLIEngine.GetConfirmation($"Do you wish to edit Sale End Date? (currently is: {existingSaleEndDate})")))
+                    {
+                        do
+                        {
+                            salesInfo.SaleEndDate = CLIEngine.GetValidInputForDate("Please enter the Sale End Date or 'none' to clear:", addLineBefore: true);
 
-        //                ListWeb4NFTs(starHolonsResult, displayFieldLength);
+                            if (salesInfo.SaleEndDate.HasValue && salesInfo.SaleEndDate.Value <= salesInfo.SaleStartDate.Value)
+                                CLIEngine.ShowWarningMessage("The end date must be after the start date!");
+                        }
+                        while (salesInfo.SaleEndDate.HasValue && salesInfo.SaleEndDate.Value <= salesInfo.SaleStartDate.Value);
+                    }
+                    else
+                        Console.WriteLine("");
+                }
+                else
+                    salesInfo.SaleEndDate = null;
+            }
+            else
+                Console.WriteLine("");
 
-        //                if (!(starHolonsResult != null && starHolonsResult.Result != null && !starHolonsResult.IsError && starHolonsResult.Result.Count() > 0))
-        //                    cont = false;
-        //            }
-        //            else
-        //                Console.WriteLine("");
+            return salesInfo;
+        }
 
-        //            if (cont)
-        //                idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the {UIName} you wish to {operationName}?");
-        //            else
-        //            {
-        //                idOrName = "nonefound";
-        //                break;
-        //            }
+        public OASISResult<IUpdateWeb4NFTCollectionRequestBase> UpdateWeb4NFTCollection(IUpdateWeb4NFTCollectionRequestBase request, IWeb4OASISNFTCollectionBase collection, string displayName, bool updateTags = true, bool updateMetaData = true)
+        {
+            OASISResult<IUpdateWeb4NFTCollectionRequestBase> result = new OASISResult<IUpdateWeb4NFTCollectionRequestBase>();
 
-        //            if (idOrName == "exit")
-        //                break;
-        //        }
+            request.Id = collection.Id;
+            request.ModifiedBy = STAR.BeamedInAvatar.Id;
 
-        //        if (addSpace)
-        //            Console.WriteLine("");
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Title? (currently is: {collection.Name})"))
+                request.Title = CLIEngine.GetValidInput("Please enter the new title: ", addLineBefore: true);
+            else
+                Console.WriteLine("");
 
-        //        if (Guid.TryParse(idOrName, out id))
-        //        {
-        //            CLIEngine.ShowWorkingMessage($"Loading {UIName}...");
-        //            result = await NFTManager.LoadNftAsync(id, providerType);
+            if (CLIEngine.GetConfirmation($"Do you wish to edit the Description? (currently is: {collection.Description})"))
+                request.Description = CLIEngine.GetValidInput("Please enter the new description: ", addLineBefore: true);
+            else
+                Console.WriteLine("");
 
-        //            if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.MintedByAvatarId != STAR.BeamedInAvatar.AvatarId)
-        //            {
-        //                CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {UIName}. It was minted by another avatar.");
-        //                result.Result = default;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-        //            OASISResult<IEnumerable<IOASISNFT>> searchResults = await NFTManager.SearchNFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+            if (CLIEngine.GetConfirmation("Do you wish to update the Image and Thumbnail?"))
+            {
+                Console.WriteLine("");
+                OASISResult<ImageAndThumbnail> imageAndThumbnailResult = ProcessImageAndThumbnail(displayName);
 
-        //            if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
-        //            {
-        //                if (searchResults.Result.Count() > 1)
-        //                {
-        //                    ListWeb4NFTs(searchResults, displayFieldLength);
+                if (imageAndThumbnailResult != null && imageAndThumbnailResult.Result != null && !imageAndThumbnailResult.IsError)
+                {
+                    request.Image = imageAndThumbnailResult.Result.Image;
+                    request.ImageUrl = imageAndThumbnailResult.Result.ImageUrl;
+                    request.Thumbnail = imageAndThumbnailResult.Result.Thumbnail;
+                    request.ThumbnailUrl = imageAndThumbnailResult.Result.ThumbnailUrl;
+                }
+                else
+                {
+                    string msg = imageAndThumbnailResult != null ? imageAndThumbnailResult.Message : "";
+                    CLIEngine.ShowErrorMessage($"Error Occured Processing Image and Thumbnail: {msg}");
+                    return result;
+                }
+            }
+            else
+                Console.WriteLine("");
 
-        //                    if (CLIEngine.GetConfirmation("Are any of these correct?"))
-        //                    {
-        //                        Console.WriteLine("");
+            if (updateTags)
+                request.Tags = TagHelper.ManageTags(collection.Tags);
 
-        //                        do
-        //                        {
-        //                            int number = CLIEngine.GetValidInputForInt($"What is the number of the {UIName} you wish to {operationName}?");
+            if (updateMetaData)
+                request.MetaData = MetaDataHelper.ManageMetaData(collection.MetaData, displayName);
 
-        //                            if (number > 0 && number <= searchResults.Result.Count())
-        //                                result.Result = searchResults.Result.ElementAt(number - 1);
-        //                            else
-        //                                CLIEngine.ShowErrorMessage("Invalid number entered. Please try again.");
+            result.Result = request;
+            return result;
+        }
 
-        //                        } while (result.Result == null || result.IsError);
-        //                    }
-        //                    else
-        //                    {
-        //                        Console.WriteLine("");
-        //                        idOrName = "";
-        //                    }
-        //                }
-        //                else if (searchResults.Result.Count() == 1)
-        //                    result.Result = searchResults.Result.FirstOrDefault();
-        //                else
-        //                {
-        //                    idOrName = "";
-        //                    CLIEngine.ShowWarningMessage($"No {UIName} Found!");
-        //                }
-        //            }
-        //            else
-        //                CLIEngine.ShowErrorMessage($"An error occured calling STARNETManager.SearchsAsync. Reason: {searchResults.Message}");
-        //        }
+        public async Task<OASISResult<T5>> UpdateSTARNETHolonAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, string starnetDNAKeyForWeb4Object, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, object> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default) 
+            where T1 : ISTARNETHolon, new()
+            where T2 : IDownloadedSTARNETHolon, new()
+            where T3 : IInstalledSTARNETHolon, new()
+            where T4 : ISTARNETDNA, new()
+        {
+            Guid web5Id = Guid.Empty;
 
-        //        if (result.Result != null)
-        //            ShowNFT(result.Result, displayFieldLength);
+            if (metaData != null && metaData.ContainsKey(web5IdMetaDataKey) && metaData[web5IdMetaDataKey] != null && Guid.TryParse(metaData[web5IdMetaDataKey].ToString(), out web5Id))
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowWorkingMessage($"Updating WEB5 STAR {STARNETManager.STARNETHolonUIName} with updated WEB4 OASIS {STARNETManager.STARNETHolonUIName} data...");
+                OASISResult<T1> starNFTCollection = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, web5Id, providerType: providerType);
 
-        //        if (idOrName == "exit")
-        //            break;
+                if (starNFTCollection != null && starNFTCollection.Result != null && !starNFTCollection.IsError)
+                {
+                    starNFTCollection.Result.STARNETDNA.MetaData[starnetDNAKeyForWeb4Object] = result.Result;
+                    starNFTCollection = await STARNETManager.UpdateAsync(STAR.BeamedInAvatar.Id, starNFTCollection.Result, updateDNAJSONFile: true, providerType: providerType);
 
-        //        if (result.Result != null && operationName != "view")
-        //        {
-        //            if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {UIName}?"))
-        //            {
+                    if (starNFTCollection != null && starNFTCollection.Result != null && !starNFTCollection.IsError)
+                        CLIEngine.ShowSuccessMessage($"WEB5 STAR {STARNETManager.STARNETHolonUIName} Successfully Updated.");
+                    else
+                    {
+                        string msg = starNFTCollection != null ? starNFTCollection.Message : "";
+                        OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB5 STAR {STARNETManager.STARNETHolonUIName} after updating WEB4 OASIS {STARNETManager.STARNETHolonUIName}. Reason: {msg}");
+                    }
+                }
+                else
+                {
+                    string msg = starNFTCollection != null ? starNFTCollection.Message : "";
+                    OASISErrorHandling.HandleError(ref result, $"Error Occured Loading WEB5 STAR {STARNETManager.STARNETHolonUIName}. Reason: {msg}");
+                }
+            }
 
-        //            }
-        //            else
-        //            {
-        //                Console.WriteLine("");
-        //                result.Result = default;
-        //                idOrName = "";
+            return result;
+        }
 
-        //                if (!CLIEngine.GetConfirmation($"Do you wish to search for another {UIName}?"))
-        //                {
-        //                    idOrName = "exit";
-        //                    break;
-        //                }
-        //            }
+        public async Task<OASISResult<T5>> DeleteAllSTARNETVersionsAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, object> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default)
+            where T1 : ISTARNETHolon, new()
+            where T2 : IDownloadedSTARNETHolon, new()
+            where T3 : IInstalledSTARNETHolon, new()
+            where T4 : ISTARNETDNA, new()
+        {
+            Guid web5Id = Guid.Empty;
 
-        //            Console.WriteLine("");
-        //        }
+            if (metaData != null && metaData.ContainsKey(web5IdMetaDataKey) && metaData[web5IdMetaDataKey] != null && Guid.TryParse(metaData[web5IdMetaDataKey].ToString(), out web5Id))
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowWorkingMessage($"Deleting All WEB5 STAR {STARNETManager.STARNETHolonUIName} Versions...");
 
-        //        idOrName = "";
-        //    }
-        //    while (result.Result == null || result.IsError);
+                OASISResult<IEnumerable<T1>> versionsResult = await STARNETManager.LoadVersionsAsync(web5Id, providerType);
 
-        //    if (idOrName == "exit")
-        //    {
-        //        result.IsError = true;
-        //        result.Message = "User Exited";
-        //    }
-        //    else if (idOrName == "nonefound")
-        //    {
-        //        result.IsError = true;
-        //        result.Message = "None Found";
-        //    }
+                if (versionsResult != null && versionsResult.Result != null && !versionsResult.IsError)
+                {
+                    foreach (T1 version in versionsResult.Result)
+                    {
+                        OASISResult<T1> deleteResult = await STARNETManager.DeleteAsync(STAR.BeamedInAvatar.Id, web5Id, version.STARNETDNA.VersionSequence, providerType: providerType);
 
-        //    return result;
-        //}
+                        if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
+                            CLIEngine.ShowSuccessMessage($"Successfully Deleted Version {version.STARNETDNA.VersionSequence}.");
+                        else
+                        {
+                            string msg = versionsResult != null ? versionsResult.Message : "";
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB5 STAR {STARNETManager.STARNETHolonUIName} Version {version.STARNETDNA.VersionSequence}. Reason: {msg}");
+                        }
+                    }
+                }
+                else
+                {
+                    string msg = versionsResult != null ? versionsResult.Message : "";
+                    OASISErrorHandling.HandleError(ref result, $"Error Occured Loading WEB5 STAR {STARNETManager.STARNETHolonUIName} versions. Reason: {msg}");
+                }   
+            }
 
-        //public OASISResult<IEnumerable<IOASISNFT>> ListWeb4NFTs(OASISResult<IEnumerable<IOASISNFT>> nfts, int displayFieldLength)
-        //{
-        //    if (nfts != null)
-        //    {
-        //        if (!nfts.IsError)
-        //        {
-        //            if (nfts.Result != null && nfts.Result.Count() > 0)
-        //            {
-        //                Console.WriteLine();
-
-        //                if (nfts.Result.Count() == 1)
-        //                    CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB4 NFT Found:");
-        //                else
-        //                    CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB4 NFT's Found:");
-
-        //                foreach (IOASISNFT nft in nfts.Result)
-        //                    ShowNFT(nft, displayFieldLength);
-        //            }
-        //            else
-        //                CLIEngine.ShowWarningMessage($"No WEB4 NFT's Found.");
-        //        }
-        //        else
-        //            CLIEngine.ShowErrorMessage($"Error occured loading WEB4 NFT's. Reason: {nfts.Message}");
-        //    }
-        //    else
-        //        CLIEngine.ShowErrorMessage($"Unknown error occured loading WEB4 NFT's.");
-
-        //    return nfts;
-        //}
-
-        //public void ShowNFT(IOASISNFT nft, int displayFieldLength)
-        //{
-        //    Console.WriteLine("");
-        //    DisplayProperty("NFT DETAILS", "", displayFieldLength, false);
-        //    Console.WriteLine("");
-        //    DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
-        //    DisplayProperty("Title", nft.Title, displayFieldLength);
-        //    DisplayProperty("Description", nft.Description, displayFieldLength);
-        //    DisplayProperty("Price", nft.Price.ToString(), displayFieldLength);
-        //    DisplayProperty("Discount", nft.Discount.ToString(), displayFieldLength);
-        //    DisplayProperty("OASIS MintWallet Address", nft.OASISMintWalletAddress, displayFieldLength);
-        //    DisplayProperty("Mint Transaction Hash", nft.MintTransactionHash, displayFieldLength);
-        //    DisplayProperty("NFT Token Address", nft.NFTTokenAddress, displayFieldLength);
-        //    DisplayProperty("Minted By Avatar Id", nft.MintedByAvatarId.ToString(), displayFieldLength);
-        //    DisplayProperty("Minted On", nft.MintedOn.ToString(), displayFieldLength);
-        //    DisplayProperty("OnChain Provider", nft.OnChainProvider.Name, displayFieldLength);
-        //    DisplayProperty("OffChain Provider", nft.OffChainProvider.Name, displayFieldLength);
-        //    DisplayProperty("Store NFT Meta Data OnChain", nft.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
-        //    DisplayProperty("NFT OffChain Meta Type", nft.NFTOffChainMetaType.Name, displayFieldLength);
-        //    DisplayProperty("NFT Standard Type", nft.NFTStandardType.Name, displayFieldLength);
-        //    DisplayProperty("Symbol", nft.Symbol, displayFieldLength);
-        //    DisplayProperty("Image", nft.Image != null ? "Yes" : "None", displayFieldLength);
-        //    DisplayProperty("Image Url", nft.ImageUrl, displayFieldLength);
-        //    DisplayProperty("Thumbnail", nft.Thumbnail != null ? "Yes" : "None", displayFieldLength);
-        //    DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None", displayFieldLength);
-        //    DisplayProperty("JSON MetaData URL", nft.JSONMetaDataURL, displayFieldLength);
-        //    DisplayProperty("JSON MetaData URL Holon Id", nft.JSONMetaDataURLHolonId != Guid.Empty ? nft.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
-        //    DisplayProperty("Seller Fee Basis Points", nft.SellerFeeBasisPoints.ToString(), displayFieldLength);
-        //    DisplayProperty("Update Authority", nft.UpdateAuthority, displayFieldLength);
-        //    DisplayProperty("Send To Address After Minting", nft.SendToAddressAfterMinting, displayFieldLength);
-        //    DisplayProperty("Send To Avatar After Minting Id", nft.SendToAvatarAfterMintingId != Guid.Empty ? nft.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
-        //    DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(nft.SendToAvatarAfterMintingUsername) ? nft.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
-        //    DisplayProperty("Send NFT Transaction Hash", nft.SendNFTTransactionHash, displayFieldLength);
-
-        //    if (nft.MetaData != null)
-        //    {
-        //        CLIEngine.ShowMessage($"MetaData:");
-
-        //        foreach (string key in nft.MetaData.Keys)
-        //            CLIEngine.ShowMessage($"          {key} = {nft.MetaData[key]}", false);
-        //    }
-        //    else
-        //        CLIEngine.ShowMessage($"MetaData: None");
-        //}
+            return result;
+        }
     }
 }

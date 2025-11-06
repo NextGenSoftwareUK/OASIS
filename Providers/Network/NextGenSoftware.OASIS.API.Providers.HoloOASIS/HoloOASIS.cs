@@ -1,36 +1,37 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using NextGenSoftware.Utilities;
-using NextGenSoftware.Holochain.HoloNET.Client;
-using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories;
-using DataHelper = NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers.DataHelper;
-using static System.Net.WebRequestMethods;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using System.Text.Json;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
 using System.Net.Http;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+using static System.Net.WebRequestMethods;
+using DataHelper = NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers.DataHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -1660,14 +1661,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1694,7 +1695,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
                     
-                    var nftTransactionResponse = new NFTTransactionRespone
+                    var nftTransactionResponse = new Web3NFTTransactionRespone
                     {
                         TransactionResult = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-transfer-completed",
                     };
@@ -1715,14 +1716,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb3NFTRequest transation)
         {
             return MintNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(IMintWeb3NFTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1749,7 +1750,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
                     
-                    var nftTransactionResponse = new NFTTransactionRespone
+                    var nftTransactionResponse = new Web3NFTTransactionRespone
                     {
                         TransactionResult = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-mint-completed",
                     };
@@ -1978,14 +1979,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             // OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClientAppAgent.EndPoint.AbsoluteUri, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            var response = new OASISResult<IWeb3NFT>();
             try
             {
                 // Load NFT data from Holochain using HoloNET
                 // This would query Holochain DHT for NFT metadata
-                var nft = new OASISNFT
+                var nft = new Web3NFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     JSONMetaDataURL = $"holochain://{OASIS_HAPP_ID}/nft/{nftTokenAddress}",
@@ -2005,14 +2006,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return response;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            var response = new OASISResult<IWeb3NFT>();
             try
             {
                 // Load NFT data from Holochain using HoloNET
                 // This would query Holochain DHT for NFT metadata
-                var nft = new OASISNFT
+                var nft = new Web3NFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     JSONMetaDataURL = $"holochain://{OASIS_HAPP_ID}/nft/{nftTokenAddress}",

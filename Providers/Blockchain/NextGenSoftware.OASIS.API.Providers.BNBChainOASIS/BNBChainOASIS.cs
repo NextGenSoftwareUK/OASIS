@@ -2997,14 +2997,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         }
 
         // NFT Provider interface methods
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest request)
         {
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest request)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!_isActivated)
@@ -3058,7 +3058,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                         MemoText = $"NFT sent successfully from {nftData.fromAddress} to {nftData.toAddress}"
                     };
                     
-                    result.Result = (INFTTransactionRespone)nftResponse;
+                    result.Result = (IWeb4Web4NFTTransactionRespone)nftResponse;
                     result.IsError = false;
                     result.Message = $"NFT sent successfully. Transaction hash: {transactionReceipt.TransactionHash}";
                 }
@@ -3075,14 +3075,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest request)
         {
             return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest request)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!_isActivated)
@@ -3208,7 +3208,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                         MemoText = $"NFT minted successfully: {nftData.title}"
                     };
                     
-                    result.Result = (INFTTransactionRespone)nftResponse;
+                    result.Result = (IWeb4Web4NFTTransactionRespone)nftResponse;
                     result.IsError = false;
                     result.Message = $"NFT minted successfully. Transaction hash: {transactionReceipt.TransactionHash}";
                 }
@@ -3277,7 +3277,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     {
                         // Parse NFT data from blockchain response
                         var nftData = JsonSerializer.Deserialize<JsonElement>(resultData.GetString());
-                        var nft = new OASISNFT
+                        var nft = new Web4OASISNFT
                         {
                             Id = Guid.NewGuid(),
                             Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "BNB NFT",

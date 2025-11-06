@@ -11,37 +11,17 @@ WORKDIR /src
 # Copy the entire OASIS project structure
 COPY . .
 
-# FORCE CACHE BREAK - Download ALL external libraries from GitHub
+# Copy external libraries to a location within the build context
+COPY external-libs/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/ NextGenSoftware-Libraries/NextGenSoftware\ Libraries/
+
+# Clone holochain-client-csharp from GitHub
 RUN apt-get update && apt-get install -y git
-RUN git clone https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git temp-libs
 RUN git clone https://github.com/NextGenSoftwareUK/holochain-client-csharp.git temp-holo
-
-# Create directory structure for ALL libraries
-RUN mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries"
-RUN mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries"
 RUN mkdir -p "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp"
-
-# Copy ALL NextGenSoftware libraries to both locations
-RUN cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/"
-RUN cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/"
-
-# Copy holochain-client-csharp
 RUN cp -r temp-holo/* "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp/"
 
-# Install missing NuGet packages for the external libraries
-RUN cd "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging" && \
-    dotnet add package BetterConsoleTables && \
-    dotnet add package NLog
-
-RUN cd "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog" && \
-    dotnet add package NLog
-
-# Install missing NuGet packages for the main projects
-RUN dotnet add "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj" package BetterConsoleTables
-RUN dotnet add "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" package NLog
-
 # Clean up
-RUN rm -rf temp-libs temp-holo
+RUN rm -rf temp-holo
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Build the STAR WebAPI project from the root directory
