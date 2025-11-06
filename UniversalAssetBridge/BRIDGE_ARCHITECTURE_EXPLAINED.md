@@ -1,337 +1,310 @@
-# 🏗️ Bridge Architecture - QS vs OASIS Explained
+# Universal Asset Bridge - Architecture Overview
 
-**Question:** What's the relationship between the QS backend and the OASIS bridge?  
-**Answer:** They're **two implementations** of the same concept! Here's the breakdown:
-
----
-
-## 📊 The Two Bridge Systems
-
-### 1. QS Asset Rail Bridge (Original) ✅
-**Location:** `/Volumes/Storage/QS_Asset_Rail/asset-rail-platform/backend/`
-
-**What it is:**
-- Standalone bridge SDK
-- REST API backend
-- Database-backed order system
-- Production-tested SOL ↔ XRD swaps
-
-**Components:**
-```
-QS Backend/
-├── bridge-sdk/                    # Bridge logic
-│   ├── Common/IBridge.cs          # Bridge interface
-│   ├── Solana/SolanaBridge.cs     # Solana implementation
-│   └── Radix/RadixBridge.cs       # Radix implementation
-├── API/
-│   ├── Controllers/
-│   │   ├── OrderController.cs     # /orders endpoints
-│   │   └── ExchangeRateController.cs # /exchange-rate endpoint
-│   └── Infrastructure/
-│       └── OrderService.cs         # Business logic
-└── Database/
-    └── PostgreSQL schema          # Order persistence
-```
-
-**API Endpoints:**
-- `GET /api/v1/exchange-rate`
-- `POST /api/v1/orders`
-- `GET /api/v1/orders/{id}/check-balance`
-
-**Status:** ✅ **Working right now** (compiling/starting)
+**Purpose:** Technical overview of the OASIS Universal Asset Bridge  
+**Audience:** Developers and technical stakeholders  
+**Status:** Active Development
 
 ---
 
-### 2. OASIS Universal Bridge (Migrated) ⏳
-**Location:** `/Volumes/Storage/OASIS_CLEAN/OASIS Architecture/.../Managers/Bridge/`
+## What is the Universal Asset Bridge?
 
-**What it is:**
-- Bridge integrated into OASIS Core
-- Uses OASIS patterns (OASISResult, providers, etc.)
-- Designed for ALL blockchains
-- Migrated FROM QS Asset Rail
+The Universal Asset Bridge enables cross-chain token swaps across 10+ blockchains using OASIS HyperDrive technology for enhanced security and reliability.
 
-**Components:**
-```
-OASIS Core/
-├── Managers/Bridge/
-│   ├── Interfaces/
-│   │   └── IOASISBridge.cs         # Universal interface
-│   ├── CrossChainBridgeManager.cs  # Atomic swap logic
-│   ├── DTOs/                       # Data models
-│   └── Services/
-│       └── CoinGeckoExchangeRateService.cs
-└── Providers/
-    ├── SOLANAOASIS/
-    │   └── SolanaBridgeService.cs  # Implements IOASISBridge
-    └── RadixOASIS/
-        └── RadixService.cs          # Implements IOASISBridge
-```
-
-**Status:** ⏳ **70% Complete** (no API endpoints yet)
+**Key Features:**
+- Multi-chain support (Ethereum, Solana, Polygon, Arbitrum, Base, etc.)
+- Atomic swaps with automatic rollback
+- Auto-failover across multiple providers
+- Real-time exchange rates
+- Order tracking and status management
 
 ---
 
-## 🔄 The Relationship
+## Architecture Components
 
+### 1. API Layer (REST Endpoints)
+
+**Location:** `/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/BridgeController.cs`
+
+**Endpoints:**
 ```
-┌─────────────────────────────────────────────────────────┐
-│              ORIGINAL (QS Asset Rail)                   │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │  REST API (Port 5233)              ✅ Working    │  │
-│  │  • OrderController                               │  │
-│  │  • ExchangeRateController                        │  │
-│  │  • Database integration                          │  │
-│  │  • Production-ready                              │  │
-│  └──────────────────┬───────────────────────────────┘  │
-│                     │                                   │
-│  ┌──────────────────▼───────────────────────────────┐  │
-│  │  Bridge SDK                                      │  │
-│  │  • IBridge interface                             │  │
-│  │  • SolanaBridge                                  │  │
-│  │  • RadixBridge                                   │  │
-│  │  • OrderService (business logic)                 │  │
-│  └──────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-
-                    │ MIGRATED TO ↓
-
-┌─────────────────────────────────────────────────────────┐
-│              NEW (OASIS Integration)                    │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │  REST API (OASIS WebAPI)           ⏳ TODO       │  │
-│  │  • BridgeController (doesn't exist yet)          │  │
-│  │  • Needs to be created                           │  │
-│  └──────────────────┬───────────────────────────────┘  │
-│                     │                                   │
-│  ┌──────────────────▼───────────────────────────────┐  │
-│  │  Bridge Core (OASIS)               ✅ EXISTS     │  │
-│  │  • IOASISBridge interface (universal)            │  │
-│  │  • CrossChainBridgeManager                       │  │
-│  │  • SolanaBridgeService                           │  │
-│  │  • RadixService                                  │  │
-│  └──────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
+POST   /api/v1/orders                    - Create bridge order
+GET    /api/v1/orders/{id}/check-balance - Check order status
+GET    /api/v1/exchange-rate             - Get current rate
+GET    /api/v1/networks                  - List supported chains
 ```
 
----
+**Status:** ✅ Implemented
 
-## 💡 The Key Difference
+### 2. Service Layer
 
-### QS Backend (What's Running Now):
-- ✅ **Complete REST API** with controllers
-- ✅ **Database integration** for orders
-- ✅ **Production-ready** and tested
-- ✅ **Works immediately**
-- ❌ **Standalone** - not integrated with OASIS
-- ❌ **Only SOL ↔ XRD** - hard to add new chains
+**Location:** `/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/BridgeService.cs`
 
-### OASIS Bridge (What We're Building):
-- ✅ **Universal interface** - works with ANY chain
-- ✅ **Core logic** migrated and working
-- ✅ **Extensible** - add chains in 6-8 hours
-- ❌ **No REST API yet** - need to create controllers
-- ❌ **No database** - optional integration
-- ⏳ **70% complete** - needs finishing
+**Responsibilities:**
+- Wraps bridge manager functionality
+- Handles errors and logging
+- Manages Solana bridge initialization
+- Provides clean interface for controllers
 
----
+**Status:** ✅ Implemented (Solana only, Radix pending)
 
-## 🎯 Current State: TWO BACKENDS
+### 3. Bridge Manager (Core Logic)
 
-### Backend #1: QS Asset Rail (Running) ✅
-```bash
-# What you're starting now
-cd /Volumes/Storage/QS_Asset_Rail/asset-rail-platform/backend
-dotnet run --project src/api/API
+**Location:** `NextGenSoftware.OASIS.API.Core.Managers.Bridge/CrossChainBridgeManager.cs`
 
-# Provides:
-GET  http://localhost:5233/api/v1/exchange-rate
-POST http://localhost:5233/api/v1/orders
-GET  http://localhost:5233/api/v1/orders/{id}/check-balance
-```
+**Responsibilities:**
+- Execute atomic swaps
+- Manage bridge order lifecycle
+- Coordinate between source and destination chains
+- Handle rollbacks on failure
 
-**Frontend connects to THIS one!**
+**Status:** ⏳ Partially implemented (needs completion)
 
-### Backend #2: OASIS Core (Needs API Layer) ⏳
-```bash
-# Will be in the future
-cd /Volumes/Storage/OASIS_CLEAN/NextGenSoftware.OASIS.API.ONODE.WebAPI
-dotnet run
+### 4. Provider Implementations
 
-# Will provide (once we create controllers):
-POST /api/bridge/order/create
-GET  /api/bridge/exchange-rate
-GET  /api/bridge/order/{id}/status
-```
+**Interface:** `IOASISBridge`
 
-**Future goal: Frontend connects to this!**
+**Implementations:**
+- **SolanaBridgeService:** ✅ Implemented
+- **EthereumBridgeService:** ❌ Needs implementation
+- **PolygonBridgeService:** ❌ Needs implementation
+- **ArbitrumBridgeService:** ❌ Needs implementation
+- **RadixBridgeService:** ❌ Needs implementation
 
----
-
-## 🚀 The Migration Path
-
-### Phase 1: Use QS Backend (NOW) ✅
-**Status:** This is what we're doing today!
-
-**Why:**
-- Already works
-- Production-tested
-- Has all API endpoints
-- Frontend is configured for it
-
-**Limitations:**
-- Separate from OASIS
-- Hard to add new chains
-- Duplicate code
-
-### Phase 2: Create OASIS API Layer (2-3 hours)
-**Create:** BridgeController in OASIS WebAPI
-
+Each provider implements:
 ```csharp
-// File: /OASIS_CLEAN/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/BridgeController.cs
-
-[Route("api/bridge")]
-public class BridgeController : ControllerBase
+public interface IOASISBridge
 {
-    private readonly CrossChainBridgeManager _bridgeManager;
-    
-    [HttpPost("order/create")]
-    public async Task<IActionResult> CreateOrder([FromBody] CreateBridgeOrderRequest request)
-    {
-        var result = await _bridgeManager.CreateBridgeOrderAsync(request);
-        return result.IsError ? BadRequest(result.Message) : Ok(result.Result);
-    }
-    
-    [HttpGet("exchange-rate")]
-    public async Task<IActionResult> GetExchangeRate([FromQuery] string fromToken, [FromQuery] string toToken)
-    {
-        var result = await _bridgeManager.GetExchangeRateAsync(fromToken, toToken);
-        return result.IsError ? BadRequest(result.Message) : Ok(result.Result);
-    }
-    
-    // ... more endpoints
+    Task<OASISResult<string>> LockTokensAsync(...);
+    Task<OASISResult<string>> MintTokensAsync(...);
+    Task<OASISResult<string>> BurnTokensAsync(...);
+    Task<OASISResult<string>> ReleaseTokensAsync(...);
 }
 ```
 
-**Then:** Point frontend to OASIS API instead of QS
+### 5. Smart Contracts (On-Chain)
 
-### Phase 3: Decommission QS Backend (Optional)
-Once OASIS API has all features, you can:
-- Migrate database
-- Deprecate QS backend
-- Use only OASIS
+**Location:** `/UniversalAssetBridge/contracts/`
 
----
+**Required Contracts:**
+- `OASISBridge.sol` (Ethereum/EVM chains) - ❌ Not deployed
+- `solana_bridge_program.rs` (Solana) - ❌ Not deployed
+- `radix_bridge.scrypto` (Radix) - ❌ Not deployed
 
-## 📋 What Needs to Happen
+**Specifications:** ✅ Created (`bridge-specifications.json`)
 
-### To Use QS Backend (5 minutes) ✅
-1. ✅ Start the QS backend (dotnet run)
-2. ✅ Frontend already configured for it
-3. ✅ Everything just works!
-
-### To Use OASIS Backend (4-6 hours) ⏳
-1. Create BridgeController in OASIS WebAPI
-2. Wire up CrossChainBridgeManager
-3. Add authentication/authorization
-4. Update frontend API URL
-5. Test all endpoints
-6. Migrate or replicate database
-
----
-
-## 🤔 Which Backend Should You Use?
-
-### Use QS Backend If:
-- ✅ You want to test swaps **TODAY**
-- ✅ You need production-ready code **NOW**
-- ✅ You're okay with SOL ↔ XRD only for now
-- ✅ You don't mind running separate backend
-
-### Use OASIS Backend If:
-- ⏳ You want universal multi-chain support
-- ⏳ You want everything integrated in OASIS
-- ⏳ You're willing to spend 4-6 hours on API layer
-- ⏳ You want to add Ethereum, Polygon, etc. easily
-
----
-
-## 💡 Recommended Approach
-
-### Short Term (TODAY):
-**Use QS Backend!**
-- It works NOW
-- Frontend is already configured for it
-- You can test swaps immediately
-- Production-tested
-
-### Medium Term (This Week):
-**Port API to OASIS:**
-- Create BridgeController
-- Wire up CrossChainBridgeManager  
-- Test with Solana first
-- Then add Radix
-
-### Long Term (Next Month):
-**Deprecate QS, Use OASIS Only:**
-- All chains in OASIS
-- One unified backend
-- Easy to add new chains
-
----
-
-## 🎯 Summary
-
-### The Logic:
-**YES, it's in OASIS!** (`CrossChainBridgeManager`, `IOASISBridge`)
-
-### The API:
-**NO, not yet!** The REST API layer is still in QS Backend.
-
-### The Solution:
-1. **Today:** Use QS backend (it works!)
-2. **Soon:** Port API endpoints to OASIS
-3. **Future:** Everything unified in OASIS
-
----
-
-## 📍 Where Everything Lives
-
-### QS Backend (Working Now):
-```
-/Volumes/Storage/QS_Asset_Rail/asset-rail-platform/backend/
-├── src/api/API/                   # REST API ✅
-├── src/bridge-sdk/                # Bridge logic (original) ✅
-└── Database                       # PostgreSQL ✅
+**Functions:**
+```solidity
+function lockTokens(destinationChain, recipient, amount)
+function mintTokens(orderId, recipient, amount, proof) onlyOracle
+function burnTokens(amount, returnChain, returnAddress)
+function releaseTokens(orderId, recipient, proof) onlyOracle
 ```
 
-### OASIS Bridge (Logic Only):
-```
-/Volumes/Storage/OASIS_CLEAN/
-├── OASIS Architecture/.../Managers/Bridge/  # Core logic ✅
-├── Providers/.../SOLANAOASIS/              # Solana bridge ✅
-├── Providers/.../RadixOASIS/               # Radix bridge ⏳
-└── OASIS.API.ONODE.WebAPI/                 # API endpoints ❌
-```
+### 6. Oracle Service (Background Worker)
+
+**Location:** Needs to be created
+
+**Responsibilities:**
+- Monitor all chains for TokensLocked events
+- Verify locks reached finality
+- Generate consensus proofs
+- Execute mints on destination chains
+- Update order statuses
+
+**Status:** ❌ Not implemented
+
+### 7. Database
+
+**Tables Needed:**
+- `bridge_orders` - Order tracking
+- `bridge_transactions` - Transaction history
+- `bridge_events` - Event log
+
+**Provider:** MongoDB (configured) or PostgreSQL (recommended for financial data)
+
+**Status:** ❌ Not implemented
 
 ---
 
-## 🚀 Action Items
+## How a Swap Works
 
-### Right Now:
-- ✅ Frontend: Running
-- ⏳ QS Backend: Starting up
-- ⏳ Wait for backend to finish compiling
-- ⏳ Test exchange rates
-- ⏳ Try a swap!
+### Current Flow (Solana Only)
 
-### This Week:
-- Create BridgeController in OASIS WebAPI
-- Wire up CrossChainBridgeManager
-- Test unified OASIS approach
+```
+1. User submits swap request
+         ↓
+2. BridgeController.CreateOrder()
+         ↓
+3. BridgeService.CreateOrderAsync()
+         ↓
+4. CrossChainBridgeManager.CreateBridgeOrderAsync()
+         ↓
+5. Return order ID
+```
+
+**Current Limitation:** No actual token locking/minting happens yet (contracts not deployed).
+
+### Target Flow (Full Implementation)
+
+```
+1. User: POST /api/v1/orders {from: SOL, to: ETH, amount: 1}
+         ↓
+2. API: Lock 1 SOL on Solana contract
+         ↓
+3. Solana: Emit TokensLocked event
+         ↓
+4. Oracle: Detect event, wait for finality (32 blocks)
+         ↓
+5. Oracle: Generate merkle proof of lock
+         ↓
+6. Oracle: Call mintTokens() on Ethereum contract
+         ↓
+7. Ethereum: Verify proof, mint equivalent ETH
+         ↓
+8. Database: Update order status to "completed"
+         ↓
+9. User: Receives ETH in their wallet
+```
+
+**Time:** 2-5 minutes (depends on block finality)
 
 ---
 
-**TL;DR:** The bridge **logic** is in OASIS, but the **API endpoints** are still in QS. For now, use QS backend (it works!). Later, port the API layer to OASIS for full integration.
+## What Needs to Be Built
 
+### Priority 1: Smart Contracts (Critical)
 
+**Without these, the bridge cannot function.**
+
+1. Generate contracts using SmartContractGenerator API
+2. Deploy to testnets (Sepolia, Devnet, Stokenet)
+3. Deploy to additional EVM chains (Polygon, Arbitrum, Base)
+4. Test lock/mint/burn/release functions
+5. Verify oracle authorization works
+
+**Timeline:** 1 week  
+**Complexity:** Medium (using generator API)
+
+### Priority 2: Oracle Service (Critical)
+
+**Without this, swaps never complete.**
+
+1. Create BridgeOracleService
+2. Implement event monitoring (WebSocket subscriptions)
+3. Implement consensus verification
+4. Implement cross-chain execution
+5. Add error handling and retries
+
+**Timeline:** 2 weeks  
+**Complexity:** High (complex logic)
+
+### Priority 3: Database Integration (Important)
+
+**Without this, order history is lost.**
+
+1. Design database schema
+2. Create OrderRepository
+3. Integrate with BridgeService
+4. Add order status tracking
+5. Build admin dashboard for monitoring
+
+**Timeline:** 1 week  
+**Complexity:** Low-Medium
+
+### Priority 4: Multi-Chain Providers (Important)
+
+**Without these, only Solana works.**
+
+1. Implement EthereumBridgeService
+2. Implement PolygonBridgeService
+3. Implement ArbitrumBridgeService
+4. Test each implementation
+5. Add to CrossChainBridgeManager
+
+**Timeline:** 6 weeks (1 week per chain)  
+**Complexity:** Medium (repetitive work)
+
+### Priority 5: Testing & Audit (Critical for Mainnet)
+
+**Without this, security risks are too high.**
+
+1. Comprehensive unit tests
+2. Integration tests across chains
+3. Chaos testing (simulate failures)
+4. External security audit
+5. Bug bounty program
+
+**Timeline:** 4-5 months  
+**Complexity:** High
+
+---
+
+## Current Workaround
+
+**For Development/Testing:**
+
+The frontend can connect to the partially implemented API:
+- Exchange rates work (CoinGecko integration)
+- Order creation returns IDs
+- Status checks return mock data
+
+**Limitation:** No actual token transfers happen until contracts are deployed.
+
+**For Production Swaps:**
+
+Until the full bridge is complete, users would need to:
+- Use existing DEX aggregators
+- Use traditional bridges (with known risks)
+- Wait for OASIS bridge completion
+
+---
+
+## Success Metrics
+
+**MVP Success:**
+- [ ] Can swap SOL ↔ ETH on testnets
+- [ ] Orders complete automatically (< 5 minutes)
+- [ ] Zero lost funds (100% atomic)
+- [ ] Exchange rates accurate (< 1% deviation from market)
+
+**Production Success:**
+- [ ] 10+ chains supported
+- [ ] $1M+ daily volume
+- [ ] 99.9% success rate
+- [ ] < $50 average swap cost
+- [ ] Security audit passed (no critical issues)
+
+---
+
+## Additional Notes
+
+### Why This is Better Than Traditional Bridges
+
+**Traditional Bridge:**
+- Single bridge contract holds all funds
+- If hacked, all funds lost ($2B+ lost to bridge hacks)
+- Single point of failure
+
+**OASIS Bridge with HyperDrive:**
+- Multiple providers (MongoDB, Arbitrum, Ethereum)
+- If one fails, automatic failover to next
+- Distributed risk (no single honeypot)
+- Oracle requires multi-sig (3-of-5) for mints
+- Merkle proof verification
+
+**Still a bridge:** Yes, it still uses lock-and-mint mechanism, but with better redundancy and security than traditional bridges.
+
+---
+
+## Contact & Support
+
+**Questions:** @maxgershfield on Telegram  
+**Repository:** https://github.com/NextGenSoftwareUK/OASIS (max-build2 branch)  
+**API:** https://api.oasisweb4.one
+
+**This document provides complete context for continuing the Universal Asset Bridge implementation.**
+
+---
+
+**Last Updated:** November 6, 2025  
+**Version:** 2.0
