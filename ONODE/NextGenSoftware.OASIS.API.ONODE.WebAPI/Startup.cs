@@ -228,12 +228,16 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
             
+            // FIX: Allow .NET HttpClient to connect to Telegram on macOS
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = 
+                (sender, certificate, chain, sslPolicyErrors) => true;
+            
             // Register Telegram services
             services.AddSingleton<TelegramOASIS>(sp =>
             {
-                // Load from OASIS_DNA.json TelegramOASIS config
-                string botToken = "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo";
-                string webhookUrl = "https://oasisweb4.one/api/telegram/webhook";
+                // Load from OASIS_DNA.json TelegramOASIS config - TIMORIDES BOT - LOCAL POLLING
+                string botToken = "8000192131:AAE3DY-AxbnhaPBaLF_mBogV169CeRXGleg";
+                string webhookUrl = ""; // Empty for local polling
                 // Note: In C# code, use the actual ! character, not URL-encoded %21
                 string mongoConnectionString = "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4";
                 
@@ -282,8 +286,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 var nftService = sp.GetRequiredService<NFTService>();
                 var pinataService = sp.GetRequiredService<PinataService>();
                 
-                // Bot token from OASIS_DNA.json TelegramOASIS config
-                string botToken = "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo";
+                // Bot token from OASIS_DNA.json TelegramOASIS config - TIMORIDES BOT
+                string botToken = "8000192131:AAE3DY-AxbnhaPBaLF_mBogV169CeRXGleg";
                 
                 return new TelegramBotService(botToken, telegramProvider, avatarManager, logger, nftService, pinataService);
             });
