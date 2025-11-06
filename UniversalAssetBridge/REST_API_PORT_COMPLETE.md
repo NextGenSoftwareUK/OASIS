@@ -277,3 +277,4 @@ Currently using **temporary Solana technical account** (regenerated each startup
 
 **The bridge is now in OASIS and ready for all blockchains!** 🌉🚀
 
+
