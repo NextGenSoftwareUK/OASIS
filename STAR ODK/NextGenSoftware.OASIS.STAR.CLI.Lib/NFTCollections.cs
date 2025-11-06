@@ -436,10 +436,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             result = await FindWeb4NFTCollectionAsync("view", idOrName, true, providerType: providerType);
 
-            if (result != null && result.Result != null && !result.IsError)
-                await ShowNFTCollectionAsync(result.Result);
-            else
-                OASISErrorHandling.HandleError(ref result, "No WEB4 NFT Collection Found For That Id or Name!");
+            //if (result != null && result.Result != null && !result.IsError)
+            //    await ShowNFTCollectionAsync(result.Result);
+            //else
+            //    OASISErrorHandling.HandleError(ref result, "No WEB4 NFT Collection Found For That Id or Name!");
 
             return result;
         }

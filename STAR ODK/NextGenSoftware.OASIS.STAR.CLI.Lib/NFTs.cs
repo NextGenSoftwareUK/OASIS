@@ -143,16 +143,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IWeb4OASISNFT>> MintNFTAsync(object mintParams = null)
         {
             OASISResult<IWeb4OASISNFT> result = new OASISResult<IWeb4OASISNFT>();
-            IMintWeb4NFTTRequest request = await NFTCommon.GenerateNFTRequestAsync();
+            IMintWeb4NFTRequest request = await NFTCommon.GenerateNFTRequestAsync();
 
             CLIEngine.ShowWorkingMessage("Minting WEB4 OASIS NFT...");
-            OASISResult<IWeb4NFTTransactionRespone> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
+            OASISResult<IWeb4OASISNFT> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
             {
                 //CLIEngine.ShowSuccessMessage($"OASIS NFT Successfully Minted. {nftResult.Message} Transaction Result: {nftResult.Result.TransactionResult}, Id: {nftResult.Result.OASISNFT.Id}, Hash: {nftResult.Result.OASISNFT.Hash} Minted On: {nftResult.Result.OASISNFT.MintedOn}, Minted By Avatar Id: {nftResult.Result.OASISNFT.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.OASISNFT.MintedByAddress}.");
                 CLIEngine.ShowSuccessMessage(nftResult.Message);
-                result.Result = nftResult.Result.Web4OASISNFT;
+                result.Result = nftResult.Result;
             }
             else
             {
@@ -174,7 +174,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             CLIEngine.ShowWorkingMessage("Sending NFT...");
 
-            OASISResult<IWeb4NFTTransactionRespone> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new Web4NFTWalletTransactionRequest()
+            OASISResult<IWeb3NFTTransactionRespone> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new Web4NFTWalletTransactionRequest()
             {
                 FromWalletAddress = fromWalletAddress,
                 ToWalletAddress = toWalletAddress,
@@ -255,15 +255,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //WEB3 NFT Import from JSON MetaData file
                     string jsonPath = CLIEngine.GetValidFile("Please enter the full path to the JSON MetaData file you wish to import: ");
 
-                    IMintWeb4NFTTRequest request = await NFTCommon.GenerateNFTRequestAsync(jsonPath);
+                    IMintWeb4NFTRequest request = await NFTCommon.GenerateNFTRequestAsync(jsonPath);
 
                     CLIEngine.ShowWorkingMessage("Minting WEB4 OASIS NFT...");
-                    OASISResult<IWeb4NFTTransactionRespone> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
+                    OASISResult<IWeb4OASISNFT> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
          
                     if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
                     {
                         CLIEngine.ShowSuccessMessage(nftResult.Message);
-                        result.Result = nftResult.Result.Web4OASISNFT;
+                        result.Result = nftResult.Result;
                     }
                     else
                     {
@@ -463,10 +463,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             result = await FindWeb4NFTAsync("view", idOrName, true, providerType: providerType);
 
-            if (result != null && result.Result != null && !result.IsError)
-                ShowNFT(result.Result);
-            else
-                OASISErrorHandling.HandleError(ref result, "No WEB4 NFT Found For That Id or Name!");
+            //if (result != null && result.Result != null && !result.IsError)
+            //    ShowNFT(result.Result);
+            //else
+            //    OASISErrorHandling.HandleError(ref result, "No WEB4 NFT Found For That Id or Name!");
 
             return result;
         }
@@ -680,9 +680,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Discount", nft.Discount.ToString(), displayFieldLength);
             DisplayProperty("Royalty Percentage", nft.RoyaltyPercentage.ToString(), displayFieldLength);
             DisplayProperty("For Sale", nft.IsForSale ? string.Concat("Yes (StartDate: ", nft.SaleStartDate.HasValue ? nft.SaleStartDate.Value.ToShortDateString() : "Not Set", nft.SaleEndDate.HasValue ? nft.SaleEndDate.Value.ToShortDateString() : "Not Set") : "No", displayFieldLength);
-            DisplayProperty("OASIS MintWallet Address", nft.OASISMintWalletAddress, displayFieldLength);
-            DisplayProperty("Mint Transaction Hash", nft.MintTransactionHash, displayFieldLength);
-            DisplayProperty("NFT Token Address", nft.NFTTokenAddress, displayFieldLength);
             DisplayProperty("Minted By Avatar Id", nft.MintedByAvatarId.ToString(), displayFieldLength);
             DisplayProperty("Minted On", nft.MintedOn.ToString(), displayFieldLength);
             DisplayProperty("OnChain Provider", nft.OnChainProvider.Name, displayFieldLength);
@@ -698,11 +695,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("JSON MetaData URL", nft.JSONMetaDataURL, displayFieldLength);
             DisplayProperty("JSON MetaData URL Holon Id", nft.JSONMetaDataURLHolonId != Guid.Empty ? nft.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
             DisplayProperty("Seller Fee Basis Points", nft.SellerFeeBasisPoints.ToString(), displayFieldLength);
-            DisplayProperty("Update Authority", nft.UpdateAuthority, displayFieldLength);
             DisplayProperty("Send To Address After Minting", nft.SendToAddressAfterMinting, displayFieldLength);
             DisplayProperty("Send To Avatar After Minting Id", nft.SendToAvatarAfterMintingId != Guid.Empty ? nft.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
             DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(nft.SendToAvatarAfterMintingUsername) ? nft.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
-            DisplayProperty("Send NFT Transaction Hash", nft.SendNFTTransactionHash, displayFieldLength);
+            
+            //DisplayProperty("Send NFT Transaction Hash", nft.SendNFTTransactionHash, displayFieldLength);
+            //DisplayProperty("Update Authority", nft.UpdateAuthority, displayFieldLength);
+            //DisplayProperty("OASIS MintWallet Address", nft.OASISMintWalletAddress, displayFieldLength);
+            //DisplayProperty("Mint Transaction Hash", nft.MintTransactionHash, displayFieldLength);
+            //DisplayProperty("NFT Token Address", nft.NFTTokenAddress, displayFieldLength);
+
             TagHelper.ShowTags(nft.Tags, displayFieldLength);
             MetaDataHelper.ShowMetaData(nft.MetaData, displayFieldLength);
 

@@ -1,39 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Nethereum.Web3.Accounts;
+using Nethereum.ABI.FunctionEncoding.Attributes;
+using Nethereum.Contracts;
+using Nethereum.Contracts.ContractHandlers;
+using Nethereum.Hex.HexTypes;
+using Nethereum.JsonRpc.Client;
+using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.Common;
-using Nethereum.JsonRpc.Client;
-using System.Text.Json;
-using NextGenSoftware.OASIS.API.Core.Utilities;
-using Nethereum.Contracts;
-using NextGenSoftware.Utilities;
-using System.Linq;
-using Nethereum.RPC.Eth.DTOs;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using Nethereum.Contracts.ContractHandlers;
-using Nethereum.ABI.FunctionEncoding.Attributes;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using Nethereum.Hex.HexTypes;
-using Newtonsoft.Json;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Utilities;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
@@ -2398,13 +2399,13 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transaction)
+    public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transaction)
         => SendNFTAsync(transaction).Result;
 
 
-    public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transaction)
+    public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transaction)
     {
-        OASISResult<IWeb4NFTTransactionRespone> result = new();
+        OASISResult<IWeb3NFTTransactionRespone> result = new();
         string errorMessage = "Error in SendNFTAsync method in ArbitrumOASIS while sending nft. Reason: ";
 
         try
@@ -2445,9 +2446,9 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            IWeb4NFTTransactionRespone response = new Web4NFTTransactionRespone
+            IWeb3NFTTransactionRespone response = new Web3NFTTransactionRespone
             {
-                Web4OASISNFT = new Web4OASISNFT()
+                Web3NFT = new Web3NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2475,12 +2476,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
+    public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb3NFTRequest transation)
         => MintNFTAsync(transation).Result;
 
-    public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transaction)
+    public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(IMintWeb3NFTRequest transaction)
     {
-        OASISResult<IWeb4NFTTransactionRespone> result = new();
+        OASISResult<IWeb3NFTTransactionRespone> result = new();
         string errorMessage = "Error in MintNFTAsync method in ArbitrumOASIS while minting nft. Reason: ";
 
         try
@@ -2515,9 +2516,9 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            IWeb4NFTTransactionRespone response = new Web4NFTTransactionRespone
+            IWeb3NFTTransactionRespone response = new Web3NFTTransactionRespone
             {
-                Web4OASISNFT = new Web4OASISNFT()
+                Web3NFT = new Web3NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2545,14 +2546,14 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+    public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
     {
         return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
     }
 
-    public async Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
-        var result = new OASISResult<IWeb4OASISNFT>();
+        var result = new OASISResult<IWeb3NFT>();
         try
         {
             if (!IsProviderActivated)
@@ -2670,18 +2671,18 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         }
     }
 
-    private static IWeb4OASISNFT ParseArbitrumToNFT(object nftData)
+    private static IWeb3NFT ParseArbitrumToNFT(object nftData)
     {
         try
         {
             // Real implementation: Parse actual NFT data from Arbitrum smart contract
             if (nftData == null) return null;
-            
+
             // Parse the actual NFT data from Arbitrum smart contract response
             var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(nftData.ToString());
             if (dataDict == null) return null;
-            
-            var nft = new Web4OASISNFT
+
+            var nft = new Web3NFT
             {
                 Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
                 Title = dataDict.GetValueOrDefault("title")?.ToString() ?? "Arbitrum NFT",
@@ -2700,7 +2701,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                     ["Provider"] = "ArbitrumOASIS"
                 }
             };
-            
+
             return nft;
         }
         catch (Exception ex)
@@ -2709,10 +2710,51 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             return null;
         }
     }
-}
 
 
-file sealed class AvatarDetailInfo
+        //private static IWeb4OASISNFT ParseArbitrumToNFT(object nftData)
+        //{
+        //    try
+        //    {
+        //        // Real implementation: Parse actual NFT data from Arbitrum smart contract
+        //        if (nftData == null) return null;
+
+        //        // Parse the actual NFT data from Arbitrum smart contract response
+        //        var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(nftData.ToString());
+        //        if (dataDict == null) return null;
+
+        //        var nft = new Web4OASISNFT
+        //        {
+        //            Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+        //            Title = dataDict.GetValueOrDefault("title")?.ToString() ?? "Arbitrum NFT",
+        //            Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "NFT from Arbitrum blockchain",
+        //            ImageUrl = dataDict.GetValueOrDefault("imageUrl")?.ToString() ?? "",
+        //            NFTTokenAddress = dataDict.GetValueOrDefault("tokenAddress")?.ToString() ?? "",
+        //            OASISMintWalletAddress = dataDict.GetValueOrDefault("mintWalletAddress")?.ToString() ?? "",
+        //            NFTMintedUsingWalletAddress = dataDict.GetValueOrDefault("mintedWalletAddress")?.ToString() ?? "",
+        //            MintedOn = dataDict.ContainsKey("mintedOn") ? DateTime.Parse(dataDict["mintedOn"].ToString()) : DateTime.UtcNow,
+        //            ImportedOn = DateTime.UtcNow,
+        //            OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArbitrumOASIS),
+        //            MetaData = new Dictionary<string, object>
+        //            {
+        //                ["ArbitrumData"] = nftData,
+        //                ["ParsedAt"] = DateTime.UtcNow,
+        //                ["Provider"] = "ArbitrumOASIS"
+        //            }
+        //        };
+
+        //        return nft;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log error and return null
+        //        return null;
+        //    }
+        //}
+    }
+
+
+    file sealed class AvatarDetailInfo
 {
     [Parameter("uint256", "EntityId", 1)]
     public BigInteger EntityId { get; set; }
@@ -2905,12 +2947,12 @@ file static class ArbitrumContractHelper
 
 
 
-        private static Web4OASISNFT ParseArbitrumToNFT(object nftData)
+        private static Web3NFT ParseArbitrumToNFT(object nftData)
     {
         try
         {
             // Real implementation for parsing Arbitrum NFT data
-            var nft = new Web4OASISNFT
+            var nft = new Web3NFT
             {
                 Id = Guid.NewGuid(),
                 Title = "Arbitrum NFT",

@@ -166,7 +166,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> MintGeoNFTAsync(object mintParams = null)
         {
-            IMintWeb4NFTTRequest request = await NFTCommon.GenerateNFTRequestAsync();
+            IMintWeb4NFTRequest request = await NFTCommon.GenerateNFTRequestAsync();
             IPlaceWeb4GeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(false);
 
             CLIEngine.ShowWorkingMessage("Minting WEB4 OASIS Geo-NFT...");
@@ -256,7 +256,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             CLIEngine.ShowWorkingMessage("Sending WEB4 GeoNFT...");
 
-            OASISResult<IWeb4NFTTransactionRespone> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new Web4NFTWalletTransactionRequest()
+            OASISResult<IWeb3NFTTransactionRespone> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new Web4NFTWalletTransactionRequest()
             {
                 FromWalletAddress = fromWalletAddress,
                 ToWalletAddress = toWalletAddress,
@@ -586,10 +586,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             result = await FindWeb4GeoNFTAsync("view", idOrName, true, providerType: providerType);
 
-            if (result != null && result.Result != null && !result.IsError)
-                ShowGeoNFT(result.Result);
-            else
-                OASISErrorHandling.HandleError(ref result, "No WEB4 Geo-NFT Found For That Id or Name!");
+            //if (result != null && result.Result != null && !result.IsError)
+            //    ShowGeoNFT(result.Result);
+            //else
+            //    OASISErrorHandling.HandleError(ref result, "No WEB4 Geo-NFT Found For That Id or Name!");
 
             return result;
         }
@@ -807,9 +807,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Discount", geoNFT.Discount.ToString(), displayFieldLength);
             DisplayProperty("Royalty Percentage", geoNFT.RoyaltyPercentage.ToString(), displayFieldLength);
             DisplayProperty("For Sale", geoNFT.IsForSale ? string.Concat("Yes (StartDate: ", geoNFT.SaleStartDate.HasValue ? geoNFT.SaleStartDate.Value.ToShortDateString() : "Not Set", geoNFT.SaleEndDate.HasValue ? geoNFT.SaleEndDate.Value.ToShortDateString() : "Not Set") : "No", displayFieldLength);
-            DisplayProperty("OASIS MintWallet Address", geoNFT.OASISMintWalletAddress, displayFieldLength);
-            DisplayProperty("Mint Transaction Hash", geoNFT.MintTransactionHash, displayFieldLength);
-            DisplayProperty("NFT Token Address", geoNFT.NFTTokenAddress, displayFieldLength);
             DisplayProperty("Minted By Avatar Id", geoNFT.MintedByAvatarId.ToString(), displayFieldLength);
             DisplayProperty("Minted On", geoNFT.MintedOn.ToString(), displayFieldLength);
             DisplayProperty("OnChain Provider", geoNFT.OnChainProvider.Name, displayFieldLength);
@@ -825,13 +822,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("JSON MetaData URL", geoNFT.JSONMetaDataURL, displayFieldLength);
             DisplayProperty("JSON MetaData URL Holon Id", geoNFT.JSONMetaDataURLHolonId != Guid.Empty ? geoNFT.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
             DisplayProperty("Seller Fee Basis Points", geoNFT.SellerFeeBasisPoints.ToString(), displayFieldLength);
-            DisplayProperty("Update Authority", geoNFT.UpdateAuthority, displayFieldLength);
             DisplayProperty("Send To Address After Minting", geoNFT.SendToAddressAfterMinting, displayFieldLength);
             DisplayProperty("Send To Avatar After Minting Id", geoNFT.SendToAvatarAfterMintingId != Guid.Empty ? geoNFT.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
             DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(geoNFT.SendToAvatarAfterMintingUsername) ? geoNFT.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
-            DisplayProperty("Send NFT Transaction Hash", geoNFT.SendNFTTransactionHash, displayFieldLength);
             DisplayProperty("Lat/Long", $"{geoNFT.Lat}/{geoNFT.Long}", displayFieldLength);
             DisplayProperty("Perm Spawn", geoNFT.PermSpawn.ToString(), displayFieldLength);
+            
+            //DisplayProperty("OASIS MintWallet Address", geoNFT.OASISMintWalletAddress, displayFieldLength);
+            //DisplayProperty("Mint Transaction Hash", geoNFT.MintTransactionHash, displayFieldLength);
+            //DisplayProperty("NFT Token Address", geoNFT.NFTTokenAddress, displayFieldLength);
+            //DisplayProperty("Send NFT Transaction Hash", geoNFT.SendNFTTransactionHash, displayFieldLength);
+            //DisplayProperty("Update Authority", geoNFT.UpdateAuthority, displayFieldLength);
 
             if (!geoNFT.PermSpawn)
             {

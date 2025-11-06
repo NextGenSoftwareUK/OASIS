@@ -1891,12 +1891,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
         {
             var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
@@ -1947,7 +1947,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transation)
         {
             var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
@@ -1970,7 +1970,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return response;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transation)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transation)
         {
             var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
