@@ -8,9 +8,8 @@
 
 ## 📊 API Reference
 
-* [API Endpoints Summary](OASIS_API_COMPLETE_ENDPOINTS_SUMMARY.md)
-* [WEB4 OASIS API - Complete Reference](Docs/Devs/API Documentation/WEB4_OASIS_API_Documentation_Comprehensive.md)
-* [WEB4 OASIS API - All Endpoints](Docs/Devs/API Documentation/WEB4_OASIS_API_Complete_Endpoints_Reference.md)
+* [API Reference - Essential Endpoints](API_REFERENCE.md)
+* [Complete API Documentation](Docs/Devs/API Documentation/WEB4_OASIS_API_Documentation_Comprehensive.md)
 
 ## 🏗️ Core Architecture
 
