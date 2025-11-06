@@ -294,3 +294,4 @@ You don't just understand tech—you can explain it to anyone.
 **Role**: HSBC Director, Strategic Innovation
 
 
+

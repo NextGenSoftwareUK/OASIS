@@ -334,3 +334,4 @@ Once OASIS API has all features, you can:
 
 **TL;DR:** The bridge **logic** is in OASIS, but the **API endpoints** are still in QS. For now, use QS backend (it works!). Later, port the API layer to OASIS for full integration.
 
+
