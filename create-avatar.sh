@@ -6,7 +6,7 @@ API_BASE="https://localhost:5004/api"
 echo "Creating metabricks_admin avatar..."
 echo ""
 
-curl -k -X POST "$API_BASE/avatar" \
+curl -k -X POST "$API_BASE/avatar/register" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "metabricks_admin",

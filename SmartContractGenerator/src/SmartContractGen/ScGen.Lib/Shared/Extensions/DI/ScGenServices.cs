@@ -40,7 +40,7 @@ public static class ScGenServices
         services.AddScoped<IContractServiceFactory, ContractServiceFactory>();
         services.AddScoped<IPropertyExtractorService, PropertyExtractorService>();
         services.AddScoped<IX402PaymentService, X402PaymentService>();
-        services.AddSingleton<ICreditsService, CreditsService>();
+        services.AddScoped<ICreditsService, CreditsService>();  // Changed from Singleton to Scoped to fix DI error
         services.AddSingleton(Handlebars.Create());
         return services;
     }
