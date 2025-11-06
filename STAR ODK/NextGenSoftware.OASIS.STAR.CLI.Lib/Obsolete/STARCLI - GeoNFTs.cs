@@ -18,7 +18,7 @@
 //            IMintNFTTransactionRequest request = await GenerateNFTRequestAsync();
 
 //            CLIEngine.ShowWorkingMessage("Minting OASIS NFT...");
-//            OASISResult<INFTTransactionRespone> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
+//            OASISResult<IWeb4NFTTransactionRespone> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
 
 //            if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
 //                CLIEngine.ShowSuccessMessage($"OASIS NFT Successfully Minted. {nftResult.Message} Transaction Result: {nftResult.Result.TransactionResult}, Id: {nftResult.Result.OASISNFT.Id}, Hash: {nftResult.Result.OASISNFT.Hash} Minted On: {nftResult.Result.OASISNFT.MintedOn}, Minted By Avatar Id: {nftResult.Result.OASISNFT.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.OASISNFT.MintedByAddress}.");
@@ -102,7 +102,7 @@
 
 //            CLIEngine.ShowWorkingMessage("Sending NFT...");
 
-//            OASISResult<INFTTransactionRespone> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new NFTWalletTransactionRequest()
+//            OASISResult<IWeb4NFTTransactionRespone> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new NFTWalletTransactionRequest()
 //            {
 //                FromWalletAddress = fromWalletAddress,
 //                ToWalletAddress = toWalletAddress,

@@ -11,7 +11,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -132,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-all-geo-nfts-for-avatar/{avatarId}")]
-        public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
+        public async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
         {
             return await NFTManager.LoadAllGeoNFTsForAvatarAsync(avatarId);
         }
@@ -140,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-all-geo-nfts-for-avatar/{avatarId}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadAllGeoNFTsForAvatarAsync(avatarId);
@@ -149,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-all-geo-nfts-for-mint-wallet-address/{mintWalletAddress}")]
-        public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
+        public async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
         {
             return await NFTManager.LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress);
         }
@@ -157,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-all-geo-nfts-for-mint-wallet-address/{mintWalletAddress}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress);
@@ -183,7 +182,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize(AvatarType.Wizard)]
         [HttpGet]
         [Route("load-all-geo-nfts")]
-        public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsAsync()
+        public async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsAsync()
         {
             return await NFTManager.LoadAllGeoNFTsAsync();
         }
@@ -191,7 +190,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize(AvatarType.Wizard)]
         [HttpGet]
         [Route("load-all-geo-nfts/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsAsync(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsAsync(ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadAllGeoNFTsAsync();
@@ -199,19 +198,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         [HttpPost]
         [Route("send-nft")]
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(NFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(Models.NFT.NFTWalletTransactionRequest request)
         {
-            // Use the correct property names from the base WalletTransactionRequest class
-            API.Core.Objects.NFT.Request.NFTWalletTransactionRequest nftRequest = new API.Core.Objects.NFT.Request.NFTWalletTransactionRequest()
+            ProviderType fromProviderType = ProviderType.None;
+            ProviderType toProviderType = ProviderType.None;
+            Object fromProviderTypeObject = null;
+            Object toProviderTypeObject = null;
+
+            if (Enum.TryParse(typeof(ProviderType), request.FromProvider, out fromProviderTypeObject))
+                fromProviderType = (ProviderType)fromProviderTypeObject;
+            else
+                return new OASISResult<IWeb4Web4NFTTransactionRespone>() { IsError = true, Message = $"The FromProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+
+            if (Enum.TryParse(typeof(ProviderType), request.ToProvider, out toProviderTypeObject))
+                toProviderType = (ProviderType)toProviderTypeObject;
+            else
+                return new OASISResult<IWeb4Web4NFTTransactionRespone>() { IsError = true, Message = $"The ToProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+            API.Core.Objects.NFT.Request.Web4NFTWalletTransactionRequest nftRequest = new API.Core.Objects.NFT.Request.Web4NFTWalletTransactionRequest()
             {
+                 //MintWalletAddress = request.MintWalletAddress,
                  FromWalletAddress = request.FromWalletAddress,
                  ToWalletAddress = request.ToWalletAddress,
-                 FromProvider = request.FromProvider,
-                 ToProvider = request.ToProvider,
+                 FromProvider = new EnumValue<ProviderType>(fromProviderType),
+                 ToProvider = new EnumValue<ProviderType>(toProviderType),
                  Amount = request.Amount,
                  MemoText = request.MemoText,
-                 TokenId = request.TokenId,
-                 TokenAddress = request.TokenAddress,
                  WaitTillNFTSent = request.WaitTillNFTSent,
                  WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
                  AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
@@ -223,32 +236,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("mint-nft")]
-        public async Task<OASISResult<INFTTransactionRespone>> MintNftAsync(MintNFTTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNftAsync(Models.NFT.MintNFTTransactionRequest request)
         {
-            // No need to parse - OnChainProvider is already an EnumValue<ProviderType>
-            ProviderType onChainProvider = request.OnChainProvider.Value;
+            ProviderType onChainProvider = ProviderType.None;
+            ProviderType offChainProvider = ProviderType.None;
+            NFTOffChainMetaType NFTOffChainMetaType = NFTOffChainMetaType.OASIS;
+            NFTStandardType NFTStandardType = NFTStandardType.ERC1155;
+            Object onChainProviderObject = null;
+            Object offChainProviderObject = null;
+            object NFTOffChainMetaTypeObject = null;
+            object NFTStandardTypeObject = null;
+            Guid sendToAvatarAfterMintingId = Guid.Empty;
+
+            if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject))
+                onChainProvider = (ProviderType)onChainProviderObject;
+            else
+                return new OASISResult<IWeb4Web4NFTTransactionRespone>() { IsError = true, Message = $"The OnChainProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            // No need to parse - OffChainProvider is already an EnumValue<ProviderType>
-            ProviderType offChainProvider = request.OffChainProvider.Value;
+            if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider, out offChainProviderObject))
+                offChainProvider = (ProviderType)offChainProviderObject;
+            else
+                return new OASISResult<IWeb4Web4NFTTransactionRespone>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            // No need to parse - NFTOffChainMetaType is already an enum
-            NFTOffChainMetaType NFTOffChainMetaType = request.NFTOffChainMetaType.Value;
+            if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject))
+                NFTOffChainMetaType = (NFTOffChainMetaType)NFTOffChainMetaTypeObject;
+            else
+                return new OASISResult<IWeb4Web4NFTTransactionRespone>() { IsError = true, Message = $"The NFTOffChainMetaType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            // No need to parse - NFTStandardType is already an enum
-            NFTStandardType NFTStandardType = request.NFTStandardType.Value;
+            if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject))
+                NFTStandardType = (NFTStandardType)NFTStandardTypeObject;
+            else
+                return new OASISResult<IWeb4Web4NFTTransactionRespone>() { IsError = true, Message = $"The NFTStandardType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
-            // No need to parse - SendToAvatarAfterMintingId is already a Guid
-            Guid sendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId;
+            if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingId) && !Guid.TryParse(request.SendToAvatarAfterMintingId, out sendToAvatarAfterMintingId))
+                return new OASISResult<IWeb4Web4NFTTransactionRespone>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
 
-            API.Core.Objects.NFT.Request.MintNFTTransactionRequest mintRequest = new API.Core.Objects.NFT.Request.MintNFTTransactionRequest()
+            API.Core.Objects.NFT.Request.MintWeb4NFTRequest mintRequest = new API.Core.Objects.NFT.Request.MintWeb4NFTRequest()
             {
-                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
-                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
-                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
-                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
                 MintedByAvatarId = AvatarId,
                 Title = request.Title,
                 Description = request.Description,
@@ -267,7 +294,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 JSONMetaDataURL = request.JSONMetaDataURL,
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
                 NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType),
-                NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType)
+                NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType),
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
             };
 
             return await NFTManager.MintNftAsync(mintRequest, false, Core.Enums.ResponseFormatType.SimpleText);
@@ -276,12 +313,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("place-geo-nft")]
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(PlaceGeoSpatialNFTRequest request)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> PlaceGeoNFTAsync(Models.NFT.PlaceGeoSpatialNFTRequest request)
         {
-            // Use the ProviderType directly from the EnumValue
-            ProviderType originalOASISNFTProviderType = request.OriginalOASISNFTOffChainProvider.Value;
+            ProviderType originalOASISNFTProviderType = ProviderType.None;
+            ProviderType geoNFTMetaDataProvider = ProviderType.None;
+            Object originalOASISNFTProviderTypeObject = null;
+            Object geoNFTMetaDataProviderObject = null;
 
-            API.Core.Objects.NFT.Request.PlaceGeoSpatialNFTRequest placeRequest = new API.Core.Objects.NFT.Request.PlaceGeoSpatialNFTRequest()
+            if (Enum.TryParse(typeof(ProviderType), request.OriginalOASISNFTOffChainProvider, out originalOASISNFTProviderTypeObject))
+                originalOASISNFTProviderType = (ProviderType)originalOASISNFTProviderTypeObject;
+            else
+                return new OASISResult<IWeb4OASISGeoSpatialNFT>() { IsError = true, Message = $"The OriginalOASISNFTOffChainProviderType is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+
+            if (Enum.TryParse(typeof(ProviderType), request.GeoNFTMetaDataProvider, out geoNFTMetaDataProviderObject))
+                geoNFTMetaDataProvider = (ProviderType)geoNFTMetaDataProviderObject;
+            else
+                return new OASISResult<IWeb4OASISGeoSpatialNFT>() { IsError = true, Message = $"The ProviderType is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+            API.Core.Objects.NFT.Request.PlaceWeb4GeoSpatialNFTRequest placeRequest = new API.Core.Objects.NFT.Request.PlaceWeb4GeoSpatialNFTRequest()
             {
                 OriginalOASISNFTId = request.OriginalOASISNFTId,
                 OriginalOASISNFTOffChainProvider = new EnumValue<ProviderType>(originalOASISNFTProviderType),
@@ -291,43 +341,71 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 PermSpawn = request.PermSpawn,
                 GlobalSpawnQuantity = request.GlobalSpawnQuantity,
                 PlayerSpawnQuantity = request.PlayerSpawnQuantity,
-                //ProviderType = providerType, // TODO: Re-add when PlaceGeoSpatialNFTRequest model has ProviderType property
-                PlacedByAvatarId = AvatarId
+                RespawnDurationInSeconds = request.RespawnDurationInSeconds,
+                Nft2DSprite = request.Nft2DSprite,
+                Nft2DSpriteURI = request.Nft2DSpriteURI,
+                Nft3DObject = request.Nft3DObject,
+                Nft3DObjectURI = request.Nft3DObjectURI,
+                PlacedByAvatarId = AvatarId,
+                GeoNFTMetaDataProvider = new EnumValue<ProviderType>(geoNFTMetaDataProvider)
             };
 
-            return await NFTManager.PlaceGeoNFTAsync(placeRequest);
+            return await NFTManager.PlaceGeoNFTAsync(placeRequest, Core.Enums.ResponseFormatType.SimpleText);
         }
 
         [Authorize]
         [HttpPost]
         [Route("mint-and-place-geo-nft")]
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(MintAndPlaceGeoSpatialNFTRequest request)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(Models.NFT.MintAndPlaceGeoSpatialNFTRequest request)
         {
-            // No need to parse - OnChainProvider is already an EnumValue<ProviderType>
-            ProviderType onChainProvider = request.OnChainProvider.Value;
+            ProviderType onChainProvider = ProviderType.None;
+            ProviderType offChainProvider = ProviderType.None;
+            ProviderType geoNFTMetaDataProvider = ProviderType.None;
+            NFTOffChainMetaType NFTOffChainMetaType = NFTOffChainMetaType.OASIS;
+            NFTStandardType NFTStandardType = NFTStandardType.ERC1155;
+            Object onChainProviderObject = null;
+            Object offChainProviderObject = null;
+            Object geoNFTMetaDataProviderObject = null;
+            object NFTOffChainMetaTypeObject = null;
+            object NFTStandardTypeObject = null;
+            Guid sendToAvatarAfterMintingId = Guid.Empty;
+
+            if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject))
+                onChainProvider = (ProviderType)onChainProviderObject;
+            else
+                return new OASISResult<IWeb4OASISGeoSpatialNFT>() { IsError = true, Message = $"The OnChainProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            // No need to parse - OffChainProvider is already an EnumValue<ProviderType>
-            ProviderType offChainProvider = request.OffChainProvider.Value;
+            if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider, out offChainProviderObject))
+                offChainProvider = (ProviderType)offChainProviderObject;
+            else
+                return new OASISResult<IWeb4OASISGeoSpatialNFT>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            // No need to parse - NFTOffChainMetaType is already an enum
-            NFTOffChainMetaType NFTOffChainMetaType = request.NFTOffChainMetaType.Value;
+            if (Enum.TryParse(typeof(ProviderType), request.GeoNFTMetaDataProvider, out geoNFTMetaDataProviderObject))
+                geoNFTMetaDataProvider = (ProviderType)geoNFTMetaDataProviderObject;
+            else
+                return new OASISResult<IWeb4OASISGeoSpatialNFT>() { IsError = true, Message = $"The GeoNFTMetaDataProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            // No need to parse - NFTStandardType is already an enum
-            NFTStandardType NFTStandardType = request.NFTStandardType.Value;
+            if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject))
+                NFTOffChainMetaType = (NFTOffChainMetaType)NFTOffChainMetaTypeObject;
+            else
+                return new OASISResult<IWeb4OASISGeoSpatialNFT>() { IsError = true, Message = $"The NFTOffChainMetaType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
-            // No need to parse - SendToAvatarAfterMintingId is already a Guid
-            Guid sendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId;
+
+            if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject))
+                NFTStandardType = (NFTStandardType)NFTStandardTypeObject;
+            else
+                return new OASISResult<IWeb4OASISGeoSpatialNFT>() { IsError = true, Message = $"The NFTStandardType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+            if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingId) && !Guid.TryParse(request.SendToAvatarAfterMintingId, out sendToAvatarAfterMintingId))
+                return new OASISResult<IWeb4OASISGeoSpatialNFT>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
 
 
-            API.Core.Objects.NFT.Request.MintAndPlaceGeoSpatialNFTRequest mintRequest = new API.Core.Objects.NFT.Request.MintAndPlaceGeoSpatialNFTRequest()
+            API.Core.Objects.NFT.Request.MintAndPlaceWeb4GeoSpatialNFTRequest mintRequest = new API.Core.Objects.NFT.Request.MintAndPlaceWeb4GeoSpatialNFTRequest()
             {
-                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
-                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
-                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
-                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                MintedByAvatarId = AvatarId,
                 Title = request.Title,
                 Description = request.Description,
                 Image = request.Image,
@@ -346,6 +424,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
                 NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType),
                 NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType),
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
                 Lat = request.Lat,
                 Long = request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
@@ -358,9 +446,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Nft3DObject = request.Nft3DObject,
                 Nft3DObjectURI = request.Nft3DObjectURI,
                 PlacedByAvatarId = AvatarId,
+                GeoNFTMetaDataProvider = new EnumValue<ProviderType>(geoNFTMetaDataProvider)
             };
 
-            return await NFTManager.MintAndPlaceGeoNFTAsync(mintRequest);
+            return await NFTManager.MintAndPlaceGeoNFTAsync(mintRequest, Core.Enums.ResponseFormatType.SimpleText);
         }
 
 

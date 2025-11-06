@@ -503,9 +503,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         #region IOASISNFTProvider Implementation
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transaction)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transaction)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!_isActivated)
@@ -523,9 +523,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             return response;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transaction)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transaction)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!_isActivated)
@@ -543,9 +543,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             return response;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transaction)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transaction)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!_isActivated)
@@ -563,9 +563,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             return response;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transaction)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transaction)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!_isActivated)

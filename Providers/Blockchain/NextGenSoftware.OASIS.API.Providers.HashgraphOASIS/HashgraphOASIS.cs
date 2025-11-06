@@ -1,27 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using System.Text.Json;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 {
@@ -1278,9 +1280,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         // Removed explicit interface implementation that doesn't exist in the interface
 
-        public async Task<OASISResult<IEnumerable<IPlayer>>> GetPlayersNearMeAsync()
+        public async Task<OASISResult<IEnumerable<IAvatar>>> GetPlayersNearMeAsync()
         {
-            var result = new OASISResult<IEnumerable<IPlayer>>();
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 if (!IsProviderActivated)
@@ -1297,10 +1299,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var players = new List<IPlayer>();
+                var players = new List<IAvatar>();
                 foreach (var avatar in avatarsResult.Result)
                 {
-                    var player = new Player
+                    var player = new Avatar
                     {
                         Id = avatar.Id,
                         Username = avatar.Username,
@@ -1792,9 +1794,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 // Real Hashgraph implementation: Send NFT transaction
@@ -1811,7 +1813,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (transactionResult != null)
                 {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionRespone
                     {
                         TransactionResult = transactionResult.TransactionId
                     };
@@ -1830,9 +1832,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 // Real Hashgraph implementation: Send NFT transaction asynchronously
@@ -1847,7 +1849,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (transactionResult != null)
                 {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionRespone
                     {
                         TransactionResult = transactionResult.TransactionId
                     };
@@ -1866,9 +1868,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb3NFTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 // Real Hashgraph implementation: Mint NFT synchronously
@@ -1883,7 +1885,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (transactionResult != null)
                 {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionRespone
                     {
                         TransactionResult = transactionResult.TransactionId
                     };
@@ -1902,9 +1904,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(IMintWeb3NFTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 // Real Hashgraph implementation: Mint NFT asynchronously
@@ -1919,7 +1921,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (transactionResult != null)
                 {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionRespone
                     {
                         TransactionResult = transactionResult.TransactionId
                     };
@@ -1940,9 +1942,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
 
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var result = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb3NFT>();
             try
             {
                 // Real Hashgraph implementation: Load NFT data from Hashgraph network
@@ -1951,7 +1953,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (nftData != null)
                 {
-                    var nft = new OASISNFT
+                    var nft = new Web3NFT
                     {
                         Id = Guid.NewGuid(),
                         Title = "Hashgraph NFT",
@@ -1982,9 +1984,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var result = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb3NFT>();
             try
             {
                 // Real Hashgraph implementation: Load NFT data from Hashgraph network asynchronously
@@ -1993,7 +1995,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (nftData != null)
                 {
-                    var nft = new OASISNFT
+                    var nft = new Web3NFT
                     {
                         Id = Guid.NewGuid(),
                         Title = "Hashgraph NFT",

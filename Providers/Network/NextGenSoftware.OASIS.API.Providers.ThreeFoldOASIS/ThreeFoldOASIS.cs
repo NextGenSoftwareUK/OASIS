@@ -25,6 +25,7 @@ using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 {
@@ -1609,9 +1610,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
         #region IOASISNFTProvider
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1642,7 +1643,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var nftResponse = JsonSerializer.Deserialize<NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (nftResponse != null)
                     {
@@ -1667,14 +1668,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(IMintWeb3NFTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1693,7 +1694,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     toAddress = transation.SendToAddressAfterMinting,
                     tokenId = transation.Title,
-                    contractAddress = transation.OnChainProvider?.Value.ToString(),
+                    contractAddress = transation.OnChainProvider.ToString(),
                     metadata = transation.MetaData,
                     name = transation.Title,
                     description = transation.Description,
@@ -1707,7 +1708,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var nftResponse = JsonSerializer.Deserialize<NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (nftResponse != null)
                     {
@@ -1732,15 +1733,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb3NFTRequest transation)
         {
             return MintNFTAsync(transation).Result;
         }
 
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var result = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb3NFT>();
             try
             {
                 if (!IsProviderActivated)
@@ -1760,7 +1761,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var nft = JsonSerializer.Deserialize<OASISNFT>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var nft = JsonSerializer.Deserialize<Web3NFT>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (nft != null)
                     {
@@ -1785,7 +1786,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
             return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }

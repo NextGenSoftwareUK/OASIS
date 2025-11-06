@@ -2002,9 +2002,9 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
         }
 
         // Missing NFT provider methods
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest request)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 // Implement NFT sending
@@ -2020,9 +2020,9 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
             return response;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest request)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 // Implement async NFT sending
@@ -2038,9 +2038,9 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
             return response;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest request)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 // Implement NFT minting
@@ -2056,9 +2056,9 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
             return response;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest request)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 // Implement async NFT minting

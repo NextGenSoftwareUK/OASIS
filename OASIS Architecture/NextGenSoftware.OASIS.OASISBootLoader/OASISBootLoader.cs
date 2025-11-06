@@ -11,7 +11,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+//using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
@@ -36,7 +37,7 @@ using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 //using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 //using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
-using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
+//using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 //using NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 //using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 //using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
@@ -768,6 +769,21 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 {
                     switch (providerType)
                     {
+                        case ProviderType.HoloOASIS:
+                            {
+                                HoloOASIS holoOASIS = new HoloOASIS(
+                                            overrideConnectionString == null
+                                                ? OASISDNA.OASIS.StorageProviders.HoloOASIS.LocalNodeURI
+                                                : overrideConnectionString, 
+                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNetworkURI, 
+                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.UseLocalNode, 
+                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.UseHoloNetwork, 
+                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNETORMUseReflection);
+
+                                holoOASIS.OnStorageProviderError += HoloOASIS_StorageProviderError;
+                                result.Result = holoOASIS;
+                            }
+                            break;
 
                         case ProviderType.SQLLiteDBOASIS:
                             {
@@ -816,17 +832,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        case ProviderType.TelosOASIS:
-                            {
-                                TelosOASIS TelosOASIS = new TelosOASIS(
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
-                                TelosOASIS.OnStorageProviderError += TelosOASIS_StorageProviderError;
-                                result.Result = TelosOASIS;
-                            }
-                            break;
+                        //case ProviderType.TelosOASIS:
+                        //    {
+                        //        TelosOASIS TelosOASIS = new TelosOASIS(
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
+                        //        TelosOASIS.OnStorageProviderError += TelosOASIS_StorageProviderError;
+                        //        result.Result = TelosOASIS;
+                        //    }
+                        //    break;
 
                         //case ProviderType.SEEDSOASIS:
                         //    {
@@ -1079,15 +1095,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        case ProviderType.CosmosBlockChainOASIS:
-                            {
-                                CosmosBlockChainOASIS cosmosOASIS = new CosmosBlockChainOASIS(
-                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint,
-                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.Network,
-                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId);
-                                result.Result = cosmosOASIS;
-                            }
-                            break;
+                        //case ProviderType.CosmosBlockChainOASIS:
+                        //    {
+                        //        CosmosBlockChainOASIS cosmosOASIS = new CosmosBlockChainOASIS(
+                        //            OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint,
+                        //            OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.Network,
+                        //            OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId);
+                        //        result.Result = cosmosOASIS;
+                        //    }
+                        //    break;
 
                         //case ProviderType.NEAROASIS:
                         //    {
@@ -1362,6 +1378,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("SolanaOASIS", e);
         }
 
+        private static void HoloOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("HoloOASIS", e);
+        }
 
         private static void AzureCosmosDBOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {

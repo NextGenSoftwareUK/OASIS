@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(Guid fromGeoHotSpotId, Guid toGeoHotSpotId);
         bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(IGeoHotSpot fromGeoHotSpot, IGeoHotSpot toGeoHotSpot);
         bool CreateAndDrawRouteOnMapBetweenGeoNFTs(Guid fromGeoNFTId, Guid toGeoNFTId);
-        bool CreateAndDrawRouteOnMapBetweenGeoNFTs(IOASISGeoSpatialNFT fromGeoNFT, IOASISGeoSpatialNFT toGeoNFT);
+        bool CreateAndDrawRouteOnMapBetweenGeoNFTs(IWeb4OASISGeoSpatialNFT fromGeoNFT, IWeb4OASISGeoSpatialNFT toGeoNFT);
         bool CreateAndDrawRouteOnMapBetweenHolons(Guid fromHolonId, Guid toHolonId);
         bool CreateAndDrawRouteOnMapBetweenHolons(IHolon fromHolon, IHolon toHolon);
         bool CreateAndDrawRouteOnMapBetweenOAPPs(Guid fromOAPPId, Guid toOAPPId);
@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         bool PanMapUp(float value);
         bool PlaceBuildingOnMap(IBuilding building, float x, float y);
         bool PlaceGeoHotSpotOnMap(IGeoHotSpot geoHotSpot, float x, float y);
-        bool PlaceGeoNFTOnMap(IOASISGeoSpatialNFT geoNFT, float x, float y);
+        bool PlaceGeoNFTOnMap(IWeb4OASISGeoSpatialNFT geoNFT, float x, float y);
         bool PlaceHolonOnMap(IHolon holon, float x, float y);
         bool PlaceOAPPOnMap(IOAPP OAPP, float x, float y);
         bool PlaceQuestOnMap(IQuest quest, float x, float y);
@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         bool ZoomToGeoHotSpotOnMap(Guid geoHotSpotId);
         bool ZoomToGeoHotSpotOnMap(IGeoHotSpot geoHotSpot);
         bool ZoomToGeoNFTOnMap(Guid geoNFTId);
-        bool ZoomToGeoNFTOnMap(IOASISGeoSpatialNFT geoNFT);
+        bool ZoomToGeoNFTOnMap(IWeb4OASISGeoSpatialNFT geoNFT);
         bool ZoomToHolonOnMap(Guid holonId);
         bool ZoomToHolonOnMap(IHolon holon);
         bool ZoomToOAPPOnMap(Guid oappId);

@@ -211,52 +211,133 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarDetail = await LoadAvatarDetailFromChainLinkAsync(id.ToString());
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully from ChainLink";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found in ChainLink oracle");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarDetail = await LoadAvatarDetailFromChainLinkAsync($"email:{avatarEmail}");
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully from ChainLink by email";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found in ChainLink oracle by email");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from ChainLink by email: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarDetail = await LoadAvatarDetailFromChainLinkAsync($"username:{avatarUsername}");
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully from ChainLink by username";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found in ChainLink oracle by username");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from ChainLink by username: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                var avatars = await LoadAllAvatarsFromChainLinkAsync();
+                result.Result = avatars;
+                result.IsError = false;
+                result.Message = "All avatars loaded successfully from ChainLink";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return null;
+            return LoadAllAvatarsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                var avatarDetails = await LoadAllAvatarDetailsFromChainLinkAsync();
+                result.Result = avatarDetails;
+                result.IsError = false;
+                result.Message = "All avatar details loaded successfully from ChainLink";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            return null;
+            return LoadAllAvatarDetailsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -289,77 +370,210 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return null;
+            return SaveAvatarAsync(avatar).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var success = await SaveAvatarDetailToChainLinkAsync(avatarDetail);
+                if (success)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail saved successfully to ChainLink";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to save avatar detail to ChainLink oracle");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {
-            return null;
+            return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                var success = await DeleteAvatarFromChainLinkAsync(id.ToString());
+                if (success)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from ChainLink";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from ChainLink oracle");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarAsync(id, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                var success = await DeleteAvatarFromChainLinkAsync($"providerKey:{providerKey}");
+                if (success)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from ChainLink by provider key";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from ChainLink oracle by provider key");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from ChainLink by provider key: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                var success = await DeleteAvatarFromChainLinkAsync($"email:{avatarEmail}");
+                if (success)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from ChainLink by email";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from ChainLink oracle by email");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from ChainLink by email: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                var success = await DeleteAvatarFromChainLinkAsync($"username:{avatarUsername}");
+                if (success)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from ChainLink by username";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from ChainLink oracle by username");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from ChainLink by username: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var holon = await LoadHolonFromChainLinkAsync(id.ToString());
+                if (holon != null)
+                {
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from ChainLink";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in ChainLink oracle");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var holon = await LoadHolonFromChainLinkAsync($"providerKey:{providerKey}");
+                if (holon != null)
+                {
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from ChainLink by provider key";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in ChainLink oracle by provider key");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from ChainLink by provider key: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -384,22 +598,46 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var holons = await LoadHolonsForParentFromChainLinkAsync(id.ToString(), type.ToString());
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = "Holons loaded successfully from ChainLink for parent";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons from ChainLink for parent: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                var holons = await LoadHolonsForParentFromChainLinkAsync($"providerKey:{providerKey}", type.ToString());
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = "Holons loaded successfully from ChainLink for parent by provider key";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons from ChainLink for parent by provider key: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool loadChildrenFromProvider = false, bool continueOnError = true, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1653,14 +1891,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 if (!IsProviderActivated)
@@ -1689,7 +1927,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = (INFTTransactionRespone)new ChainLinkTransactionResponse
+                    result.Result = (IWeb4Web4NFTTransactionRespone)new ChainLinkTransactionResponse
                     {
                         TransactionHash = responseData.GetProperty("result").GetString(),
                         Success = true
@@ -1709,9 +1947,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transation)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 // Mint NFT using ChainLink oracle
@@ -1721,7 +1959,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     Success = true,
                 };
 
-                response.Result = (INFTTransactionRespone)nftTransaction;
+                response.Result = (IWeb4Web4NFTTransactionRespone)nftTransaction;
                 response.Message = "NFT minted using ChainLink oracle successfully";
             }
             catch (Exception ex)
@@ -1732,9 +1970,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return response;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transation)
         {
-            var response = new OASISResult<INFTTransactionRespone>();
+            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
             {
                 // Mint NFT using ChainLink oracle
@@ -1744,7 +1982,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     Success = true,
                 };
 
-                response.Result = (INFTTransactionRespone)nftTransaction;
+                response.Result = (IWeb4Web4NFTTransactionRespone)nftTransaction;
                 response.Message = "NFT minted using ChainLink oracle successfully";
             }
             catch (Exception ex)
@@ -1761,7 +1999,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Load NFT data from ChainLink oracle
-                var nft = new OASISNFT
+                var nft = new Web4OASISNFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     MetaData = new Dictionary<string, object>
@@ -1790,7 +2028,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Load NFT data from ChainLink oracle
-                var nft = new OASISNFT
+                var nft = new Web4OASISNFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     MetaData = new Dictionary<string, object>
