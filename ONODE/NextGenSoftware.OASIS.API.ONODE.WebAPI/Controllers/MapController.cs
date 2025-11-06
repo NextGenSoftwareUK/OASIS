@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
@@ -43,10 +45,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="searchParams">Search parameters including query, location bounds, and filters</param>
         /// <returns>Search results containing matching locations and features</returns>
         [HttpPost("search")]
-        public async Task<OASISResult<ISearchResults>> Search([FromBody] ISearchParams searchParams)
+        public async Task<OASISResult<List<MapLocation>>> Search(string query, LocationType? type = null, double? latitude = null, double? longitude = null, double? radiusKm = null)
         {
             // Use MapManager for business logic
-            return await MapManager.SearchAsync(searchParams);
+            return await MapManager.SearchLocationsAsync(query, type, latitude, longitude, radiusKm);
         }
 
         ///// <summary>

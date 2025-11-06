@@ -47,7 +47,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("register-social-provider")]
-        public async Task<OASISResult<bool>> RegisterSocialProvider([FromBody] string providerName, [FromBody] string accessToken, [FromBody] Dictionary<string, object> settings = null)
+        //public async Task<OASISResult<bool>> RegisterSocialProvider([FromBody] string providerName, [FromBody] string accessToken, [FromBody] Dictionary<string, object> settings = null)
+        public async Task<OASISResult<bool>> RegisterSocialProvider(string providerName, string accessToken, Dictionary<string, object> settings = null)
         {
             // Use SocialManager for business logic
             return await SocialManager.Instance.RegisterSocialProviderAsync(Avatar.Id, providerName, accessToken, settings);
@@ -62,7 +63,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("share-holon")]
-        public async Task<OASISResult<bool>> ShareHolon([FromBody] Guid holonId, [FromBody] string message, [FromBody] List<string> providerIds = null)
+        //public async Task<OASISResult<bool>> ShareHolon([FromBody] Guid holonId, [FromBody] string message, [FromBody] List<string> providerIds = null)
+        public async Task<OASISResult<bool>> ShareHolon(Guid holonId, string message, List<string> providerIds = null)
         {
             // Use SocialManager for business logic
             return await SocialManager.Instance.ShareHolonAsync(Avatar.Id, holonId, message, providerIds);
