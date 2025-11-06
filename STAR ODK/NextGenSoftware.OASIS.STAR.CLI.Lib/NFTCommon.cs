@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     {
         public NFTManager NFTManager { get; set; } = new NFTManager(STAR.BeamedInAvatar.Id);
 
-        public async Task<IMintWeb4NFTTRequest> GenerateNFTRequestAsync(string web3JSONMetaDataFile = "")
+        public async Task<IMintWeb4NFTRequest> GenerateNFTRequestAsync(string web3JSONMetaDataFile = "")
         {
             MintWeb4NFTRequest request = new MintWeb4NFTRequest();
 
@@ -41,8 +41,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation("Is there any Royalty Percentage?"))
                 request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false);
-            else
-                Console.WriteLine("");
+            //else
+            //    Console.WriteLine("");
 
             SalesInfo salesInfo = UpdateSalesInfo(new SalesInfo());
 
@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (File.Exists(web3JSONMetaDataFile))
                 request.JSONMetaData = File.ReadAllText(web3JSONMetaDataFile);
             else
-                Console.WriteLine("The JSON meta data file path you entered does not exist. A new JSON meta data file will be generated instead.");
+                CLIEngine.ShowMessage("The JSON meta data file path you entered does not exist. A new JSON meta data file will be generated instead.", addLineBefore: true);
 
             bool validStandard = false;
             do
@@ -517,6 +517,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     salesInfo.SaleEndDate = null;
             }
+            else
+                Console.WriteLine("");
 
             return salesInfo;
         }

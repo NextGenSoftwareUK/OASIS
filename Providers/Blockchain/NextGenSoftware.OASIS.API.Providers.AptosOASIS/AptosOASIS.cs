@@ -1251,7 +1251,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             }
             return result;
         }
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IHolon>();
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
@@ -2027,14 +2031,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         #region IOASISNFTProvider Implementation
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest request)
+        public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest request)
         {
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest request)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var response = new OASISResult<IWeb3NFTTransactionRespone>();
 
             try
             {
@@ -2079,10 +2083,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         var responseContent = await httpResponse.Content.ReadAsStringAsync();
                         var transactionResult = System.Text.Json.JsonSerializer.Deserialize<dynamic>(responseContent);
 
-                        response.Result = new Web4NFTTransactionRespone
+                        response.Result = new Web3NFTTransactionRespone
                         {
                             TransactionResult = $"NFT transfer submitted successfully: {transactionResult}",
-                            OASISNFT = new Web4OASISNFT
+                            Web3NFT = new Web3NFT
                             {
                                 Id = Guid.NewGuid(),
                                 Title = "Transferred NFT"
@@ -2109,9 +2113,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest request)
+        public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest request)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var response = new OASISResult<IWeb3NFTTransactionRespone>();
 
             try
             {
@@ -2153,10 +2157,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var responseContent = httpResponse.Content.ReadAsStringAsync().Result;
                     var transactionResult = System.Text.Json.JsonSerializer.Deserialize<dynamic>(responseContent);
 
-                    response.Result = new Web4NFTTransactionRespone
+                    response.Result = new Web3NFTTransactionRespone
                     {
                         TransactionResult = $"NFT minted successfully: {transactionResult}",
-                        OASISNFT = new Web4OASISNFT
+                        Web3NFT = new Web3NFT
                         {
                             Id = Guid.NewGuid(),
                             Title = "OASIS NFT", // Use default title since NFTName doesn't exist
@@ -2179,9 +2183,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest request)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var response = new OASISResult<IWeb3NFTTransactionRespone>();
             try
             {
                 // REAL Aptos implementation for minting NFT
@@ -2216,7 +2220,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var transactionResult = System.Text.Json.JsonSerializer.Deserialize<AptosTransactionResponse>(responseContent);
 
-                    response.Result = new Web4NFTTransactionRespone
+                    response.Result = new Web3NFTTransactionRespone
                     {
                         TransactionResult = $"NFT minted successfully. Hash: {transactionResult.TransactionHash}"
                     };
@@ -2237,9 +2241,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            var response = new OASISResult<IWeb3NFT>();
 
             try
             {
@@ -2258,7 +2262,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var resources = System.Text.Json.JsonSerializer.Deserialize<dynamic>(responseContent);
 
                     // Parse NFT data from Aptos resources
-                    response.Result = new Web4OASISNFT
+                    response.Result = new Web3NFT
                     {
                         Id = Guid.NewGuid(),
                         Title = "On-Chain NFT",
@@ -2281,9 +2285,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            var response = new OASISResult<IWeb3NFT>();
             try
             {
                 // REAL Aptos implementation for loading NFT data
@@ -2294,7 +2298,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var nftData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    response.Result = new Web4OASISNFT
+                    response.Result = new Web3NFT
                     {
                         Id = Guid.NewGuid(),
                         Title = "OASIS NFT",

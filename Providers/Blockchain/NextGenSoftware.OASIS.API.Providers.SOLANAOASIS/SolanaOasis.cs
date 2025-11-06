@@ -1,4 +1,5 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
@@ -1768,15 +1769,15 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transaction)
+    public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transaction)
         => SendNFTAsync(transaction).Result;
 
 
-    public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transaction)
+    public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transaction)
     {
         ArgumentNullException.ThrowIfNull(transaction);
 
-        OASISResult<IWeb4NFTTransactionRespone> result = new();
+        OASISResult<IWeb3NFTTransactionRespone> result = new();
         try
         {
             OASISResult<SendTransactionResult> solanaNftTransactionResult =
@@ -1793,7 +1794,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             result.IsError = false;
             result.IsSaved = true;
-            result.Result = new Web4NFTTransactionRespone()
+            result.Result = new Web3NFTTransactionRespone()
             {
                 TransactionResult = solanaNftTransactionResult.Result.TransactionHash
             };
@@ -2291,17 +2292,17 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     //    throw new NotImplementedException();
     //}
 
-    public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
+    public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb3NFTRequest transation)
     {
         return MintNFTAsync(transation).Result;
     }
 
-    public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(
-        IMintWeb4NFTTRequest transaction)
+    public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(
+        IMintWeb3NFTRequest transaction)
     {
         ArgumentNullException.ThrowIfNull(transaction);
 
-        OASISResult<IWeb4NFTTransactionRespone> result = new(new Web4NFTTransactionRespone());
+        OASISResult<IWeb3NFTTransactionRespone> result = new(new Web3NFTTransactionRespone());
 
         try
         {
@@ -2320,7 +2321,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             result.IsError = false;
             result.IsSaved = true;
 
-            Web4OASISNFT Web4OASISNFT = new Web4OASISNFT()
+            Web3NFT Web3NFT = new Web3NFT()
             {
                 MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash,
                 NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount,
@@ -2358,7 +2359,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             //        result.Result.SendNFTTransactionResult = sendNftResult.Result.TransactionResult;
             //}
 
-            result.Result.Web4OASISNFT = Web4OASISNFT;
+            result.Result.Web3NFT = Web3NFT;
             result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
            
         }
@@ -2370,14 +2371,14 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+    public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
     {
         return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
     }
 
-    public async Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
-        OASISResult<IWeb4OASISNFT> result = new();
+        OASISResult<IWeb3NFT> result = new();
 
         try
         {

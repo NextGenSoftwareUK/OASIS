@@ -721,7 +721,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         #region IOASISNFT Implementation
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transaction)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transaction)
         {
             var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
@@ -741,7 +741,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return response;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transaction)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transaction)
         {
             var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
@@ -761,7 +761,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return response;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transaction)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transaction)
         {
             var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
@@ -781,7 +781,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return response;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transaction)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transaction)
         {
             var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
