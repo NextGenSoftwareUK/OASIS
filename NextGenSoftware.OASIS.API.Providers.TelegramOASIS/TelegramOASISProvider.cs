@@ -69,8 +69,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS
                         return result;
                     }
 
-                    // Initialize Telegram Bot Client
-                    _botClient = new TelegramBotClient(_botToken);
+                    // Initialize Telegram Bot Client with SSL bypass for local development
+                    var handler = new System.Net.Http.HttpClientHandler
+                    {
+                        ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                    };
+                    var httpClient = new System.Net.Http.HttpClient(handler)
+                    {
+                        Timeout = TimeSpan.FromSeconds(10)
+                    };
+                    _botClient = new TelegramBotClient(_botToken, httpClient);
 
                     // Initialize MongoDB
                     var mongoClient = new MongoClient(_mongoConnectionString);
