@@ -2141,28 +2141,28 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         // NFT Provider interface methods
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest request)
         {
             var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             OASISErrorHandling.HandleError(ref result, "SendNFT is not supported by Bitcoin provider");
             return result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest request)
         {
             var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             OASISErrorHandling.HandleError(ref result, "SendNFTAsync is not supported by Bitcoin provider");
             return result;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest request)
         {
             var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             OASISErrorHandling.HandleError(ref result, "MintNFT is not supported by Bitcoin provider");
             return result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest request)
         {
             var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             OASISErrorHandling.HandleError(ref result, "MintNFTAsync is not supported by Bitcoin provider");

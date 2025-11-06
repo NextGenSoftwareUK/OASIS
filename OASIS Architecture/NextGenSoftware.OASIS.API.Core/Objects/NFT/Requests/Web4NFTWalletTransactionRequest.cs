@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
 {
-    public class Web4NFTWalletTransactionRequest : WalletTransactionRequest, IWeb4NFTWalletTransactionRequest
+    public class Web4NFTWalletTransactionRequest : WalletTransactionRequest, IWeb3NFTWalletTransactionRequest
     {
         //public string MintWalletAddress { get; set; }
         public int TokenId { get; set; }

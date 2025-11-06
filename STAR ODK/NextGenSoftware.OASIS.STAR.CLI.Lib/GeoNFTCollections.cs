@@ -454,10 +454,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             result = await FindWeb4GeoNFTCollectionAsync("view", idOrName, true, providerType: providerType);
 
-            if (result != null && result.Result != null && !result.IsError)
-                await ShowGeoNFTCollectionAsync(result.Result);
-            else
-                OASISErrorHandling.HandleError(ref result, "No WEB4 GeoNFT Collection Found For That Id or Name!");
+            //if (result != null && result.Result != null && !result.IsError)
+            //    await ShowGeoNFTCollectionAsync(result.Result);
+            //else
+            //    OASISErrorHandling.HandleError(ref result, "No WEB4 GeoNFT Collection Found For That Id or Name!");
 
             return result;
         }

@@ -2390,11 +2390,11 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transaction)
+    public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transaction)
         => SendNFTAsync(transaction).Result;
 
 
-    public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transaction)
+    public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transaction)
     {
         OASISResult<IWeb4Web4NFTTransactionRespone> result = new();
         string errorMessage = "Error in SendNFTAsync method in AvalancheOASIS while sending nft. Reason: ";
@@ -2467,10 +2467,10 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
+    public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transation)
         => MintNFTAsync(transation).Result;
 
-    public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transaction)
+    public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transaction)
     {
         OASISResult<IWeb4Web4NFTTransactionRespone> result = new();
         string errorMessage = "Error in MintNFTAsync method in AvalancheOASIS while minting nft. Reason: ";

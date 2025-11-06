@@ -345,7 +345,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (priceResult != null && priceResult.Result != null && !priceResult.IsError)
                 {
-                    OASISResult<IWeb4NFTTransactionRespone> mintResult = await _nftManager.MintNftAsync(new MintWeb4NFTRequest()
+                    OASISResult<IWeb4OASISNFT> mintResult = await _nftManager.MintNftAsync(new MintWeb4NFTRequest()
                     {
                         NumberToMint = priceResult.Result, //TODO:Currently only fixed sizes of OLANDS are supported, need to make dyanmic so any number of OLANDs can be used...
                         MemoText = $"{request.OlandIds.Count} OLAND(s) with OLANDID's {ListHelper.ConvertFromList(request.OlandIds)} for Avatar {request.AvatarUsername} with AvatarID {request.AvatarId}", //TODO: Need to dervive from the tiles selected.                                                                                                                                                                                //MintWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
@@ -385,7 +385,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             AvatarUsername = request.AvatarUsername,
                             WalletAddress = request.WalletAddress,
                             OlandIds = request.OlandIds,
-                            TransactionHash = mintResult.Result.TransactionResult,
+                            TransactionHash = mintResult.Result.Web3NFTs[0].MintTransactionHash,
                             IsSucceedPurchase = true
                         });
 
@@ -393,7 +393,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         {
                             OLandPurchaseId = purchaseOlandResult.Result,
                             OlandIds = request.OlandIds,
-                            TransactionHash = mintResult.Result.TransactionResult
+                            TransactionHash = mintResult.Result.Web3NFTs[0].MintTransactionHash
                         };
                     }
                     else

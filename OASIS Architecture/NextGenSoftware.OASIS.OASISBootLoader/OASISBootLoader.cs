@@ -37,7 +37,7 @@ using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 //using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 //using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
-using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
+//using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 //using NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 //using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 //using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
@@ -1095,15 +1095,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        case ProviderType.CosmosBlockChainOASIS:
-                            {
-                                CosmosBlockChainOASIS cosmosOASIS = new CosmosBlockChainOASIS(
-                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint,
-                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.Network,
-                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId);
-                                result.Result = cosmosOASIS;
-                            }
-                            break;
+                        //case ProviderType.CosmosBlockChainOASIS:
+                        //    {
+                        //        CosmosBlockChainOASIS cosmosOASIS = new CosmosBlockChainOASIS(
+                        //            OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint,
+                        //            OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.Network,
+                        //            OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId);
+                        //        result.Result = cosmosOASIS;
+                        //    }
+                        //    break;
 
                         //case ProviderType.NEAROASIS:
                         //    {

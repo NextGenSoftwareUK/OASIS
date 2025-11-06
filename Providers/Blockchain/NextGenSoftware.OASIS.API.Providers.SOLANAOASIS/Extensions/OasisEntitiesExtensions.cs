@@ -60,8 +60,8 @@ public static class OasisEntitiesExtensions
         };
     }
 
-    public static IWeb4OASISNFT ToOasisNft(this GetNftMetadataResult nft) =>
-        new Web4OASISNFT
+    public static IWeb3NFT ToOasisNft(this GetNftMetadataResult nft) =>
+        new Web3NFT
         {
             Title = nft.Name,
             OASISMintWalletAddress = nft.Owner,
@@ -76,8 +76,8 @@ public static class OasisEntitiesExtensions
         };
     
     
-    public static IWeb4OASISNFT ToOasisNft(this GetNftResult nft) =>
-        new Web4OASISNFT
+    public static IWeb3NFT ToOasisNft(this GetNftResult nft) =>
+        new Web3NFT
         {
             Title = nft.Name,
             Symbol = nft.Symbol,

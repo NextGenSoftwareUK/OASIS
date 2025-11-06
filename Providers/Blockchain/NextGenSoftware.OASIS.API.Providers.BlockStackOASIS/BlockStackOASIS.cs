@@ -1867,26 +1867,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
         {
             var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             OASISErrorHandling.HandleWarning(ref result, "NFT operations are not supported by BlockStack provider in this context.");
             return result;
         }
 
-        public Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transation)
+        public Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
         {
             return Task.FromResult(SendNFT(transation));
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transation)
         {
             var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             OASISErrorHandling.HandleWarning(ref result, "Minting NFTs is not supported by BlockStack provider in this context.");
             return result;
         }
 
-        public Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transation)
+        public Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transation)
         {
             return Task.FromResult(MintNFT(transation));
         }

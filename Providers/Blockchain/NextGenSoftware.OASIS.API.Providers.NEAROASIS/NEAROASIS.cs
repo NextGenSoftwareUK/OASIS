@@ -2353,12 +2353,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         }
 
         // Missing IOASISNFTProvider methods
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest request)
         {
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest request)
         {
             var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
@@ -2428,12 +2428,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             return response;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest request)
+        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest request)
         {
             return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest request)
+        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest request)
         {
             var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
             try
