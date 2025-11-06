@@ -819,7 +819,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     }
 
                                     Console.WriteLine("");
-                                    Show(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
+                                    await ShowAsync(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
                                     Console.WriteLine("");
 
                                     if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
@@ -1108,7 +1108,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return installResult;
         }
 
-        public override void Show<OAPP>(OAPP oapp, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH, object customData = null)
+        public override async Task ShowAsync<OAPP>(OAPP oapp, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH, object customData = null)
         {
             if (DisplayFieldLength > displayFieldLength)
                 displayFieldLength = DisplayFieldLength;

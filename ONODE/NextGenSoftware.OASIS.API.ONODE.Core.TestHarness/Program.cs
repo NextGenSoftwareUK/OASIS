@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
             NFTManager NFTManager = new NFTManager(Guid.NewGuid());
 
             CLIEngine.ShowWorkingMessage("Minting NFT With External MetaData...");
-            OASISResult<INFTTransactionRespone> mintResult = NFTManager.MintNft(new MintNFTTransactionRequest()
+            OASISResult<IWeb4Web4NFTTransactionRespone> mintResult = NFTManager.MintNft(new MintWeb4NFTRequest()
             {
                 MintWalletAddress = "0x604b88BECeD9d6a02113fE1A0129f67fbD565D38",
                 MintedByAvatarId = Guid.NewGuid(),
@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
 
 
             CLIEngine.ShowWorkingMessage("Minting NFT With MetaData Stored On OASIS...");
-            mintResult = NFTManager.MintNft(new MintNFTTransactionRequest()
+            mintResult = NFTManager.MintNft(new MintWeb4NFTRequest()
             {
                 MintWalletAddress = "0x604b88BECeD9d6a02113fE1A0129f67fbD565D38",
                 MintedByAvatarId = Guid.NewGuid(),
