@@ -3,7 +3,7 @@
 ## 🚀 Getting Started
 
 * [Introduction](README.md)
-* [Quick Start Guide](START_HERE.md)
+* [⚡ Quick Start - Try in 30 Seconds](QUICKSTART.md)
 * [OASIS Provider Architecture](OASIS_PROVIDER_ARCHITECTURE_GUIDE.md)
 
 ## 📊 API Reference
