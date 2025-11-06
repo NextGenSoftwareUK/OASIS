@@ -27,7 +27,11 @@
 
 ### Overview
 
-OASIS is a **universal data layer** that lets you interact with 50+ blockchains, databases, and storage systems through a single, unified API. Instead of learning and integrating with each blockchain separately, you make one API call and OASIS handles the multi-chain complexity for you.
+OASIS is a **universal data layer** that lets you interact with 30+ blockchains, databases, and storage systems through a single, unified API. Instead of learning and integrating with each blockchain separately, you make one API call and OASIS handles the multi-chain complexity for you.
+
+**Currently Active:** 15 fully configured providers  
+**Built & Available:** 34 providers ready to activate  
+**Roadmap:** 50+ providers planned
 
 ### Key Concept: "Write Once, Store Everywhere"
 
@@ -41,7 +45,7 @@ OASIS HyperDrive (Automatic Distribution)
 ┌────────────────────────────────────────────────┐
 │ Ethereum  Solana  MongoDB  IPFS  Polygon  ... │
 └────────────────────────────────────────────────┘
-All 50+ providers updated automatically
+All configured providers updated automatically
 ```
 
 **Traditional approach:**
@@ -129,7 +133,38 @@ Request 4 → MongoDB (back to fastest)
 
 ## Available Providers
 
-OASIS supports **50+ providers** across 5 categories:
+OASIS has **34 built providers** with **15 currently active and configured**:
+
+### ✅ Currently Active & Configured
+
+These providers are ready to use RIGHT NOW:
+
+**Blockchains (7):**
+- `SolanaOASIS` ✓ - Solana (mainnet configured)
+- `EthereumOASIS` ✓ - Ethereum (Sepolia testnet)
+- `ArbitrumOASIS` ✓ - Arbitrum (Sepolia testnet)
+- `PolygonOASIS` ✓ - Polygon (Amoy testnet)
+- `RootstockOASIS` ✓ - Rootstock (testnet)
+- `TelosOASIS` ✓ - Telos
+- `SEEDSOASIS` ✓ - Seeds/Hypha
+
+**Databases (3):**
+- `MongoDBOASIS` ✓ - MongoDB (primary, fully configured)
+- `SQLLiteDBOASIS` ✓ - SQLite
+- `Neo4jOASIS` ⚠️ - Neo4j (needs password configuration)
+
+**Storage (3):**
+- `PinataOASIS` ✓ - Pinata (IPFS gateway, fully configured)
+- `LocalFileOASIS` ✓ - Local file storage
+- `IPFSOASIS` ⚠️ - IPFS (needs configuration)
+
+**Other (2):**
+- `HoloOASIS` ⚠️ - Holochain (localhost only)
+- `TelegramOASIS` ✓ - Telegram integration
+
+### 🔧 Built But Needs Configuration
+
+These providers exist but need API keys/setup:
 
 ### Blockchain Providers (30+)
 
@@ -204,7 +239,7 @@ OASIS supports **50+ providers** across 5 categories:
 
 **Option A: Use Public OASIS API**
 
-Base URL: `https://api.oasisplatform.world`
+Base URL: `https://api.oasisweb4.one`
 
 **Option B: Self-Host OASIS**
 
@@ -224,7 +259,7 @@ Local URL: `https://localhost:5002`
 
 **Request:**
 ```bash
-curl -X POST "https://api.oasisplatform.world/api/avatar/register" \
+curl -X POST "https://api.oasisweb4.one/api/avatar/register" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "myapp_user",
@@ -261,7 +296,7 @@ For subsequent sessions, authenticate to get a new token:
 **Endpoint:** `POST /api/avatar/authenticate`
 
 ```bash
-curl -X POST "https://api.oasisplatform.world/api/avatar/authenticate" \
+curl -X POST "https://api.oasisweb4.one/api/avatar/authenticate" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "myapp_user",
@@ -284,7 +319,7 @@ All data operations follow the same pattern and work across ALL providers:
 **What is a Holon?** A universal data structure that can store anything (user profiles, game state, NFT metadata, etc.)
 
 ```bash
-curl -X POST "https://api.oasisplatform.world/api/data/save-holon" \
+curl -X POST "https://api.oasisweb4.one/api/data/save-holon" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
@@ -334,7 +369,7 @@ curl -X POST "https://api.oasisplatform.world/api/data/save-holon" \
 **Endpoint:** `GET /api/data/load-holon/{holonId}`
 
 ```bash
-curl -X GET "https://api.oasisplatform.world/api/data/load-holon/holon-uuid-here" \
+curl -X GET "https://api.oasisweb4.one/api/data/load-holon/holon-uuid-here" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -352,7 +387,7 @@ If you want to use a specific provider:
 **Endpoint:** `GET /api/data/load-holon/{holonId}/{providerType}/{setGlobally}`
 
 ```bash
-curl -X GET "https://api.oasisplatform.world/api/data/load-holon/holon-uuid-here/SolanaOASIS/false" \
+curl -X GET "https://api.oasisweb4.one/api/data/load-holon/holon-uuid-here/SolanaOASIS/false" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -367,7 +402,7 @@ This forces loading from Solana, but if it fails, auto-failover kicks in.
 ```typescript
 // oasis-client.ts
 class OASISClient {
-  private baseUrl = 'https://api.oasisplatform.world';
+  private baseUrl = 'https://api.oasisweb4.one';
   private jwtToken: string;
   
   constructor(jwtToken: string) {
@@ -434,7 +469,7 @@ class OASISClient {
 async function main() {
   // 1. Authenticate
   const authResponse = await fetch(
-    'https://api.oasisplatform.world/api/avatar/authenticate',
+    'https://api.oasisweb4.one/api/avatar/authenticate',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -483,7 +518,7 @@ import requests
 
 class OASISClient:
     def __init__(self, jwt_token):
-        self.base_url = 'https://api.oasisplatform.world'
+        self.base_url = 'https://api.oasisweb4.one'
         self.token = jwt_token
         self.headers = {
             'Content-Type': 'application/json',
@@ -521,7 +556,7 @@ class OASISClient:
 def main():
     # 1. Authenticate
     auth_response = requests.post(
-        'https://api.oasisplatform.world/api/avatar/authenticate',
+        'https://api.oasisweb4.one/api/avatar/authenticate',
         json={
             'username': 'myapp_user',
             'password': 'mypassword'
@@ -560,7 +595,7 @@ using System.Threading.Tasks;
 public class OASISClient
 {
     private readonly HttpClient _client;
-    private readonly string _baseUrl = "https://api.oasisplatform.world";
+    private readonly string _baseUrl = "https://api.oasisweb4.one";
     
     public OASISClient(string jwtToken)
     {
@@ -625,7 +660,7 @@ public class Program
         );
         
         var authResponse = await authClient.PostAsync(
-            "https://api.oasisplatform.world/api/avatar/authenticate",
+            "https://api.oasisweb4.one/api/avatar/authenticate",
             authContent
         );
         
@@ -667,7 +702,7 @@ Generate wallets for your users on ALL blockchains with one API call:
 **Endpoint:** `POST /api/wallet/avatar/{avatarId}/generate`
 
 ```bash
-curl -X POST "https://api.oasisplatform.world/api/wallet/avatar/YOUR_AVATAR_ID/generate" \
+curl -X POST "https://api.oasisweb4.one/api/wallet/avatar/YOUR_AVATAR_ID/generate" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -700,7 +735,7 @@ const chains = [
 
 for (const chain of chains) {
   await fetch(
-    `https://api.oasisplatform.world/api/wallet/avatar/${avatarId}/generate`,
+    `https://api.oasisweb4.one/api/wallet/avatar/${avatarId}/generate`,
     {
       method: 'POST',
       headers: {
@@ -725,7 +760,7 @@ Mint NFTs that exist on multiple chains:
 **Endpoint:** `POST /api/nft/mint`
 
 ```bash
-curl -X POST "https://api.oasisplatform.world/api/nft/mint" \
+curl -X POST "https://api.oasisweb4.one/api/nft/mint" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -775,7 +810,7 @@ Check which providers are currently available:
 **Endpoint:** `GET /api/provider/health`
 
 ```bash
-curl -X GET "https://api.oasisplatform.world/api/provider/health" \
+curl -X GET "https://api.oasisweb4.one/api/provider/health" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -890,7 +925,7 @@ Configure how OASIS chooses providers:
 ```typescript
 // Save to fastest provider first, then replicate
 const result = await fetch(
-  'https://api.oasisplatform.world/api/data/save-holon',
+  'https://api.oasisweb4.one/api/data/save-holon',
   {
     method: 'POST',
     headers: {
@@ -917,7 +952,7 @@ If data diverges across providers (rare, but possible):
 ```typescript
 // Load with consensus check
 const result = await fetch(
-  `https://api.oasisplatform.world/api/data/load-holon-with-consensus/${holonId}`,
+  `https://api.oasisweb4.one/api/data/load-holon-with-consensus/${holonId}`,
   {
     headers: { 'Authorization': `Bearer ${token}` }
   }
@@ -949,7 +984,7 @@ For specific operations, choose exactly which providers to use:
 ```typescript
 // Save ONLY to blockchains (skip databases)
 const result = await fetch(
-  'https://api.oasisplatform.world/api/data/save-holon-to-providers',
+  'https://api.oasisweb4.one/api/data/save-holon-to-providers',
   {
     method: 'POST',
     headers: {
@@ -994,7 +1029,7 @@ const wallet = await oasis.generateWallet(avatarId, 'SolanaOASIS');
 
 async function refreshToken(oldToken: string) {
   const response = await fetch(
-    'https://api.oasisplatform.world/api/avatar/refresh-token',
+    'https://api.oasisweb4.one/api/avatar/refresh-token',
     {
       method: 'POST',
       headers: {
@@ -1032,7 +1067,7 @@ function validateAvatarData(data) {
 
 ### Hosted OASIS API
 
-**Production URL:** `https://api.oasisplatform.world`
+**Production URL:** `https://api.oasisweb4.one`
 
 **Features:**
 - ✅ 99.9% uptime SLA
@@ -1308,19 +1343,18 @@ You get enterprise-grade data redundancy for free.
 
 - **JavaScript:** `/meta-bricks-main/src/app/services/oasis.service.ts`
 - **Node.js Backend:** `/meta-bricks-main/backend/storage/oasis-storage-utils.js`
-- **C# Integration:** Contact OASIS team for .NET SDK
+- **C# Integration:** Contact @maxgershfield on Telegram for .NET SDK
 
 ### Getting Help
 
-- **Email:** dev@oasisplatform.world
-- **Discord:** [OASIS Developer Community]
+- **Telegram:** @maxgershfield
 - **GitHub:** https://github.com/NextGenSoftwareUK/OASIS
 
 ### API Status
 
-- **Production API:** https://api.oasisplatform.world
-- **Status Page:** https://status.oasisplatform.world
-- **Swagger Docs:** https://api.oasisplatform.world/swagger
+- **Production API:** https://api.oasisweb4.one
+- **Devnet API:** http://devnet.oasisweb4.one
+- **Swagger Docs:** https://api.oasisweb4.one/swagger
 
 ---
 
@@ -1356,6 +1390,6 @@ The OASIS Provider Architecture gives you **instant multi-chain, multi-database,
 
 **Document Version:** 2.0  
 **Last Updated:** November 6, 2025  
-**Contact:** dev@oasisplatform.world  
+**Contact:** Telegram @maxgershfield  
 **License:** Open for integration - Contact for partnership opportunities
 
