@@ -12,8 +12,9 @@ public sealed class PolygonOASIS : Web3CoreOASISBaseProvider, IOASISDBStoragePro
     { 
         get 
         { 
-            if (_bridgeService == null && Web3Client != null && TechnicalAccount != null)
-                _bridgeService = new PolygonBridgeService(Web3Client, TechnicalAccount, useTestnet: true); // Safe default: Mumbai testnet
+            // TODO: Fix Web3Client and TechnicalAccount access from base class
+            // if (_bridgeService == null && Web3Client != null && TechnicalAccount != null)
+            //     _bridgeService = new PolygonBridgeService(Web3Client, TechnicalAccount, useTestnet: true);
             return _bridgeService;
         }
     }
