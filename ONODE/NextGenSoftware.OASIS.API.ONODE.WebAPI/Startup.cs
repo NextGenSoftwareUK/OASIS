@@ -278,6 +278,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 );
             });
             
+            // DISABLED: Telegram Bot Service - Uncomment to re-enable
+            /*
             services.AddSingleton<TelegramBotService>(sp =>
             {
                 var telegramProvider = sp.GetRequiredService<TelegramOASIS>();
@@ -291,6 +293,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 
                 return new TelegramBotService(botToken, telegramProvider, avatarManager, logger, nftService, pinataService);
             });
+            */
 
             // Register Universal Asset Bridge Service
             services.AddSingleton<BridgeService>(sp =>
@@ -347,7 +350,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     }
                 }
                 
-                // Start the Telegram bot service
+                // DISABLED: Telegram bot service - Uncomment to re-enable
+                /*
                 var botService = app.ApplicationServices.GetService<TelegramBotService>();
                 if (botService != null)
                 {
@@ -358,6 +362,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 {
                     LoggingManager.Log("⚠️ TelegramBotService not found in DI container", LogType.Warning);
                 }
+                */
             }
             catch (Exception ex)
             {
