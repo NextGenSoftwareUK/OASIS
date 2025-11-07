@@ -7,8 +7,6 @@
 **Audience:** Third-party developers integrating with OASIS  
 **Purpose:** Complete guide to building applications using OASIS's multi-provider architecture
 
-> ✅ **GITBOOK SYNC TEST** - If you can see this message, GitBook is successfully syncing from max-build2 branch!
-
 ---
 
 ## Table of Contents
