@@ -320,7 +320,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             Object originalOASISNFTProviderTypeObject = null;
             Object geoNFTMetaDataProviderObject = null;
 
-            if (Enum.TryParse(typeof(ProviderType), request.OriginalOASISNFTOffChainProvider.ToString(), out originalOASISNFTProviderTypeObject))
+            if (Enum.TryParse(typeof(ProviderType), request.OriginalOASISNFTOffChainProvider, out originalOASISNFTProviderTypeObject))
                 originalOASISNFTProviderType = (ProviderType)originalOASISNFTProviderTypeObject;
             else
                 return new OASISResult<IWeb4OASISGeoSpatialNFT>() { IsError = true, Message = $"The OriginalOASISNFTOffChainProviderType is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
