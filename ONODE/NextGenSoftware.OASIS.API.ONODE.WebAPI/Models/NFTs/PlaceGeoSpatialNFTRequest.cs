@@ -1,13 +1,11 @@
 ﻿using System;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
 {
     public class PlaceGeoSpatialNFTRequest
     {
         public Guid OriginalOASISNFTId { get; set; } //The OASISNFT ID (if it has been previously minted or imported onto The OASIS).
-        public EnumValue<ProviderType> OriginalOASISNFTOffChainProvider { get; set; } //NOTE: The metadata may have been auto-replicated to other providers so it can be loaded from any of those providers also...
+        public string OriginalOASISNFTOffChainProvider { get; set; } //NOTE: The metadata may have been auto-replicated to other providers so it can be loaded from any of those providers also...
 
         //public string NFTHash { get; set; } //The hash generated when the NFT was minted.
         //public string NFTURL { get; set; } //The URL the NFT is on (if applicable).
