@@ -49,4 +49,5 @@
 ## 📚 Additional Resources
 
 * [GitBook Sync Setup](GITBOOK_AUTO_SYNC_GUIDE.md)
+* [Monetizing OASIS with x402](Docs/Devs/OASIS_X402_MONETIZATION.md)
 * [OASIS White Paper (Nov 2024)](Docs/The_OASIS_White_Paper_2024-11-25.pdf)
