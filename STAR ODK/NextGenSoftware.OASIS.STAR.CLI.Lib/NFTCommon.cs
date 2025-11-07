@@ -41,8 +41,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation("Is there any Royalty Percentage?"))
                 request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false, addLineBefore: true);
-            //else
-            //    Console.WriteLine("");
+            else
+                Console.WriteLine("");
 
             SalesInfo salesInfo = UpdateSalesInfo(new SalesInfo());
 
@@ -82,12 +82,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 object offChainMetaDataTypeObj = CLIEngine.GetValidInputForEnum("How do you wish to store the offchain meta data/image? OASIS, IPFS, Pinata or External JSON URI (for the last option you will need to generate the meta data yourself and host somewhere like Pinata and then enter the URI, for the first three options the metadata will be generated automatically)? If you choose OASIS, it will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive. If you choose OASIS and then IPFSOASIS for the next question for the OASIS Provider it will store it on IPFS via The OASIS and then benefit from the OASIS HyperDrive feature to provide more reliable service and up-time etc. If you choose IPFS or Pinata for this question then it will store it directly on IPFS/Pinata without any additional benefits of The OASIS.", typeof(NFTOffChainMetaType));
                 request.NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>((NFTOffChainMetaType)offChainMetaDataTypeObj);
 
-                if (request.NFTOffChainMetaType.Value == NFTOffChainMetaType.OASIS)
-                {
-                    object offChainProviderObj = CLIEngine.GetValidInputForEnum("What OASIS off-chain provider do you wish to store the metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType));
+                //if (request.NFTOffChainMetaType.Value == NFTOffChainMetaType.OASIS)
+                //{
+                    object offChainProviderObj = CLIEngine.GetValidInputForEnum("What OASIS off-chain provider do you wish to store the metadata on? If you selected ExternalJSONURL above then it will only store the web4 metadata on the OASIS otherwise if you selected OASIS it will store both web3 and web4 metadata. NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive.", typeof(ProviderType));
                     request.OffChainProvider = new EnumValue<ProviderType>((ProviderType)offChainProviderObj);
-                }
-                else if (request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJSONURL)
+                //}
+                
+                if (request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJSONURL)
                 {
                     Uri uriResult = await CLIEngine.GetValidURIAsync("What is the URI to the JSON meta data you have created for this NFT?");
                     request.JSONMetaDataURL = uriResult.AbsoluteUri;
@@ -108,7 +109,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     web3JSONMetaDataFile = CLIEngine.GetValidFile("Please enter the full path to the JSON MetaData file you wish to import: ");
             }
 
-            if (File.Exists(web3JSONMetaDataFile))
+            if (!string.IsNullOrEmpty(web3JSONMetaDataFile) && File.Exists(web3JSONMetaDataFile))
                 request.JSONMetaData = File.ReadAllText(web3JSONMetaDataFile);
             else
                 CLIEngine.ShowMessage("The JSON meta data file path you entered does not exist. A new JSON meta data file will be generated instead.", addLineBefore: true);

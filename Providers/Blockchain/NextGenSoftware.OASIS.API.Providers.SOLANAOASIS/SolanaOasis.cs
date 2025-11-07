@@ -1781,7 +1781,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         try
         {
             OASISResult<SendTransactionResult> solanaNftTransactionResult =
-                await _solanaService.SendNftAsync(transaction as Web4NFTWalletTransactionRequest);
+                await _solanaService.SendNftAsync(transaction as Web3NFTWalletTransactionRequest);
 
             if (solanaNftTransactionResult.IsError ||
                 string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
@@ -2307,7 +2307,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         try
         {
             OASISResult<MintNftResult> solanaNftTransactionResult
-                = await _solanaService.MintNftAsync(transaction as MintWeb4NFTRequest);
+                = await _solanaService.MintNftAsync(transaction as MintWeb3NFTRequest);
 
             if (solanaNftTransactionResult.IsError ||
                 string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
