@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
 
             if (CLIEngine.GetConfirmation("Is there any Royalty Percentage?"))
-                request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false);
+                request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false, addLineBefore: true);
             //else
             //    Console.WriteLine("");
 
@@ -485,7 +485,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public SalesInfo UpdateSalesInfo(SalesInfo salesInfo, bool edit = true)
         {
-            salesInfo.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.", addLineBefore: true);
+            salesInfo.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.", addLineBefore: false);
 
             if (salesInfo.IsForSale.HasValue && salesInfo.IsForSale.Value)
             {
