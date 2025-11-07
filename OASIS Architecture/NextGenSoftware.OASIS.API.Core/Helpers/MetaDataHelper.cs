@@ -22,6 +22,17 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 CLIEngine.ShowMessage(string.Concat("MetaData:".PadRight(displayFieldLength), "None"), false);
         }
 
+        public static string GetMetaData(Dictionary<string, object> metaData)
+        {
+            string metaDataString = "";
+
+            foreach (string key in metaData.Keys)
+                string.Concat(metaDataString, key, " = ", GetMetaValue(metaData[key]), ",");
+
+            metaDataString = metaDataString.Substring(0, metaDataString.Length - 2);
+            return metaDataString;
+        }
+
         public static string GetMetaValue(object value)
         {
             return value != null ? IsBinary(value) ? "<binary>" : value.ToString() : "None";
