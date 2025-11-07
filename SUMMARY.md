@@ -13,6 +13,7 @@
 
 ## 🏗️ Core Architecture
 
+* [OASIS Interoperability Architecture](Docs/Devs/OASIS_INTEROPERABILITY_ARCHITECTURE.md)
 * [HyperDrive Architecture Overview](HYPERDRIVE_ARCHITECTURE_DIAGRAM.md)
 * [HyperDrive Visual Diagrams](WEB4_HYPERDRIVE_ARCHITECTURE_DIAGRAMS.md)
 * [HyperDrive Technical Q&A](WEB4_TOKENS_HYPERDRIVE_ARCHITECTURE_QUESTIONS.md)
@@ -28,6 +29,10 @@
 * [Bridge Architecture](UniversalAssetBridge/BRIDGE_ARCHITECTURE_EXPLAINED.md)
 * [Bridge Implementation Guide](UniversalAssetBridge/BRIDGE_IMPLEMENTATION_CONTEXT.md)
 * [Bridge Quick Start](UniversalAssetBridge/BRIDGE_QUICKSTART.md)
+
+## 📈 Use Cases
+
+* [Interoperability Use Cases](Docs/Devs/OASIS_INTEROPERABILITY_USE_CASES.md)
 
 ## 🔐 Deployment & Security
 
