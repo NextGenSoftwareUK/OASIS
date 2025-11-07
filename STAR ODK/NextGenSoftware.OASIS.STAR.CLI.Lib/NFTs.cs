@@ -131,10 +131,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
             {
-                if (mint)
-                    OASISErrorHandling.HandleError(ref result, $"Error occured minting NFT in MintGeoNFTAsync method. Reason: {NFTResult.Message}");
-                else
-                    OASISErrorHandling.HandleError(ref result, $"Error occured loading NFT in LoadGeoNftAsync method. Reason: {NFTResult.Message}");
+                if (!mint)
+                //    OASISErrorHandling.HandleError(ref result, $"Error occured minting NFT in MintNFTAsync method. Reason: {NFTResult.Message}");
+                //else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured loading NFT in LoadNftAsync method. Reason: {NFTResult.Message}");
             }
 
             return result;
@@ -146,17 +146,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             IMintWeb4NFTRequest request = await NFTCommon.GenerateNFTRequestAsync();
 
             CLIEngine.ShowWorkingMessage("Minting WEB4 OASIS NFT...");
-            OASISResult<IWeb4OASISNFT> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
+            result = await STAR.OASISAPI.NFTs.MintNftAsync(request);
 
-            if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+            if (result != null && result.Result != null && !result.IsError)
             {
                 //CLIEngine.ShowSuccessMessage($"OASIS NFT Successfully Minted. {nftResult.Message} Transaction Result: {nftResult.Result.TransactionResult}, Id: {nftResult.Result.OASISNFT.Id}, Hash: {nftResult.Result.OASISNFT.Hash} Minted On: {nftResult.Result.OASISNFT.MintedOn}, Minted By Avatar Id: {nftResult.Result.OASISNFT.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.OASISNFT.MintedByAddress}.");
-                CLIEngine.ShowSuccessMessage(nftResult.Message);
-                result.Result = nftResult.Result;
+                CLIEngine.ShowSuccessMessage(result.Message);
+                //result.Result = nftResult.Result;
             }
             else
             {
-                string msg = nftResult != null ? nftResult.Message : "";
+                string msg = result != null ? result.Message : "";
                 CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
             }
            
