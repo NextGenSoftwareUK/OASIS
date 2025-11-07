@@ -46,7 +46,7 @@ internal static class Program
         await solanaOasis.ActivateProviderAsync();
 
         WriteInfo($"Loading NFT metadata for address: {address} ...");
-        OASISResult<IOASISNFT> response = await solanaOasis.LoadOnChainNFTDataAsync(address);
+        OASISResult<IWeb3NFT> response = await solanaOasis.LoadOnChainNFTDataAsync(address);
 
         if (response.IsError)
         {
@@ -54,7 +54,7 @@ internal static class Program
             return;
         }
 
-        IOASISNFT result = response.Result;
+        IWeb3NFT result = response.Result;
 
         WriteColored("Title", result.Title, ConsoleColor.Green);
         WriteColored("Symbol", result.Symbol, ConsoleColor.Cyan);
@@ -119,7 +119,7 @@ internal static class Program
         WriteInfo("Activating Solana provider...");
         await solanaOasis.ActivateProviderAsync();
 
-        IMintNFTTransactionRequest mintNftRequest = new MintNFTTransactionRequest()
+        MintWeb3NFTRequest mintNftRequest = new MintWeb3NFTRequest()
         {
             JSONMetaDataURL = "https://example.com/metadata.json-#1",
             Title = "Test data for LoadNft #1",
@@ -127,7 +127,7 @@ internal static class Program
         };
 
         WriteInfo($"Minting NFT: {mintNftRequest.Title}...");
-        OASISResult<INFTTransactionRespone> mintNftResult = await solanaOasis.MintNFTAsync(mintNftRequest);
+        OASISResult<IWeb3NFTTransactionRespone> mintNftResult = await solanaOasis.MintNFTAsync(mintNftRequest);
         if (mintNftResult.IsError)
         {
             WriteError($"MintNFTAsync Error: {mintNftResult.Message}");
@@ -163,7 +163,7 @@ internal static class Program
 
 
         // Before using, update with new data!
-        INFTWalletTransactionRequest request = new NFTWalletTransactionRequest()
+        Web3NFTWalletTransactionRequest request = new Web3NFTWalletTransactionRequest()
         {
             FromWalletAddress = TestData.PublicKey.Key,
             TokenAddress = "13V6P1dJ3femi13d3gTEot6G6VpR9VHPS6SY8GzvDZPL",
@@ -171,7 +171,7 @@ internal static class Program
             ToWalletAddress = "FXD4ebDGGDG3L345MD2DYRQ4rxhuswJFZ1o3EASsQxhS"
         };
 
-        OASISResult<INFTTransactionRespone> response = await solanaOasis.SendNFTAsync(request);
+        OASISResult<IWeb3NFTTransactionRespone> response = await solanaOasis.SendNFTAsync(request);
 
         if (response.IsError)
         {
@@ -190,9 +190,9 @@ internal static class Program
         WriteInfo("=== Starting SolanaOASIS Test Harness ===");
 
 
-        //await Run_MintNFTAsync();
+        await Run_MintNFTAsync();
         //await Run_LoadNftAsync();
-        await Run_SendNFTAsync();
+        //await Run_SendNFTAsync();
 
         // await Run_SaveAndLoadAvatar();
 
