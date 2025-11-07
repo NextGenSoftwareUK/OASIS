@@ -660,7 +660,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return nfts;
         }
 
-        private void ShowNFT(IWeb4OASISNFT nft, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
+        private void ShowNFT(IWeb4OASISNFT web4NFT, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
         {
             if (DisplayFieldLength > displayFieldLength)
                 displayFieldLength = DisplayFieldLength;
@@ -673,40 +673,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showNumbers)
                 CLIEngine.ShowMessage(string.Concat("Number:".PadRight(displayFieldLength), number), false);
 
-            DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
-            DisplayProperty("Title", nft.Title, displayFieldLength);
-            DisplayProperty("Description", nft.Description, displayFieldLength);
-            DisplayProperty("Price", nft.Price.ToString(), displayFieldLength);
-            DisplayProperty("Discount", nft.Discount.ToString(), displayFieldLength);
-            DisplayProperty("Royalty Percentage", nft.RoyaltyPercentage.ToString(), displayFieldLength);
-            DisplayProperty("For Sale", nft.IsForSale ? string.Concat("Yes (StartDate: ", nft.SaleStartDate.HasValue ? nft.SaleStartDate.Value.ToShortDateString() : "Not Set", nft.SaleEndDate.HasValue ? nft.SaleEndDate.Value.ToShortDateString() : "Not Set") : "No", displayFieldLength);
-            DisplayProperty("Minted By Avatar Id", nft.MintedByAvatarId.ToString(), displayFieldLength);
-            DisplayProperty("Minted On", nft.MintedOn.ToString(), displayFieldLength);
-            DisplayProperty("OnChain Provider", nft.OnChainProvider.Name, displayFieldLength);
-            DisplayProperty("OffChain Provider", nft.OffChainProvider.Name, displayFieldLength);
-            DisplayProperty("Store NFT Meta Data OnChain", nft.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
-            DisplayProperty("NFT OffChain Meta Type", nft.NFTOffChainMetaType.Name, displayFieldLength);
-            DisplayProperty("NFT Standard Type", nft.NFTStandardType.Name, displayFieldLength);
-            DisplayProperty("Symbol", nft.Symbol, displayFieldLength);
-            DisplayProperty("Image", nft.Image != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("Image Url", nft.ImageUrl, displayFieldLength);
-            DisplayProperty("Thumbnail", nft.Thumbnail != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None", displayFieldLength);
-            DisplayProperty("JSON MetaData URL", nft.JSONMetaDataURL, displayFieldLength);
-            DisplayProperty("JSON MetaData URL Holon Id", nft.JSONMetaDataURLHolonId != Guid.Empty ? nft.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
-            DisplayProperty("Seller Fee Basis Points", nft.SellerFeeBasisPoints.ToString(), displayFieldLength);
-            DisplayProperty("Send To Address After Minting", nft.SendToAddressAfterMinting, displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Id", nft.SendToAvatarAfterMintingId != Guid.Empty ? nft.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(nft.SendToAvatarAfterMintingUsername) ? nft.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
-            
-            //DisplayProperty("Send NFT Transaction Hash", nft.SendNFTTransactionHash, displayFieldLength);
-            //DisplayProperty("Update Authority", nft.UpdateAuthority, displayFieldLength);
-            //DisplayProperty("OASIS MintWallet Address", nft.OASISMintWalletAddress, displayFieldLength);
-            //DisplayProperty("Mint Transaction Hash", nft.MintTransactionHash, displayFieldLength);
-            //DisplayProperty("NFT Token Address", nft.NFTTokenAddress, displayFieldLength);
+            ShowNFTDetails(web4NFT, null, displayFieldLength);
 
-            TagHelper.ShowTags(nft.Tags, displayFieldLength);
-            MetaDataHelper.ShowMetaData(nft.MetaData, displayFieldLength);
+            DisplayProperty("WEB3 NFT's", "", displayFieldLength);
+            foreach (Web3NFT web3NFT in web4NFT.Web3NFTs)
+            {
+                ShowNFTDetails(web3NFT, web4NFT, displayFieldLength);
+                DisplayProperty("Send NFT Transaction Hash", web3NFT.SendNFTTransactionHash, displayFieldLength);
+                DisplayProperty("OASIS MintWallet Address", web3NFT.OASISMintWalletAddress, displayFieldLength);
+                DisplayProperty("Mint Transaction Hash", web3NFT.MintTransactionHash, displayFieldLength);
+                DisplayProperty("NFT Token Address", web3NFT.NFTTokenAddress, displayFieldLength);
+                DisplayProperty("Update Authority", web3NFT.UpdateAuthority, displayFieldLength);
+            }
 
             if (showFooter)
                 CLIEngine.ShowDivider();

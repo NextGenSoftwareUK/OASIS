@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
@@ -784,7 +785,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return geoNFTs;
         }
 
-        private void ShowGeoNFT(IWeb4OASISGeoSpatialNFT geoNFT, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
+        private void ShowGeoNFT(IWeb4OASISGeoSpatialNFT web4GeoNFT, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
         {
             if (DisplayFieldLength > displayFieldLength)
                 displayFieldLength = DisplayFieldLength;
@@ -797,52 +798,46 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showNumbers)
                 CLIEngine.ShowMessage(string.Concat("Number:".PadRight(displayFieldLength), number), false);
 
-            //DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
-            //Console.WriteLine("");
-            DisplayProperty("Geo-NFT Id", geoNFT.Id.ToString(), displayFieldLength);
-            DisplayProperty("NFT Id", geoNFT.OriginalWeb4OASISNFTId.ToString(), displayFieldLength);
-            DisplayProperty("Title", geoNFT.Title, displayFieldLength);
-            DisplayProperty("Description", geoNFT.Description, displayFieldLength);
-            DisplayProperty("Price", geoNFT.Price.ToString(), displayFieldLength);
-            DisplayProperty("Discount", geoNFT.Discount.ToString(), displayFieldLength);
-            DisplayProperty("Royalty Percentage", geoNFT.RoyaltyPercentage.ToString(), displayFieldLength);
-            DisplayProperty("For Sale", geoNFT.IsForSale ? string.Concat("Yes (StartDate: ", geoNFT.SaleStartDate.HasValue ? geoNFT.SaleStartDate.Value.ToShortDateString() : "Not Set", geoNFT.SaleEndDate.HasValue ? geoNFT.SaleEndDate.Value.ToShortDateString() : "Not Set") : "No", displayFieldLength);
-            DisplayProperty("Minted By Avatar Id", geoNFT.MintedByAvatarId.ToString(), displayFieldLength);
-            DisplayProperty("Minted On", geoNFT.MintedOn.ToString(), displayFieldLength);
-            DisplayProperty("OnChain Provider", geoNFT.OnChainProvider.Name, displayFieldLength);
-            DisplayProperty("OffChain Provider", geoNFT.OffChainProvider.Name, displayFieldLength);
-            DisplayProperty("Store NFT Meta Data OnChain", geoNFT.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
-            DisplayProperty("NFT OffChain Meta Type", geoNFT.NFTOffChainMetaType.Name, displayFieldLength);
-            DisplayProperty("NFT Standard Type", geoNFT.NFTStandardType.Name, displayFieldLength);
-            DisplayProperty("Symbol", geoNFT.Symbol, displayFieldLength);
-            DisplayProperty("Image", geoNFT.Image != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("Image Url", geoNFT.ImageUrl, displayFieldLength);
-            DisplayProperty("Thumbnail", geoNFT.Thumbnail != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(geoNFT.ThumbnailUrl) ? geoNFT.ThumbnailUrl : "None", displayFieldLength);
-            DisplayProperty("JSON MetaData URL", geoNFT.JSONMetaDataURL, displayFieldLength);
-            DisplayProperty("JSON MetaData URL Holon Id", geoNFT.JSONMetaDataURLHolonId != Guid.Empty ? geoNFT.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
-            DisplayProperty("Seller Fee Basis Points", geoNFT.SellerFeeBasisPoints.ToString(), displayFieldLength);
-            DisplayProperty("Send To Address After Minting", geoNFT.SendToAddressAfterMinting, displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Id", geoNFT.SendToAvatarAfterMintingId != Guid.Empty ? geoNFT.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(geoNFT.SendToAvatarAfterMintingUsername) ? geoNFT.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
-            DisplayProperty("Lat/Long", $"{geoNFT.Lat}/{geoNFT.Long}", displayFieldLength);
-            DisplayProperty("Perm Spawn", geoNFT.PermSpawn.ToString(), displayFieldLength);
-            
-            //DisplayProperty("OASIS MintWallet Address", geoNFT.OASISMintWalletAddress, displayFieldLength);
-            //DisplayProperty("Mint Transaction Hash", geoNFT.MintTransactionHash, displayFieldLength);
-            //DisplayProperty("NFT Token Address", geoNFT.NFTTokenAddress, displayFieldLength);
-            //DisplayProperty("Send NFT Transaction Hash", geoNFT.SendNFTTransactionHash, displayFieldLength);
-            //DisplayProperty("Update Authority", geoNFT.UpdateAuthority, displayFieldLength);
+            ShowNFTDetails(web4GeoNFT, null, displayFieldLength, false, false);
 
-            if (!geoNFT.PermSpawn)
+            //DisplayProperty("Geo-NFT Id", geoNFT.Id.ToString(), displayFieldLength);
+            //DisplayProperty("NFT Id", geoNFT.OriginalWeb4OASISNFTId.ToString(), displayFieldLength);
+            //DisplayProperty("Title", geoNFT.Title, displayFieldLength);
+            //DisplayProperty("Description", geoNFT.Description, displayFieldLength);
+            //DisplayProperty("Price", geoNFT.Price.ToString(), displayFieldLength);
+            //DisplayProperty("Discount", geoNFT.Discount.ToString(), displayFieldLength);
+            //DisplayProperty("Royalty Percentage", geoNFT.RoyaltyPercentage.ToString(), displayFieldLength);
+            //DisplayProperty("For Sale", geoNFT.IsForSale ? string.Concat("Yes (StartDate: ", geoNFT.SaleStartDate.HasValue ? geoNFT.SaleStartDate.Value.ToShortDateString() : "Not Set", geoNFT.SaleEndDate.HasValue ? geoNFT.SaleEndDate.Value.ToShortDateString() : "Not Set") : "No", displayFieldLength);
+            //DisplayProperty("Minted By Avatar Id", geoNFT.MintedByAvatarId.ToString(), displayFieldLength);
+            //DisplayProperty("Minted On", geoNFT.MintedOn.ToString(), displayFieldLength);
+            //DisplayProperty("OnChain Provider", geoNFT.OnChainProvider.Name, displayFieldLength);
+            //DisplayProperty("OffChain Provider", geoNFT.OffChainProvider.Name, displayFieldLength);
+            //DisplayProperty("Store NFT Meta Data OnChain", geoNFT.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
+            //DisplayProperty("NFT OffChain Meta Type", geoNFT.NFTOffChainMetaType.Name, displayFieldLength);
+            //DisplayProperty("NFT Standard Type", geoNFT.NFTStandardType.Name, displayFieldLength);
+            //DisplayProperty("Symbol", geoNFT.Symbol, displayFieldLength);
+            //DisplayProperty("Image", geoNFT.Image != null ? "Yes" : "None", displayFieldLength);
+            //DisplayProperty("Image Url", geoNFT.ImageUrl, displayFieldLength);
+            //DisplayProperty("Thumbnail", geoNFT.Thumbnail != null ? "Yes" : "None", displayFieldLength);
+            //DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(geoNFT.ThumbnailUrl) ? geoNFT.ThumbnailUrl : "None", displayFieldLength);
+            //DisplayProperty("JSON MetaData URL", geoNFT.JSONMetaDataURL, displayFieldLength);
+            //DisplayProperty("JSON MetaData URL Holon Id", geoNFT.JSONMetaDataURLHolonId != Guid.Empty ? geoNFT.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
+            //DisplayProperty("Seller Fee Basis Points", geoNFT.SellerFeeBasisPoints.ToString(), displayFieldLength);
+            //DisplayProperty("Send To Address After Minting", geoNFT.SendToAddressAfterMinting, displayFieldLength);
+            //DisplayProperty("Send To Avatar After Minting Id", geoNFT.SendToAvatarAfterMintingId != Guid.Empty ? geoNFT.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
+            //DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(geoNFT.SendToAvatarAfterMintingUsername) ? geoNFT.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
+            DisplayProperty("Lat/Long", $"{web4GeoNFT.Lat}/{web4GeoNFT.Long}", displayFieldLength);
+            DisplayProperty("Perm Spawn", web4GeoNFT.PermSpawn.ToString(), displayFieldLength);
+
+            if (!web4GeoNFT.PermSpawn)
             {
-                DisplayProperty("Allow Other Players To Also Collect", geoNFT.AllowOtherPlayersToAlsoCollect.ToString(), displayFieldLength);
+                DisplayProperty("Allow Other Players To Also Collect", web4GeoNFT.AllowOtherPlayersToAlsoCollect.ToString(), displayFieldLength);
 
-                if (geoNFT.AllowOtherPlayersToAlsoCollect)
+                if (web4GeoNFT.AllowOtherPlayersToAlsoCollect)
                 {
-                    DisplayProperty("Global Spawn Quantity", geoNFT.GlobalSpawnQuantity.ToString(), displayFieldLength);
-                    DisplayProperty("Player Spawn Quantity", geoNFT.PlayerSpawnQuantity.ToString(), displayFieldLength);
-                    DisplayProperty("Respawn Duration In Seconds", geoNFT.RespawnDurationInSeconds.ToString(), displayFieldLength);
+                    DisplayProperty("Global Spawn Quantity", web4GeoNFT.GlobalSpawnQuantity.ToString(), displayFieldLength);
+                    DisplayProperty("Player Spawn Quantity", web4GeoNFT.PlayerSpawnQuantity.ToString(), displayFieldLength);
+                    DisplayProperty("Respawn Duration In Seconds", web4GeoNFT.RespawnDurationInSeconds.ToString(), displayFieldLength);
                 }
                 else
                 {
@@ -859,13 +854,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 DisplayProperty("Respawn Duration In Seconds", "N/A", displayFieldLength);
             }
 
-            DisplayProperty("2D Sprite", geoNFT.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("2D Sprite URL", !string.IsNullOrEmpty(geoNFT.Nft2DSpriteURI) ? geoNFT.Nft2DSpriteURI : "None", displayFieldLength);
-            DisplayProperty("3D Object", geoNFT.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("3D Object URL", !string.IsNullOrEmpty(geoNFT.Nft3DObjectURI) ? geoNFT.Nft3DObjectURI : "None", displayFieldLength);
+            DisplayProperty("2D Sprite", web4GeoNFT.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("2D Sprite URL", !string.IsNullOrEmpty(web4GeoNFT.Nft2DSpriteURI) ? web4GeoNFT.Nft2DSpriteURI : "None", displayFieldLength);
+            DisplayProperty("3D Object", web4GeoNFT.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("3D Object URL", !string.IsNullOrEmpty(web4GeoNFT.Nft3DObjectURI) ? web4GeoNFT.Nft3DObjectURI : "None", displayFieldLength);
 
-            TagHelper.ShowTags(geoNFT.Tags, displayFieldLength);
-            MetaDataHelper.ShowMetaData(geoNFT.MetaData, displayFieldLength);
+            TagHelper.ShowTags(web4GeoNFT.Tags, displayFieldLength);
+            MetaDataHelper.ShowMetaData(web4GeoNFT.MetaData, displayFieldLength);
+
+            Console.WriteLine("");
+            DisplayProperty("WEB3 NFT's:", "", displayFieldLength);
+
+            foreach (Web3NFT web3NFT in web4GeoNFT.Web3NFTs)
+            {
+                ShowNFTDetails(web3NFT, web4GeoNFT, displayFieldLength);
+                DisplayProperty("Send NFT Transaction Hash", web3NFT.SendNFTTransactionHash, displayFieldLength);
+                DisplayProperty("OASIS MintWallet Address", web3NFT.OASISMintWalletAddress, displayFieldLength);
+                DisplayProperty("Mint Transaction Hash", web3NFT.MintTransactionHash, displayFieldLength);
+                DisplayProperty("NFT Token Address", web3NFT.NFTTokenAddress, displayFieldLength);
+                DisplayProperty("Update Authority", web3NFT.UpdateAuthority, displayFieldLength);
+            }
 
             if (showFooter)
                 CLIEngine.ShowDivider();
