@@ -14,6 +14,7 @@
 ## 🏗️ Core Architecture
 
 * [OASIS Interoperability Architecture](Docs/Devs/OASIS_INTEROPERABILITY_ARCHITECTURE.md)
+* [Holonic Architecture](Docs/Devs/OASIS_HOLONIC_ARCHITECTURE.md)
 * [HyperDrive Architecture Overview](HYPERDRIVE_ARCHITECTURE_DIAGRAM.md)
 * [HyperDrive Visual Diagrams](WEB4_HYPERDRIVE_ARCHITECTURE_DIAGRAMS.md)
 * [HyperDrive Technical Q&A](WEB4_TOKENS_HYPERDRIVE_ARCHITECTURE_QUESTIONS.md)
