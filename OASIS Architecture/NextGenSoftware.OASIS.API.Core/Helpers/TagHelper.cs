@@ -12,17 +12,25 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public static void ShowTags(List<string> tags, int displayFieldLength)
         {
             if (tags != null && tags.Count > 0)
-            {
-                string tagsString = "";
+                CLIEngine.ShowMessage(string.Concat("Tags:".PadRight(displayFieldLength), GetTags(tags), false));
+            else
+                CLIEngine.ShowMessage(string.Concat("Tags:".PadRight(displayFieldLength), "None"), false);
+        }
 
+        public static string GetTags(List<string> tags)
+        {
+            string tagsString = "";
+
+            if (tags != null && tags.Count > 0)
+            {
                 foreach (string tag in tags)
                     tagsString = string.Concat(tagsString, tag, ", ");
 
                 tagsString = tagsString.Substring(0, tagsString.Length - 2);
-                CLIEngine.ShowMessage(string.Concat("Tags:".PadRight(displayFieldLength), tagsString), false);
+            
             }
-            else
-                CLIEngine.ShowMessage(string.Concat("Tags:".PadRight(displayFieldLength), "None"), false);
+
+            return tagsString;
         }
 
         public static List<string> ManageTags(List<string> tags)
