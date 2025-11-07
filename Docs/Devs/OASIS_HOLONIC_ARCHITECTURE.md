@@ -6,6 +6,47 @@ Holons are data building blocks that behave as both independent applications and
 ## Code Foundations
 Holons are first-class objects in the core API:
 
+```
+Client / SDK
+   |
+   v
+Holon Manager (AvatarManager, HolonManager, ...)
+   |
+   v
+Provider Manager
+   |-- Auto Failover    -> MongoDBOASIS
+   |-- Auto Replication -> ArbitrumOASIS
+   |-- Load Balancing   -> SolanaOASIS
+   |-- Event Hooks      -> HyperDrive
+   |
+   v
+Provider-Specific Operation (CRUD, deploy, pin to IPFS, ...)
+```
+
+```
+Holon
+├─ Identity
+│   ├─ Id (GUID)
+│   ├─ HolonType / STARHolonType
+│   └─ Name / Description
+├─ Provider Map
+│   ├─ ProviderUniqueStorageKey[MongoDB]  = ObjectId
+│   ├─ ProviderUniqueStorageKey[Solana]   = AccountPublicKey
+│   ├─ ProviderUniqueStorageKey[Arbitrum] = ContractAddress
+│   └─ ProviderMetaData[...]              = { key : value }
+├─ Audit & Versioning
+│   ├─ Created / Modified / Deleted stamps
+│   ├─ PreviousVersionId / VersionId
+│   └─ SoftDelete flags
+├─ Hierarchy
+│   ├─ ParentUniverseId / ParentPlanetId / ParentZomeId
+│   └─ Child Holons (recursive)
+└─ Events
+    ├─ OnSaved / OnLoaded / OnHolonAdded
+    └─ OnError / OnChildrenLoaded
+```
+
+
 - `HolonBase` establishes provider-aware identity, metadata, soft-delete, versioning, and audit fields. It maintains dictionaries keyed by `ProviderType`, so the same holon instance can reference MongoDB IDs, Solana accounts, Arbitrum contracts, etc.
 - `Holon` extends `SemanticHolon` and implements `IHolon`. It layers in domain events (`OnSaved`, `OnLoaded`, `OnHolonAdded`, etc.), change tracking (`HasHolonChanged`), deep parent-child links (Omniverse → ... → Zome), and Provider Manager integration so each holon can resolve or override the active provider at runtime (`ProviderManager.Instance.CurrentStorageProviderType`).
 - Specialized holons (e.g., `SemanticHolon`, `CelesialHolon`, `PublishableHolon`, `STARNETHolon`) add semantics for knowledge graphs, celestial visualizations, publication workflows, and STAR composability. Each inherits the provider polymorphism from `HolonBase` while contributing domain fields.
