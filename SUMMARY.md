@@ -25,7 +25,8 @@
 ## 🌉 Universal Asset Bridge
 
 * [Bridge Overview](UniversalAssetBridge/README.md)
-* [Bridge Architecture Explained](UniversalAssetBridge/BRIDGE_ARCHITECTURE_EXPLAINED.md)
+* [Bridge Architecture](UniversalAssetBridge/BRIDGE_ARCHITECTURE_EXPLAINED.md)
+* [Bridge Implementation Guide](UniversalAssetBridge/BRIDGE_IMPLEMENTATION_CONTEXT.md)
 * [Bridge Quick Start](UniversalAssetBridge/BRIDGE_QUICKSTART.md)
 
 ## 🔐 Deployment & Security
@@ -42,3 +43,4 @@
 ## 📚 Additional Resources
 
 * [GitBook Sync Setup](GITBOOK_AUTO_SYNC_GUIDE.md)
+* [OASIS White Paper (Nov 2024)](Docs/The_OASIS_White_Paper_2024-11-25.pdf)
