@@ -1,3 +1,32 @@
+:root {
+  --background: #050510;
+  --background-secondary: #0b1120;
+  --foreground: #e2f4ff;
+  --accent: #22d3ee;
+  --accent-soft: rgba(45, 212, 191, 0.12);
+  --accent-strong: rgba(14, 116, 144, 0.8);
+  --card: rgba(15, 23, 42, 0.6);
+  --card-border: rgba(56, 189, 248, 0.2);
+  --muted: rgba(148, 163, 184, 0.75);
+  --negative: rgba(239, 68, 68, 0.8);
+  --positive: rgba(34, 197, 94, 0.85);
+  --warning: rgba(250, 204, 21, 0.85);
+  
+  /* Oracle theme colors */
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-negative: var(--negative);
+  --color-positive: var(--positive);
+  --color-warning: var(--warning);
+}
+
 body {
   margin: 0;
   font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
@@ -5,7 +34,12 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.1), transparent 45%),
+    radial-gradient(circle at 80% 10%, rgba(129, 140, 248, 0.12), transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.08), transparent 50%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.95) 0%, rgba(5, 5, 16, 0.95) 100%);
+  color: var(--foreground);
+  background-attachment: fixed;
   min-height: 100vh;
 }
 
@@ -20,6 +54,7 @@ code {
 
 html {
   height: 100%;
+  scroll-behavior: smooth;
 }
 
 #root {
@@ -27,22 +62,23 @@ html {
   min-height: 100vh;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Oracle theme */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: rgba(5, 5, 16, 0.5);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
+  background: rgba(34, 211, 238, 0.3);
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgba(34, 211, 238, 0.5);
 }
 
 /* Animations */
@@ -91,11 +127,15 @@ html {
 
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
   }
   50% {
-    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.8);
   }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
 }
 
 @keyframes shimmer {
@@ -173,19 +213,24 @@ html {
   }
 }
 
-/* Glass morphism effect */
+/* Glass morphism effect - Oracle theme */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(6, 11, 26, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
 }
 
-/* Gradient text */
+/* Gradient text - Cyan theme */
 .gradient-text {
-  background: linear-gradient(45deg, #00bcd4, #ff4081);
+  background: linear-gradient(45deg, #22d3ee, #818cf8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Gradient ring effect */
+.gradient-ring::before {
+  background: linear-gradient(120deg, rgba(34, 211, 238, 0.85), rgba(191, 219, 254, 0.15), rgba(59, 130, 246, 0.65));
 }
 
 /* Hover effects */

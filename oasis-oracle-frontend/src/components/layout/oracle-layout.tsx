@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { ReactNode } from "react";
-import { Activity, TrendingUp, CheckCircle2, Coins, Shuffle, Image, Vote, Wallet, Network, Flag } from "lucide-react";
+import { Activity, TrendingUp, CheckCircle2, Coins, Shuffle, Image, Vote, Wallet, Network, Flag, Trophy } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/", icon: Activity },
   { label: "Network 3D", href: "/network", icon: Network },
+  { label: "Competition", href: "/competition", icon: Trophy },
   { label: "Collateral", href: "/collateral", icon: Wallet },
   { label: "Verify", href: "/verify", icon: CheckCircle2 },
   { label: "Prices", href: "/prices", icon: TrendingUp },
