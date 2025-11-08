@@ -57,6 +57,8 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { celestialBodyService } from '../services';
 import { CelestialBody } from '../types/star';
 import { toast } from 'react-hot-toast';
+import { CelestialBody3DScene } from '../components/visualization/CelestialBody3DScene';
+import type { CelestialBody3D } from '../components/visualization/CelestialBodyNode';
 
 const CelestialBodyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -248,6 +250,57 @@ const CelestialBodyDetailPage: React.FC = () => {
           </Button>
         </Box>
       </Box>
+
+      {/* 3D Visualization */}
+      <Card 
+        sx={{ 
+          mb: 3,
+          background: 'rgba(6, 11, 26, 0.7)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid var(--card-border)',
+          boxShadow: '0 15px 30px rgba(15,118,110,0.18)',
+        }}
+      >
+        <CardContent>
+          <Typography variant="h6" sx={{ color: 'var(--foreground)', mb: 2 }}>
+            3D Visualization
+          </Typography>
+          <Box sx={{ 
+            bgcolor: '#050510',
+            borderRadius: 2,
+            overflow: 'hidden',
+            border: '1px solid var(--card-border)',
+          }}>
+            <CelestialBody3DScene
+              bodies={[{
+                id: celestialBody.id,
+                name: celestialBody.name,
+                type: celestialBody.type as any,
+                position: [0, 0, 0],
+                radius: celestialBody.radius || 6371,
+                mass: celestialBody.mass || 5.97e24,
+                temperature: celestialBody.temperature || 288,
+                isInhabited: (celestialBody as any).isInhabited || false,
+                orbitalPeriod: celestialBody.orbitalPeriod || 365,
+              }]}
+              showLabels={true}
+              autoRotate={true}
+              onBodyClick={() => {}}
+            />
+          </Box>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              display: 'block', 
+              mt: 2, 
+              textAlign: 'center',
+              color: 'var(--muted)' 
+            }}
+          >
+            🖱️ Click and drag to rotate • Scroll to zoom
+          </Typography>
+        </CardContent>
+      </Card>
 
       <Grid container spacing={3}>
         {/* Celestial Body Info */}
