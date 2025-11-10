@@ -572,3 +572,5 @@ In `smart-contract-generator/src/SmartContractGen/ScGen.API/appsettings.json`:
 
 
 
+
+
