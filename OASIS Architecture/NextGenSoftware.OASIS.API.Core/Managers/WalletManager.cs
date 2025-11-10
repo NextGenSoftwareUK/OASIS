@@ -1233,9 +1233,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
         
-        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByIdAsync(Guid avatarId, Guid walletId, ProviderType providerType)
+        public async Task<OASISResult<IProviderWallet>> SetAvatarDefaultWalletByIdAsync(Guid avatarId, Guid walletId, ProviderType providerType)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessage = "Error occured in SetAvatarDefaultWalletById method in WalletManager. Reason: ";
 
             try
@@ -1261,7 +1261,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         else
                         {
                             avatarWallet.IsDefaultWallet = true;
-                            result = await SaveProviderWalletsForAvatarByIdAsync(avatarId, allAvatarWalletsByProvider.Result, providerType);
+                            OASISResult<bool> saveResult = await SaveProviderWalletsForAvatarByIdAsync(avatarId, allAvatarWalletsByProvider.Result, providerType);
+
+                            if (saveResult != null && saveResult.Result)
+                                result.Result = avatarWallet;
+
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
                         }   
                     }
                 }

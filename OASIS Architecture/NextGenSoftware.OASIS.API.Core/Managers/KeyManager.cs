@@ -189,9 +189,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //}
 
         // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
-        public OASISResult<Guid> LinkProviderPublicKeyToAvatarById(Guid walletId, Guid avatarId, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarById(Guid walletId, Guid avatarId, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<Guid> result = new OASISResult<Guid>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -212,9 +212,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
-        public OASISResult<Guid> LinkProviderPublicKeyToAvatarByUsername(Guid walletId, string username, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByUsername(Guid walletId, string username, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<Guid> result = new OASISResult<Guid>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -233,9 +233,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<Guid> LinkProviderPublicKeyToAvatarByEmail(Guid walletId, string email, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByEmail(Guid walletId, string email, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<Guid> result = new OASISResult<Guid>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -254,9 +254,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<Guid> LinkProviderPublicKeyToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string providerKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<Guid> result = new OASISResult<Guid>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -310,7 +310,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             WalletAddress = providerKey //TODO: Need to calucalte the walletAddress from the PublicKey!
                         };
 
-                        result.Result = newWallet.WalletId;
+                        result.Result = newWallet;
                         
                         // If any default wallet exist in avatar provider wallet? if not, make current/first one wallet as default
                         if (!avatar.ProviderWallets[providerTypeToLinkTo].Any(x => x.IsDefaultWallet) && avatar.ProviderWallets[providerTypeToLinkTo].Count == 0)
@@ -329,7 +329,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             wallet.PublicKey = providerKey;
                             wallet.ModifiedByAvatarId = avatar.Id;
                             wallet.ModifiedDate = DateTime.Now;
-                            result.Result = wallet.WalletId;
+                            result.Result = wallet;
                         }
                         else
                         {
@@ -451,7 +451,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     //Backup the wallets before the private keys get blanked out in LinkProviderPublicKeyToAvatar.
                     Dictionary<ProviderType, List<IProviderWallet>> wallets = WalletManager.Instance.CopyProviderWallets(avatar.ProviderWallets);
-                    OASISResult<Guid> publicKeyResult = LinkProviderPublicKeyToAvatar(Guid.Empty, avatar, providerTypeToLinkTo, result.Result.PublicKey, providerToLoadAvatarFrom);
+                    OASISResult<IProviderWallet> publicKeyResult = LinkProviderPublicKeyToAvatar(Guid.Empty, avatar, providerTypeToLinkTo, result.Result.PublicKey, providerToLoadAvatarFrom);
 
                     if (!publicKeyResult.IsError)
                     {
@@ -473,7 +473,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         //avatar.ProviderWallets = wallets;
                         
-                        OASISResult<Guid> privateKeyResult = LinkProviderPrivateKeyToAvatar(publicKeyResult.Result, avatar, providerTypeToLinkTo, result.Result.PrivateKey, providerToLoadAvatarFrom);
+                        OASISResult<IProviderWallet> privateKeyResult = LinkProviderPrivateKeyToAvatar(publicKeyResult.Result.Id, avatar, providerTypeToLinkTo, result.Result.PrivateKey, providerToLoadAvatarFrom);
 
                         if (!privateKeyResult.IsError)
                         {
@@ -501,9 +501,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Private key for a public/private keypair.
-        public OASISResult<Guid> LinkProviderPrivateKeyToAvatarById(Guid walletId, Guid avatarId, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatarById(Guid walletId, Guid avatarId, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<Guid> result = new OASISResult<Guid>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -523,9 +523,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Private key for a public/private keypair.
-        public OASISResult<Guid> LinkProviderPrivateKeyToAvatarByUsername(Guid walletId, string username, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatarByUsername(Guid walletId, string username, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<Guid> result = new OASISResult<Guid>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -548,9 +548,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Private key for a public/private keypair.
-        public OASISResult<Guid> LinkProviderPrivateKeyToAvatarByEmail(Guid walletId, string email, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatarByEmail(Guid walletId, string email, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<Guid> result = new OASISResult<Guid>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -569,9 +569,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<Guid> LinkProviderPrivateKeyToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string providerPrivateKey, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<Guid> result = new OASISResult<Guid>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -613,7 +613,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256) 
                         };
 
-                        result.Result = newWallet.WalletId;
+                        result.Result = newWallet;
 
                         // If any default wallet exist in avatar provider wallet? if not, make current/first one wallet as default
                         if (!avatar.ProviderWallets[providerTypeToLinkTo].Any(x => x.IsDefaultWallet) && avatar.ProviderWallets[providerTypeToLinkTo].Count == 0)
@@ -631,7 +631,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             wallet.PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
                             wallet.ModifiedByAvatarId = avatar.Id;
                             wallet.ModifiedDate = DateTime.Now;
-                            result.Result = wallet.WalletId;
+                            result.Result = wallet;
                         }
                         else
                         {
@@ -2029,6 +2029,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
     public enum KeyType
     {
+        PrivateKey,
+        PublicKey,
         Authentication,
         Encryption,
         Signing,

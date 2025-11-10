@@ -1903,7 +1903,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (inputArgs[1].ToLower())
                 {
                     case "link":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        { 
+                            STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById()
+                        }
                         break;
 
                     case "list":
