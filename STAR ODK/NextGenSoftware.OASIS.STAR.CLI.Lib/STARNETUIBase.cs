@@ -2945,12 +2945,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         protected void DisplayProperty(string heading, string value, int displayFieldLength, bool displayColon = true)
         {
-            string colon = ":";
-
-            if (!displayColon)
-                colon = "";
-
-            CLIEngine.ShowMessage(string.Concat($"{heading}{colon}".PadRight(displayFieldLength), value), false);
+            CLIEngine.DisplayProperty(heading, value, displayFieldLength, displayColon);
         }
 
         protected void ShowNFTDetails(INFTBase nft, IWeb4OASISNFT web4NFT, int displayFieldLength, bool displayTags = true, bool displayMetaData = true)
