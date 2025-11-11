@@ -1280,7 +1280,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
             {
-                walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(result.Result.Id, type.Value);
+                walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(result.Result.Id, false, type.Value);
 
                 if (!walletsResult.IsError && walletsResult.Result != null)
                 {
@@ -1358,7 +1358,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
                 {
-                    walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatar.Id, type.Value);
+                    walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatar.Id, false, type.Value);
 
                     if (!walletsResult.IsError && walletsResult.Result != null)
                     {

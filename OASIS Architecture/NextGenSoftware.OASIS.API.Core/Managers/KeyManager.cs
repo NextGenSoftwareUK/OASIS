@@ -369,9 +369,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatarById(Guid avatarId, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarById(Guid avatarId, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<KeyPair> result = new OASISResult<KeyPair>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -391,9 +391,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
-        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatarByUsername(string username, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false,  ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByUsername(string username, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false,  ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<KeyPair> result = new OASISResult<KeyPair>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -412,9 +412,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatarByEmail(string email, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByEmail(string email, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<KeyPair> result = new OASISResult<KeyPair>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             try
             {
@@ -433,9 +433,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            OASISResult<KeyPair> result = new OASISResult<KeyPair>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             if (avatar == null)
             {
@@ -445,13 +445,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result = GenerateKeyPair(providerTypeToLinkTo);
+                OASISResult<KeyPair> keyPairResult = GenerateKeyPair(providerTypeToLinkTo);
 
-                if (!result.IsError && result.Result != null)
+                if (!keyPairResult.IsError && keyPairResult.Result != null)
                 {
                     //Backup the wallets before the private keys get blanked out in LinkProviderPublicKeyToAvatar.
                     Dictionary<ProviderType, List<IProviderWallet>> wallets = WalletManager.Instance.CopyProviderWallets(avatar.ProviderWallets);
-                    OASISResult<IProviderWallet> publicKeyResult = LinkProviderPublicKeyToAvatar(Guid.Empty, avatar, providerTypeToLinkTo, result.Result.PublicKey, providerToLoadAvatarFrom);
+                    OASISResult<IProviderWallet> publicKeyResult = LinkProviderPublicKeyToAvatar(Guid.Empty, avatar, providerTypeToLinkTo, keyPairResult.Result.PublicKey, providerToLoadAvatarFrom);
 
                     if (!publicKeyResult.IsError)
                     {
@@ -473,17 +473,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         //avatar.ProviderWallets = wallets;
                         
-                        OASISResult<IProviderWallet> privateKeyResult = LinkProviderPrivateKeyToAvatar(publicKeyResult.Result.Id, avatar, providerTypeToLinkTo, result.Result.PrivateKey, providerToLoadAvatarFrom);
+                        OASISResult<IProviderWallet> privateKeyResult = LinkProviderPrivateKeyToAvatar(publicKeyResult.Result.Id, avatar, providerTypeToLinkTo, keyPairResult.Result.PrivateKey, providerToLoadAvatarFrom);
 
                         if (!privateKeyResult.IsError)
                         {
                             result.Message = "KeyPair Generated & Linked To Avatar.";
+                            result.Result = privateKeyResult.Result;
 
-                            if (!showPublicKey)
-                                result.Result.PublicKey = null;
+                            //if (!showPublicKey)
+                            //    result.Result.PublicKey = null;
 
-                            if (!showPrivateKey)
-                                result.Result.PrivateKey = null;
+                            //if (!showPrivateKey)
+                            //    result.Result.PrivateKey = null;
                         }
                         else
                             OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatar whilst linking the generated private key to the avatar {avatar.Id} - {avatar.Username}. Reason: {privateKeyResult.Message}", privateKeyResult.DetailedMessage);
@@ -1476,10 +1477,60 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Result = new Dictionary<ProviderType, List<string>>();
 
                 foreach (ProviderType provider in avatarResult.Result.ProviderWallets.Keys)
-                    result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PublicKey).ToList();
+                {
+                    //result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PublicKey).ToList();
+
+                    foreach (IProviderWallet wallet in avatarResult.Result.ProviderWallets[provider])
+                    {
+                        if (!result.Result.ContainsKey(provider))
+                            result.Result[provider] = new List<string>();
+
+                        if (wallet.PublicKey != null)
+                            result.Result[provider].Add(wallet.PublicKey);
+                    }
+
+                    //for (int i = 0; i < result.Result[provider].Count; i++)
+                    //{
+                    //    if (result.Result[provider][i] == null)
+                    //        result.Result[provider].Remove(result.Result[provider][i]);
+                    //}
+                }
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in GetAllProviderPublicKeysForAvatarById loading avatar with avatarId {avatarId}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+
+            return result;
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<KeyPair>>> GetAllProviderKeyPairsForAvatarById(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Dictionary<ProviderType, List<KeyPair>>> result = new OASISResult<Dictionary<ProviderType, List<KeyPair>>>();
+            OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, true, false, providerType);
+
+            if (!avatarResult.IsError && avatarResult.Result != null)
+            {
+                result.Result = new Dictionary<ProviderType, List<KeyPair>>();
+
+                foreach (ProviderType provider in avatarResult.Result.ProviderWallets.Keys)
+                {
+                    foreach (IProviderWallet wallet in avatarResult.Result.ProviderWallets[provider])
+                    {
+                        if (!result.Result.ContainsKey(provider))
+                            result.Result[provider] = new List<KeyPair>();
+
+                        if (wallet.PublicKey != null || wallet.PrivateKey != null)
+                        {
+                            result.Result[provider].Add(new KeyPair()
+                            {
+                                PrivateKey = wallet.PrivateKey != null ? Rijndael.Decrypt(wallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256) : null,
+                                PublicKey = wallet.PublicKey
+                            });
+                        }
+                    }
+                }
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in GetAllProviderKeyPairsForAvatarById loading avatar with avatarId {avatarId}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
 
             return result;
         }
@@ -1494,7 +1545,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Result = new Dictionary<ProviderType, List<string>>();
 
                 foreach (ProviderType provider in avatarResult.Result.ProviderWallets.Keys)
-                    result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PublicKey).ToList();
+                {
+                    //result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PublicKey).ToList();
+
+                    //for (int i = 0; i < result.Result[provider].Count; i++)
+                    //{
+                    //    if (result.Result[provider][i] == null)
+                    //        result.Result[provider].Remove(result.Result[provider][i]);
+                    //}
+
+                    foreach (IProviderWallet wallet in avatarResult.Result.ProviderWallets[provider])
+                    {
+                        if (!result.Result.ContainsKey(provider))
+                            result.Result[provider] = new List<string>();
+
+                        if (wallet.PublicKey != null)
+                            result.Result[provider].Add(wallet.PublicKey);
+                    }
+                }
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in GetAllProviderPublicKeysForAvatarByUsername loading avatar with username {username}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
@@ -1512,7 +1580,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Result = new Dictionary<ProviderType, List<string>>();
 
                 foreach (ProviderType provider in avatarResult.Result.ProviderWallets.Keys)
-                    result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PublicKey).ToList();
+                {
+                    //result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PublicKey).ToList();
+
+                    //for (int i = 0; i < result.Result[provider].Count; i++)
+                    //{
+                    //    if (result.Result[provider][i] == null)
+                    //        result.Result[provider].Remove(result.Result[provider][i]);
+                    //}
+
+                    foreach (IProviderWallet wallet in avatarResult.Result.ProviderWallets[provider])
+                    {
+                        if (!result.Result.ContainsKey(provider))
+                            result.Result[provider] = new List<string>();
+
+                        if (wallet.PublicKey != null)
+                            result.Result[provider].Add(wallet.PublicKey);
+                    }
+                }
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in GetAllProviderPublicKeysForAvatarByEmail loading avatar with email {email}. Reason: {avatarResult.Message}");
@@ -1536,7 +1621,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     foreach (ProviderType provider in avatarResult.Result.ProviderWallets.Keys)
                     {
-                        result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PublicKey).ToList();
+                        //result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PrivateKey).ToList();
+
+                        //for (int i = 0; i < result.Result[provider].Count; i++)
+                        //{
+                        //    if (result.Result[provider][i] == null)
+                        //        result.Result[provider].Remove(result.Result[provider][i]);
+                        //}
+
+                        foreach (IProviderWallet wallet in avatarResult.Result.ProviderWallets[provider])
+                        {
+                            if (!result.Result.ContainsKey(provider))
+                                result.Result[provider] = new List<string>();
+
+                            if (wallet.PrivateKey != null)
+                                result.Result[provider].Add(wallet.PrivateKey);
+                        }
 
                         // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
                         for (int i = 0; i < result.Result[provider].Count; i++)
@@ -1572,7 +1672,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     foreach (ProviderType provider in avatarResult.Result.ProviderWallets.Keys)
                     {
-                        result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PrivateKey).ToList();
+                        //result.Result[provider] = avatarResult.Result.ProviderWallets[provider].Select(x => x.PrivateKey).ToList();
+
+                        //for (int i = 0; i < result.Result[provider].Count; i++)
+                        //{
+                        //    if (result.Result[provider][i] == null)
+                        //        result.Result[provider].Remove(result.Result[provider][i]);
+                        //}
+
+                        foreach (IProviderWallet wallet in avatarResult.Result.ProviderWallets[provider])
+                        {
+                            if (!result.Result.ContainsKey(provider))
+                                result.Result[provider] = new List<string>();
+
+                            if (wallet.PrivateKey != null)
+                                result.Result[provider].Add(wallet.PrivateKey);
+                        }
 
                         // Decrypt the keys only for this return object (there are not stored in memory or storage unenrypted).
                         for (int i = 0; i < result.Result[provider].Count; i++)

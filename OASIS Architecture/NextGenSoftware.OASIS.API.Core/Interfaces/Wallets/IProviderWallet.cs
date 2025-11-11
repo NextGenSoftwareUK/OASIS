@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public string SecretRecoveryPhrase { get; set; }
         public List<IWalletTransactionRequest> Transactions {get;set;}
         public ProviderType ProviderType { get; set; }
-        public int Balance { get; set; }
+        public double Balance { get; set; }
         public bool IsDefaultWallet { get; set; }
 
         public OASISResult<bool> SendTrasaction(IWalletTransactionRequest transation);
