@@ -1896,20 +1896,46 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
-        private static async Task ShowKeysSubCommandAsync(string[] inputArgs)
+        private static async Task ShowKeysSubCommandAsync(string[] inputArgs, ProviderType providerType = ProviderType.Default)
         {
             if (inputArgs.Length > 1)
             {
                 switch (inputArgs[1].ToLower())
                 {
                     case "link":
-                        { 
-                            STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById()
+                        {
+                            if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "private")
+                                await STARCLI.Keys.LinkProviderPrivateKeyToBeamedInAvatarWalletAsync(providerType);
+
+                            else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "public")
+                                await STARCLI.Keys.LinkProviderPublicKeyToBeamedInAvatarWalletAsync(providerType);
+
+                            else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "generate")
+                                STARCLI.Keys.GenerateKeyPairAndLinkProviderKeysToBeamedInAvatarWallet(providerType);
+
+                            else
+                                await STARCLI.Keys.LinkProviderKeyToBeamedInAvatarWalletAsync(providerType);
                         }
                         break;
 
                     case "list":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        {
+                            if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "private")
+                                STARCLI.Keys.ListAllProviderPrivateKeysForBeamedInAvatar(providerType);
+
+                            else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "public")
+                                STARCLI.Keys.ListAllProviderPublicKeysForBeamedInAvatar(providerType);
+
+                            else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "storage")
+                                STARCLI.Keys.ListAllProviderUniqueStorageKeysForBeamedInAvatar(providerType);
+
+                            else
+                                STARCLI.Keys.ListAllProviderKeysForBeamedInAvatar(providerType);
+                        }
+                        break;
+
+                    case "generate":
+                        STARCLI.Keys.GenerateKeyPair(providerType);
                         break;
 
                     default:
@@ -1922,8 +1948,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"KEYS SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    link                  Links a OASIS Provider Key to the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    list                  Shows the keys for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    link [private/public/generate]   Links a OASIS Provider Key (private or public) to the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list [private/public/storage]    Shows the keys (private, public or storage) for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    generate                         Generates a unique keyvalue pair of private/public keys.", ConsoleColor.Green, false);
+
+                CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
+                CLIEngine.ShowMessage("For the link sub-command, if [generate] is included it will generate a keyvalue pair and then link.", ConsoleColor.Green);
+
+
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -1953,7 +1985,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
-        private static async Task ShowWalletSubCommandAsync(string[] inputArgs)
+        private static async Task ShowWalletSubCommandAsync(string[] inputArgs, ProviderType providerType = ProviderType.Default)
         {
             if (inputArgs.Length > 1)
             {
@@ -1964,15 +1996,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "get":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        STARCLI.Wallets.ShowWalletThatPublicKeyBelongsTo(providerType);
                         break;
 
                     case "getDefault":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        await STARCLI.Wallets.ShowDefaultWalletForBeamedInAvatarAsync(providerType);
                         break;
 
                     case "setDefault":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        await STARCLI.Wallets.SetDefaultWalletAsync(providerType);
                         break;
 
                     case "import":
@@ -1984,11 +2016,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "list":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        await STARCLI.Wallets.ListProviderWalletsForBeamedInAvatarAsync(providerType);
                         break;
 
                     case "balance":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        {
+                            if (inputArgs.Length > 2 && inputArgs[2] != null)
+                                await STARCLI.Wallets.GetBalanceAsync(inputArgs[2]);
+                            else
+                                await STARCLI.Wallets.GetTotalBalance();
+                        }
                         break;
 
                     default:
@@ -2001,18 +2038,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"WALLET SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    sendtoken          [walletAddress]  Sends a token to the given wallet address.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    get                [publickey]      Gets the wallet that the public key belongs to.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    getDefault                          Gets the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    setDefault         [walletId]       Sets the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import privateKey  [privatekey]     Imports a wallet using the privateKey.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import publicKey   [publickey]      Imports a wallet using the publicKey.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import secretPhase [secretPhase]    Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import json        [jsonFile]       Imports a wallet using the jsonFile.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    add                                 Adds a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    list                                Lists the wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    balance                             Gets the total balance for all wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    balance            [walletId]       Gets the balance for the given wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    sendtoken          [walletAddress]            Sends a token to the given wallet address.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    get                [publickey]                Gets the wallet that the public key belongs to.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    getDefault                                    Gets the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    setDefault         [walletId]                 Sets the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import privateKey  [privatekey]               Imports a wallet using the privateKey.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import publicKey   [publickey]                Imports a wallet using the publicKey.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import secretPhase [secretPhase]              Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import json        [jsonFile]                 Imports a wallet using the jsonFile.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    add                                           Adds a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list                                          Lists the wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    balance                                       Gets the total balance for all wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    balance            [walletId] [providerType]  Gets the balance for the given wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
