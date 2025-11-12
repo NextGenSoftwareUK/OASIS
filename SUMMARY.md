@@ -53,4 +53,7 @@
 * [Monetizing OASIS with x402](Docs/Devs/OASIS_X402_MONETIZATION.md)
 * [Codebase Improvement Ideas](Docs/Devs/OASIS_CODEBASE_IMPROVEMENTS.md)
 * [OASIS White Paper (Nov 2024)](Docs/The_OASIS_White_Paper_2024-11-25.pdf)
+
+## 🏦 RWA
+
 * [yNFT Lite Paper](Docs/yNFT_LITE_PAPER.md)
