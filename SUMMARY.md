@@ -30,6 +30,7 @@
 * [Bridge Architecture](UniversalAssetBridge/BRIDGE_ARCHITECTURE_EXPLAINED.md)
 * [Bridge Implementation Guide](UniversalAssetBridge/BRIDGE_IMPLEMENTATION_CONTEXT.md)
 * [Bridge Quick Start](UniversalAssetBridge/BRIDGE_QUICKSTART.md)
+* [UAT Builder Overview](UniversalAssetBridge/frontend/docs/uat-builder-overview.md)
 
 ## 📈 Use Cases
 
@@ -52,3 +53,4 @@
 * [Monetizing OASIS with x402](Docs/Devs/OASIS_X402_MONETIZATION.md)
 * [Codebase Improvement Ideas](Docs/Devs/OASIS_CODEBASE_IMPROVEMENTS.md)
 * [OASIS White Paper (Nov 2024)](Docs/The_OASIS_White_Paper_2024-11-25.pdf)
+* [yNFT Lite Paper](x402-hackathon/yNFT_LITE_PAPER.md)
