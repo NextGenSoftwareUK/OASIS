@@ -57,3 +57,11 @@
 ## 🏦 RWA
 
 * [yNFT Lite Paper](Docs/yNFT_LITE_PAPER.md)
+
+## 🎯 Strategic Documentation
+
+* [YC Startup Ideas Response](Docs/Strategic/YC_STARTUP_IDEAS_RESPONSE.md)
+* [AI Agents Requirements](Docs/Strategic/AI_AGENTS_REQUIREMENTS.md)
+* [OpenServ × OASIS Integration](Docs/Strategic/OPENSERV_OASIS_INTEGRATION.md)
+* [OASIS Token Launch Strategy](Docs/Strategic/OASIS_TOKEN_LAUNCH_STRATEGY.md)
+* [GitBook Summary](Docs/Strategic/GITBOOK_SUMMARY.md)
