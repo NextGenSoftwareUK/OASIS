@@ -8,6 +8,7 @@ const uploadRoutes = require('./uploadRoutes.js');
 const bookingRoutes = require('./bookingRoutes.js');
 const tripRoutes = require('./otpRoutes.js');
 const adminRoutes = require('./adminRoutes.js');
+const driverRoutes = require('./driverRoutes');
 const authenticateUser = require('../middleware/authMiddleware.js');
 const authorizeUser = require('../middleware/authorizationMiddleware.js');
 
@@ -20,6 +21,7 @@ router.use('/api/trips', tripRoutes);
 router.use('/api', carRoutes);
 router.use('/api/bookings', bookingRoutes);
 router.use('/api', userRoutes);
+router.use('/api', driverRoutes);
 router.use('/api/admin', authorizeUser(['admin']), adminRoutes);
 router.use('/api', authenticateUser, uploadRoutes);
 

@@ -26,6 +26,28 @@ localhost:4205
 localhost:4205/api-docs
 ```
 
+### Seed demo data (admin, driver, car)
+
+Populate MongoDB with a verified admin account, a demo driver, and an active car:
+
+```
+npm run seed
+```
+
+Override defaults through the `.env` variables `SEED_ADMIN_*`, `SEED_DRIVER_*`, and `DEFAULT_STATE`. Rerunning the script is idempotent.
+
+### Driver status endpoints
+
+Drivers (or admins) can now update their location and availability through REST endpoints:
+
+| Endpoint | Method | Description |
+| --- | --- | --- |
+| `/api/drivers/{driverId}/location` | `PATCH` | Update driver + active car GPS coordinates (body: `latitude`, `longitude`, optional `bearing`, `speed`). |
+| `/api/drivers/{driverId}/status` | `PATCH` | Toggle `isOffline` / `isActive` flags for the driver’s car. |
+| `/api/drivers/{driverId}/status` | `GET` | Retrieve driver profile plus current car snapshot. |
+
+All routes require authentication; drivers may only mutate their own record while admins can manage anyone.
+
 ### Folder Structure
 
 ```
