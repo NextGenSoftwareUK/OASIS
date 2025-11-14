@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ReactNode } from "react";
-import { Activity, TrendingUp, CheckCircle2, Coins, Shuffle, Image, Vote, Wallet, Network, Flag, Trophy } from "lucide-react";
+import { Activity, TrendingUp, CheckCircle2, Coins, Shuffle, Image, Vote, Wallet, Network, Flag, Trophy, LayoutGrid } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/", icon: Activity },
@@ -13,6 +13,7 @@ const navItems = [
   { label: "Prices", href: "/prices", icon: TrendingUp },
   { label: "Arbitrage", href: "/arbitrage", icon: Shuffle },
   { label: "Reform UK", href: "/reform", icon: Flag },
+  { label: "UAT Builder", href: "/uat-builder", icon: LayoutGrid },
 ];
 
 type OracleLayoutProps = {
