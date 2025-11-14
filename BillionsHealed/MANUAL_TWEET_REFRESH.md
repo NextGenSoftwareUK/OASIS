@@ -46,3 +46,5 @@ Consider upgrading to **Basic tier ($200/month)** when:
 Create a simple admin button on the frontend that triggers a refresh once per day.
 
 
+
+
