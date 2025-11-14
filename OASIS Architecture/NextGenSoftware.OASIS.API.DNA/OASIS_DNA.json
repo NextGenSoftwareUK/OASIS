@@ -224,6 +224,18 @@
                 "NetworkId": "mainnet",
                 "ChainId": "0x2105"
             },
+            "MonadOASIS": {
+                "ConnectionString": "https://testnet-rpc.monad.xyz",
+                "ChainPrivateKey": "",
+                "ChainId": 2828,
+                "ContractAddress": ""
+            },
+            "TONOASIS": {
+                "ConnectionString": "https://evm-testnet.ton.org",
+                "ChainPrivateKey": "",
+                "ChainId": 1000,
+                "ContractAddress": ""
+            },
             "SuiOASIS": {
                 "RpcEndpoint": "https://fullnode.mainnet.sui.io:443",
                 "Network": "mainnet",
