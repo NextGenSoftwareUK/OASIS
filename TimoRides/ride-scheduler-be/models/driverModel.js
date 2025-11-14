@@ -223,6 +223,14 @@ const driverSchema = new mongoose.Schema({
     type: locationSchema,
     required: true,
   },
+  heading: {
+    type: Number,
+    default: 0,
+  },
+  speed: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const Driver = User.discriminator('Driver', driverSchema);

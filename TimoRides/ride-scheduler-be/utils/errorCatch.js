@@ -1,5 +1,8 @@
 function handleCatchError(error, res) {
   console.log(error, ' Error Catg ');
+  if (error.statusCode) {
+    return res.status(error.statusCode).json({ message: error.message });
+  }
   if (error.name === 'NotFoundError' || error.status === 404) {
     return res.status(404).json({ error: 'Resource not found' });
   } else if (error.name === 'TokenExpiredError') {
