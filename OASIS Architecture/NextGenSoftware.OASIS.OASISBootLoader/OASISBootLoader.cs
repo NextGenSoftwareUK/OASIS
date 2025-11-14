@@ -25,6 +25,8 @@ using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
+using NextGenSoftware.OASIS.API.Providers.MonadOASIS;
+using NextGenSoftware.OASIS.API.Providers.TONOASIS;
 //using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 //using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
 //using NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
@@ -945,6 +947,26 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 result.Result = PolygonOASIS;
                             }
                             break;
+                        case ProviderType.MonadOASIS:
+                            {
+                                MonadOASIS MonadoOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.MonadOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.MonadOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.MonadOASIS.ContractAddress);
+                                MonadoOASIS.OnStorageProviderError += MonadOASIS_StorageProviderError;
+                                result.Result = MonadoOASIS;
+                            }
+                            break;
+                        case ProviderType.TONOASIS:
+                            {
+                                TONOASIS tonoOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.TONOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.TONOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.TONOASIS.ContractAddress);
+                                tonoOASIS.OnStorageProviderError += TONOASIS_StorageProviderError;
+                                result.Result = tonoOASIS;
+                            }
+                            break;
 
                         case ProviderType.ThreeFoldOASIS:
                             {
@@ -1411,6 +1433,16 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void PolygonOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("PolygonOASIS", e);
+        }
+
+        private static void MonadOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("MonadOASIS", e);
+        }
+
+        private static void TONOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("TONOASIS", e);
         }
 
         private static void RootstockOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)

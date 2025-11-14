@@ -1,0 +1,8 @@
+{
+    "ConnectionString": "https://testnet-rpc.monad.xyz",
+    "ChainId": 2828,
+    "ChainPrivateKey": "REPLACE_WITH_MONAD_PRIVATE_KEY",
+    "ContractAddress": "0x0000000000000000000000000000000000000000",
+    "Notes": "Deploy Web3CoreOASIS.sol to Monad testnet and update this DNA/config entry before activation."
+}
+

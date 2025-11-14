@@ -10,6 +10,7 @@
         ArbitrumOASIS,
         AvalancheOASIS,
         BaseOASIS,
+        MonadOASIS,
         EthereumOASIS,
         PolygonOASIS,
         EOSIOOASIS,
