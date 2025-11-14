@@ -6,9 +6,28 @@ require('dotenv').config({ path: '../config/.env' });
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const verifySid = process.env.TWILIO_VERIFY_SID;
-const client = require('twilio')(accountSid, authToken);
+
+const isTwilioConfigured =
+  accountSid && accountSid.startsWith('AC') && authToken && verifySid;
+
+let client = null;
+
+if (isTwilioConfigured) {
+  client = require('twilio')(accountSid, authToken);
+} else {
+  console.warn(
+    'Twilio credentials not configured. SMS/OTP will be skipped (dev mode).'
+  );
+}
 
 async function sendOtp(phoneNumber, otpChannel) {
+  if (!isTwilioConfigured) {
+    console.log(
+      `[SMS] Skipping OTP send to ${phoneNumber} via ${otpChannel} (Twilio disabled).`
+    );
+    return;
+  }
+
   await client.verify.v2
     .services(verifySid)
     .verifications.create({ to: phoneNumber, channel: otpChannel })
@@ -19,6 +38,13 @@ async function sendOtp(phoneNumber, otpChannel) {
 }
 
 async function verifyOtp(phoneNumber, otpCode) {
+  if (!isTwilioConfigured) {
+    console.log(
+      `[SMS] Skipping OTP verification for ${phoneNumber} (Twilio disabled).`
+    );
+    return;
+  }
+
   await client.verify.v2
     .services(verifySid)
     .verificationChecks.create({ to: phoneNumber, code: otpCode })

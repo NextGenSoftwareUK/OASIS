@@ -15,6 +15,7 @@ const Otp = require('../models/otpModal');
 const User = require('../models/userModel');
 const getCarsProximityUtil = require('../utils/proximityUtil');
 const shouldPenalizeUser = require('../utils/shouldPenalize');
+const rideService = require('../services/rideService');
 
 async function getAllBooking(req, res) {
   const user = req.user;
@@ -237,8 +238,15 @@ async function cancelBooking(req, res) {
       return res.status(405).json({ message: 'Unathorized' });
     }
 
-    // update booking status variable to cancelled
-    Object.assign(booking, { status: 'cancelled' });
+    await rideService.cancelRide(
+      bookingId,
+      user,
+      user.role === 'user'
+        ? 'Cancelled by rider'
+        : user.role === 'driver'
+        ? 'Cancelled by driver'
+        : 'Cancelled'
+    );
 
     // Pernalize user , check if role is user
     let penalize = false;
@@ -321,6 +329,34 @@ async function cancelBooking(req, res) {
   }
 }
 
+async function updatePayment(req, res) {
+  const { id } = req.params;
+  const user = req.user;
+  const { method, status, reference, notes } = req.body;
+
+  try {
+    const booking = await rideService.fetchBooking(id);
+
+    if (
+      user.role !== 'admin' &&
+      booking.car?.driver?.id.toString() !== user.id.toString()
+    ) {
+      return res.status(405).json({ message: 'Unauthorized' });
+    }
+
+    const updatedBooking = await rideService.recordPayment(id, {
+      method,
+      status,
+      reference,
+      notes,
+    });
+
+    res.json({ booking: updatedBooking });
+  } catch (error) {
+    handleCatchError(error, res);
+  }
+}
+
 module.exports = {
   getAllBooking,
   createBooking,
@@ -329,6 +365,7 @@ module.exports = {
   getBooking,
   acceptBooking,
   cancelBooking,
+  updatePayment,
 };
 
 // Utility For Handling Booking acceptance or cancellation
@@ -465,29 +502,23 @@ async function bookingStatus(bookingId, isAccepted, user, res) {
 
     await sendConfirmationEmail(driverMsg);
 
-    const updateData = {
+    await rideService.acceptBooking(bookingId, user.id, {
       trxId: booking.trxId,
-      isDriverAccept: true,
-      status: 'accepted',
-    };
+    });
 
-    // Update booking
-    Object.assign(booking, updateData);
+    const refreshedBooking = await rideService.fetchBooking(bookingId);
 
-    await booking.save();
-
-    res.json(booking);
+    res.json(refreshedBooking);
   } else {
     // Cancellation of Ride by Driver
 
-    const updateData = {
-      status: 'cancelled',
-    };
+    const cancelledBooking = await rideService.cancelRide(
+      bookingId,
+      user,
+      'Driver declined booking'
+    );
 
-    // Update booking
-    Object.assign(booking, updateData);
-
-    await driverCancellation(res, bookingUserAccount, booking);
+    await driverCancellation(res, bookingUserAccount, cancelledBooking);
   }
 }
 
@@ -613,7 +644,16 @@ async function createBookingUtil(res, bookingData, user) {
   }
 
   // Create Booking
-  const booking = new Booking({ ...bookingData, user: user });
+  const paymentDefaults = bookingData.payment || {
+    method: bookingData.isCash ? 'cash' : 'card',
+    status: bookingData.isCash ? 'pending' : 'paid',
+  };
+
+  const booking = new Booking({
+    ...bookingData,
+    payment: paymentDefaults,
+    user: user,
+  });
 
   await booking.save();
 

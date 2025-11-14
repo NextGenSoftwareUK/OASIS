@@ -9,6 +9,7 @@ const {
   getBooking,
   acceptBooking,
   cancelBooking,
+  updatePayment,
 } = require('../controllers/bookingController');
 
 const {
@@ -38,5 +39,7 @@ router.post('/verify-acceptance', authenticateUser, verifyAcceptance);
 router.post('/confirm-acceptance-status', authenticateUser, acceptBooking);
 
 router.post('/cancel-acceptance', authenticateUser, cancelBooking);
+
+router.patch('/:id/payment', authenticateUser, updatePayment);
 
 module.exports = router;

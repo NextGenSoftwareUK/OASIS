@@ -81,6 +81,35 @@ const BookingSchema = new mongoose.Schema(
       enum: ['pending', 'cancelled', 'completed', 'accepted', 'started'],
       default: 'pending',
     },
+    timeline: {
+      acceptedAt: Date,
+      startedAt: Date,
+      completedAt: Date,
+      cancelledAt: Date,
+    },
+    payment: {
+      method: {
+        type: String,
+        enum: ['cash', 'wallet', 'card', 'mobile_money'],
+        default: 'cash',
+      },
+      status: {
+        type: String,
+        enum: ['unpaid', 'pending', 'paid', 'refunded'],
+        default: 'unpaid',
+      },
+      reference: { type: String, default: null },
+      notes: { type: String, default: '' },
+      paidAt: { type: Date },
+    },
+    cancellation: {
+      reason: { type: String, default: '' },
+      cancelledBy: {
+        id: { type: Schema.Types.ObjectId, ref: 'User' },
+        role: { type: String },
+        fullName: { type: String },
+      },
+    },
     destinationLocation: {
       type: {
         address: {
