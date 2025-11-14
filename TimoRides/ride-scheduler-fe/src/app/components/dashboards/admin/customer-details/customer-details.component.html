@@ -1,0 +1,8 @@
+<main class="customer-details">
+  <h2>Customer Details</h2>
+  <div *ngIf="customer$ | async as customer">
+    <p>Name: {{ customer.fullName }}</p>
+    <p>Email: {{ customer.email }}</p>
+    <p>Phone: {{ customer.phone }}</p>
+  </div>
+</main>

@@ -27,6 +27,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Providers.EthereumOASIS.Infrastructure.Services.Ethereum;
 // using Nethereum.StandardTokenEIP20; // Commented out - type doesn't exist
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
@@ -43,6 +44,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         private string _abi;
         private HttpClient _httpClient;
         private string _apiBaseUrl;
+        private EthereumBridgeService _bridgeService;
+
+        public IEthereumBridgeService BridgeService 
+        { 
+            get 
+            { 
+                if (_bridgeService == null && Web3Client != null && _oasisAccount != null)
+                    _bridgeService = new EthereumBridgeService(Web3Client, _oasisAccount, useTestnet: true); // Safe default: testnet
+                return _bridgeService;
+            }
+        }
 
         private KeyManager KeyManager
         {

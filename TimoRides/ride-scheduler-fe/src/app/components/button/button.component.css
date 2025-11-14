@@ -1,0 +1,109 @@
+.button {
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-style: solid;
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+
+  /* style */
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.button:not(:disabled):hover {
+  cursor: pointer;
+}
+
+.button:disabled {
+  border-color: #80808099;
+  color: white;
+  background-color: #80808099;
+  cursor: default;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.w-fit {
+  width: fit-content;
+}
+
+.button-sm {
+  padding: 0.5rem 1.5rem;
+}
+
+.button-md {
+  padding: 0.5rem 1rem;
+}
+
+.button-lg {
+  padding: 0.88rem;
+}
+
+.button-primary {
+  background-color: var(--color-main-light);
+  border-color: var(--color-main-light);
+  color: var(--light-gray-bg);
+}
+
+.button-primary:not(:disabled):hover,
+.button-primary:not(:disabled).active {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+  color: var(--light-gray-bg);
+}
+
+.button-danger {
+  background-color: var(--error-light);
+  border-color: var(--error-light);
+  color: var(--light-gray-bg);
+}
+
+.button-danger:not(:disabled):hover,
+.button-danger:not(:disabled).active {
+  background-color: var(--error);
+  border-color: var(--error);
+  color: var(--light-gray-bg);
+}
+
+.button-primary-outline {
+  border-color: var(--color-main);
+  background-color: transparent;
+  color: var(--color-main);
+}
+
+.button-primary-outline:not(:disabled):hover,
+.button-primary-outline:not(:disabled).active {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+  color: var(--light-gray-bg);
+}
+
+.button-secondary-outline {
+  background-color: transparent;
+  border-color: var(--text-color-mid);
+  color: var(--text-color-mid);
+}
+
+.button-danger-outline {
+  background-color: transparent;
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.button-danger-outline:not(:disabled):hover,
+.button-danger-outline:not(:disabled).active {
+  color: var(--light-gray-bg);
+  border-color: var(--error);
+  background-color: var(--error);
+}
+
+.button-primary:not(:disabled).active,
+.button-primary-outline:not(:disabled).active {
+  border-color: var(--color-active);
+  background-color: var(--color-active);
+}

@@ -1,0 +1,10 @@
+<div>
+  <input
+    ngx-google-places-autocomplete
+    [options]="options"
+    #placesRef="ngx-places"
+    (onAddressChange)="handleAddressChange($event)"
+  />
+
+  <p>{{ formattedAddress }}</p>
+</div>

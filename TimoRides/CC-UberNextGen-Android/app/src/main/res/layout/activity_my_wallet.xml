@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".payment.MyWalletActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorBlack"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:background="@color/colorBlack"
+            android:layout_height="0dp"
+            android:layout_weight="3.5" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_alignParentBottom="true"
+            android:layout_weight="6.5"
+            android:scaleType="fitXY"
+            android:src="#f9f9f9" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/m10dp"
+        android:layout_marginBottom="@dimen/m20dp"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/Margin20dp"
+            android:src="@drawable/ic_left_arrow" />
+
+        <LinearLayout
+            android:id="@+id/ll_wallet"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:text="My Wallet"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:layout_weight="1"
+                android:textSize="@dimen/s30sp"
+                android:layout_marginLeft="@dimen/Margin20dp"
+                android:textStyle="bold"
+                android:textColor="@color/colorWhite" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="@dimen/Margin20dp"
+                android:text="2500"
+                android:drawableLeft="@drawable/ic_dollar"
+                android:background="@drawable/bg_text_dollar"
+                android:paddingLeft="@dimen/m15dp"
+                android:drawablePadding="@dimen/m10dp"
+                android:paddingBottom="@dimen/m5dp"
+                android:paddingTop="@dimen/m5dp"
+                android:paddingRight="@dimen/m20dp"
+                android:textSize="@dimen/s20sp"
+                android:textColor="@color/colorWhite" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/rlViewpager"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_marginLeft="@dimen/m10dp"
+        android:layout_marginRight="@dimen/m10dp"
+        android:layout_marginTop="170dp">
+
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/image_view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Temporarily commented out - old library incompatible with Gradle 8
+        <com.viewpagerindicator.CirclePageIndicator
+            android:id="@+id/dot_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            app:centered="true"
+            app:radius="@dimen/m5dp"
+            app:fillColor="@color/colorBlack"
+            app:pageColor="@color/colorGrey"
+            app:snap="false" />
+        -->
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/rlViewpager"
+        android:background="#f9f9f9"
+        android:orientation="vertical">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#f9f9f9"
+                android:layout_marginTop="@dimen/m10dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/llPayment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/m15dp"
+                    android:background="@color/colorWhite"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/m15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textStyle="bold"
+                            android:text="Payment Methods"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorfontBlack" />
+
+
+                        <ImageView
+                            android:layout_width="@dimen/m15dp"
+                            android:layout_height="@dimen/m15dp"
+                            android:src="@drawable/ic_next_arrow" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/m30dp"
+                    android:background="@color/colorWhite"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/m15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textStyle="bold"
+                            android:text="Coupon"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorfontBlack" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:textStyle="bold"
+                            android:layout_marginRight="@dimen/m10dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="3"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorGrey" />
+
+                        <ImageView
+                            android:layout_width="@dimen/m15dp"
+                            android:layout_height="@dimen/m15dp"
+                            android:src="@drawable/ic_next_arrow" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:background="@color/colorWhite"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/m15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textStyle="bold"
+                            android:text="Integral Mall"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorfontBlack" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:textStyle="bold"
+                            android:layout_marginRight="@dimen/m10dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="4500"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorGrey" />
+
+                        <ImageView
+                            android:layout_width="@dimen/m15dp"
+                            android:layout_height="@dimen/m15dp"
+                            android:src="@drawable/ic_next_arrow" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </RelativeLayout>
+</RelativeLayout>

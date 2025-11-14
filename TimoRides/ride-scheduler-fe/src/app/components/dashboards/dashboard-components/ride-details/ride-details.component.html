@@ -1,0 +1,182 @@
+<section class="ride-details-section">
+  <div class="ride-details-container">
+    <div class="ride-details__header-section">
+      <h2 class="ride-details__header">Ride Details</h2>
+      <span
+        class="ride-details__close-container"
+        (click)="closeDialog(undefined)"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="24"
+          viewBox="0 -960 960 960"
+          width="24"
+          class="close-icon"
+        >
+          <path
+            d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"
+          />
+        </svg>
+      </span>
+    </div>
+    <div *ngIf="rideDetails; else NotFound" style="overflow: auto">
+      <table class="table-component">
+        <thead></thead>
+        <tbody>
+          <tr>
+            <ng-container>
+              <td>Customer</td>
+              <td>{{ rideDetails.fullName }}</td>
+            </ng-container>
+          </tr>
+          <tr>
+            <ng-container>
+              <td>Pickup</td>
+              <td>{{ rideDetails.sourceLocation.address }}</td>
+            </ng-container>
+          </tr>
+          <tr>
+            <ng-container>
+              <td>Destination</td>
+              <td>{{ rideDetails.destinationLocation.address }}</td>
+            </ng-container>
+          </tr>
+          <tr>
+            <ng-container>
+              <td>Date & Time</td>
+              <td>
+                {{ rideDetails.departureTime | date : "dd-MMM-yyyy, HH:mm a" }}
+              </td>
+            </ng-container>
+          </tr>
+          <tr>
+            <ng-container>
+              <td>Status</td>
+              <td
+                [class.accepted]="rideDetails.status === 'accepted'"
+                [class.completed]="rideDetails.status === 'completed'"
+                [class.pending]="rideDetails.status === 'pending'"
+                [class.cancelled]="rideDetails.status === 'cancelled'"
+                [class.started]="rideDetails.status === 'started'"
+              >
+                {{ rideDetails.status }}
+              </td>
+            </ng-container>
+          </tr>
+
+          <!-- Accept or reject -->
+          <tr *ngIf="rideDetails.status === 'pending'">
+            <ng-container>
+              <td>
+                <app-button
+                  [btnConfig]="{
+                    label: 'Accept',
+                    size: 'sm',
+                    theme: 'primary',
+                    block: true
+                  }"
+                  class="additional-class"
+                  id="additional-id"
+                  (click)="acceptRide()"
+                >
+                </app-button>
+              </td>
+              <td>
+                <app-button
+                  [btnConfig]="{
+                    label: 'Cancel',
+                    size: 'sm',
+                    theme: 'danger',
+                    block: true
+                  }"
+                  class="additional-class"
+                  id="additional-id"
+                  (click)="cancelRide()"
+                >
+                </app-button>
+              </td>
+            </ng-container>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Accept or reject -->
+      <ng-container
+        *ngIf="
+          rideDetails.status === 'accepted' || rideDetails.status === 'started'
+        "
+      >
+        <div style="padding: 1rem 0 0">
+          <h3
+            style="font-weight: 500; margin-bottom: 1rem; text-align: center"
+            [style.color]="
+              rideDetails.status === 'accepted' ? '#0e730e' : '#cb2424'
+            "
+          >
+            {{
+              rideDetails.status === "accepted" ? "Start trip?" : "End trip?"
+            }}
+          </h3>
+          <div>
+            <app-input-group
+              [inputConfig]="{
+                label: 'Enter code',
+                isRequired: true,
+                placeholder: '',
+                id: 'tripControl',
+                theme: 'dark'
+              }"
+              inputType="text"
+              controlName="tripControl"
+              [form]="tripForm"
+            ></app-input-group>
+          </div>
+          <ng-container>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                padding: 1rem 0 0;
+              "
+            >
+              <app-button
+                [btnConfig]="{
+                  label: 'Start trip',
+                  size: 'sm',
+                  theme: 'primary',
+                  block: true,
+                  disabled:
+                    rideDetails.status === 'started' ||
+                    (rideDetails.status === 'accepted' && tripForm.invalid)
+                }"
+                class="additional-class"
+                id="additional-id"
+                (click)="startTrip()"
+              >
+              </app-button>
+
+              <app-button
+                [btnConfig]="{
+                  label: 'End trip',
+                  size: 'sm',
+                  theme: 'danger',
+                  block: true,
+                  disabled:
+                    rideDetails.status === 'accepted' ||
+                    (rideDetails.status === 'started' && tripForm.invalid)
+                }"
+                class="additional-class"
+                id="additional-id"
+                (click)="endTrip()"
+              >
+              </app-button>
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+    </div>
+    <ng-template #NotFound>
+      <span>No record found</span>
+    </ng-template>
+  </div>
+</section>

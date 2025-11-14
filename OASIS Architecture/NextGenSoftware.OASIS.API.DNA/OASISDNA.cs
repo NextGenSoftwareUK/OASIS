@@ -252,6 +252,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public ArbitrumOASISProviderSettings ArbitrumOASIS { get; set; }
         public RootstockOASISProviderSettings RootstockOASIS { get; set; }
         public PolygonOASISProviderSettings PolygonOASIS { get; set; }
+        public MonadOASISProviderSettings MonadOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
         public IPFSOASISSettings IPFSOASIS { get; set; }
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
@@ -276,6 +277,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public CosmosBlockChainOASISProviderSettings CosmosBlockChainOASIS { get; set; }
         public NEAROASISProviderSettings NEAROASIS { get; set; }
         public BaseOASISProviderSettings BaseOASIS { get; set; }
+        public TONOASISProviderSettings TONOASIS { get; set; }
         public SuiOASISProviderSettings SuiOASIS { get; set; }
         public MoralisOASISProviderSettings MoralisOASIS { get; set; }
         
@@ -373,6 +375,13 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ChainPrivateKey { get; set; }
         public string ContractAddress { get; set; }
         public string Abi { get; set; }
+    }
+
+    public class MonadOASISProviderSettings : ProviderSettingsBase
+    {
+        public string ChainPrivateKey { get; set; }
+        public long ChainId { get; set; }
+        public string ContractAddress { get; set; }
     }
 
     public class RootstockOASISProviderSettings : ProviderSettingsBase
@@ -892,6 +901,13 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://mainnet.base.org";
         public string NetworkId { get; set; } = "8453";
         public string ChainId { get; set; } = "0x2105";
+    }
+
+    public class TONOASISProviderSettings : ProviderSettingsBase
+    {
+        public string ChainPrivateKey { get; set; }
+        public long ChainId { get; set; }
+        public string ContractAddress { get; set; }
     }
 
     public class SuiOASISProviderSettings : ProviderSettingsBase

@@ -1,0 +1,17 @@
+.faq-page {
+  height: 95vh;
+  padding: 100px 3rem 5rem;
+}
+
+.faq-header {
+  margin: 50px auto;
+  font-weight: bold;
+  font-size: 20px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .faq-page {
+    padding: 100px 1rem 4rem;
+  }
+}

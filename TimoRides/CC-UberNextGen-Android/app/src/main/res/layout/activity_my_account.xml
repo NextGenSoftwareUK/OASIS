@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".setting.MyAccountActivity">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorBlack"
+        android:orientation="vertical">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/m20dp"
+            android:layout_marginBottom="@dimen/m20dp"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/ivBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/Margin20dp"
+                android:src="@drawable/ic_left_arrow" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:layout_marginBottom="@dimen/m10dp"
+                android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:text="My Account"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:layout_weight="1"
+                android:textSize="@dimen/s30sp"
+                android:layout_marginLeft="@dimen/Margin20dp"
+                android:textStyle="bold"
+                android:textColor="@color/colorWhite" />
+                <ImageView
+                    android:layout_width="@dimen/m70dp"
+                    android:layout_height="@dimen/m70dp"
+                    android:layout_marginRight="@dimen/Margin20dp"
+                    android:src="@drawable/personimg" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#f9f9f9"
+            android:orientation="vertical">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#f9f9f9"
+                android:orientation="vertical">
+                <LinearLayout
+                    android:id="@+id/llProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/m20dp"
+                    android:background="@color/colorWhite"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/m15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textStyle="bold"
+                            android:text="Level"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorfontBlack" />
+
+                        <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                            android:layout_marginRight="@dimen/m10dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                                android:text="Larry johanson"
+                                android:textSize="@dimen/s18sp"
+                                android:textColor="@color/colorGrey" />
+
+                        <ImageView
+                            android:layout_width="@dimen/m15dp"
+                            android:layout_height="@dimen/m15dp"
+                            android:src="@drawable/ic_next_arrow" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/m20dp"
+                    android:background="@color/colorWhite"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/m15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textStyle="bold"
+                            android:text="Name"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorfontBlack" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="@dimen/m10dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="Larry johanson"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorGrey" />
+
+                        <ImageView
+                            android:layout_width="@dimen/m15dp"
+                            android:layout_height="@dimen/m15dp"
+                            android:src="@drawable/ic_next_arrow" />
+
+                    </LinearLayout>
+
+
+
+
+                </LinearLayout>
+                <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/colorView" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorWhite"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/m15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textStyle="bold"
+                            android:text="Email"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorfontBlack" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="@dimen/m10dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:singleLine="true"
+                            android:text="larry.johanson.com"
+                            android:textColor="@color/colorGrey"
+                            android:textSize="@dimen/s18sp" />
+
+                        <ImageView
+                            android:layout_width="@dimen/m15dp"
+                            android:layout_height="@dimen/m15dp"
+                            android:src="@drawable/ic_next_arrow" />
+
+                    </LinearLayout>
+
+
+
+                </LinearLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorView" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorWhite"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/m15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textStyle="bold"
+                            android:text="Gender"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorfontBlack" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="@dimen/m10dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="Male"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorGrey" />
+
+                        <ImageView
+                            android:layout_width="@dimen/m15dp"
+                            android:layout_height="@dimen/m15dp"
+                            android:src="@drawable/ic_next_arrow" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/ll_Birthday"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorWhite"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/m15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textStyle="bold"
+                            android:text="Birthday"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorfontBlack" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="@dimen/m10dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="May 2,1990"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorGrey" />
+
+                        <ImageView
+                            android:layout_width="@dimen/m15dp"
+                            android:layout_height="@dimen/m15dp"
+                            android:src="@drawable/ic_next_arrow" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorView" />
+                <LinearLayout
+                    android:id="@+id/ll_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorWhite"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="@dimen/m15dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textStyle="bold"
+                            android:text="Phone number"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorfontBlack" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="@dimen/m10dp"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="+0123 456 7890"
+                            android:textSize="@dimen/s18sp"
+                            android:textColor="@color/colorGrey" />
+
+                        <ImageView
+                            android:layout_width="@dimen/m15dp"
+                            android:layout_height="@dimen/m15dp"
+                            android:src="@drawable/ic_next_arrow" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorView" />
+
+
+                </LinearLayout>
+            </LinearLayout>
+
+            </androidx.core.widget.NestedScrollView>
+
+        </LinearLayout>
+   </LinearLayout>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottom_sheet_birthday"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom"
+    android:elevation="@dimen/m50dp"
+    android:orientation="vertical"
+  >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/m10dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:textSize="@dimen/s20sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorfontBlack"
+        android:text="Birthday" />
+        <TextView
+            android:id="@+id/ivCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textColor="@color/colorBlack"
+            android:layout_gravity="center"
+            android:textSize="28sp"
+            android:text="X"/>
+    </LinearLayout>
+
+   <DatePicker
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:datePickerMode="spinner"
+       android:calendarViewShown="false"/>
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/m50dp"
+    android:background="@drawable/signin_btn_grad"
+    android:text="Save"
+    android:layout_margin="@dimen/m10dp"
+    android:textSize="@dimen/s18sp"
+    android:textColor="@color/colorWhite"
+    android:gravity="center"
+    android:textStyle="bold"/>
+
+</LinearLayout>

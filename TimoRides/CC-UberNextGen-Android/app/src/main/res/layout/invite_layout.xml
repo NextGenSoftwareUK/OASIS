@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="@dimen/m60dp"
+                        android:layout_height="@dimen/m60dp"
+                        android:layout_margin="@dimen/m10dp"
+                        android:src="@drawable/personimg" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:layout_marginLeft="@dimen/m10dp"
+                    android:orientation="vertical">
+
+
+                    <TextView
+                        android:id="@+id/tvProductName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:text="Cash"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorfontBlack"
+                        android:textSize="@dimen/s18sp" />
+
+                </LinearLayout>
+                <ImageView
+                    android:id="@+id/ivproduct"
+                    android:layout_width="@dimen/m50dp"
+                    android:layout_height="@dimen/m50dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_margin="@dimen/m20dp"
+                    android:src="@drawable/ic_add" />
+            </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginLeft="@dimen/m80dp"
+                android:background="@color/colorView"/>
+        </LinearLayout>
+
+
+</LinearLayout>

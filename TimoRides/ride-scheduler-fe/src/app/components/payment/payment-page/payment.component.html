@@ -1,0 +1,129 @@
+<section class="payment-page">
+  <div class="payment">
+    <mat-card class="card-container">
+      <mat-card-header class="card-header">
+        <div class="card-header-image">
+          <mat-card-title class="card-title">Payment</mat-card-title>
+
+          <div class="card-completed" *ngIf="true">
+            <svg
+              viewBox="0 0 20 20"
+              aria-labelledby="checkmark-circle-title"
+              data-tid="checkmark-circle"
+              role="img"
+            >
+              <title id="checkmark-circle-title">Section Complete</title>
+              <path
+                d="M9.5 20c-2.538 0-4.923-.988-6.718-2.782S0 13.038 0 10.501c0-2.538.988-4.923 2.782-6.718S6.962 1 9.5 1c2.538 0 4.923.988 6.718 2.783S19 7.963 19 10.501s-.988 4.923-2.782 6.717A9.438 9.438 0 0 1 9.5 20zm0-18C4.813 2 1 5.813 1 10.5S4.813 19 9.5 19s8.5-3.813 8.5-8.5S14.187 2 9.5 2z"
+                fill="#1bab1e"
+              ></path>
+              <path
+                d="M7.5 14.5a.502.502 0 0 1-.354-.146l-3-3a.5.5 0 0 1 .707-.707l2.646 2.646 6.646-6.646a.5.5 0 0 1 .707.707l-7 7a.498.498 0 0 1-.354.146z"
+                fill="#1bab1e"
+              ></path>
+            </svg>
+          </div>
+          <div class="spacer"></div>
+          <img *ngIf="true" src="" alt="" />
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <!-- Select payment type: Cash / Card -->
+        <h3 class="summary-title">Payment option</h3>
+        <mat-radio-group
+          (change)="onRadioChange($event)"
+          aria-label="Select an option"
+          class="payment-type-group"
+        >
+          <mat-radio-button color="primary" value="optCard"
+            >Card</mat-radio-button
+          >
+        </mat-radio-group>
+
+        <!-- Cash Option -->
+        <div *ngIf="paymentOption === 'optCash'" class="cash-content">
+          <!-- Cash payment selected -->
+          <img
+            src="../../../../assets/images/cash.png"
+            alt=""
+            class="cash-image"
+            loading="lazy"
+          />
+        </div>
+
+        <!-- Card option -->
+        <div *ngIf="paymentOption === 'optCard'" class="card-content">
+          <div>
+            <img
+              src="../../../../assets/images/card.avif"
+              alt=""
+              class="cash-image"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <app-summary class="ride-summary" [hasPaid]="hasPaid"></app-summary>
+  </div>
+
+  <!-- action buttons -->
+  <div class="tm__btn-actions">
+    <!-- Back button -->
+    <app-button
+      [btnConfig]="{
+        label: '&leftarrow; Back',
+        size: 'sm',
+        theme: 'danger',
+        block: true
+      }"
+      (click)="goBack()"
+    ></app-button>
+
+    <!-- Payment button -->
+    <app-button
+      *ngIf="paymentOption === 'optCash'"
+      [btnConfig]="{
+        label: 'Complete booking',
+        size: 'sm',
+        theme: 'primary',
+        block: true,
+      }"
+      (click)="completePayment()"
+    ></app-button>
+
+    <div *ngIf="paymentOption === 'optCard'">
+      <app-button
+        *ngIf="paymentOption === 'optCard'"
+        [btnConfig]="{
+            label: 'Complete booking',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+          }"
+        (click)="displayUserForm()"
+      ></app-button>
+    </div>
+  </div>
+</section>
+
+<ng-container *ngIf="showUserForm">
+  <div
+    class=""
+    style="
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      /* height: 100vh; */
+      height: calc(100vh - 20px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #7e3ac25e;
+    "
+  >
+    <app-user-form></app-user-form>
+  </div>
+</ng-container>

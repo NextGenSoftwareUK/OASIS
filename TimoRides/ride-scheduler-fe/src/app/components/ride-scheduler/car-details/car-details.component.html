@@ -1,0 +1,156 @@
+<div class="container">
+  <main class="details-container">
+    <!-- Car -->
+    <div class="car-section">
+      <ng-container *ngIf="car$ | async as car; else CarLoading">
+        <section *ngIf="car.id; else NoCarFound" class="car-details__container">
+          <ul class="car-details__summary">
+            <!-- Model and color -->
+            <li class="car-details__summary-item">
+              <h3 class="info_title">Model | Color</h3>
+              <p>{{ car?.vehicleModel }} | {{ car?.vehicleColor }}</p>
+            </li>
+
+            <!-- Plate number -->
+            <li class="car-details__summary-item">
+              <h3 class="info_title">Plate Number</h3>
+              <p>{{ car?.vehicleRegNumber }}</p>
+            </li>
+
+            <!-- Car rating -->
+            <li class="car-details__summary-item">
+              <h3 class="info_title">Rating</h3>
+              <app-rating-widget [rated]="car?.rating"></app-rating-widget>
+            </li>
+
+            <!-- Trip amount -->
+            <ng-container *ngIf="carInfo$ | async as carInfo">
+              <li class="car-details__summary-item">
+                <div class="car-info-amount__container">
+                  <p
+                    class="car-amount"
+                    *ngIf="isCarOrProxy(carInfo.car); else NotProxy"
+                  >
+                    R{{ carInfo.car.rideAmount }}
+                  </p>
+                  <ng-template #NotProxy>
+                    <p class="car-amount">
+                      {{ "n/a" }}
+                    </p>
+                  </ng-template>
+                </div>
+              </li>
+              <!-- Driver's distance away -->
+              <ng-container *ngIf="isCarOrProxy(carInfo.car)">
+                <li class="car-details__summary-item">
+                  <div class="car-info-amount__container distance_container">
+                    <p>{{ carInfo.car.durationAway }} away</p>
+                  </div>
+                </li>
+              </ng-container>
+            </ng-container>
+          </ul>
+
+          <!-- Car exterior image -->
+          <div class="car-image__container">
+            <img class="image" [src]="car?.altImagePath" alt="car image" />
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- No car info -->
+      <ng-template #NoCarFound
+        ><span class="info_error">Car details not found</span></ng-template
+      >
+
+      <!-- Loading car info -->
+      <ng-template #CarLoading
+        ><span class="info_loading">Loading car details...</span></ng-template
+      >
+    </div>
+
+    <!-- Driver -->
+    <div class="driver-section">
+      <ng-container *ngIf="driver$ | async as driver; else DriverLoading">
+        <div class="car-details__container">
+          <section
+            *ngIf="driver.id; else NoDriverFound"
+            class="ext-container driver"
+          >
+            <ul class="car-details__summary driver_details">
+              <!-- Driver's name -->
+              <li class="car-details__summary-item">
+                <div class="car-details-container">
+                  <h3 class="info_title">Name:</h3>
+                  <p>{{ driver.fullName }}</p>
+                </div>
+              </li>
+
+              <!-- Driver's completed rides -->
+              <li
+                class="car-details__summary-item"
+                *ngIf="isDriverOrUser('completedRides', driver)"
+              >
+                <div class="car-details-container">
+                  <h3 class="info_title">Completed Rides:</h3>
+                  <p>{{ driver.completedRides }}</p>
+                </div>
+              </li>
+            </ul>
+
+            <!-- Driver's image -->
+            <div class="driver-image__container2">
+              <img class="image" [src]="driver.profileImg" alt="driver image" />
+            </div>
+          </section>
+
+          <!-- Car interior image -->
+          <div class="driver-image__container">
+            <img
+              class="image2"
+              [src]="(car$ | async)?.interiorImagePath"
+              alt="car interior image"
+            />
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- No driver info -->
+      <ng-template #NoDriverFound
+        ><span class="info_error">Driver details not found</span></ng-template
+      >
+
+      <!-- Loading driver info -->
+      <ng-template #DriverLoading
+        ><span class="info_loading"
+          >Loading driver details...</span
+        ></ng-template
+      >
+    </div>
+
+    <!-- action buttons -->
+    <div class="tm__btn-section">
+      <!-- Back button -->
+      <app-button
+        [btnConfig]="{
+          label: '&leftarrow; Back',
+          size: 'sm',
+          theme: 'danger-outline',
+          block: true
+        }"
+        (click)="goBack()"
+      ></app-button>
+
+      <!-- Next button -->
+      <app-button
+        [btnConfig]="{
+          label: 'Proceed &rightarrow;',
+          size: 'sm',
+          theme: 'primary-outline',
+          block: true
+        }"
+        (click)="navigateToPayment()"
+      ></app-button>
+    </div>
+  </main>
+</div>
