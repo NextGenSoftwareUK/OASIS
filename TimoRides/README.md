@@ -9,6 +9,11 @@ This folder consolidates the TimoRides backend (`ride-scheduler-be`) and fronten
 
 Both applications expect environment variables for external services and deploy to separate hosts (Render/AWS for frontend, MongoDB-backed service for backend).
 
+### Architecture and Separation of Concerns
+
+- New: **[Timo × OASIS Layered Roadmap (Separation of Concerns)](./Timo_Layered_Roadmap.md)** — defines Timo App Layer vs OASIS Core boundaries, ownership, APIs, SDKs, and delivery responsibilities.
+- Reference: **[Timo MVP × OASIS Integration Roadmap](./Timo_MVP_Roadmap.md)** — capability comparison and phased plan aligned to the MVP.
+
 ## Prerequisites
 
 - Node.js 18+
@@ -113,6 +118,31 @@ Ensure the Angular build pipeline loads these environment variables (the project
 - NgRx DevTools is enabled in dev mode; install the Redux browser extension for state inspection.
 - Backend uses `nodemon` for live reloads when running `npm run start`.
 - Address reported npm vulnerabilities via `npm audit fix` once you confirm the impact.
+
+### Publishing to timo-org GitHub
+
+Keep building from this monorepo, then run the helper script to export and push only the Timo projects to their corresponding repositories:
+
+```
+# Push backend updates to git@github.com:timo-org/ride-scheduler-be.git (branch main)
+./TimoRides/push-to-timo.sh backend
+
+# Push Android updates to git@github.com:timo-org/Timo-Android-App.git (branch main)
+./TimoRides/push-to-timo.sh android
+```
+
+Optional arguments let you override the branch or remote:
+
+```
+./TimoRides/push-to-timo.sh backend develop git@github.com:timo-org/ride-scheduler-be.git
+```
+
+The script uses `git subtree split`, so it does not disturb the current working tree or history.
+
+### Booking maintenance helpers
+
+- `npm run seed` (backend) — seeds admin/driver/car defaults.
+- `npm run expire-pending` (backend) — auto-cancels stale pending bookings using `BOOKING_EXPIRE_MINUTES` (default 15) from `.env`.
 
 ## Deployment Notes
 
