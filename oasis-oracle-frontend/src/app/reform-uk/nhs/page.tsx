@@ -215,3 +215,5 @@ function DetailCard({ label, value, color, subtitle }: { label: string; value: s
 
 
 
+
+
