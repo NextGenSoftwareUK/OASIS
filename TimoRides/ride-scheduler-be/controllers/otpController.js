@@ -2,8 +2,7 @@ const Otp = require('../models/otpModal');
 const { handleCatchError } = require('../utils/errorCatch');
 const User = require('../models/userModel');
 const Booking = require('../models/bookingModal');
-const Driver = require('../models/driverModel');
-const GlobalSettings = require('../models/globalSettingsModal');
+const rideService = require('../services/rideService');
 
 async function getAllTripDetail(req, res) {
   const { email } = req.query;
@@ -98,45 +97,11 @@ async function confirmOtp(req, res) {
 
     // Update driver completed trip if end trip
     if (tripMode.trim() === 'end') {
-      const driver = await Driver.findById(otpTrip.driverId);
-
-      // TODO: Update Driver Wallet after succesfull ride
-
-      // Get Booking with booking id ( to get booking fee)
-      const booking = await Booking.findById(bookingId);
-
-      // Get Company percentage,
-      const adminData = await GlobalSettings.findOne();
-
-      //  Get percent  company fee from booking amount
-      const driverPercent = booking.tripAmount * adminData?.businessCommission;
-
-      // Actual driver Amount after removing company fee add to driver wallet
-      const driverWalletPay =
-        booking.tripAmount - driverPercent + driver.wallet;
-
-      // Increament driver completed ride
-      const newCompletedRides = driver.completedRides + 1;
-
-      // Add update of completed ride
-      // save the new wallet amount to the driver wallet
-      Object.assign(driver, {
-        completedRides: newCompletedRides,
-        wallet: driverWalletPay,
-      });
-
-      // Save driver update
-      await driver.save();
-
-      Object.assign(booking, { status: 'completed' });
-
-      await booking.save();
+      await rideService.completeRide(bookingId, user.id);
     }
 
     if (tripMode.trim() === 'start') {
-      Object.assign(booking, { status: 'started' });
-
-      await booking.save();
+      await rideService.startRide(bookingId, user.id);
     }
 
     // Update state to is actived
