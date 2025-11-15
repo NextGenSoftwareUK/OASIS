@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const routes = require('./routes');
 const specs = require('./swagger');
 const swaggerUi = require('swagger-ui-express');
+const requestContextMiddleware = require('./middleware/requestContextMiddleware');
+const { errors: celebrateErrors } = require('celebrate');
 
 const app = express();
 
@@ -48,10 +50,18 @@ if (process.env.NODE_ENV !== 'production') {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 }
 
-app.use(express.json({ limit: '50mb' }));
+app.use(
+  express.json({
+    limit: '50mb',
+    verify: (req, res, buf) => {
+      req.rawBody = buf?.toString() || '';
+    },
+  })
+);
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(express.json());
+app.use(requestContextMiddleware);
 app.use(routes);
+app.use(celebrateErrors());
 
 // mongo db connection string
 const mongoDbUrl = process.env.Database_Url;

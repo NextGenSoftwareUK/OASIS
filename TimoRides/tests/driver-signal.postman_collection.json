@@ -1,0 +1,180 @@
+{
+  "info": {
+    "_postman_id": "f7cba3d3-4c7b-4ea1-9a7f-1b4b8c0c1234",
+    "name": "TimoRides Driver Signal",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "timorides-agent"
+  },
+  "item": [
+    {
+      "name": "Driver Action",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-service-token",
+            "value": "{{serviceToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"bookingId\": \"{{bookingId}}\",\n  \"action\": \"accept\",\n  \"source\": \"postman\",\n  \"traceId\": \"pm-{{timestamp}}\",\n  \"meta\": {\n    \"reason\": \"postman demo\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/driver-actions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "driver-actions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Driver Location",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-service-token",
+            "value": "{{serviceToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"bookingId\": \"{{bookingId}}\",\n  \"source\": \"postman\",\n  \"traceId\": \"pm-{{timestamp}}\",\n  \"location\": {\n    \"latitude\": -26.11,\n    \"longitude\": 28.02,\n    \"speed\": 10.5,\n    \"bearing\": 90\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/driver-location",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "driver-location"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PathPulse Webhook",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const moment = require('moment');",
+              "const crypto = require('crypto-js');",
+              "const timestamp = moment().utc().unix().toString();",
+              "const body = JSON.stringify({",
+              "  eventType: 'telemetry',",
+              "  driverExternalId: pm.variables.get('driverId'),",
+              "  bookingExternalId: pm.variables.get('bookingId'),",
+              "  timestamp: new Date().toISOString(),",
+              "  telemetry: {",
+              "    latitude: -26.115,",
+              "    longitude: 28.021,",
+              "    speed: 11.2,",
+              "    bearing: 120",
+              "  }",
+              "});",
+              "const payload = `${timestamp}.${body}`;",
+              "const signature = crypto.HmacSHA256(payload, pm.variables.get('pathpulseSecret')).toString();",
+              "pm.variables.set('ppTimestamp', timestamp);",
+              "pm.variables.set('ppSignature', signature);",
+              "pm.request.body.raw = body;"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-pathpulse-timestamp",
+            "value": "{{ppTimestamp}}"
+          },
+          {
+            "key": "x-pathpulse-signature",
+            "value": "{{ppSignature}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/driver-webhooks/pathpulse",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "driver-webhooks",
+            "pathpulse"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Driver Signal Metrics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/metrics/driver-signal",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "metrics",
+            "driver-signal"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4205/api"
+    },
+    {
+      "key": "serviceToken",
+      "value": "replace_me"
+    },
+    {
+      "key": "driverId",
+      "value": "replace_me"
+    },
+    {
+      "key": "bookingId",
+      "value": "replace_me"
+    },
+    {
+      "key": "pathpulseSecret",
+      "value": "replace_me"
+    },
+    {
+      "key": "timestamp",
+      "value": "{{$timestamp}}"
+    }
+  ]
+}
+

@@ -25,3 +25,5 @@ echo "Watch for: 'Telegram bot started receiving messages'"
 echo ""
 dotnet run --no-build
 
+
+
