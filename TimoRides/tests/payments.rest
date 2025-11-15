@@ -1,0 +1,34 @@
+@baseUrl = http://localhost:4205
+@token = REPLACE_WITH_JWT
+@bookingId = REPLACE_WITH_BOOKING_ID
+
+###
+# List seeded bookings (requires admin token)
+GET {{baseUrl}}/api/bookings
+Authorization: Bearer {{token}}
+
+###
+# Mark a booking as paid (card or wallet)
+PATCH {{baseUrl}}/api/bookings/{{bookingId}}/payment
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "method": "card",
+  "status": "paid",
+  "reference": "REST-DEMO-{{$timestamp}}",
+  "notes": "Payment rest client demo"
+}
+
+###
+# Refund a booking
+PATCH {{baseUrl}}/api/bookings/{{bookingId}}/payment
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "refunded",
+  "notes": "Customer dispute resolved"
+}
+
+

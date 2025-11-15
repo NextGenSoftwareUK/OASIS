@@ -9,19 +9,29 @@ const bookingRoutes = require('./bookingRoutes.js');
 const tripRoutes = require('./otpRoutes.js');
 const adminRoutes = require('./adminRoutes.js');
 const driverRoutes = require('./driverRoutes');
+const driverSignalRoutes = require('./driverSignalRoutes');
+const metricsRoutes = require('./metricsRoutes');
+const healthRoutes = require('./healthRoutes');
 const authenticateUser = require('../middleware/authMiddleware.js');
 const authorizeUser = require('../middleware/authorizationMiddleware.js');
+const {
+  authLimiter,
+  bookingLimiter,
+} = require('../middleware/rateLimiters');
 
 const router = express.Router();
 
+router.use('/health', healthRoutes);
 router.use('/api/distance', distanceRoutes);
 router.use('/api/notification', notificationRoutes);
-router.use('/api/auth', authRoutes);
+router.use('/api/auth', authLimiter, authRoutes);
 router.use('/api/trips', tripRoutes);
 router.use('/api', carRoutes);
-router.use('/api/bookings', bookingRoutes);
+router.use('/api/bookings', bookingLimiter, bookingRoutes);
 router.use('/api', userRoutes);
 router.use('/api', driverRoutes);
+router.use('/api', driverSignalRoutes);
+router.use('/api/metrics', metricsRoutes);
 router.use('/api/admin', authorizeUser(['admin']), adminRoutes);
 router.use('/api', authenticateUser, uploadRoutes);
 

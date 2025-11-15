@@ -17,6 +17,8 @@ const {
   reBookingValidation,
   validate,
 } = require('../validators/bookingValidation');
+const { paymentUpdateValidation } = require('../validators/paymentValidation');
+const { paymentLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
 
@@ -40,6 +42,12 @@ router.post('/confirm-acceptance-status', authenticateUser, acceptBooking);
 
 router.post('/cancel-acceptance', authenticateUser, cancelBooking);
 
-router.patch('/:id/payment', authenticateUser, updatePayment);
+router.patch(
+  '/:id/payment',
+  authenticateUser,
+  paymentLimiter,
+  paymentUpdateValidation,
+  updatePayment
+);
 
 module.exports = router;

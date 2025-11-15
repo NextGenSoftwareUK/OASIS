@@ -36,6 +36,16 @@ npm run seed
 
 Override defaults through the `.env` variables `SEED_ADMIN_*`, `SEED_DRIVER_*`, and `DEFAULT_STATE`. Rerunning the script is idempotent.
 
+The seed script also provisions a demo rider plus four bookings that represent the major lifecycle stages (pending cash, accepted cash, started wallet, completed card). Each booking carries a deterministic `trxId` (`seed-…`) so they can be referenced in tests or Postman collections without hunting through the database.
+
+### REST Client helpers
+
+- `TimoRides/tests/payments.rest` – VS Code REST Client snippet that lists bookings, marks one as paid, and issues a refund.
+- `TimoRides/tests/driver-signal.postman_collection.json` – ready-made Postman collection for exercising driver actions, location updates, PathPulse webhooks, and metrics.
+- `scripts/driverSignalTest.sh` – quick shell helper to hit driver routes and enqueue webhook events.
+
+Set `BASE_URL`, auth tokens, and booking IDs before running the samples.
+
 ### Driver status endpoints
 
 Drivers (or admins) can now update their location and availability through REST endpoints:
@@ -47,6 +57,13 @@ Drivers (or admins) can now update their location and availability through REST 
 | `/api/drivers/{driverId}/status` | `GET` | Retrieve driver profile plus current car snapshot. |
 
 All routes require authentication; drivers may only mutate their own record while admins can manage anyone.
+
+### Health & Observability
+
+- Structured logs use `pino` and honor the `LOG_LEVEL` environment variable. Every request receives an `x-trace-id` header that is echoed in responses and logs for correlation.
+- `GET /health` now reports Mongo connection status, pending booking counts, outstanding cash payments, driver webhook queue depth, and a snapshot of driver-signal metrics. This endpoint is unauthenticated so it can be polled by uptime monitors.
+- Rate limiting is enforced through `express-rate-limit`. Tune limits with the `RATE_LIMIT_*` variables in `.env` (auth, booking, payment, driver action, and webhook buckets). The defaults in `config/env.example` are safe for local development but should be revisited before production.
+- Driver automation workloads can be processed with `npm run driver-signal-worker`, which replays queued PathPulse/webhook events and records success/failure metrics.
 
 ### Folder Structure
 
