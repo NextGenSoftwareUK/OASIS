@@ -344,12 +344,25 @@ async function updatePayment(req, res) {
       return res.status(405).json({ message: 'Unauthorized' });
     }
 
-    const updatedBooking = await rideService.recordPayment(id, {
-      method,
-      status,
-      reference,
-      notes,
-    });
+    const updatedBooking = await rideService.recordPayment(
+      id,
+      {
+        method,
+        status,
+        reference,
+        notes,
+      },
+      {
+        actor: {
+          id: user.id,
+          role: user.role,
+          fullName: user.fullName,
+          email: user.email,
+        },
+        traceId: req.traceId,
+        source: 'admin_api',
+      }
+    );
 
     res.json({ booking: updatedBooking });
   } catch (error) {
