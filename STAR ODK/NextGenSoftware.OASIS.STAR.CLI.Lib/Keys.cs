@@ -92,31 +92,46 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             Guid walletId = Guid.Empty;
+            ProviderType walletProvider = ProviderType.None;
 
             if (CLIEngine.GetConfirmation("Do you have an existing wallet you wish to link to? (if you select 'N' a new wallet will be created for you)"))
             {
                 OASISResult<IProviderWallet> walletResult = await STARCLI.Wallets.FindWalletAsync("Enter the number of the wallet you wish to add the public key to:");
 
                 if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                {
                     walletId = walletResult.Result.Id;
+                    walletProvider = walletResult.Result.ProviderType;
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured finding wallet. Reason: {walletResult.Message}");
             }
+            else
+                Console.WriteLine("");
 
             string publicKey = CLIEngine.GetValidInput("Enter the private key you wish to link to your wallet: ", addLineBefore: true);
-            object providerObj = CLIEngine.GetValidInputForEnum("Enter the provider (chain) you wish to link the private key to in your wallet: ", typeof(ProviderType));
 
-            if (providerObj != null)
+            if (walletProvider == ProviderType.None)
             {
-                if (providerObj.ToString() == "exit")
-                {
-                    result.Message = "User Exited";
-                    return result;
-                }
+                object providerObj = CLIEngine.GetValidInputForEnum("Enter the provider (chain) you wish to link the private key to in your wallet: ", typeof(ProviderType));
 
+                if (providerObj != null)
+                {
+                    if (providerObj.ToString() == "exit")
+                    {
+                        result.Message = "User Exited";
+                        return result;
+                    }
+
+                    walletProvider = (ProviderType)providerObj;
+                }
+            }
+
+            if (walletProvider != ProviderType.None)
+            {
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
                 CLIEngine.ShowWorkingMessage("Linking Private Key...");
-                result = STAR.OASISAPI.Keys.LinkProviderPrivateKeyToAvatarById(walletId, STAR.BeamedInAvatar.Id, (ProviderType)providerObj, publicKey, providerToLoadAvatarFrom);
+                result = STAR.OASISAPI.Keys.LinkProviderPrivateKeyToAvatarById(walletId, STAR.BeamedInAvatar.Id, walletProvider, publicKey, providerToLoadAvatarFrom);
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
@@ -124,6 +139,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured linking Private Key: Reason: {result.Message}");
             }
+            else
+                OASISErrorHandling.HandleError(ref result, "ProviderType is None!");
 
             return result;
         }
@@ -315,7 +332,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
 
                 foreach (KeyPair keyPair in keys[providerType])
-                    CLIEngine.ShowMessage(string.Concat("Public: ", keyPair.PublicKey != null ? keyPair.PublicKey.PadRight(20) : "".PadRight(20), "Private: ", keyPair.PrivateKey), false);
+                    CLIEngine.ShowMessage(string.Concat("Public: ", keyPair.PublicKey != null ? keyPair.PublicKey.PadRight(55) : "".PadRight(55), "Private: ", keyPair.PrivateKey), false);
             }
         }
     }
