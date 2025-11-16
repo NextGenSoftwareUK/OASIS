@@ -48,31 +48,34 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public DateTime CreatedDate { get; set; }
         public Guid ModifiedByAvatarId { get; set; }
 
-        public IAvatar ModifiedByAvatar
-        {
-            get
-            {
-                if (_modifiedByAvatar == null && ModifiedByAvatarId != Guid.Empty)
-                {
-                    OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(ModifiedByAvatarId);
+        [JsonIgnore]
+        public IAvatar ModifiedByAvatar { get; set; }
 
-                    if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
-                        _modifiedByAvatar = avatarResult.Result;
-                }
+        //public IAvatar ModifiedByAvatar
+        //{
+        //    get
+        //    {
+        //        if (_modifiedByAvatar == null && ModifiedByAvatarId != Guid.Empty)
+        //        {
+        //            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(ModifiedByAvatarId);
 
-                return _modifiedByAvatar;
-            }
-            set
-            {
-                if (value != _modifiedByAvatar)
-                {
-                    IsChanged = true;
-                    NotifyPropertyChanged("ModifiedByAvatar");
-                }
+        //            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+        //                _modifiedByAvatar = avatarResult.Result;
+        //        }
 
-                _modifiedByAvatar = value;
-            }
-        }
+        //        return _modifiedByAvatar;
+        //    }
+        //    set
+        //    {
+        //        if (value != _modifiedByAvatar)
+        //        {
+        //            IsChanged = true;
+        //            NotifyPropertyChanged("ModifiedByAvatar");
+        //        }
+
+        //        _modifiedByAvatar = value;
+        //    }
+        //}
 
         public DateTime ModifiedDate { get; set; }
         public Guid DeletedByAvatarId { get; set; }

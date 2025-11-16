@@ -1926,6 +1926,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "public")
                                 STARCLI.Keys.ListAllProviderPublicKeysForBeamedInAvatar(providerType);
 
+                            else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "keypair")
+                                STARCLI.Keys.ListAllProviderKeyPairsForBeamedInAvatar(providerType);
+
                             else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "storage")
                                 STARCLI.Keys.ListAllProviderUniqueStorageKeysForBeamedInAvatar(providerType);
 
@@ -1948,9 +1951,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"KEYS SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    link [private/public/generate]   Links a OASIS Provider Key (private or public) to the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    list [private/public/storage]    Shows the keys (private, public or storage) for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    generate                         Generates a unique keyvalue pair of private/public keys.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    link [private/public/generate]         Links a OASIS Provider Key (private or public) to the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list [private/public/keypair/storage]  Shows the keys (private, public, keypair or storage) for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    generate                               Generates a unique keyvalue pair of private/public keys.", ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
                 CLIEngine.ShowMessage("For the link sub-command, if [generate] is included it will generate a keyvalue pair and then link.", ConsoleColor.Green);
@@ -1996,15 +1999,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "get":
-                        STARCLI.Wallets.ShowWalletThatPublicKeyBelongsTo(providerType);
+                        STARCLI.Wallets.ShowWalletThatPublicKeyBelongsTo();
                         break;
 
-                    case "getDefault":
-                        await STARCLI.Wallets.ShowDefaultWalletForBeamedInAvatarAsync(providerType);
+                    case "getdefault":
+                        await STARCLI.Wallets.ShowDefaultWalletForBeamedInAvatarAsync();
                         break;
 
-                    case "setDefault":
-                        await STARCLI.Wallets.SetDefaultWalletAsync(providerType);
+                    case "setdefault":
+                        await STARCLI.Wallets.SetDefaultWalletAsync();
                         break;
 
                     case "import":
@@ -2016,7 +2019,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "list":
-                        await STARCLI.Wallets.ListProviderWalletsForBeamedInAvatarAsync(providerType);
+                        await STARCLI.Wallets.ListProviderWalletsForBeamedInAvatarAsync(providerTypeToLoadFrom: providerType);
                         break;
 
                     case "balance":

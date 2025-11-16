@@ -50,10 +50,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return balance;
         }
 
-        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ListProviderWalletsForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default, bool showNumbers = false)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ListProviderWalletsForBeamedInAvatarAsync(ProviderType providerTypeToShowWalletsFor = ProviderType.All, ProviderType providerTypeToLoadFrom = ProviderType.Default, bool showNumbers = false)
         {
             CLIEngine.ShowWorkingMessage("Loading Wallets...");
-            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await STAR.OASISAPI.Wallets.LoadProviderWalletsForAvatarByIdAsync(STAR.BeamedInAvatar.Id, true, providerType);
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await STAR.OASISAPI.Wallets.LoadProviderWalletsForAvatarByIdAsync(STAR.BeamedInAvatar.Id, true, providerTypeToShowWalletsFor, providerTypeToLoadFrom);
 
             if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
             {
@@ -75,26 +75,44 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return walletsResult;
         }
 
-        public async Task<OASISResult<IProviderWallet>> ShowDefaultWalletForBeamedInAvatarAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IProviderWallet>> ShowDefaultWalletForBeamedInAvatarAsync()
         {
-            CLIEngine.ShowWorkingMessage("Loading Default Wallet...");
-            OASISResult<IProviderWallet> walletResult = await STAR.OASISAPI.Wallets.GetAvatarDefaultWalletByIdAsync(STAR.BeamedInAvatar.Id, providerType, true);
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            object providerObj = CLIEngine.GetValidInputForEnum("Enter the provider (chain) you wish to get the default wallet for: ", typeof(ProviderType));
 
-            if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
-                ShowWallet(walletResult.Result);
+            if (providerObj != null)
+            {
+                if (providerObj.ToString() == "exit")
+                {
+                    result.Message = "User Exited";
+                    return result;
+                }
 
-            return walletResult;
+                CLIEngine.ShowWorkingMessage("Loading Default Wallet...");
+                Console.WriteLine("");
+                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+                result = await STAR.OASISAPI.Wallets.GetAvatarDefaultWalletByIdAsync(STAR.BeamedInAvatar.Id, (ProviderType)providerObj, true);
+                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+
+                if (result != null && result.Result != null && !result.IsError)
+                    ShowWallet(result.Result);
+            }
+
+            return result;
         }
 
-        public OASISResult<IProviderWallet> ShowWalletThatPublicKeyBelongsTo(ProviderType providerType = ProviderType.Default)
+        public OASISResult<IProviderWallet> ShowWalletThatPublicKeyBelongsTo()
         {
             string publicKey = CLIEngine.GetValidInput("Enter the provider key you wish to find the wallet for: ");
 
             CLIEngine.ShowWorkingMessage("Loading Wallet...");
-            OASISResult<IProviderWallet> walletResult = STAR.OASISAPI.Wallets.GetWalletThatPublicKeyBelongsTo(publicKey, providerType, STAR.BeamedInAvatar);
+            Console.WriteLine("");
+            OASISResult<IProviderWallet> walletResult = STAR.OASISAPI.Wallets.GetWalletThatPublicKeyBelongsTo(publicKey, STAR.BeamedInAvatar);
 
             if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
                 ShowWallet(walletResult.Result);
+            else
+                CLIEngine.ShowWarningMessage("No Wallets Found!");
 
             return walletResult;
         }
@@ -105,9 +123,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.DisplayProperty("Number", number.ToString(), displayFieldLength);
 
             CLIEngine.DisplayProperty("Id", wallet.WalletId.ToString(), displayFieldLength);
+            CLIEngine.DisplayProperty("Provider Type", Enum.GetName(typeof(ProviderType), wallet.ProviderType), displayFieldLength);
             CLIEngine.DisplayProperty("Name", wallet.Name, displayFieldLength);
             CLIEngine.DisplayProperty("Description", wallet.Description, displayFieldLength);
-            CLIEngine.DisplayProperty("WalletAddress", wallet.WalletAddress, displayFieldLength);
+            CLIEngine.DisplayProperty("Wallet Address", wallet.WalletAddress, displayFieldLength);
             CLIEngine.DisplayProperty("Public Key", wallet.PublicKey, displayFieldLength);
             CLIEngine.DisplayProperty("Private Key", wallet.PrivateKey, displayFieldLength);
             CLIEngine.DisplayProperty("Secret Recovery Phrase", wallet.SecretRecoveryPhrase, displayFieldLength);
@@ -118,33 +137,46 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
-        public async Task<OASISResult<IProviderWallet>> SetDefaultWalletAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IProviderWallet>> SetDefaultWalletAsync()
         {
-            OASISResult<IProviderWallet> selectedWallet = await FindWalletAsync("Enter the number of the wallet you wish to set as the default:", providerType);
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            object providerObj = CLIEngine.GetValidInputForEnum("Enter the provider (chain) you wish to set the default wallet for: ", typeof(ProviderType));
 
-            if (selectedWallet != null && selectedWallet.Result != null && !selectedWallet.IsError)
+            if (providerObj != null)
             {
-                CLIEngine.ShowWorkingMessage("Setting Default Wallet...");
-                OASISResult<IProviderWallet> walletResult = await STAR.OASISAPI.Wallets.SetAvatarDefaultWalletByIdAsync(STAR.BeamedInAvatar.Id, selectedWallet.Result.Id, providerType);
-
-                if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                if (providerObj.ToString() == "exit")
                 {
-                    CLIEngine.ShowSuccessMessage("Default Wallet Saved Successfully");
-                    ShowWallet(walletResult.Result);
+                    result.Message = "User Exited";
+                    return result;
                 }
-                else
-                    OASISErrorHandling.HandleError(ref selectedWallet, $"Error saving default wallet. Reason: {walletResult.Message}");
+
+                OASISResult<IProviderWallet> selectedWallet = await FindWalletAsync("Enter the number of the wallet you wish to set as the default:", (ProviderType)providerObj);
+
+                if (selectedWallet != null && selectedWallet.Result != null && !selectedWallet.IsError)
+                {
+                    CLIEngine.ShowWorkingMessage("Setting Default Wallet...");
+                    OASISResult<IProviderWallet> walletResult = await STAR.OASISAPI.Wallets.SetAvatarDefaultWalletByIdAsync(STAR.BeamedInAvatar.Id, selectedWallet.Result.Id, (ProviderType)providerObj);
+
+                    if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                    {
+                        CLIEngine.ShowSuccessMessage("Default Wallet Saved Successfully");
+                        Console.WriteLine("");
+                        ShowWallet(walletResult.Result);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref selectedWallet, $"Error saving default wallet. Reason: {walletResult.Message}");
+                }
             }
 
-            return selectedWallet;
+            return result;
         }
 
         //TODO: Improve later so can search by title, desc, public key, wallet address etc (may be a SearchWallet function)
-        public async Task<OASISResult<IProviderWallet>> FindWalletAsync(string message, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IProviderWallet>> FindWalletAsync(string message, ProviderType providerTypeToShowWalletsFor = ProviderType.All, ProviderType providerTypeToLoadFrom = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
-            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await ListProviderWalletsForBeamedInAvatarAsync(providerType, true);
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await ListProviderWalletsForBeamedInAvatarAsync(providerTypeToShowWalletsFor, providerTypeToLoadFrom, true);
             ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
 
             Dictionary<int, IProviderWallet> lookup = new Dictionary<int, IProviderWallet>();
