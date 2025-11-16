@@ -366,9 +366,30 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return result;
         }
 
-        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            try
+            {
+                foreach (ProviderType provider in providerWallets.Keys)
+                {
+                    foreach (IProviderWallet providerWallet in providerWallets[provider])
+                        providerWallet.CreatedByAvatar = null;
+                }
+
+                string jsonString = JsonConvert.SerializeObject(providerWallets);
+                //string jsonString = JsonSerializer.Serialize<object>(providerWallets, new JsonSerializerOptions() { ReferenceHandler = ReferenceHandler.Preserve });
+                //string jsonString = JsonSerializer.Serialize<ProviderWallet>(providerWallets);
+                File.WriteAllText(GetWalletFilePath(id), jsonString);
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveProviderWalletsAsync method in LocalFileOASIS Provider saving wallets. Reason: {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
