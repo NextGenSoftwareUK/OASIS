@@ -350,7 +350,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowWorkingMessage("Beginning Wallet/Key API Tests...");
 
             CLIEngine.ShowWorkingMessage("Linking Public Key to Solana Wallet...");
-            OASISResult<IProviderWallet> keyLinkResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarByEmail(Guid.Empty, "davidellams@hotmail.com", ProviderType.SolanaOASIS, "TEST PUBLIC KEY");
+            OASISResult<IProviderWallet> keyLinkResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarByEmail(Guid.Empty, "davidellams@hotmail.com", ProviderType.SolanaOASIS, "TEST PUBLIC KEY", null);
 
             if (!keyLinkResult.IsError && keyLinkResult.Result != null)
                 CLIEngine.ShowSuccessMessage($"Successfully linked public key to Solana Wallet. WalletID: {keyLinkResult.Result.Id}");

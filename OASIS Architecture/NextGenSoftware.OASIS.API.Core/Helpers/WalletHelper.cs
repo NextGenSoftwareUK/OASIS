@@ -250,7 +250,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             try
             {
                 // Use the correct WalletManager method: LoadProviderWalletsForAvatarByIdAsync
-                var walletsResult = await walletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, false, providerType);
+                var walletsResult = await walletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, providerType);
                 
                 if (!walletsResult.IsError && walletsResult.Result != null && walletsResult.Result.ContainsKey(providerType))
                 {
