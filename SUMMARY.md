@@ -45,6 +45,7 @@
 ## 🔌 Integration Guides
 
 * [Telegram Integration](TELEGRAM_QUICKSTART.md)
+* [Telegcrm - Telegram CRM System](Telegcrm/WHAT_IS_TELEGCRM.md)
 * [42 Chain Integration Roadmap](42_CHAIN_INTEGRATION_ROADMAP.md)
 
 ## 📚 Additional Resources
