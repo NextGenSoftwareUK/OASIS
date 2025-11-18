@@ -92,6 +92,27 @@ Driver App          Timo API        paymentsService     MpesaGateway        Safa
 | Paystack  | `PAYSTACK_SECRET_KEY`, `PAYSTACK_BASE_URL`, `PAYSTACK_WEBHOOK_SECRET`, `PAYSTACK_TRANSFER_SOURCE`, `PAYSTACK_DEFAULT_CURRENCY=ZAR` | Use live vs. test URLs by NODE_ENV; store webhook raw body for replays. |
 | M‑Pesa    | `MPESA_CONSUMER_KEY`, `MPESA_CONSUMER_SECRET`, `MPESA_PASS_KEY`, `MPESA_SHORT_CODE`, `MPESA_INITIATOR_NAME`, `MPESA_INITIATOR_PASSWORD`, `MPESA_ENV=sandbox|production` | Sandbox uses HTTPS with base64 passwords; rotate initiator creds regularly. |
 
+#### 8.1 Test Credential Snapshot (Current)
+```
+PAYSTACK_SECRET_KEY=sk_test_c80ec29cce4d86ffc92cd2e24e8a8faa8135f246
+PAYSTACK_PUBLIC_KEY=pk_test_81814a8cb081d5782c80a98461e7e550463f7fed
+PAYSTACK_BASE_URL=https://api.paystack.co
+PAYSTACK_DEFAULT_CURRENCY=ZAR
+PAYSTACK_TRANSFER_SOURCE=balance
+PAYSTACK_WEBHOOK_SECRET=<set after webhook verification>
+```
+> Store these in `ride-scheduler-be/config/.env` (or your env manager) and never commit real keys.
+c xcxm n#### 8.2 Webhook Setup (Test)
+1. Start the backend locally and expose it via ngrok: `ngrok http 4205`. Copy the HTTPS URL (e.g., `https://abc123.ngrok.io`).
+2. In Paystack Dashboard → `Settings` → `API Keys & Webhooks`, set **Test Webhook URL** to `https://abc123.ngrok.io/webhooks/paystack` and click **Save** (Test Callback URL can stay `https://example.com` for now).
+3. In `ride-scheduler-be`, add route `POST /webhooks/paystack` that:
+   - Captures raw request body (needed for signature).
+   - Validates `x-paystack-signature` using `PAYSTACK_WEBHOOK_SECRET`.
+   - Parses event types (`charge.success`, `transfer.success`, `transfer.failed`) and dispatches to `paymentsService`.
+4. After the first webhook request, Paystack shows the signing secret; copy it into `PAYSTACK_WEBHOOK_SECRET` and restart the server.
+
+Testing tip: trigger a manual event by running a test transaction in the dashboard or via `https://paystack.com/pay` checkout; confirm the webhook logs and booking/payment records update.
+
 ### 9. Observability & Audit
 - Structured log `payment.event` with `{ provider, bookingId, paymentRequestId, traceId }`.
 - `webhookEventLog` collection storing headers, payload checksum, processing result.

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,18 +9,25 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import type { ChainType } from "@/types/chains";
 import type { VerificationRequest } from "@/types/verification";
 
-const SUPPORTED_CHAINS: ChainType[] = [
-  "Solana",
-  "Ethereum",
-  "Polygon",
-  "Arbitrum",
-  "Base",
-  "Radix",
-  "Avalanche",
-  "Optimism",
-  "BNBChain",
-  "Bitcoin",
+const CHAIN_OPTIONS: {
+  value: ChainType;
+  label: string;
+  token: string;
+  icon: string;
+}[] = [
+  { value: "Solana", label: "Solana", token: "SOL", icon: "/chain-logos/SOL.svg" },
+  { value: "Ethereum", label: "Ethereum", token: "ETH", icon: "/chain-logos/ETH.svg" },
+  { value: "Polygon", label: "Polygon", token: "MATIC", icon: "/chain-logos/MATIC.svg" },
+  { value: "Base", label: "Base", token: "BASE", icon: "/chain-logos/BASE.svg" },
+  { value: "Arbitrum", label: "Arbitrum", token: "ARB", icon: "/chain-logos/ARB.png" },
+  { value: "Optimism", label: "Optimism", token: "OP", icon: "/chain-logos/OP.svg" },
+  { value: "BNBChain", label: "BNB Chain", token: "BNB", icon: "/chain-logos/BNB.svg" },
+  { value: "Avalanche", label: "Avalanche", token: "AVAX", icon: "/chain-logos/AVAX.svg" },
+  { value: "Fantom", label: "Fantom", token: "FTM", icon: "/chain-logos/FTM.svg" },
+  { value: "Radix", label: "Radix", token: "XRD", icon: "/chain-logos/XRD.svg" },
 ];
+
+const SUPPORTED_CHAINS: ChainType[] = CHAIN_OPTIONS.map((chain) => chain.value);
 
 type VerificationFormProps = {
   onSubmit: (request: VerificationRequest) => void;
@@ -50,6 +58,7 @@ export function VerificationForm({ onSubmit, isLoading = false }: VerificationFo
       Radix: 10,
       Avalanche: 20,
       Optimism: 64,
+      Fantom: 45,
       BNBChain: 15,
       Bitcoin: 6,
     };
@@ -70,28 +79,35 @@ export function VerificationForm({ onSubmit, isLoading = false }: VerificationFo
             1. SELECT SOURCE CHAIN
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {SUPPORTED_CHAINS.map((chain) => (
+            {CHAIN_OPTIONS.map((chain) => (
               <button
-                key={chain}
+                key={chain.value}
                 type="button"
-                onClick={() => handleChainSelect(chain)}
+                onClick={() => handleChainSelect(chain.value)}
                 className={`
                   relative p-4 rounded-xl border-2 transition-all
                   ${
-                    selectedChain === chain
+                    selectedChain === chain.value
                       ? "border-[var(--accent)] bg-[rgba(34,211,238,0.12)]"
                       : "border-[var(--color-card-border)]/50 bg-[rgba(6,11,26,0.5)] hover:border-[var(--accent)]/50"
                   }
                 `}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <div className="h-10 w-10 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center">
-                    <span className="text-xs font-bold text-[var(--accent)]">
-                      {chain.slice(0, 3).toUpperCase()}
-                    </span>
+                  <div className="h-12 w-12 rounded-xl bg-[rgba(34,211,238,0.12)] flex items-center justify-center">
+                    <Image
+                      src={chain.icon}
+                      alt={chain.label}
+                      width={32}
+                      height={32}
+                      className="h-8 w-8 object-contain"
+                    />
                   </div>
-                  <span className="text-xs font-medium">{chain}</span>
-                  {selectedChain === chain && (
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-xs font-semibold">{chain.label}</span>
+                    <span className="text-[10px] text-[var(--muted)]">{chain.token}</span>
+                  </div>
+                  {selectedChain === chain.value && (
                     <CheckCircle2 className="absolute top-2 right-2 h-4 w-4 text-[var(--accent)]" />
                   )}
                 </div>

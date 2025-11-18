@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -29,17 +32,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private readonly ILogger<TelegramBotService> _logger;
         private readonly NFTService _nftService;
         private readonly PinataService _pinataService;
+        private readonly TimoRidesApiService _timoRidesApiService;
+        private readonly RideBookingStateManager _rideState;
+        private readonly GoogleMapsService _mapsService;
+        private readonly TimoRidesOptions _timoOptions;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly System.Net.Http.HttpClient _httpClient;
-        
-        // TimoRides state tracking
-        private readonly Dictionary<long, string> _userBookingState = new();
-        private readonly Dictionary<long, (double lat, double lon, string addr)> _userPickupLocation = new();
-        private readonly Dictionary<long, (double lat, double lon, string addr)> _userDropoffLocation = new();
-        private readonly Dictionary<long, string> _selectedDriver = new();
-        private readonly Dictionary<long, DateTime> _userScheduledTime = new();
-        private readonly Dictionary<long, string> _userVehiclePreference = new();
-        private readonly Dictionary<long, List<string>> _userMultiStops = new();
         
         // AI Configuration
         private const string OPENAI_API_KEY = "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";
@@ -51,7 +49,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             AvatarManager avatarManager,
             ILogger<TelegramBotService> logger,
             NFTService nftService,
-            PinataService pinataService)
+            PinataService pinataService,
+            TimoRidesApiService timoRidesApiService,
+            RideBookingStateManager rideBookingStateManager,
+            GoogleMapsService googleMapsService,
+            IOptions<TimoRidesOptions> timoOptions)
         {
             // Create HttpClient with SSL bypass for local development
             var handler = new System.Net.Http.HttpClientHandler
@@ -69,6 +71,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             _logger = logger;
             _nftService = nftService;
             _pinataService = pinataService;
+            _timoRidesApiService = timoRidesApiService;
+            _rideState = rideBookingStateManager;
+            _mapsService = googleMapsService;
+            _timoOptions = timoOptions?.Value ?? new TimoRidesOptions();
             _cancellationTokenSource = new CancellationTokenSource();
             
             // Initialize HttpClient for AI API calls
@@ -163,16 +169,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             else
             {
                 // Check if user is in address input mode
-                if (_userBookingState.TryGetValue(user.Id, out var state))
+                if (TryGetRideConversationState(user.Id, out var state))
                 {
-                    if (state == "WAITING_PICKUP" || state == "WAITING_DROPOFF")
+                    if (state == RideConversationStates.WaitingPickup || state == RideConversationStates.WaitingDropoff)
                     {
                         await HandleAddressTextAsync(message, cancellationToken);
                         return;
                     }
                     
                     // Handle additional details while awaiting confirmation
-                    if (state == "AWAITING_CONFIRMATION")
+                    if (state == RideConversationStates.AwaitingConfirmation)
                     {
                         await HandleConfirmationUpdatesAsync(chatId, user.Id, text, cancellationToken);
                         return;
@@ -264,6 +270,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         
                     case "/track":
                         await HandleTrackRideCommand(chatId, user, args, cancellationToken);
+                        break;
+                    
+                    case "/cancel":
+                        await HandleCancelRideCommand(chatId, user, args, cancellationToken);
                         break;
 
                     default:
@@ -763,12 +773,12 @@ Keep crushing it! 🚀
             if (data.StartsWith("pickup_"))
             {
                 var confirmedPickup = data.Replace("pickup_", "");
-                _userPickupLocation[userId] = (0, 0, confirmedPickup);
+                StorePickup(userId, 0, 0, confirmedPickup);
                 
                 await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, "✅", cancellationToken: cancellationToken);
                 
                 // Check if destination is waiting
-                if (_userDropoffLocation.TryGetValue(userId, out var dest))
+                if (TryGetDestination(userId, out var dest))
                 {
                     var destOptions = GetLocationOptions(dest.addr);
                     if (destOptions.Count > 1)
@@ -788,13 +798,13 @@ Keep crushing it! 🚀
                             replyMarkup: keyboard,
                             cancellationToken: cancellationToken
                         );
-                        _userBookingState[userId] = "CONFIRMING_DESTINATION";
+                        SetRideConversationState(userId, RideConversationStates.ConfirmingDestination);
                         return;
                     }
                     else
                     {
                         // All locations confirmed, show final confirmation
-                        _userDropoffLocation[userId] = (0, 0, destOptions[0]);
+                        StoreDestination(userId, 0, 0, destOptions[0]);
                         await ConfirmBookingDetailsAsync(chatId, userId, confirmedPickup, destOptions[0], cancellationToken);
                         return;
                     }
@@ -807,12 +817,12 @@ Keep crushing it! 🚀
             if (data.StartsWith("dest_"))
             {
                 var confirmedDest = data.Replace("dest_", "");
-                _userDropoffLocation[userId] = (0, 0, confirmedDest);
+                StoreDestination(userId, 0, 0, confirmedDest);
                 
                 await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, "✅", cancellationToken: cancellationToken);
                 
                 // Get pickup and show FINAL CONFIRMATION before showing drivers
-                if (_userPickupLocation.TryGetValue(userId, out var pickup))
+                if (TryGetPickup(userId, out var pickup))
                 {
                     await ConfirmBookingDetailsAsync(chatId, userId, pickup.addr, confirmedDest, cancellationToken);
                     return;
@@ -825,40 +835,91 @@ Keep crushing it! 🚀
             if (data.StartsWith("select_"))
             {
                 var driverId = data.Replace("select_", "");
-                _selectedDriver[userId] = driverId;
-                
-                var driverDetails = new Dictionary<string, (string name, string car, string plate)>
+                if (!TryGetDriverSummary(userId, driverId, out var driverSummary))
                 {
-                    ["driver1"] = ("Jonathan", "Renault Kwid", "ND 862-688"),
-                    ["driver2"] = ("Eddison", "VW Polo", "ND 923-856"),
-                    ["driver3"] = ("Sipho Mkhize", "Toyota Corolla", "NKZ 234 GP")
+                    await _botClient.AnswerCallbackQueryAsync(
+                        callbackQuery.Id,
+                        "Driver no longer available",
+                        cancellationToken: cancellationToken);
+                    await _botClient.SendTextMessageAsync(
+                        chatId,
+                        "⚠️ That driver is no longer available. Please choose another option.",
+                        cancellationToken: cancellationToken);
+                    return;
+                }
+
+                if (!TryGetPickupLocation(userId, out var pickup) || !TryGetDestinationLocation(userId, out var destination))
+                {
+                    await _botClient.SendTextMessageAsync(
+                        chatId,
+                        "⚠️ Missing pickup or destination details. Use /bookride to start again.",
+                        cancellationToken: cancellationToken);
+                    return;
+                }
+
+                var riderIdentity = ResolveRiderIdentity(callbackQuery.From);
+                var passengers = ResolvePassengerCount(userId);
+
+                var bookingRequest = new CreateBookingRequest
+                {
+                    Car = driverSummary.CarId,
+                    TripAmount = driverSummary.RideAmount > 0 ? driverSummary.RideAmount : 75,
+                    IsCash = true,
+                    DepartureTime = GetScheduledTime(userId) ?? DateTime.UtcNow.AddMinutes(5),
+                    PhoneNumber = riderIdentity.phone,
+                    Email = riderIdentity.email,
+                    FullName = riderIdentity.fullName,
+                    BookingType = "passengers",
+                    Passengers = passengers,
+                    State = (_timoOptions.DefaultState ?? "KwaZuluNatal").ToLowerInvariant(),
+                    SourceLocation = new LocationPayload
+                    {
+                        Address = pickup.Address,
+                        Latitude = pickup.Latitude,
+                        Longitude = pickup.Longitude
+                    },
+                    DestinationLocation = new LocationPayload
+                    {
+                        Address = destination.Address,
+                        Latitude = destination.Latitude,
+                        Longitude = destination.Longitude
+                    }
                 };
-                
-                var driver = driverDetails[driverId];
-                var bookingId = $"BK-{DateTime.Now:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}";
-                
+
                 await _botClient.AnswerCallbackQueryAsync(
                     callbackQuery.Id,
-                    "✅ Booking confirmed!",
-                    cancellationToken: cancellationToken
-                );
-                
+                    "Processing booking...",
+                    cancellationToken: cancellationToken);
+
+                var bookingResult = await _timoRidesApiService.CreateBookingAsync(bookingRequest, cancellationToken);
+                if (bookingResult.IsError || string.IsNullOrWhiteSpace(bookingResult.Result?.Id))
+                {
+                    await _botClient.SendTextMessageAsync(
+                        chatId,
+                        $"❌ Booking failed: {bookingResult.Message ?? "Unknown error"}",
+                        cancellationToken: cancellationToken);
+                    return;
+                }
+
+                var bookingId = bookingResult.Result.Id;
+                StoreSelectedDriver(userId, driverId);
+                StoreLastBookingId(userId, bookingId);
+                ResetRideState(userId);
+                StoreLastBookingId(userId, bookingId);
+
                 await _botClient.SendTextMessageAsync(
                     chatId,
                     $"*Booking Confirmed*\n\n" +
                     $"Booking ID: `{bookingId}`\n" +
-                    $"Driver: {driver.name}\n" +
-                    $"Vehicle: {driver.car} • {driver.plate}\n" +
-                    $"Fare: R 420\n\n" +
-                    $"Your driver is on the way.",
+                    $"Driver: {driverSummary.DriverName}\n" +
+                    $"Vehicle: {driverSummary.VehicleMake} {driverSummary.VehicleModel} ({driverSummary.VehicleColor})\n" +
+                    $"Fare: R {bookingRequest.TripAmount:F0}\n\n" +
+                    $"You'll receive updates as your driver approaches.",
                     parseMode: ParseMode.Markdown,
-                    cancellationToken: cancellationToken
-                );
-                
-                // Start live tracking updates in the background
-                _ = Task.Run(async () => await SimulateDriverTrackingAsync(chatId, driver.name, bookingId));
-                
-                _userBookingState.Remove(userId);
+                    cancellationToken: cancellationToken);
+
+                _ = Task.Run(async () => await SimulateDriverTrackingAsync(chatId, driverSummary.DriverName ?? "Timo Driver", bookingId));
+
                 return;
             }
             
@@ -868,8 +929,8 @@ Keep crushing it! 🚀
                 await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, "✅ Confirmed", cancellationToken: cancellationToken);
                 
                 // Get stored locations and proceed
-                if (_userPickupLocation.TryGetValue(userId, out var pickup) &&
-                    _userDropoffLocation.TryGetValue(userId, out var dest))
+                if (TryGetPickup(userId, out var pickup) &&
+                    TryGetDestination(userId, out var dest))
                 {
                     await ProceedWithConfirmedBooking(chatId, userId, pickup.addr, dest.addr, cancellationToken);
                 }
@@ -881,12 +942,7 @@ Keep crushing it! 🚀
                 await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, "Cancelled", cancellationToken: cancellationToken);
                 
                 // Clear booking state
-                _userBookingState.Remove(userId);
-                _userPickupLocation.Remove(userId);
-                _userDropoffLocation.Remove(userId);
-                _userScheduledTime.Remove(userId);
-                _userVehiclePreference.Remove(userId);
-                _userMultiStops.Remove(userId);
+                ResetRideState(userId);
                 
                 await _botClient.SendTextMessageAsync(
                     chatId,
@@ -1339,7 +1395,7 @@ Keep crushing it! 🚀
                 var fileInfo = await _botClient.GetFileAsync(photo.FileId, cancellationToken);
                 
                 using var memoryStream = new System.IO.MemoryStream();
-                await _botClient.DownloadFileAsync(fileInfo.FilePath, memoryStream, cancellationToken);
+                await _botClient.DownloadFile(fileInfo.FilePath, memoryStream, cancellationToken);
                 var imageBytes = memoryStream.ToArray();
 
                 _logger?.LogInformation($"[TelegramBot] Downloaded image: {imageBytes.Length} bytes");
@@ -1473,10 +1529,7 @@ Keep crushing it! 🚀
             var userId = user.Id;
             
             // Clear any old state
-            _userBookingState.Remove(userId);
-            _userPickupLocation.Remove(userId);
-            _userDropoffLocation.Remove(userId);
-            _selectedDriver.Remove(userId);
+            ResetRideState(userId);
             
             // Request pickup location
             var keyboard = new ReplyKeyboardMarkup(new[]
@@ -1502,7 +1555,7 @@ Keep crushing it! 🚀
                 cancellationToken: cancellationToken
             );
             
-            _userBookingState[userId] = "WAITING_PICKUP";
+            SetRideConversationState(userId, RideConversationStates.WaitingPickup);
         }
 
         /// <summary>
@@ -1510,14 +1563,34 @@ Keep crushing it! 🚀
         /// </summary>
         private async Task HandleMyRidesCommand(long chatId, User user, CancellationToken cancellationToken)
         {
+            var ridesResult = await _timoRidesApiService.GetRiderBookingsAsync(cancellationToken);
+            if (ridesResult.IsError || ridesResult.Result == null || ridesResult.Result.Count == 0)
+            {
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    $"📋 <b>Your Ride History</b>\n\n" +
+                    $"{(ridesResult.IsError ? $"Unable to load rides: {ridesResult.Message}" : "No rides yet.")}\n\n" +
+                    "Use /bookride to schedule your first trip.",
+                    parseMode: ParseMode.Html,
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            var builder = new StringBuilder();
+            builder.AppendLine("📋 <b>Your Recent Rides</b>\n");
+            var count = 0;
+            foreach (var booking in ridesResult.Result)
+            {
+                builder.AppendLine(FormatBookingSummary(booking));
+                builder.AppendLine();
+                if (++count == 5) break;
+            }
+
             await _botClient.SendTextMessageAsync(
                 chatId,
-                "📋 <b>Your Ride History</b>\n\n" +
-                "You haven't taken any rides yet.\n\n" +
-                "Use /bookride to book your first ride!",
+                builder.ToString(),
                 parseMode: ParseMode.Html,
-                cancellationToken: cancellationToken
-            );
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -1525,27 +1598,87 @@ Keep crushing it! 🚀
         /// </summary>
         private async Task HandleTrackRideCommand(long chatId, User user, string[] args, CancellationToken cancellationToken)
         {
-            if (args.Length == 0)
+            var bookingId = args.Length > 0 ? args[0] : GetLastBookingId(user.Id);
+            if (string.IsNullOrWhiteSpace(bookingId))
             {
                 await _botClient.SendTextMessageAsync(
                     chatId,
-                    "❓ Please provide a booking ID\n\n" +
-                    "Example: /track BK-20251105-A7X9",
-                    cancellationToken: cancellationToken
-                );
+                    "❓ Please provide a booking ID\n\nExample: /track 674f2c8f5d1a4f1c1a2b3c4d",
+                    cancellationToken: cancellationToken);
                 return;
             }
 
-            var bookingId = args[0];
-            
+            var bookingResult = await _timoRidesApiService.GetBookingAsync(bookingId, cancellationToken);
+            if (bookingResult.IsError || bookingResult.Result == null)
+            {
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    $"❌ Could not load booking `{bookingId}`\n{bookingResult.Message}",
+                    parseMode: ParseMode.Markdown,
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            var booking = bookingResult.Result;
+            var status = booking.Status?.ToUpperInvariant() ?? "PENDING";
+
+            var message =
+$@"🚖 *Ride Status*
+Booking ID: `{bookingId}`
+Status: *{status}*
+From: {booking.SourceLocation?.Address}
+To: {booking.DestinationLocation?.Address}
+Departure: {booking.DepartureTime:MMM dd, h:mm tt}
+Fare: {booking.TripAmount}
+
+Use /cancel {bookingId} to cancel if needed.";
+
             await _botClient.SendTextMessageAsync(
                 chatId,
-                $"🚖 *Tracking Ride*\n\n" +
-                $"Booking ID: `{bookingId}`\n\n" +
-                $"_Real-time tracking will be available in the next update!_",
+                message,
                 parseMode: ParseMode.Markdown,
-                cancellationToken: cancellationToken
-            );
+                cancellationToken: cancellationToken);
+        }
+        
+        private async Task HandleCancelRideCommand(long chatId, User user, string[] args, CancellationToken cancellationToken)
+        {
+            var bookingId = args.Length > 0 ? args[0] : GetLastBookingId(user.Id);
+            if (string.IsNullOrWhiteSpace(bookingId))
+            {
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    "❓ Provide the booking ID to cancel.\nExample: /cancel 674f2c8f5d1a4f1c1a2b3c4d",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            var reason = args.Length > 1 ? string.Join(' ', args.Skip(1)) : "Cancelled via Telegram";
+            var cancelResult = await _timoRidesApiService.CancelBookingAsync(bookingId, reason, cancellationToken);
+            if (cancelResult.IsError)
+            {
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    $"❌ Unable to cancel booking `{bookingId}`\n{cancelResult.Message}",
+                    parseMode: ParseMode.Markdown,
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            await _botClient.SendTextMessageAsync(
+                chatId,
+                $"✅ Booking `{bookingId}` cancelled.\nIf you need another ride, use /bookride.",
+                parseMode: ParseMode.Markdown,
+                cancellationToken: cancellationToken);
+        }
+        
+        private static string FormatBookingSummary(TimoBooking booking)
+        {
+            var status = booking.Status ?? "pending";
+            var source = booking.SourceLocation?.Address ?? "Unknown pickup";
+            var destination = booking.DestinationLocation?.Address ?? "Unknown destination";
+            var departure = booking.DepartureTime.ToLocalTime();
+
+            return $"• <code>{booking.Id}</code> - <b>{status}</b>\n  {source} → {destination}\n  {departure:MMM dd, h:mm tt}";
         }
         
         private async Task HandleLocationAsync(Telegram.Bot.Types.Message message, CancellationToken cancellationToken)
@@ -1553,15 +1686,15 @@ Keep crushing it! 🚀
             var userId = message.From.Id;
             var chatId = message.Chat.Id;
             
-            if (!_userBookingState.TryGetValue(userId, out var state))
+            if (!TryGetRideConversationState(userId, out var state))
                 return;
                 
             var location = message.Location;
             var address = $"{location.Latitude:F4}, {location.Longitude:F4}"; // Simplified for demo
             
-            if (state == "WAITING_PICKUP")
+            if (state == RideConversationStates.WaitingPickup)
             {
-                _userPickupLocation[userId] = (location.Latitude, location.Longitude, address);
+                StorePickup(userId, location.Latitude, location.Longitude, address);
                 
                 var keyboard = new ReplyKeyboardMarkup(new[]
                 {
@@ -1581,11 +1714,11 @@ Keep crushing it! 🚀
                     cancellationToken: cancellationToken
                 );
                 
-                _userBookingState[userId] = "WAITING_DROPOFF";
+                SetRideConversationState(userId, RideConversationStates.WaitingDropoff);
             }
-            else if (state == "WAITING_DROPOFF")
+            else if (state == RideConversationStates.WaitingDropoff)
             {
-                _userDropoffLocation[userId] = (location.Latitude, location.Longitude, address);
+                StoreDestination(userId, location.Latitude, location.Longitude, address);
                 
                 await _botClient.SendTextMessageAsync(
                     chatId,
@@ -1598,8 +1731,8 @@ Keep crushing it! 🚀
                 
                 try
                 {
-                    await ShowMockDriversAsync(chatId, cancellationToken);
-                    _userBookingState[userId] = "SELECTING_DRIVER";
+                    await ShowAvailableDriversAsync(chatId, userId, cancellationToken);
+                    SetRideConversationState(userId, RideConversationStates.SelectingDriver);
                 }
                 catch (Exception ex)
                 {
@@ -1619,7 +1752,7 @@ Keep crushing it! 🚀
             var chatId = message.Chat.Id;
             var address = message.Text;
             
-            var state = _userBookingState[userId];
+            var state = GetRideConversationState(userId);
             
             // Check if address is vague (my hotel, home, work, etc.) - ask for clarification
             var vaguePhrases = new[] { "my hotel", "the hotel", "my place", "home", "work", "office", "my house" };
@@ -1638,13 +1771,10 @@ Keep crushing it! 🚀
                 return;
             }
             
-            // Use fake coordinates for demo (in real version, would geocode the address)
-            var lat = -29.8587;
-            var lon = 31.0218;
-            
-            if (state == "WAITING_PICKUP")
+            if (state == RideConversationStates.WaitingPickup)
             {
-                _userPickupLocation[userId] = (lat, lon, address);
+                if (!await ResolveAndStoreLocationAsync(userId, chatId, address, true, cancellationToken))
+                    return;
                 
                 await _botClient.SendTextMessageAsync(
                     chatId,
@@ -1662,11 +1792,12 @@ Keep crushing it! 🚀
                     cancellationToken: cancellationToken
                 );
                 
-                _userBookingState[userId] = "WAITING_DROPOFF";
+                SetRideConversationState(userId, RideConversationStates.WaitingDropoff);
             }
-            else if (state == "WAITING_DROPOFF")
+            else if (state == RideConversationStates.WaitingDropoff)
             {
-                _userDropoffLocation[userId] = (lat, lon, address);
+                if (!await ResolveAndStoreLocationAsync(userId, chatId, address, false, cancellationToken))
+                    return;
                 
                 await _botClient.SendTextMessageAsync(
                     chatId,
@@ -1679,8 +1810,8 @@ Keep crushing it! 🚀
                 
                 try
                 {
-                    await ShowMockDriversAsync(chatId, cancellationToken);
-                    _userBookingState[userId] = "SELECTING_DRIVER";
+                    await ShowAvailableDriversAsync(chatId, userId, cancellationToken);
+                    SetRideConversationState(userId, RideConversationStates.SelectingDriver);
                 }
                 catch (Exception ex)
                 {
@@ -1694,78 +1825,89 @@ Keep crushing it! 🚀
             }
         }
         
-        private async Task ShowMockDriversAsync(long chatId, CancellationToken cancellationToken)
+        private async Task ShowAvailableDriversAsync(long chatId, long userId, CancellationToken cancellationToken)
         {
-            // Enhanced driver data with TimoRides branded photos: (id, name, car, color, rating, fare, eta, karma, trips, acceptance, onTime, photoUrl)
-            // Note: Replace URLs below with actual uploaded TimoRides driver photos
-            var drivers = new[]
+            if (!TryGetPickupLocation(userId, out var pickup) || !TryGetDestinationLocation(userId, out var destination))
             {
-                ("driver1", "Jonathan", "Renault Kwid", "Red", "4.7", "R 320", "7 min", "680", "945", "96%", "93%", 
-                 "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop"),
-                ("driver2", "Eddison", "VW Polo", "Silver", "4.9", "R 380", "4 min", "920", "1,534", "99%", "97%",
-                 "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=800&h=800&fit=crop"),
-                ("driver3", "Sipho Mkhize", "Toyota Corolla", "Black", "4.8", "R 420", "6 min", "850", "1,247", "98%", "96%",
-                 "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=800&fit=crop")
-            };
-            
-            _logger.LogInformation($"Showing {drivers.Length} drivers to chat {chatId}");
-            
-            // Send searching animation
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    "⚠️ I need both pickup and destination before showing drivers.\nUse /bookride to restart.",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            var searchResult = await _timoRidesApiService.GetNearbyDriversAsync(pickup, destination, GetScheduledTime(userId), cancellationToken);
+            if (searchResult.IsError || searchResult.Result == null || searchResult.Result.Count == 0)
+            {
+                var errorMessage = searchResult.IsError ? searchResult.Message : "No nearby drivers are available right now.";
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    $"❌ {errorMessage}\n\nTry adjusting your pickup spot or try again in a moment.",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            StoreAvailableDrivers(userId, searchResult.Result);
+
             await _botClient.SendAnimationAsync(
                 chatId,
                 animation: InputFile.FromUri("https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif"),
-                caption: "*3 drivers available*\n\nSelect your driver:",
+                caption: $"*{searchResult.Result.Count} drivers found*\n\nSelect your driver:",
                 parseMode: ParseMode.Markdown,
-                cancellationToken: cancellationToken
-            );
-            
-            await Task.Delay(500, cancellationToken);
-            
-            foreach (var (id, name, car, color, rating, fare, eta, karma, trips, acceptance, onTime, photoUrl) in drivers)
+                cancellationToken: cancellationToken);
+
+            foreach (var driver in searchResult.Result)
             {
-                _logger.LogInformation($"Sending driver card with photo: {name}");
-                
+                var fare = driver.RideAmount > 0 ? $"R {driver.RideAmount:F0}" : "Fare on request";
                 var keyboard = new InlineKeyboardMarkup(new[]
                 {
-                    InlineKeyboardButton.WithCallbackData($"✅ Select {name.Split(' ')[0]}", $"select_{id}")
+                    InlineKeyboardButton.WithCallbackData($"✅ Select {driver.DriverName?.Split(' ')[0] ?? "driver"}", $"select_{driver.CarId}")
                 });
-                
-                // Clean, professional caption
-                var caption = 
-                    $"*{name}*\n" +
-                    $"Rating: {rating} ⭐ • {trips} trips\n\n" +
-                    $"{car} ({color})\n" +
-                    $"Fare: {fare} • Arrives in {eta}\n\n" +
-                    $"Karma: {karma} • Acceptance: {acceptance} • On-time: {onTime}";
-                
+
+                var caption =
+$@"*{driver.DriverName ?? "Timo Driver"}*
+Rating: {driver.Rating:F1} ⭐
+{driver.VehicleMake} {driver.VehicleModel} ({driver.VehicleColor})
+Fare: {fare}
+ETA: {driver.DurationAway ?? "—"} • Distance: {driver.DistanceAway ?? "—"}";
+
                 try
                 {
-                    await _botClient.SendPhotoAsync(
-                        chatId,
-                        photo: InputFile.FromUri(photoUrl),
-                        caption: caption,
-                        parseMode: ParseMode.Markdown,
-                        replyMarkup: keyboard,
-                        cancellationToken: cancellationToken
-                    );
+                    if (!string.IsNullOrWhiteSpace(driver.PhotoUrl))
+                    {
+                        await _botClient.SendPhotoAsync(
+                            chatId: chatId,
+                            photo: InputFile.FromUri(driver.PhotoUrl),
+                            caption: caption,
+                            parseMode: ParseMode.Markdown,
+                            replyMarkup: keyboard,
+                            cancellationToken: cancellationToken);
+                    }
+                    else
+                    {
+                        await _botClient.SendTextMessageAsync(
+                            chatId,
+                            caption,
+                            parseMode: ParseMode.Markdown,
+                            replyMarkup: keyboard,
+                            cancellationToken: cancellationToken);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, $"Failed to send photo for {name}, sending text instead");
-                    // Fallback to text if photo fails
+                    _logger.LogWarning(ex, "Failed to send driver card for {Driver}", driver.DriverName);
                     await _botClient.SendTextMessageAsync(
                         chatId,
-                        $"👤 {caption}",
+                        caption,
                         parseMode: ParseMode.Markdown,
                         replyMarkup: keyboard,
-                        cancellationToken: cancellationToken
-                    );
+                        cancellationToken: cancellationToken);
                 }
-                
-                await Task.Delay(400, cancellationToken);
+
+                await Task.Delay(300, cancellationToken);
             }
-            
-            _logger.LogInformation("All driver cards sent successfully");
+
+            SetRideConversationState(userId, RideConversationStates.SelectingDriver);
         }
         
         /// <summary>
@@ -1793,7 +1935,7 @@ Keep crushing it! 🚀
                     );
                     
                     if (passengerInfo.passengers.HasValue && passengerInfo.passengers.Value >= 6)
-                        _userVehiclePreference[user.Id] = "SUV";
+                        StoreVehiclePreference(user.Id, "SUV");
                 }
                 
                 // Try OpenAI first if API key is available
@@ -1826,17 +1968,17 @@ Keep crushing it! 🚀
                     // Show what we extracted
                     if (scheduledTime.HasValue)
                     {
-                        _userScheduledTime[user.Id] = scheduledTime.Value;
+                        StoreScheduledTime(user.Id, scheduledTime.Value);
                         responseText += $"Scheduled for: {scheduledTime.Value:MMM dd, h:mm tt}\n";
                     }
                     if (!string.IsNullOrEmpty(vehiclePreference))
                     {
-                        _userVehiclePreference[user.Id] = vehiclePreference;
+                        StoreVehiclePreference(user.Id, vehiclePreference);
                         responseText += $"Vehicle preference: {vehiclePreference}\n";
                     }
                     if (multiStops.Any())
                     {
-                        _userMultiStops[user.Id] = multiStops;
+                        StoreStops(user.Id, multiStops);
                         responseText += $"Stops: {string.Join(" → ", multiStops)}\n";
                     }
                     
@@ -1866,17 +2008,17 @@ Keep crushing it! 🚀
                         // Add extracted preferences
                         if (scheduledTime.HasValue)
                         {
-                            _userScheduledTime[user.Id] = scheduledTime.Value;
+                            StoreScheduledTime(user.Id, scheduledTime.Value);
                             confirmationText += $"Time: {scheduledTime.Value:h:mm tt on MMM dd}\n";
                         }
                         if (!string.IsNullOrEmpty(vehiclePreference))
                         {
-                            _userVehiclePreference[user.Id] = vehiclePreference;
+                            StoreVehiclePreference(user.Id, vehiclePreference);
                             confirmationText += $"Preference: {vehiclePreference}\n";
                         }
                         if (multiStops.Any())
                         {
-                            _userMultiStops[user.Id] = multiStops;
+                            StoreStops(user.Id, multiStops);
                             confirmationText += $"Via: {string.Join(", ", multiStops)}\n";
                         }
                         
@@ -1890,10 +2032,11 @@ Keep crushing it! 🚀
                         );
                         
                         // Store locations and show drivers
-                        _userPickupLocation[user.Id] = (0, 0, locations.pickup);
-                        _userDropoffLocation[user.Id] = (0, 0, locations.destination);
-                        await ShowMockDriversAsync(chatId, cancellationToken);
-                        _userBookingState[user.Id] = "SELECTING_DRIVER";
+                        if (!await ResolveAndStoreLocationAsync(user.Id, chatId, locations.pickup, true, cancellationToken))
+                            return;
+                        if (!await ResolveAndStoreLocationAsync(user.Id, chatId, locations.destination, false, cancellationToken))
+                            return;
+                        await ShowAvailableDriversAsync(chatId, user.Id, cancellationToken);
                         return;
                     }
                 }
@@ -2008,18 +2151,19 @@ Respond ONLY with a JSON object in this exact format:
             if (!string.IsNullOrEmpty(aiResult.scheduledTime) && aiResult.scheduledTime != "null")
             {
                 if (DateTime.TryParse(aiResult.scheduledTime, out var scheduledDt))
-                    _userScheduledTime[user.Id] = scheduledDt;
+                    StoreScheduledTime(user.Id, scheduledDt);
             }
             
             if (!string.IsNullOrEmpty(aiResult.vehicleType) && aiResult.vehicleType != "null")
-                _userVehiclePreference[user.Id] = aiResult.vehicleType;
+                StoreVehiclePreference(user.Id, aiResult.vehicleType);
                 
             if (aiResult.multiStops != null && aiResult.multiStops.Any())
-                _userMultiStops[user.Id] = aiResult.multiStops.ToList();
+                StoreStops(user.Id, aiResult.multiStops);
             
             // Store destination for later steps
             if (!string.IsNullOrEmpty(aiResult.destination) && aiResult.destination != "null")
-                _userDropoffLocation[user.Id] = (0, 0, aiResult.destination);
+                if (!await ResolveAndStoreLocationAsync(user.Id, chatId, aiResult.destination, false, cancellationToken))
+                    return;
             
             // STEP 1: Validate and confirm PICKUP location ONLY
             var hasPickup = !string.IsNullOrEmpty(aiResult.pickup) && aiResult.pickup != "null";
@@ -2034,7 +2178,7 @@ Respond ONLY with a JSON object in this exact format:
                     parseMode: ParseMode.Markdown,
                     cancellationToken: cancellationToken
                 );
-                _userBookingState[user.Id] = "WAITING_PICKUP";
+                SetRideConversationState(user.Id, RideConversationStates.WaitingPickup);
                 return;
             }
             
@@ -2052,7 +2196,7 @@ Respond ONLY with a JSON object in this exact format:
                     parseMode: ParseMode.Markdown,
                     cancellationToken: cancellationToken
                 );
-                _userBookingState[user.Id] = "WAITING_PICKUP";
+                SetRideConversationState(user.Id, RideConversationStates.WaitingPickup);
                 return;
             }
             
@@ -2073,12 +2217,13 @@ Respond ONLY with a JSON object in this exact format:
                     cancellationToken: cancellationToken
                 );
                 
-                _userBookingState[user.Id] = "CONFIRMING_PICKUP";
+                SetRideConversationState(user.Id, RideConversationStates.ConfirmingPickup);
                 return;
             }
             
             // Pickup is clear - store it and move to STEP 2: DESTINATION
-            _userPickupLocation[user.Id] = (0, 0, pickupOptions[0]);
+            if (!await ResolveAndStoreLocationAsync(user.Id, chatId, pickupOptions[0], true, cancellationToken))
+                return;
             
             // STEP 2: Now validate DESTINATION
             var hasDestination = !string.IsNullOrEmpty(aiResult.destination) && aiResult.destination != "null";
@@ -2092,7 +2237,7 @@ Respond ONLY with a JSON object in this exact format:
                     parseMode: ParseMode.Markdown,
                     cancellationToken: cancellationToken
                 );
-                _userBookingState[user.Id] = "WAITING_DROPOFF";
+                SetRideConversationState(user.Id, RideConversationStates.WaitingDropoff);
                 return;
             }
             
@@ -2111,7 +2256,7 @@ Respond ONLY with a JSON object in this exact format:
                     parseMode: ParseMode.Markdown,
                     cancellationToken: cancellationToken
                 );
-                _userBookingState[user.Id] = "WAITING_DROPOFF";
+                SetRideConversationState(user.Id, RideConversationStates.WaitingDropoff);
                 return;
             }
             
@@ -2133,12 +2278,13 @@ Respond ONLY with a JSON object in this exact format:
                     cancellationToken: cancellationToken
                 );
                 
-                _userBookingState[user.Id] = "CONFIRMING_DESTINATION";
+                SetRideConversationState(user.Id, RideConversationStates.ConfirmingDestination);
                 return;
             }
             
             // Both locations are clear! Now confirm everything BEFORE showing drivers
-            _userDropoffLocation[user.Id] = (0, 0, destOptions[0]);
+            if (!await ResolveAndStoreLocationAsync(user.Id, chatId, destOptions[0], false, cancellationToken))
+                return;
             
             await ConfirmBookingDetailsAsync(chatId, user.Id, pickupOptions[0], destOptions[0], cancellationToken);
         }
@@ -2353,9 +2499,10 @@ Respond ONLY with a JSON object in this exact format:
             var passengerInfo = ExtractPassengerInfo(message);
             if (passengerInfo.passengers.HasValue)
             {
+                _rideState?.SetPassengerCount(userId, passengerInfo.passengers.Value);
                 var vehicleRecommendation = passengerInfo.passengers.Value >= 6 ? "SUV" :
                                            passengerInfo.passengers.Value >= 4 ? "Sedan" : "Standard";
-                _userVehiclePreference[userId] = vehicleRecommendation;
+                StoreVehiclePreference(userId, vehicleRecommendation);
                 
                 await _botClient.SendTextMessageAsync(
                     chatId,
@@ -2370,7 +2517,7 @@ Respond ONLY with a JSON object in this exact format:
             var vehiclePref = ExtractVehiclePreference(message);
             if (!string.IsNullOrEmpty(vehiclePref))
             {
-                _userVehiclePreference[userId] = vehiclePref;
+                StoreVehiclePreference(userId, vehiclePref);
                 
                 await _botClient.SendTextMessageAsync(
                     chatId,
@@ -2381,14 +2528,185 @@ Respond ONLY with a JSON object in this exact format:
             }
             
             // Re-show confirmation with updated details
-            if (_userPickupLocation.TryGetValue(userId, out var pickup) &&
-                _userDropoffLocation.TryGetValue(userId, out var dest))
+            if (TryGetPickup(userId, out var pickup) &&
+                TryGetDestination(userId, out var dest))
             {
                 await Task.Delay(500);
                 await ConfirmBookingDetailsAsync(chatId, userId, pickup.addr, dest.addr, cancellationToken);
             }
         }
         
+        #region Ride State Helpers
+
+        private void ResetRideState(long userId) => _rideState?.Clear(userId);
+
+        private void SetRideConversationState(long userId, string state) => _rideState?.SetConversationState(userId, state);
+
+        private bool TryGetRideConversationState(long userId, out string state)
+        {
+            state = null;
+            return _rideState != null && _rideState.TryGetConversationState(userId, out state);
+        }
+
+        private string GetRideConversationState(long userId)
+        {
+            return _rideState?.GetOrCreate(userId).ConversationState ?? RideConversationStates.None;
+        }
+
+        private void StorePickup(long userId, double lat, double lon, string address)
+        {
+            _rideState?.SetPickup(userId, new RideLocation
+            {
+                Latitude = lat,
+                Longitude = lon,
+                Address = address
+            });
+        }
+
+        private bool TryGetPickup(long userId, out (double lat, double lon, string addr) pickup)
+        {
+            pickup = default;
+            if (TryGetPickupLocation(userId, out var location))
+            {
+                pickup = (location.Latitude, location.Longitude, location.Address);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetPickupLocation(long userId, out RideLocation location)
+        {
+            location = null;
+            return _rideState != null && _rideState.TryGetPickup(userId, out location) && location != null;
+        }
+
+        private void StoreDestination(long userId, double lat, double lon, string address)
+        {
+            _rideState?.SetDestination(userId, new RideLocation
+            {
+                Latitude = lat,
+                Longitude = lon,
+                Address = address
+            });
+        }
+
+        private bool TryGetDestination(long userId, out (double lat, double lon, string addr) destination)
+        {
+            destination = default;
+            if (TryGetDestinationLocation(userId, out var location))
+            {
+                destination = (location.Latitude, location.Longitude, location.Address);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetDestinationLocation(long userId, out RideLocation location)
+        {
+            location = null;
+            return _rideState != null && _rideState.TryGetDestination(userId, out location) && location != null;
+        }
+
+        private void StoreScheduledTime(long userId, DateTime? scheduledTime) => _rideState?.SetScheduledTime(userId, scheduledTime);
+
+        private DateTime? GetScheduledTime(long userId) => _rideState?.GetScheduledTime(userId);
+
+        private void StoreVehiclePreference(long userId, string preference) => _rideState?.SetVehiclePreference(userId, preference);
+
+        private string GetVehiclePreference(long userId) => _rideState?.GetVehiclePreference(userId);
+
+        private void StoreStops(long userId, IEnumerable<string> stops) => _rideState?.SetStops(userId, stops);
+
+        private IReadOnlyList<string> GetStops(long userId) => _rideState?.GetStops(userId) ?? Array.Empty<string>();
+
+        private void StoreAvailableDrivers(long userId, IReadOnlyList<TimoDriverSummary> drivers)
+        {
+            if (_rideState == null)
+                return;
+
+            var dict = new Dictionary<string, TimoDriverSummary>();
+            if (drivers != null)
+            {
+                foreach (var driver in drivers)
+                {
+                    if (!string.IsNullOrEmpty(driver.CarId))
+                        dict[driver.CarId] = driver;
+                }
+            }
+
+            _rideState.SetAvailableDrivers(userId, dict);
+        }
+
+        private bool TryGetDriverSummary(long userId, string driverId, out TimoDriverSummary driverSummary)
+        {
+            driverSummary = null;
+            return _rideState != null && _rideState.TryGetDriver(userId, driverId, out driverSummary);
+        }
+
+        private void StoreSelectedDriver(long userId, string driverId) => _rideState?.SetSelectedDriver(userId, driverId);
+
+        private void StoreLastBookingId(long userId, string bookingId) => _rideState?.SetLastBookingId(userId, bookingId);
+
+        private string GetLastBookingId(long userId) => _rideState?.GetLastBookingId(userId);
+
+        private int ResolvePassengerCount(long userId)
+        {
+            var stored = _rideState?.GetOrCreate(userId).PassengerCount;
+            if (stored.HasValue && stored.Value > 0)
+                return stored.Value;
+
+            return _timoOptions?.DemoRider?.DefaultPassengers > 0
+                ? _timoOptions.DemoRider.DefaultPassengers
+                : 1;
+        }
+
+        private (string fullName, string email, string phone) ResolveRiderIdentity(User telegramUser)
+        {
+            var fallbackName = _timoOptions?.DemoRider?.FullName ?? "Timo Telegram Rider";
+            var fullName = $"{telegramUser.FirstName} {telegramUser.LastName}".Trim();
+            if (string.IsNullOrWhiteSpace(fullName))
+                fullName = !string.IsNullOrWhiteSpace(telegramUser.Username) ? telegramUser.Username : fallbackName;
+
+            var email = _timoOptions?.DemoRider?.Email;
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                var slug = string.IsNullOrWhiteSpace(telegramUser.Username)
+                    ? telegramUser.Id.ToString()
+                    : telegramUser.Username;
+                email = $"telegram+{slug}@timorides.local";
+            }
+
+            var phone = _timoOptions?.DemoRider?.PhoneNumber;
+            if (string.IsNullOrWhiteSpace(phone))
+                phone = "+27700000000";
+
+            return (fullName, email, phone);
+        }
+
+        private async Task<bool> ResolveAndStoreLocationAsync(long userId, long chatId, string address, bool isPickup, CancellationToken cancellationToken)
+        {
+            var lookup = await _mapsService.GeocodeAsync(address, cancellationToken);
+            if (!lookup.IsSuccess)
+            {
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    $"❌ Could not resolve '{address}'. {lookup.ErrorMessage}",
+                    cancellationToken: cancellationToken);
+                return false;
+            }
+
+            var location = lookup.Location;
+            if (isPickup)
+                StorePickup(userId, location.Latitude, location.Longitude, location.Address);
+            else
+                StoreDestination(userId, location.Latitude, location.Longitude, location.Address);
+
+            return true;
+        }
+
+        #endregion
         /// <summary>
         /// Show booking summary and ask for final confirmation
         /// </summary>
@@ -2399,17 +2717,20 @@ Respond ONLY with a JSON object in this exact format:
                 $"Destination: {destination}\n";
             
             // Add any stored preferences
-            if (_userScheduledTime.TryGetValue(userId, out var scheduledTime))
+            var scheduledTime = GetScheduledTime(userId);
+            if (scheduledTime.HasValue)
             {
-                summaryText += $"Time: {scheduledTime:h:mm tt on MMM dd}\n";
+                summaryText += $"Time: {scheduledTime.Value:h:mm tt on MMM dd}\n";
             }
             
-            if (_userVehiclePreference.TryGetValue(userId, out var vehiclePref))
+            var vehiclePref = GetVehiclePreference(userId);
+            if (!string.IsNullOrEmpty(vehiclePref))
             {
                 summaryText += $"Vehicle preference: {vehiclePref}\n";
             }
             
-            if (_userMultiStops.TryGetValue(userId, out var stops))
+            var stops = GetStops(userId);
+            if (stops.Count > 0)
             {
                 summaryText += $"Via: {string.Join(", ", stops)}\n";
             }
@@ -2436,7 +2757,7 @@ Respond ONLY with a JSON object in this exact format:
                 cancellationToken: cancellationToken
             );
             
-            _userBookingState[userId] = "AWAITING_CONFIRMATION";
+            SetRideConversationState(userId, RideConversationStates.AwaitingConfirmation);
         }
         
         /// <summary>
@@ -2455,8 +2776,7 @@ Respond ONLY with a JSON object in this exact format:
                 cancellationToken: cancellationToken
             );
             
-            await ShowMockDriversAsync(chatId, cancellationToken);
-            _userBookingState[userId] = "SELECTING_DRIVER";
+            await ShowAvailableDriversAsync(chatId, userId, cancellationToken);
         }
         
         /// <summary>

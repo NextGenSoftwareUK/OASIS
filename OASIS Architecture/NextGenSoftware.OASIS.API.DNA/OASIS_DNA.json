@@ -241,6 +241,12 @@
                 "Network": "mainnet",
                 "ChainId": "mainnet"
             },
+            "RadixOASIS": {
+                "HostUri": "https://stokenet.radixdlt.com",
+                "NetworkId": 2,
+                "AccountAddress": "",
+                "PrivateKey": ""
+            },
             "MoralisOASIS": {
                 "ApiKey": "YOUR_MORALIS_API_KEY",
                 "RpcEndpoint": "https://speedy-nodes-nyc.moralis.io/YOUR_API_KEY/eth/mainnet",

@@ -10,6 +10,9 @@ const { errors: celebrateErrors } = require('celebrate');
 
 const app = express();
 
+// Trust proxy for rate limiting behind ngrok/reverse proxy
+app.set('trust proxy', 1);
+
 // Site Accessable Url
 const allowedOrigins =
   process.env.NODE_ENV === 'development'

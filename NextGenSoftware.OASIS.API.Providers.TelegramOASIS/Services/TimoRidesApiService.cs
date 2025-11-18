@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Services
         private readonly ILogger<TimoRidesApiService> _logger;
         private readonly string _backendUrl;
         private readonly string _currency;
+        private readonly string _serviceToken;
         
         public TimoRidesApiService(
             IConfiguration configuration,
@@ -23,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Services
             _logger = logger;
             _backendUrl = configuration["OASIS:StorageProviders:TelegramOASIS:TimoRides:BackendUrl"];
             _currency = configuration["OASIS:StorageProviders:TelegramOASIS:TimoRides:DefaultCurrency"] ?? "ZAR";
+            _serviceToken = configuration["OASIS:StorageProviders:TelegramOASIS:TimoRides:ServiceToken"];
             
             if (string.IsNullOrEmpty(_backendUrl))
             {
@@ -30,6 +32,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Services
                 _backendUrl = "http://localhost:4205/api";
             }
             
+            if (string.IsNullOrWhiteSpace(_serviceToken))
+            {
+                _logger.LogWarning("TimoRides service token not configured. Driver action calls will fail.");
+            }
+
             _httpClient = new HttpClient
             {
                 BaseAddress = new Uri(_backendUrl),
@@ -37,6 +44,115 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Services
             };
             
             _logger.LogInformation($"TimoRidesApiService initialized with backend: {_backendUrl}");
+        }
+
+        private void EnsureServiceToken()
+        {
+            if (string.IsNullOrWhiteSpace(_serviceToken))
+            {
+                throw new InvalidOperationException("TimoRides service token not configured");
+            }
+        }
+
+        private async Task<HttpResponseMessage> PostWithServiceTokenAsync<TPayload>(string url, TPayload payload)
+        {
+            EnsureServiceToken();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = JsonContent.Create(payload)
+            };
+            request.Headers.TryAddWithoutValidation("X-Service-Token", _serviceToken);
+
+            return await _httpClient.SendAsync(request);
+        }
+
+        public async Task<DriverActionResponse> NotifyDriverActionAsync(DriverActionPayload payload)
+        {
+            if (payload == null)
+            {
+                throw new ArgumentNullException(nameof(payload));
+            }
+
+            try
+            {
+                _logger.LogInformation(
+                    "Posting driver action {Action} for booking {BookingId} (driver {DriverId})",
+                    payload.Action,
+                    payload.BookingId,
+                    payload.DriverId);
+
+                var response = await PostWithServiceTokenAsync("/driver-actions", payload);
+                response.EnsureSuccessStatusCode();
+
+                var result = await response.Content.ReadFromJsonAsync<DriverActionResponse>();
+                return result ?? new DriverActionResponse
+                {
+                    Success = true,
+                    TraceId = payload.TraceId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to notify driver action {Action} for booking {BookingId}",
+                    payload.Action,
+                    payload.BookingId);
+                throw;
+            }
+        }
+
+        public async Task<DriverLocationResponse> UpdateDriverLocationAsync(DriverLocationPayload payload)
+        {
+            if (payload == null)
+            {
+                throw new ArgumentNullException(nameof(payload));
+            }
+
+            try
+            {
+                _logger.LogInformation(
+                    "Posting driver location for driver {DriverId} (booking {BookingId})",
+                    payload.DriverId,
+                    payload.BookingId);
+
+                var response = await PostWithServiceTokenAsync("/driver-location", payload);
+                response.EnsureSuccessStatusCode();
+
+                var result = await response.Content.ReadFromJsonAsync<DriverLocationResponse>();
+                return result ?? new DriverLocationResponse { Success = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to update driver location for driver {DriverId}",
+                    payload.DriverId);
+                throw;
+            }
+        }
+
+        public async Task<BookingDto> SyncTripStateAsync(string bookingId)
+        {
+            if (string.IsNullOrWhiteSpace(bookingId))
+            {
+                throw new ArgumentNullException(nameof(bookingId));
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"/bookings/{bookingId}");
+                response.EnsureSuccessStatusCode();
+
+                var envelope = await response.Content.ReadFromJsonAsync<BookingEnvelope>();
+                return envelope?.Booking;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to sync booking {BookingId}", bookingId);
+                throw;
+            }
         }
         
         /// <summary>
@@ -285,6 +401,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Services
         public string Currency { get; set; }
         public double DistanceKm { get; set; }
         public int EstimatedMinutes { get; set; }
+    }
+
+    internal class BookingEnvelope
+    {
+        public BookingDto Booking { get; set; }
+        public string Message { get; set; }
     }
 }
 
