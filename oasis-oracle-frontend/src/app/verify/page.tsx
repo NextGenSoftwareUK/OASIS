@@ -12,10 +12,10 @@ export default function VerifyPage() {
 
   const handleVerify = async (request: VerificationRequest) => {
     setIsLoading(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     // Mock verification result
     const mockVerification: TransactionVerification = {
       transactionHash: request.transactionHash,
@@ -33,7 +33,7 @@ export default function VerifyPage() {
       amount: Math.random() * 10,
       token: request.chain === "Ethereum" ? "ETH" : request.chain === "Solana" ? "SOL" : "XRD",
     };
-    
+
     setVerification(mockVerification);
     setIsLoading(false);
   };
@@ -51,7 +51,7 @@ export default function VerifyPage() {
             Transaction Verification
           </h1>
           <p className="text-lg text-[var(--muted)] max-w-3xl">
-            Verify cross-chain transactions with oracle-backed validation. Check confirmations, 
+            Verify cross-chain transactions with oracle-backed validation. Check confirmations,
             finality status, and transaction integrity across 20+ blockchains.
           </p>
         </div>
@@ -60,15 +60,12 @@ export default function VerifyPage() {
         {!verification ? (
           <VerificationForm onSubmit={handleVerify} isLoading={isLoading} />
         ) : (
-          <VerificationResults 
-            verification={verification} 
-            onVerifyAnother={handleVerifyAnother}
-          />
+          <VerificationResults verification={verification} onVerifyAnother={handleVerifyAnother} />
         )}
 
         {/* Info Cards */}
         {!verification && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+          <div className="grid grid-cols-1 gap-6 mt-12 md:grid-cols-3">
             <InfoCard
               title="Oracle Verification"
               description="Each transaction is verified by multiple oracle nodes across the network for consensus-backed validation."
@@ -91,12 +88,8 @@ export default function VerifyPage() {
 function InfoCard({ title, description }: { title: string; description: string }) {
   return (
     <div className="rounded-2xl border border-[var(--color-card-border)]/50 bg-[rgba(8,11,26,0.85)] p-6 backdrop-blur-xl">
-      <h3 className="text-lg font-semibold text-[var(--color-foreground)] mb-2">
-        {title}
-      </h3>
-      <p className="text-sm text-[var(--muted)] leading-relaxed">
-        {description}
-      </p>
+      <h3 className="mb-2 text-lg font-semibold text-[var(--color-foreground)]">{title}</h3>
+      <p className="text-sm leading-relaxed text-[var(--muted)]">{description}</p>
     </div>
   );
 }

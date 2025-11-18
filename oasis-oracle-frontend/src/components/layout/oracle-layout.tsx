@@ -7,13 +7,10 @@ import { Activity, TrendingUp, CheckCircle2, Coins, Shuffle, Image, Vote, Wallet
 const navItems = [
   { label: "Dashboard", href: "/", icon: Activity },
   { label: "Network 3D", href: "/network", icon: Network },
-  { label: "Competition", href: "/competition", icon: Trophy },
   { label: "Collateral", href: "/collateral", icon: Wallet },
   { label: "Verify", href: "/verify", icon: CheckCircle2 },
   { label: "Prices", href: "/prices", icon: TrendingUp },
   { label: "Arbitrage", href: "/arbitrage", icon: Shuffle },
-  { label: "Reform UK", href: "/reform", icon: Flag },
-  { label: "UAT Builder", href: "/uat-builder", icon: LayoutGrid },
 ];
 
 type OracleLayoutProps = {

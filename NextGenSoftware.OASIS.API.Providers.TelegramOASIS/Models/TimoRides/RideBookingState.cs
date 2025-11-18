@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Models.TimoRides
 {
@@ -13,7 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Models.TimoRides
         ConfirmingBooking,
         TrackingRide,
         RatingRide,
-        AddingReview
+        AddingReview,
+        DriverAwaitingLocation
     }
     
     public class RideBookingData
@@ -38,10 +40,33 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Models.TimoRides
         
         // Rating
         public int? PendingRatingStars { get; set; }
+
+        // Driver signal audit trail
+        public List<DriverSignalAuditEntry> DriverSignalAudit { get; set; } = new();
+
+        // Pending driver location requests
+        public DriverLocationContext PendingDriverLocation { get; set; }
         
         // Timestamps
         public DateTime StartedAt { get; set; }
         public DateTime? LastUpdatedAt { get; set; }
+    }
+
+    public class DriverSignalAuditEntry
+    {
+        public DateTime Timestamp { get; set; }
+        public string Action { get; set; }
+        public string BookingId { get; set; }
+        public string PayloadJson { get; set; }
+        public string TraceId { get; set; }
+    }
+
+    public class DriverLocationContext
+    {
+        public string DriverId { get; set; }
+        public string BookingId { get; set; }
+        public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
+        public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddMinutes(5);
     }
 }
 

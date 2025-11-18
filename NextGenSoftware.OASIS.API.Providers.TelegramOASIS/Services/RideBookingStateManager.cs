@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Models.TimoRides;
@@ -9,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Services
     public class RideBookingStateManager
     {
         private readonly ConcurrentDictionary<long, RideBookingData> _userStates;
+        private const int MaxDriverAuditEntries = 25;
         private readonly ILogger<RideBookingStateManager> _logger;
         
         public RideBookingStateManager(ILogger<RideBookingStateManager> logger)
@@ -170,6 +172,60 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Services
                 _logger.LogInformation($"Cleared booking state for user {telegramUserId}");
             }
             
+            return Task.CompletedTask;
+        }
+
+        public Task RecordDriverSignalAsync(long telegramUserId, DriverSignalAuditEntry entry)
+        {
+            var data = _userStates.GetOrAdd(telegramUserId, new RideBookingData());
+            data.DriverSignalAudit ??= new List<DriverSignalAuditEntry>();
+            data.DriverSignalAudit.Insert(0, entry);
+
+            if (data.DriverSignalAudit.Count > MaxDriverAuditEntries)
+            {
+                data.DriverSignalAudit.RemoveAt(data.DriverSignalAudit.Count - 1);
+            }
+
+            data.LastUpdatedAt = DateTime.UtcNow;
+
+            _logger.LogInformation(
+                $"Driver signal recorded for user {telegramUserId}: {entry.Action} / {entry.BookingId}");
+
+            return Task.CompletedTask;
+        }
+
+        public Task SetPendingDriverLocationAsync(
+            long telegramUserId,
+            string driverId,
+            string bookingId,
+            TimeSpan? ttl = null)
+        {
+            var data = _userStates.GetOrAdd(telegramUserId, new RideBookingData());
+            data.PendingDriverLocation = new DriverLocationContext
+            {
+                DriverId = driverId,
+                BookingId = bookingId,
+                RequestedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.Add(ttl ?? TimeSpan.FromMinutes(5))
+            };
+            data.State = RideBookingState.DriverAwaitingLocation;
+            data.LastUpdatedAt = DateTime.UtcNow;
+
+            _logger.LogInformation(
+                $"Awaiting driver location for user {telegramUserId} booking {bookingId}");
+
+            return Task.CompletedTask;
+        }
+
+        public Task ClearPendingDriverLocationAsync(long telegramUserId)
+        {
+            if (_userStates.TryGetValue(telegramUserId, out var data))
+            {
+                data.PendingDriverLocation = null;
+                data.State = RideBookingState.Idle;
+                data.LastUpdatedAt = DateTime.UtcNow;
+            }
+
             return Task.CompletedTask;
         }
         

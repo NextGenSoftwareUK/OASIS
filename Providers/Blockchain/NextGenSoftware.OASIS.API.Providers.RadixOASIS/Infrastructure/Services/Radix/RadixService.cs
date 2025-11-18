@@ -1,9 +1,13 @@
 using System.Globalization;
+using System.Net.Http;
+using NBitcoin;
+using RadixEngineToolkit;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities.DTOs;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities.Enums;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Helpers;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Extensions;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities.DTOs.Oracle;
 using TransactionBuilder = RadixEngineToolkit.TransactionBuilder;
 
 namespace NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Services.Radix;
@@ -391,5 +395,187 @@ public sealed class RadixService : IRadixService
                 $"Error getting transaction status: {ex.Message}", ex);
         }
     }
+
+    #region Oracle Methods
+
+    /// <summary>
+    /// Gets the current chain state (epoch, network info, health)
+    /// </summary>
+    public async Task<OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixChainState>> GetChainStateAsync(CancellationToken token = default)
+    {
+        var result = new OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixChainState>();
+        
+        try
+        {
+            // Get construction metadata which contains current epoch
+            var metadata = await _httpClient.GetConstructionMetadataAsync(_config);
+            
+            if (metadata == null)
+            {
+                result.IsError = true;
+                result.Message = "Failed to get chain state";
+                return result;
+            }
+
+            result.Result = new Infrastructure.Entities.DTOs.Oracle.RadixChainState
+            {
+                ChainName = "Radix",
+                CurrentEpoch = metadata.CurrentEpoch,
+                NetworkId = _config.NetworkId.ToString(),
+                NetworkName = _config.NetworkId == (byte)Infrastructure.Entities.Enums.RadixNetworkType.MainNet ? "MainNet" : "StokeNet",
+                IsHealthy = true,
+                LastBlockTime = DateTime.UtcNow
+            };
+            
+            result.IsError = false;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return OASISErrorHandling.HandleError<Infrastructure.Entities.DTOs.Oracle.RadixChainState>(ref result,
+                $"Error getting chain state: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Gets the latest epoch (Radix equivalent of block height)
+    /// </summary>
+    public async Task<OASISResult<ulong>> GetLatestEpochAsync(CancellationToken token = default)
+    {
+        var result = new OASISResult<ulong>();
+        
+        try
+        {
+            var metadata = await _httpClient.GetConstructionMetadataAsync(_config);
+            
+            if (metadata == null)
+            {
+                result.IsError = true;
+                result.Message = "Failed to get latest epoch";
+                return result;
+            }
+
+            result.Result = metadata.CurrentEpoch;
+            result.IsError = false;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return OASISErrorHandling.HandleError<ulong>(ref result,
+                $"Error getting latest epoch: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Gets detailed transaction information
+    /// </summary>
+    public async Task<OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixTransactionDetails>> GetTransactionDetailsAsync(
+        string intentHash,
+        CancellationToken token = default)
+    {
+        var result = new OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixTransactionDetails>();
+        
+        try
+        {
+            var statusResult = await GetTransactionStatusAsync(intentHash, token);
+            
+            if (statusResult.IsError)
+            {
+                result.IsError = true;
+                result.Message = statusResult.Message;
+                return result;
+            }
+
+            // Get chain state for epoch info
+            var chainStateResult = await GetChainStateAsync(token);
+            
+            result.Result = new Infrastructure.Entities.DTOs.Oracle.RadixTransactionDetails
+            {
+                IntentHash = intentHash,
+                TransactionHash = intentHash, // In Radix, intent hash is the transaction identifier
+                Status = statusResult.Result.ToString(),
+                Timestamp = DateTime.UtcNow,
+                Epoch = chainStateResult.Result?.CurrentEpoch ?? 0,
+                TokenSymbol = "XRD"
+            };
+            
+            result.IsError = false;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return OASISErrorHandling.HandleError<Infrastructure.Entities.DTOs.Oracle.RadixTransactionDetails>(ref result,
+                $"Error getting transaction details: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Verifies a transaction's validity
+    /// </summary>
+    public async Task<OASISResult<bool>> VerifyTransactionAsync(
+        string intentHash,
+        CancellationToken token = default)
+    {
+        var result = new OASISResult<bool>();
+        
+        try
+        {
+            var statusResult = await GetTransactionStatusAsync(intentHash, token);
+            
+            if (statusResult.IsError)
+            {
+                result.Result = false;
+                result.IsError = false; // Not an error, just not found
+                return result;
+            }
+
+            // Transaction is verified if it's completed
+            result.Result = statusResult.Result == BridgeTransactionStatus.Completed;
+            result.IsError = false;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return OASISErrorHandling.HandleError<bool>(ref result,
+                $"Error verifying transaction: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Gets XRD price feed (placeholder - would integrate with CoinGecko, CoinMarketCap, etc.)
+    /// </summary>
+    public async Task<OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed>> GetXrdPriceAsync(
+        string currency = "USD",
+        CancellationToken token = default)
+    {
+        var result = new OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed>();
+        
+        try
+        {
+            // TODO: Integrate with actual price sources (CoinGecko, CoinMarketCap, RadixDEX, etc.)
+            // For now, return a placeholder structure
+            
+            result.Result = new Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed
+            {
+                TokenSymbol = "XRD",
+                Currency = currency,
+                Price = 0, // Would fetch from price source
+                Timestamp = DateTime.UtcNow,
+                Source = "Placeholder", // Would be "CoinGecko", "CoinMarketCap", etc.
+                Confidence = 0 // Would be calculated based on source reliability
+            };
+            
+            result.IsError = false;
+            result.Message = "Price feed not yet integrated - implement CoinGecko/CoinMarketCap integration";
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return OASISErrorHandling.HandleError<Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed>(ref result,
+                $"Error getting XRD price: {ex.Message}", ex);
+        }
+    }
+
+    #endregion
 }
 

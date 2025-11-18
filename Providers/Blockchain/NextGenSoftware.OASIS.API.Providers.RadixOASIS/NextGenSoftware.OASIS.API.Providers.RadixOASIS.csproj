@@ -25,6 +25,7 @@
 
     <ItemGroup>
       <PackageReference Include="RadixDlt.RadixEngineToolkit" Version="2.2.2" />
+      <PackageReference Include="NBitcoin" Version="7.0.50" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 

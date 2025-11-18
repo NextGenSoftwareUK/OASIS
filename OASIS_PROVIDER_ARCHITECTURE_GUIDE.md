@@ -173,6 +173,8 @@ These providers exist but need API keys/setup:
 - `PolygonOASIS` - Polygon PoS
 - `ArbitrumOASIS` - Arbitrum L2
 - `BaseOASIS` - Base (Coinbase L2)
+- `MonadOASIS` - Monad high-throughput L1 (EVM-equivalent)
+- `TONOASIS` - TON EVM gateway
 - `OptimismOASIS` - Optimism L2
 - `AvalancheOASIS` - Avalanche C-Chain
 - `FantomOASIS` - Fantom Opera

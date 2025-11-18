@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -13,15 +14,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     /// <summary>
     /// Partial class containing TimoRides booking functionality
-    /// TO INTEGRATE: Add these methods to the main TelegramBotService class
     /// </summary>
-    public partial class TelegramBotServiceRideBookingExtension
+    public partial class TelegramBotService
     {
-        // NOTE: These fields should be added to the main TelegramBotService class
-        // private readonly TimoRidesApiService _timoRidesService;
-        // private readonly RideBookingStateManager _rideStateManager;
-        // private readonly GoogleMapsService _mapsService;
-        
         /// <summary>
         /// Handle ride-related commands
         /// ADD TO: HandleCommandAsync switch statement
@@ -171,6 +166,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             // Get user's current state
             var state = await _rideStateManager.GetStateAsync(userId);
             
+            if (state.State == RideBookingState.DriverAwaitingLocation &&
+                state.PendingDriverLocation != null &&
+                state.PendingDriverLocation.ExpiresAt > DateTime.UtcNow)
+            {
+                await ForwardDriverLocationAsync(message, state.PendingDriverLocation, cancellationToken);
+                return;
+            }
+
             if (state.State == RideBookingState.WaitingPickupLocation)
             {
                 await ProcessPickupLocationAsync(message, location, cancellationToken);
@@ -401,6 +404,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     var driverId = data.Split(':')[1];
                     await ShowDriverProfileAsync(query, driverId, cancellationToken);
                 }
+                else if (data.StartsWith("driver_action:"))
+                {
+                    var parts = data.Split(':');
+                    if (parts.Length >= 4)
+                    {
+                        var action = parts[1];
+                        var bookingId = parts[2];
+                        var driverId = parts[3];
+                        await HandleDriverActionInlineAsync(
+                            query,
+                            driverId,
+                            bookingId,
+                            action,
+                            cancellationToken);
+                    }
+                }
                 else if (data.StartsWith("payment:"))
                 {
                     var paymentMethod = data.Split(':')[1];
@@ -492,6 +511,83 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 parseMode: ParseMode.Markdown,
                 replyMarkup: keyboard,
                 cancellationToken: cancellationToken);
+        }
+
+        private async Task HandleDriverActionInlineAsync(
+            CallbackQuery query,
+            string driverId,
+            string bookingId,
+            string action,
+            CancellationToken cancellationToken)
+        {
+            if (action.Equals("share_location", StringComparison.OrdinalIgnoreCase))
+            {
+                await _rideStateManager.SetPendingDriverLocationAsync(query.From.Id, driverId, bookingId);
+                await _botClient.SendTextMessageAsync(
+                    query.Message.Chat.Id,
+                    "📍 Share your current location now so dispatch can track you.",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            await SendDriverActionAsync(
+                query.Message.Chat.Id,
+                query.From,
+                bookingId,
+                driverId,
+                action,
+                null,
+                cancellationToken);
+        }
+
+        private async Task ForwardDriverLocationAsync(
+            Message message,
+            DriverLocationContext context,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var payload = new DriverLocationPayload
+                {
+                    DriverId = context.DriverId,
+                    BookingId = context.BookingId,
+                    ChatId = message.Chat.Id.ToString(),
+                    Location = new DriverLocationDto
+                    {
+                        Latitude = message.Location.Latitude,
+                        Longitude = message.Location.Longitude,
+                        Bearing = message.Location.Heading,
+                        Accuracy = message.Location.HorizontalAccuracy
+                    }
+                };
+
+                await _timoRidesService.UpdateDriverLocationAsync(payload);
+
+                await _rideStateManager.RecordDriverSignalAsync(
+                    message.From.Id,
+                    new DriverSignalAuditEntry
+                    {
+                        Action = "location_update",
+                        BookingId = context.BookingId,
+                        PayloadJson = JsonSerializer.Serialize(payload),
+                        Timestamp = DateTime.UtcNow,
+                        TraceId = payload.TraceId
+                    });
+
+                await _rideStateManager.ClearPendingDriverLocationAsync(message.From.Id);
+
+                await _botClient.SendTextMessageAsync(
+                    message.Chat.Id,
+                    "✅ Location forwarded to dispatch.",
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                await _botClient.SendTextMessageAsync(
+                    message.Chat.Id,
+                    $"❌ Failed to send location: {ex.Message}",
+                    cancellationToken: cancellationToken);
+            }
         }
         
         /// <summary>

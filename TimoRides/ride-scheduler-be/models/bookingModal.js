@@ -90,7 +90,7 @@ const BookingSchema = new mongoose.Schema(
     payment: {
       method: {
         type: String,
-        enum: ['cash', 'wallet', 'card', 'mobile_money'],
+        enum: ['cash', 'wallet', 'card', 'mobile_money', 'paystack', 'mpesa'],
         default: 'cash',
       },
       status: {

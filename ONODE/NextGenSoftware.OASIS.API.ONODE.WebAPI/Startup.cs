@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Configuration;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
@@ -59,6 +61,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddControllers(x => x.Filters.Add(typeof(ServiceExceptionInterceptor)))
                 .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.Configure<TimoRidesOptions>(Configuration.GetSection("TimoRides"));
+
+            services.AddHttpClient();
+            services.AddHttpClient<TimoRidesApiService>();
+            services.AddHttpClient<GoogleMapsService>();
+            services.AddSingleton<RideBookingStateManager>();
+
             services.AddSwaggerGen(c =>
             {
                 // Configure custom schema ID resolver to handle duplicate class names and generic types
@@ -277,23 +286,39 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     logger
                 );
             });
-            
-            // DISABLED: Telegram Bot Service - Uncomment to re-enable
-            /*
+
             services.AddSingleton<TelegramBotService>(sp =>
             {
+                var configuration = sp.GetRequiredService<IConfiguration>();
                 var telegramProvider = sp.GetRequiredService<TelegramOASIS>();
                 var avatarManager = AvatarManager.Instance;
-                var logger = sp.GetService<ILogger<TelegramBotService>>();
+                var achievementManager = new AchievementManager(telegramProvider, null, avatarManager);
+                var logger = sp.GetRequiredService<ILogger<TelegramBotService>>();
                 var nftService = sp.GetRequiredService<NFTService>();
                 var pinataService = sp.GetRequiredService<PinataService>();
+                var timoService = sp.GetRequiredService<TimoRidesApiService>();
+                var rideStateManager = sp.GetRequiredService<RideBookingStateManager>();
+                var mapsService = sp.GetRequiredService<GoogleMapsService>();
+                var timoOptions = sp.GetRequiredService<IOptions<TimoRidesOptions>>();
                 
-                // Bot token from OASIS_DNA.json TelegramOASIS config - TIMORIDES BOT
-                string botToken = "8000192131:AAE3DY-AxbnhaPBaLF_mBogV169CeRXGleg";
+                var botToken = configuration["OASIS:StorageProviders:TelegramOASIS:BotToken"];
+                if (string.IsNullOrWhiteSpace(botToken))
+                {
+                    botToken = "8000192131:AAE3DY-AxbnhaPBaLF_mBogV169CeRXGleg";
+                }
                 
-                return new TelegramBotService(botToken, telegramProvider, avatarManager, logger, nftService, pinataService);
+                return new TelegramBotService(
+                    botToken,
+                    telegramProvider,
+                    avatarManager,
+                    logger,
+                    nftService,
+                    pinataService,
+                    timoService,
+                    rideStateManager,
+                    mapsService,
+                    timoOptions);
             });
-            */
 
             // Register Universal Asset Bridge Service
             services.AddSingleton<BridgeService>(sp =>
@@ -350,8 +375,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     }
                 }
                 
-                // DISABLED: Telegram bot service - Uncomment to re-enable
-                /*
                 var botService = app.ApplicationServices.GetService<TelegramBotService>();
                 if (botService != null)
                 {
@@ -362,7 +385,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 {
                     LoggingManager.Log("⚠️ TelegramBotService not found in DI container", LogType.Warning);
                 }
-                */
             }
             catch (Exception ex)
             {
