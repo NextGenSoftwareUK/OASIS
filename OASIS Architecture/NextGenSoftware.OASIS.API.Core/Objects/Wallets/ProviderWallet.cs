@@ -25,10 +25,12 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
             }
         }
 
-        public Guid AvatarId { get; set; }
+        [Obsolete]
+        public Guid AvatarId { get; set; } //TODO: REMOVE LATER ON WHEN WE NEXT RE-SET THE DB AND AVATARS! ;-)
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
         public string WalletAddress { get; set; } //Hash of Public Key (shorter version).
+        public string WalletAddressSegwitP2SH { get; set; }
         public string SecretRecoveryPhrase { get; set; }
         public List<IWalletTransactionRequest> Transactions {get;set;}
         public ProviderType ProviderType { get; set; }

@@ -21,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
         public string WalletAddress { get; set; } //Hash of Public Key (shorter version).
+        public string WalletAddressSegwitP2SH { get; set; } //Hash of Public Key (shorter version).
         public string SecretRecoveryPhrase { get; set; }
         public List<IWalletTransactionRequest> Transactions {get;set;}
         public ProviderType ProviderType { get; set; }

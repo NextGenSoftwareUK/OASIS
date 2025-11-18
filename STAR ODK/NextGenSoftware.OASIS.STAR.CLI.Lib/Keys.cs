@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -12,7 +13,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     {
         public async Task<OASISResult<IProviderWallet>> LinkProviderKeyToBeamedInAvatarWalletAsync(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            int selection = CLIEngine.GetValidInputForInt("Do you wish to link a private or public key or generate a keyvalue pair and then link? Press 1 for private key, 2 for public key or 3 to generate and link.", true, 1, 3);
+            int selection = CLIEngine.GetValidInputForInt("Do you wish to link a private key, public key, wallet address or generate a keyvalue pair (and wallet address) and then link? Press 1 for private key, 2 for public key, 3 for wallet address or 4 to generate and link.", true, 1, 4);
             
             switch (selection)
             {
@@ -23,11 +24,76 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     return await LinkProviderPublicKeyToBeamedInAvatarWalletAsync(providerToLoadAvatarFrom);
 
                 case 3:
-                    GenerateKeyPairAndLinkProviderKeysToBeamedInAvatarWallet();
+                    return await LinkProviderWalletAddressToBeamedInAvatarWalletAsync(providerToLoadAvatarFrom);
+
+                case 4:
+                    GenerateKeyPairWithWalletAddressAndLinkProviderKeysToBeamedInAvatarWallet();
                     break;
             }
 
             return null;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> LinkProviderWalletAddressToBeamedInAvatarWalletAsync(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            Guid walletId = Guid.Empty;
+            ProviderType walletProvider = ProviderType.None;
+
+            if (CLIEngine.GetConfirmation("Do you have an existing wallet you wish to link to? (if you select 'N' a new wallet will be created for you)"))
+            {
+                Console.WriteLine("");
+                OASISResult<IProviderWallet> walletResult = await STARCLI.Wallets.FindWalletAsync("Enter the number of the wallet you wish to add the wallet address to:");
+
+                if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                {
+                    walletId = walletResult.Result.Id;
+                    walletProvider = walletResult.Result.ProviderType;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured finding wallet. Reason: {walletResult.Message}");
+            }
+            else
+                Console.WriteLine("");
+
+            string walletAddress = CLIEngine.GetValidInput("Enter the wallet address you wish to link to your wallet: ");
+
+            if (walletProvider == ProviderType.None)
+            {
+                object providerObj = CLIEngine.GetValidInputForEnum("Enter the provider (chain) you wish to link the wallet address to in your wallet: ", typeof(ProviderType));
+
+                if (providerObj != null)
+                {
+                    if (providerObj.ToString() == "exit")
+                    {
+                        result.Message = "User Exited";
+                        return result;
+                    }
+
+                    walletProvider = (ProviderType)providerObj;
+                }
+            }
+
+            if (walletProvider != ProviderType.None)
+            {
+                CLIEngine.ShowWorkingMessage("Linking Wallet Address...");
+                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+                result = STAR.OASISAPI.Keys.LinkProviderWalletAddressToAvatarById(walletId, STAR.BeamedInAvatar.Id, walletProvider, walletAddress, providerToLoadAvatarFrom);
+                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+
+                if (result != null && result.Result != null && !result.IsError)
+                {
+                    CLIEngine.ShowSuccessMessage($"Wallet Address Linked Successfully.");
+                    Console.WriteLine("");
+                    STARCLI.Wallets.ShowWallet(result.Result);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured linking wallet address: Reason: {result.Message}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, "ProviderType is None!");
+
+            return result;
         }
 
         public async Task<OASISResult<IProviderWallet>> LinkProviderPublicKeyToBeamedInAvatarWalletAsync(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
@@ -53,6 +119,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
 
             string publicKey = CLIEngine.GetValidInput("Enter the public key you wish to link to your wallet: ");
+            string walletAddress = "";
+
+            if (CLIEngine.GetConfirmation("Do you know the wallet address? If not then we will attempt to calculate it from the public key"))
+                walletAddress = CLIEngine.GetValidInput("Enter the wallet address you wish to link to your wallet: ");
 
             if (walletProvider == ProviderType.None)
             {
@@ -74,11 +144,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 CLIEngine.ShowWorkingMessage("Linking Public Key...");
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
-                result = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById(walletId, STAR.BeamedInAvatar.Id, walletProvider, publicKey, providerToLoadAvatarFrom);
+                result = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById(walletId, STAR.BeamedInAvatar.Id, walletProvider, publicKey, walletAddress, null, true, providerToLoadAvatarFrom);
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
-                    CLIEngine.ShowSuccessMessage($"Public Key Linked Successfully. Wallet Id: {result.Result.Id}");
+                {
+                    CLIEngine.ShowSuccessMessage($"Public Key Linked Successfully.");
+                    Console.WriteLine("");
+                    STARCLI.Wallets.ShowWallet(result.Result);
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured linking public key: Reason: {result.Message}");
             }
@@ -131,11 +205,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
                 CLIEngine.ShowWorkingMessage("Linking Private Key...");
-                result = STAR.OASISAPI.Keys.LinkProviderPrivateKeyToAvatarById(walletId, STAR.BeamedInAvatar.Id, walletProvider, publicKey, providerToLoadAvatarFrom);
+                result = STAR.OASISAPI.Keys.LinkProviderPrivateKeyToAvatarById(walletId, STAR.BeamedInAvatar.Id, walletProvider, publicKey, true, true, providerToLoadAvatarFrom);
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
-                    CLIEngine.ShowSuccessMessage($"Private Key Linked Successfully. Wallet Id: {result.Result.Id}");
+                {
+                    CLIEngine.ShowSuccessMessage($"Private Key Linked Successfully.");
+                    Console.WriteLine("");
+                    STARCLI.Wallets.ShowWallet(result.Result);
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured linking Private Key: Reason: {result.Message}");
             }
@@ -152,7 +230,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public void ListAllProviderKeysForBeamedInAvatar(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
-            int selection = CLIEngine.GetValidInputForInt("Do you wish to list all private, public, keypair (private & public) or unique storage key? Press 1 for private, 2 for public, 3 for keypair or 4 for storage.", true, 1, 4);
+            int selection = CLIEngine.GetValidInputForInt("Do you wish to list all private, public, wallet address, keypair (private & public) or unique storage keys? Press 1 for private, 2 for public, 3 for wallet address, 4 for keypair or 5 for storage.", true, 1, 5);
             
             switch (selection)
             {
@@ -165,13 +243,32 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     break;
 
                 case 3:
-                    ListAllProviderKeyPairsForBeamedInAvatar(providerToLoadAvatarFrom);
+                    ListAllProviderWalletAddressesForBeamedInAvatar(providerToLoadAvatarFrom);
                     break;
 
                 case 4:
+                    ListAllProviderKeyPairsForBeamedInAvatar(providerToLoadAvatarFrom);
+                    break;
+
+                case 5:
                     ListAllProviderUniqueStorageKeysForBeamedInAvatar(providerToLoadAvatarFrom);
                     break;
             }
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<string>>> ListAllProviderWalletAddressesForBeamedInAvatar(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        {
+            CLIEngine.ShowWorkingMessage("Loading Wallet Addresses...");
+            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+            OASISResult<Dictionary<ProviderType, List<string>>> keysResult = STAR.OASISAPI.Keys.GetAllProviderWalletAddressesForAvatarById(STAR.BeamedInAvatar.Id, providerToLoadAvatarFrom);
+            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+
+            if (keysResult != null && keysResult.Result != null && !keysResult.IsError)
+                ShowKeys(keysResult.Result);
+            else
+                OASISErrorHandling.HandleError(ref keysResult, $"Error occured loading wallet addresses. Reason: {keysResult.Message}");
+
+            return keysResult;
         }
 
         public OASISResult<Dictionary<ProviderType, List<string>>> ListAllProviderPublicKeysForBeamedInAvatar(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
@@ -283,10 +380,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return keyPair;
         }
 
-        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToBeamedInAvatarWallet(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        public OASISResult<KeyValuePairAndWallet> GenerateKeyPairWithWallet(ProviderType providerType = ProviderType.Default)
+        {
+            CLIEngine.ShowWorkingMessage("Generating KeyPair With Wallet Address...");
+            OASISResult<KeyValuePairAndWallet> keyPairResult = STAR.OASISAPI.Keys.GenerateKeyPairWithWalletAddress(providerType);
+
+            if (keyPairResult != null && keyPairResult.Result != null && !keyPairResult.IsError)
+            {
+                CLIEngine.ShowMessage($"Wallet Address Legacy: {keyPairResult.Result.WalletAddressLegacy}");
+                CLIEngine.ShowMessage($"Wallet Address: SegwitP2SH {keyPairResult.Result.WalletAddressSegwitP2SH}");
+                CLIEngine.ShowMessage($"Public Key: {keyPairResult.Result.PublicKey}");
+                CLIEngine.ShowMessage($"Private Key: {keyPairResult.Result.PrivateKey}");
+            }
+            else
+                OASISErrorHandling.HandleError(ref keyPairResult, $"Error occured generating keypair. Reason: {keyPairResult.Message}");
+
+            return keyPairResult;
+        }
+
+        public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToBeamedInAvatarWallet(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-            object providerObj = CLIEngine.GetValidInputForEnum("Enter the provider (chain) you wish to link the public key to in your wallet: ", typeof(ProviderType));
+            object providerObj = CLIEngine.GetValidInputForEnum("Enter the provider (chain) you wish to link the keypair and wallet address to in your wallet: ", typeof(ProviderType));
 
             if (providerObj != null)
             {
@@ -296,15 +411,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     return result;
                 }
 
-                CLIEngine.ShowWorkingMessage("Generating KeyPair...");
+                CLIEngine.ShowWorkingMessage("Generating KeyPair With Wallet Address...");
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
-                result = STAR.OASISAPI.Keys.GenerateKeyPairAndLinkProviderKeysToAvatarById(STAR.BeamedInAvatar.Id, (ProviderType)providerObj, true, true, providerToLoadAvatarFrom);
+                result = STAR.OASISAPI.Keys.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(STAR.BeamedInAvatar.Id, (ProviderType)providerObj, true, true, true, true, providerToLoadAvatarFrom);
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
                 {
-                    CLIEngine.ShowMessage($"Public Key: {result.Result.PublicKey}");
-                    CLIEngine.ShowMessage($"Private Key: {result.Result.PrivateKey}");
+                    CLIEngine.ShowSuccessMessage($"KeyPair & Wallet Address Successfully Generated.");
+                    Console.WriteLine("");
+                    STARCLI.Wallets.ShowWallet(result.Result);
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured generating keypair. Reason: {result.Message}");
@@ -332,7 +448,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
 
                 foreach (KeyPair keyPair in keys[providerType])
-                    CLIEngine.ShowMessage(string.Concat("Public: ", keyPair.PublicKey != null ? keyPair.PublicKey.PadRight(55) : "".PadRight(55), "Private: ", keyPair.PrivateKey), false);
+                    CLIEngine.ShowMessage(string.Concat("Public: ", keyPair.PublicKey != null ? keyPair.PublicKey.PadRight(65) : "".PadRight(65), "Private: ", keyPair.PrivateKey), false);
             }
         }
     }

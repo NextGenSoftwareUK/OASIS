@@ -1910,8 +1910,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "public")
                                 await STARCLI.Keys.LinkProviderPublicKeyToBeamedInAvatarWalletAsync(providerType);
 
+                            else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "walletaddress")
+                                await STARCLI.Keys.LinkProviderWalletAddressToBeamedInAvatarWalletAsync(providerType);
+
                             else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "generate")
-                                STARCLI.Keys.GenerateKeyPairAndLinkProviderKeysToBeamedInAvatarWallet(providerType);
+                                STARCLI.Keys.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToBeamedInAvatarWallet(providerType);
 
                             else
                                 await STARCLI.Keys.LinkProviderKeyToBeamedInAvatarWalletAsync(providerType);
@@ -1926,6 +1929,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "public")
                                 STARCLI.Keys.ListAllProviderPublicKeysForBeamedInAvatar(providerType);
 
+                            else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "walletaddress")
+                                STARCLI.Keys.ListAllProviderWalletAddressesForBeamedInAvatar(providerType);
+
                             else if (inputArgs.Length > 2 && inputArgs[2].ToLower() == "keypair")
                                 STARCLI.Keys.ListAllProviderKeyPairsForBeamedInAvatar(providerType);
 
@@ -1938,7 +1944,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "generate":
-                        STARCLI.Keys.GenerateKeyPair(providerType);
+                        STARCLI.Keys.GenerateKeyPairWithWallet(providerType);
                         break;
 
                     default:
@@ -1951,14 +1957,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"KEYS SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    link [private/public/generate]         Links a OASIS Provider Key (private or public) to the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    list [private/public/keypair/storage]  Shows the keys (private, public, keypair or storage) for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    generate                               Generates a unique keyvalue pair of private/public keys.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    link [private/public/walletaddress/generate]         Links a OASIS Provider Key (private, public or wallet address) to the beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list [private/public/walletaddress/keypair/storage]  Shows the keys (private, public, wallet address, keypair or storage) for the beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    generate                                             Generates a unique keyvalue pair of private/public/wallet address keys.", ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("For the link sub-command, if [generate] is included it will generate a keyvalue pair and then link.", ConsoleColor.Green);
-
-
+                CLIEngine.ShowMessage("For the link sub-command, if [generate] is included it will generate a keyvalue pair (and wallet address) and then link.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -2014,12 +2018,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         CLIEngine.ShowMessage("Coming soon...");
                         break;
 
-                    case "add":
-                        CLIEngine.ShowMessage("Coming soon...");
+                    //case "add":
+                    //    CLIEngine.ShowMessage("Coming soon...");
+                    //    break;
+
+                    case "update":
+                        await STARCLI.Wallets.UpdateWallet(providerType);
                         break;
 
                     case "list":
-                        await STARCLI.Wallets.ListProviderWalletsForBeamedInAvatarAsync(providerTypeToLoadFrom: providerType);
+                        {
+                            bool showOnlyDefault = false;
+                            if (inputArgs.Length > 2 && inputArgs[2] == "default")
+                                showOnlyDefault = true;
+
+                            await STARCLI.Wallets.ListProviderWalletsForBeamedInAvatarAsync(showOnlyDefault: showOnlyDefault, providerTypeToLoadFrom: providerType);
+                        }
                         break;
 
                     case "balance":
@@ -2049,11 +2063,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    import publicKey   [publickey]                Imports a wallet using the publicKey.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    import secretPhase [secretPhase]              Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    import json        [jsonFile]                 Imports a wallet using the jsonFile.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    add                                           Adds a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    list                                          Lists the wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    add                                           Adds a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    update                                        Updates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list               [default]                  Lists the wallets for the currently beamed in avatar. If [default] param is included it will only list the default wallets.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    balance                                       Gets the total balance for all wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    balance            [walletId] [providerType]  Gets the balance for the given wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
 
+                CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
+                CLIEngine.ShowMessage("To add a wallet please link a private key, public key or wallet address to your avatar using the keys sub-commands.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
