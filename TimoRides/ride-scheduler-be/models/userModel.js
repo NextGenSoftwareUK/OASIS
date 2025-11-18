@@ -99,6 +99,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+
+    // Paystack integration fields
+    paystackRecipientCode: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

@@ -2,15 +2,19 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.TelegramOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Models;
+using NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Models.TimoRides;
+using NextGenSoftware.OASIS.API.Providers.TelegramOASIS.Services;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
@@ -18,20 +22,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
     /// <summary>
     /// Service for handling Telegram bot commands and interactions
     /// </summary>
-    public class TelegramBotService
+    public partial class TelegramBotService
     {
         private readonly TelegramBotClient _botClient;
         private readonly TelegramOASIS _telegramProvider;
         private readonly AvatarManager _avatarManager;
         private readonly AchievementManager _achievementManager;
+        private readonly TimoRidesApiService _timoRidesService;
+        private readonly RideBookingStateManager _rideStateManager;
+        private readonly GoogleMapsService _mapsService;
         private CancellationTokenSource _cts;
 
-        public TelegramBotService(string botToken, TelegramOASIS telegramProvider, AvatarManager avatarManager, AchievementManager achievementManager)
+        public TelegramBotService(
+            string botToken,
+            TelegramOASIS telegramProvider,
+            AvatarManager avatarManager,
+            AchievementManager achievementManager,
+            TimoRidesApiService timoRidesService,
+            RideBookingStateManager rideStateManager,
+            GoogleMapsService mapsService)
         {
             _botClient = new TelegramBotClient(botToken);
             _telegramProvider = telegramProvider;
             _avatarManager = avatarManager;
             _achievementManager = achievementManager;
+            _timoRidesService = timoRidesService;
+            _rideStateManager = rideStateManager;
+            _mapsService = mapsService;
         }
 
         /// <summary>
@@ -64,6 +81,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
+            if (update.Type == UpdateType.Message && update.Message?.Location != null)
+            {
+                await HandleLocationMessageAsync(update.Message, cancellationToken);
+                return;
+            }
+
+            if (update.Type == UpdateType.CallbackQuery && update.CallbackQuery != null)
+            {
+                await HandleRideCallbackQueryAsync(update.CallbackQuery, cancellationToken);
+                return;
+            }
+
             if (update.Message is not { } message)
                 return;
             
@@ -160,6 +189,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 case "/leaderboard":
                     await HandleLeaderboardCommandAsync(chatId, userId, cancellationToken);
+                    break;
+
+                case "/bookride":
+                case "/myrides":
+                case "/track":
+                case "/rate":
+                case "/cancel":
+                    await HandleRideCommandAsync(message, cancellationToken);
+                    break;
+
+                case "/driveraction":
+                    await HandleDriverActionCommandAsync(message, cancellationToken);
+                    break;
+
+                case "/driverloc":
+                    await HandleDriverLocationCommandAsync(message, cancellationToken);
                     break;
 
                 case "/help":
@@ -501,6 +546,114 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             );
         }
 
+        private async Task HandleDriverActionCommandAsync(Message message, CancellationToken cancellationToken)
+        {
+            var chatId = message.Chat.Id;
+            var parts = message.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 4)
+            {
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    "Usage: /driveraction <bookingId> <driverId> <action> [reason]",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            var bookingId = parts[1];
+            var driverId = parts[2];
+            var action = parts[3];
+            var reason = parts.Length > 4 ? string.Join(' ', parts.Skip(4)) : null;
+
+            await SendDriverActionAsync(
+                chatId,
+                message.From,
+                bookingId,
+                driverId,
+                action,
+                reason,
+                cancellationToken);
+        }
+
+        private async Task HandleDriverLocationCommandAsync(Message message, CancellationToken cancellationToken)
+        {
+            var chatId = message.Chat.Id;
+            var parts = message.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 3)
+            {
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    "Usage: /driverloc <bookingId> <driverId>",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            var bookingId = parts[1];
+            var driverId = parts[2];
+
+            await _rideStateManager.SetPendingDriverLocationAsync(message.From.Id, driverId, bookingId);
+
+            await _botClient.SendTextMessageAsync(
+                chatId,
+                "📍 Ready to capture your live location.\n\n" +
+                "Please share your location within the next 5 minutes using Telegram's attachment button.",
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task SendDriverActionAsync(
+            long chatId,
+            Telegram.Bot.Types.User actor,
+            string bookingId,
+            string driverId,
+            string action,
+            string reason,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var payload = new DriverActionPayload
+                {
+                    BookingId = bookingId,
+                    DriverId = driverId,
+                    Action = action,
+                    ChatId = chatId.ToString(),
+                    Meta = new DriverActionMeta
+                    {
+                        Reason = reason,
+                        ActorTelegramId = actor.Id,
+                        ActorUsername = actor.Username
+                    }
+                };
+
+                var response = await _timoRidesService.NotifyDriverActionAsync(payload);
+
+                await _rideStateManager.RecordDriverSignalAsync(
+                    actor.Id,
+                    new DriverSignalAuditEntry
+                    {
+                        Action = action,
+                        BookingId = bookingId,
+                        PayloadJson = JsonSerializer.Serialize(payload),
+                        Timestamp = DateTime.UtcNow,
+                        TraceId = response?.TraceId ?? payload.TraceId
+                    });
+
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    $"✅ Sent *{action}* for booking `{bookingId}`\nTrace ID: `{response?.TraceId ?? payload.TraceId}`",
+                    parseMode: ParseMode.Markdown,
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                await _botClient.SendTextMessageAsync(
+                    chatId,
+                    $"❌ Driver action failed: {ex.Message}",
+                    cancellationToken: cancellationToken);
+            }
+        }
+
         private async Task HandleHelpCommandAsync(long chatId, CancellationToken cancellationToken)
         {
             var helpText = @"
@@ -514,6 +667,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 /mystats - View your karma and achievements
 /mygroups - View your groups
 /leaderboard - View group leaderboard
+/bookride - Book a Timo ride
+/myrides - View your ride history
+/track <id> - Track an active ride
+/rate <id> - Rate a completed ride
+/cancel <id> - Cancel a booking
+/driveraction <bookingId> <driverId> <action> - Send driver action
+/driverloc <bookingId> <driverId> - Share driver location
 /help - Show this help message
 
 Questions? Join our support group!

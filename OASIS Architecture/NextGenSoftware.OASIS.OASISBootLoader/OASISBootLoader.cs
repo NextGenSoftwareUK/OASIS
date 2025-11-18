@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
@@ -822,6 +823,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.RadixOASIS:
+                            {
+                                RadixOASIS radixOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.RadixOASIS.HostUri,
+                                    OASISDNA.OASIS.StorageProviders.RadixOASIS.NetworkId,
+                                    OASISDNA.OASIS.StorageProviders.RadixOASIS.AccountAddress,
+                                    OASISDNA.OASIS.StorageProviders.RadixOASIS.PrivateKey);
+                                radixOASIS.OnStorageProviderError += RadixOASIS_StorageProviderError;
+                                result.Result = radixOASIS;
+                            }
+                            break;
+
                         case ProviderType.EOSIOOASIS:
                             {
                                 EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(
@@ -1398,6 +1411,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void SolanaOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("SolanaOASIS", e);
+        }
+
+        private static void RadixOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("RadixOASIS", e);
         }
 
         private static void HoloOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)

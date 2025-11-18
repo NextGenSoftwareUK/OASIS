@@ -25,12 +25,34 @@ const RequestPaymentSchema = new Schema(
 
     status: {
       type: String,
-      enum: ['pending', 'completed', 'processing'],
+      enum: ['pending', 'completed', 'processing', 'failed'],
       default: 'pending',
     },
 
     role: {
       type: String,
+    },
+
+    // Paystack integration fields
+    provider: {
+      type: String,
+      enum: ['paystack', 'mpesa', 'cash'],
+      default: null,
+    },
+
+    providerReference: {
+      type: String,
+      default: null,
+    },
+
+    statusHistory: {
+      type: Array,
+      default: [],
+    },
+
+    failureReason: {
+      type: String,
+      default: null,
     },
   },
   {

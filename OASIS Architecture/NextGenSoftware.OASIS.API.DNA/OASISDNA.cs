@@ -257,6 +257,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public IPFSOASISSettings IPFSOASIS { get; set; }
         public Neo4jOASISSettings Neo4jOASIS { get; set; }
         public SolanaOASISSettings SolanaOASIS { get; set; }
+        public RadixOASISProviderSettings RadixOASIS { get; set; }
         public CargoOASISSettings CargoOASIS { get; set; }
         public LocalFileOASISSettings LocalFileOASIS { get; set; }
         public PinataOASISSettings PinataOASIS { get; set; }
@@ -320,6 +321,14 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string WalletMnemonicWords { get; set; }
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
+    }
+
+    public class RadixOASISProviderSettings : ProviderSettingsBase
+    {
+        public string HostUri { get; set; }
+        public byte NetworkId { get; set; }
+        public string AccountAddress { get; set; }
+        public string PrivateKey { get; set; }
     }
 
     //public class HoloOASISProviderSettings : ProviderSettingsBase
