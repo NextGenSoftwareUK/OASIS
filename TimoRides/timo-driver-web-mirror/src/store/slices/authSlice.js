@@ -52,11 +52,16 @@ export const checkAuth = createAsyncThunk('auth/checkAuth', async () => {
   const driverId = localStorage.getItem(STORAGE_KEYS.DRIVER_ID);
   
   if (token && userData) {
-    return {
-      token,
-      user: JSON.parse(userData),
-      driverId,
-    };
+    try {
+      return {
+        token,
+        user: JSON.parse(userData),
+        driverId: driverId || JSON.parse(userData)?.id,
+      };
+    } catch (e) {
+      console.error('Error parsing user data:', e);
+      return null;
+    }
   }
   return null;
 });
