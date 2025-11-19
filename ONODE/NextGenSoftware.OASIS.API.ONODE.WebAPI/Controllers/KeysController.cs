@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("link_provider_public_key_to_avatar_by_id")]
-        public OASISResult<Guid> LinkProviderPublicKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             bool isValid;
             string errorMessage = "";
@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (isValid)
                 return KeyManager.LinkProviderPublicKeyToAvatarById(linkProviderKeyToAvatarParams.WalletId, avatarID, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey);
             else
-                return new OASISResult<Guid>(Guid.Empty) { IsError = true, Message = errorMessage };
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
 
@@ -80,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("link_provider_public_key_to_avatar_by_username")]
-        public OASISResult<Guid> LinkProviderPublicKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             bool isValid;
             string errorMessage = "";
@@ -92,7 +92,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (isValid)
                 return KeyManager.LinkProviderPublicKeyToAvatarByUsername(linkProviderKeyToAvatarParams.WalletId, linkProviderKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey);
             else
-                return new OASISResult<Guid>(Guid.Empty) { IsError = true, Message = errorMessage };
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("link_provider_public_key_to_avatar_by_email")]
-        public OASISResult<Guid> LinkProviderPublicKeyToAvatarByEmail(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
+        public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatarByEmail(LinkProviderKeyToAvatarParams linkProviderKeyToAvatarParams)
         {
             bool isValid;
             string errorMessage = "";
@@ -114,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (isValid)
                 return KeyManager.LinkProviderPublicKeyToAvatarByEmail(linkProviderKeyToAvatarParams.WalletId, linkProviderKeyToAvatarParams.AvatarEmail, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey);
             else
-                return new OASISResult<Guid>(Guid.Empty) { IsError = true, Message = errorMessage };
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("link_provider_private_key_to_avatar_by_id")]
-        public OASISResult<Guid> LinkProviderPrivateKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
+        public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatarByAvatarId(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         {
             bool isValid;
             string errorMessage = "";
@@ -136,7 +136,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (isValid)
                 return KeyManager.LinkProviderPrivateKeyToAvatarById(linkProviderPrivateKeyToAvatarParams.WalletId, avatarID, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey);
             else
-                return new OASISResult<Guid>(Guid.Empty) { IsError = true, Message = errorMessage };
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("link_provider_private_key_to_avatar_by_username")]
-        public OASISResult<Guid> LinkProviderPrivateKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
+        public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderPrivateKeyToAvatarParams)
         {
             bool isValid;
             string errorMessage = "";
@@ -158,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (isValid)
                 return KeyManager.LinkProviderPrivateKeyToAvatarByUsername(linkProviderPrivateKeyToAvatarParams.WalletId, linkProviderPrivateKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey);
             else
-                return new OASISResult<Guid>(Guid.Empty) { IsError = true, Message = errorMessage };
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
         //TODO: Could this method cause a security issue by passing their private key and email (packet sniffers, etc) in the same request?
@@ -195,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("generate_keypair_and_link_provider_keys_to_avatar_by_id")]
-        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarId(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
+        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarId(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         {
             bool isValid;
             string errorMessage = "";
@@ -207,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (isValid)
                 return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
-                return new OASISResult<KeyPair>() { IsError = true, Message = errorMessage };
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("generate_keypair_and_link_provider_keys_to_avatar_by_username")]
-        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarUsername(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
+        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarUsername(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         {
             bool isValid;
             string errorMessage = "";
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (isValid)
                 return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByUsername(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarUsername, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
-                return new OASISResult<KeyPair>() { IsError = true, Message = errorMessage };
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
@@ -239,7 +239,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("generate_keypair_and_link_provider_keys_to_avatar_by_email")]
-        public OASISResult<KeyPair> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarEmail(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
+        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByAvatarEmail(LinkProviderKeyToAvatarParams generateKeyPairAndLinkProviderKeysToAvatarParams)
         {
             bool isValid;
             string errorMessage = "";
@@ -251,7 +251,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (isValid)
                 return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByEmail(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarEmail, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
-                return new OASISResult<KeyPair>() { IsError = true, Message = errorMessage };
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
 
         /// <summary>
