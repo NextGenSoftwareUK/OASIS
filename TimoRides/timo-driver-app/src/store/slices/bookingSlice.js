@@ -69,6 +69,39 @@ const bookingSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    addSimulatedBooking: (state, action) => {
+      const newBooking = {
+        ...action.payload,
+        status: action.payload.status || 'pending',
+      };
+      // Only add if not already in the list
+      if (!state.pendingBookings.find((b) => b.id === newBooking.id)) {
+        state.pendingBookings.push(newBooking);
+      }
+      if (!state.bookings.find((b) => b.id === newBooking.id)) {
+        state.bookings.push(newBooking);
+      }
+    },
+    removePendingBooking: (state, action) => {
+      const bookingId = action.payload;
+      state.pendingBookings = state.pendingBookings.filter((b) => b.id !== bookingId);
+      state.bookings = state.bookings.filter((b) => b.id !== bookingId);
+    },
+    updateBookingStatus: (state, action) => {
+      const { id, status } = action.payload;
+      const bookingIndex = state.bookings.findIndex((b) => b.id === id);
+      if (bookingIndex !== -1) {
+        state.bookings[bookingIndex] = { ...state.bookings[bookingIndex], status };
+      }
+      // Update active booking if it matches
+      if (state.activeBooking?.id === id) {
+        state.activeBooking = { ...state.activeBooking, status };
+      }
+      // Update pending bookings
+      if (status !== 'pending') {
+        state.pendingBookings = state.pendingBookings.filter((b) => b.id !== id);
+      }
+    },
   },
   extraReducers: (builder) => {
     // Fetch All
@@ -126,6 +159,13 @@ const bookingSlice = createSlice({
   },
 });
 
-export const { setActiveBooking, clearActiveBooking, clearError } = bookingSlice.actions;
+export const { 
+  setActiveBooking, 
+  clearActiveBooking, 
+  clearError,
+  addSimulatedBooking,
+  removePendingBooking,
+  updateBookingStatus,
+} = bookingSlice.actions;
 export default bookingSlice.reducer;
 

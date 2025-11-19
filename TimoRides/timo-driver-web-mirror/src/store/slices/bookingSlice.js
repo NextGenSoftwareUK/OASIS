@@ -56,6 +56,31 @@ const bookingSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    addSimulatedBooking: (state, action) => {
+      const newBooking = {
+        ...action.payload,
+        status: action.payload.status || 'pending',
+      };
+      // Only add if not already in the list
+      if (!state.pendingBookings.find((b) => b.id === newBooking.id)) {
+        state.pendingBookings.push(newBooking);
+      }
+      if (!state.bookings.find((b) => b.id === newBooking.id)) {
+        state.bookings.push(newBooking);
+      }
+    },
+    removePendingBooking: (state, action) => {
+      const bookingId = action.payload;
+      state.pendingBookings = state.pendingBookings.filter((b) => b.id !== bookingId);
+      state.bookings = state.bookings.filter((b) => b.id !== bookingId);
+    },
+    updateBookingStatus: (state, action) => {
+      const { id, status } = action.payload;
+      const bookingIndex = state.bookings.findIndex((b) => b.id === id);
+      if (bookingIndex !== -1) {
+        state.bookings[bookingIndex] = { ...state.bookings[bookingIndex], status };
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -83,6 +108,14 @@ const bookingSlice = createSlice({
         state.pendingBookings = state.pendingBookings.filter(
           (b) => b.id !== booking.id
         );
+        // Update booking status in bookings array
+        const bookingIndex = state.bookings.findIndex((b) => b.id === booking.id);
+        if (bookingIndex !== -1) {
+          state.bookings[bookingIndex] = { ...state.bookings[bookingIndex], status: 'accepted' };
+        }
+      })
+      .addCase(acceptBooking.rejected, (state, action) => {
+        state.error = action.payload || 'Failed to accept booking';
       })
       .addCase(cancelBooking.fulfilled, (state, action) => {
         const bookingId = action.payload.id || action.meta.arg;
@@ -96,6 +129,6 @@ const bookingSlice = createSlice({
   },
 });
 
-export const { setActiveBooking, clearActiveBooking, clearError } = bookingSlice.actions;
+export const { setActiveBooking, clearActiveBooking, clearError, addSimulatedBooking, removePendingBooking, updateBookingStatus } = bookingSlice.actions;
 export default bookingSlice.reducer;
 

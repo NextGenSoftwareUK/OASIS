@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import {
   ArrowBack,
-  Cash,
+  AttachMoney,
   Settings,
   Help,
   Logout,
@@ -86,7 +86,7 @@ const ProfileScreen = () => {
             sx={{ borderRadius: 2, mb: 1 }}
           >
             <ListItemIcon>
-              <Cash color="primary" />
+              <AttachMoney color="primary" />
             </ListItemIcon>
             <ListItemText primary="Earnings" />
           </ListItem>
