@@ -312,7 +312,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        //public static STARTests STARTests { get; } = new STARTests();
+        public static Keys Keys
+        {
+            get
+            {
+                if (!IsSTARIgnited)
+                    IgniteSTAR();
+
+                return new Keys();
+            }
+        }
+
+        public static Wallets Wallets
+        {
+            get
+            {
+                if (!IsSTARIgnited)
+                    IgniteSTAR();
+
+                return new Wallets();
+            }
+        }
 
         public static STARTests STARTests
         {
