@@ -3,6 +3,7 @@ using System.ComponentModel;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -14,60 +15,67 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public Guid CreatedByAvatarId { get; set; }
 
-        public IAvatar CreatedByAvatar
-        {
-            get
-            {
-                if (_createdByAvatar == null && CreatedByAvatarId != Guid.Empty)
-                {
-                    OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(CreatedByAvatarId);
+        //TODO: Fix later! Was causing issues with seriilaiation even though we have JsonIgnore! lol
+        [JsonIgnore]
+        public IAvatar CreatedByAvatar { get; set; }
 
-                    if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
-                        _createdByAvatar = avatarResult.Result;
-                }
+        //public IAvatar CreatedByAvatar
+        //{
+        //    get
+        //    {
+        //        if (_createdByAvatar == null && CreatedByAvatarId != Guid.Empty)
+        //        {
+        //            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(CreatedByAvatarId);
 
-                return _createdByAvatar;
-            }
-            set
-            {
-                if (value != _createdByAvatar)
-                {
-                    IsChanged = true;
-                    NotifyPropertyChanged("CreatedByAvatar");
-                }
+        //            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+        //                _createdByAvatar = avatarResult.Result;
+        //        }
 
-                _createdByAvatar = value;
-            }
-        }
+        //        return _createdByAvatar;
+        //    }
+        //    set
+        //    {
+        //        if (value != _createdByAvatar)
+        //        {
+        //            IsChanged = true;
+        //            NotifyPropertyChanged("CreatedByAvatar");
+        //        }
+
+        //        _createdByAvatar = value;
+        //    }
+        //}
 
         public DateTime CreatedDate { get; set; }
         public Guid ModifiedByAvatarId { get; set; }
 
-        public IAvatar ModifiedByAvatar
-        {
-            get
-            {
-                if (_modifiedByAvatar == null && ModifiedByAvatarId != Guid.Empty)
-                {
-                    OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(ModifiedByAvatarId);
+        [JsonIgnore]
+        public IAvatar ModifiedByAvatar { get; set; }
 
-                    if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
-                        _modifiedByAvatar = avatarResult.Result;
-                }
+        //public IAvatar ModifiedByAvatar
+        //{
+        //    get
+        //    {
+        //        if (_modifiedByAvatar == null && ModifiedByAvatarId != Guid.Empty)
+        //        {
+        //            OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(ModifiedByAvatarId);
 
-                return _modifiedByAvatar;
-            }
-            set
-            {
-                if (value != _modifiedByAvatar)
-                {
-                    IsChanged = true;
-                    NotifyPropertyChanged("ModifiedByAvatar");
-                }
+        //            if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+        //                _modifiedByAvatar = avatarResult.Result;
+        //        }
 
-                _modifiedByAvatar = value;
-            }
-        }
+        //        return _modifiedByAvatar;
+        //    }
+        //    set
+        //    {
+        //        if (value != _modifiedByAvatar)
+        //        {
+        //            IsChanged = true;
+        //            NotifyPropertyChanged("ModifiedByAvatar");
+        //        }
+
+        //        _modifiedByAvatar = value;
+        //    }
+        //}
 
         public DateTime ModifiedDate { get; set; }
         public Guid DeletedByAvatarId { get; set; }

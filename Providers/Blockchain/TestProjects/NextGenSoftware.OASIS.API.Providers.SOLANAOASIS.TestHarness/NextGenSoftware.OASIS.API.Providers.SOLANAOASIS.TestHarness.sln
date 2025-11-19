@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36603.0 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj", "{70A854CE-D21E-E604-0EE5-176DE988E827}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS", "..\..\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj", "{536BD2A7-6323-4F20-02C3-8206D136CDC8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Core", "..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj", "{942D2A3C-5F7D-8F83-EA54-68C4CE866316}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.DNA", "..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj", "{1CD6FAA2-EE8C-B0B3-90A6-9B39677CEDB8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{70A854CE-D21E-E604-0EE5-176DE988E827}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70A854CE-D21E-E604-0EE5-176DE988E827}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70A854CE-D21E-E604-0EE5-176DE988E827}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70A854CE-D21E-E604-0EE5-176DE988E827}.Release|Any CPU.Build.0 = Release|Any CPU
+		{536BD2A7-6323-4F20-02C3-8206D136CDC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{536BD2A7-6323-4F20-02C3-8206D136CDC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{536BD2A7-6323-4F20-02C3-8206D136CDC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{536BD2A7-6323-4F20-02C3-8206D136CDC8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{942D2A3C-5F7D-8F83-EA54-68C4CE866316}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{942D2A3C-5F7D-8F83-EA54-68C4CE866316}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{942D2A3C-5F7D-8F83-EA54-68C4CE866316}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{942D2A3C-5F7D-8F83-EA54-68C4CE866316}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CD6FAA2-EE8C-B0B3-90A6-9B39677CEDB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CD6FAA2-EE8C-B0B3-90A6-9B39677CEDB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CD6FAA2-EE8C-B0B3-90A6-9B39677CEDB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CD6FAA2-EE8C-B0B3-90A6-9B39677CEDB8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ED6E2547-9B28-4496-A440-C630C4A562E8}
+	EndGlobalSection
+EndGlobal
