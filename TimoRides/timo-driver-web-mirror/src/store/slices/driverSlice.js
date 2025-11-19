@@ -44,6 +44,12 @@ const driverSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    setTestStatus: (state, action) => {
+      // For test mode, directly update status
+      state.isOffline = action.payload.isOffline;
+      state.isOnline = !action.payload.isOffline;
+      state.isActive = action.payload.isActive;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -81,6 +87,6 @@ const driverSlice = createSlice({
   },
 });
 
-export const { setLocation, clearError } = driverSlice.actions;
+export const { setLocation, clearError, setTestStatus } = driverSlice.actions;
 export default driverSlice.reducer;
 

@@ -5,28 +5,59 @@ import { Provider, useSelector, useDispatch } from 'react-redux';
 import { store } from './store/store';
 import { checkAuth } from './store/slices/authSlice';
 import { theme, globalStyles } from './utils/theme';
+import ErrorBoundary from './ErrorBoundary';
 
 // Screens
 import LoginScreen from './screens/Auth/LoginScreen';
 import RegisterScreen from './screens/Auth/RegisterScreen';
 import HomeScreen from './screens/Home/HomeScreen';
 import RideRequestScreen from './screens/Rides/RideRequestScreen';
+import ActiveRideScreen from './screens/Rides/ActiveRideScreen';
+import TripCompleteScreen from './screens/Rides/TripCompleteScreen';
 import EarningsDashboard from './screens/Earnings/EarningsDashboard';
 import ProfileScreen from './screens/Profile/ProfileScreen';
+import HistoryScreen from './screens/History/HistoryScreen';
+import NotificationsScreen from './screens/Notifications/NotificationsScreen';
+import HelpScreen from './screens/Help/HelpScreen';
+import SettingsScreen from './screens/Settings/SettingsScreen';
 
 // Inject global styles
-const styleSheet = document.createElement('style');
-styleSheet.textContent = globalStyles;
-document.head.appendChild(styleSheet);
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = globalStyles;
+  document.head.appendChild(styleSheet);
+}
 
-const PrivateRoute = ({ children }) => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
-  return isAuthenticated ? children : <Navigate to="/login" />;
-};
+function App() {
+  return (
+    <ErrorBoundary>
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </ThemeProvider>
+      </Provider>
+    </ErrorBoundary>
+  );
+}
 
 const AppRoutes = () => {
   const dispatch = useDispatch();
   const { isAuthenticated } = useSelector((state) => state.auth);
+  
+  // Check for test token in localStorage
+  const hasTestAuth = typeof window !== 'undefined' && localStorage.getItem('timo_driver_auth_token');
+  const isAuth = isAuthenticated || hasTestAuth;
+
+  // PrivateRoute must be defined inside AppRoutes to have access to Provider context
+  const PrivateRoute = ({ children }) => {
+    const { isAuthenticated: authState } = useSelector((state) => state.auth);
+    // Also check localStorage for test token
+    const hasTestAuth = typeof window !== 'undefined' && localStorage.getItem('timo_driver_auth_token');
+    return (authState || hasTestAuth) ? children : <Navigate to="/login" />;
+  };
 
   useEffect(() => {
     dispatch(checkAuth());
@@ -36,11 +67,11 @@ const AppRoutes = () => {
     <Routes>
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/home" /> : <LoginScreen />}
+        element={isAuth ? <Navigate to="/home" /> : <LoginScreen />}
       />
       <Route
         path="/register"
-        element={isAuthenticated ? <Navigate to="/home" /> : <RegisterScreen />}
+        element={isAuth ? <Navigate to="/home" /> : <RegisterScreen />}
       />
       <Route
         path="/home"
@@ -55,6 +86,22 @@ const AppRoutes = () => {
         element={
           <PrivateRoute>
             <RideRequestScreen />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/active-ride/:id"
+        element={
+          <PrivateRoute>
+            <ActiveRideScreen />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/trip-complete/:id"
+        element={
+          <PrivateRoute>
+            <TripCompleteScreen />
           </PrivateRoute>
         }
       />
@@ -74,21 +121,40 @@ const AppRoutes = () => {
           </PrivateRoute>
         }
       />
+      <Route
+        path="/history"
+        element={
+          <PrivateRoute>
+            <HistoryScreen />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <PrivateRoute>
+            <NotificationsScreen />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/help"
+        element={
+          <PrivateRoute>
+            <HelpScreen />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <PrivateRoute>
+            <SettingsScreen />
+          </PrivateRoute>
+        }
+      />
       <Route path="/" element={<Navigate to="/login" />} />
     </Routes>
-  );
-};
-
-function App() {
-  return (
-    <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </ThemeProvider>
-    </Provider>
   );
 }
 

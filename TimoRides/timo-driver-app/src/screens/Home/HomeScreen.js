@@ -10,7 +10,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getDriverStatus, updateDriverStatus } from '../../store/slices/driverSlice';
-import { fetchBookings } from '../../store/slices/bookingSlice';
+import { fetchBookings, addSimulatedBooking, setActiveBooking, removePendingBooking, updateBookingStatus } from '../../store/slices/bookingSlice';
 import { TimoColors, Spacing, BorderRadius, GlowStyles } from '../../utils/theme';
 import { BOOKING_POLL_INTERVAL } from '../../utils/constants';
 
@@ -62,6 +62,104 @@ const HomeScreen = () => {
 
   const handleRideRequest = (booking) => {
     navigation.navigate('RideRequest', { booking });
+  };
+
+  const handleSimulateRideRequest = () => {
+    // Durban area locations with proper coordinates
+    const locations = [
+      { 
+        pickup: 'Durban Central', 
+        pickupLat: -29.8587, 
+        pickupLng: 31.0218,
+        destination: 'Umhlanga Beach', 
+        destLat: -29.7284, 
+        destLng: 31.0819,
+        amount: 250 
+      },
+      { 
+        pickup: 'Umhlanga', 
+        pickupLat: -29.7284, 
+        pickupLng: 31.0819,
+        destination: 'Durban Airport', 
+        destLat: -29.6144, 
+        destLng: 31.1197,
+        amount: 320 
+      },
+      { 
+        pickup: 'Gateway Mall', 
+        pickupLat: -29.7284, 
+        pickupLng: 31.0819,
+        destination: 'Durban Central', 
+        destLat: -29.8587, 
+        destLng: 31.0218,
+        amount: 180 
+      },
+      { 
+        pickup: 'Berea', 
+        pickupLat: -29.8500, 
+        pickupLng: 30.9900,
+        destination: 'Glenwood', 
+        destLat: -29.8700, 
+        destLng: 31.0000,
+        amount: 150 
+      },
+      { 
+        pickup: 'Morningside', 
+        pickupLat: -29.8300, 
+        pickupLng: 31.0100,
+        destination: 'Westville', 
+        destLat: -29.8200, 
+        destLng: 30.9300,
+        amount: 200 
+      },
+    ];
+    
+    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+    const riders = ['Alvin Armstrong', 'Sarah Johnson', 'Mike Thompson', 'Emma Davis', 'John Smith'];
+    const randomRider = riders[Math.floor(Math.random() * riders.length)];
+    
+    // Calculate distance and duration based on coordinates
+    const latDiff = Math.abs(randomLocation.destLat - randomLocation.pickupLat);
+    const lngDiff = Math.abs(randomLocation.destLng - randomLocation.pickupLng);
+    const distanceKm = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 111; // Rough conversion
+    const durationMin = Math.round(distanceKm * 2); // Rough estimate: 2 min per km
+    
+    // Generate booking ID
+    const bookingId = `sim-${Date.now()}`;
+    
+    const mockBooking = {
+      id: bookingId,
+      status: 'pending',
+      fullName: randomRider,
+      phoneNumber: `+27 82 ${Math.floor(Math.random() * 9000) + 1000} ${Math.floor(Math.random() * 9000) + 1000}`,
+      sourceLocation: {
+        address: randomLocation.pickup,
+        latitude: randomLocation.pickupLat,
+        longitude: randomLocation.pickupLng,
+      },
+      destinationLocation: {
+        address: randomLocation.destination,
+        latitude: randomLocation.destLat,
+        longitude: randomLocation.destLng,
+      },
+      tripAmount: randomLocation.amount,
+      tripDistance: `${distanceKm.toFixed(1)} km`,
+      tripDuration: `${durationMin} min`,
+      passengers: Math.floor(Math.random() * 3) + 1,
+      isCash: Math.random() > 0.5,
+      currency: {
+        symbol: 'R',
+        code: 'ZAR',
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    dispatch(addSimulatedBooking(mockBooking));
+    
+    // Navigate to the ride request screen after a short delay
+    setTimeout(() => {
+      navigation.navigate('RideRequest', { booking: mockBooking });
+    }, 500);
   };
 
   return (
@@ -165,6 +263,15 @@ const HomeScreen = () => {
           {isOnline ? 'GO OFFLINE' : 'GO ONLINE'}
         </Button>
       </View>
+
+      {/* Simulate Ride Button (for testing) */}
+      <FAB
+        icon="plus"
+        style={[styles.fab, styles.simulateFab]}
+        label="Simulate Ride"
+        onPress={handleSimulateRideRequest}
+        color={TimoColors.white}
+      />
 
       {/* Quick Actions FAB */}
       <FAB
@@ -273,6 +380,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: Spacing.md,
     top: 100,
+    backgroundColor: TimoColors.primary,
+  },
+  simulateFab: {
+    bottom: 180,
+    top: 'auto',
     backgroundColor: TimoColors.primary,
   },
 });
