@@ -118,6 +118,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
+                            if (NFT.MetaData == null)
+                                NFT.MetaData = new Dictionary<string, object>();
+
                             NFT.MetaData["Web5STARNFTId"] = saveResult.Result.Id;
                             OASISResult<IWeb4OASISNFT> web4NFT = await NFTCommon.NFTManager.UpdateNFTAsync(new UpdateWeb4GeoNFTRequest() { Id = NFT.Id, ModifiedByAvatarId = STAR.BeamedInAvatar.Id, MetaData = NFT.MetaData }, providerType: providerType);
 
@@ -145,7 +148,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IWeb4OASISNFT> result = new OASISResult<IWeb4OASISNFT>();
             IMintWeb4NFTRequest request = await NFTCommon.GenerateNFTRequestAsync();
 
-            CLIEngine.ShowWorkingMessage("Minting WEB4 OASIS NFT...");
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage("Minting WEB4 OASIS NFT & WEB3 NFT's...");
             result = await STAR.OASISAPI.NFTs.MintNftAsync(request);
 
             if (result != null && result.Result != null && !result.IsError)
@@ -227,11 +231,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     Console.WriteLine("");
                     DisplayProperty("WEB4 NFT DETAILS", "", displayFieldLength, false);
-                    ShowNFT(nft, showHeader: false, showFooter: false);
+                    ShowWeb4NFT(nft, showHeader: false, showFooter: false);
                 }
             }
 
-            CLIEngine.ShowDivider();
+            //CLIEngine.ShowDivider();
         }
 
         public async Task<OASISResult<IWeb4OASISNFT>> BurnNFTAsync(object mintParams = null)
@@ -585,7 +589,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 if (result.Result != null)
-                    ShowNFT(result.Result);
+                    ShowWeb4NFT(result.Result);
 
                 if (idOrName == "exit")
                     break;
@@ -646,7 +650,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB4 NFT's Found:");
 
                         for (int i = 0; i < nfts.Result.Count(); i++)
-                            ShowNFT(nfts.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
+                            ShowWeb4NFT(nfts.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No WEB4 NFT's Found.");
@@ -660,7 +664,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return nfts;
         }
 
-        private void ShowNFT(IWeb4OASISNFT web4NFT, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
+        private void ShowWeb4NFT(IWeb4OASISNFT web4NFT, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
         {
             if (DisplayFieldLength > displayFieldLength)
                 displayFieldLength = DisplayFieldLength;
@@ -675,15 +679,24 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             ShowNFTDetails(web4NFT, null, displayFieldLength);
 
-            DisplayProperty("WEB3 NFT's", "", displayFieldLength);
-            foreach (Web3NFT web3NFT in web4NFT.Web3NFTs)
+            if (web4NFT.Web3NFTs.Count > 0)
             {
-                ShowNFTDetails(web3NFT, web4NFT, displayFieldLength);
-                DisplayProperty("Send NFT Transaction Hash", web3NFT.SendNFTTransactionHash, displayFieldLength);
-                DisplayProperty("OASIS MintWallet Address", web3NFT.OASISMintWalletAddress, displayFieldLength);
-                DisplayProperty("Mint Transaction Hash", web3NFT.MintTransactionHash, displayFieldLength);
-                DisplayProperty("NFT Token Address", web3NFT.NFTTokenAddress, displayFieldLength);
-                DisplayProperty("Update Authority", web3NFT.UpdateAuthority, displayFieldLength);
+                Console.WriteLine("");
+                DisplayProperty("WEB3 NFT's", "", displayFieldLength);
+                Console.WriteLine("");
+
+                foreach (Web3NFT web3NFT in web4NFT.Web3NFTs)
+                {
+                    ShowNFTDetails(web3NFT, web4NFT, displayFieldLength);
+                    DisplayProperty("Send NFT Transaction Hash", web3NFT.SendNFTTransactionHash, displayFieldLength);
+                    DisplayProperty("OASIS MintWallet Address", web3NFT.OASISMintWalletAddress, displayFieldLength);
+                    DisplayProperty("Mint Transaction Hash", web3NFT.MintTransactionHash, displayFieldLength);
+                    DisplayProperty("NFT Token Address", web3NFT.NFTTokenAddress, displayFieldLength);
+                    DisplayProperty("Update Authority", web3NFT.UpdateAuthority, displayFieldLength);
+                    CLIEngine.ShowDivider();
+                }
+
+                CLIEngine.ShowMessage("NOTE: Only the deltas are shown between the WEB3 NFT and it's parent WEB4 NFT so if a field/property is not shown above for the WEB3 NFT then that means it defaults to it's parent WEB4 NFT.");
             }
 
             if (showFooter)

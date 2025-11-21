@@ -3030,7 +3030,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if ((web4NFT != null && displayMetaData && MetaDataHelper.GetMetaData(nft.MetaData) != MetaDataHelper.GetMetaData(web4NFT.MetaData)) || web4NFT == null)
                 MetaDataHelper.ShowMetaData(nft.MetaData, displayFieldLength);
 
-            CLIEngine.ShowDivider();
+            //CLIEngine.ShowDivider();
         }
 
 
