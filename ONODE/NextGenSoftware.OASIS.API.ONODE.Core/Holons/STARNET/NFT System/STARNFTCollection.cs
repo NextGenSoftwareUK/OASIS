@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
     {
         public STARNFTCollection() : base("STARNFTCollectionDNAJSON")
         {
-            this.HolonType = HolonType.STARNFTCollection;
+            this.HolonType = HolonType.Web5NFTCollection;
         }
 
         //We need to store this here as well as in the STARNETDNA so the OASIS SearchManager can search by it as well as HolonManager LoadByMetaData etc... later we will also be able to search the DNA (this may not be needed then depending on performance because it means searching the JSON in the DNA)...
