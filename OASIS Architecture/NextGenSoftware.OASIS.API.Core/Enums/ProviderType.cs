@@ -34,6 +34,7 @@
         AptosOASIS,
         AztecOASIS,
         ZcashOASIS,
+        MidenOASIS,
         OptimismOASIS,
         BNBChainOASIS,
         FantomOASIS,

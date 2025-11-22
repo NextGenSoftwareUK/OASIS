@@ -23,6 +23,7 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
     private const string Xrd = "XRD";
     private const string Zec = "ZEC";
     private const string Aztec = "AZTEC";
+    private const string Miden = "MIDEN";
     
     private readonly Dictionary<string, IOASISBridge> _bridgeMap;
     private readonly IExchangeRateService _exchangeRateService;
@@ -47,7 +48,15 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
         var from = fromToken.ToUpperInvariant();
         var to = toToken.ToUpperInvariant();
 
-        return (from == Zec && to == Aztec) || (from == Aztec && to == Zec);
+        // Zcash ↔ Aztec bridge
+        if ((from == Zec && to == Aztec) || (from == Aztec && to == Zec))
+            return true;
+
+        // Zcash ↔ Miden bridge (Track 4)
+        if ((from == Zec && to == Miden) || (from == Miden && to == Zec))
+            return true;
+
+        return false;
     }
 
     public CrossChainBridgeManager(
@@ -235,7 +244,7 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
         if (withdrawResult.IsError)
         {
             result.IsError = true;
-            result.Message = $"Zcash withdrawal failed: {withdrawResult.Message}";
+            result.Message = $"{request.FromToken} withdrawal failed: {withdrawResult.Message}";
             return result;
         }
 
@@ -243,7 +252,7 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
         if (depositResult.IsError)
         {
             result.IsError = true;
-            result.Message = $"Aztec deposit failed: {depositResult.Message}";
+            result.Message = $"{request.ToToken} deposit failed: {depositResult.Message}";
             return result;
         }
 
