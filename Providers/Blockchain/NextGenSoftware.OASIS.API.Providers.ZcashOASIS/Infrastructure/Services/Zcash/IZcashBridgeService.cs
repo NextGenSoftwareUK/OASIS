@@ -6,6 +6,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
     public interface IZcashBridgeService
     {
         Task<string> LockZECForBridgeAsync(decimal amount, string destinationChain, string destinationAddress, string viewingKey = null);
+        Task<OASISResult<string>> ReleaseZECAsync(string lockTxHash, decimal amount, string destinationAddress);
     }
 }
 

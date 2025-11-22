@@ -106,5 +106,45 @@ public class CreateBridgeOrderRequest
     /// User ID initiating the order
     /// </summary>
     public Guid UserId { get; set; }
+
+    /// <summary>
+    /// Optional viewing key for Zcash auditability
+    /// </summary>
+    public string ViewingKey { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Enables automatic viewing key audit logging
+    /// </summary>
+    public bool EnableViewingKeyAudit { get; set; }
+
+    /// <summary>
+    /// Serialized proof payload for privacy-preserving bridges
+    /// </summary>
+    public string ProofPayload { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Type of proof being submitted (e.g., "bridgeDeposit")
+    /// </summary>
+    public string ProofType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Forces proof verification step
+    /// </summary>
+    public bool RequireProofVerification { get; set; }
+
+    /// <summary>
+    /// Enables MPC session orchestration
+    /// </summary>
+    public bool EnableMpc { get; set; }
+
+    /// <summary>
+    /// MPC session identifier (output)
+    /// </summary>
+    public string MpcSessionId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Custom metadata for privacy routing/audit logs
+    /// </summary>
+    public string PrivacyMetadata { get; set; } = string.Empty;
 }
 

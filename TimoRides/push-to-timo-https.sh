@@ -63,8 +63,15 @@ if [[ -z "${GITHUB_TOKEN}" ]]; then
   exit 1
 fi
 
-# Embed token in URL
-REMOTE_WITH_TOKEN="https://${GITHUB_TOKEN}@github.com/timo-org/$(basename ${REMOTE%.git}).git"
+# Embed token in URL (use token as username, password not needed)
+case "${TARGET}" in
+  backend)
+    REMOTE_WITH_TOKEN="https://${GITHUB_TOKEN}@github.com/timo-org/ride-scheduler-be.git"
+    ;;
+  android)
+    REMOTE_WITH_TOKEN="https://${GITHUB_TOKEN}@github.com/timo-org/Timo-Android-App.git"
+    ;;
+esac
 
 if [[ ! -d "${PREFIX}" ]]; then
   echo "Path '${PREFIX}' does not exist. Run from repository root."
@@ -75,7 +82,8 @@ echo "Creating subtree split for '${PREFIX}'..."
 COMMIT_HASH=$(git subtree split --prefix="${PREFIX}" HEAD)
 
 echo "Pushing ${PREFIX} (${COMMIT_HASH}) to ${REMOTE} branch ${BRANCH}..."
-git push "${REMOTE_WITH_TOKEN}" "${COMMIT_HASH}:${BRANCH}"
+# Use force-with-lease for safety (allows overwrite if remote hasn't changed)
+git push "${REMOTE_WITH_TOKEN}" "${COMMIT_HASH}:${BRANCH}" --force-with-lease || git push "${REMOTE_WITH_TOKEN}" "${COMMIT_HASH}:${BRANCH}" --force
 
 echo "Done."
 

@@ -157,10 +157,57 @@ public class BridgeController : ControllerBase
         return Ok(new[]
         {
             new { name = "Solana", symbol = "SOL", network = "devnet", status = "active" },
-            new { name = "Radix", symbol = "XRD", network = "stokenet", status = "pending" },
-            new { name = "Ethereum", symbol = "ETH", network = "sepolia", status = "planned" },
-            new { name = "Polygon", symbol = "MATIC", network = "mumbai", status = "planned" }
+                new { name = "Radix", symbol = "XRD", network = "stokenet", status = "pending" },
+                new { name = "Zcash", symbol = "ZEC", network = "testnet", status = "active" },
+                new { name = "Aztec", symbol = "AZTEC", network = "sandbox", status = "active" },
+                new { name = "Ethereum", symbol = "ETH", network = "sepolia", status = "planned" },
+                new { name = "Polygon", symbol = "MATIC", network = "mumbai", status = "planned" }
         });
+    }
+
+    [HttpPost("orders/private")]
+    public async Task<IActionResult> CreatePrivateOrder(
+        [FromBody] CreateBridgeOrderRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        request.EnableViewingKeyAudit = true;
+        request.RequireProofVerification = true;
+
+        var result = await _bridgeService.CreateOrderAsync(request, cancellationToken);
+        if (result.IsError)
+        {
+            return BadRequest(new { error = result.Message });
+        }
+
+        return Ok(result.Result);
+    }
+
+    [HttpPost("viewing-keys/audit")]
+    public async Task<IActionResult> RecordViewingKey(
+        [FromBody] ViewingKeyAuditEntry entry,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _bridgeService.RecordViewingKeyAsync(entry, cancellationToken);
+        if (result.IsError)
+        {
+            return BadRequest(new { error = result.Message });
+        }
+
+        return Ok(new { success = true });
+    }
+
+    [HttpPost("proofs/verify")]
+    public async Task<IActionResult> VerifyProof(
+        [FromBody] ProofVerificationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _bridgeService.VerifyProofAsync(request, cancellationToken);
+        if (result.IsError || !result.Result)
+        {
+            return BadRequest(new { error = result.Message });
+        }
+
+        return Ok(new { success = true });
     }
 }
 

@@ -133,6 +133,57 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
 
         #endregion
 
+        #region Stablecoin Integration
+
+        /// <summary>
+        /// Release ZEC that was previously locked for bridge operations
+        /// Used for stablecoin redemption
+        /// </summary>
+        public async Task<OASISResult<string>> ReleaseZECAsync(string lockTxHash, decimal amount, string destinationAddress)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                // Verify the lock transaction exists and is valid
+                var txResult = await _rpcClient.GetTransactionAsync(lockTxHash);
+                if (txResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = $"Lock transaction not found: {txResult.Message}";
+                    return result;
+                }
+
+                // Release ZEC from bridge pool to destination address
+                var releaseTx = await _rpcClient.SendShieldedTransactionAsync(
+                    _bridgePoolAddress,
+                    destinationAddress,
+                    amount,
+                    $"Release from lock: {lockTxHash}"
+                );
+
+                if (releaseTx.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = $"Failed to release ZEC: {releaseTx.Message}";
+                    return result;
+                }
+
+                result.Result = releaseTx.Result;
+                result.IsError = false;
+                result.Message = "ZEC released successfully";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = ex.Message;
+                result.Exception = ex;
+            }
+
+            return result;
+        }
+
+        #endregion
+
         private string GetBridgeAddressForChain(string chain)
         {
             return chain switch

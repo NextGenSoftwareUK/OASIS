@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Providers.AztecOASIS;
 using NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Holons;
 
 namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
@@ -13,13 +15,14 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
     public class YieldManager
     {
         private readonly IHolonManager _holonManager;
-        
-        // TODO: This will be injected when Aztec provider is ready
-        // private readonly IAztecProvider _aztecProvider;
+        private readonly AztecOASIS _aztecProvider;
         
         public YieldManager()
         {
             _holonManager = HolonManager.Instance;
+            
+            // Get provider from ProviderManager
+            _aztecProvider = ProviderManager.GetProvider<AztecOASIS>();
         }
         
         /// <summary>
@@ -71,19 +74,11 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
                 }
                 
                 // 4. Deploy to yield strategy (private on Aztec)
-                // TODO: Implement when Aztec provider is ready
-                // var deployResult = await _aztecProvider.DeployToYieldStrategyAsync(
-                //     position.AztecAddress,
-                //     position.CollateralAmount,
-                //     position.YieldStrategy.ToString()
-                // );
-                
-                // For now, simulate
-                var deployResult = new OASISResult<string>
-                {
-                    Result = $"simulated_yield_deploy_{Guid.NewGuid()}",
-                    IsError = false
-                };
+                var deployResult = await _aztecProvider.DeployToYieldStrategyAsync(
+                    position.AztecAddress,
+                    position.CollateralAmount,
+                    position.YieldStrategy.ToString()
+                );
                 
                 if (deployResult.IsError)
                 {
