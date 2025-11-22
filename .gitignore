@@ -298,3 +298,10 @@ NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/react-app/yarn.lock
 /NextGenSoftware.OASIS.API.ONode.WebAPI/OASIS_DNA.json
 /ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS_DNA.json
 /STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/OASIS_DNA.json
+
+# Contract generator builds
+contract-generator/api/**/bin/
+contract-generator/api/**/obj/
+contract-generator/api/**/test-ledger/
+contract-generator/ui/.next/
+contract-generator/ui/node_modules/

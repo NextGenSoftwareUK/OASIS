@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj" />
+    <ProjectReference Include="..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RadixOASIS\NextGenSoftware.OASIS.API.Providers.RadixOASIS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Solnet.Rpc" Version="6.1.0" />
+    <PackageReference Include="Solnet.Wallet" Version="6.1.0" />
+    <PackageReference Include="Solnet.Programs" Version="6.1.0" />
+  </ItemGroup>
+
+</Project>
+
+
+
+
+

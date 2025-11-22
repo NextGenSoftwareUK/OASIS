@@ -1,0 +1,8 @@
+{
+  "/v3/banks/*": {
+    "target": "https://api.flutterwave.com",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
+  }
+}

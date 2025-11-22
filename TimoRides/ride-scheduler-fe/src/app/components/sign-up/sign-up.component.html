@@ -1,0 +1,142 @@
+<section class="app-signup">
+  <div class="bg-ellipse">
+    <img
+      src="../../../assets/images/signup/ellipse-top-left.png"
+      alt="decoration icon"
+    />
+  </div>
+
+  <div class="bg-ellipse2">
+    <img
+      src="../../../assets/images/signup/ellipse-bottom-right.png"
+      alt="decoration icon"
+    />
+  </div>
+
+  <div class="bg-ellipse9-right-top">
+    <img
+      src="../../../assets/images/signup/ellipse-top-right.png"
+      alt="decoration icon"
+    />
+  </div>
+
+  <div class="left-bottom-small">
+    <img
+      src="../../../assets/images/signup/ellipse-bottom-left.png"
+      alt="decoration icon"
+    />
+  </div>
+
+  <div class="app-signup__form-con">
+    <h1 class="signup-title">Register</h1>
+
+    <!-- Sign Up choice -->
+    <div class="signup-choice-con">
+      <label class="signup-choice-title" for="signup-choice">Sign up as:</label>
+      <div class="signup-choice">
+        <span
+          [ngClass]="!isRiderSignUpChoice ? 'active-signup-choice' : ''"
+          (click)="setSignInChoice(false)"
+          >Customer</span
+        >
+
+        <span
+          [ngClass]="isRiderSignUpChoice ? 'active-signup-choice' : ''"
+          (click)="setSignInChoice(true)"
+          >Driver</span
+        >
+      </div>
+    </div>
+
+    <!-- Personal Information Form -->
+    <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+      <!-- text name -->
+      <app-input-group
+        [inputConfig]="{
+          label: 'Names',
+          isRequired: true,
+          placeholder: 'First, middle, last names (space separated)',
+          id: 'name',
+          theme: 'dark'
+        }"
+        inputType="text"
+        controlName="names"
+        [form]="registrationForm"
+      ></app-input-group>
+
+      <!-- Text Email -->
+      <app-input-group
+        [inputConfig]="{
+          label: 'Email',
+          isRequired: true,
+          placeholder: 'E.g. your_email@domain.com',
+          id: 'email',
+          theme: 'dark'
+        }"
+        inputType="email"
+        controlName="email"
+        [form]="registrationForm"
+      ></app-input-group>
+
+      <!-- Text Phone -->
+      <app-input-group
+        [inputConfig]="{
+          label: 'Phone',
+          isRequired: true,
+          placeholder: 'E.g. +2348123456789',
+          id: 'phone',
+          theme: 'dark'
+        }"
+        inputType="tel"
+        controlName="phone"
+        [form]="registrationForm"
+      ></app-input-group>
+
+      <!-- Password -->
+      <app-input-group
+        [inputConfig]="{
+          label: 'Password',
+          isRequired: true,
+          placeholder: 'Enter password',
+          id: 'password',
+          theme: 'dark'
+        }"
+        inputType="password"
+        controlName="password"
+        [form]="registrationForm"
+      ></app-input-group>
+
+      <!-- Confirm password -->
+      <app-input-group
+        [inputConfig]="{
+          label: 'Confirm password',
+          isRequired: true,
+          placeholder: 'Enter password again',
+          id: 'confirmPassword',
+          theme: 'dark'
+        }"
+        inputType="password"
+        controlName="confirmPassword"
+        [form]="registrationForm"
+      ></app-input-group>
+
+      <!-- Add more input fields for other form controls -->
+      <div class="btn-con-form">
+        <app-button
+          [btnConfig]="{
+            label: 'Submit',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            disabled: registrationForm.invalid
+          }"
+        ></app-button>
+      </div>
+
+      <p class="signup">
+        Already registered? Please
+        <span class="signup__action" (click)="goToLogin()">Login</span>
+      </p>
+    </form>
+  </div>
+</section>

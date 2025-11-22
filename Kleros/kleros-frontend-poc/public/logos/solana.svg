@@ -1,0 +1,31 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Solana Logo - Gradient bars -->
+  <g filter="url(#glow)">
+    <path d="M10 14C10 13 10.5 12 11.5 12H36.5C37 12 37.5 12.3 37.8 12.7L42 18L37.8 23.3C37.5 23.7 37 24 36.5 24H11.5C10.5 24 10 23 10 22V14Z" fill="url(#grad1)"/>
+    <path d="M10 26C10 25 10.5 24 11.5 24H36.5C37 24 37.5 24.3 37.8 24.7L42 30L37.8 35.3C37.5 35.7 37 36 36.5 36H11.5C10.5 36 10 35 10 34V26Z" fill="url(#grad2)"/>
+    <circle cx="42" cy="18" r="2" fill="#F472B6"/>
+    <circle cx="42" cy="30" r="2" fill="#EC4899"/>
+  </g>
+  <defs>
+    <linearGradient id="grad1" x1="10" y1="18" x2="42" y2="18">
+      <stop offset="0%" stopColor="#F472B6"/>
+      <stop offset="50%" stopColor="#EC4899"/>
+      <stop offset="100%" stopColor="#DB2777"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="10" y1="30" x2="42" y2="30">
+      <stop offset="0%" stopColor="#EC4899"/>
+      <stop offset="50%" stopColor="#DB2777"/>
+      <stop offset="100%" stopColor="#BE185D"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
+
+

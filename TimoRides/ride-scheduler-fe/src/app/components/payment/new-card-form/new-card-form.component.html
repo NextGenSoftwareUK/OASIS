@@ -1,0 +1,89 @@
+<section class="new-card-form">
+  <!-- Card type list -->
+  <h3>New Payment Card</h3>
+  <div class="payment-cards-container">
+    <h4>
+      Card type (select one):
+      <span _ngcontent-sdv-c25="" class="required">*</span>
+    </h4>
+    <app-card-type-list
+      (onPaymentCardSelect)="setCardType($event)"
+    ></app-card-type-list>
+  </div>
+
+  <!-- Card number -->
+  <app-input-group
+    [inputConfig]="{
+      label: 'Card number',
+      isRequired: true,
+      placeholder: 'E.g. 0000 0000 0000 0000',
+      id: 'cardNumber',
+      min: '1'
+    }"
+    inputType="number"
+    controlName="cardNumber"
+    [form]="newCardForm"
+  ></app-input-group>
+
+  <!-- Cardholder name -->
+  <app-input-group
+    [inputConfig]="{
+      label: 'Card holder',
+      isRequired: true,
+      placeholder: 'E.g. John Smith',
+      id: 'cardholderName',
+    }"
+    inputType="text"
+    controlName="cardholderName"
+    [form]="newCardForm"
+  ></app-input-group>
+
+  <div class="card-exp-ccv-container">
+    <div class="card-section">
+      <!-- Card Expiration date MM/YY -->
+      <app-input-group
+        [inputConfig]="{
+          label: 'Card expiration (MM/YY)',
+          isRequired: true,
+          placeholder: 'E.g 12/26',
+          id: 'cardExpiration',
+          min: '1'
+        }"
+        inputType="number"
+        controlName="cardExpiration"
+        [form]="newCardForm"
+      ></app-input-group>
+    </div>
+
+    <div class="ccv-section">
+      <!-- CCV -->
+      <app-input-group
+        [inputConfig]="{
+          label: 'CCV (3 digit behind card)',
+          isRequired: true,
+          placeholder: 'E.g. 012',
+          id: 'ccv',
+          min: '1'
+        }"
+        inputType="number"
+        controlName="ccv"
+        [form]="newCardForm"
+      ></app-input-group>
+    </div>
+  </div>
+
+  <!-- Save button -->
+  <app-button
+    [btnConfig]="{
+      label: 'Make payment',
+      size: 'sm',
+      theme: 'primary',
+      block: true,
+      disabled: newCardForm.invalid
+    }"
+    class="additional-class"
+    id="additional-id"
+    (click)="registerCard()"
+  >
+  </app-button>
+</section>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>#BillionsHealed - Healing Together</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header / Navbar -->
+    <header class="header-component">
+        <div class="header-content">
+            <!-- Left: Title -->
+            <div class="logo-text">
+                <h1>#BILLiONSHEALED</h1>
+                <p class="oasis-subtitle">Powered by The OASIS</p>
+            </div>
+            
+            <!-- Center: Thermometer Icon -->
+            <div class="center-logo">
+                <span class="thermometer-icon">🌡️</span>
+            </div>
+            
+            <!-- Right: Navigation -->
+            <div class="desktop-nav-section">
+                <button class="nav-btn" onclick="window.scrollTo(0, document.body.scrollHeight)">About</button>
+                <button class="nav-btn" onclick="refreshTweets()">Refresh</button>
+                <button class="connect-wallet-btn">
+                    Connect Wallet
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Box -->
+    <div class="nav-box" id="nav-box">
+        <div class="nav-box-content">
+            <button class="nav-box-btn" onclick="openInfoModal('what')">What</button>
+            <button class="nav-box-btn" onclick="openInfoModal('how')">How</button>
+            <button class="nav-box-btn" onclick="openInfoModal('whitepaper')">Whitepaper</button>
+            <button class="nav-box-btn" onclick="openInfoModal('deliverables')">Deliverables</button>
+        </div>
+        <button class="nav-move-arrow" onclick="toggleNavPosition()">
+            →
+        </button>
+    </div>
+
+    <div class="container">
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Thermometer Section -->
+            <div class="thermometer-section">
+                <div class="thermometer-wrapper">
+                    <div class="thermometer">
+                        <div class="thermometer-casing">
+                            <div class="thermometer-tube">
+                                <div class="thermometer-liquid" id="thermometer-liquid"></div>
+                                <div class="thermometer-markings">
+                                    <div class="marking-line major" style="top: 0%"></div>
+                                    <div class="marking-line" style="top: 11%"></div>
+                                    <div class="marking-line major" style="top: 22%"></div>
+                                    <div class="marking-line" style="top: 33%"></div>
+                                    <div class="marking-line major" style="top: 44%"></div>
+                                    <div class="marking-line" style="top: 56%"></div>
+                                    <div class="marking-line major" style="top: 67%"></div>
+                                    <div class="marking-line" style="top: 78%"></div>
+                                    <div class="marking-line major" style="top: 89%"></div>
+                                    <div class="marking-line major" style="top: 100%"></div>
+                                </div>
+                            </div>
+                            <div class="thermometer-bulb" id="thermometer-bulb"></div>
+                            <div class="thermometer-hook"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="thermometer-info">
+                    <h3 id="current-level">❄️ Cold</h3>
+                    <p id="nft-count">0/100 NFTs</p>
+                    <p id="current-price">Price: 0.01 SOL</p>
+                    <button class="mint-btn" id="mint-btn">Mint Thermometer #1</button>
+                    
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Temperature:</span>
+                            <span class="stat-value" id="fill-percentage">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Remaining:</span>
+                            <span class="stat-value" id="remaining-count">100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Twitter Feed Section -->
+            <div class="twitter-feed-section">
+                <div class="feed-header">
+                    <h3><span class="x-logo">𝕏</span> #billionshealed Feed</h3>
+                    <button class="refresh-btn" id="refresh-btn">🔄</button>
+                </div>
+
+                <div class="feed-stats">
+                    <span class="stat-item">
+                        <span class="stat-icon">📊</span>
+                        <span id="processed-tweets">0</span> processed
+                    </span>
+                    <span class="stat-item">
+                        <span class="stat-icon">🌡️</span>
+                        <span id="total-minted">0</span>/100 thermometers
+                    </span>
+                    <span class="stat-item active">
+                        <span class="stat-icon">●</span>
+                        <span id="service-status">Active</span>
+                    </span>
+                </div>
+
+                <div class="tweets-container" id="tweets-container">
+                    <!-- Tweets will be loaded here -->
+                    <div class="loading">Loading tweets...</div>
+                </div>
+
+                <div class="feed-footer">
+                    <p class="tweet-cta">
+                        Share your healing journey with <strong>#billionshealed</strong> and watch the thermometer rise! 🌟
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Part of the OASIS Ecosystem | Powered by Twitter API v2</p>
+            <p>Every tweet with #billionshealed helps raise the temperature 🌡️</p>
+        </footer>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeInfoModal()">&times;</span>
+            <h2 id="modal-title"></h2>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

@@ -40,9 +40,9 @@
   <ItemGroup>
     <!--<PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />-->
     <!--<PackageReference Include="MailKit" Version="2.9.0" />-->
-	  <PackageReference Include="AutoMapper" Version="12.0.0" />
-	  <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
-	  <PackageReference Include="MailKit" Version="3.4.1" />
+    <PackageReference Include="AutoMapper" Version="12.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="MailKit" Version="3.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
@@ -51,12 +51,14 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3" />
     <PackageReference Include="Stripe.net" Version="45.0.0" />
-	  <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
+    <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
+    <PackageReference Include="Telegram.Bot" Version="20.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\NextGenSoftware.OASIS.API.Providers.TelegramOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>

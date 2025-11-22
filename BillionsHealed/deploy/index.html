@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BillionsHealed - Healing Through Unity</title>
+    <meta name="description" content="Join the movement to heal billions through unity, technology, and collective consciousness. Track global healing progress with our interactive thermometer.">
+    <meta name="keywords" content="healing, unity, consciousness, technology, OASIS, thermometer, social impact">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header-component">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-text">#BILLIONSHEALED</div>
+                <div class="oasis-subtitle">Powered by OASIS</div>
+            </div>
+            
+            <div class="center-logo">
+                <div class="thermometer-icon">🌡️</div>
+            </div>
+            
+            <div class="desktop-nav-section">
+                <button class="nav-btn" onclick="openInfoModal('about')">About</button>
+                <button class="nav-btn" onclick="refreshData()">Refresh</button>
+                <button class="connect-wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Side Navigation Box -->
+    <div class="nav-box">
+        <button class="nav-item" onclick="openInfoModal('what')">What</button>
+        <button class="nav-item" onclick="openInfoModal('how')">How</button>
+        <button class="nav-item" onclick="openInfoModal('whitepaper')">Whitepaper</button>
+        <button class="nav-item" onclick="openInfoModal('deliverables')">Deliverables</button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Thermometer Section -->
+        <div class="thermometer-section">
+            <div class="thermometer-container">
+                <div class="thermometer-wrapper">
+                    <div class="thermometer">
+                        <div class="thermometer-casing">
+                            <div class="thermometer-tube">
+                                <div class="thermometer-liquid" id="thermometer-liquid"></div>
+                                <div class="thermometer-markings">
+                                    <div class="marking marking-0"></div>
+                                    <div class="marking marking-25"></div>
+                                    <div class="marking marking-50"></div>
+                                    <div class="marking marking-75"></div>
+                                    <div class="marking marking-100"></div>
+                                </div>
+                            </div>
+                            <div class="thermometer-bulb" id="thermometer-bulb"></div>
+                            <div class="thermometer-hook"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="thermometer-info">
+                        <div class="thermometer-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Healing Level:</span>
+                                <span class="stat-value" id="healing-level">Cold</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">NFTs Minted:</span>
+                                <span class="stat-value" id="nft-count">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Price per NFT:</span>
+                                <span class="stat-value" id="nft-price">0.001 ETH</span>
+                            </div>
+                        </div>
+                        
+                        <button class="mint-thermometer-btn" onclick="mintThermometer()">
+                            Mint Healing NFT
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Twitter Feed Section (Floating Popup) -->
+        <div class="twitter-feed-section" id="twitter-feed">
+            <div class="twitter-feed-header">
+                <span class="x-logo">𝕏</span>
+                <span class="feed-title">#BillionsHealed</span>
+                <button class="close-feed-btn" onclick="toggleTwitterFeed()">×</button>
+            </div>
+            
+            <div class="feed-content">
+                <div class="service-status">
+                    <div class="status-item">
+                        <span class="status-label">Service:</span>
+                        <span class="status-value" id="service-status">Loading...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Last Update:</span>
+                        <span class="status-value" id="last-update">-</span>
+                    </div>
+                </div>
+                
+                <div class="tweets-container" id="tweets-container">
+                    <div class="loading-tweets">Loading healing tweets...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Info Modal -->
+    <div class="info-modal" id="info-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeInfoModal()">×</button>
+            <div class="modal-body" id="modal-body">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button for Twitter Feed -->
+    <button class="fab-twitter" onclick="toggleTwitterFeed()" title="View #BillionsHealed Tweets">
+        <span class="x-logo">𝕏</span>
+    </button>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

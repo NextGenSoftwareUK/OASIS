@@ -1,0 +1,304 @@
+<main class="admin-dashboard">
+  <div class="summary-section">
+    <ng-container
+      *ngFor="let summary of adminSummary; let i = index; trackBy: trackByFn"
+    >
+      <ng-container *ngIf="getObservableByIndex(i) | async as value">
+        <app-dashboard-summary
+          [summaryInfo]="{
+            title: summary.title,
+            value: value.toString(),
+            imagePath: summary.imagePath
+          }"
+          style="width: 100%"
+        ></app-dashboard-summary>
+      </ng-container>
+    </ng-container>
+  </div>
+
+  <h2>Users</h2>
+
+  <ng-container *ngIf="users$ | async as users; else LoadingUsers">
+    <div class="table-section" *ngIf="users.length; else NoUsers">
+      <app-table
+        [tableData]="{
+          type: 'admin users',
+          value: users
+        }"
+      ></app-table>
+    </div>
+  </ng-container>
+  <ng-template #NoUsers>
+    <span class="error-text">No Users Found</span>
+  </ng-template>
+  <ng-template #LoadingUsers>
+    <span class="error-text">Loading Users...</span>
+  </ng-template>
+
+  <br />
+  <hr class="demarcator" />
+  <br />
+
+  <h2>Booked Rides</h2>
+
+  <ng-container *ngIf="bookings$ | async as bookings; else LoadingBookings">
+    <div
+      class="table-section"
+      *ngIf="bookings.bookings && bookings.bookings.length; else NoBookings"
+    >
+      <app-table
+        [tableData]="{
+          type: 'admin rides',
+          value: bookings.bookings
+        }"
+      ></app-table>
+    </div>
+  </ng-container>
+  <ng-template #NoBookings>
+    <span class="error-text">No Bookings Found</span>
+  </ng-template>
+  <br />
+  <ng-template #LoadingBookings>
+    <span class="error-text">Loading Bookings...</span>
+  </ng-template>
+
+  <br />
+  <hr class="demarcator" />
+  <br />
+
+  <!-- <div class="withdrawal-section">
+    <h2 class="withdrawal-section__header">Pending Withdrawals</h2>
+    <div class="filters">
+      <a class="filter" (click)="filterAll()">All</a>
+      <a class="filter" (click)="filterPending()">Pending</a>
+      <a class="filter" (click)="filterCompleted()">Completed</a>
+    </div>
+  </div>
+
+  <ng-container
+    *ngIf="withdrawals$ | async as withdrawals; else LoadingWithdrawals"
+  >
+    <div
+      class="table-section"
+      *ngIf="withdrawals && withdrawals.length; else NoWithdrawals"
+    >
+      <app-table
+        [tableData]="{
+          type: 'admin withdrawals',
+          value: withdrawals
+        }"
+      ></app-table>
+    </div>
+  </ng-container> -->
+  <div class="withdrawal-section">
+    <h2 class="withdrawal-section__header">Pending Withdrawals</h2>
+    <div class="filters">
+      <a class="filter" (click)="filterAll()">All</a>
+      <a class="filter" (click)="filterPending()">Pending</a>
+      <a class="filter" (click)="filterCompleted()">Completed</a>
+    </div>
+  </div>
+
+  <ng-container
+    *ngIf="filteredWithdrawals$ | async as withdrawals; else LoadingWithdrawals"
+  >
+    <div
+      class="table-section"
+      *ngIf="withdrawals && withdrawals.length; else NoWithdrawals"
+    >
+      <app-table
+        [tableData]="{
+          type: 'admin withdrawals',
+          value: withdrawals
+        }"
+      ></app-table>
+    </div>
+  </ng-container>
+  <ng-template #NoWithdrawals>
+    <span class="error-text">No Withdrawals</span>
+  </ng-template>
+  <br />
+  <ng-template #LoadingWithdrawals>
+    <span class="error-text">Loading Withdrawals...</span>
+  </ng-template>
+
+  <br />
+  <hr class="demarcator" />
+  <br />
+
+  <h2 style="margin-bottom: 2rem">Configuration Settings</h2>
+  <ng-container>
+    <div class="admin-mgt-section">
+      <!-- Trip/KM Management -->
+      <div>
+        <h2>Trip Rate Management</h2>
+        <p>
+          Current rate:
+          <ng-container *ngIf="loading; else DataLoaded">
+            <span class="error-text">Loading Data...</span>
+          </ng-container>
+          <ng-template #DataLoaded>
+            <ng-container *ngIf="config$ | async as tripRate; else NoTripRate">
+              <ng-container
+                *ngIf="
+                  tripRate.pricePerKm !== null &&
+                    tripRate.pricePerKm !== undefined;
+                  else NoTripRate
+                "
+              >
+                <span style="font-weight: 500; color: green"
+                  >R{{ tripRate.pricePerKm }}/km</span
+                >
+              </ng-container>
+            </ng-container>
+          </ng-template>
+          <ng-template #NoTripRate>
+            <span class="error-text">No Trip Rate</span>
+          </ng-template>
+        </p>
+
+        <app-input-group
+          [inputConfig]="{
+            label: 'New value',
+            isRequired: false,
+            placeholder: 'E.g. 20',
+            id: 'tripRate',
+            theme: 'dark',
+            min: '1'
+          }"
+          inputType="number"
+          controlName="tripRate"
+          [form]="configForm"
+        ></app-input-group>
+        <br />
+        <app-button
+          [btnConfig]="{
+            label: 'Set Trip Rate',
+            size: 'sm',
+            theme: 'primary',
+            block: true
+          }"
+          class="additional-class"
+          id="additional-id"
+          (click)="setTripRate()"
+        >
+        </app-button>
+      </div>
+      <!-- Commission Management -->
+      <div>
+        <h2>Commission Management</h2>
+        <p>
+          Current value:
+          <ng-container *ngIf="loading; else CommissionLoaded">
+            <span class="error-text">Loading commission data...</span>
+          </ng-container>
+          <ng-template #CommissionLoaded>
+            <ng-container
+              *ngIf="config$ | async as commission; else NoCommission"
+            >
+              <ng-container
+                *ngIf="
+                  commission.businessCommission !== null &&
+                    commission.businessCommission !== undefined;
+                  else NoCommission
+                "
+              >
+                <span style="font-weight: 500; color: green"
+                  >{{ +commission.businessCommission * 100 }}%</span
+                >
+              </ng-container>
+            </ng-container>
+          </ng-template>
+          <ng-template #NoCommission>
+            <span class="error-text">No Commission</span>
+          </ng-template>
+        </p>
+
+        <app-input-group
+          [inputConfig]="{
+            label: 'New value',
+            isRequired: false,
+            placeholder: 'E.g. 15',
+            id: 'businessCommission',
+            theme: 'dark',
+            min: '1'
+          }"
+          inputType="number"
+          controlName="businessCommission"
+          [form]="configForm"
+        ></app-input-group>
+        <br />
+        <app-button
+          [btnConfig]="{
+            label: 'Update Commission',
+            size: 'sm',
+            theme: 'primary',
+            block: true
+          }"
+          class="additional-class"
+          id="additional-id"
+          (click)="setCommission()"
+        >
+        </app-button>
+      </div>
+
+      <!-- Wallet Management -->
+      <div>
+        <h2>Wallet Management</h2>
+        <p>
+          Current value:
+          <ng-container *ngIf="loading; else ContentLoaded">
+            <span class="error-text">Loading Wallet</span>
+          </ng-container>
+          <ng-template #ContentLoaded>
+            <ng-container
+              *ngIf="config$ | async as driverWallet; else NoPercentage"
+            >
+              <ng-container
+                *ngIf="
+                  driverWallet.driverWalletPercentage !== null &&
+                    driverWallet.driverWalletPercentage !== undefined;
+                  else NoPercentage
+                "
+              >
+                <span style="font-weight: 500; color: green"
+                  >{{ +driverWallet.driverWalletPercentage * 100 }}%</span
+                >
+              </ng-container>
+            </ng-container>
+          </ng-template>
+          <ng-template #NoPercentage>
+            <span class="error-text">No Percentage</span>
+          </ng-template>
+        </p>
+
+        <app-input-group
+          [inputConfig]="{
+            label: 'New value',
+            isRequired: false,
+            placeholder: 'E.g. 15',
+            id: 'minWalletBalance',
+            theme: 'dark',
+            min: '1'
+          }"
+          inputType="number"
+          controlName="minWalletBalance"
+          [form]="configForm"
+        ></app-input-group>
+        <br />
+        <app-button
+          [btnConfig]="{
+            label: 'Set Wallet Balance',
+            size: 'sm',
+            theme: 'primary',
+            block: true
+          }"
+          class="additional-class"
+          id="additional-id"
+          (click)="setWalletBalance()"
+        >
+        </app-button>
+      </div>
+    </div>
+  </ng-container>
+</main>

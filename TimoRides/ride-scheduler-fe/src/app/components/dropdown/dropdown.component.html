@@ -1,0 +1,40 @@
+<div class="dropdown-container" (clickOutside)="closeDropdown()">
+  <button
+    type="button"
+    [disabled]="disabled"
+    (click)="toggleDropdown()"
+    class="dropdown-button {{ disabled ? 'dropdown-button-invalid' : '' }}"
+  >
+    <div class="dropdown-selected">
+      <span class="dropdown-label">
+        {{
+          selectedOptionDisplay
+            ? selectedOptionDisplay
+            : dropdownConfiguration?.label?.toLowerCase()
+        }}
+      </span>
+    </div>
+
+    <app-svg
+      fileName="arrow-down"
+      [ngClass]="{ 'rotate-180': isOpen }"
+      class="dropdown-arrow"
+    ></app-svg>
+  </button>
+
+  <!-- dropdown list -->
+  <div *ngIf="isOpen" class="dropdown-list">
+    <input *ngIf="dropdownConfiguration?.search" class="dropdown-search" />
+    <ul class="dropdown-options">
+      <ng-container *ngIf="dropdownConfiguration?.options">
+        <li
+          *ngFor="let option of dropdownConfiguration?.options"
+          (click)="selectOption($event, option)"
+          class="dropdown-option"
+        >
+          {{ option.name }}
+        </li>
+      </ng-container>
+    </ul>
+  </div>
+</div>

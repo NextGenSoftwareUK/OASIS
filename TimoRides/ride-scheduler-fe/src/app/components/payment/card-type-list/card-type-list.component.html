@@ -1,0 +1,12 @@
+<ul class="image-list">
+  <ng-container *ngFor="let paymentCard of paymentCards; index as i">
+    <!-- Display card type -->
+    <app-card-type
+      [paymentCard]="paymentCard"
+      [isSelected]="
+        selectedCard && paymentCard.cardName === selectedCard.cardName
+      "
+      (onCardSelect)="saveCardType($event)"
+    ></app-card-type>
+  </ng-container>
+</ul>

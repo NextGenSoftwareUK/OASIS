@@ -1,0 +1,37 @@
+<section class="car-list-container">
+  <h3 style="font-size: 20px; margin: 1rem 0; font-weight: bold">
+    Pick Your Driver
+  </h3>
+
+  <!-- Car list -->
+  <ng-container *ngIf="cars$ | async as cars; else LoadingCars">
+    <div class="car-list" *ngIf="cars; else NoCars">
+      <ng-container *ngFor="let car of cars; index as i">
+        <app-car
+          [car]="car"
+          [tripCost]="(rideSchedule$ | async)?.tripInfo?.price || 'n/a'"
+          (click)="viewDetails($event, car)"
+        ></app-car>
+      </ng-container>
+    </div>
+  </ng-container>
+  <ng-template #LoadingCars>
+    <span class="error-text">Loading Cars...</span>
+  </ng-template>
+  <ng-template #NoCars>
+    <span class="error-text">No Cars</span>
+  </ng-template>
+
+  <!-- Action buttons -->
+  <div class="btn-section">
+    <app-button
+      [btnConfig]="{
+        label: 'Back',
+        size: 'sm',
+        theme: 'danger-outline',
+        block: false
+      }"
+      (click)="goBack()"
+    ></app-button>
+  </div>
+</section>
