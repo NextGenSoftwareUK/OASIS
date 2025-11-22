@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-zypherpunk-border;
+  }
+  body {
+    @apply bg-zypherpunk-bg text-zypherpunk-text;
+  }
+}
+
+@layer components {
+  .zypherpunk-card {
+    @apply bg-zypherpunk-surface border border-zypherpunk-border rounded-xl p-6;
+  }
+  
+  .zypherpunk-button {
+    @apply bg-zypherpunk-primary hover:bg-zypherpunk-primary/80 text-black font-semibold px-4 py-2 rounded-lg transition-all;
+  }
+  
+  .zypherpunk-input {
+    @apply bg-zypherpunk-bg border-zypherpunk-border text-zypherpunk-text rounded-lg px-4 py-2;
+  }
+}
+
