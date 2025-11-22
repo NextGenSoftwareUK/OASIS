@@ -21,22 +21,57 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
 {
     private const string Sol = "SOL";
     private const string Xrd = "XRD";
+    private const string Zec = "ZEC";
+    private const string Aztec = "AZTEC";
     
-    private readonly IOASISBridge _solanaBridge;
-    private readonly IOASISBridge _radixBridge;
+    private readonly Dictionary<string, IOASISBridge> _bridgeMap;
     private readonly IExchangeRateService _exchangeRateService;
     private readonly IBridgeOrderRepository _repository;
+    private readonly ViewingKeyAuditService _viewingKeyAuditService;
+    private readonly ProofVerificationService _proofVerificationService;
+    private readonly MpcExecutionService _mpcExecutionService;
+    private IOASISBridge ResolveBridge(string tokenSymbol)
+    {
+        if (string.IsNullOrWhiteSpace(tokenSymbol))
+            return null;
+
+        var key = tokenSymbol.ToUpperInvariant();
+        return _bridgeMap.TryGetValue(key, out var bridge) ? bridge : null;
+    }
+
+    private static bool IsPrivateBridgePair(string fromToken, string toToken)
+    {
+        if (string.IsNullOrWhiteSpace(fromToken) || string.IsNullOrWhiteSpace(toToken))
+            return false;
+
+        var from = fromToken.ToUpperInvariant();
+        var to = toToken.ToUpperInvariant();
+
+        return (from == Zec && to == Aztec) || (from == Aztec && to == Zec);
+    }
 
     public CrossChainBridgeManager(
-        IOASISBridge solanaBridge, 
-        IOASISBridge radixBridge, 
+        Dictionary<string, IOASISBridge> bridges,
         IExchangeRateService exchangeRateService = null,
-        IBridgeOrderRepository repository = null)
+        IBridgeOrderRepository repository = null,
+        ViewingKeyAuditService viewingKeyAuditService = null,
+        ProofVerificationService proofVerificationService = null,
+        MpcExecutionService mpcExecutionService = null)
     {
-        _solanaBridge = solanaBridge ?? throw new ArgumentNullException(nameof(solanaBridge));
-        _radixBridge = radixBridge ?? throw new ArgumentNullException(nameof(radixBridge));
+        if (bridges == null || bridges.Count == 0)
+        {
+            throw new ArgumentException("At least one bridge implementation is required.", nameof(bridges));
+        }
+
+        _bridgeMap = bridges.ToDictionary(
+            kv => kv.Key.ToUpperInvariant(),
+            kv => kv.Value);
+
         _exchangeRateService = exchangeRateService ?? new CoinGeckoExchangeRateService();
-        _repository = repository; // Optional: can be null for stateless mode
+        _repository = repository;
+        _viewingKeyAuditService = viewingKeyAuditService ?? new ViewingKeyAuditService();
+        _proofVerificationService = proofVerificationService ?? new ProofVerificationService();
+        _mpcExecutionService = mpcExecutionService ?? new MpcExecutionService();
     }
 
     /// <summary>
@@ -60,9 +95,23 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
                 return result;
             }
 
-            // Determine which bridge to use for withdrawal and deposit
-            IOASISBridge withdrawBridge = request.FromToken == Xrd ? _radixBridge : _solanaBridge;
-            IOASISBridge depositBridge = request.FromToken == Xrd ? _solanaBridge : _radixBridge;
+            var fromToken = request.FromToken?.ToUpperInvariant();
+            var toToken = request.ToToken?.ToUpperInvariant();
+
+            if (IsPrivateBridgePair(fromToken, toToken))
+            {
+                return await HandlePrivateBridgeOrderAsync(request, token);
+            }
+
+            var withdrawBridge = ResolveBridge(fromToken);
+            var depositBridge = ResolveBridge(toToken);
+
+            if (withdrawBridge == null || depositBridge == null)
+            {
+                result.IsError = true;
+                result.Message = $"Bridge implementation missing for {request.FromToken} or {request.ToToken}";
+                return result;
+            }
 
             // Get exchange rate
             var exchangeRateResult = await GetExchangeRateAsync(request.FromToken, request.ToToken, token);
@@ -124,6 +173,8 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
                     orderId,
                     $"Bridge order created successfully. Transaction: {swapResult.Result.TransactionId}"
                 );
+                
+                await ApplyViewingKeyAuditAsync(request, swapResult.Result?.TransactionId);
                 result.IsError = false;
                 
                 return result;
@@ -139,6 +190,103 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
                 $"Error creating bridge order: {ex.Message}", ex);
             return result;
         }
+    }
+
+    private async Task<OASISResult<CreateBridgeOrderResponse>> HandlePrivateBridgeOrderAsync(
+        CreateBridgeOrderRequest request,
+        CancellationToken token)
+    {
+        var result = new OASISResult<CreateBridgeOrderResponse>();
+        var withdrawBridge = ResolveBridge(request.FromToken);
+        var depositBridge = ResolveBridge(request.ToToken);
+
+        if (withdrawBridge == null || depositBridge == null)
+        {
+            result.IsError = true;
+            result.Message = $"Private bridge not configured for {request.FromToken}->{request.ToToken}";
+            return result;
+        }
+
+        if (request.RequireProofVerification)
+        {
+            var proofCheck = await _proofVerificationService.VerifyProofAsync(request.ProofPayload, request.ProofType, token);
+            if (proofCheck.IsError || !proofCheck.Result)
+            {
+                result.IsError = true;
+                result.Message = $"Proof verification failed: {proofCheck.Message}";
+                return result;
+            }
+        }
+
+        if (request.EnableMpc)
+        {
+            var mpcResult = await _mpcExecutionService.StartMpcSessionAsync(request.FromToken, request.ToToken, request.Amount, token);
+            if (mpcResult.IsError)
+            {
+                result.IsError = true;
+                result.Message = $"MPC orchestration failed: {mpcResult.Message}";
+                return result;
+            }
+
+            request.MpcSessionId = mpcResult.Result;
+        }
+
+        var withdrawResult = await withdrawBridge.WithdrawAsync(request.Amount, request.FromAddress, string.Empty);
+        if (withdrawResult.IsError)
+        {
+            result.IsError = true;
+            result.Message = $"Zcash withdrawal failed: {withdrawResult.Message}";
+            return result;
+        }
+
+        var depositResult = await depositBridge.DepositAsync(request.Amount, request.DestinationAddress);
+        if (depositResult.IsError)
+        {
+            result.IsError = true;
+            result.Message = $"Aztec deposit failed: {depositResult.Message}";
+            return result;
+        }
+
+        var proofVerification = await _proofVerificationService.VerifyBridgeCommitmentAsync(
+            withdrawResult.Result?.TransactionId,
+            depositResult.Result?.TransactionId,
+            request.ProofPayload,
+            token);
+
+        if (proofVerification.IsError || !proofVerification.Result)
+        {
+            result.IsError = true;
+            result.Message = $"Cross-chain proof verification failed: {proofVerification.Message}";
+            return result;
+        }
+
+        await ApplyViewingKeyAuditAsync(request, withdrawResult.Result?.TransactionId);
+
+        result.Result = new CreateBridgeOrderResponse(Guid.NewGuid(),
+            $"Private bridge order completed. Deposit Tx: {depositResult.Result?.TransactionId}");
+        result.IsError = false;
+        return result;
+    }
+
+    private async Task ApplyViewingKeyAuditAsync(CreateBridgeOrderRequest request, string transactionId)
+    {
+        if (_viewingKeyAuditService == null || !request.EnableViewingKeyAudit ||
+            string.IsNullOrWhiteSpace(request.ViewingKey))
+        {
+            return;
+        }
+
+        await _viewingKeyAuditService.RecordViewingKeyAsync(new ViewingKeyAuditEntry
+        {
+            TransactionId = transactionId,
+            ViewingKey = request.ViewingKey,
+            SourceChain = request.FromChain,
+            DestinationChain = request.ToChain,
+            DestinationAddress = request.DestinationAddress,
+            UserId = request.UserId,
+            Timestamp = DateTime.UtcNow,
+            Notes = request.PrivacyMetadata
+        });
     }
 
     /// <summary>
@@ -280,19 +428,15 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
             var order = orderResult.Result;
 
             // Determine which bridge handles which chain
-            IOASISBridge fromBridge = order.FromChain.ToUpper() switch
-            {
-                "SOL" or "SOLANA" => _solanaBridge,
-                "XRD" or "RADIX" => _radixBridge,
-                _ => throw new NotSupportedException($"Chain {order.FromChain} not supported")
-            };
+            var fromBridge = ResolveBridge(order.FromChain);
+            var toBridge = ResolveBridge(order.ToChain);
 
-            IOASISBridge toBridge = order.ToChain.ToUpper() switch
+            if (fromBridge == null || toBridge == null)
             {
-                "SOL" or "SOLANA" => _solanaBridge,
-                "XRD" or "RADIX" => _radixBridge,
-                _ => throw new NotSupportedException($"Chain {order.ToChain} not supported")
-            };
+                result.IsError = true;
+                result.Message = $"Bridge implementation not configured for {order.FromChain}->{order.ToChain}";
+                return result;
+            }
 
             // Check current balances on both chains
             var fromBalanceResult = await fromBridge.GetAccountBalanceAsync(order.FromAddress, token);
@@ -496,5 +640,44 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
     private bool IsValidRadixAddress(string address)
         => !string.IsNullOrWhiteSpace(address) && 
            address.StartsWith("account_tdx_");
+
+    public async Task<OASISResult<bool>> RecordViewingKeyAsync(ViewingKeyAuditEntry entry, CancellationToken token = default)
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            await _viewingKeyAuditService.RecordViewingKeyAsync(entry, token);
+            result.Result = true;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Failed to record viewing key: {ex.Message}", ex);
+        }
+
+        return result;
+    }
+
+    public async Task<OASISResult<bool>> VerifyProofAsync(string proofPayload, string proofType, CancellationToken token = default)
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            var verification = await _proofVerificationService.VerifyProofAsync(proofPayload, proofType, token);
+            if (verification.IsError || !verification.Result)
+            {
+                result.IsError = true;
+                result.Message = verification.Message;
+                return result;
+            }
+
+            result.Result = true;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Failed to verify proof: {ex.Message}", ex);
+        }
+
+        return result;
+    }
 }
 

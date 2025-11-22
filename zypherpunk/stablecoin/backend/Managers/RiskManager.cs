@@ -1,8 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Providers.AztecOASIS;
+using NextGenSoftware.OASIS.API.Providers.ZcashOASIS;
 using NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Holons;
 using NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Services;
 
@@ -15,15 +18,17 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
     {
         private readonly OracleService _oracleService;
         private readonly IHolonManager _holonManager;
-        
-        // TODO: These will be injected when providers are ready
-        // private readonly IAztecProvider _aztecProvider;
-        // private readonly IZcashProvider _zcashProvider;
+        private readonly AztecOASIS _aztecProvider;
+        private readonly ZcashOASIS _zcashProvider;
         
         public RiskManager(OracleService oracleService)
         {
             _oracleService = oracleService;
             _holonManager = HolonManager.Instance;
+            
+            // Get providers from ProviderManager
+            _aztecProvider = ProviderManager.GetProvider<AztecOASIS>();
+            _zcashProvider = ProviderManager.GetProvider<ZcashOASIS>();
         }
         
         /// <summary>
@@ -150,33 +155,31 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
                 var position = positionResult.Result;
                 
                 // 3. Seize collateral (private on Aztec)
-                // TODO: Implement when Aztec provider is ready
-                // var seizeResult = await _aztecProvider.SeizeCollateralAsync(
-                //     position.AztecAddress,
-                //     position.CollateralAmount
-                // );
+                var seizeResult = await _aztecProvider.SeizeCollateralAsync(
+                    position.AztecAddress,
+                    position.CollateralAmount
+                );
                 
-                // For now, simulate
-                var seizeResult = new OASISResult<string>
+                if (seizeResult.IsError)
                 {
-                    Result = $"simulated_seize_{Guid.NewGuid()}",
-                    IsError = false
-                };
+                    result.IsError = true;
+                    result.Message = $"Collateral seizure failed: {seizeResult.Message}";
+                    return result;
+                }
                 
                 // 4. Burn stablecoin
-                // TODO: Implement when Aztec provider is ready
-                // var burnResult = await _aztecProvider.BurnStablecoinAsync(
-                //     position.AztecAddress,
-                //     position.StablecoinDebt,
-                //     position.PositionId
-                // );
+                var burnResult = await _aztecProvider.BurnStablecoinAsync(
+                    position.AztecAddress,
+                    position.StablecoinDebt,
+                    position.PositionId
+                );
                 
-                // For now, simulate
-                var burnResult = new OASISResult<string>
+                if (burnResult.IsError)
                 {
-                    Result = $"simulated_burn_{Guid.NewGuid()}",
-                    IsError = false
-                };
+                    result.IsError = true;
+                    result.Message = $"Burn failed: {burnResult.Message}";
+                    return result;
+                }
                 
                 // 5. Update position
                 position.IsLiquidated = true;

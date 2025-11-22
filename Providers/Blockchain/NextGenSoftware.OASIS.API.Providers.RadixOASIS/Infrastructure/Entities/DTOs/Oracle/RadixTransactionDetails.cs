@@ -19,3 +19,4 @@ public class RadixTransactionDetails
     public string Manifest { get; set; } = string.Empty;
 }
 
+
