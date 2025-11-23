@@ -9,12 +9,15 @@ This guide walks you through getting Miden testnet access, creating a wallet, an
 ### Step 1: Install Miden Wallet Extension
 
 1. **Visit Miden Website**
-   - Go to: https://miden.xyz/
+   - **Official Site**: https://miden.fi/
+   - **Testnet Page**: https://miden.xyz/testnet
    - Look for "Wallet" or "Get Started" section
 
 2. **Download Extension**
-   - Chrome/Edge: Look for Chrome Web Store link
-   - Firefox: Look for Firefox Add-ons link
+   - Visit: https://miden.fi/
+   - Look for "Install Wallet" or "Get Wallet" button
+   - Chrome/Edge: Chrome Web Store link
+   - Firefox: Firefox Add-ons link
    - Install the extension
 
 3. **Verify Installation**
