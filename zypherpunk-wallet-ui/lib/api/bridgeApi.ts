@@ -4,12 +4,23 @@ import { oasisWalletAPI } from '../api';
 const API_BASE_URL = process.env.NEXT_PUBLIC_OASIS_API_URL || 'http://api.oasisplatform.world';
 
 export interface BridgeRequest {
-  fromChain: 'Zcash' | 'Aztec';
-  toChain: 'Zcash' | 'Aztec';
+  fromChain: 'Zcash' | 'Aztec' | 'Miden';
+  toChain: 'Zcash' | 'Aztec' | 'Miden';
   amount: number;
   fromAddress: string;
   toAddress: string;
   usePartialNotes?: boolean;
+  generateViewingKey?: boolean;
+}
+
+export interface BridgeTransferRequest {
+  fromProviderType: string;
+  toProviderType: string;
+  fromAddress: string;
+  toAddress: string;
+  amount: number;
+  memo?: string;
+  partialNotes?: boolean;
   generateViewingKey?: boolean;
 }
 
@@ -105,6 +116,16 @@ class BridgeAPI {
    */
   async getBridgeHistory(): Promise<OASISResult<BridgeHistory>> {
     return this.request<BridgeHistory>('bridge/history');
+  }
+
+  /**
+   * Generic bridge transfer (supports Zcash, Aztec, Miden)
+   */
+  async transfer(request: BridgeTransferRequest): Promise<OASISResult<{ transactionId: string; status: string }>> {
+    return this.request<{ transactionId: string; status: string }>('bridge/transfer', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
   }
 }
 
