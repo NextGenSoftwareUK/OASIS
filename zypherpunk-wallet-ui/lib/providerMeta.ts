@@ -50,7 +50,7 @@ export const providerMetadataMap: Partial<Record<ProviderType, ProviderMetadata>
     description: 'Zero-knowledge VM for privacy-preserving applications',
     accentColor: '#8b5cf6',
     backgroundGradient: 'from-[#8b5cf6] to-[#7c3aed]',
-    logoUrl: 'https://polygon.technology/logo.svg', // TODO: Add proper Miden logo
+    logoUrl: '/miden-logo.png',
     category: 'Layer2',
   },
   [ProviderType.EthereumOASIS]: {
