@@ -361,6 +361,7 @@ export default function WalletPage() {
           onPrivacy={() => setCurrentScreen('privacy')}
           onShieldedSend={handleShieldedSend}
           onStablecoin={() => setCurrentScreen('stablecoin')}
+          onBridge={() => setCurrentScreen('bridge')}
           onLogout={logout}
         />
       );
