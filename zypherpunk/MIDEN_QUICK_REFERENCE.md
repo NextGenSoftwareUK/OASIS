@@ -32,7 +32,8 @@ export MIDEN_WALLET_ADDRESS="miden1your_address"
 
 - **Network**: Miden Testnet
 - **API URL**: `https://testnet.miden.xyz`
-- **Address Format**: `miden1...`
+- **Address Format**: `mtst1...` (testnet) or `miden1...` (mainnet)
+- **Example**: `mtst1aqwg0x9w9wcrvyqdx6ftykeh65v9cn9c_qruqqypuyph`
 - **Note Types**: Public (visible) or Private (hidden)
 
 ## ⚠️ Security
