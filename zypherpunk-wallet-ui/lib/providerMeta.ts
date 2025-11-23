@@ -43,6 +43,16 @@ export const providerMetadataMap: Partial<Record<ProviderType, ProviderMetadata>
     logoUrl: '/aztec-logo.png',
     category: 'Layer2',
   },
+  [ProviderType.MidenOASIS]: {
+    providerType: ProviderType.MidenOASIS,
+    name: 'Miden',
+    symbol: 'MIDEN',
+    description: 'Zero-knowledge VM for privacy-preserving applications',
+    accentColor: '#8b5cf6',
+    backgroundGradient: 'from-[#8b5cf6] to-[#7c3aed]',
+    logoUrl: 'https://polygon.technology/logo.svg', // TODO: Add proper Miden logo
+    category: 'Layer2',
+  },
   [ProviderType.EthereumOASIS]: {
     providerType: ProviderType.EthereumOASIS,
     name: 'Ethereum',
