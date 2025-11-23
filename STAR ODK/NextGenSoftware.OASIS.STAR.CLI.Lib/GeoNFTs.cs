@@ -230,6 +230,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return nftResult;
         }
 
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> RemintGeoNFTAsync(object mintParams = null)
+        {
+            OASISResult<IWeb4OASISGeoSpatialNFT> result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
+            result = await FindWeb4GeoNFTAsync("remint");
+
+            if (result != null && result.Result != null && !result.IsError)
+            {
+                Console.WriteLine("");
+                List<IMintWeb3NFTRequest> web3Requests = await NFTCommon.GenerateWeb3NFTRequestsAsync(result.Result);
+
+                CLIEngine.ShowWorkingMessage("Reminting WEB4 OASIS GeoNFT & WEB3 NFT's...");
+                result = await STAR.OASISAPI.NFTs.RemintGeoNftAsync(result.Result, web3Requests);
+
+                if (result != null && result.Result != null && !result.IsError)
+                    CLIEngine.ShowSuccessMessage(result.Message);
+                else
+                {
+                    string msg = result != null ? result.Message : "";
+                    CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
+                }
+            }
+
+            return result;
+        }
+
         public async Task PlaceGeoNFTAsync()
         {
             IPlaceWeb4GeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(true);
