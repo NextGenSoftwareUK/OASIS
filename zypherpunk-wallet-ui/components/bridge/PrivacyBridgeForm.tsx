@@ -38,7 +38,7 @@ export const privacyBridgeChains = [
   { 
     name: 'Miden', 
     symbol: 'MIDEN', 
-    logoUrl: 'https://polygon.technology/logo.svg', // Using Polygon logo as placeholder until Miden logo is available
+    logoUrl: '/miden-logo.png',
     network: 'Miden',
     description: 'Zero-knowledge VM for privacy',
     providerType: ProviderType.MidenOASIS,
