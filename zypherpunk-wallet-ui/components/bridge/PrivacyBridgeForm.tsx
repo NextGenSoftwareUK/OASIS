@@ -38,7 +38,7 @@ export const privacyBridgeChains = [
   { 
     name: 'Miden', 
     symbol: 'MIDEN', 
-    logoUrl: 'https://polygon.technology/logo.svg', // TODO: Add Miden logo
+    logoUrl: 'https://polygon.technology/logo.svg', // Using Polygon logo as placeholder until Miden logo is available
     network: 'Miden',
     description: 'Zero-knowledge VM for privacy',
     providerType: ProviderType.MidenOASIS,
@@ -400,7 +400,12 @@ function PrivacyBridgeInputCard({
             </div>
           )}
         </div>
-        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+        <button
+          type="button"
+          onClick={onSelect}
+          className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer"
+          title={`Click to select ${chain.name}`}
+        >
           <Image
             src={chain.logoUrl}
             alt={chain.symbol}
@@ -409,7 +414,7 @@ function PrivacyBridgeInputCard({
             className="object-contain"
             loading="lazy"
           />
-        </div>
+        </button>
       </div>
       <p className="text-xs text-gray-400">{chain.description}</p>
     </div>

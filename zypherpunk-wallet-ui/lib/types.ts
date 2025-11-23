@@ -186,7 +186,8 @@ export enum ProviderType {
   ActivityPubOASIS = "ActivityPubOASIS",
   ScuttlebuttOASIS = "ScuttlebuttOASIS",
   LocalFileOASIS = "LocalFileOASIS",
-  ZcashOASIS = "ZcashOASIS"
+  ZcashOASIS = "ZcashOASIS",
+  MidenOASIS = "MidenOASIS"
 }
 
 export interface User {
