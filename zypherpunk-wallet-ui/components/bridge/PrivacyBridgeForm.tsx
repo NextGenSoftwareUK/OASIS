@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { toastManager } from '@/lib/toast';
 import { useWalletStore } from '@/lib/store';
 import { ProviderType } from '@/lib/types';
-import { formatBalance } from '@/lib/utils';
+import { formatBalance, formatAddress } from '@/lib/utils';
 import { bridgeAPI, type BridgeTransferRequest } from '@/lib/api/bridgeApi';
 
 // Re-export for use in PrivacyBridgeScreen
@@ -75,7 +75,8 @@ export function PrivacyBridgeForm() {
   const userId = user?.id;
 
   // Get wallet for selected chain
-  const fromWallet = wallets[state.from.providerType]?.[0];
+  const availableWallets = wallets[state.from.providerType] || [];
+  const fromWallet = availableWallets[0]; // Use first wallet, or allow selection if multiple
   const fromBalance = fromWallet?.balance || 0;
   const numAmount = parseFloat(state.fromAmount) || 0;
   const isValidAmount = numAmount > 0 && numAmount <= fromBalance;
@@ -211,6 +212,8 @@ export function PrivacyBridgeForm() {
             chain={state.from}
             amount={state.fromAmount}
             balance={fromBalance}
+            walletAddress={fromWallet?.walletAddress}
+            walletCount={availableWallets.length}
             onAmountChange={(value) => handleAmountChange(value, 'fromAmount')}
             onSelect={() => setTokenModalTarget('from')}
           />
@@ -338,11 +341,23 @@ interface PrivacyBridgeInputCardProps {
   chain: typeof privacyBridgeChains[0];
   amount: string;
   balance: number;
+  walletAddress?: string;
+  walletCount?: number;
   onAmountChange: (value: string) => void;
   onSelect: () => void;
 }
 
-function PrivacyBridgeInputCard({ label, chain, amount, balance, onAmountChange, onSelect }: PrivacyBridgeInputCardProps) {
+function PrivacyBridgeInputCard({ 
+  label, 
+  chain, 
+  amount, 
+  balance, 
+  walletAddress,
+  walletCount = 0,
+  onAmountChange, 
+  onSelect 
+}: PrivacyBridgeInputCardProps) {
+
   return (
     <div className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
       <div className="flex items-center justify-between text-xs uppercase tracking-widest text-gray-400">
@@ -362,10 +377,27 @@ function PrivacyBridgeInputCard({ label, chain, amount, balance, onAmountChange,
             placeholder="0.0"
             className="bg-transparent border-none text-3xl font-semibold text-white focus-visible:ring-0 px-0"
           />
-          {label === 'From' && balance > 0 && (
-            <p className="text-xs text-gray-500 mt-1">
-              Balance: {formatBalance(balance)} {chain.symbol}
-            </p>
+          {label === 'From' && (
+            <div className="mt-1 space-y-1">
+              {balance > 0 && (
+                <p className="text-xs text-gray-500">
+                  Balance: {formatBalance(balance)} {chain.symbol}
+                </p>
+              )}
+              {walletAddress && (
+                <p className="text-xs text-gray-400">
+                  From: <span className="text-gray-300 font-mono">{formatAddress(walletAddress, 6)}</span>
+                  {walletCount > 1 && (
+                    <span className="text-gray-500 ml-1">({walletCount} wallets available)</span>
+                  )}
+                </p>
+              )}
+              {!walletAddress && (
+                <p className="text-xs text-yellow-500">
+                  ⚠️ No {chain.name} wallet found. Please create or import a wallet first.
+                </p>
+              )}
+            </div>
           )}
         </div>
         <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
