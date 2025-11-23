@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Copy, Search, Menu, QrCode, Send, ArrowLeftRight, DollarSign, Home, Clock, Shield, Lock, Coins } from 'lucide-react';
+import { Copy, Search, Menu, QrCode, Send, ArrowLeftRight, DollarSign, Home, Clock, Shield, Lock, Coins, Network } from 'lucide-react';
 import { useWalletStore } from '@/lib/store';
 import { ProviderType } from '@/lib/types';
 import { formatAddress, formatBalance } from '@/lib/utils';
@@ -26,6 +26,7 @@ interface MobileWalletHomeProps {
   onPrivacy?: () => void;
   onShieldedSend?: () => void;
   onStablecoin?: () => void;
+  onBridge?: () => void;
   onLogout?: () => void;
 }
 
@@ -42,6 +43,7 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
   onPrivacy,
   onShieldedSend,
   onStablecoin,
+  onBridge,
   onLogout,
 }) => {
   const { wallets, user, isLoading, error } = useWalletStore();
@@ -171,6 +173,17 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
           )}
         </div>
         <div className="grid grid-cols-2 gap-3">
+          {onBridge && (
+            <button
+              onClick={onBridge}
+              className="flex flex-col items-center justify-center p-4 bg-zypherpunk-surface border border-zypherpunk-accent/40 rounded-xl hover:border-zypherpunk-accent/60 transition-colors"
+            >
+              <div className="w-12 h-12 bg-zypherpunk-accent/10 border border-zypherpunk-accent/30 rounded-lg flex items-center justify-center mb-2">
+                <Network className="w-6 h-6 text-zypherpunk-accent" />
+              </div>
+              <span className="text-xs text-zypherpunk-accent font-semibold">Bridge</span>
+            </button>
+          )}
           {onPrivacy && (
             <button
               onClick={onPrivacy}
@@ -179,7 +192,7 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
               <div className="w-12 h-12 bg-zypherpunk-secondary/10 border border-zypherpunk-secondary/30 rounded-lg flex items-center justify-center mb-2">
                 <Lock className="w-6 h-6 text-zypherpunk-secondary" />
               </div>
-              <span className="text-xs text-zypherpunk-secondary">Privacy</span>
+              <span className="text-xs text-zypherpunk-secondary font-semibold">Privacy</span>
             </button>
           )}
         </div>
