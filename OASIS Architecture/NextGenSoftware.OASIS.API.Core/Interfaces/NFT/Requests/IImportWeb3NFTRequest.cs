@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
 {
     public interface IImportWeb3NFTRequest
     {
-        public Guid ImportedByByAvatarId { get; set; }
+        public Guid ImportedByAvatarId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string NFTMintedUsingWalletAddress { get; set; }  //optional.
@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public EnumValue<NFTStandardType> NFTStandardType { get; set; } 
         public string MintTransactionHash { get; set; } //optional.
         public Dictionary<string, object> MetaData { get; set; }  //optional.
+        public List<string> Tags { get; set; } //optional.
         public string JSONMetaDataURL { get; set; }  //optional.
         //public string JSONMetaData { get; set; }
         public string UpdateAuthority { get; set; }
@@ -27,10 +28,14 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public uint SellerFeeBasisPoints { get; set; }  //     Seller cut //optional.
         public decimal Price { get; set; } //optional.
         public decimal Discount { get; set; } //optional.
+        public int RoyaltyPercentage { get; set; } //optional.
         public byte[] Image { get; set; } //optional.
         public string ImageUrl { get; set; } //optional.
         public byte[] Thumbnail { get; set; } //optional.
         public string ThumbnailUrl { get; set; } //optional.
         public string MemoText { get; set; } //optional.
+        public bool? IsForSale { get; set; }
+        public DateTime? SaleStartDate { get; set; }
+        public DateTime? SaleEndDate { get; set; }
     }
 }
