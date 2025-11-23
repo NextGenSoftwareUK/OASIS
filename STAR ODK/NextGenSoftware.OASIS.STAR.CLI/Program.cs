@@ -985,6 +985,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
+                    case "remint":
+                        {
+                            if (subCommand.ToUpper() == "NFT")
+                                await STARCLI.NFTs.RemintNFTAsync();
+
+                            else if (subCommand.ToUpper() == "GEONFT")
+                                await STARCLI.GeoNFTs.RemintGeoNFTAsync();
+
+                            else
+                                CLIEngine.ShowErrorMessage("Command not supported.");
+                        }
+                        break;
+
                     case "place":
                         {
                             if (subCommand.ToUpper() == "GEONFT")
@@ -1107,43 +1120,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "download":
                         {
-                            //if (isOAPPOrHappOrRuntime)
-                            //{
-                                if (downloadAndInstallPredicate != null)
-                                    await downloadAndInstallPredicate(id, InstallMode.DownloadOnly, providerType);
-                                else
-                                    CLIEngine.ShowMessage("Coming Soon...");
-                            //}
-                            //else
-                            //    CLIEngine.ShowErrorMessage("Command not supported.");
+                            if (downloadAndInstallPredicate != null)
+                                await downloadAndInstallPredicate(id, InstallMode.DownloadOnly, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
                         }
                         break;
 
                     case "install":
                         {
-                            //if (isOAPPOrHappOrRuntime)
-                            //{
-                                if (downloadAndInstallPredicate != null)
-                                    await downloadAndInstallPredicate(id, InstallMode.DownloadAndInstall, providerType);
-                                else
-                                    CLIEngine.ShowMessage("Coming Soon...");
-                            //}
-                            //else
-                            //    CLIEngine.ShowErrorMessage("Command not supported.");
+                            if (downloadAndInstallPredicate != null)
+                                await downloadAndInstallPredicate(id, InstallMode.DownloadAndInstall, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
                         }
                         break;
 
                     case "uninstall":
                         {
-                            //if (isOAPPOrHappOrRuntime)
-                            //{
-                                if (uninstallPredicate != null)
-                                    await uninstallPredicate(id, providerType);
-                                else
-                                    CLIEngine.ShowMessage("Coming Soon...");
-                            //}
-                            //else
-                            //    CLIEngine.ShowErrorMessage("Command not supported.");
+                            if (uninstallPredicate != null)
+                                await uninstallPredicate(id, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
                         }
                         break;
 
@@ -1424,11 +1422,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     else if (subCommand.ToUpper() == "NFT COLLECTION")
                         CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name} [web4]".PadRight(paramSpace), paramDivider, "Creates a WEB5 STAR NFT by wrapping around a WEB4 OASIS NFT (see notes)."), ConsoleColor.Green, false);
-                    //CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name} [web4]".PadRight(paramSpace), paramDivider, "Creates a WEB5 STAR NFT by wrapping around a WEB4 OASIS NFT. If [web4] is included it will create a WEB4 OASIS NFT"), ConsoleColor.Green, false);
 
                     else if (subCommand.ToUpper() == "GEO-NFT COLLECTION")
                         CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name} [web4]".PadRight(paramSpace), paramDivider, "Creates a WEB5 STAR GEO-NFT by wrapping around a WEB4 OASIS GEO-NFT (see notes)."), ConsoleColor.Green, false);
-                    //CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name} [web4]".PadRight(paramSpace), paramDivider, "Creates a WEB5 STAR GEO-NFT by wrapping around a WEB4 OASIS GEO-NFT. If [web4] is included it will create a WEB4 OASIS GEO-NFT"), ConsoleColor.Green, false);
 
                     else
                         CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Create a ", subCommand, "."), ConsoleColor.Green, false);
@@ -1442,11 +1438,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                 if (subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT")
                 {
+                    CLIEngine.ShowMessage(string.Concat("    remint".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Remint an existing Web4 OASIS ", subCommand, " for the given {id} or {name} to create new Web3 Varients."), ConsoleColor.Green, false);
                     CLIEngine.ShowMessage(string.Concat("    burn".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Burn's a OASIS ", subCommand, " for the given {id} or {name}"), ConsoleColor.Green, false);
                     CLIEngine.ShowMessage(string.Concat("    send".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Send a OASIS ", subCommand, " for the given {id} or {name} to another wallet cross-chain."), ConsoleColor.Green, false);
 
                     if (subCommand.ToUpper() == "NFT")
-                        //CLIEngine.ShowMessage(string.Concat("    import".PadRight(commandSpace), "{id/name} [web3]".PadRight(paramSpace), paramDivider, "Imports a OASIS ", subCommand, " JSON file for the given {id} or {name}. If the [web3] parameter is included it will import an existing WEB3 NFT (JSON MetaData or NFT Token Address) and wrap it in a new WEB4 OASIS NFT."), ConsoleColor.Green, false);
                         CLIEngine.ShowMessage(string.Concat("    import".PadRight(commandSpace), "{id/name} [web3]".PadRight(paramSpace), paramDivider, "Imports a OASIS ", subCommand, " JSON file for the given {id} or {name}."), ConsoleColor.Green, false);
                     else
                         CLIEngine.ShowMessage(string.Concat("    import".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Imports a OASIS ", subCommand, " JSON file for the given {id} or {name}."), ConsoleColor.Green, false);

@@ -167,6 +167,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        public async Task<OASISResult<IWeb4OASISNFT>> RemintNFTAsync(object mintParams = null)
+        {
+            OASISResult<IWeb4OASISNFT> result = new OASISResult<IWeb4OASISNFT>();
+            result = await FindWeb4NFTAsync("remint");
+            
+            if (result != null && result.Result != null && !result.IsError)
+            {
+                Console.WriteLine("");
+                List<IMintWeb3NFTRequest> web3Requests = await NFTCommon.GenerateWeb3NFTRequestsAsync(result.Result);
+
+                CLIEngine.ShowWorkingMessage("Reminting WEB4 OASIS NFT & WEB3 NFT's...");
+                result = await STAR.OASISAPI.NFTs.RemintNftAsync(result.Result, web3Requests);
+
+                if (result != null && result.Result != null && !result.IsError)
+                    CLIEngine.ShowSuccessMessage(result.Message);
+                else
+                {
+                    string msg = result != null ? result.Message : "";
+                    CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
+                }
+            }
+
+            return result;
+        }
+
         public async Task SendNFTAsync()
         {
             //string mintWalletAddress = CLIEngine.GetValidInput("What is the original mint address?");
