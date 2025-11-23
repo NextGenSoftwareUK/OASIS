@@ -10,7 +10,7 @@ import { BuyScreen } from '@/components/wallet/BuyScreen';
 import { TokensListScreen } from '@/components/wallet/TokensListScreen';
 import { HistoryScreen } from '@/components/wallet/HistoryScreen';
 import { SwapScreen } from '@/components/wallet/SwapScreen';
-import { ZcashAztecBridge } from '@/components/bridge/ZcashAztecBridge';
+import { PrivacyBridgeScreen } from '@/components/bridge/PrivacyBridgeScreen';
 import { StablecoinDashboard } from '@/components/stablecoin/StablecoinDashboard';
 import { ToastContainer } from '@/components/ui/toast';
 import { useWalletStore } from '@/lib/store';
@@ -294,6 +294,10 @@ export default function WalletPage() {
 
     case 'swap':
       screen = <SwapScreen onBack={() => setCurrentScreen('home')} />;
+      break;
+
+    case 'bridge':
+      screen = <PrivacyBridgeScreen onBack={() => setCurrentScreen('home')} />;
       break;
 
     case 'stablecoin':
