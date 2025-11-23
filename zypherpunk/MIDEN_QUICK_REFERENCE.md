@@ -3,8 +3,9 @@
 ## 🚀 Quick Setup (5 Minutes)
 
 ### 1. Install Wallet
-- Visit: https://miden.xyz/
-- Install browser extension
+- **Official Site**: https://miden.fi/
+- **Testnet Info**: https://miden.xyz/testnet
+- Install browser extension from official site
 - Create wallet → Save recovery phrase
 
 ### 2. Get Tokens
@@ -21,7 +22,8 @@ export MIDEN_WALLET_ADDRESS="miden1your_address"
 
 ## 📋 Important URLs
 
-- **Website**: https://miden.xyz/
+- **Official Website**: https://miden.fi/
+- **Testnet Page**: https://miden.xyz/testnet
 - **Faucet**: https://faucet.testnet.miden.io/
 - **Docs**: https://docs.miden.xyz/
 - **GitHub**: https://github.com/0xPolygonMiden
