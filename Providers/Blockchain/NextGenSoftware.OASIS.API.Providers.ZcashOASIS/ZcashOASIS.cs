@@ -193,6 +193,34 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
             return result;
         }
 
+        public async Task<OASISResult<string>> ReleaseZECAsync(string lockTxHash, decimal amount, string destinationAddress)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                var releaseResult = await _zcashBridgeService.ReleaseZECAsync(lockTxHash, amount, destinationAddress);
+                if (releaseResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, releaseResult.Message);
+                    return result;
+                }
+
+                result.Result = releaseResult.Result;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
+        }
+
         // Required abstract method implementations (simplified for MVP)
         // These will be implemented with full functionality as needed
 

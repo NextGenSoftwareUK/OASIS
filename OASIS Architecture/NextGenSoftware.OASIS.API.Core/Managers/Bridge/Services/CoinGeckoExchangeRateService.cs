@@ -50,7 +50,9 @@ public class CoinGeckoExchangeRateService : IExchangeRateService
             { "DOT", "polkadot" },
             { "ATOM", "cosmos" },
             { "USDC", "usd-coin" },
-            { "USDT", "tether" }
+            { "USDT", "tether" },
+            { "ZEC", "zcash" },
+            { "AZTEC", "aztec" } // Note: Aztec may not have a CoinGecko listing yet, may need custom oracle
         };
     }
 

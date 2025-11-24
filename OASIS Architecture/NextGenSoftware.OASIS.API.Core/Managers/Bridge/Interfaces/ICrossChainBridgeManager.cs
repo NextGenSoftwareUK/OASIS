@@ -43,5 +43,15 @@ public interface ICrossChainBridgeManager
         string fromToken,
         string toToken,
         CancellationToken token = default);
+    
+    /// <summary>
+    /// Records a viewing key for auditability/compliance
+    /// </summary>
+    Task<OASISResult<bool>> RecordViewingKeyAsync(ViewingKeyAuditEntry entry, CancellationToken token = default);
+    
+    /// <summary>
+    /// Verifies a submitted zero-knowledge proof payload
+    /// </summary>
+    Task<OASISResult<bool>> VerifyProofAsync(string proofPayload, string proofType, CancellationToken token = default);
 }
 
