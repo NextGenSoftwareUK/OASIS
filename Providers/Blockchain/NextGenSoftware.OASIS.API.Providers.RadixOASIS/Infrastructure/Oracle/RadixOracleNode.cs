@@ -236,3 +236,4 @@ public class OracleDataResponse
     public Dictionary<string, object> Data { get; set; } = new();
 }
 
+

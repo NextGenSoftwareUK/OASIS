@@ -15,3 +15,4 @@ public class RadixPriceFeed
     public decimal Confidence { get; set; } = 100; // 0-100%
 }
 
+
