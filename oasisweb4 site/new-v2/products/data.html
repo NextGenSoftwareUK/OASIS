@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data & Storage - OASIS</title>
+    <meta name="description" content="Holonic Architecture and HyperDrive v2. Universal data abstraction with 100% uptime and auto-replication.">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="nav" id="nav">
+        <div class="nav-container">
+            <a href="../" class="nav-logo">OASIS</a>
+            <div class="nav-menu" id="navMenu">
+                <a href="../index.html#products" class="nav-link">Products</a>
+                <a href="../index.html#solutions" class="nav-link">Solutions</a>
+                <a href="../index.html#developers" class="nav-link">Developers</a>
+                <a href="../index.html#resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-text" onclick="openLoginModal()">Log in</button>
+                <button class="btn-primary">Start building</button>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="section hero-section" id="home">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">01</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="title-line">Power your App</span>
+                    <span class="title-line">with Universal Data</span>
+                </h1>
+                <p class="hero-tagline">
+                    /// one API. all providers. infinite possibilities.
+                </p>
+                <div class="hero-description">
+                    <p>
+                        OASIS Data is a data primitive that allows developers to access data from any supported provider 
+                        in a single function call. Deploy anywhere, unlock data from everywhere.
+                    </p>
+                </div>
+                <div class="hero-actions">
+                    <a href="https://docs.oasisweb4.com" class="btn-primary" target="_blank">
+                        <span>USE OASIS DATA NOW</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-text">Scroll to explore</div>
+            <div class="scroll-section">
+                <span class="scroll-label">Section</span>
+                <span class="section-number">01</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section class="section" data-section="01">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">01</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Overview</h2>
+            <div class="section-subtitle">
+                OASIS Data is a data primitive that allows developers to access data from any supported provider 
+                in a single function call. Deploy anywhere, unlock data from everywhere.
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="section principles-section" data-section="02">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">02</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Why OASIS Data?</h2>
+            <div class="principles-grid">
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ A</div>
+                    </div>
+                    <h3 class="principle-title">Quick Setup</h3>
+                    <p class="principle-description">
+                        Access any supported provider's data in just a few lines of code, letting you focus on 
+                        building impactful solutions.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ B</div>
+                    </div>
+                    <h3 class="principle-title">Unified Development</h3>
+                    <p class="principle-description">
+                        Retrieve data across all providers using standardized methods, simplifying cross-provider 
+                        workflows.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ C</div>
+                    </div>
+                    <h3 class="principle-title">Zero Downtime</h3>
+                    <p class="principle-description">
+                        Built on HyperDrive with auto-failover and intelligent routing. The protocol ensures continuous 
+                        availability by automatically routing operations to available providers.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ D</div>
+                    </div>
+                    <h3 class="principle-title">Cost-Effective</h3>
+                    <p class="principle-description">
+                        Pay as you go model means you only pay for data operations when you use them - keeping 
+                        operational costs low and predictable.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="section products-section" data-section="03">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">03</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Use Cases</h2>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-category">Aggregate</div>
+                    <div class="product-number">[ 01 ]</div>
+                    <h3 class="product-title">Cross-Platform Analytics</h3>
+                    <p class="product-description">
+                        OASIS Data aggregates data from all Web2 and Web3 sources into a unified format, enabling 
+                        comprehensive analytics across platforms without costly integration fees or delays.
+                    </p>
+                </div>
+                <div class="product-card">
+                    <div class="product-category">Sync</div>
+                    <div class="product-number">[ 02 ]</div>
+                    <h3 class="product-title">Real-Time Synchronization</h3>
+                    <p class="product-description">
+                        OASIS Data synchronizes data across providers, enabling seamless replication, cross-provider 
+                        consistency, and real-time updates for all applications.
+                    </p>
+                </div>
+                <div class="product-card">
+                    <div class="product-category">Migrate</div>
+                    <div class="product-number">[ 03 ]</div>
+                    <h3 class="product-title">Provider Migration</h3>
+                    <p class="product-description">
+                        OASIS Data enables easy migration between any providers, allowing applications to switch 
+                        data storage without code changes or downtime.
+                    </p>
+                </div>
+                <div class="product-card">
+                    <div class="product-category">Query</div>
+                    <div class="product-number">[ 04 ]</div>
+                    <h3 class="product-title">Parallel Query Execution</h3>
+                    <p class="product-description">
+                        OASIS Data executes queries across all providers simultaneously, delivering 20-50x faster 
+                        results with intelligent aggregation and caching.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Concept Section -->
+    <section class="section code-section" data-section="04">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">04</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Core Concept</h2>
+            <div class="code-header">
+                <div class="code-intro">
+                    <h3 class="code-title">OASIS Data: A New Data Primitive</h3>
+                </div>
+            </div>
+            <div class="code-examples">
+                <div class="code-tabs">
+                    <button class="code-tab active" data-tab="any-data">
+                        <span class="code-tab-label">/ 01</span>
+                        <span>Any Data</span>
+                    </button>
+                    <button class="code-tab" data-tab="any-provider">
+                        <span class="code-tab-label">/ 02</span>
+                        <span>Any Provider</span>
+                    </button>
+                    <button class="code-tab" data-tab="any-time">
+                        <span class="code-tab-label">/ 03</span>
+                        <span>Any Time</span>
+                    </button>
+                </div>
+                <div class="code-content">
+                    <div class="code-block active" data-code="any-data">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Any Data</span>
+                            <span class="code-block-subtitle">Receive raw data from one provider, many providers, or add compute to transform data and receive back a simplified payload.</span>
+                        </div>
+                        <pre><code>// Save holon - automatically replicates
+POST /api/holon/save-holon
+{
+  "name": "User Profile",
+  "holonType": "Profile",
+  "metaData": {
+    "username": "user123",
+    "email": "user@example.com"
+  }
+}
+
+// Automatically replicates to:
+// - MongoDB (fast reads, indexing)
+// - IPFS (permanent backup)
+// - Arbitrum (immutable proof)
+// - Any configured provider</code></pre>
+                    </div>
+                    <div class="code-block" data-code="any-provider">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Any Provider</span>
+                            <span class="code-block-subtitle">With unified semantics, OASIS Data is designed to scale. Developers can utilize data from any provider with a single API.</span>
+                        </div>
+                        <pre><code>// Query holon - works with any provider
+GET /api/holon/load-holon/{holonId}
+
+// HyperDrive v2:
+// 1. Queries ALL providers simultaneously (parallel)
+// 2. Aggregates responses intelligently
+// 3. Returns fastest/authoritative result
+// 4. Caches for future queries
+
+// Works with: MongoDB, IPFS, Arbitrum, AWS, Azure, 
+// Google Cloud, Holochain, ThreeFold, and 40+ more</code></pre>
+                    </div>
+                    <div class="code-block" data-code="any-time">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Any Period of Time</span>
+                            <span class="code-block-subtitle">Historical data is accessible across any provider, opening up new possibilities for data-native applications.</span>
+                        </div>
+                        <pre><code>// Query historical data
+GET /api/holon/load-holon-versions/{holonId}
+
+// Returns:
+// - All versions with timestamps
+// - Complete audit trail
+// - Version comparison
+// - Rollback to any version
+
+// Automatic versioning:
+// Every save creates a new version
+// Complete history preserved
+// Access any point in time</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Products</h4>
+                    <a href="identity">Identity & Access</a>
+                    <a href="data">Data & Storage</a>
+                    <a href="nfts">NFTs & Digital Assets</a>
+                    <a href="smart-contracts">Smart Contracts</a>
+                    <a href="bridges">Interoperability & Bridges</a>
+                    <a href="infrastructure">Infrastructure & Tools</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Developers</h4>
+                    <a href="https://docs.oasisweb4.com" target="_blank">Documentation</a>
+                    <a href="../index.html#developers">Code Examples</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <a href="#">Blog</a>
+                    <a href="#">Whitepaper</a>
+                    <a href="#">Support</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <a href="#">About</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Use</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Discord</a>
+                    <a href="#">Telegram</a>
+                </div>
+                <div class="footer-copyright">© 2025 OASIS. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+<!-- Login Modal -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+    </body>
+</html>
+
