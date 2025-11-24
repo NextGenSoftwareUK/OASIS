@@ -195,3 +195,209 @@ if (carouselElement) {
     }, 2000); // Wait 2 seconds before starting
 }
 
+// Login Modal Functions
+const OASIS_API_URL = 'https://api.oasisplatform.world';
+
+let currentAuthMode = 'login';
+
+function openLoginModal() {
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeLoginModal() {
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    // Reset form
+    document.getElementById('authForm').reset();
+    document.getElementById('authError').style.display = 'none';
+    switchAuthMode('login');
+}
+
+function switchAuthMode(mode) {
+    currentAuthMode = mode;
+    const tabs = document.querySelectorAll('.auth-tab');
+    const registerFields = document.getElementById('registerFields');
+    const usernameLabel = document.getElementById('usernameLabel');
+    const submitText = document.getElementById('authSubmitText');
+    
+    tabs.forEach(tab => {
+        if (tab.getAttribute('data-mode') === mode) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+    
+    if (mode === 'register') {
+        registerFields.style.display = 'block';
+        usernameLabel.textContent = 'Username';
+        submitText.textContent = 'Create avatar';
+        document.getElementById('email').required = true;
+    } else {
+        registerFields.style.display = 'none';
+        usernameLabel.textContent = 'Username or email';
+        submitText.textContent = 'Sign in';
+        document.getElementById('email').required = false;
+    }
+}
+
+async function handleAuthSubmit(event) {
+    event.preventDefault();
+    const errorDiv = document.getElementById('authError');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const submitText = document.getElementById('authSubmitText');
+    
+    errorDiv.style.display = 'none';
+    submitBtn.disabled = true;
+    submitText.textContent = currentAuthMode === 'login' ? 'Signing in...' : 'Creating avatar...';
+    
+    try {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (currentAuthMode === 'login') {
+            // Login
+            const response = await fetch(`${OASIS_API_URL}/api/avatar/authenticate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    ...(username.includes('@') && { email: username })
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok || (data.isError && data.isError)) {
+                throw new Error(data.message || 'Authentication failed');
+            }
+            
+            // Store auth data
+            const authData = {
+                avatar: data.result?.avatar || data.avatar || data.result,
+                token: data.result?.jwtToken || data.jwtToken || data.token,
+                refreshToken: data.result?.refreshToken || data.refreshToken
+            };
+            
+            localStorage.setItem('oasis_auth', JSON.stringify(authData));
+            
+            // Close modal and update UI
+            closeLoginModal();
+            updateUserUI(authData.avatar);
+            
+        } else {
+            // Register
+            const email = document.getElementById('email').value.trim();
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            
+            const response = await fetch(`${OASIS_API_URL}/api/avatar/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: password,
+                    firstName: firstName || undefined,
+                    lastName: lastName || undefined
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok || (data.isError && data.isError)) {
+                throw new Error(data.message || 'Registration failed');
+            }
+            
+            // Store auth data
+            const authData = {
+                avatar: data.result?.avatar || data.avatar || data.result,
+                token: data.result?.jwtToken || data.jwtToken || data.token,
+                refreshToken: data.result?.refreshToken || data.refreshToken
+            };
+            
+            localStorage.setItem('oasis_auth', JSON.stringify(authData));
+            
+            // Close modal and update UI
+            closeLoginModal();
+            updateUserUI(authData.avatar);
+        }
+    } catch (error) {
+        errorDiv.textContent = error.message || 'An error occurred. Please try again.';
+        errorDiv.style.display = 'block';
+    } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = currentAuthMode === 'login' ? 'Sign in' : 'Create avatar';
+    }
+}
+
+function useDemoAvatar() {
+    const demoAvatar = {
+        avatarId: 'demo-123',
+        username: 'demo.explorer',
+        firstName: 'Demo',
+        lastName: 'Explorer'
+    };
+    
+    localStorage.setItem('oasis_auth', JSON.stringify({
+        avatar: demoAvatar,
+        token: null,
+        refreshToken: null
+    }));
+    
+    closeLoginModal();
+    updateUserUI(demoAvatar);
+}
+
+function updateUserUI(avatar) {
+    // Update login button to show user info
+    const loginBtn = document.querySelector('.nav-actions .btn-text');
+    if (loginBtn && avatar) {
+        loginBtn.textContent = avatar.username || avatar.email || 'Account';
+        loginBtn.onclick = () => {
+            // Redirect to portal
+            window.location.href = 'portal.html';
+        };
+    }
+}
+
+function showUserMenu(avatar) {
+    // Redirect to portal dashboard
+    window.location.href = 'portal.html';
+}
+
+// Check for existing auth on page load
+window.addEventListener('DOMContentLoaded', () => {
+    const authData = localStorage.getItem('oasis_auth');
+    if (authData) {
+        try {
+            const auth = JSON.parse(authData);
+            if (auth.avatar) {
+                updateUserUI(auth.avatar);
+            }
+        } catch (e) {
+            // Invalid auth data
+            localStorage.removeItem('oasis_auth');
+        }
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeLoginModal();
+    }
+});
+

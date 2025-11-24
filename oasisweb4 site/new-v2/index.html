@@ -19,10 +19,10 @@
                 <a href="#products" class="nav-link">Products</a>
                 <a href="#solutions" class="nav-link">Solutions</a>
                 <a href="#developers" class="nav-link">Developers</a>
-                <a href="#resources" class="nav-link">Resources</a>
+                <a href="resources" class="nav-link">Resources</a>
             </div>
             <div class="nav-actions">
-                <button class="btn-text">Log in</button>
+                <button class="btn-text" onclick="openLoginModal()">Log in</button>
                 <button class="btn-primary">Start building</button>
             </div>
             <button class="nav-toggle" id="navToggle">
@@ -221,7 +221,7 @@
             <h2 class="section-title">Products</h2>
             <p class="section-subtitle">Supporting a Universal Web4/Web5 Ecosystem.</p>
             <div class="products-grid">
-                <a href="/products/identity" class="product-card">
+                <a href="products/identity" class="product-card">
                     <div class="product-category">IDENTITY</div>
                     <h3 class="product-title">Identity & Access</h3>
                     <p class="product-description">
@@ -229,7 +229,7 @@
                         for complete identity management across all platforms.
                     </p>
                 </a>
-                <a href="/products/data" class="product-card">
+                <a href="products/data" class="product-card">
                     <div class="product-category">DATA</div>
                     <h3 class="product-title">Data & Storage</h3>
                     <p class="product-description">
@@ -237,7 +237,7 @@
                         and provider independence for 100% uptime.
                     </p>
                 </a>
-                <a href="/products/nfts" class="product-card">
+                <a href="products/nfts" class="product-card">
                     <div class="product-category">NFT</div>
                     <h3 class="product-title">NFTs & Digital Assets</h3>
                     <p class="product-description">
@@ -245,7 +245,7 @@
                         universal metadata and auto-replication.
                     </p>
                 </a>
-                <a href="/products/smart-contracts" class="product-card">
+                <a href="products/smart-contracts" class="product-card">
                     <div class="product-category">CONTRACTS</div>
                     <h3 class="product-title">Smart Contracts</h3>
                     <p class="product-description">
@@ -253,7 +253,7 @@
                         RWA tokenization. Write once, deploy everywhere.
                     </p>
                 </a>
-                <a href="/products/bridges" class="product-card">
+                <a href="products/bridges" class="product-card">
                     <div class="product-category">BRIDGE</div>
                     <h3 class="product-title">Interoperability & Bridges</h3>
                     <p class="product-description">
@@ -261,7 +261,7 @@
                         rates and transaction tracking.
                     </p>
                 </a>
-                <a href="/products/infrastructure" class="product-card">
+                <a href="products/infrastructure" class="product-card">
                     <div class="product-category">INFRASTRUCTURE</div>
                     <h3 class="product-title">Infrastructure & Tools</h3>
                     <p class="product-description">
@@ -579,6 +579,117 @@ console.log(status.status);</code></pre>
             </div>
         </div>
     </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeLoginModal()">×</button>
+            
+            <div class="auth-container">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <div class="auth-logo-circle">
+                            <div class="auth-logo-inner">O</div>
+                        </div>
+                    </div>
+                    <p class="auth-label">Avatar Access</p>
+                </div>
+                
+                <div class="auth-title-section">
+                    <div class="auth-subtitle">Connect Identity</div>
+                    <h2 class="auth-title">Connect your avatar</h2>
+                    <p class="auth-description">
+                        Sign in with your OASIS avatar to access your multi-chain wallets and data.
+                    </p>
+                </div>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-mode="login" onclick="switchAuthMode('login')">
+                        Sign in
+                    </button>
+                    <button class="auth-tab" data-mode="register" onclick="switchAuthMode('register')">
+                        Create avatar
+                    </button>
+                </div>
+
+                <form id="authForm" class="auth-form" onsubmit="handleAuthSubmit(event)">
+                    <div class="auth-field">
+                        <label class="auth-label-text">
+                            <span id="usernameLabel">Username or email</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            class="auth-input" 
+                            placeholder="email@oasis.com"
+                            required
+                        />
+                    </div>
+
+                    <div id="registerFields" style="display: none;">
+                        <div class="auth-field">
+                            <label class="auth-label-text">Email</label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email"
+                                class="auth-input" 
+                                placeholder="you@example.com"
+                            />
+                        </div>
+
+                        <div class="auth-field-row">
+                            <div class="auth-field">
+                                <label class="auth-label-text">First name</label>
+                                <input 
+                                    type="text" 
+                                    id="firstName" 
+                                    name="firstName"
+                                    class="auth-input" 
+                                    placeholder="Optional"
+                                />
+                            </div>
+                            <div class="auth-field">
+                                <label class="auth-label-text">Last name</label>
+                                <input 
+                                    type="text" 
+                                    id="lastName" 
+                                    name="lastName"
+                                    class="auth-input" 
+                                    placeholder="Optional"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label-text">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password"
+                            class="auth-input" 
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+
+                    <div id="authError" class="auth-error" style="display: none;"></div>
+
+                    <div class="auth-actions">
+                        <button type="submit" class="btn-primary auth-submit" id="authSubmitBtn">
+                            <span id="authSubmitText">Sign in</span>
+                        </button>
+                        <button type="button" class="btn-text auth-skip" onclick="useDemoAvatar()">
+                            Skip for now
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
