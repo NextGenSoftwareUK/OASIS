@@ -32,6 +32,8 @@
         NEAROASIS,
         SuiOASIS,
         AptosOASIS,
+        AztecOASIS,
+        ZcashOASIS,
         OptimismOASIS,
         BNBChainOASIS,
         FantomOASIS,

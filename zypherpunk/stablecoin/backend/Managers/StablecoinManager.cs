@@ -1,8 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Providers.AztecOASIS;
+using NextGenSoftware.OASIS.API.Providers.ZcashOASIS;
 using NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Holons;
 using NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Services;
 
@@ -18,10 +21,8 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
         private readonly RiskManager _riskManager;
         private readonly YieldManager _yieldManager;
         private readonly IHolonManager _holonManager;
-        
-        // TODO: These will be injected when providers are ready
-        // private readonly IZcashProvider _zcashProvider;
-        // private readonly IAztecProvider _aztecProvider;
+        private readonly ZcashOASIS _zcashProvider;
+        private readonly AztecOASIS _aztecProvider;
         
         private const string SYSTEM_HOLON_NAME = "ZcashBackedStablecoin";
         
@@ -31,6 +32,10 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
             _riskManager = new RiskManager(_oracleService);
             _yieldManager = new YieldManager();
             _holonManager = HolonManager.Instance;
+            
+            // Get providers from ProviderManager
+            _zcashProvider = ProviderManager.GetProvider<ZcashOASIS>();
+            _aztecProvider = ProviderManager.GetProvider<AztecOASIS>();
         }
         
         /// <summary>
@@ -95,21 +100,24 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
                     return result;
                 }
                 
-                // 5. Lock ZEC on Zcash (shielded transaction)
-                // TODO: Implement when Zcash provider is ready
-                // var lockResult = await _zcashProvider.LockZECForBridgeAsync(
-                //     zecAmount,
-                //     "Aztec",
-                //     aztecAddress,
-                //     generateViewingKey ? null : null
-                // );
-                
-                // For now, simulate the lock
-                var lockResult = new OASISResult<string>
+                // 5. Generate viewing key if requested (before locking)
+                string viewingKey = null;
+                if (generateViewingKey)
                 {
-                    Result = $"simulated_zcash_tx_{Guid.NewGuid()}",
-                    IsError = false
-                };
+                    var viewingKeyResult = await _zcashProvider.GenerateViewingKeyAsync(zcashAddress);
+                    if (!viewingKeyResult.IsError && viewingKeyResult.Result != null)
+                    {
+                        viewingKey = viewingKeyResult.Result.Key ?? viewingKeyResult.Result.ViewingKey;
+                    }
+                }
+                
+                // 6. Lock ZEC on Zcash (shielded transaction)
+                var lockResult = await _zcashProvider.LockZECForBridgeAsync(
+                    zecAmount,
+                    "Aztec",
+                    aztecAddress,
+                    viewingKey
+                );
                 
                 if (lockResult.IsError)
                 {
@@ -118,46 +126,25 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
                     return result;
                 }
                 
-                // 6. Generate viewing key if requested
-                string viewingKey = null;
-                if (generateViewingKey)
-                {
-                    // TODO: Implement when Zcash provider is ready
-                    // var viewingKeyResult = await _zcashProvider.GenerateViewingKeyAsync(zcashAddress);
-                    // if (!viewingKeyResult.IsError)
-                    // {
-                    //     viewingKey = viewingKeyResult.Result.Key;
-                    // }
-                    viewingKey = $"simulated_viewing_key_{Guid.NewGuid()}";
-                }
-                
                 // 7. Wait for Zcash transaction confirmation
-                // TODO: Implement confirmation waiting
-                await Task.Delay(1000); // Simulate wait
+                // TODO: Implement proper confirmation waiting with retry logic
+                await Task.Delay(2000); // Wait for transaction to be mined
                 
                 // 8. Mint stablecoin on Aztec (private)
-                // TODO: Implement when Aztec provider is ready
-                // var mintResult = await _aztecProvider.MintStablecoinAsync(
-                //     aztecAddress,
-                //     stablecoinAmount,
-                //     lockResult.Result,
-                //     viewingKey
-                // );
-                
-                // For now, simulate the mint
-                var mintResult = new OASISResult<string>
-                {
-                    Result = $"simulated_aztec_tx_{Guid.NewGuid()}",
-                    IsError = false
-                };
+                var mintResult = await _aztecProvider.MintStablecoinAsync(
+                    aztecAddress,
+                    stablecoinAmount,
+                    lockResult.Result,
+                    viewingKey
+                );
                 
                 if (mintResult.IsError)
                 {
                     // Rollback: Release ZEC if mint fails
-                    // TODO: Implement rollback
-                    // await _zcashProvider.ReleaseZECAsync(lockResult.Result);
+                    // Note: In production, this should be handled by a smart contract or escrow
+                    // For now, we log the error and the user can manually release
                     result.IsError = true;
-                    result.Message = $"Aztec mint failed: {mintResult.Message}";
+                    result.Message = $"Aztec mint failed: {mintResult.Message}. ZEC locked at: {lockResult.Result}";
                     return result;
                 }
                 
@@ -281,19 +268,11 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
                 }
                 
                 // 6. Burn stablecoin on Aztec
-                // TODO: Implement when Aztec provider is ready
-                // var burnResult = await _aztecProvider.BurnStablecoinAsync(
-                //     position.AztecAddress,
-                //     stablecoinAmount,
-                //     position.PositionId
-                // );
-                
-                // For now, simulate the burn
-                var burnResult = new OASISResult<string>
-                {
-                    Result = $"simulated_aztec_burn_{Guid.NewGuid()}",
-                    IsError = false
-                };
+                var burnResult = await _aztecProvider.BurnStablecoinAsync(
+                    position.AztecAddress,
+                    stablecoinAmount,
+                    position.PositionId
+                );
                 
                 if (burnResult.IsError)
                 {
@@ -302,27 +281,23 @@ namespace NextGenSoftware.OASIS.API.Zypherpunk.Stablecoin.Managers
                     return result;
                 }
                 
-                // 7. Release ZEC from Zcash
-                // TODO: Implement when Zcash provider is ready
-                // var releaseResult = await _zcashProvider.ReleaseZECAsync(
-                //     position.CollateralTxHash,
-                //     zecToReturn,
-                //     zcashAddress
-                // );
+                // 7. Wait for Aztec transaction confirmation
+                await Task.Delay(2000); // Wait for transaction to be processed
                 
-                // For now, simulate the release
-                var releaseResult = new OASISResult<string>
-                {
-                    Result = $"simulated_zcash_release_{Guid.NewGuid()}",
-                    IsError = false
-                };
+                // 8. Release ZEC from Zcash
+                var releaseResult = await _zcashProvider.ReleaseZECAsync(
+                    position.CollateralTxHash,
+                    zecToReturn,
+                    zcashAddress
+                );
                 
                 if (releaseResult.IsError)
                 {
                     // Rollback: Re-mint stablecoin if release fails
-                    // TODO: Implement rollback
+                    // Note: In production, this should be handled by a smart contract
+                    // For now, we log the error
                     result.IsError = true;
-                    result.Message = $"ZEC release failed: {releaseResult.Message}";
+                    result.Message = $"ZEC release failed: {releaseResult.Message}. Stablecoin burned at: {burnResult.Result}";
                     return result;
                 }
                 

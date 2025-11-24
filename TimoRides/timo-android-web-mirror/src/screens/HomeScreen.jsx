@@ -29,6 +29,7 @@ import {
   Logout as LogoutIcon,
   Star as StarIcon,
 } from '@mui/icons-material'
+import MapView from '../components/MapView'
 
 const HomeScreen = () => {
   const navigate = useNavigate()
@@ -97,39 +98,21 @@ const HomeScreen = () => {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      {/* Map Area (Placeholder) */}
+      {/* Map Area */}
       <Box
         sx={{
           flex: 1,
-          background: 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 50%, #90CAF9 100%)',
           position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'radial-gradient(circle at 30% 30%, rgba(40, 71, 188, 0.1) 0%, transparent 50%)',
-            animation: 'pulseGlow 4s ease-in-out infinite',
-          },
         }}
       >
-        {/* Map Placeholder */}
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            color: 'text.secondary',
-            zIndex: 1,
-            textShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-          }}
-        >
-          Google Maps Integration
-        </Typography>
+        {/* Actual Map View */}
+        <MapView
+          pickupLocation={pickup !== 'Current Location' ? { address: pickup } : null}
+          destinationLocation={destination ? { address: destination } : null}
+          height="100%"
+          showRoute={!!(pickup && destination && pickup !== 'Current Location')}
+        />
 
         {/* Menu Button */}
         <IconButton

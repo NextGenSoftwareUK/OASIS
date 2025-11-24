@@ -307,3 +307,4 @@ var priceData = await oracleNode.GetOracleDataAsync(new OracleDataRequest
 **Version:** 1.0  
 **Status:** ✅ **COMPLETE**
 
+

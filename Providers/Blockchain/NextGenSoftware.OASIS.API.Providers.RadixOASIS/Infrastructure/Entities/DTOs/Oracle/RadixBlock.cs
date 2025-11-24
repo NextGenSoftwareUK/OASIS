@@ -14,3 +14,4 @@ public class RadixBlock
     public string ValidatorAddress { get; set; } = string.Empty;
 }
 
+
