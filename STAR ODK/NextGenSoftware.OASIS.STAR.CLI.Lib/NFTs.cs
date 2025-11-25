@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 NFT.MetaData = new Dictionary<string, object>();
 
                             NFT.MetaData["Web5STARNFTId"] = saveResult.Result.Id;
-                            OASISResult<IWeb4OASISNFT> web4NFT = await NFTCommon.NFTManager.UpdateNFTAsync(new UpdateWeb4GeoNFTRequest() { Id = NFT.Id, ModifiedByAvatarId = STAR.BeamedInAvatar.Id, MetaData = NFT.MetaData }, providerType: providerType);
+                            OASISResult<IWeb4OASISNFT> web4NFT = await NFTCommon.NFTManager.UpdateWeb4NFTAsync(new UpdateWeb4GeoNFTRequest() { Id = NFT.Id, ModifiedByAvatarId = STAR.BeamedInAvatar.Id, MetaData = NFT.MetaData }, providerType: providerType);
 
                             if (!(web4NFT != null && web4NFT.Result != null && !web4NFT.IsError))
                                 OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 NFT after creation of WEB5 STAR NFT in CreateAsync method. Reason: {web4NFT.Message}");
@@ -337,7 +337,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     string filePath = CLIEngine.GetValidFile("Please enter the full path to the WEB4 OASIS NFT file you wish to import: ");
 
-                    OASISResult<IWeb4OASISNFT> importResult = await NFTCommon.NFTManager.ImportOASISNFTAsync(STAR.BeamedInAvatar.Id, filePath);
+                    OASISResult<IWeb4OASISNFT> importResult = await NFTCommon.NFTManager.ImportWeb4NFTAsync(STAR.BeamedInAvatar.Id, filePath);
 
                     if (importResult != null && importResult.Result != null && !importResult.IsError)
                     {
@@ -389,14 +389,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
             {
-                OASISResult<IUpdateWeb4NFTRequest> updateResult = NFTCommon.UpdateWeb4NFT(request, nftResult.Result, "WEB4 NFT");
+                OASISResult<IUpdateWeb4NFTRequest> updateResult = await NFTCommon.UpdateWeb4NFTAsync(request, nftResult.Result, "WEB4 NFT");
 
                 if (updateResult != null && updateResult.Result != null && !updateResult.IsError)
                 {
                     request = (UpdateWeb4NFTRequest)updateResult.Result;
 
                     CLIEngine.ShowWorkingMessage("Saving WEB4 NFT...");
-                    result = await NFTCommon.NFTManager.UpdateNFTAsync(request, providerType);
+                    result = await NFTCommon.NFTManager.UpdateWeb4NFTAsync(request, providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
@@ -435,7 +435,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             CLIEngine.ShowWorkingMessage("Deleting WEB4 NFT...");
-            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteNFTAsync(STAR.BeamedInAvatar.Id, nft.Result.Id, softDelete, providerType: providerType);
+            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb4NFTAsync(STAR.BeamedInAvatar.Id, nft.Result.Id, softDelete, providerType: providerType);
 
             if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
             {
@@ -456,7 +456,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT's...");
-            return ListWeb4NFTs(await NFTCommon.NFTManager.LoadAllNFTsAsync(providerType));
+            return ListWeb4NFTs(await NFTCommon.NFTManager.LoadAllWeb4NFTsAsync(providerType));
         }
 
         //public virtual OASISResult<IEnumerable<IWeb4OASISNFT>> ListAllWeb4NFTs(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
@@ -464,7 +464,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT's...");
-            return ListWeb4NFTs(NFTCommon.NFTManager.LoadAllNFTs(providerType));
+            return ListWeb4NFTs(NFTCommon.NFTManager.LoadAllWeb4NFTs(providerType));
         }
 
         //public virtual async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> ListAllWeb4NFTForAvatarsAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
@@ -472,7 +472,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT's...");
-            return ListWeb4NFTs(await NFTCommon.NFTManager.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.Id, providerType));
+            return ListWeb4NFTs(await NFTCommon.NFTManager.LoadAllWeb4NFTsForAvatarAsync(STAR.BeamedInAvatar.Id, providerType));
         }
 
         //public virtual OASISResult<IEnumerable<IWeb4OASISNFT>> ListAllWeb4NFTsForAvatar(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
@@ -480,7 +480,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT's...");
-            return ListWeb4NFTs(NFTCommon.NFTManager.LoadAllNFTsForAvatar(STAR.BeamedInAvatar.Id, providerType));
+            return ListWeb4NFTs(NFTCommon.NFTManager.LoadAllWeb4NFTsForAvatar(STAR.BeamedInAvatar.Id, providerType));
         }
 
         public virtual async Task<OASISResult<IWeb4OASISNFT>> ShowWeb4NFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -507,7 +507,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching WEB4 NFT's...");
-            ListWeb4NFTs(await NFTCommon.NFTManager.SearchNFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
+            ListWeb4NFTs(await NFTCommon.NFTManager.SearchWeb4NFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
         }
 
         public async Task<OASISResult<IWeb4OASISNFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 NFT", ProviderType providerType = ProviderType.Default)
@@ -531,9 +531,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         CLIEngine.ShowWorkingMessage($"Loading {UIName}'s...");
 
                         if (showOnlyForCurrentAvatar)
-                            starHolonsResult = await NFTCommon.NFTManager.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.AvatarId, providerType);
+                            starHolonsResult = await NFTCommon.NFTManager.LoadAllWeb4NFTsForAvatarAsync(STAR.BeamedInAvatar.AvatarId, providerType);
                         else
-                            starHolonsResult = await NFTCommon.NFTManager.LoadAllNFTsAsync(providerType);
+                            starHolonsResult = await NFTCommon.NFTManager.LoadAllWeb4NFTsAsync(providerType);
 
                         ListWeb4NFTs(starHolonsResult);
 
@@ -561,7 +561,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (Guid.TryParse(idOrName, out id))
                 {
                     CLIEngine.ShowWorkingMessage($"Loading {UIName}...");
-                    result = await NFTCommon.NFTManager.LoadNftAsync(id, providerType);
+                    result = await NFTCommon.NFTManager.LoadWeb4NftAsync(id, providerType);
 
                     if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.MintedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
@@ -572,7 +572,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb4OASISNFT>> searchResults = await NFTCommon.NFTManager.SearchNFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb4OASISNFT>> searchResults = await NFTCommon.NFTManager.SearchWeb4NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -702,7 +702,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showNumbers)
                 CLIEngine.ShowMessage(string.Concat("Number:".PadRight(displayFieldLength), number), false);
 
-            ShowNFTDetails(web4NFT, null, displayFieldLength);
+            NFTCommon.ShowNFTDetails(web4NFT, null, displayFieldLength);
 
             if (web4NFT.Web3NFTs.Count > 0)
             {
@@ -712,7 +712,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 foreach (Web3NFT web3NFT in web4NFT.Web3NFTs)
                 {
-                    ShowNFTDetails(web3NFT, web4NFT, displayFieldLength);
+                    NFTCommon.ShowNFTDetails(web3NFT, web4NFT, displayFieldLength);
                     DisplayProperty("Send NFT Transaction Hash", web3NFT.SendNFTTransactionHash, displayFieldLength);
                     DisplayProperty("OASIS MintWallet Address", web3NFT.OASISMintWalletAddress, displayFieldLength);
                     DisplayProperty("Mint Transaction Hash", web3NFT.MintTransactionHash, displayFieldLength);
