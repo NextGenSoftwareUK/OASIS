@@ -2948,90 +2948,90 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.DisplayProperty(heading, value, displayFieldLength, displayColon);
         }
 
-        protected void ShowNFTDetails(INFTBase nft, IWeb4OASISNFT web4NFT, int displayFieldLength, bool displayTags = true, bool displayMetaData = true)
-        {
-            DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
+        //protected void ShowNFTDetails(INFTBase nft, IWeb4OASISNFT web4NFT, int displayFieldLength, bool displayTags = true, bool displayMetaData = true)
+        //{
+        //    DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
 
-            if ((web4NFT != null && nft.Title != web4NFT.Title) || web4NFT == null)
-                DisplayProperty("Title", nft.Title, displayFieldLength);
+        //    if ((web4NFT != null && nft.Title != web4NFT.Title) || web4NFT == null)
+        //        DisplayProperty("Title", nft.Title, displayFieldLength);
 
-            if ((web4NFT != null && nft.Description != web4NFT.Description) || web4NFT == null)
-                DisplayProperty("Description", nft.Description, displayFieldLength);
+        //    if ((web4NFT != null && nft.Description != web4NFT.Description) || web4NFT == null)
+        //        DisplayProperty("Description", nft.Description, displayFieldLength);
 
-            if ((web4NFT != null && nft.Price != web4NFT.Price) || web4NFT == null)
-                DisplayProperty("Price", nft.Price.ToString(), displayFieldLength);
+        //    if ((web4NFT != null && nft.Price != web4NFT.Price) || web4NFT == null)
+        //        DisplayProperty("Price", nft.Price.ToString(), displayFieldLength);
 
-            if ((web4NFT != null && nft.Discount != web4NFT.Discount) || web4NFT == null)
-                DisplayProperty("Discount", nft.Discount.ToString(), displayFieldLength);
+        //    if ((web4NFT != null && nft.Discount != web4NFT.Discount) || web4NFT == null)
+        //        DisplayProperty("Discount", nft.Discount.ToString(), displayFieldLength);
 
-            if ((web4NFT != null && nft.RoyaltyPercentage != web4NFT.RoyaltyPercentage) || web4NFT == null)
-                DisplayProperty("Royalty Percentage", nft.RoyaltyPercentage.ToString(), displayFieldLength);
+        //    if ((web4NFT != null && nft.RoyaltyPercentage != web4NFT.RoyaltyPercentage) || web4NFT == null)
+        //        DisplayProperty("Royalty Percentage", nft.RoyaltyPercentage.ToString(), displayFieldLength);
 
-            if ((web4NFT != null && nft.IsForSale != web4NFT.IsForSale) || web4NFT == null)
-                DisplayProperty("For Sale", nft.IsForSale ? string.Concat("Yes (StartDate: ", nft.SaleStartDate.HasValue ? nft.SaleStartDate.Value.ToShortDateString() : "Not Set", nft.SaleEndDate.HasValue ? nft.SaleEndDate.Value.ToShortDateString() : "Not Set") : "No", displayFieldLength);
+        //    if ((web4NFT != null && nft.IsForSale != web4NFT.IsForSale) || web4NFT == null)
+        //        DisplayProperty("For Sale", nft.IsForSale ? string.Concat("Yes (StartDate: ", nft.SaleStartDate.HasValue ? nft.SaleStartDate.Value.ToShortDateString() : "Not Set", nft.SaleEndDate.HasValue ? nft.SaleEndDate.Value.ToShortDateString() : "Not Set") : "No", displayFieldLength);
 
-            if ((web4NFT != null && nft.MintedByAvatarId != web4NFT.MintedByAvatarId) || web4NFT == null)
-                DisplayProperty("Minted By Avatar Id", nft.MintedByAvatarId.ToString(), displayFieldLength);
+        //    if ((web4NFT != null && nft.MintedByAvatarId != web4NFT.MintedByAvatarId) || web4NFT == null)
+        //        DisplayProperty("Minted By Avatar Id", nft.MintedByAvatarId.ToString(), displayFieldLength);
 
-            if ((web4NFT != null && nft.MintedOn != web4NFT.MintedOn) || web4NFT == null)
-                DisplayProperty("Minted On", nft.MintedOn.ToString(), displayFieldLength);
+        //    if ((web4NFT != null && nft.MintedOn != web4NFT.MintedOn) || web4NFT == null)
+        //        DisplayProperty("Minted On", nft.MintedOn.ToString(), displayFieldLength);
 
-            if ((web4NFT != null && nft.OnChainProvider.Name != web4NFT.OnChainProvider.Name) || web4NFT == null)
-                DisplayProperty("OnChain Provider", nft.OnChainProvider.Name, displayFieldLength);
+        //    if ((web4NFT != null && nft.OnChainProvider.Name != web4NFT.OnChainProvider.Name) || web4NFT == null)
+        //        DisplayProperty("OnChain Provider", nft.OnChainProvider.Name, displayFieldLength);
 
-            if ((web4NFT != null && nft.OffChainProvider.Name != web4NFT.OffChainProvider.Name) || web4NFT == null)
-                DisplayProperty("OffChain Provider", nft.OffChainProvider.Name, displayFieldLength);
+        //    if ((web4NFT != null && nft.OffChainProvider.Name != web4NFT.OffChainProvider.Name) || web4NFT == null)
+        //        DisplayProperty("OffChain Provider", nft.OffChainProvider.Name, displayFieldLength);
 
-            if ((web4NFT != null && nft.StoreNFTMetaDataOnChain != web4NFT.StoreNFTMetaDataOnChain) || web4NFT == null)
-                DisplayProperty("Store NFT Meta Data OnChain", nft.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
+        //    if ((web4NFT != null && nft.StoreNFTMetaDataOnChain != web4NFT.StoreNFTMetaDataOnChain) || web4NFT == null)
+        //        DisplayProperty("Store NFT Meta Data OnChain", nft.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
 
-            if ((web4NFT != null && nft.NFTOffChainMetaType.Name != web4NFT.NFTOffChainMetaType.Name) || web4NFT == null)
-                DisplayProperty("NFT OffChain Meta Type", nft.NFTOffChainMetaType.Name, displayFieldLength);
+        //    if ((web4NFT != null && nft.NFTOffChainMetaType.Name != web4NFT.NFTOffChainMetaType.Name) || web4NFT == null)
+        //        DisplayProperty("NFT OffChain Meta Type", nft.NFTOffChainMetaType.Name, displayFieldLength);
 
-            if ((web4NFT != null && nft.NFTStandardType.Name != web4NFT.NFTStandardType.Name) || web4NFT == null)
-                DisplayProperty("NFT Standard Type", nft.NFTStandardType.Name, displayFieldLength);
+        //    if ((web4NFT != null && nft.NFTStandardType.Name != web4NFT.NFTStandardType.Name) || web4NFT == null)
+        //        DisplayProperty("NFT Standard Type", nft.NFTStandardType.Name, displayFieldLength);
 
-            if ((web4NFT != null && nft.Symbol != web4NFT.Symbol) || web4NFT == null)
-                DisplayProperty("Symbol", nft.Symbol, displayFieldLength);
+        //    if ((web4NFT != null && nft.Symbol != web4NFT.Symbol) || web4NFT == null)
+        //        DisplayProperty("Symbol", nft.Symbol, displayFieldLength);
 
-            if ((web4NFT != null && nft.Image != web4NFT.Image) || web4NFT == null)
-                DisplayProperty("Image", nft.Image != null ? "Yes" : "None", displayFieldLength);
+        //    if ((web4NFT != null && nft.Image != web4NFT.Image) || web4NFT == null)
+        //        DisplayProperty("Image", nft.Image != null ? "Yes" : "None", displayFieldLength);
 
-            if ((web4NFT != null && nft.ImageUrl != web4NFT.ImageUrl) || web4NFT == null)
-                DisplayProperty("Image Url", nft.ImageUrl, displayFieldLength);
+        //    if ((web4NFT != null && nft.ImageUrl != web4NFT.ImageUrl) || web4NFT == null)
+        //        DisplayProperty("Image Url", nft.ImageUrl, displayFieldLength);
 
-            if ((web4NFT != null && nft.Thumbnail != web4NFT.Thumbnail) || web4NFT == null)
-                DisplayProperty("Thumbnail", nft.Thumbnail != null ? "Yes" : "None", displayFieldLength);
+        //    if ((web4NFT != null && nft.Thumbnail != web4NFT.Thumbnail) || web4NFT == null)
+        //        DisplayProperty("Thumbnail", nft.Thumbnail != null ? "Yes" : "None", displayFieldLength);
 
-            if ((web4NFT != null && nft.ThumbnailUrl != web4NFT.ThumbnailUrl) || web4NFT == null)
-                DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None", displayFieldLength);
+        //    if ((web4NFT != null && nft.ThumbnailUrl != web4NFT.ThumbnailUrl) || web4NFT == null)
+        //        DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None", displayFieldLength);
 
-            if ((web4NFT != null && nft.JSONMetaDataURL != web4NFT.JSONMetaDataURL) || web4NFT == null)
-                DisplayProperty("JSON MetaData URL", nft.JSONMetaDataURL, displayFieldLength);
+        //    if ((web4NFT != null && nft.JSONMetaDataURL != web4NFT.JSONMetaDataURL) || web4NFT == null)
+        //        DisplayProperty("JSON MetaData URL", nft.JSONMetaDataURL, displayFieldLength);
 
-            if ((web4NFT != null && nft.JSONMetaDataURLHolonId != web4NFT.JSONMetaDataURLHolonId) || web4NFT == null)
-                DisplayProperty("JSON MetaData URL Holon Id", nft.JSONMetaDataURLHolonId != Guid.Empty ? nft.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
+        //    if ((web4NFT != null && nft.JSONMetaDataURLHolonId != web4NFT.JSONMetaDataURLHolonId) || web4NFT == null)
+        //        DisplayProperty("JSON MetaData URL Holon Id", nft.JSONMetaDataURLHolonId != Guid.Empty ? nft.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
 
-            if ((web4NFT != null && nft.SellerFeeBasisPoints != web4NFT.SellerFeeBasisPoints) || web4NFT == null)
-                DisplayProperty("Seller Fee Basis Points", nft.SellerFeeBasisPoints.ToString(), displayFieldLength);
+        //    if ((web4NFT != null && nft.SellerFeeBasisPoints != web4NFT.SellerFeeBasisPoints) || web4NFT == null)
+        //        DisplayProperty("Seller Fee Basis Points", nft.SellerFeeBasisPoints.ToString(), displayFieldLength);
 
-            if ((web4NFT != null && nft.SendToAddressAfterMinting != web4NFT.SendToAddressAfterMinting) || web4NFT == null)
-                DisplayProperty("Send To Address After Minting", nft.SendToAddressAfterMinting, displayFieldLength);
+        //    if ((web4NFT != null && nft.SendToAddressAfterMinting != web4NFT.SendToAddressAfterMinting) || web4NFT == null)
+        //        DisplayProperty("Send To Address After Minting", nft.SendToAddressAfterMinting, displayFieldLength);
 
-            if ((web4NFT != null && nft.SendToAvatarAfterMintingId != web4NFT.SendToAvatarAfterMintingId) || web4NFT == null)
-                DisplayProperty("Send To Avatar After Minting Id", nft.SendToAvatarAfterMintingId != Guid.Empty ? nft.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
+        //    if ((web4NFT != null && nft.SendToAvatarAfterMintingId != web4NFT.SendToAvatarAfterMintingId) || web4NFT == null)
+        //        DisplayProperty("Send To Avatar After Minting Id", nft.SendToAvatarAfterMintingId != Guid.Empty ? nft.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
 
-            if ((web4NFT != null && nft.SendToAvatarAfterMintingUsername != web4NFT.SendToAvatarAfterMintingUsername) || web4NFT == null)
-                DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(nft.SendToAvatarAfterMintingUsername) ? nft.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
+        //    if ((web4NFT != null && nft.SendToAvatarAfterMintingUsername != web4NFT.SendToAvatarAfterMintingUsername) || web4NFT == null)
+        //        DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(nft.SendToAvatarAfterMintingUsername) ? nft.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
 
-            if ((web4NFT != null && displayTags && TagHelper.GetTags(nft.Tags) != TagHelper.GetTags(web4NFT.Tags)) || web4NFT == null)
-                TagHelper.ShowTags(nft.Tags, displayFieldLength);
+        //    if ((web4NFT != null && displayTags && TagHelper.GetTags(nft.Tags) != TagHelper.GetTags(web4NFT.Tags)) || web4NFT == null)
+        //        TagHelper.ShowTags(nft.Tags, displayFieldLength);
 
-            if ((web4NFT != null && displayMetaData && MetaDataHelper.GetMetaData(nft.MetaData) != MetaDataHelper.GetMetaData(web4NFT.MetaData)) || web4NFT == null)
-                MetaDataHelper.ShowMetaData(nft.MetaData, displayFieldLength);
+        //    if ((web4NFT != null && displayMetaData && MetaDataHelper.GetMetaData(nft.MetaData) != MetaDataHelper.GetMetaData(web4NFT.MetaData)) || web4NFT == null)
+        //        MetaDataHelper.ShowMetaData(nft.MetaData, displayFieldLength);
 
-            //CLIEngine.ShowDivider();
-        }
+        //    //CLIEngine.ShowDivider();
+        //}
 
 
         protected async Task<OASISResult<ImageObjectResult>> ProcessImageOrObjectAsync(string holonType)
