@@ -1791,6 +1791,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
+        public OASISResult<IWeb3NFTTransactionRespone> BurnNFT(IBurnWeb3NFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IWeb3NFTTransactionRespone>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         /*

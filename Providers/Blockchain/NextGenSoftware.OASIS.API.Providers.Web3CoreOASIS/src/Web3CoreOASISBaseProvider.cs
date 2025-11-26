@@ -2014,6 +2014,16 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
     {
         throw new NotImplementedException();
     }
+
+    public OASISResult<IWeb3NFTTransactionRespone> BurnNFT(IBurnWeb3NFTRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<IWeb3NFTTransactionRespone>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 file static class Web3CoreOASISBaseProviderHelper

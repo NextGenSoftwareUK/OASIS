@@ -4,6 +4,7 @@ public interface ISolanaService
 {
     Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest);
     Task<OASISResult<MintNftResult>> MintNftAsync(MintWeb3NFTRequest mintNftRequest);
+    Task<OASISResult<BurnNftResult>> BurnNftAsync(IBurnWeb3NFTRequest burnNftRequest);
     Task<OASISResult<SendTransactionResult>> SendNftAsync(Web3NFTWalletTransactionRequest mintNftRequest);
     Task<OASISResult<GetNftResult>> LoadNftAsync(string address);
     Task<OASISResult<SolanaAvatarDto>> GetAvatarByUsernameAsync(string username);
