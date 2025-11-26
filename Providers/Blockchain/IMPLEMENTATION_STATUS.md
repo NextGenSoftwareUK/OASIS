@@ -8,6 +8,7 @@
 - Basic SaveAvatarAsync methods with some field persistence
 - Provider activation and connection handling
 - Build success (0 compilation errors)
+- Draft `StarknetOASIS` provider + placeholder `StarknetBridge` so the Zypherpunk Starknet track has a starting point for atomic swaps
 
 ### ❌ **What's MISSING (Critical Issues):**
 

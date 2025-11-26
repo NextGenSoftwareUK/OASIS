@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services.Zcash;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services.Aztec;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Bridges;
 using NextGenSoftware.OASIS.Common;
 using Solnet.Rpc;
 using Solnet.Wallet;
@@ -60,6 +61,7 @@ public class BridgeService
             var zcashRpcUser = configuration["ZcashBridge:RpcUser"] ?? "oasis";
             var zcashRpcPassword = configuration["ZcashBridge:RpcPassword"] ?? "Uppermall1!";
             var zcashBridge = new ZcashBridgeService(new ZcashRPCClient(zcashRpcUrl, zcashRpcUser, zcashRpcPassword));
+            _logger.LogInformation("Zcash bridge initialized with RPC: {RpcUrl}", zcashRpcUrl);
 
             // Initialize Aztec bridge - REAL TESTNET CONNECTION, NO MOCKS
             var aztecNodeUrl = configuration["AztecBridge:NodeUrl"] ?? "https://aztec-testnet-fullnode.zkv.xyz";
@@ -76,12 +78,18 @@ public class BridgeService
             
             _logger.LogInformation("Aztec bridge initialized with REAL testnet connection and CLI service - NO MOCKS");
 
+            var starknetRpcUrl = configuration["StarknetBridge:RpcUrl"] ?? "https://alpha4.starknet.io";
+            var starknetNetwork = configuration["StarknetBridge:Network"] ?? "alpha-goerli";
+            _logger.LogInformation("Starknet bridge connecting to {RpcUrl} on {Network}", starknetRpcUrl, starknetNetwork);
+            var starknetBridge = new StarknetBridge(starknetNetwork, starknetRpcUrl);
+
             var bridgeMap = new Dictionary<string, IOASISBridge>(StringComparer.OrdinalIgnoreCase)
             {
                 { "SOL", solanaBridge },
                 { "XRD", solanaBridge }, // Placeholder until Radix bridge is ready
                 { "ZEC", zcashBridge },
-                { "AZTEC", aztecBridge }
+                { "AZTEC", aztecBridge },
+                { "STARKNET", starknetBridge }
             };
 
             _bridgeManager = new CrossChainBridgeManager(
