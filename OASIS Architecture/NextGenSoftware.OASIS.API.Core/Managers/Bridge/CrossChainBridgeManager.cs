@@ -19,11 +19,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.Bridge;
 /// </summary>
 public class CrossChainBridgeManager : ICrossChainBridgeManager
 {
-    private const string Sol = "SOL";
-    private const string Xrd = "XRD";
-    private const string Zec = "ZEC";
-    private const string Aztec = "AZTEC";
-    private const string Miden = "MIDEN";
+private const string Sol = "SOL";
+private const string Xrd = "XRD";
+private const string Zec = "ZEC";
+private const string Aztec = "AZTEC";
+private const string Miden = "MIDEN";
+private const string Starknet = "STARKNET";
     
     private readonly Dictionary<string, IOASISBridge> _bridgeMap;
     private readonly IExchangeRateService _exchangeRateService;
@@ -54,6 +55,10 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
 
         // Zcash ↔ Miden bridge (Track 4)
         if ((from == Zec && to == Miden) || (from == Miden && to == Zec))
+            return true;
+
+        // Zcash ↔ Starknet bridge (Starknet Track)
+        if ((from == Zec && to == Starknet) || (from == Starknet && to == Zec))
             return true;
 
         return false;
@@ -547,7 +552,7 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
     /// <summary>
     /// Gets the current exchange rate between two tokens
     /// </summary>
-    public async Task<OASISResult<decimal>> GetExchangeRateAsync(
+        public async Task<OASISResult<decimal>> GetExchangeRateAsync(
         string fromToken,
         string toToken,
         CancellationToken token = default)
@@ -556,26 +561,97 @@ public class CrossChainBridgeManager : ICrossChainBridgeManager
         
         try
         {
+            var upperFrom = (fromToken ?? string.Empty).ToUpperInvariant();
+            var upperTo = (toToken ?? string.Empty).ToUpperInvariant();
+
             // Use the exchange rate service to get real-time rates
-            var rateResult = await _exchangeRateService.GetExchangeRateAsync(fromToken, toToken, token);
+            var rateResult = await _exchangeRateService.GetExchangeRateAsync(upperFrom, upperTo, token);
             
-            if (rateResult.IsError)
+            if (!rateResult.IsError)
             {
-                result.IsError = true;
+                result.Result = rateResult.Result;
+                result.IsError = false;
                 result.Message = rateResult.Message;
                 return result;
             }
 
-            result.Result = rateResult.Result;
-            result.IsError = false;
+            if (IsSolBridgePair(upperFrom, upperTo))
+            {
+                var bridgeResult = await ComputeSolBridgeRateAsync(upperFrom, upperTo, token);
+                if (!bridgeResult.IsError)
+                {
+                    return bridgeResult;
+                }
+
+                result.IsError = true;
+                result.Message = $"{rateResult.Message}; fallback: {bridgeResult.Message}";
+                return result;
+            }
+
+            result.IsError = true;
             result.Message = rateResult.Message;
-            
             return result;
         }
         catch (Exception ex)
         {
             OASISErrorHandling.HandleError(ref result,
                 $"Error getting exchange rate: {ex.Message}", ex);
+            return result;
+        }
+    }
+
+    private static bool IsSolBridgePair(string fromToken, string toToken)
+    {
+        if (string.IsNullOrWhiteSpace(fromToken) || string.IsNullOrWhiteSpace(toToken))
+            return false;
+
+        if ((fromToken == Zec && toToken == Aztec) || (fromToken == Aztec && toToken == Zec))
+            return true;
+
+        return false;
+    }
+
+    private async Task<OASISResult<decimal>> ComputeSolBridgeRateAsync(
+        string fromToken,
+        string toToken,
+        CancellationToken token)
+    {
+        var result = new OASISResult<decimal>();
+        try
+        {
+            var fromToSol = await _exchangeRateService.GetExchangeRateAsync(fromToken, Sol, token);
+            var toToSol = await _exchangeRateService.GetExchangeRateAsync(toToken, Sol, token);
+
+            if (fromToSol.IsError)
+            {
+                result.IsError = true;
+                result.Message = $"Failed to derive {fromToken}/SOL rate: {fromToSol.Message}";
+                return result;
+            }
+
+            if (toToSol.IsError)
+            {
+                result.IsError = true;
+                result.Message = $"Failed to derive {toToken}/SOL rate: {toToSol.Message}";
+                return result;
+            }
+
+            if (toToSol.Result == 0)
+            {
+                result.IsError = true;
+                result.Message = $"{toToken}/SOL rate returned zero";
+                return result;
+            }
+
+            result.Result = fromToSol.Result / toToSol.Result;
+            result.IsError = false;
+            result.Message = $"Derived {fromToken}/{toToken} via SOL";
+            return result;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result,
+                $"Error deriving exchange rate via SOL: {ex.Message}", ex);
             return result;
         }
     }

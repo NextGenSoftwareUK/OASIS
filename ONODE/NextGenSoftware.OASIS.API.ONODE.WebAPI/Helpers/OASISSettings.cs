@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         public ThreeFoldOASISProviderSettings ThreeFoldOASIS { get; set; }
 
         public EthereumOASISProviderSettings EthereumOASIS { get; set; }
+        public StarknetOASISProviderSettings StarknetOASIS { get; set; }
 
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
     }
@@ -64,5 +65,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
     public class SQLLiteDBOASISSettings : ProviderSettingsBase
     {
+    }
+
+    public class StarknetOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcUrl { get; set; }
+        public string Network { get; set; }
     }
 }
