@@ -37,6 +37,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public decimal? LastSalePrice { get; set; }
         public decimal? LastSaleAmount { get; set; }
         public DateTime LastSaleDate { get; set; }
+        public bool UpdateAllChildWeb3NFTs { get; set; }
+        public IList<string> UpdateChildWebNFTIds { get; set; } //Only update the web nfts with these ids.
 
 
 

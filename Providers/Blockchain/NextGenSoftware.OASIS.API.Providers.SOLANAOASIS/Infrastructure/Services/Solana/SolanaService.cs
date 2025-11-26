@@ -1,16 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
-using NextGenSoftware.OASIS.API.Core.Utilities;
-using Solnet.Rpc;
-using Solnet.Rpc.Models;
-using Solnet.Wallet;
-using System.Text.Json;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
@@ -91,6 +79,14 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         {
             return HandleError<MintNftResult>(ex.Message);
         }
+    }
+
+    public async Task<OASISResult<BurnNftResult>> BurnNftAsync(IBurnWeb3NFTRequest mintNftRequest)
+    {
+        return new OASISResult<BurnNftResult>(new BurnNftResult());
+
+        //TODO: Finish implementing ASAP! :)
+        //Not sure why SolNET does not have a burn function?! Needs more investigation...
     }
 
     public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)

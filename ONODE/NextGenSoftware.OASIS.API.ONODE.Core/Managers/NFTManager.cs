@@ -1,36 +1,35 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Core;
+using System.Collections.Generic;
 using Ipfs;
 using Newtonsoft.Json;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -1846,6 +1845,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         nftResult.Result.SaleStartDate = request.SaleStartDate.HasValue ? request.SaleStartDate.Value : nftResult.Result.SaleStartDate;
                         nftResult.Result.TotalNumberOfSales = request.TotalNumberOfSales.HasValue ? request.TotalNumberOfSales.Value : nftResult.Result.TotalNumberOfSales;
 
+                        if (request.UpdateChildWebNFTIds == null)
+                            request.UpdateChildWebNFTIds = new List<string>();
+
                         if (request.UpdateAllChildWeb3NFTs)
                         {
                             foreach (Web3NFT web3NFT in nftResult.Result.Web3NFTs)
@@ -1858,7 +1860,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             if (request.UpdateChildWebNFTIds.Contains(web3NFT.Id.ToString()))
                             {
                                 //web3NFT = UpdateWeb3NFT(web3NFT, request);
-                               UpdateWeb3NFT(web3NFT, request); //TODO: Double check that the web3NFTs are updated.
+                                UpdateWeb3NFT(web3NFT, request); //TODO: Double check that the web3NFTs are updated.
                             }
                         }
 
@@ -1940,6 +1942,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         nftResult.Result.Nft3DObject = request.Nft3DObject != null ? request.Nft3DObject : nftResult.Result.Nft3DObject;
                         nftResult.Result.Nft3DObjectURI = !string.IsNullOrEmpty(request.Nft3DObjectURI) ? request.Nft3DObjectURI : nftResult.Result.Nft3DObjectURI;
 
+                        if (request.UpdateChildWebNFTIds == null)
+                            request.UpdateChildWebNFTIds = new List<string>();
+
                         if (request.UpdateAllChildWeb3NFTs)
                         {
                             foreach (Web3NFT web3NFT in nftResult.Result.Web3NFTs)
@@ -2005,7 +2010,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                         if (web3NftHolonResult != null && web3NftHolonResult.Result != null && !web3NftHolonResult.IsError)
                         {
-                            OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(UpdateWeb3NFTMetaDataHolon(web3NftHolonResult.Result, updatedWeb3NFT), request.ModifiedByAvatarId, providerType: providerType);
+                            OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(UpdateWeb3NFTMetaDataHolon(web3NftHolonResult.Result, updatedWeb3NFT, request.Id), request.ModifiedByAvatarId, providerType: providerType);
 
                             if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the Web3 NFT Holon for id {updatedWeb3NFT.Id} and title '{updatedWeb3NFT.Title}'. Reason: {saveHolonResult.Message}");
@@ -2019,24 +2024,75 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> DeleteWeb4NFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb3NFTTransactionRespone>> BurnWeb3NFTAsync(Guid avatarId, IBurnWeb3NFTRequest request, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<bool> result = new();
-            string errorMessage = "Error occured in DeleteWeb4NFTAsync in NFTManager. Reason:";
+            OASISResult<IWeb3NFTTransactionRespone> result = new();
+            string errorMessage = "Error occured in BurnWeb3NFTAsync in NFTManager. Reason:";
 
             try
             {
-                OASISResult<IHolon> del = await Data.DeleteHolonAsync(id, avatarId, softDelete, providerType: providerType);
-
-                if (del != null && !del.IsError && del.Result != null)
+                if (string.IsNullOrEmpty(request.NFTTokenAddress) && request.Web3NFTId == Guid.Empty)
                 {
-                    result.Result = true;
-                    result.IsError = false;
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Both the NFTTokenAddress and Web3NFTId are missing, you need to specify at least one of these!");
+                    return result;
                 }
-                else
+
+                if (string.IsNullOrEmpty(request.NFTTokenAddress))
                 {
-                    result.Result = false;
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured deleting Web4 NFT. Reason: {del?.Message}");
+                    OASISResult<IWeb3NFT> web3NFTResult = await LoadWeb3NftAsync(request.Web3NFTId);
+
+                    if (web3NFTResult != null && web3NFTResult.Result != null && web3NFTResult.IsError!)
+                        request.NFTTokenAddress = web3NFTResult.Result.NFTTokenAddress;
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadWeb3NftAsync to resolve the NFTTokenAddress. Reason: {web3NFTResult.Message}");
+                        return result;
+                    }
+                }
+
+                OASISResult<IOASISNFTProvider> providerResult = GetNFTProvider(providerType);
+
+                if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                {
+                    bool burnt = false;
+                    DateTime startTime = DateTime.Now;
+
+                    do
+                    {
+                        try
+                        {
+                            OASISResult<IWeb3NFTTransactionRespone> burnResult = await providerResult.Result.BurnNFTAsync(request);
+                            string burnErrorMessage = "";
+
+                            if (burnResult != null && burnResult.Result != null && !burnResult.IsError)
+                            {
+                                burnt = true;
+                                result.Result = burnResult.Result;
+                                result.Message = "Web3 NFT Burnt Successfully!";
+                            }
+                            else
+                                burnErrorMessage = $"{errorMessage} Error occured calling BurnNFTAsync on provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {providerResult.Message}.";
+
+                            if (!burnt && !request.WaitTillNFTBurnt)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"{burnErrorMessage} WaitTillNFTBurnt is false so aborting!");
+                                break;
+                            }
+
+                            Thread.Sleep(request.AttemptToBurnEveryXSeconds * 1000);
+
+                            if (startTime.AddSeconds(request.WaitForNFTToBurnInSeconds).Ticks < DateTime.Now.Ticks)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"{burnErrorMessage}Timeout expired, WaitForNFTToBurnInSeconds ({request.WaitForNFTToBurnInSeconds}) exceeded, try increasing and trying again!");
+                                break;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured calling BurnNFTAsync on provider {Enum.GetName(typeof(ProviderType), providerType)} : {e.Message}", e);
+                        }
+                    }
+                    while (!burnt);
                 }
             }
             catch (Exception e)
@@ -2047,24 +2103,134 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<bool>> DeleteWeb4GeoNFTAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> DeleteWeb3NFTAsync(Guid avatarId, Guid id, bool softDelete = true, bool burnWeb3NFT = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new();
+            string errorMessage = "Error occured in DeleteWeb3NFTAsync in NFTManager. Reason:";
+
+            try
+            {
+                if (burnWeb3NFT)
+                {
+                    OASISResult<IWeb3NFTTransactionRespone> burnResult = await BurnWeb3NFTAsync(avatarId, new BurnWeb3NFTRequest() { Web3NFTId = id }, providerType);
+
+                    if (!(burnResult != null && burnResult.Result != null && !burnResult.IsError))
+                        OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured burning Web3 NFT with id {id}. Reason: {burnResult?.Message}");
+                }
+
+                OASISResult<IHolon> deleteWeb4NFTResult = await Data.DeleteHolonAsync(id, avatarId, softDelete, providerType: providerType);
+
+                if (deleteWeb4NFTResult != null && !deleteWeb4NFTResult.IsError && deleteWeb4NFTResult.Result != null)
+                {
+                    result.Result = true;
+
+                    if (result.IsWarning)
+                        result.Message = $"Web3 NFT deleted successfully but there was an issue burning the web3 NFT:\n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)} ";
+                    else
+                        result.Message = "Web3 NFT deleted successfully"; ;
+                }
+                else
+                {
+                    result.Result = false;
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured deleting Web3 NFT. Reason: {deleteWeb4NFTResult?.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<bool>> DeleteWeb4NFTAsync(Guid avatarId, Guid id, bool softDelete = true, bool deleteChildWeb3NFTs = true, bool burnChildWeb3NFTs = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new();
+            string errorMessage = "Error occured in DeleteWeb4NFTAsync in NFTManager. Reason:";
+
+            try
+            {
+                if (deleteChildWeb3NFTs)
+                {
+                    OASISResult<IEnumerable<IWeb3NFT>> web3NFTs = await LoadAllWeb3NFTsAsync(id, providerType);
+
+                    if (web3NFTs != null && web3NFTs.Result != null && !web3NFTs.IsError)
+                    {
+                        foreach (IWeb3NFT web3NFT in web3NFTs.Result)
+                        {
+                            OASISResult<bool> deleteWeb3NFTResult = await DeleteWeb3NFTAsync(avatarId, id, softDelete, burnChildWeb3NFTs, providerType);
+
+                            if (!(deleteWeb3NFTResult != null && !deleteWeb3NFTResult.IsError && deleteWeb3NFTResult.Result != null))
+                                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting Web3 NFT with id {web3NFT.Id} and title '{web3NFT.Title}'. Reason: {deleteWeb3NFTResult?.Message}");
+                        }
+                    }
+                }
+
+                OASISResult<IHolon> deleteWeb4NFTResult = await Data.DeleteHolonAsync(id, avatarId, softDelete, providerType: providerType);
+
+                if (deleteWeb4NFTResult != null && !deleteWeb4NFTResult.IsError && deleteWeb4NFTResult.Result != null)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+
+                    if (result.IsWarning)
+                        result.Message = $"Web4 NFT deleted successfully but there were issues deleting one or more of the child web3 NFTs:\n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)} ";
+                    else
+                        result.Message = "Web4 NFT deleted successfully";
+                }
+                else
+                {
+                    result.Result = false;
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured deleting Web4 NFT. Reason: {deleteWeb4NFTResult?.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<bool>> DeleteWeb4GeoNFTAsync(Guid avatarId, Guid id, bool softDelete = true, bool deleteChildWeb3NFTs = true, bool burnChildWeb3NFTs = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteWeb4GeoNFTAsync in NFTManager. Reason:";
 
             try
             {
-                OASISResult<IHolon> del = await Data.DeleteHolonAsync(id, avatarId, softDelete, providerType: providerType);
+                if (deleteChildWeb3NFTs)
+                {
+                    OASISResult<IEnumerable<IWeb3NFT>> web3NFTs = await LoadAllWeb3NFTsAsync(id, providerType);
 
-                if (del != null && !del.IsError && del.Result != null)
+                    if (web3NFTs != null && web3NFTs.Result != null && !web3NFTs.IsError)
+                    {
+                        foreach (IWeb3NFT web3NFT in web3NFTs.Result)
+                        {
+                            OASISResult<bool> deleteWeb3NFTResult = await DeleteWeb3NFTAsync(avatarId, id, softDelete, burnChildWeb3NFTs, providerType);
+
+                            if (!(deleteWeb3NFTResult != null && !deleteWeb3NFTResult.IsError && deleteWeb3NFTResult.Result != null))
+                                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting Web3 NFT with id {web3NFT.Id} and title '{web3NFT.Title}'. Reason: {deleteWeb3NFTResult?.Message}");
+                        }
+                    }
+                }
+
+                OASISResult<IHolon> deleteWeb4NFTResult = await Data.DeleteHolonAsync(id, avatarId, softDelete, providerType: providerType);
+
+                if (deleteWeb4NFTResult != null && !deleteWeb4NFTResult.IsError && deleteWeb4NFTResult.Result != null)
                 {
                     result.Result = true;
                     result.IsError = false;
+
+                    if (result.IsWarning)
+                        result.Message = $"Web4 Geo-NFT deleted successfully but there were issues deleting one or more of the child web3 NFTs:\n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)} ";
+                    else
+                        result.Message = "Web4 Geo-NFT deleted successfully";
                 }
                 else
                 {
                     result.Result = false;
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured deleting Web4 Geo-NFT. Reason: {del?.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured deleting Web4 Geo-NFT. Reason: {deleteWeb4NFTResult?.Message}");
                 }
             }
             catch (Exception e)
@@ -3344,7 +3510,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     result.Result.Web3NFTs.Add((Web3NFT)UpdateWeb3NFT(currentWeb3NFT, web3Request));
 
                     //TODO: Create the WEB3 NFT Holon here...
-                    IHolon web3NFTHolon = CreateWeb3NFTMetaDataHolon(currentWeb3NFT, web3Request);
+                    IHolon web3NFTHolon = CreateWeb3NFTMetaDataHolon(currentWeb3NFT, result.Result.Id, web3Request);
                     OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(web3NFTHolon, web3Request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
 
                     if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
@@ -4099,18 +4265,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return holonNFT;
         }
 
-        private IHolon CreateWeb3NFTMetaDataHolon(IWeb3NFT nftMetaData, IMintWeb3NFTRequest request = null)
+        private IHolon CreateWeb3NFTMetaDataHolon(IWeb3NFT nftMetaData, Guid parentWeb4NFTId, IMintWeb3NFTRequest request = null)
         {
-            return UpdateWeb3NFTMetaDataHolon(new Holon(HolonType.Web3NFT), nftMetaData, request);
+            return UpdateWeb3NFTMetaDataHolon(new Holon(HolonType.Web3NFT), nftMetaData, parentWeb4NFTId, request);
         }
 
-        private IHolon UpdateWeb3NFTMetaDataHolon(IHolon holonNFT, IWeb3NFT nftMetaData, IMintWeb3NFTRequest request = null)
+        private IHolon UpdateWeb3NFTMetaDataHolon(IHolon holonNFT, IWeb3NFT nftMetaData, Guid parentWeb4NFTId, IMintWeb3NFTRequest request = null)
         {
             holonNFT.Id = nftMetaData.Id;
             holonNFT.Name = $"{nftMetaData.OnChainProvider.Name} WEB3 NFT Minted On The OASIS with title {nftMetaData.Title}";
             holonNFT.Description = nftMetaData.MemoText;
             holonNFT.MetaData["NFT.WEB3NFT"] = System.Text.Json.JsonSerializer.Serialize(nftMetaData);
             holonNFT.MetaData["NFT.Id"] = nftMetaData.Id;
+            holonNFT.MetaData["NFT.ParentWeb4NFTId"] = parentWeb4NFTId.ToString();
             holonNFT.MetaData["NFT.MintedByAvatarId"] = nftMetaData.MintedByAvatarId.ToString();
             holonNFT.MetaData["NFT.SendToAvatarAfterMintingId"] = nftMetaData.SendToAvatarAfterMintingId.ToString();
             holonNFT.MetaData["NFT.SendToAvatarAfterMintingUsername"] = nftMetaData.SendToAvatarAfterMintingUsername;
