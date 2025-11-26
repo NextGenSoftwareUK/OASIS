@@ -654,7 +654,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ImportWeb3NFTRequest request = new ImportWeb3NFTRequest();
 
             request.NFTTokenAddress = CLIEngine.GetValidInput("Please enter the token address of the NFT you wish to import: ");
-            request.ImportedByByAvatarId = STAR.BeamedInAvatar.Id;
+            request.ImportedByAvatarId = STAR.BeamedInAvatar.Id;
             request.Title = CLIEngine.GetValidInput("What is the NFT's title?");
             request.Description = CLIEngine.GetValidInput("What is the NFT's description?");
             request.MemoText = CLIEngine.GetValidInput("What is the NFT's memotext? (optional)");
