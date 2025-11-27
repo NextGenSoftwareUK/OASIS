@@ -2578,8 +2578,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 value: gasPrice,
                 receiptRequestCancellationToken: null,
                 //transaction.MintWalletAddress,
-                _oasisAccount.Address
-                //transaction.JSONMetaDataURL
+                request.NFTTokenAddress
             );
 
             if (txReceipt.HasErrors() is true && txReceipt.Logs.Count > 0)
