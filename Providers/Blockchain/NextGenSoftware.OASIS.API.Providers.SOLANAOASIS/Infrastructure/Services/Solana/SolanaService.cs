@@ -1,4 +1,6 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
+using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
@@ -83,10 +85,47 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
 
     public async Task<OASISResult<BurnNftResult>> BurnNftAsync(IBurnWeb3NFTRequest mintNftRequest)
     {
-        return new OASISResult<BurnNftResult>(new BurnNftResult());
+        var response = new OASISResult<BurnNftResult>();
 
-        //TODO: Finish implementing ASAP! :)
-        //Not sure why SolNET does not have a burn function?! Needs more investigation...
+        try
+        {
+            //PublicKey mintAccount = new(mintNftRequest.MintWalletAddress);
+            PublicKey mintAccount = oasisAccount;
+            PublicKey NFTTokenAddress = new(mintNftRequest.NFTTokenAddress);
+
+            RequestResult<ResponseValue<LatestBlockHash>> blockHash =
+                await rpcClient.GetLatestBlockHashAsync();
+
+            byte[] tx = new TransactionBuilder()
+                .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+                .SetFeePayer(mintAccount)
+                .AddInstruction(TokenProgram.Burn(
+                mintAccount,
+                NFTTokenAddress,
+                1,
+                mintAccount))
+                .Build(oasisAccount);
+
+            RequestResult<string> sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
+            if (!sendTransactionResult.WasSuccessful)
+            {
+                response.IsError = true;
+                response.Message = sendTransactionResult.Reason;
+                OASISErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
+
+            response.Result = new BurnNftResult(sendTransactionResult.Result);
+        }
+        catch (Exception e)
+        {
+            response.Exception = e;
+            response.Message = e.Message;
+            response.IsError = true;
+            OASISErrorHandling.HandleError(ref response, e.Message);
+        }
+
+        return response;
     }
 
     public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)

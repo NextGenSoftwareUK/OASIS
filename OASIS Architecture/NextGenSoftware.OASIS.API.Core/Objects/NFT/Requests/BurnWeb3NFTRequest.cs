@@ -6,6 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
     public class BurnWeb3NFTRequest : IBurnWeb3NFTRequest
     {
         public Guid Web3NFTId { get; set; }
+        //public string MintWalletAddress { get; set; }
         public string NFTTokenAddress { get; set; }
         public bool WaitTillNFTBurnt { get; set; }
         public int WaitForNFTToBurnInSeconds { get; set; }

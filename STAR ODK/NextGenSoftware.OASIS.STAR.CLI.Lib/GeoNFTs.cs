@@ -82,8 +82,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         STARNETDNA = new STARNETDNA()
                         {
-                            MetaData = new Dictionary<string, object>() { { "GeoNFT", geoNFT } }
-                            //MetaData = new Dictionary<string, object>() { { "GeoNFTId", geoNFT.Id } }
+                            MetaData = new Dictionary<string, object>() { { "WEB4 GeoNFT", geoNFT } }
                         },
                         STARNETHolon = new STARGeoNFT() 
                         { 
@@ -147,12 +146,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //    }
             //}
 
-            if (starHolon.STARNETDNA != null && starHolon.STARNETDNA.MetaData != null && starHolon.STARNETDNA.MetaData.ContainsKey("GeoNFT") && starHolon.STARNETDNA.MetaData["GeoNFT"] != null)
+            if (starHolon.STARNETDNA != null && starHolon.STARNETDNA.MetaData != null && starHolon.STARNETDNA.MetaData.ContainsKey("WEB4 GeoNFT") && starHolon.STARNETDNA.MetaData["WEB4 GeoNFT"] != null)
             {
-                IWeb4OASISGeoSpatialNFT geoNFT = starHolon.STARNETDNA.MetaData["GeoNFT"] as IWeb4OASISGeoSpatialNFT;
+                IWeb4OASISGeoSpatialNFT geoNFT = starHolon.STARNETDNA.MetaData["WEB4 GeoNFT"] as IWeb4OASISGeoSpatialNFT;
 
                 if (geoNFT == null)
-                    geoNFT = JsonConvert.DeserializeObject<Web4OASISGeoSpatialNFT>(starHolon.STARNETDNA.MetaData["GeoNFT"].ToString());
+                    geoNFT = JsonConvert.DeserializeObject<Web4OASISGeoSpatialNFT>(starHolon.STARNETDNA.MetaData["WEB4 GeoNFT"].ToString());
 
                 if (geoNFT != null)
                 {
@@ -576,9 +575,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> DeleteWeb4GeoNFTAsync(string collectionIdOrName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> DeleteWeb4GeoNFTAsync(string idOrName, bool? softDelete = true, bool? deleteChildWeb3NFTs = false, bool? burnChildWebNFTs = false, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IWeb4OASISGeoSpatialNFT> geoNFT = await FindWeb4GeoNFTAsync("delete", collectionIdOrName, true);
+            OASISResult<IWeb4OASISGeoSpatialNFT> geoNFT = await FindWeb4GeoNFTAsync("delete", idOrName, true);
 
             if (geoNFT == null || geoNFT.Result == null || geoNFT.IsError)
             {
@@ -586,8 +585,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return geoNFT;
             }
 
+            if (!softDelete.HasValue)
+                softDelete = CLIEngine.GetConfirmation("Do you wish to permanently delete the Web4 Geo-NFT? (defaults to false)");
+
+            if (!deleteChildWeb3NFTs.HasValue)
+                deleteChildWeb3NFTs = CLIEngine.GetConfirmation("Do you wish to also delete the child Web3 NFTs? (the OASIS holon/metadata)(recommeneded/default)");
+
+            if (!burnChildWebNFTs.HasValue)
+                burnChildWebNFTs = CLIEngine.GetConfirmation("Do you wish to also burn the child Web3 NFTs? (permanently destroy the Web3 NFTs on-chain) (recommeneded/default)");
+
             CLIEngine.ShowWorkingMessage("Deleting WEB4 OASIS Geo-NFT...");
-            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb4GeoNFTAsync(STAR.BeamedInAvatar.Id, geoNFT.Result.Id, softDelete, providerType: providerType);
+            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb4GeoNFTAsync(STAR.BeamedInAvatar.Id, geoNFT.Result.Id, softDelete.Value, deleteChildWeb3NFTs.Value, burnChildWebNFTs.Value, providerType: providerType);
 
             if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
             {
