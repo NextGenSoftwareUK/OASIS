@@ -7,6 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         IPFS,
         Pinata,
         ExternalJSONURL,
-        Other
+        Other,
+        None
     }
 }

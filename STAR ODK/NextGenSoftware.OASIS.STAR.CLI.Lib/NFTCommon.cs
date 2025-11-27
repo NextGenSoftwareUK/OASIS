@@ -75,6 +75,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     request.JSONMetaDataURL = uriResult.AbsoluteUri;
                 }
             }
+            else
+                request.NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType.None);
 
             if (string.IsNullOrEmpty(web3JSONMetaDataFile) && request.NFTOffChainMetaType.Value != NFTOffChainMetaType.ExternalJSONURL)
             {

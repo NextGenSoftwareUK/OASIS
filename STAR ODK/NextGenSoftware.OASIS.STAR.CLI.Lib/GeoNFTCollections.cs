@@ -418,7 +418,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> DeleteWeb4GeoNFTCollectionAsync(string collectionIdOrName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoNFTCollection>> DeleteWeb4GeoNFTCollectionAsync(string collectionIdOrName, bool? softDelete = true, bool? deleteChildWeb4NFTs = false, bool? deleteChildWeb3NFTs = false, bool? burnChildWebNFTs = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4OASISGeoNFTCollection> collection = await FindWeb4GeoNFTCollectionAsync("delete", collectionIdOrName, true);
 
@@ -428,8 +428,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return collection;
             }
 
+            if (!softDelete.HasValue)
+                softDelete = CLIEngine.GetConfirmation("Do you wish to permanently delete the Web4 Geo-NFT Collection? (defaults to false)");
+
+            if (!deleteChildWeb4NFTs.HasValue)
+                deleteChildWeb4NFTs = CLIEngine.GetConfirmation("Do you wish to also delete the child Web4 Geo-NFTs? (defaults to false)");
+
+            if (deleteChildWeb4NFTs.Value)
+            {
+                if (!deleteChildWeb3NFTs.HasValue)
+                    deleteChildWeb3NFTs = CLIEngine.GetConfirmation("Do you wish to also delete the child Web3 NFTs? (the OASIS holon/metadata)(recommeneded/default)");
+
+                if (!burnChildWebNFTs.HasValue)
+                    burnChildWebNFTs = CLIEngine.GetConfirmation("Do you wish to also burn the child Web3 NFTs? (permanently destroy the Web3 NFTs on-chain) (recommeneded/default)");
+            }
+            else
+            {
+                deleteChildWeb3NFTs = false;
+                burnChildWebNFTs = false;
+            }
+
             CLIEngine.ShowWorkingMessage("Deleting WEB4 GeoNFT Collection...");
-            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb4GeoNFTCollectionAsync(STAR.BeamedInAvatar.Id, collection.Result.Id, softDelete, providerType: providerType);
+            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb4GeoNFTCollectionAsync(STAR.BeamedInAvatar.Id, collection.Result.Id, softDelete.Value, deleteChildWeb4NFTs.Value, deleteChildWeb3NFTs.Value, burnChildWebNFTs.Value, providerType: providerType);
 
             if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
             {
