@@ -50,5 +50,29 @@ export const config = {
       decimals: 18,
       color: '#28A0F0',
     },
+    starknet: {
+      name: 'Starknet',
+      symbol: 'STRK',
+      decimals: 18,
+      color: '#8C7BFF',
+    },
+    zcash: {
+      name: 'Zcash',
+      symbol: 'ZEC',
+      decimals: 8,
+      color: '#00ff88',
+    },
+    aztec: {
+      name: 'Aztec',
+      symbol: 'AZTEC',
+      decimals: 18,
+      color: '#60a5fa',
+    },
+    miden: {
+      name: 'Miden',
+      symbol: 'MIDEN',
+      decimals: 18,
+      color: '#8b5cf6',
+    },
   },
 }; 

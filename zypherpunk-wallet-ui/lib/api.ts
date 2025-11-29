@@ -65,7 +65,7 @@ class OASISWalletAPI {
   }
 
   private async request<T>(
-    endpoint: string, 
+    endpoint: string,
     options: RequestInit = {}
   ): Promise<OASISResult<T>> {
     try {
@@ -75,9 +75,13 @@ class OASISWalletAPI {
         : `${this.baseUrl}/api/wallet/${endpoint}`;
       console.log('Making API request to:', url);
       
+      const headers = this.mergeHeaders(options.headers);
+      const hasAuth = headers.get('Authorization');
+      console.log('Request has Authorization header:', !!hasAuth, hasAuth ? `${hasAuth.substring(0, 20)}...` : 'none');
+      
       const response = await fetch(url, {
         ...options,
-        headers: this.mergeHeaders(options.headers),
+        headers,
         mode: this.useProxy ? 'same-origin' : 'cors',
       });
 
@@ -124,18 +128,19 @@ class OASISWalletAPI {
 
   // Load wallets by different identifiers
   async loadWalletsById(avatarId: string, providerType?: ProviderType): Promise<OASISResult<Record<ProviderType, Wallet[]>>> {
+    // Use the correct OASIS API endpoint: /api/wallet/avatar/{id}/wallets
     const params = providerType ? `?providerType=${providerType}` : '';
-    return this.request<Record<ProviderType, Wallet[]>>(`load_wallets_by_id/${avatarId}${params}`);
+    return this.request<Record<ProviderType, Wallet[]>>(`avatar/${avatarId}/wallets${params}`);
   }
 
   async loadWalletsByUsername(username: string, providerType?: ProviderType): Promise<OASISResult<Record<ProviderType, Wallet[]>>> {
     const params = providerType ? `?providerType=${providerType}` : '';
-    return this.request<Record<ProviderType, Wallet[]>>(`load_wallets_by_username/${username}${params}`);
+    return this.request<Record<ProviderType, Wallet[]>>(`avatar/username/${username}/wallets${params}`);
   }
 
   async loadWalletsByEmail(email: string, providerType?: ProviderType): Promise<OASISResult<Record<ProviderType, Wallet[]>>> {
     const params = providerType ? `?providerType=${providerType}` : '';
-    return this.request<Record<ProviderType, Wallet[]>>(`load_wallets_by_email/${email}${params}`);
+    return this.request<Record<ProviderType, Wallet[]>>(`avatar/email/${email}/wallets${params}`);
   }
 
   // Send transaction
