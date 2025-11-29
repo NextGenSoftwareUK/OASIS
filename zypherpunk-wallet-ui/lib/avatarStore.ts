@@ -44,7 +44,9 @@ const applyAuthState = (auth: AvatarAuthResponse) => {
   if (user) {
     walletStore.setUser(user);
   }
+  console.log('Setting auth token for wallet API:', jwtToken ? `${jwtToken.substring(0, 20)}...` : 'null');
   oasisWalletAPI.setAuthToken(jwtToken);
+  console.log('Auth token set. Wallet API token:', oasisWalletAPI.getAuthToken() ? 'present' : 'missing');
 };
 
 export const useAvatarStore = create<AvatarStoreState>()(
@@ -145,15 +147,18 @@ export const useAvatarStore = create<AvatarStoreState>()(
 // Set hasHydrated immediately if persist is not available
 if (typeof window !== 'undefined') {
   // Check if we're in browser
-  const checkHydration = () => {
-    const state = useAvatarStore.getState();
-    if (!state.hasHydrated) {
-      const { avatar, token } = state;
-      if (token) {
-        oasisWalletAPI.setAuthToken(token);
-      } else {
-        oasisWalletAPI.setAuthToken(null);
-      }
+      const checkHydration = () => {
+        const state = useAvatarStore.getState();
+        if (!state.hasHydrated) {
+          const { avatar, token } = state;
+          console.log('Hydrating auth state. Token present:', !!token, token ? `${token.substring(0, 20)}...` : 'none');
+          if (token) {
+            oasisWalletAPI.setAuthToken(token);
+            console.log('Restored auth token to wallet API');
+          } else {
+            oasisWalletAPI.setAuthToken(null);
+            console.log('No token to restore');
+          }
 
       const user = mapAvatarToUser(avatar);
       useWalletStore.getState().setUser(user);

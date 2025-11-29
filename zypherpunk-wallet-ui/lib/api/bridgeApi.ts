@@ -4,8 +4,8 @@ import { oasisWalletAPI } from '../api';
 const API_BASE_URL = process.env.NEXT_PUBLIC_OASIS_API_URL || 'http://api.oasisplatform.world';
 
 export interface BridgeRequest {
-  fromChain: 'Zcash' | 'Aztec' | 'Miden';
-  toChain: 'Zcash' | 'Aztec' | 'Miden';
+  fromChain: 'Zcash' | 'Aztec' | 'Miden' | 'Starknet';
+  toChain: 'Zcash' | 'Aztec' | 'Miden' | 'Starknet';
   amount: number;
   fromAddress: string;
   toAddress: string;
@@ -21,6 +21,18 @@ export interface BridgeTransferRequest {
   amount: number;
   memo?: string;
   partialNotes?: boolean;
+  generateViewingKey?: boolean;
+}
+
+export type StarknetAtomicSwapChain = 'Zcash' | 'Starknet';
+
+export interface AtomicSwapRequest {
+  fromChain: StarknetAtomicSwapChain;
+  toChain: StarknetAtomicSwapChain;
+  amount: number;
+  fromAddress: string;
+  toAddress: string;
+  usePartialNotes?: boolean;
   generateViewingKey?: boolean;
 }
 
@@ -105,6 +117,16 @@ class BridgeAPI {
   }
 
   /**
+   * Initiate Starknet ↔ Zcash atomic swap
+   */
+  async bridgeAtomicSwap(request: AtomicSwapRequest): Promise<OASISResult<BridgeStatus>> {
+    return this.request<BridgeStatus>('atomic-swap', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  /**
    * Get bridge status
    */
   async getBridgeStatus(bridgeId: string): Promise<OASISResult<BridgeStatus>> {
@@ -116,6 +138,14 @@ class BridgeAPI {
    */
   async getBridgeHistory(): Promise<OASISResult<BridgeHistory>> {
     return this.request<BridgeHistory>('bridge/history');
+  }
+
+  async getAtomicSwapHistory(): Promise<OASISResult<BridgeHistory>> {
+    return this.request<BridgeHistory>('atomic-swap/history');
+  }
+
+  async getAtomicSwapStatus(bridgeId: string): Promise<OASISResult<BridgeStatus>> {
+    return this.request<BridgeStatus>(`atomic-swap/status/${bridgeId}`);
   }
 
   /**

@@ -1,16 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using ProviderEnums = NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Starknet;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.StarknetOASIS;
 
@@ -22,20 +29,22 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
 {
     private readonly HttpClient _httpClient;
     private readonly string _network;
+    private readonly IStarknetRpcClient _rpcClient;
     private bool _isActivated;
 
     public StarknetOASIS(string network = "alpha-goerli", string apiBaseUrl = "https://alpha4.starknet.io")
     {
         ProviderName = nameof(StarknetOASIS);
         ProviderDescription = "Starknet privacy provider for cross-chain swaps";
-        ProviderType = new EnumValue<ProviderType>(ProviderType.StarknetOASIS);
-        ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageAndNetwork);
+        ProviderType = new EnumValue<ProviderEnums.ProviderType>(ProviderEnums.ProviderType.StarknetOASIS);
+        ProviderCategory = new EnumValue<ProviderEnums.ProviderCategory>(ProviderEnums.ProviderCategory.StorageAndNetwork);
 
         _network = network;
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri(apiBaseUrl)
         };
+        _rpcClient = new StarknetRpcClient(_httpClient, apiBaseUrl);
     }
 
     public override Task<OASISResult<bool>> ActivateProviderAsync()
@@ -79,19 +88,209 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         return DeActivateProviderAsync().Result;
     }
 
-    public Task<OASISResult<string>> CreateAtomicSwapIntentAsync(string starknetAddress, decimal amount, string zcashAddress)
+    public async Task<OASISResult<string>> CreateAtomicSwapIntentAsync(string starknetAddress, decimal amount, string zcashAddress)
     {
         var result = new OASISResult<string>();
 
         if (!EnsureActivated(result))
         {
-            return Task.FromResult(result);
+            return result;
         }
 
-        result.Result = Guid.NewGuid().ToString();
-        result.IsError = false;
-        result.Message = $"Atomic swap intent created for {amount} ZEC -> {starknetAddress}";
-        return Task.FromResult(result);
+        try
+        {
+            var swapId = Guid.NewGuid().ToString();
+            
+            // Create a Holon to track this atomic swap
+            var swapHolon = new Holon
+            {
+                Id = Guid.NewGuid(),
+                Name = $"Atomic Swap {swapId}",
+                Description = $"Zcash to Starknet atomic swap: {amount} ZEC -> {starknetAddress}",
+                HolonType = HolonType.BridgeTransaction,
+                ProviderKey = ProviderType.Value.ToString(),
+                MetaData = new Dictionary<string, string>
+                {
+                    { "swapId", swapId },
+                    { "starknetAddress", starknetAddress },
+                    { "zcashAddress", zcashAddress },
+                    { "amount", amount.ToString() },
+                    { "status", BridgeTransactionStatus.Pending.ToString() },
+                    { "fromChain", "Zcash" },
+                    { "toChain", "Starknet" },
+                    { "createdAt", DateTime.UtcNow.ToString("O") },
+                    { "providerType", ProviderType.Value.ToString() }
+                },
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow
+            };
+
+            // Save the Holon using ProviderManager to persist to MongoDB or other storage providers
+            var saveResult = await ProviderManager.Instance.SaveHolonAsync(swapHolon);
+            if (saveResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to persist swap Holon: {saveResult.Message}");
+                return result;
+            }
+
+            result.Result = swapId;
+            result.IsError = false;
+            result.Message = $"Atomic swap intent created for {amount} ZEC -> {starknetAddress}";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Failed to create atomic swap intent: {ex.Message}", ex);
+        }
+
+        return result;
+    }
+
+    public async Task<OASISResult<decimal>> GetBalanceAsync(string accountAddress)
+    {
+        var result = new OASISResult<decimal>();
+
+        if (!EnsureActivated(result))
+        {
+            return result;
+        }
+
+        try
+        {
+            var balanceResult = await _rpcClient.GetBalanceAsync(accountAddress);
+            if (balanceResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, balanceResult.Message);
+                return result;
+            }
+
+            result.Result = balanceResult.Result;
+            result.IsError = false;
+            result.Message = $"Balance retrieved for {accountAddress}";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Failed to get balance: {ex.Message}", ex);
+        }
+
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionStatus>> GetSwapStatusAsync(string swapId)
+    {
+        var result = new OASISResult<BridgeTransactionStatus>();
+
+        if (!EnsureActivated(result))
+        {
+            return result;
+        }
+
+        try
+        {
+            // Load the swap Holon by metadata
+            var searchParams = new SearchParams
+            {
+                SearchString = swapId,
+                SearchType = SearchType.Contains
+            };
+
+            var holonsResult = await ProviderManager.Instance.SearchAsync(searchParams);
+            if (holonsResult.IsError || holonsResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Swap {swapId} not found");
+                return result;
+            }
+
+            var swapHolon = holonsResult.Result.Results?.FirstOrDefault(h => 
+                h.MetaData?.ContainsKey("swapId") == true && 
+                h.MetaData["swapId"] == swapId);
+
+            if (swapHolon == null || !swapHolon.MetaData.ContainsKey("status"))
+            {
+                OASISErrorHandling.HandleError(ref result, $"Swap status not found for {swapId}");
+                return result;
+            }
+
+            if (Enum.TryParse<BridgeTransactionStatus>(swapHolon.MetaData["status"], out var status))
+            {
+                result.Result = status;
+                result.IsError = false;
+                result.Message = $"Swap status retrieved: {status}";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Invalid status value: {swapHolon.MetaData["status"]}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Failed to get swap status: {ex.Message}", ex);
+        }
+
+        return result;
+    }
+
+    public async Task<OASISResult<bool>> UpdateSwapStatusAsync(string swapId, BridgeTransactionStatus status, string transactionHash = null)
+    {
+        var result = new OASISResult<bool>();
+
+        if (!EnsureActivated(result))
+        {
+            return result;
+        }
+
+        try
+        {
+            // Find the swap Holon
+            var searchParams = new SearchParams
+            {
+                SearchString = swapId,
+                SearchType = SearchType.Contains
+            };
+
+            var holonsResult = await ProviderManager.Instance.SearchAsync(searchParams);
+            if (holonsResult.IsError || holonsResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Swap {swapId} not found");
+                return result;
+            }
+
+            var swapHolon = holonsResult.Result.Results?.FirstOrDefault(h => 
+                h.MetaData?.ContainsKey("swapId") == true && 
+                h.MetaData["swapId"] == swapId);
+
+            if (swapHolon == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Swap Holon not found for {swapId}");
+                return result;
+            }
+
+            // Update status and transaction hash
+            swapHolon.MetaData["status"] = status.ToString();
+            if (!string.IsNullOrWhiteSpace(transactionHash))
+            {
+                swapHolon.MetaData["transactionHash"] = transactionHash;
+            }
+            swapHolon.MetaData["updatedAt"] = DateTime.UtcNow.ToString("O");
+            swapHolon.ModifiedDate = DateTime.UtcNow;
+
+            // Save updated Holon
+            var saveResult = await ProviderManager.Instance.SaveHolonAsync(swapHolon);
+            if (saveResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to update swap status: {saveResult.Message}");
+                return result;
+            }
+
+            result.Result = true;
+            result.IsError = false;
+            result.Message = $"Swap status updated to {status}";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Failed to update swap status: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     private bool EnsureActivated<T>(OASISResult<T> result)
@@ -149,8 +348,41 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
     public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => NotImplemented<bool>(nameof(DeleteAvatarByUsername));
     public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => NotImplementedAsync<ISearchResults>(nameof(SearchAsync));
     public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => NotImplemented<ISearchResults>(nameof(Search));
-    public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplementedAsync<IHolon>(nameof(LoadHolonAsync));
-    public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplemented<IHolon>(nameof(LoadHolon));
+    public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        var result = new OASISResult<IHolon>();
+
+        if (!EnsureActivated(result))
+        {
+            return result;
+        }
+
+        try
+        {
+            // Use ProviderManager to load from persistent storage
+            var loadResult = await ProviderManager.Instance.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (loadResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to load Holon: {loadResult.Message}");
+                return result;
+            }
+
+            result.Result = loadResult.Result;
+            result.IsError = false;
+            result.Message = "Holon loaded successfully";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading Holon: {ex.Message}", ex);
+        }
+
+        return result;
+    }
+
+    public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+    }
     public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplementedAsync<IHolon>(nameof(LoadHolonAsync));
     public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplemented<IHolon>(nameof(LoadHolon));
     public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplementedAsync<IEnumerable<IHolon>>(nameof(LoadHolonsForParentAsync));
@@ -163,8 +395,47 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplemented<IEnumerable<IHolon>>(nameof(LoadHolonsByMetaData));
     public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplementedAsync<IEnumerable<IHolon>>(nameof(LoadAllHolonsAsync));
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplemented<IEnumerable<IHolon>>(nameof(LoadAllHolons));
-    public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotImplementedAsync<IHolon>(nameof(SaveHolonAsync));
-    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotImplemented<IHolon>(nameof(SaveHolon));
+    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        var result = new OASISResult<IHolon>();
+
+        if (!EnsureActivated(result))
+        {
+            return result;
+        }
+
+        if (holon == null)
+        {
+            OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
+            return result;
+        }
+
+        try
+        {
+            // Use ProviderManager to save to persistent storage (MongoDB, etc.)
+            var saveResult = await ProviderManager.Instance.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+            if (saveResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to save Holon: {saveResult.Message}");
+                return result;
+            }
+
+            result.Result = saveResult.Result;
+            result.IsError = false;
+            result.Message = "Holon saved successfully";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error saving Holon: {ex.Message}", ex);
+        }
+
+        return result;
+    }
+
+    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+    }
     public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotImplementedAsync<IEnumerable<IHolon>>(nameof(SaveHolonsAsync));
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotImplemented<IEnumerable<IHolon>>(nameof(SaveHolons));
     public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => NotImplementedAsync<IHolon>(nameof(DeleteHolonAsync));
@@ -181,5 +452,11 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => NotImplemented<IEnumerable<IHolon>>(nameof(ExportAllDataForAvatarByEmail));
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => NotImplementedAsync<IEnumerable<IHolon>>(nameof(ExportAllAsync));
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => NotImplemented<IEnumerable<IHolon>>(nameof(ExportAll));
+
+    public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromAddress, string toAddress, decimal amount, string memo) => NotImplementedAsync<ITransactionRespone>(nameof(SendTransactionAsync));
+    public OASISResult<ITransactionRespone> SendTransaction(string fromAddress, string toAddress, decimal amount, string memo) => NotImplemented<ITransactionRespone>(nameof(SendTransaction));
+
+    public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long latitude, long longitude, int radius) => NotImplemented<IEnumerable<IAvatar>>(nameof(GetAvatarsNearMe));
+    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long latitude, long longitude, int radius, HolonType type) => NotImplemented<IEnumerable<IHolon>>(nameof(GetHolonsNearMe));
 }
 

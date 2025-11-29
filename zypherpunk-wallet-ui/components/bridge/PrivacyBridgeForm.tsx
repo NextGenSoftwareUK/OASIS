@@ -15,7 +15,7 @@ import { bridgeAPI, type BridgeTransferRequest } from '@/lib/api/bridgeApi';
 export type { BridgeTransferRequest };
 import { PrivacyBridgeTokenSelectModal } from './PrivacyBridgeTokenSelectModal';
 
-// Privacy-focused bridge chains (Zcash, Aztec, Miden)
+// Privacy-focused bridge chains (Zcash, Aztec, Miden, Starknet)
 export const privacyBridgeChains = [
   { 
     name: 'Zcash', 
@@ -42,6 +42,15 @@ export const privacyBridgeChains = [
     network: 'Miden',
     description: 'Zero-knowledge VM for privacy',
     providerType: ProviderType.MidenOASIS,
+    category: 'Layer2' as const
+  },
+  { 
+    name: 'Starknet', 
+    symbol: 'STRK', 
+    logoUrl: '/starknet-logo.avif',
+    network: 'Starknet',
+    description: 'ZK-powered Layer 2 for Starknet-native apps',
+    providerType: ProviderType.StarknetOASIS,
     category: 'Layer2' as const
   },
 ];

@@ -32,6 +32,10 @@ export function getProviderColor(provider: string): string {
     polygon: "bg-wallet-polygon",
     arbitrum: "bg-wallet-arbitrum",
     bitcoin: "bg-wallet-bitcoin",
+    starknet: "bg-[#8C7BFF]",
+    zcash: "bg-[#00ff88]",
+    aztec: "bg-[#60a5fa]",
+    miden: "bg-[#8b5cf6]",
   };
   return colors[provider.toLowerCase()] || "bg-gray-500";
 }
@@ -43,6 +47,10 @@ export function getProviderIcon(provider: string): string {
     polygon: "💜",
     arbitrum: "🔵",
     bitcoin: "₿",
+    starknet: "⚡",
+    zcash: "🛡️",
+    aztec: "🔐",
+    miden: "✨",
   };
   return icons[provider.toLowerCase()] || "🔗";
 }

@@ -57,13 +57,12 @@ export function TokenSelectModal({ isOpen, onClose, onSelect, target }: TokenSel
               className="w-full flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-3 py-3 hover:border-white/20 transition-colors"
             >
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-black/50 overflow-hidden relative">
                   <Image
                     src={chain.logoUrl}
                     alt={chain.symbol}
-                    width={28}
-                    height={28}
-                    className="object-contain"
+                    fill
+                    className="object-cover"
                     loading="lazy"
                   />
                 </div>

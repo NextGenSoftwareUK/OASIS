@@ -251,7 +251,11 @@ export function SwapForm() {
           setState((prev) => ({
             ...prev,
             [tokenModalTarget]: chain,
+            // Reset amounts when chain changes to avoid confusion
+            fromAmount: tokenModalTarget === 'from' ? prev.fromAmount : '',
+            toAmount: tokenModalTarget === 'to' ? prev.toAmount : '',
           }));
+          setTokenModalTarget(null);
         }}
         target={tokenModalTarget || 'from'}
       />
@@ -289,16 +293,20 @@ function SwapInputCard({ label, chain, amount, usdValue, onAmountChange, onSelec
           />
           <p className="text-xs text-gray-500 mt-1">≈ ${usdValue.toLocaleString(undefined, { maximumFractionDigits: 2 })} USD</p>
         </div>
-        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+        <button
+          type="button"
+          onClick={onSelect}
+          className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer group overflow-hidden p-0 relative"
+          aria-label={`Select ${chain.name} chain`}
+        >
           <Image
             src={chain.logoUrl}
             alt={chain.symbol}
-            width={32}
-            height={32}
-            className="object-contain"
+            fill
+            className="object-cover group-hover:scale-110 transition-transform"
             loading="lazy"
           />
-        </div>
+        </button>
       </div>
       <p className="text-xs text-gray-400">{chain.description}</p>
     </div>

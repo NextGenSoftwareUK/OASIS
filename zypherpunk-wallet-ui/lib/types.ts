@@ -147,6 +147,7 @@ export enum ProviderType {
   All = "All",
   Default = "Default",
   SolanaOASIS = "SolanaOASIS",
+  StarknetOASIS = "StarknetOASIS",
   RadixOASIS = "RadixOASIS",
   ArbitrumOASIS = "ArbitrumOASIS",
   EthereumOASIS = "EthereumOASIS",

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Copy, Search, Menu, QrCode, Send, ArrowLeftRight, DollarSign, Home, Clock, Shield, Lock, Coins, Network } from 'lucide-react';
+import { Copy, Search, Menu, QrCode, Send, ArrowLeftRight, Home, Clock, Shield, Lock, Coins, Network } from 'lucide-react';
 import { useWalletStore } from '@/lib/store';
 import { ProviderType } from '@/lib/types';
 import { formatAddress, formatBalance } from '@/lib/utils';
@@ -172,30 +172,30 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
             </button>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          {onBridge && (
-            <button
-              onClick={onBridge}
-              className="flex flex-col items-center justify-center p-4 bg-zypherpunk-surface border border-zypherpunk-accent/40 rounded-xl hover:border-zypherpunk-accent/60 transition-colors"
-            >
-              <div className="w-12 h-12 bg-zypherpunk-accent/10 border border-zypherpunk-accent/30 rounded-lg flex items-center justify-center mb-2">
-                <Network className="w-6 h-6 text-zypherpunk-accent" />
-              </div>
-              <span className="text-xs text-zypherpunk-accent font-semibold">Bridge</span>
-            </button>
-          )}
-          {onPrivacy && (
-            <button
-              onClick={onPrivacy}
-              className="flex flex-col items-center justify-center p-4 bg-zypherpunk-surface border border-zypherpunk-secondary/40 rounded-xl hover:border-zypherpunk-secondary/60 transition-colors"
-            >
-              <div className="w-12 h-12 bg-zypherpunk-secondary/10 border border-zypherpunk-secondary/30 rounded-lg flex items-center justify-center mb-2">
-                <Lock className="w-6 h-6 text-zypherpunk-secondary" />
-              </div>
-              <span className="text-xs text-zypherpunk-secondary font-semibold">Privacy</span>
-            </button>
-          )}
-        </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {onBridge && (
+              <button
+                onClick={onBridge}
+                className="flex flex-col items-center justify-center p-4 bg-zypherpunk-surface border border-zypherpunk-accent/40 rounded-xl hover:border-zypherpunk-accent/60 transition-colors"
+              >
+                <div className="w-12 h-12 bg-zypherpunk-accent/10 border border-zypherpunk-accent/30 rounded-lg flex items-center justify-center mb-2">
+                  <Network className="w-6 h-6 text-zypherpunk-accent" />
+                </div>
+                <span className="text-xs text-zypherpunk-accent font-semibold">Bridge</span>
+              </button>
+            )}
+            {onPrivacy && (
+              <button
+                onClick={onPrivacy}
+                className="flex flex-col items-center justify-center p-4 bg-zypherpunk-surface border border-zypherpunk-secondary/40 rounded-xl hover:border-zypherpunk-secondary/60 transition-colors"
+              >
+                <div className="w-12 h-12 bg-zypherpunk-secondary/10 border border-zypherpunk-secondary/30 rounded-lg flex items-center justify-center mb-2">
+                  <Lock className="w-6 h-6 text-zypherpunk-secondary" />
+                </div>
+                <span className="text-xs text-zypherpunk-secondary font-semibold">Privacy</span>
+              </button>
+            )}
+          </div>
       </div>
 
       {/* Universal Asset Bridge Logos */}
@@ -215,13 +215,12 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
               key={chain.name}
               className="min-w-[88px] rounded-2xl border border-white/5 bg-white/5 backdrop-blur-sm px-3 py-2 flex flex-col items-center"
             >
-              <div className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center mb-2">
+              <div className="w-10 h-10 rounded-full bg-black/40 mb-2 overflow-hidden relative">
                 <Image
                   src={chain.logoUrl}
                   alt={chain.name}
-                  width={26}
-                  height={26}
-                  className="object-contain"
+                  fill
+                  className="object-cover"
                   loading="lazy"
                 />
               </div>
@@ -313,16 +312,15 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
                           <div className="flex items-center space-x-3">
                             <div
                               className={cn(
-                                'w-10 h-10 rounded-full bg-gradient-to-br flex items-center justify-center',
+                                'w-10 h-10 rounded-full bg-gradient-to-br overflow-hidden relative',
                                 meta.backgroundGradient
                               )}
                             >
                               <Image
                                 src={meta.logoUrl}
                                 alt={meta.name}
-                                width={24}
-                                height={24}
-                                className="object-contain"
+                                fill
+                                className="object-cover"
                                 loading="lazy"
                               />
                             </div>
