@@ -26,10 +26,14 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         {
             string metaDataString = "";
 
-            foreach (string key in metaData.Keys)
-                string.Concat(metaDataString, key, " = ", GetMetaValue(metaData[key]), ",");
+            if (metaData != null && metaData.Keys.Count > 0)
+            {
+                foreach (string key in metaData.Keys)
+                    string.Concat(metaDataString, key, " = ", GetMetaValue(metaData[key]), ",");
 
-            metaDataString = metaDataString.Substring(0, metaDataString.Length - 2);
+                metaDataString = metaDataString.Substring(0, metaDataString.Length - 2);
+            }
+
             return metaDataString;
         }
 
