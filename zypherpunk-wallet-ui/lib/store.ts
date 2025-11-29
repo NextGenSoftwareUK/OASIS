@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Wallet, Transaction, WalletTransactionRequest, WalletImportRequest, ProviderType, User, WalletStore } from './types';
 import { oasisWalletAPI } from './api';
+import { starknetWalletAPI } from './api/starknetApi';
 
 export const useWalletStore = create<WalletStore>()(
   persist(
@@ -43,11 +44,24 @@ export const useWalletStore = create<WalletStore>()(
                                    result.message?.includes('bot protection') ||
                                    result.message?.includes('502');
             
+            // Check if avatar doesn't exist yet (common after first login)
+            const isAvatarNotFound = result.message?.includes('Avatar Not Found') ||
+                                    result.message?.includes('avatar does not exist') ||
+                                    result.message?.includes('does not exist');
+            
             if (isApiUnavailable) {
               set({ 
                 error: 'API is currently unavailable. The OASIS API may be blocked or unreachable. Please check your connection or try using a local API server.', 
                 isLoading: false,
                 wallets: {} // Clear wallets on API error
+              });
+            } else if (isAvatarNotFound) {
+              // Avatar doesn't exist yet - return empty wallets (user can create wallets later)
+              console.warn('Avatar not found in database, returning empty wallets:', result.message);
+              set({ 
+                wallets: {}, 
+                isLoading: false, 
+                error: null // Don't show error for missing avatar - it's expected for new users
               });
             } else {
               set({ error: result.message || 'Failed to load wallets', isLoading: false });
@@ -56,6 +70,21 @@ export const useWalletStore = create<WalletStore>()(
           }
 
           set({ wallets: result.result || {}, isLoading: false, error: null });
+
+          // Attempt to hydrate Starknet wallets via the dedicated endpoint
+          try {
+            const starknetResult = await starknetWalletAPI.getWallets(targetId);
+            if (!starknetResult.isError && starknetResult.result?.length) {
+              set((state) => ({
+                wallets: {
+                  ...state.wallets,
+                  [ProviderType.StarknetOASIS]: starknetResult.result,
+                },
+              }));
+            }
+          } catch (error) {
+            console.warn('Failed to load Starknet wallets:', error);
+          }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to load wallets';
           set({ 

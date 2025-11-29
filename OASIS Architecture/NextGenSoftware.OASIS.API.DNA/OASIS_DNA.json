@@ -90,7 +90,7 @@
             },
             "MongoDBOASIS": {
                 "DBName": "OASISAPI_DEV",
-                "ConnectionString": "mongodb://localhost:27017"
+                "ConnectionString": "mongodb+srv://OASISWEB4:Uppermall1%21@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4"
             },
             "EOSIOOASIS": {
                 "AccountName": "oasis",
@@ -112,6 +112,14 @@
                 "ChainId": 421614,
                 "ContractAddress": "0xd56B495571Ea5793fC3960D6af86420dF161c50a",
                 "ConnectionString": "https://sepolia-rollup.arbitrum.io/rpc"
+            },
+            "StarknetOASIS": {
+                "Network": "alpha-goerli",
+                "ApiBaseUrl": "https://alpha4.starknet.io"
+            },
+            "MidenOASIS": {
+                "ApiBaseUrl": "https://testnet.miden.xyz",
+                "Network": "testnet"
             },
             "RootstockOASIS": {
                 "ChainPrivateKey": "",

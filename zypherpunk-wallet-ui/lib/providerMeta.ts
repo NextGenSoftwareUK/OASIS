@@ -73,6 +73,16 @@ export const providerMetadataMap: Partial<Record<ProviderType, ProviderMetadata>
     logoUrl: 'https://cryptologos.cc/logos/solana-sol-logo.svg?v=025',
     category: 'Layer1',
   },
+  [ProviderType.StarknetOASIS]: {
+    providerType: ProviderType.StarknetOASIS,
+    name: 'Starknet',
+    symbol: 'STRK',
+    description: 'ZK-powered Layer 2 for Starknet-native apps',
+    accentColor: '#8C7BFF',
+    backgroundGradient: 'from-[#8C7BFF] to-[#4F46E5]',
+    logoUrl: '/starknet-logo.avif',
+    category: 'Layer2',
+  },
 };
 
 export interface BridgeChain {
@@ -88,6 +98,8 @@ export interface BridgeChain {
 export const universalBridgeChains: BridgeChain[] = [
   { name: 'Zcash', symbol: 'ZEC', logoUrl: 'https://cryptologos.cc/logos/zcash-zec-logo.svg?v=025', network: 'Zcash', description: 'Privacy-first with shielded transactions', category: 'Layer1' },
   { name: 'Aztec', symbol: 'AZTEC', logoUrl: '/aztec-logo.png', network: 'Aztec', description: 'Privacy-first L2 with private smart contracts', category: 'Layer2' },
+  { name: 'Miden', symbol: 'MIDEN', logoUrl: '/miden-logo.png', network: 'Miden', description: 'Zero-knowledge VM for privacy-preserving applications', category: 'Layer2' },
+  { name: 'Starknet', symbol: 'STRK', logoUrl: '/starknet-logo.avif', network: 'Starknet', description: 'ZK-based Layer 2 for Starknet-native apps', category: 'Layer2' },
   { name: 'Ethereum', symbol: 'ETH', logoUrl: 'https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=025', network: 'Ethereum', description: 'Largest smart contract network', category: 'Layer1' },
   { name: 'Solana', symbol: 'SOL', logoUrl: 'https://cryptologos.cc/logos/solana-sol-logo.svg?v=025', network: 'Solana', description: 'High-throughput L1', category: 'Layer1' },
 ];

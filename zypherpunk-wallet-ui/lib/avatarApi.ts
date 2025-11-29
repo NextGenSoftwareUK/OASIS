@@ -37,7 +37,16 @@ const normalizeAvatar = (avatar?: AvatarProfile | null): AvatarProfile | null =>
 };
 
 const normalizeAuthResponse = (payload: any): AvatarAuthResponse => {
-  const candidate = payload?.result ?? payload;
+  // Handle nested result structure (OASIS API often returns result.result)
+  let candidate = payload;
+  if (payload?.result) {
+    candidate = payload.result;
+    // Check for double nesting (result.result)
+    if (candidate?.result) {
+      candidate = candidate.result;
+    }
+  }
+  
   const avatar = normalizeAvatar(candidate?.avatar || candidate?.user || payload?.avatar);
   const jwtToken = candidate?.jwtToken || candidate?.token || payload?.jwtToken;
   const refreshToken = candidate?.refreshToken || candidate?.refresh || payload?.refreshToken;
@@ -99,37 +108,52 @@ class OASISAvatarAPI {
   }
 
   async login(username: string, password: string): Promise<AvatarAuthResponse> {
-    const payload: Record<string, string> = {
-      username,
-      password,
-    };
+    // Use the dedicated authentication route that handles self-signed certs via curl
+    // This matches the working implementation in nft-mint-frontend
+    try {
+      const authUrl = USE_PROXY 
+        ? '/api/authenticate' 
+        : `${this.baseUrl}/api/avatar/authenticate`;
+      
+      const response = await fetch(authUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ username, password, baseUrl: this.baseUrl }),
+        mode: USE_PROXY ? 'same-origin' : 'cors',
+      });
 
-    if (username.includes('@')) {
-      payload.email = username;
-    }
-
-    const endpoints = ['/api/avatar/authenticate', '/api/auth/login'];
-
-    for (const endpoint of endpoints) {
-      try {
-        const data = await this.request<OASISResult<unknown> | any>(endpoint, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        });
-
-        if ('isError' in data && data.isError) {
-          throw new Error(data.message || 'Authentication failed');
-        }
-
-        return normalizeAuthResponse(data);
-      } catch (error) {
-        if (endpoint === endpoints[endpoints.length - 1]) {
-          throw error;
-        }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+        throw new Error(errorData.message || `Authentication failed (HTTP ${response.status})`);
       }
-    }
 
-    throw new Error('Unable to authenticate avatar');
+      const data = await response.json();
+      
+      // The authenticate route returns { token, avatarId, avatar, message }
+      if (!data.token) {
+        throw new Error(data.message || 'No token received from authentication service');
+      }
+
+      // Use avatar data from authentication response (already includes full profile)
+      const avatar = normalizeAvatar(data.avatar) || {
+        avatarId: data.avatarId || username,
+        id: data.avatarId || username,
+        username: username,
+      };
+
+      return {
+        avatar,
+        jwtToken: data.token,
+        refreshToken: null,
+        expiresIn: undefined,
+      };
+    } catch (error) {
+      console.error('Avatar login failed:', error);
+      throw error instanceof Error ? error : new Error('Unable to authenticate avatar');
+    }
   }
 
   async register(request: AvatarRegistrationRequest): Promise<AvatarAuthResponse> {

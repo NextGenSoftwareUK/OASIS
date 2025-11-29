@@ -92,6 +92,7 @@ export default function WalletPage() {
     }
   };
 
+
   const handleReceive = () => {
     const solanaWallet = getWallet(ProviderType.SolanaOASIS);
     const ethereumWallet = getWallet(ProviderType.EthereumOASIS);
