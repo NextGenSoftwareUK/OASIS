@@ -1,3 +1,4 @@
+﻿using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
@@ -14,10 +15,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation);
         public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb3NFTRequest transation);
         public Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(IMintWeb3NFTRequest transation);
-
-        //TODO: Implement ASAP!
-        //public OASISResult<IWeb4NFTTransactionRespone> BurnNFT(IMintNFTTransactionRequest transation);
-        //public Task<OASISResult<IWeb4NFTTransactionRespone>> BurnNFTAsync(IMintNFTTransactionRequest transation);
+        public OASISResult<IWeb3NFTTransactionRespone> BurnNFT(IBurnWeb3NFTRequest request);
+        public Task<OASISResult<IWeb3NFTTransactionRespone>> BurnNFTAsync(IBurnWeb3NFTRequest request);
         public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress);
         public Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress);
     }

@@ -1,14 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
-using NextGenSoftware.OASIS.API.Core.Utilities;
-using Solnet.Rpc;
-using Solnet.Rpc.Models;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using Solnet.Wallet;
 using System.IO;
 using System.Text.Json;
@@ -92,6 +83,51 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         {
             return HandleError<MintNftResult>(ex.Message);
         }
+    }
+
+    public async Task<OASISResult<BurnNftResult>> BurnNftAsync(IBurnWeb3NFTRequest mintNftRequest)
+    {
+        var response = new OASISResult<BurnNftResult>();
+
+        try
+        {
+            //PublicKey mintAccount = new(mintNftRequest.MintWalletAddress);
+            PublicKey mintAccount = oasisAccount;
+            PublicKey NFTTokenAddress = new(mintNftRequest.NFTTokenAddress);
+
+            RequestResult<ResponseValue<LatestBlockHash>> blockHash =
+                await rpcClient.GetLatestBlockHashAsync();
+
+            byte[] tx = new TransactionBuilder()
+                .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+                .SetFeePayer(mintAccount)
+                .AddInstruction(TokenProgram.Burn(
+                mintAccount,
+                NFTTokenAddress,
+                1,
+                mintAccount))
+                .Build(oasisAccount);
+
+            RequestResult<string> sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
+            if (!sendTransactionResult.WasSuccessful)
+            {
+                response.IsError = true;
+                response.Message = sendTransactionResult.Reason;
+                OASISErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
+
+            response.Result = new BurnNftResult(sendTransactionResult.Result);
+        }
+        catch (Exception e)
+        {
+            response.Exception = e;
+            response.Message = e.Message;
+            response.IsError = true;
+            OASISErrorHandling.HandleError(ref response, e.Message);
+        }
+
+        return response;
     }
 
     public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
