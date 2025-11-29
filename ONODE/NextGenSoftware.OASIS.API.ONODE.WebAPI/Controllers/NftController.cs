@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<IWeb4OASISNFT>> LoadNftByIdAsync(Guid id)
         {
-            return await NFTManager.LoadNftAsync(id);
+            return await NFTManager.LoadWeb4NftAsync(id);
         }
 
         [Authorize]
@@ -82,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("load-nft-by-hash/{hash}")]
         public async Task<OASISResult<IWeb4OASISNFT>> LoadNftByHashAsync(string hash)
         {
-            return await NFTManager.LoadNftAsync(hash);
+            return await NFTManager.LoadWeb4NftAsync(hash);
         }
 
         [Authorize]
@@ -99,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("load-all-nfts-for_avatar/{avatarId}")]
         public async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
         {
-            return await NFTManager.LoadAllNFTsForAvatarAsync(avatarId);
+            return await NFTManager.LoadAllWeb4NFTsForAvatarAsync(avatarId);
         }
 
         [Authorize]
@@ -116,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("load-all-nfts-for-mint-wallet-address/{mintWalletAddress}")]
         public async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            return await NFTManager.LoadAllNFTsForMintAddressAsync(mintWalletAddress);
+            return await NFTManager.LoadAllWeb4NFTsForMintAddressAsync(mintWalletAddress);
         }
 
         [Authorize]
@@ -133,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("load-all-geo-nfts-for-avatar/{avatarId}")]
         public async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
         {
-            return await NFTManager.LoadAllGeoNFTsForAvatarAsync(avatarId);
+            return await NFTManager.LoadAllWeb4GeoNFTsForAvatarAsync(avatarId);
         }
 
         [Authorize]
@@ -150,7 +150,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("load-all-geo-nfts-for-mint-wallet-address/{mintWalletAddress}")]
         public async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            return await NFTManager.LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress);
+            return await NFTManager.LoadAllWeb4GeoNFTsForMintAddressAsync(mintWalletAddress);
         }
 
         [Authorize]
@@ -167,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("load-all-nfts")]
         public async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> LoadAllNFTsAsync()
         {
-            return await NFTManager.LoadAllNFTsAsync();
+            return await NFTManager.LoadAllWeb4NFTsAsync();
         }
 
         [Authorize(AvatarType.Wizard)]
@@ -184,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("load-all-geo-nfts")]
         public async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsAsync()
         {
-            return await NFTManager.LoadAllGeoNFTsAsync();
+            return await NFTManager.LoadAllWeb4GeoNFTsAsync();
         }
 
         [Authorize(AvatarType.Wizard)]
@@ -350,7 +350,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 GeoNFTMetaDataProvider = new EnumValue<ProviderType>(geoNFTMetaDataProvider)
             };
 
-            return await NFTManager.PlaceGeoNFTAsync(placeRequest, Core.Enums.ResponseFormatType.SimpleText);
+            return await NFTManager.PlaceWeb4GeoNFTAsync(placeRequest, Core.Enums.ResponseFormatType.SimpleText);
         }
 
         [Authorize]
@@ -449,7 +449,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 GeoNFTMetaDataProvider = new EnumValue<ProviderType>(geoNFTMetaDataProvider)
             };
 
-            return await NFTManager.MintAndPlaceGeoNFTAsync(mintRequest, Core.Enums.ResponseFormatType.SimpleText);
+            return await NFTManager.MintAndPlaceWeb4GeoNFTAsync(mintRequest, Core.Enums.ResponseFormatType.SimpleText);
         }
 
 
