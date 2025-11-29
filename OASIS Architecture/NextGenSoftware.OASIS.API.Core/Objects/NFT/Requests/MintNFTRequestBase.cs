@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
 {
-    public class MintNFTRequestBase
+    public class MintNFTRequestBase : IMintNFTRequestBase
     {
         //Default Global NFT Properties (these will be applied to all Web3 NFTs being minted unless overridden in the individual Web3NFTs):
         //public int NumberToMint { get; set; }

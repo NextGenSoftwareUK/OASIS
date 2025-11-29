@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class Web4OASISNFTCollection : Web4OASISNFTCollectionBase, IWeb4OASISNFTCollection
     {
-        public Web4OASISNFTCollection() : base(Enums.HolonType.NFTCollection) { }
+        public Web4OASISNFTCollection() : base(Enums.HolonType.Web4NFTCollection) { }
 
         [CustomOASISProperty]
         public List<IWeb4OASISNFT> Web4OASISNFTs { get; set; } = new List<IWeb4OASISNFT>();

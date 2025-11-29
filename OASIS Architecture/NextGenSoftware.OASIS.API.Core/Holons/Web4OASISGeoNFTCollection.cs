@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     public class Web4OASISGeoNFTCollection : Web4OASISNFTCollectionBase, IWeb4OASISGeoNFTCollection
     {
-        public Web4OASISGeoNFTCollection() : base(Enums.HolonType.GeoNFTCollection) { }
+        public Web4OASISGeoNFTCollection() : base(Enums.HolonType.Web4GeoNFTCollection) { }
 
         [CustomOASISProperty]
         public List<IWeb4OASISGeoSpatialNFT> Web4OASISGeoNFTs { get; set; } = new List<IWeb4OASISGeoSpatialNFT>();

@@ -2371,6 +2371,51 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
+    public OASISResult<IWeb3NFTTransactionRespone> BurnNFT(IBurnWeb3NFTRequest request)
+    {
+        return BurnNFTAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IWeb3NFTTransactionRespone>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        OASISResult<IWeb3NFTTransactionRespone> result = new(new Web3NFTTransactionRespone());
+
+        try
+        {
+            OASISResult<BurnNftResult> solanaNftTransactionResult = await _solanaService.BurnNftAsync(request);
+
+            if (solanaNftTransactionResult.IsError ||
+                string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
+            {
+                OASISErrorHandling.HandleError(ref result,
+                    solanaNftTransactionResult.Message,
+                    solanaNftTransactionResult.Exception);
+                return result;
+            }
+
+            result.IsError = false;
+            result.IsSaved = true;
+
+            //Web3NFT Web3NFT = new Web3NFT()
+            //{
+            //    MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash,
+            //    NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount,
+            //    OASISMintWalletAddress = _oasisSolanaAccount.PublicKey,
+            //};
+
+            //result.Result.Web3NFT = Web3NFT;
+            result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
+
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
+        }
+
+        return result;
+    }
+
     public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
     {
         return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
@@ -2659,8 +2704,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             return null;
         }
     }
-
-
 
     #endregion
 }
