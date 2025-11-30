@@ -168,9 +168,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("{avatarId}/{eosioAccountName}")]
-        public OASISResult<IProviderWallet> LinkEOSIOAccountToAvatar(Guid walletId, Guid avatarId, string eosioAccountName)
+        public OASISResult<IProviderWallet> LinkEOSIOAccountToAvatar(Guid walletId, Guid avatarId, string eosioAccountName, string walletAddress)
         {
-            return KeyManager.LinkProviderPublicKeyToAvatarById(walletId, avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
+            return KeyManager.LinkProviderPublicKeyToAvatarById(walletId, avatarId, ProviderType.EOSIOOASIS, eosioAccountName, walletAddress);
         }
     }
 }

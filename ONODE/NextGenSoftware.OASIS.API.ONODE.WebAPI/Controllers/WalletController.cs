@@ -80,13 +80,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="400">Error loading wallets</response>
         /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
-        [HttpGet("avatar/{id}/wallets")]
+        [HttpGet("avatar/{id}/wallets/{showOnlyDefault}/{decryptPrivateKeys}")]
         [ProducesResponseType(typeof(OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, providerType);
+            return await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, showOnlyDefault, decryptPrivateKeys, providerType);
         }
 
         /// <summary>
@@ -99,14 +99,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="400">Error loading wallets</response>
         /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
-        [HttpGet("avatar/username/{username}/wallets")]
+        [HttpGet("avatar/username/{username}/wallets/{showOnlyDefault}/{decryptPrivateKeys}")]
         [ProducesResponseType(typeof(OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByUsernameAsync(string username, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, providerType);
+            return await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, providerType);
         }
+
 
         /// <summary>
         ///     Load all provider wallets for an avatar by email.
@@ -124,7 +125,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByEmailAsync(string email, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, providerType);
+            return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email);
+        }
+
+        /// <summary>
+        ///     Load all provider wallets for an avatar by email.
+        /// </summary>
+        /// <param name="email">The avatar email.</param>
+        /// <param name="providerType">The provider type to load wallets from.</param>
+        /// <returns>OASIS result containing the provider wallets or error details.</returns>
+        /// <response code="200">Wallets loaded successfully</response>
+        /// <response code="400">Error loading wallets</response>
+        /// <response code="401">Unauthorized - authentication required</response>
+        [Authorize]
+        [HttpGet("avatar/email/{email}/wallets/{showOnlyDefault}/{decryptPrivateKeys}/{providerType}")]
+        [ProducesResponseType(typeof(OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByEmailAsync(string email, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
+        {
+            return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, decryptPrivateKeys, providerType);
         }
 
         /// <summary>
@@ -216,13 +236,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="400">Error retrieving default wallet</response>
         /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
-        [HttpGet("avatar/username/{username}/default-wallet")]
+        [HttpGet("avatar/username/{username}/default-wallet/{showOnlyDefault}/{decryptPrivateKeys}")]
         [ProducesResponseType(typeof(OASISResult<IProviderWallet>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByUsernameAsync(string username, ProviderType providerType)
+        public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, providerType);
+            return await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, providerType);
         }
 
         /// <summary>
@@ -279,7 +299,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByUsernameAsync(string username, Guid walletId, ProviderType providerType)
+        public async Task<OASISResult<IProviderWallet>> SetAvatarDefaultWalletByUsernameAsync(string username, Guid walletId, ProviderType providerType)
         {
             return await WalletManager.SetAvatarDefaultWalletByUsernameAsync(username, walletId, providerType);
         }
@@ -299,7 +319,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<bool>> SetAvatarDefaultWalletByEmailAsync(string email, Guid walletId, ProviderType providerType)
+        public async Task<OASISResult<IProviderWallet>> SetAvatarDefaultWalletByEmailAsync(string email, Guid walletId, ProviderType providerType)
         {
             return await WalletManager.SetAvatarDefaultWalletByEmailAsync(email, walletId, providerType);
         }
@@ -379,9 +399,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Guid>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyById(Guid avatarId, string key, ProviderType providerToImportTo)
+        public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyById(Guid avatarId, string key, string walletAddress, ProviderType providerToImportTo)
         {
-            return WalletManager.ImportWalletUsingPublicKeyById(avatarId, key, providerToImportTo);
+            return WalletManager.ImportWalletUsingPublicKeyById(avatarId, key, walletAddress, providerToImportTo);
         }
 
         /// <summary>
@@ -399,9 +419,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Guid>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyByUsername(string username, string key, ProviderType providerToImportTo)
+        public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyByUsername(string username, string key, string walletAddress, ProviderType providerToImportTo)
         {
-            return WalletManager.ImportWalletUsingPublicKeyByUsername(username, key, providerToImportTo);
+            return WalletManager.ImportWalletUsingPublicKeyByUsername(username, key, walletAddress, providerToImportTo);
         }
 
         /// <summary>
@@ -419,9 +439,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Guid>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyByEmail(string email, string key, ProviderType providerToImportTo)
+        public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyByEmail(string email, string key, string walletAddress, ProviderType providerToImportTo)
         {
-            return WalletManager.ImportWalletUsingPublicKeyByEmail(email, key, providerToImportTo);
+            return WalletManager.ImportWalletUsingPublicKeyByEmail(email, key, walletAddress, providerToImportTo);
         }
 
         /// <summary>

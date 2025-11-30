@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(linkProviderKeyToAvatarParams);
 
             if (isValid)
-                return KeyManager.LinkProviderPublicKeyToAvatarById(linkProviderKeyToAvatarParams.WalletId, avatarID, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey);
+                return KeyManager.LinkProviderPublicKeyToAvatarById(linkProviderKeyToAvatarParams.WalletId, avatarID, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, linkProviderKeyToAvatarParams.WalletAddress, linkProviderKeyToAvatarParams.WalletAddressSegwitP2SH, linkProviderKeyToAvatarParams.ShowSecretRecoveryWords);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -90,7 +90,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(linkProviderKeyToAvatarParams);
 
             if (isValid)
-                return KeyManager.LinkProviderPublicKeyToAvatarByUsername(linkProviderKeyToAvatarParams.WalletId, linkProviderKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey);
+                return KeyManager.LinkProviderPublicKeyToAvatarByUsername(linkProviderKeyToAvatarParams.WalletId, linkProviderKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, linkProviderKeyToAvatarParams.WalletAddress, linkProviderKeyToAvatarParams.WalletAddressSegwitP2SH, linkProviderKeyToAvatarParams.ShowSecretRecoveryWords);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -112,7 +112,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(linkProviderKeyToAvatarParams);
 
             if (isValid)
-                return KeyManager.LinkProviderPublicKeyToAvatarByEmail(linkProviderKeyToAvatarParams.WalletId, linkProviderKeyToAvatarParams.AvatarEmail, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey);
+                return KeyManager.LinkProviderPublicKeyToAvatarByEmail(linkProviderKeyToAvatarParams.WalletId, linkProviderKeyToAvatarParams.AvatarEmail, providerTypeToLinkTo, linkProviderKeyToAvatarParams.ProviderKey, linkProviderKeyToAvatarParams.WalletAddress, linkProviderKeyToAvatarParams.WalletAddressSegwitP2SH, linkProviderKeyToAvatarParams.ShowSecretRecoveryWords);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -134,7 +134,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(linkProviderPrivateKeyToAvatarParams);
 
             if (isValid)
-                return KeyManager.LinkProviderPrivateKeyToAvatarById(linkProviderPrivateKeyToAvatarParams.WalletId, avatarID, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey);
+                return KeyManager.LinkProviderPrivateKeyToAvatarById(linkProviderPrivateKeyToAvatarParams.WalletId, avatarID, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey, linkProviderPrivateKeyToAvatarParams.ShowPrivateKey, linkProviderPrivateKeyToAvatarParams.ShowSecretRecoveryWords);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -156,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(linkProviderPrivateKeyToAvatarParams);
 
             if (isValid)
-                return KeyManager.LinkProviderPrivateKeyToAvatarByUsername(linkProviderPrivateKeyToAvatarParams.WalletId, linkProviderPrivateKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey);
+                return KeyManager.LinkProviderPrivateKeyToAvatarByUsername(linkProviderPrivateKeyToAvatarParams.WalletId, linkProviderPrivateKeyToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderPrivateKeyToAvatarParams.ProviderKey, linkProviderPrivateKeyToAvatarParams.ShowPrivateKey, linkProviderPrivateKeyToAvatarParams.ShowSecretRecoveryWords);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
