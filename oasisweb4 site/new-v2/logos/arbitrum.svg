@@ -1,0 +1,16 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded Hexagon Border (Light Blue) -->
+  <path d="M8 3C6 3 4 4 3 6L1 12C1 14 1 18 1 20L3 26C4 28 6 29 8 29L24 29C26 29 28 28 29 26L31 20C31 18 31 14 31 12L29 6C28 4 26 3 24 3L8 3Z" fill="#28A7E8"/>
+  
+  <!-- Inner Hexagon (Dark Navy) -->
+  <path d="M8 5C6.5 5 5.5 5.5 5 7L3.5 12C3.5 13.5 3.5 18.5 3.5 20L5 25C5.5 26.5 6.5 27 8 27L24 27C25.5 27 26.5 26.5 27 25L28.5 20C28.5 18.5 28.5 13.5 28.5 12L27 7C26.5 5.5 25.5 5 24 5L8 5Z" fill="#0A1F2E"/>
+  
+  <!-- First White Bar (left) -->
+  <path d="M9 11L10.5 9L13 20L11.5 22L9 11Z" fill="white"/>
+  
+  <!-- Second White Bar (middle) -->
+  <path d="M14 10L15.5 8L18 19L16.5 21L14 10Z" fill="white"/>
+  
+  <!-- Third Blue Bar (right, taller) -->
+  <path d="M19 8L21 6L24 18L22 20L19 8Z" fill="#28A7E8"/>
+</svg>

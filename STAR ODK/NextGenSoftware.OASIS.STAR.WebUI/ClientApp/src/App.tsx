@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Box, Container, CssBaseline } from '@mui/material';
+import { Box, Container, CssBaseline, ThemeProvider } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from 'react-query';
 import { toast } from 'react-hot-toast';
+import { oracleTheme } from './theme/oracleTheme';
 
 // Components
 import Navbar from './components/Navbar';
@@ -113,10 +114,11 @@ const App: React.FC = () => {
   // Remove loading check since useSTARConnection handles this
 
   return (
-    <DemoModeProvider>
-      <AvatarProvider>
-        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-        <CssBaseline />
+    <ThemeProvider theme={oracleTheme}>
+      <DemoModeProvider>
+        <AvatarProvider>
+          <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+          <CssBaseline />
       
       {/* Navigation */}
       <Navbar 
@@ -1126,8 +1128,9 @@ const App: React.FC = () => {
         </Container>
       </Box>
     </Box>
-      </AvatarProvider>
-    </DemoModeProvider>
+        </AvatarProvider>
+      </DemoModeProvider>
+    </ThemeProvider>
   );
 };
 

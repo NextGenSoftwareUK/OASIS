@@ -1,0 +1,47 @@
+{
+  "family": "oasis-api-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::881490134703:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::881490134703:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "oasis-api-container",
+      "image": "881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api@sha256:179026ff5404c86f135d83120f842418b7749e0bfb7b01b7dd8d7fc8892f21fe",
+      "cpu": 512,
+      "memory": 1024,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "ASPNETCORE_ENVIRONMENT",
+          "value": "Production"
+        },
+        {
+          "name": "ASPNETCORE_URLS",
+          "value": "http://+:80"
+        },
+        {
+          "name": "ConnectionStrings__MongoDBOASIS",
+          "value": "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/oasis-api",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

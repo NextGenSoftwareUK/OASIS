@@ -1,0 +1,13 @@
+<ng-container *ngIf="rated && maxRating >= rated">
+  <ng-container *ngFor="let rate of carRating; index as i">
+    <app-star
+      [star]="{
+        type: (i + 1 <= rated) ? 'fill' : 'no-fill',
+        colorTheme: 'primary',
+        size: 'md',
+      }"
+      [index]="i"
+      (starClick)="clickStar($event)"
+    ></app-star>
+  </ng-container>
+</ng-container>

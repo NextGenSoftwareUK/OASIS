@@ -1,6 +1,8 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using Solnet.Wallet;
+using System.IO;
+using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
@@ -38,7 +40,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             try
             {
                 // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
-                Console.SetOut(new NullTextWriter());
+                Console.SetOut(TextWriter.Null);
 
                 RequestResult<string> createNftResult = await metadataClient.CreateNFT(
                 ownerAccount: oasisAccount,

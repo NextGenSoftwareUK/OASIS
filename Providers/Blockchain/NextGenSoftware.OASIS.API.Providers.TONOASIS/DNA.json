@@ -1,0 +1,9 @@
+{
+    "ConnectionString": "https://evm-testnet.ton.org",
+    "ChainId": 1000,
+    "ChainPrivateKey": "REPLACE_WITH_TON_EVM_PRIVATE_KEY",
+    "ContractAddress": "0x0000000000000000000000000000000000000000",
+    "Notes": "Deploy Web3CoreOASIS.sol to TON EVM (testnet/mainnet) and update these values before use."
+}
+
+

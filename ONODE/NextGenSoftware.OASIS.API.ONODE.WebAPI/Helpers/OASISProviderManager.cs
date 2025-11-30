@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.StarknetOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -80,6 +81,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                             }
                             break;
 
+                        case ProviderType.StarknetOASIS:
+                            {
+                                var starknetSettings = OASISSettings.StorageProviders.StarknetOASIS ?? new StarknetOASISProviderSettings
+                                {
+                                    Network = "alpha-goerli",
+                                    RpcUrl = "https://alpha4.starknet.io"
+                                };
+                                var starknetOASIS = new StarknetOASIS(starknetSettings.Network, starknetSettings.RpcUrl);
+                                starknetOASIS.StorageProviderError += StarknetOASIS_StorageProviderError;
+                                ProviderManager.RegisterProvider(starknetOASIS);
+                            }
+                            break;
+
                         case ProviderType.EOSOASIS:
                             {
                                 EOSIOOASIS EOSIOOASIS = new EOSIOOASIS();
@@ -131,6 +145,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: HoloOASIS_OnHoloOASISError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNET.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNET.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+        }
+
+        private static void StarknetOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            //TODO: {URGENT} Handle Errors properly here (log, etc)
+            //  throw new Exception(string.Concat("ERROR: StarknetOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
     }
 }

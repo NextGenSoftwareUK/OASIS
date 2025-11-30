@@ -1,0 +1,19 @@
+<svg width="1400" height="800" viewBox="0 0 1400 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="800" rx="40" fill="#060912"/>
+  <path d="M 200 200 C 340 260 500 240 640 320 C 780 400 920 420 1080 360" stroke="#00D9FF" stroke-width="6" stroke-linecap="round" stroke-dasharray="18 14"/>
+  <path d="M 1080 360 C 1180 320 1250 260 1280 200" stroke="#7C6BFF" stroke-width="6" stroke-linecap="round" stroke-dasharray="18 14"/>
+  <circle cx="200" cy="200" r="18" fill="#00D9FF"/>
+  <circle cx="640" cy="320" r="18" fill="#1B44FF"/>
+  <circle cx="1080" cy="360" r="18" fill="#8F7FFF"/>
+  <circle cx="1280" cy="200" r="18" fill="#FFFFFF" fill-opacity="0.8"/>
+  <text x="230" y="190" fill="white" font-family="Manrope, sans-serif" font-size="26">Durban</text>
+  <text x="670" y="310" fill="white" font-family="Manrope, sans-serif" font-size="26">Victoria Falls</text>
+  <text x="1110" y="350" fill="white" font-family="Manrope, sans-serif" font-size="26">Livingstone</text>
+  <text x="1310" y="190" fill="white" font-family="Manrope, sans-serif" font-size="26">Lagos</text>
+</svg>
+
+
+
+
+
+

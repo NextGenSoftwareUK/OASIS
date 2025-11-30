@@ -1,0 +1,210 @@
+/* @theme recap */
+/*
+ * Marp theme inspired by recap deck aesthetics.
+ * Usage: marp --theme Docs/Presentations/RecapDeck/themes/recap.css <file>
+ */
+
+@import "default";
+
+:root {
+  --recap-background: radial-gradient(circle at 20% 20%, rgba(88, 87, 192, 0.25) 0%, rgba(12, 11, 32, 0.95) 45%, #050314 100%);
+  --recap-card: linear-gradient(180deg, rgba(114, 95, 255, 0.9) 0%, rgba(72, 45, 209, 0.9) 100%);
+  --recap-text-main: #f8f8ff;
+  --recap-text-muted: #afb4d4;
+  --recap-accent: #7f63ff;
+  --recap-radius: 18px;
+  --recap-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+  --recap-font: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+section {
+  font-family: var(--recap-font);
+  color: var(--recap-text-main);
+  background: var(--recap-background);
+  background-color: #050314;
+  padding: 96px 112px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 32px;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--recap-text-main);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2.8rem;
+}
+
+h2 {
+  font-size: 2.1rem;
+}
+
+h3 {
+  font-size: 1.6rem;
+  color: var(--recap-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+p,
+li {
+  font-size: 1.18rem;
+  line-height: 1.6;
+  color: var(--recap-text-muted);
+}
+
+strong {
+  color: var(--recap-text-main);
+}
+
+blockquote {
+  border-left: 4px solid var(--recap-accent);
+  padding-left: 24px;
+  color: var(--recap-text-main);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+ul,
+ol {
+  margin-left: 24px;
+  display: grid;
+  gap: 12px;
+}
+
+table {
+  border-collapse: collapse;
+  box-shadow: var(--recap-shadow);
+  background: rgba(12, 11, 32, 0.6);
+  border-radius: var(--recap-radius);
+  overflow: hidden;
+  font-size: 1.05rem;
+}
+
+th,
+td {
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+th {
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  color: var(--recap-text-main);
+  background: rgba(12, 11, 32, 0.8);
+}
+
+td {
+  color: var(--recap-text-muted);
+}
+
+.lead {
+  font-size: 1.32rem;
+  color: var(--recap-text-main);
+}
+
+.accent-card {
+  background: var(--recap-card);
+  border-radius: var(--recap-radius);
+  padding: 24px 28px;
+  color: #ffffff;
+  box-shadow: var(--recap-shadow);
+}
+
+.grid-2 {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(25, 24, 64, 0.65);
+  border-radius: var(--recap-radius);
+  padding: 20px 22px;
+  box-shadow: var(--recap-shadow);
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.metric-value {
+  font-size: 2rem;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+footer {
+  color: rgba(214, 217, 255, 0.45);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.14em;
+}
+
+.tagline {
+  font-size: 1.1rem;
+  color: var(--recap-text-muted);
+}
+
+img.full-bleed {
+  width: 100%;
+  height: auto;
+  border-radius: var(--recap-radius);
+  box-shadow: var(--recap-shadow);
+}
+
+.chart-placeholder {
+  height: 320px;
+  border-radius: var(--recap-radius);
+  background: linear-gradient(180deg, rgba(36, 29, 84, 0.8) 0%, rgba(13, 11, 39, 0.9) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.32);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+/* Adjust code blocks to blend with dark background */
+pre code {
+  background: rgba(14, 10, 38, 0.9);
+  border-radius: 16px;
+  padding: 18px 24px;
+  font-size: 0.95rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Hide default pagination if a custom footer is used */
+section::after {
+  right: 64px;
+  bottom: 48px;
+  color: rgba(255, 255, 255, 0.32);
+}
+

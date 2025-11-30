@@ -1,0 +1,30 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Base Logo - Circle with B -->
+  <g filter="url(#glow)">
+    <circle cx="24" cy="24" r="20" fill="url(#grad1)"/>
+    <circle cx="24" cy="24" r="20" stroke="url(#grad2)" strokeWidth="2" fill="none"/>
+    <path d="M18 16H26C29 16 31 18 31 21C31 23 30 24.5 28 25C30.5 25.5 32 27.5 32 30C32 33 29.5 35 26 35H18V16Z" fill="white" opacity="0.9"/>
+    <path d="M22 20V24H25C26.5 24 27.5 23 27.5 22C27.5 21 26.5 20 25 20H22Z" fill="#6366F1"/>
+    <path d="M22 27V31H26C27.5 31 28.5 30 28.5 29C28.5 28 27.5 27 26 27H22Z" fill="#4F46E5"/>
+  </g>
+  <defs>
+    <linearGradient id="grad1" x1="24" y1="4" x2="24" y2="44">
+      <stop offset="0%" stopColor="#6366F1"/>
+      <stop offset="100%" stopColor="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="24" y1="4" x2="24" y2="44">
+      <stop offset="0%" stopColor="#818CF8"/>
+      <stop offset="100%" stopColor="#6366F1"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
+
+

@@ -1,0 +1,64 @@
+.ride-details-section {
+  background: #80808070;
+  color: white;
+  height: calc(100vh - 20px);
+  left: 0;
+  top: 0;
+  width: 100vw;
+  z-index: 999;
+}
+
+.ride-details-section,
+.ride-details-container {
+  position: fixed;
+}
+
+.ride-details-container {
+  background-color: rgb(148 137 220);
+  border-radius: 4px;
+  color: #000;
+  left: 50vw;
+  max-width: 400px;
+  padding: 20px;
+  top: 50vh;
+  transform: translate(-50%, -50%);
+  transition: all 0.5s linear;
+  width: 90%;
+}
+
+.ride-details__header-section {
+  align-items: center;
+  border-bottom: 2px solid;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0 0 10px 0;
+}
+
+.ride-details__header {
+  margin: 0;
+}
+
+.ride-details__close-container {
+  border-radius: 5px;
+  border: 1px solid white;
+  display: flex;
+}
+
+.ride-details__close-container:hover {
+  background: white;
+}
+
+.close-icon {
+  fill: white;
+}
+
+.ride-details__close-container,
+.close-icon {
+  cursor: pointer;
+  transition: all 0.15s linear;
+}
+
+.ride-details__close-container:hover .close-icon {
+  fill: red;
+}

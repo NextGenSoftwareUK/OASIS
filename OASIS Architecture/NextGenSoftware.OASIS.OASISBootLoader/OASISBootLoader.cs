@@ -21,10 +21,13 @@ using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
+using NextGenSoftware.OASIS.API.Providers.MonadOASIS;
+using NextGenSoftware.OASIS.API.Providers.TONOASIS;
 //using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 //using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
 //using NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
@@ -820,6 +823,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.RadixOASIS:
+                            {
+                                RadixOASIS radixOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.RadixOASIS.HostUri,
+                                    OASISDNA.OASIS.StorageProviders.RadixOASIS.NetworkId,
+                                    OASISDNA.OASIS.StorageProviders.RadixOASIS.AccountAddress,
+                                    OASISDNA.OASIS.StorageProviders.RadixOASIS.PrivateKey);
+                                radixOASIS.OnStorageProviderError += RadixOASIS_StorageProviderError;
+                                result.Result = radixOASIS;
+                            }
+                            break;
+
                         case ProviderType.EOSIOOASIS:
                             {
                                 EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(
@@ -943,6 +958,26 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     OASISDNA.OASIS.StorageProviders.PolygonOASIS.ContractAddress);
                                 PolygonOASIS.OnStorageProviderError += PolygonOASIS_StorageProviderError;
                                 result.Result = PolygonOASIS;
+                            }
+                            break;
+                        case ProviderType.MonadOASIS:
+                            {
+                                MonadOASIS MonadoOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.MonadOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.MonadOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.MonadOASIS.ContractAddress);
+                                MonadoOASIS.OnStorageProviderError += MonadOASIS_StorageProviderError;
+                                result.Result = MonadoOASIS;
+                            }
+                            break;
+                        case ProviderType.TONOASIS:
+                            {
+                                TONOASIS tonoOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.TONOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.TONOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.TONOASIS.ContractAddress);
+                                tonoOASIS.OnStorageProviderError += TONOASIS_StorageProviderError;
+                                result.Result = tonoOASIS;
                             }
                             break;
 
@@ -1378,6 +1413,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("SolanaOASIS", e);
         }
 
+        private static void RadixOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("RadixOASIS", e);
+        }
+
         private static void HoloOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("HoloOASIS", e);
@@ -1411,6 +1451,16 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void PolygonOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("PolygonOASIS", e);
+        }
+
+        private static void MonadOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("MonadOASIS", e);
+        }
+
+        private static void TONOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("TONOASIS", e);
         }
 
         private static void RootstockOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)

@@ -1,0 +1,21 @@
+<div class="accordion">
+  <div class="accordion-item" *ngFor="let faq of faqs; let i = index">
+    <div class="accordion-header" (click)="toggle(i)">
+      <h3>{{ faq.question }}</h3>
+      <div class="icon">
+        <span *ngIf="!faq.open">+</span>
+        <span *ngIf="faq.open">-</span>
+      </div>
+    </div>
+    <div class="accordion-body" [@accordionAnimation]="getState(faq)">
+      <ng-container *ngIf="!faq.answer.includes('\n'); else DisplayList">
+        <p class="faq_answer">{{ faq.answer }}</p>
+      </ng-container>
+      <ng-template #DisplayList>
+        <p class="li" *ngFor="let item of formatAnswer(faq.answer)">
+          {{ item }}
+        </p>
+      </ng-template>
+    </div>
+  </div>
+</div>
