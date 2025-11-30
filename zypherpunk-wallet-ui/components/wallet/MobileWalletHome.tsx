@@ -28,6 +28,7 @@ interface MobileWalletHomeProps {
   onStablecoin?: () => void;
   onBridge?: () => void;
   onLogout?: () => void;
+  onCreateWallet?: () => void;
 }
 
 export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
@@ -45,6 +46,7 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
   onStablecoin,
   onBridge,
   onLogout,
+  onCreateWallet,
 }) => {
   const { wallets, user, isLoading, error } = useWalletStore();
   const [activeTab, setActiveTab] = useState<'tokens' | 'collectibles' | 'stablecoin'>('tokens');
@@ -347,7 +349,15 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
                 ) : (
                   <div className="text-center py-12 text-zypherpunk-text-muted">
                     <p>No tokens found</p>
-                    <p className="text-sm mt-2">Import or create a wallet to get started</p>
+                    <p className="text-sm mt-2 mb-4">Import or create a wallet to get started</p>
+                    {onCreateWallet && (
+                      <Button
+                        onClick={onCreateWallet}
+                        className="bg-zypherpunk-shielded hover:bg-zypherpunk-shielded/80 text-black"
+                      >
+                        Create Wallet
+                      </Button>
+                    )}
                   </div>
                 )}
               </>
