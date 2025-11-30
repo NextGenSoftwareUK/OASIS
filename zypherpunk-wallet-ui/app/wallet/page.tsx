@@ -18,7 +18,7 @@ import { ProviderType } from '@/lib/types';
 import { toastManager } from '@/lib/toast';
 import { useAvatarStore } from '@/lib/avatarStore';
 
-type Screen = 'home' | 'send' | 'shielded-send' | 'receive' | 'buy' | 'tokens' | 'collectibles' | 'history' | 'swap' | 'privacy' | 'bridge' | 'stablecoin' | 'security';
+type Screen = 'home' | 'create-wallet' | 'send' | 'shielded-send' | 'receive' | 'buy' | 'tokens' | 'collectibles' | 'history' | 'swap' | 'privacy' | 'bridge' | 'stablecoin' | 'security';
 
 export default function WalletPage() {
   const { wallets, loadWallets, isLoading, user, error } = useWalletStore();
@@ -189,9 +189,25 @@ export default function WalletPage() {
     </div>
   );
 
+  const handleCreateWalletSuccess = () => {
+    if (user?.id) {
+      loadWallets(user.id);
+    }
+    setCurrentScreen('home');
+  };
+
   let screen: React.ReactNode;
 
   switch (currentScreen) {
+    case 'create-wallet':
+      screen = (
+        <CreateWalletScreen
+          onBack={() => setCurrentScreen('home')}
+          onSuccess={handleCreateWalletSuccess}
+        />
+      );
+      break;
+
     case 'send': {
       const wallet = getWallet(selectedProvider) || getWallet(ProviderType.SolanaOASIS) || getWallet(ProviderType.EthereumOASIS);
       if (!wallet) {
@@ -361,6 +377,7 @@ export default function WalletPage() {
           onSecurity={() => setCurrentScreen('security')}
           onPrivacy={() => setCurrentScreen('privacy')}
           onShieldedSend={handleShieldedSend}
+          onCreateWallet={() => setCurrentScreen('create-wallet')}
           onStablecoin={() => setCurrentScreen('stablecoin')}
           onBridge={() => setCurrentScreen('bridge')}
           onLogout={logout}
