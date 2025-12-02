@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.Bridge;
 public class CrossChainBridgeManager : ICrossChainBridgeManager
 {
 private const string Sol = "SOL";
+private const string Eth = "ETH";
 private const string Xrd = "XRD";
 private const string Zec = "ZEC";
 private const string Aztec = "AZTEC";
@@ -138,8 +139,13 @@ private const string Starknet = "STARKNET";
 
             decimal convertedAmount = exchangeRateResult.Result * request.Amount;
 
-            // Check if this is a valid SOL ↔ XRD swap
-            if (request is { FromToken: Xrd, ToToken: Sol } or { FromToken: Sol, ToToken: Xrd })
+            // Check if this is a supported swap pair (SOL ↔ XRD, SOL ↔ ETH, ETH ↔ SOL)
+            var isSupportedPair = (fromToken == Sol && toToken == Xrd) ||
+                                  (fromToken == Xrd && toToken == Sol) ||
+                                  (fromToken == Sol && toToken == Eth) ||
+                                  (fromToken == Eth && toToken == Sol);
+            
+            if (isSupportedPair)
             {
                 // Get source account address (this would come from user's virtual account in a real implementation)
                 string sourceAccountAddress = request.UserId.ToString(); // Placeholder
