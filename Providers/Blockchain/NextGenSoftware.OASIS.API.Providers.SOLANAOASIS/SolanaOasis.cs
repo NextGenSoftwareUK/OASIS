@@ -43,6 +43,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         this._rpcClient = ClientFactory.GetClient(hostUri);
         this._oasisSolanaAccount = new(privateKey, publicKey);
+
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
     }
 
     public override async Task<OASISResult<bool>> ActivateProviderAsync()

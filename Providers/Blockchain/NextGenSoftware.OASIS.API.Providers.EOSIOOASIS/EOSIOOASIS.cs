@@ -62,6 +62,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EOSIOOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+
             HostURI = hostUri;
             EOSAccountName = eosAccountName;
             EOSChainId = eosChainId;

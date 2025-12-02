@@ -56,6 +56,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.NEAROASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _networkId = networkId ?? throw new ArgumentNullException(nameof(networkId));
             _privateKey = privateKey;
