@@ -12,6 +12,8 @@ import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { getProviderMetadata, universalBridgeChains } from '@/lib/providerMeta';
 import { PrivacyIndicator } from '@/components/privacy/PrivacyIndicator';
+import { filterUniversalWallets } from '@/lib/walletUtils';
+import { normalizeProviderType } from '@/lib/providerTypeMapper';
 
 interface MobileWalletHomeProps {
   onSend: () => void;
@@ -51,12 +53,77 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
   const { wallets, user, isLoading, error } = useWalletStore();
   const [activeTab, setActiveTab] = useState<'tokens' | 'collectibles' | 'stablecoin'>('tokens');
 
-  const allWallets = Object.values(wallets).flat();
-  const featuredWallets = allWallets.length > 0
-    ? allWallets.sort((a, b) => (b.balance || 0) - (a.balance || 0)).slice(0, 4)
-    : [];
+  // Filter out Universal/Default wallets
+  const filteredWallets = filterUniversalWallets(wallets);
+  const allWallets = Object.values(filteredWallets).flat();
+  
+  // Additional filter: Remove wallets that are Default or show as "OASIS" (defaultMeta)
+  const finalWallets = allWallets.filter(wallet => {
+    // Normalize providerType first (handles numeric values from API)
+    const normalizedType = normalizeProviderType(wallet.providerType);
+    
+    // Direct check for Default provider type
+    if (normalizedType === ProviderType.Default || 
+        normalizedType === ProviderType.LocalFileOASIS ||
+        normalizedType === ProviderType.MongoDBOASIS) {
+      console.log('Filtering out Default/LocalFile/MongoDB wallet:', normalizedType, wallet.walletId);
+      return false;
+    }
+    
+    // Check if metadata resolves to default (OASIS)
+    const meta = getProviderMetadata(normalizedType);
+    if (meta.name === 'OASIS' && meta.providerType === ProviderType.Default) {
+      console.log('Filtering out OASIS default wallet:', normalizedType, wallet.walletId);
+      return false;
+    }
+    
+    return true;
+  });
+  // Group wallets by provider type and get one wallet per type (prioritize privacy chains)
+  const walletsByProvider = new Map<ProviderType, Wallet>();
+  const priorityOrder = [
+    ProviderType.ZcashOASIS,
+    ProviderType.AztecOASIS,
+    ProviderType.MidenOASIS,
+    ProviderType.StarknetOASIS,
+    ProviderType.EthereumOASIS,
+    ProviderType.SolanaOASIS,
+    ProviderType.PolygonOASIS,
+    ProviderType.ArbitrumOASIS,
+  ];
+  
+  // First, add one wallet from each priority provider type
+  for (const providerType of priorityOrder) {
+    const wallet = finalWallets.find(w => normalizeProviderType(w.providerType) === providerType);
+    if (wallet) {
+      walletsByProvider.set(providerType, wallet);
+    }
+  }
+  
+  // Then add any remaining provider types
+  for (const wallet of finalWallets) {
+    const normalizedType = normalizeProviderType(wallet.providerType);
+    if (!walletsByProvider.has(normalizedType)) {
+      walletsByProvider.set(normalizedType, wallet);
+    }
+  }
+  
+  // Convert to array and sort by priority order
+  const featuredWallets = Array.from(walletsByProvider.values())
+    .sort((a, b) => {
+      const aType = normalizeProviderType(a.providerType);
+      const bType = normalizeProviderType(b.providerType);
+      const aIndex = priorityOrder.indexOf(aType);
+      const bIndex = priorityOrder.indexOf(bType);
+      // If both are in priority order, sort by index; otherwise, prioritize those in the list
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      // If neither is in priority, sort by balance
+      return (b.balance || 0) - (a.balance || 0);
+    });
 
-  const totalBalance = Object.values(wallets).flat().reduce((sum, w) => sum + (w.balance || 0), 0);
+  const totalBalance = finalWallets.reduce((sum, w) => sum + (w.balance || 0), 0);
   const usdValue = totalBalance * 1800; // Mock conversion rate
 
   const handleCopyAddress = async (address: string) => {
