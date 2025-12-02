@@ -58,6 +58,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         this.ProviderDescription = "Arbitrum Provider";
         this.ProviderType = new(Core.Enums.ProviderType.ArbitrumOASIS);
         this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
 
         _hostURI = hostUri;
         _chainPrivateKey = chainPrivateKey;

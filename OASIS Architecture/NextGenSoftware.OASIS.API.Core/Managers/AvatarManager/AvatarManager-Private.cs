@@ -156,8 +156,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             };
             //result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
 
-            result.Result.CreatedByAvatarId = result.Result.Id;
+            result.Result.ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
 
+            foreach (IOASISBlockchainStorageProvider provider in ProviderManager.Instance.GetAllBlockchainProviders())
+            {
+                OASISResult<IProviderWallet> walletResult = WalletManager.Instance.CreateWalletWithoutSaving(result.Result.Id, $"Default {Enum.GetName(typeof(ProviderType), provider)} Wallet", $"Default wallet for chain {Enum.GetName(typeof(ProviderType), provider)}", provider.ProviderType.Value, isDefaultWallet: true);
+
+                if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                    result.Result.ProviderWallets[provider.ProviderType.Value].Add(walletResult.Result);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured creating default wallet for provider/chain {walletResult.Message}");
+            }
+
+            OASISResult<bool> saveWalletsResult = await WalletManager.Instance.SaveProviderWalletsForAvatarByIdAsync(result.Result.Id, result.Result.ProviderWallets);
+            
+            if (!(saveWalletsResult != null && saveWalletsResult.Result != null && !saveWalletsResult.IsError))
+                OASISErrorHandling.HandleError(ref result, $"Error occured saving the default wallets. Reason: {saveWalletsResult.Message}");
+
+            result.Result.CreatedByAvatarId = result.Result.Id;
             OASISResult<bool> checkIfUsernameExistsResult = CheckIfUsernameIsAlreadyInUse(email);
 
             if (checkIfUsernameExistsResult.Result)
@@ -172,34 +188,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             // hash password
             result.Result.Password = BC.HashPassword(password);
-
-            //TODO: URGENT PERFORMANCE: Need to either cache this in future or add ability to query/search all avatars at the provider level so we dont need to keep pulling back the full list everytime!
-            /*
-            OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync();
-
-            if (!avatarsResult.IsError && avatarsResult.Result != null)
-            {
-                List<IAvatar> avatars = avatarsResult.Result.Where(x => x.Username == result.Result.FullName).ToList();
-
-                //If noone with this name has created an avatar yet then set their username as their name as a default (they can then change it later).
-                if (avatars.Count == 0)
-                    result.Result.Username = result.Result.FullName;
-                else
-                {
-                    //If the username is already in use then add the current date, hopefully noone with the same name tries to create an avatar at the EXACT same time! lol ;-)
-                    result.Result.Username = $"{result.Result.FullName} {DateTime.Now.Day}{DateTime.Now.Month}{DateTime.Now.Year}{DateTime.Now.Hour}{DateTime.Now.Minute}{DateTime.Now.Second}";
-                }
-
-                //result.Result.CreatedDate = DateTime.UtcNow;
-                result.Result.VerificationToken = randomTokenString();
-
-                // hash password
-                result.Result.Password = BC.HashPassword(password);
-            }
-            else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in PrepareToRegisterAvatarAsync method in AvatarManager calling LoadAllAvatarsAsync. Reason: {avatarsResult.Message}");
-            */
-
             return result;
         }
 
