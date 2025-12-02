@@ -41,6 +41,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             this.ProviderDescription = "Moralis Web3 API Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MoralisOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

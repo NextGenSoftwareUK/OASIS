@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using NBitcoin;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
@@ -13,6 +16,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Rijndael256;
+using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -37,22 +41,333 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         }
 
-        //public async Task<OASISResult<IProviderWallet>> AddWallet(Guid avatarId, string name, string description, ProviderType providerType, string privateKey = "", string publicKey = "", string walletAddress = "")
-        //public async Task<OASISResult<IProviderWallet>> AddWallet(Guid avatarId, string name, string description, ProviderType providerType)
-        //{
-        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+        public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByIdAsync(Guid avatarId, string name, string description, ProviderType walletProviderType, bool generateKeyPair = true, bool isDefaultWallet = false, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in WalletManager.CreateWalletForAvatarByIdAsync. Reason: ";
 
-        //    ProviderWallet newWallet = new ProviderWallet()
-        //    {
-        //        WalletId = Guid.NewGuid(),
-        //        CreatedByAvatarId = avatarId,
-        //        CreatedDate = DateTime.Now,
-        //        //WalletAddress = walletAddress,
-        //        ProviderType = providerType,
-        //        SecretRecoveryPhrase = Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256),
-        //        //PrivateKey = privateKey,
-        //    };
-        //}
+            try
+            {
+                OASISResult<IProviderWallet> createResult = CreateWalletWithoutSaving(avatarId, name, description, walletProviderType, generateKeyPair, isDefaultWallet);
+
+                if (createResult != null && createResult.Result != null && !createResult.IsError)
+                {
+                    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = await LoadProviderWalletsForAvatarByIdAsync(avatarId, providerTypeToLoadFrom: providerTypeToLoadSave);
+
+                    if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
+                    {
+                        if (providerWallets.Result[walletProviderType] == null)
+                            providerWallets.Result[walletProviderType] = new List<IProviderWallet>();
+
+                        if (isDefaultWallet)
+                        {
+                            foreach (IProviderWallet wallet in providerWallets.Result[walletProviderType])
+                                wallet.IsDefaultWallet = false;
+                        }
+
+                        providerWallets.Result[walletProviderType].Add(createResult.Result);
+
+                        OASISResult<bool> saveResult = await SaveProviderWalletsForAvatarByIdAsync(avatarId, providerWallets.Result, providerTypeToLoadSave);
+
+                        if (saveResult != null && saveResult.Result && !saveResult.IsError)
+                        {
+                            result.Result = createResult.Result;
+                            result.Message = "Wallet Created Successfully";
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling SaveProviderWalletsForAvatarByIdAsync. Reason: {saveResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling LoadProviderWalletsForAvatarByIdAsync. Reason: {providerWallets.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured creating wallet calling CreateWallet. Reason: {createResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IProviderWallet> CreateWalletForAvatarById(Guid avatarId, string name, string description, ProviderType walletProviderType, bool generateKeyPair = true, bool isDefaultWallet = false, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in WalletManager.CreateWalletForAvatarById. Reason: ";
+
+            try
+            {
+                OASISResult<IProviderWallet> createResult = CreateWalletWithoutSaving(avatarId, name, description, walletProviderType, generateKeyPair, isDefaultWallet);
+
+                if (createResult != null && createResult.Result != null && !createResult.IsError)
+                {
+                    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = LoadProviderWalletsForAvatarById(avatarId, providerTypeToLoadFrom: providerTypeToLoadSave);
+
+                    if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
+                    {
+                        if (providerWallets.Result[walletProviderType] == null)
+                            providerWallets.Result[walletProviderType] = new List<IProviderWallet>();
+
+                        if (isDefaultWallet)
+                        {
+                            foreach (IProviderWallet wallet in providerWallets.Result[walletProviderType])
+                                wallet.IsDefaultWallet = false;
+                        }
+
+                        providerWallets.Result[walletProviderType].Add(createResult.Result);
+
+                        OASISResult<bool> saveResult = SaveProviderWalletsForAvatarById(avatarId, providerWallets.Result, providerTypeToLoadSave);
+
+                        if (saveResult != null && saveResult.Result && !saveResult.IsError)
+                        {
+                            result.Result = createResult.Result;
+                            result.Message = "Wallet Created Successfully";
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling SaveProviderWalletsForAvatarById. Reason: {saveResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling LoadProviderWalletsForAvatarById. Reason: {providerWallets.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured creating wallet calling CreateWallet. Reason: {createResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByUsernameAsync(string username, string name, string description, ProviderType walletProviderType, bool generateKeyPair = true, bool isDefaultWallet = false, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in WalletManager.CreateWalletForAvatarByUsernameAsync. Reason: ";
+
+            try
+            {
+                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(username, providerType: providerTypeToLoadSave);
+
+                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                {
+                    OASISResult<IProviderWallet> createResult = CreateWalletWithoutSaving(avatarResult.Result.Id, name, description, walletProviderType, generateKeyPair, isDefaultWallet);
+
+                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                    {
+                        OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = LoadProviderWalletsForAvatarByUsername(username, providerTypeToLoadFrom: providerTypeToLoadSave);
+
+                        if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
+                        {
+                            if (providerWallets.Result[walletProviderType] == null)
+                                providerWallets.Result[walletProviderType] = new List<IProviderWallet>();
+
+                            if (isDefaultWallet)
+                            {
+                                foreach (IProviderWallet wallet in providerWallets.Result[walletProviderType])
+                                    wallet.IsDefaultWallet = false;
+                            }
+
+                            providerWallets.Result[walletProviderType].Add(createResult.Result);
+
+                            OASISResult<bool> saveResult = SaveProviderWalletsForAvatarByUsername(username, providerWallets.Result, providerTypeToLoadSave);
+
+                            if (saveResult != null && saveResult.Result && !saveResult.IsError)
+                            {
+                                result.Result = createResult.Result;
+                                result.Message = "Wallet Created Successfully";
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling SaveProviderWalletsForAvatarByUsername. Reason: {saveResult.Message}");
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling LoadProviderWalletsForAvatarByUsername. Reason: {providerWallets.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured creating wallet calling CreateWallet. Reason: {createResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading avatar calling LoadAvatarAsync. Reason: {avatarResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IProviderWallet> CreateWalletForAvatarByUsername(string username, string name, string description, ProviderType walletProviderType, bool generateKeyPair = true, bool isDefaultWallet = false, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in WalletManager.CreateWalletForAvatarByUsername. Reason: ";
+
+            try
+            {
+                OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatar(username, providerType: providerTypeToLoadSave);
+
+                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                {
+                    OASISResult<IProviderWallet> createResult = CreateWalletWithoutSaving(avatarResult.Result.Id, name, description, walletProviderType, generateKeyPair, isDefaultWallet);
+
+                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                    {
+                        OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = LoadProviderWalletsForAvatarByUsername(username, providerTypeToLoadFrom: providerTypeToLoadSave);
+
+                        if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
+                        {
+                            if (providerWallets.Result[walletProviderType] == null)
+                                providerWallets.Result[walletProviderType] = new List<IProviderWallet>();
+
+                            if (isDefaultWallet)
+                            {
+                                foreach (IProviderWallet wallet in providerWallets.Result[walletProviderType])
+                                    wallet.IsDefaultWallet = false;
+                            }
+
+                            providerWallets.Result[walletProviderType].Add(createResult.Result);
+
+                            OASISResult<bool> saveResult = SaveProviderWalletsForAvatarByUsername(username, providerWallets.Result, providerTypeToLoadSave);
+
+                            if (saveResult != null && saveResult.Result && !saveResult.IsError)
+                            {
+                                result.Result = createResult.Result;
+                                result.Message = "Wallet Created Successfully";
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling SaveProviderWalletsForAvatarByUsername. Reason: {saveResult.Message}");
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling LoadProviderWalletsForAvatarByUsername. Reason: {providerWallets.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured creating wallet calling CreateWallet. Reason: {createResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading avatar calling LoadAvatar. Reason: {avatarResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByEmailAsync(string email, string name, string description, ProviderType walletProviderType, bool generateKeyPair = true, bool isDefaultWallet = false, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in WalletManager.CreateWalletForAvatarByEmailAsync. Reason: ";
+
+            try
+            {
+                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarByEmailAsync(email, providerType: providerTypeToLoadSave);
+
+                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                {
+                    OASISResult<IProviderWallet> createResult = CreateWalletWithoutSaving(avatarResult.Result.Id, name, description, walletProviderType, generateKeyPair, isDefaultWallet);
+
+                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                    {
+                        OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = await LoadProviderWalletsForAvatarByEmailAsync(email, providerTypeToLoadFrom: providerTypeToLoadSave);
+
+                        if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
+                        {
+                            if (providerWallets.Result[walletProviderType] == null)
+                                providerWallets.Result[walletProviderType] = new List<IProviderWallet>();
+
+                            if (isDefaultWallet)
+                            {
+                                foreach (IProviderWallet wallet in providerWallets.Result[walletProviderType])
+                                    wallet.IsDefaultWallet = false;
+                            }
+
+                            providerWallets.Result[walletProviderType].Add(createResult.Result);
+
+                            OASISResult<bool> saveResult = await SaveProviderWalletsForAvatarByEmailAsync(email, providerWallets.Result, providerTypeToLoadSave);
+
+                            if (saveResult != null && saveResult.Result && !saveResult.IsError)
+                            {
+                                result.Result = createResult.Result;
+                                result.Message = "Wallet Created Successfully";
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling SaveProviderWalletsForAvatarByEmailAsync. Reason: {saveResult.Message}");
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling LoadProviderWalletsForAvatarByEmailAsync. Reason: {providerWallets.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured creating wallet calling CreateWallet. Reason: {createResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading avatar calling LoadAvatarByEmailAsync. Reason: {avatarResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
+
+        public OASISResult<IProviderWallet> CreateWalletForAvatarByEmail(string email, string name, string description, ProviderType walletProviderType, bool generateKeyPair = true, bool isDefaultWallet = false, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in WalletManager.CreateWalletForAvatarByEmail. Reason: ";
+
+            try
+            {
+                OASISResult<IAvatar> avatarResult = AvatarManager.Instance.LoadAvatarByEmail(email, providerType: providerTypeToLoadSave);
+
+                if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                {
+                    OASISResult<IProviderWallet> createResult = CreateWalletWithoutSaving(avatarResult.Result.Id, name, description, walletProviderType, generateKeyPair, isDefaultWallet);
+
+                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                    {
+                        OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = LoadProviderWalletsForAvatarByUsername(email, providerTypeToLoadFrom: providerTypeToLoadSave);
+
+                        if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
+                        {
+                            if (providerWallets.Result[walletProviderType] == null)
+                                providerWallets.Result[walletProviderType] = new List<IProviderWallet>();
+
+                            if (isDefaultWallet)
+                            {
+                                foreach (IProviderWallet wallet in providerWallets.Result[walletProviderType])
+                                    wallet.IsDefaultWallet = false;
+                            }
+
+                            providerWallets.Result[walletProviderType].Add(createResult.Result);
+
+                            OASISResult<bool> saveResult = SaveProviderWalletsForAvatarByUsername(email, providerWallets.Result, providerTypeToLoadSave);
+
+                            if (saveResult != null && saveResult.Result && !saveResult.IsError)
+                            {
+                                result.Result = createResult.Result;
+                                result.Message = "Wallet Created Successfully";
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling SaveProviderWalletsForAvatarByUsername. Reason: {saveResult.Message}");
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling LoadProviderWalletsForAvatarByUsername. Reason: {providerWallets.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured creating wallet calling CreateWallet. Reason: {createResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading avatar calling LoadAvatarByEmail. Reason: {avatarResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
+        }
 
         public async Task<OASISResult<IProviderWallet>> UpdateWalletForAvatarByIdAsync(Guid avatarId, Guid walletId, string name, string description, ProviderType walletProviderType, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
@@ -2131,6 +2446,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+        [
+
+            ]
+
+        public OASISResult<IProviderWallet> ExportWallet(Guid walletId)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+
+            //TODO: Finish implementing... (allow user to import a wallet using the secret recovering phase (memonic words).
+            //Can derive the public key and private key from the phase (need to look into how to do this...)
+
+            return result;
+        }
 
         public OASISResult<IProviderWallet> ImportWalletUsingSecretPhase(string phase)
         {
@@ -2496,6 +2824,40 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return wallets;
+        }
+
+        public OASISResult<IProviderWallet> CreateWalletWithoutSaving(Guid avatarId, string name, string description, ProviderType walletProviderType, bool generateKeyPair = true, bool isDefaultWallet = false)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+
+            ProviderWallet newWallet = new ProviderWallet()
+            {
+                WalletId = Guid.NewGuid(),
+                Name = name,
+                Description = description,
+                CreatedByAvatarId = avatarId,
+                CreatedDate = DateTime.Now,
+                //WalletAddress = walletAddress,
+                ProviderType = walletProviderType,
+                SecretRecoveryPhrase = Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256),
+                //PrivateKey = privateKey,
+                IsDefaultWallet = isDefaultWallet
+            };
+
+            if (generateKeyPair)
+            {
+                KeyValuePairAndWallet keyPair = GenerateKeyValuePairAndWalletAddress();
+
+                if (keyPair != null)
+                {
+                    newWallet.PrivateKey = keyPair.PrivateKey;
+                    newWallet.PublicKey = keyPair.PublicKey;
+                    newWallet.WalletAddress = keyPair.WalletAddressLegacy;
+                }
+            }
+
+            result.Result = newWallet;
+            return result;
         }
 
         //TODO: Lots more coming soon! ;-)

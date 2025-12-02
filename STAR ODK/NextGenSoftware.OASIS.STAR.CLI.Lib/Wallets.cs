@@ -3,7 +3,10 @@ using Nethereum.RPC.Eth;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
@@ -16,6 +19,39 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         //    STAR.OASISAPI.Wallets.Add
         //}
+
+        public async Task<OASISResult<IProviderWallet>> CreateWalletAsync(ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+
+            string name = CLIEngine.GetValidInput($"Please enter the new wallet name:", addLineBefore: true);
+            string desc = CLIEngine.GetValidInput($"Please enter the new wallet description:", addLineBefore: true);
+
+            object objProviderType = CLIEngine.GetValidInputForEnum($"Please enter the new wallet provider type:", typeof(ProviderType), addLineBefore: true);
+
+            if (objProviderType != null)
+            {
+                if (objProviderType.ToString() == "exit")
+                {
+                    result.Message = "User Exited";
+                    return result;
+                }
+
+                ProviderType walletProviderType = (ProviderType)objProviderType;
+
+                bool isDefault = CLIEngine.GetConfirmation($"Will this be the new default wallet?", addLineBefore: true);
+
+                CLIEngine.ShowWorkingMessage("Creating Wallet...");
+                result = await STAR.OASISAPI.Wallets.CreateWalletForAvatarByIdAsync(STAR.BeamedInAvatar.Id, name, desc, walletProviderType, true, isDefault);
+
+                if (result != null && result.Result != null && !result.IsError)
+                    CLIEngine.ShowSuccessMessage("Wallet Successfully Created", addLineBefore: true);
+                else
+                    CLIEngine.ShowErrorMessage($"Error Occured Creating Wallet. Reason: {result.Message}", addLineBefore: true);
+            }
+
+            return result;
+        }
 
         public async Task<OASISResult<IProviderWallet>> UpdateWallet(ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
@@ -60,6 +96,108 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     CLIEngine.ShowErrorMessage($"Error Occured Updating Wallet. Reason: {result.Message}", addLineBefore: true);
             }
+
+            return result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendToken(ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
+            IWalletTransactionRequest request = new WalletTransactionRequest()
+            {
+                FromAvatarId = STAR.BeamedInAvatar.Id,
+                FromAvatarEmail = STAR.BeamedInAvatar.Email,
+                FromAvatarUsername = STAR.BeamedInAvatar.Username
+            };
+
+            object objProviderType = CLIEngine.GetValidInputForEnum($"Please enter the provider type/chain you wish to send from:", typeof(ProviderType), addLineBefore: true);
+
+            if (objProviderType != null)
+            {
+                if (objProviderType.ToString() == "exit")
+                {
+                    result.Message = "User Exited";
+                    return result;
+                }
+
+                request.FromProvider = new Utilities.EnumValue<ProviderType>((ProviderType)objProviderType);
+            }
+
+            objProviderType = CLIEngine.GetValidInputForEnum($"Please enter the provider type/chain you wish to send to:", typeof(ProviderType), addLineBefore: true);
+
+            if (objProviderType != null)
+            {
+                if (objProviderType.ToString() == "exit")
+                {
+                    result.Message = "User Exited";
+                    return result;
+                }
+
+                request.ToProvider = new Utilities.EnumValue<ProviderType>((ProviderType)objProviderType);
+            }
+
+            int selection = CLIEngine.GetValidInputForInt("Do you wish to send the token using the users (1) Wallet Address, (2) Avatar Id, (3) Username or (4) Email? (Please enter 1, 2, 3 or 4)", true, 1, 4);
+
+            switch (selection)
+            {
+                case 1:
+                    request.ToWalletAddress = CLIEngine.GetValidInput("What is the wallet address you want to send the token to?");
+                    break;
+
+                case 2:
+                    request.ToAvatarId = CLIEngine.GetValidInputForGuid("What is the Id of the Avatar you want to send the token to?");
+                    break;
+
+                case 3:
+                    request.ToAvatarUsername = CLIEngine.GetValidInput("What is the Username of the Avatar you want to send the token to?");
+                    break;
+
+                case 4:
+                    request.ToAvatarEmail = CLIEngine.GetValidInputForEmail("What is the Email of the Avatar you want to send the token to?");
+                    break;
+            }
+
+            request.MemoText = CLIEngine.GetValidInput("What is the memo text for this transaction?");
+
+            CLIEngine.ShowWorkingMessage("Sending Token..");
+            result = await STAR.OASISAPI.Wallets.SendTokenAsync(request);
+
+            if (result != null && result.Result != null && !result.IsError)
+                CLIEngine.ShowSuccessMessage("Token Successfully Sent", addLineBefore: true);
+            else
+                CLIEngine.ShowErrorMessage($"Error Occured Sending Token. Reason: {result.Message}", addLineBefore: true);
+            
+            return result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> ImportWallet(ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
+            
+
+            CLIEngine.ShowWorkingMessage("Importing Wallet..");
+            result = await STAR.OASISAPI.Wallets.ImportWalletUsingSecretPhase(request);
+
+            if (result != null && result.Result != null && !result.IsError)
+                CLIEngine.ShowSuccessMessage("Wallet Successfully Imported", addLineBefore: true);
+            else
+                CLIEngine.ShowErrorMessage($"Error Occured Importing Wallet. Reason: {result.Message}", addLineBefore: true);
+
+            return result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> ExportWallet(ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
+
+
+            CLIEngine.ShowWorkingMessage("Exporting Wallet..");
+            result = await STAR.OASISAPI.Wallets.ExportWallet();
+
+            if (result != null && result.Result != null && !result.IsError)
+                CLIEngine.ShowSuccessMessage("Wallet Successfully Exported", addLineBefore: true);
+            else
+                CLIEngine.ShowErrorMessage($"Error Occured Exporting Wallet. Reason: {result.Message}", addLineBefore: true);
 
             return result;
         }
