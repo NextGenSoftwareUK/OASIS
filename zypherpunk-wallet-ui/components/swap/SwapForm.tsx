@@ -36,7 +36,9 @@ export function SwapForm() {
   const [tokenModalTarget, setTokenModalTarget] = useState<'from' | 'to' | null>(null);
 
   const userId = user?.id;
-  const apiUrl = config.bridge?.apiUrl || 'https://api.qstreetrwa.com/api/v1';
+  // Use local OASIS bridge API instead of external qstreetrwa API
+  const oasisApiUrl = process.env.NEXT_PUBLIC_OASIS_API_URL || 'https://localhost:5004';
+  const apiUrl = `${oasisApiUrl}/api/v1`;
 
   // fetch exchange rate on token change
   useEffect(() => {
@@ -130,18 +132,30 @@ export function SwapForm() {
 
     try {
       setSubmitting(true);
-      const response = await fetch(`${apiUrl}/orders`, {
+      
+      // Use proxy for local OASIS API (handles self-signed certificates)
+      const useProxy = process.env.NEXT_PUBLIC_USE_API_PROXY === 'true';
+      const targetUrl = useProxy 
+        ? `/api/proxy/api/v1/orders`
+        : `${apiUrl}/orders`;
+      
+      // Prepare request body matching CreateBridgeOrderRequest format
+      const requestBody = {
+        userId: userId, // Will be converted to Guid on backend
+        fromToken: state.from.symbol,
+        toToken: state.to.symbol,
+        amount: parseFloat(state.fromAmount),
+        fromNetwork: state.from.network,
+        toNetwork: state.to.network,
+        destinationAddress: state.destination,
+      };
+      
+      const response = await fetch(targetUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          fromToken: state.from.symbol,
-          toToken: state.to.symbol,
-          amount: parseFloat(state.fromAmount),
-          fromNetwork: state.from.network,
-          toNetwork: state.to.network,
-          destinationAddress: state.destination,
-        }),
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -150,7 +164,9 @@ export function SwapForm() {
       }
 
       const data = await response.json();
-      toastManager.success(`Swap order ${data?.data?.orderId || ''} created`);
+      // OASIS API returns { orderId: "...", ... } directly, not nested in data
+      const orderId = data?.orderId || data?.data?.orderId || data?.result?.orderId || '';
+      toastManager.success(`Swap order ${orderId ? `#${orderId}` : ''} created successfully!`);
       // reset?
     } catch (error: any) {
       toastManager.error(error?.message || 'Swap order failed');
