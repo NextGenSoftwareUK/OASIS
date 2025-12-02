@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -8,11 +9,15 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Services;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Starknet;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services.Zcash;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services.Aztec;
+using NextGenSoftware.OASIS.API.Providers.EthereumOASIS.Infrastructure.Services.Ethereum;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Bridges;
+using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
 using NextGenSoftware.OASIS.Common;
 using Solnet.Rpc;
 using Solnet.Wallet;
@@ -27,6 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 public class BridgeService
 {
     private readonly ICrossChainBridgeManager _bridgeManager;
+    private readonly StarknetAtomicSwapManager _atomicSwapManager;
     private readonly ILogger<BridgeService> _logger;
 
     public BridgeService(ILogger<BridgeService> logger, IConfiguration configuration)
@@ -81,11 +87,30 @@ public class BridgeService
             var starknetRpcUrl = configuration["StarknetBridge:RpcUrl"] ?? "https://alpha4.starknet.io";
             var starknetNetwork = configuration["StarknetBridge:Network"] ?? "alpha-goerli";
             _logger.LogInformation("Starknet bridge connecting to {RpcUrl} on {Network}", starknetRpcUrl, starknetNetwork);
-            var starknetBridge = new StarknetBridge(starknetNetwork, starknetRpcUrl);
+            var starknetHttpClient = new HttpClient { BaseAddress = new Uri(starknetRpcUrl) };
+            var starknetRpcClient = new StarknetRpcClient(starknetHttpClient, starknetRpcUrl);
+            var starknetBridge = new StarknetBridge(starknetNetwork, starknetRpcClient);
+
+            // Initialize Ethereum bridge
+            var ethereumRpcUrl = configuration["EthereumBridge:RpcUrl"] ?? "http://testchain.nethereum.com:8545";
+            var ethereumNetwork = configuration["EthereumBridge:Network"] ?? "sepolia";
+            _logger.LogInformation("Ethereum bridge connecting to {RpcUrl} on {Network}", ethereumRpcUrl, ethereumNetwork);
+            
+            // Create a temporary test account for Ethereum bridge (in production, load from secure config)
+            // Using a placeholder private key for testing - in production, load from secure storage
+            var ethereumTestPrivateKey = configuration["EthereumBridge:TechnicalAccountPrivateKey"] ?? "0x0000000000000000000000000000000000000000000000000000000000000001";
+            var ethereumTestAccount = new Nethereum.Web3.Accounts.Account(ethereumTestPrivateKey);
+            var ethereumWeb3 = new Web3(ethereumTestAccount, ethereumRpcUrl);
+            var ethereumBridge = new EthereumBridgeService(
+                ethereumWeb3,
+                ethereumTestAccount,
+                useTestnet: ethereumNetwork.Contains("sepolia") || ethereumNetwork.Contains("testnet"));
+            _logger.LogInformation("Ethereum bridge initialized with test account: {Address}", ethereumTestAccount.Address);
 
             var bridgeMap = new Dictionary<string, IOASISBridge>(StringComparer.OrdinalIgnoreCase)
             {
                 { "SOL", solanaBridge },
+                { "ETH", ethereumBridge }, // Add Ethereum support
                 { "XRD", solanaBridge }, // Placeholder until Radix bridge is ready
                 { "ZEC", zcashBridge },
                 { "AZTEC", aztecBridge },
@@ -97,6 +122,9 @@ public class BridgeService
                 viewingKeyAuditService: new ViewingKeyAuditService(),
                 proofVerificationService: new ProofVerificationService(logger),
                 mpcExecutionService: new MpcExecutionService());
+            
+            // Initialize atomic swap manager
+            _atomicSwapManager = new StarknetAtomicSwapManager(_bridgeManager);
             
             _logger.LogInformation("Bridge service initialized successfully");
         }
@@ -170,6 +198,69 @@ public class BridgeService
     public Task<OASISResult<bool>> VerifyProofAsync(ProofVerificationRequest request, CancellationToken cancellationToken = default)
     {
         return _bridgeManager.VerifyProofAsync(request.ProofPayload, request.ProofType, cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates a Starknet ↔ Zcash atomic swap
+    /// </summary>
+    public async Task<OASISResult<AtomicSwapStatusResponse>> CreateAtomicSwapAsync(
+        AtomicSwapRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _atomicSwapManager.CreateAtomicSwapAsync(request, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating atomic swap");
+            var result = new OASISResult<AtomicSwapStatusResponse>();
+            result.IsError = true;
+            result.Message = $"Error creating atomic swap: {ex.Message}";
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Gets the status of an atomic swap by bridge ID
+    /// </summary>
+    public async Task<OASISResult<AtomicSwapStatusResponse>> GetAtomicSwapStatusAsync(
+        string bridgeId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _atomicSwapManager.GetSwapStatusAsync(bridgeId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting atomic swap status");
+            var result = new OASISResult<AtomicSwapStatusResponse>();
+            result.IsError = true;
+            result.Message = $"Error getting swap status: {ex.Message}";
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Gets atomic swap history for a user
+    /// </summary>
+    public async Task<OASISResult<AtomicSwapHistoryResponse>> GetAtomicSwapHistoryAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _atomicSwapManager.GetSwapHistoryAsync(userId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting atomic swap history");
+            var result = new OASISResult<AtomicSwapHistoryResponse>();
+            result.IsError = true;
+            result.Message = $"Error getting swap history: {ex.Message}";
+            return result;
+        }
     }
 }
 

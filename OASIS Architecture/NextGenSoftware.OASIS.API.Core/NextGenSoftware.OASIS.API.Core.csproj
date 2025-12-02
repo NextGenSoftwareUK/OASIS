@@ -44,7 +44,10 @@
     <PackageReference Include="Cryptography.ECDSA.Secp256K1" Version="1.1.3" />
     <PackageReference Include="MailKit" Version="2.11.1" />
     <PackageReference Include="NBitcoin" Version="9.0.3" />
+    <PackageReference Include="Nethereum.Hex" Version="4.18.0" />
+    <PackageReference Include="Nethereum.Util" Version="4.18.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Solnet.Wallet" Version="6.1.0" />
     <PackageReference Include="NLog" Version="4.7.9" />
     <PackageReference Include="Rijndael256.Core" Version="3.2.5" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />

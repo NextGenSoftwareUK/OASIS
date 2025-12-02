@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Copy, Search, Menu, QrCode, Send, ArrowLeftRight, Home, Clock, Shield, Lock, Coins, Network } from 'lucide-react';
+import { Copy, Search, Menu, QrCode, Send, ArrowLeftRight, Home, Clock, Shield, Lock, Coins, Network, RefreshCw } from 'lucide-react';
 import { useWalletStore } from '@/lib/store';
-import { ProviderType } from '@/lib/types';
+import { ProviderType, Wallet } from '@/lib/types';
 import { formatAddress, formatBalance } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,6 +14,7 @@ import { getProviderMetadata, universalBridgeChains } from '@/lib/providerMeta';
 import { PrivacyIndicator } from '@/components/privacy/PrivacyIndicator';
 import { filterUniversalWallets } from '@/lib/walletUtils';
 import { normalizeProviderType } from '@/lib/providerTypeMapper';
+import { fetchSolanaBalance } from '@/lib/solanaBalance';
 
 interface MobileWalletHomeProps {
   onSend: () => void;
@@ -49,9 +50,12 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
   onBridge,
   onLogout,
   onCreateWallet,
+  onWalletClick,
 }) => {
-  const { wallets, user, isLoading, error } = useWalletStore();
+  const { wallets, user, isLoading, error, loadWallets } = useWalletStore();
   const [activeTab, setActiveTab] = useState<'tokens' | 'collectibles' | 'stablecoin'>('tokens');
+  const [solanaBalances, setSolanaBalances] = useState<Record<string, number>>({});
+  const [balanceLoading, setBalanceLoading] = useState(false);
 
   // Filter out Universal/Default wallets
   const filteredWallets = filterUniversalWallets(wallets);
@@ -92,19 +96,43 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
     ProviderType.ArbitrumOASIS,
   ];
   
-  // First, add one wallet from each priority provider type
+  // First, add the MOST RECENT wallet from each priority provider type
   for (const providerType of priorityOrder) {
-    const wallet = finalWallets.find(w => normalizeProviderType(w.providerType) === providerType);
-    if (wallet) {
-      walletsByProvider.set(providerType, wallet);
+    const walletsOfType = finalWallets
+      .filter(w => normalizeProviderType(w.providerType) === providerType)
+      .sort((a, b) => {
+        // Sort by modifiedDate (most recent first), then createdDate
+        const aDate = a.modifiedDate || a.createdDate || '';
+        const bDate = b.modifiedDate || b.createdDate || '';
+        return bDate.localeCompare(aDate);
+      });
+    
+    if (walletsOfType.length > 0) {
+      walletsByProvider.set(providerType, walletsOfType[0]); // Most recent wallet
     }
   }
   
-  // Then add any remaining provider types
+  // Then add any remaining provider types (most recent wallet for each)
+  const remainingTypes = new Set<ProviderType>();
   for (const wallet of finalWallets) {
     const normalizedType = normalizeProviderType(wallet.providerType);
     if (!walletsByProvider.has(normalizedType)) {
-      walletsByProvider.set(normalizedType, wallet);
+      remainingTypes.add(normalizedType);
+    }
+  }
+  
+  // For each remaining type, get the most recent wallet
+  for (const providerType of remainingTypes) {
+    const walletsOfType = finalWallets
+      .filter(w => normalizeProviderType(w.providerType) === providerType)
+      .sort((a, b) => {
+        const aDate = a.modifiedDate || a.createdDate || '';
+        const bDate = b.modifiedDate || b.createdDate || '';
+        return bDate.localeCompare(aDate);
+      });
+    
+    if (walletsOfType.length > 0) {
+      walletsByProvider.set(providerType, walletsOfType[0]);
     }
   }
   
@@ -123,7 +151,49 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
       return (b.balance || 0) - (a.balance || 0);
     });
 
-  const totalBalance = finalWallets.reduce((sum, w) => sum + (w.balance || 0), 0);
+  // Fetch Solana balances from blockchain
+  React.useEffect(() => {
+    const fetchBalances = async () => {
+      const solanaWallets = finalWallets.filter(w => 
+        normalizeProviderType(w.providerType) === ProviderType.SolanaOASIS && w.walletAddress
+      );
+      
+      if (solanaWallets.length === 0) return;
+      
+      setBalanceLoading(true);
+      const balances: Record<string, number> = {};
+      
+      for (const wallet of solanaWallets) {
+        try {
+          const balance = await fetchSolanaBalance(wallet.walletAddress!, 'devnet');
+          balances[wallet.walletId || wallet.walletAddress!] = balance;
+          console.log(`💰 Fetched Solana balance for ${wallet.walletAddress}: ${balance} SOL`);
+        } catch (error) {
+          console.error(`Failed to fetch balance for ${wallet.walletAddress}:`, error);
+          // Keep the wallet.balance as fallback
+        }
+      }
+      
+      setSolanaBalances(balances);
+      setBalanceLoading(false);
+    };
+
+    fetchBalances();
+    
+    // Refresh balances every 30 seconds
+    const interval = setInterval(fetchBalances, 30000);
+    return () => clearInterval(interval);
+  }, [finalWallets]);
+
+  // Calculate total balance using blockchain balances for Solana, API balances for others
+  const totalBalance = finalWallets.reduce((sum, w) => {
+    const normalizedType = normalizeProviderType(w.providerType);
+    if (normalizedType === ProviderType.SolanaOASIS && w.walletId) {
+      const blockchainBalance = solanaBalances[w.walletId] ?? solanaBalances[w.walletAddress!];
+      return sum + (blockchainBalance !== undefined ? blockchainBalance : (w.balance || 0));
+    }
+    return sum + (w.balance || 0);
+  }, 0);
   const usdValue = totalBalance * 1800; // Mock conversion rate
 
   const handleCopyAddress = async (address: string) => {
@@ -175,6 +245,18 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            <button
+              onClick={() => {
+                if (user?.id) {
+                  loadWallets(user.id);
+                }
+              }}
+              className="p-2 text-gray-400 hover:text-white transition-colors"
+              aria-label="Refresh wallets"
+              title="Refresh wallets"
+            >
+              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
             <Search className="w-5 h-5 text-gray-400" />
             <Menu className="w-5 h-5 text-gray-400" />
             {onLogout && (
@@ -289,7 +371,13 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
                   src={chain.logoUrl}
                   alt={chain.name}
                   fill
-                  className="object-cover"
+                  className={cn(
+                    "object-cover",
+                    // Scale down the logo image inside for Solana and Ethereum
+                    (chain.name === 'Solana' || chain.name === 'Ethereum')
+                      ? "scale-[0.625]" // 25px / 40px = 0.625
+                      : ""
+                  )}
                   loading="lazy"
                 />
               </div>
@@ -376,7 +464,11 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
                   featuredWallets.map(wallet => {
                     const meta = getProviderMetadata(wallet.providerType);
                     return (
-                      <Card key={wallet.walletId} className="bg-zypherpunk-surface border-zypherpunk-border p-4 hover:border-zypherpunk-primary/50 transition-colors">
+                      <Card 
+                        key={wallet.walletId} 
+                        className="bg-zypherpunk-surface border-zypherpunk-border p-4 hover:border-zypherpunk-primary/50 transition-colors cursor-pointer"
+                        onClick={() => onWalletClick?.(wallet)}
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
                             <div
@@ -389,14 +481,38 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
                                 src={meta.logoUrl}
                                 alt={meta.name}
                                 fill
-                                className="object-cover"
+                                className={cn(
+                                  "object-cover",
+                                  // Scale down the logo image inside for Solana and Ethereum
+                                  (wallet.providerType === ProviderType.SolanaOASIS || 
+                                   wallet.providerType === ProviderType.EthereumOASIS)
+                                    ? "scale-[0.625]" // 25px / 40px = 0.625
+                                    : ""
+                                )}
                                 loading="lazy"
                               />
                             </div>
                             <div>
                               <div className="font-semibold">{meta.name}</div>
                               <div className="text-sm text-zypherpunk-text-muted">
-                                {formatBalance(wallet.balance || 0)} {meta.symbol}
+                                {(() => {
+                                  const normalizedType = normalizeProviderType(wallet.providerType);
+                                  let displayBalance = wallet.balance || 0;
+                                  
+                                  // Use blockchain balance for Solana if available
+                                  if (normalizedType === ProviderType.SolanaOASIS) {
+                                    const blockchainBalance = wallet.walletId 
+                                      ? solanaBalances[wallet.walletId] 
+                                      : wallet.walletAddress 
+                                        ? solanaBalances[wallet.walletAddress]
+                                        : undefined;
+                                    if (blockchainBalance !== undefined) {
+                                      displayBalance = blockchainBalance;
+                                    }
+                                  }
+                                  
+                                  return formatBalance(displayBalance);
+                                })()} {meta.symbol}
                               </div>
                             </div>
                           </div>
