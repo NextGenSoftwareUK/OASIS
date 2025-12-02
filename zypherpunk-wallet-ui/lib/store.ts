@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { Wallet, Transaction, WalletTransactionRequest, WalletImportRequest, ProviderType, User, WalletStore } from './types';
 import { oasisWalletAPI } from './api';
 import { starknetWalletAPI } from './api/starknetApi';
+import { normalizeProviderType } from './providerTypeMapper';
 
 export const useWalletStore = create<WalletStore>()(
   persist(
@@ -69,7 +70,41 @@ export const useWalletStore = create<WalletStore>()(
             return;
           }
 
-          set({ wallets: result.result || {}, isLoading: false, error: null });
+          // Normalize providerType values in wallets (convert numeric to string enum)
+          const normalizedWallets: Partial<Record<ProviderType, Wallet[]>> = {};
+          const rawWallets = result.result || {};
+          
+          console.log('📦 Raw wallets from API:', JSON.stringify(rawWallets, null, 2));
+          
+          for (const [providerTypeKey, walletList] of Object.entries(rawWallets)) {
+            if (Array.isArray(walletList) && walletList.length > 0) {
+              console.log(`📦 Processing wallet list for key "${providerTypeKey}" (${typeof providerTypeKey}):`, walletList.length, 'wallets');
+              
+              // Normalize each wallet's providerType
+              const normalizedList = walletList.map(wallet => {
+                const originalProviderType = wallet.providerType || providerTypeKey;
+                const normalizedType = normalizeProviderType(originalProviderType);
+                console.log(`  🔄 Wallet ${wallet.walletId?.substring(0, 8)}: ${originalProviderType} (${typeof originalProviderType}) -> ${normalizedType}`);
+                return {
+                  ...wallet,
+                  providerType: normalizedType,
+                };
+              });
+              
+              // Group by normalized providerType
+              normalizedList.forEach(wallet => {
+                const normalizedType = wallet.providerType;
+                if (!normalizedWallets[normalizedType]) {
+                  normalizedWallets[normalizedType] = [];
+                }
+                normalizedWallets[normalizedType]!.push(wallet);
+              });
+            }
+          }
+          
+          console.log('📦 Normalized wallets:', Object.keys(normalizedWallets).map(k => `${k}: ${normalizedWallets[k as ProviderType]?.length || 0} wallets`).join(', '));
+          
+          set({ wallets: normalizedWallets, isLoading: false, error: null });
 
           // Attempt to hydrate Starknet wallets via the dedicated endpoint
           try {
