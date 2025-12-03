@@ -41,6 +41,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="11.0.1" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
     <PackageReference Include="Cryptography.ECDSA.Secp256K1" Version="1.1.3" />
     <PackageReference Include="MailKit" Version="2.11.1" />
     <PackageReference Include="NBitcoin" Version="9.0.3" />
@@ -48,6 +49,7 @@
     <PackageReference Include="Nethereum.Util" Version="4.18.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Solnet.Wallet" Version="6.1.0" />
+    <PackageReference Include="Nerdbank.Zcash" Version="0.3.185" />
     <PackageReference Include="NLog" Version="4.7.9" />
     <PackageReference Include="Rijndael256.Core" Version="3.2.5" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
@@ -62,6 +64,7 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <ProjectReference Include="..\..\external-libs\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj" />
+    <ProjectReference Include="..\..\external-libs\StarkSharp\StarkSharp\StarkSharp.Signer\StarkSharp.Signer.csproj" />
     <!-- Removed Utilities reference as it may not exist or cause circular dependency -->
     <!-- <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" /> -->
   </ItemGroup>
