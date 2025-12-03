@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using NBitcoin;
+using Newtonsoft.Json;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
@@ -1177,7 +1178,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IProviderWallet> providerWallet = await LoadProviderWalletForAvatarByIdAsync(avatarId, walletId, providerType);
+                OASISResult<IProviderWallet> providerWallet = await LoadProviderWalletForAvatarByIdAsync(avatarId, walletId, false, providerType);
 
                 if (providerWallet != null && providerWallet.Result != null && !providerWallet.IsError)
                     result.Result = providerWallet.Result.Balance;
@@ -1201,7 +1202,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IProviderWallet> providerWallet = LoadProviderWalletForAvatarById(avatarId, walletId, providerType);
+                OASISResult<IProviderWallet> providerWallet = LoadProviderWalletForAvatarById(avatarId, walletId, false, providerType);
 
                 if (providerWallet != null && providerWallet.Result != null && !providerWallet.IsError)
                     result.Result = providerWallet.Result.Balance;
@@ -1249,7 +1250,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IProviderWallet> providerWallet = LoadProviderWalletForAvatarByUsername(username, walletId, providerType);
+                OASISResult<IProviderWallet> providerWallet = LoadProviderWalletForAvatarByUsername(username, walletId, false, providerType);
 
                 if (providerWallet != null && providerWallet.Result != null && !providerWallet.IsError)
                     result.Result = providerWallet.Result.Balance;
@@ -1297,7 +1298,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<IProviderWallet> providerWallet = LoadProviderWalletForAvatarByEmail(email, walletId, providerType);
+                OASISResult<IProviderWallet> providerWallet = LoadProviderWalletForAvatarByEmail(email, walletId, false, providerType);
 
                 if (providerWallet != null && providerWallet.Result != null && !providerWallet.IsError)
                     result.Result = providerWallet.Result.Balance;
@@ -1313,7 +1314,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IProviderWallet>> LoadProviderWalletForAvatarByIdAsync(Guid avatarId, Guid walletId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IProviderWallet>> LoadProviderWalletForAvatarByIdAsync(Guid avatarId, Guid walletId, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessageTemplate = "Error occured in LoadProviderWalletForAvatarByIdAsync method in WalletManager for providerType {0}. Reason: ";
@@ -1321,7 +1322,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = await LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, providerType);
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = await LoadProviderWalletsForAvatarByIdAsync(avatarId, false, decryptPrivateKeys, providerType);
 
                 if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
                 {
@@ -1345,7 +1346,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IProviderWallet> LoadProviderWalletForAvatarById(Guid avatarId, Guid walletId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IProviderWallet> LoadProviderWalletForAvatarById(Guid avatarId, Guid walletId, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessageTemplate = "Error occured in LoadProviderWalletForAvatarByIdAsync method in WalletManager for providerType {0}. Reason: ";
@@ -1377,7 +1378,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IProviderWallet>> LoadProviderWalletForAvatarByUsernameAsync(string username, Guid walletId, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IProviderWallet>> LoadProviderWalletForAvatarByUsernameAsync(string username, Guid walletId, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessageTemplate = "Error occured in LoadProviderWalletForAvatarByUsernameAsync method in WalletManager for providerType {0}. Reason: ";
@@ -1385,7 +1386,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = await LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, providerType);
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = await LoadProviderWalletsForAvatarByUsernameAsync(username, false, decryptPrivateKeys, providerType);
 
                 if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
                 {
@@ -1409,7 +1410,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IProviderWallet> LoadProviderWalletForAvatarByUsername(string username, Guid walletId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IProviderWallet> LoadProviderWalletForAvatarByUsername(string username, Guid walletId, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessageTemplate = "Error occured in LoadProviderWalletForAvatarByUsernameAsync method in WalletManager for providerType {0}. Reason: ";
@@ -1441,7 +1442,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IProviderWallet>> LoadProviderWalletForAvatarByEmailAsync(string email, Guid walletId, bool showOnlyDefaultWallet = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IProviderWallet>> LoadProviderWalletForAvatarByEmailAsync(string email, Guid walletId, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessageTemplate = "Error occured in LoadProviderWalletForAvatarByEmailAsync method in WalletManager for providerType {0}. Reason: ";
@@ -1449,7 +1450,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = await LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefaultWallet, decryptPrivateKeys, providerType);
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> providerWallets = await LoadProviderWalletsForAvatarByEmailAsync(email, false, decryptPrivateKeys, providerType);
 
                 if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
                 {
@@ -1473,7 +1474,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IProviderWallet> LoadProviderWalletForAvatarByEmail(string email, Guid walletId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IProviderWallet> LoadProviderWalletForAvatarByEmail(string email, Guid walletId, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessageTemplate = "Error occured in LoadProviderWalletForAvatarByEmail method in WalletManager for providerType {0}. Reason: ";
@@ -2446,46 +2447,477 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
-        [
 
-            ]
-
-        public OASISResult<IProviderWallet> ExportWallet(Guid walletId)
+        public async Task<OASISResult<IProviderWallet>> ExportWalletByIdAsync(Guid avatarId, Guid walletId, string fullPathToExportTo, bool decryptPrivateKeys = false, ProviderType providerTypeToLoadFrom = ProviderType.Default)
         {
-            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            OASISResult<IProviderWallet> result = await LoadProviderWalletForAvatarByIdAsync(avatarId, walletId, decryptPrivateKeys, providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportWalletByIdAsync. Reason:";
 
-            //TODO: Finish implementing... (allow user to import a wallet using the secret recovering phase (memonic words).
-            //Can derive the public key and private key from the phase (need to look into how to do this...)
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
 
             return result;
         }
 
-        public OASISResult<IProviderWallet> ImportWalletUsingSecretPhase(string phase)
+        public OASISResult<IProviderWallet> ExportWalletById(Guid avatarId, Guid walletId, string fullPathToExportTo, bool decryptPrivateKeys = false, ProviderType providerTypeToLoadFrom = ProviderType.Default)
         {
-            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            OASISResult<IProviderWallet> result = LoadProviderWalletForAvatarById(avatarId, walletId, decryptPrivateKeys, providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportWalletById. Reason:";
 
-            //TODO: Finish implementing... (allow user to import a wallet using the secret recovering phase (memonic words).
-            //Can derive the public key and private key from the phase (need to look into how to do this...)
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
 
             return result;
         }
 
-        public OASISResult<IProviderWallet> ImportWalletUsingJSONFile(string pathToJSONFile)
+        public async Task<OASISResult<IProviderWallet>> ExportWalletByUsernameAsync(string username, Guid walletId, string fullPathToExportTo, bool decryptPrivateKeys = false, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = await LoadProviderWalletForAvatarByUsernameAsync(username, walletId, decryptPrivateKeys, providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportWalletByUsernameAsync. Reason:";
+
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IProviderWallet> ExportWalletByUsername(string username, Guid walletId, string fullPathToExportTo, bool decryptPrivateKeys = false, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = LoadProviderWalletForAvatarByUsername(username, walletId, decryptPrivateKeys, providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportWalletByUsername. Reason:";
+
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> ExportWalletByEmailAsync(string email, Guid walletId, string fullPathToExportTo, bool decryptPrivateKeys = false, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = await LoadProviderWalletForAvatarByUsernameAsync(email, walletId, decryptPrivateKeys, providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportWalletByEmailAsync. Reason:";
+
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<IProviderWallet> ExportWalletByEmail(string email, Guid walletId, string fullPathToExportTo, bool decryptPrivateKeys = false, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = LoadProviderWalletForAvatarByEmail(email, walletId, decryptPrivateKeys, providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportWalletByEmail. Reason:";
+
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ExportAllWalletsByIdAsync(Guid avatarId, string fullPathToExportTo, bool exportOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerTypeToExportWalletsFor = ProviderType.All, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = await LoadProviderWalletsForAvatarByIdAsync(avatarId, decryptPrivateKeys: decryptPrivateKeys, showOnlyDefault: exportOnlyDefault, providerTypeToShowWalletsFor: providerTypeToExportWalletsFor, providerTypeToLoadFrom: providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportAllWalletsByIdAsync. Reason:";
+
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> ExportAllWalletsById(Guid avatarId, string fullPathToExportTo, bool exportOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerTypeToExportWalletsFor = ProviderType.All, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = LoadProviderWalletsForAvatarById(avatarId, decryptPrivateKeys: decryptPrivateKeys, showOnlyDefault: exportOnlyDefault, providerTypeToShowWalletsFor: providerTypeToExportWalletsFor, providerTypeToLoadFrom: providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportAllWalletsById. Reason:";
+
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ExportAllWalletsByUsernameAsync(string username, string fullPathToExportTo, bool exportOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerTypeToExportWalletsFor = ProviderType.All, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = await LoadProviderWalletsForAvatarByUsernameAsync(username, decryptPrivateKeys: decryptPrivateKeys, showOnlyDefault: exportOnlyDefault, providerTypeToShowWalletsFor: providerTypeToExportWalletsFor, providerTypeToLoadFrom: providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportAllWalletsByUsernameAsync. Reason:";
+
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> ExportAllWalletsByUsername(string username, string fullPathToExportTo, bool exportOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerTypeToExportWalletsFor = ProviderType.All, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = LoadProviderWalletsForAvatarByUsername(username, decryptPrivateKeys: decryptPrivateKeys, showOnlyDefault: exportOnlyDefault, providerTypeToShowWalletsFor: providerTypeToExportWalletsFor, providerTypeToLoadFrom: providerTypeToLoadFrom);
+            string errorMessage = "Error occured in ExportAllWalletsByUsername. Reason:";
+
+            try
+            {
+                if (result != null && result.Result != null && !result.IsError)
+                    File.WriteAllText(fullPathToExportTo, JsonConvert.SerializeObject(result.Result));
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {result.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> ImportWalletUsingSecretPhaseByIdAsync(Guid avatarId, string phase, ProviderType providerTypeToLoadFrom = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in ImportWalletUsingSecretPhaseByIdAsync. Reason:";
 
-            //TODO: Finish implementing... (allow user to import a wallet using the JSON import file (standard wallet format).
+            try
+            {
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByIdAsync(avatarId, providerTypeToLoadFrom: providerTypeToLoadFrom);
+
+                if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                {
+                    foreach (ProviderType providerType in walletsResult.Result.Keys)
+                    {
+                        result.Result = walletsResult.Result[providerType].FirstOrDefault(x => x.SecretRecoveryPhrase == phase);
+
+                        if (result.Result != null)
+                            break;
+                    }
+
+                    if (result.Result == null)
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet was found for the secrert recovery phase.");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {walletsResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            //TODO: Finish implementing... (allow user to import a wallet using the secret recovering phase (memonic words).
+            //Can derive the public key and private key from the phase (need to look into how to do this...)
+
+            //TODO: Need to look into how others do this... because the code above just finds the existing wallet matching the phase!
+            return result;
+        }
+
+        public OASISResult<IProviderWallet> ImportWalletUsingSecretPhaseById(Guid avatarId, string phase, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in ImportWalletUsingSecretPhaseById. Reason:";
+
+            try
+            {
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarById(avatarId, providerTypeToLoadFrom: providerTypeToLoadFrom);
+
+                if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                {
+                    foreach (ProviderType providerType in walletsResult.Result.Keys)
+                    {
+                        result.Result = walletsResult.Result[providerType].FirstOrDefault(x => x.SecretRecoveryPhrase == phase);
+
+                        if (result.Result != null)
+                            break;
+                    }
+
+                    if (result.Result == null)
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet was found for the secrert recovery phase.");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {walletsResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            //TODO: Finish implementing... (allow user to import a wallet using the secret recovering phase (memonic words).
+            //Can derive the public key and private key from the phase (need to look into how to do this...)
+
+            //TODO: Need to look into how others do this... because the code above just finds the existing wallet matching the phase!
+            return result;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> ImportWalletUsingSecretPhaseByUsernameAsync(string username, string phase, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in ImportWalletUsingSecretPhaseByUsernameAsync. Reason:";
+
+            try
+            {
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByUsernameAsync(username, providerTypeToLoadFrom: providerTypeToLoadFrom);
+
+                if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                {
+                    foreach (ProviderType providerType in walletsResult.Result.Keys)
+                    {
+                        result.Result = walletsResult.Result[providerType].FirstOrDefault(x => x.SecretRecoveryPhrase == phase);
+
+                        if (result.Result != null)
+                            break;
+                    }
+
+                    if (result.Result == null)
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet was found for the secrert recovery phase.");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {walletsResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            //TODO: Finish implementing... (allow user to import a wallet using the secret recovering phase (memonic words).
+            //Can derive the public key and private key from the phase (need to look into how to do this...)
+
+            //TODO: Need to look into how others do this... because the code above just finds the existing wallet matching the phase!
+            return result;
+        }
+
+        public OASISResult<IProviderWallet> ImportWalletUsingSecretPhaseByUsername(string username, string phase, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in ImportWalletUsingSecretPhaseByUsername. Reason:";
+
+            try
+            {
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarByUsername(username, providerTypeToLoadFrom: providerTypeToLoadFrom);
+
+                if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                {
+                    foreach (ProviderType providerType in walletsResult.Result.Keys)
+                    {
+                        result.Result = walletsResult.Result[providerType].FirstOrDefault(x => x.SecretRecoveryPhrase == phase);
+
+                        if (result.Result != null)
+                            break;
+                    }
+
+                    if (result.Result == null)
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet was found for the secrert recovery phase.");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {walletsResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            //TODO: Finish implementing... (allow user to import a wallet using the secret recovering phase (memonic words).
+            //Can derive the public key and private key from the phase (need to look into how to do this...)
+
+            //TODO: Need to look into how others do this... because the code above just finds the existing wallet matching the phase!
+            return result;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> ImportWalletUsingSecretPhaseByEmailAsync(string email, string phase, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in ImportWalletUsingSecretPhaseByEmailAsync. Reason:";
+
+            try
+            {
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByEmailAsync(email, providerTypeToLoadFrom: providerTypeToLoadFrom);
+
+                if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                {
+                    foreach (ProviderType providerType in walletsResult.Result.Keys)
+                    {
+                        result.Result = walletsResult.Result[providerType].FirstOrDefault(x => x.SecretRecoveryPhrase == phase);
+
+                        if (result.Result != null)
+                            break;
+                    }
+
+                    if (result.Result == null)
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet was found for the secrert recovery phase.");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {walletsResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            //TODO: Finish implementing... (allow user to import a wallet using the secret recovering phase (memonic words).
+            //Can derive the public key and private key from the phase (need to look into how to do this...)
+
+            //TODO: Need to look into how others do this... because the code above just finds the existing wallet matching the phase!
+            return result;
+        }
+
+        public OASISResult<IProviderWallet> ImportWalletUsingSecretPhaseByEmail(string email, string phase, ProviderType providerTypeToLoadFrom = ProviderType.Default)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in ImportWalletUsingSecretPhaseByEmail. Reason:";
+
+            try
+            {
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarByEmail(email, providerTypeToLoadFrom: providerTypeToLoadFrom);
+
+                if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                {
+                    foreach (ProviderType providerType in walletsResult.Result.Keys)
+                    {
+                        result.Result = walletsResult.Result[providerType].FirstOrDefault(x => x.SecretRecoveryPhrase == phase);
+
+                        if (result.Result != null)
+                            break;
+                    }
+
+                    if (result.Result == null)
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet was found for the secrert recovery phase.");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {walletsResult.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}");
+            }
+
+            //TODO: Finish implementing... (allow user to import a wallet using the secret recovering phase (memonic words).
+            //Can derive the public key and private key from the phase (need to look into how to do this...)
+
+            //TODO: Need to look into how others do this... because the code above just finds the existing wallet matching the phase!
+            return result;
+        }
+
+        public async Task<OASISResult<IProviderWallet>> ImportWalletUsingJSONFileByIdAsync(Guid avatarId, string pathToJSONFile)
+        {
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            string errorMessage = "Error occured in ImportWalletUsingJSONFile. Reason: ";
+
+            try
+            {
+                result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+
+                if (result.Result != null)
+                {
+                    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByIdAsync(avatarId);
+
+                    if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                    {
+
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByIdAsync. Reason: {walletsResult.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> ImportWalletsUsingJSONFile(Guid avatarId, string pathToJSONFile)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            string errorMessage = "Error occured in ImportWalletsUsingJSONFile. Reason: ";
+
+            try
+            {
+                result.Result = JsonConvert.DeserializeObject<Dictionary<ProviderType, List<IProviderWallet>>>(File.ReadAllText(pathToJSONFile));
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+            }
 
             return result;
         }
 
         public OASISResult<IProviderWallet> ImportWalletUsingPrivateKeyById(Guid avatarId, string key, ProviderType providerToImportTo)
         {
-            //OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-
-            //TODO: Finish implementing... Can derive the public key from the private key  (need to look into how to do this and update Link methods with new logic...)
-
-
             return KeyManager.Instance.LinkProviderPrivateKeyToAvatarById(Guid.Empty, avatarId, providerToImportTo, key);
         }
 
@@ -2501,12 +2933,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyById(Guid avatarId, string key, string walletAddress, ProviderType providerToImportTo)
         {
-            //OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-
-            //TODO: Finish implementing... The wallet will only be read-only without the private key.
-            //This will be very similar to the LinkProviderPublicKeyToAvatarById/LinkProviderPublicKeyToAvatarByUsername/LinkProviderPublicKeyToAvatarByEmail methods in KeyManager.
-            //Ideally this method will call into the Link methods above (probably best to just have this method call them direct, no additional logic needed.
-
             return KeyManager.Instance.LinkProviderPublicKeyToAvatarById(Guid.Empty, avatarId, providerToImportTo, key, walletAddress);
         }
 
