@@ -70,6 +70,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await WalletManager.SendTokenAsync(request);
         }
 
+        ///// <summary>
+        /////     Load all provider wallets for an avatar by ID.
+        ///// </summary>
+        ///// <param name="id">The avatar ID.</param>
+        ///// <param name="providerType">The provider type to load wallets from.</param>
+        ///// <returns>OASIS result containing the provider wallets or error details.</returns>
+        ///// <response code="200">Wallets loaded successfully</response>
+        ///// <response code="400">Error loading wallets</response>
+        ///// <response code="401">Unauthorized - authentication required</response>
+        //[Authorize]
+        //[HttpGet("avatar/{id}/wallets/{showOnlyDefault}/{decryptPrivateKeys}")]
+        //[ProducesResponseType(typeof(OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        //public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> Create(Guid id, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, showOnlyDefault, decryptPrivateKeys, providerType);
+        //}
+
         /// <summary>
         ///     Load all provider wallets for an avatar by ID.
         /// </summary>
