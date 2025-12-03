@@ -21,6 +21,7 @@ import {
   formatPriceHistory,
 } from '@/lib/coingecko';
 import { fetchSolanaBalance } from '@/lib/solanaBalance';
+import { fetchZcashBalance } from '@/lib/zcashBalance';
 
 interface WalletDetailScreenProps {
   wallet: Wallet;
@@ -62,10 +63,14 @@ export const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
   const usdValue = balance * (priceData?.price || 0);
   const return24h = balance * (priceData?.change24h || 0);
 
-  // Fetch actual blockchain balance for Solana
+  // Fetch actual blockchain balance for Solana and Zcash
   useEffect(() => {
     const fetchBlockchainBalance = async () => {
-      if (normalizedType === ProviderType.SolanaOASIS && wallet.walletAddress) {
+      if (!wallet.walletAddress) {
+        return;
+      }
+
+      if (normalizedType === ProviderType.SolanaOASIS) {
         setBalanceLoading(true);
         try {
           const solBalance = await fetchSolanaBalance(wallet.walletAddress, 'devnet');
@@ -73,6 +78,18 @@ export const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
           console.log(`💰 Fetched Solana balance: ${solBalance} SOL`);
         } catch (error) {
           console.error('Failed to fetch Solana balance:', error);
+          // Keep the wallet.balance as fallback
+        } finally {
+          setBalanceLoading(false);
+        }
+      } else if (normalizedType === ProviderType.ZcashOASIS) {
+        setBalanceLoading(true);
+        try {
+          const zecBalance = await fetchZcashBalance(wallet.walletAddress, 'testnet');
+          setActualBalance(zecBalance);
+          console.log(`💰 Fetched Zcash balance: ${zecBalance} ZEC`);
+        } catch (error) {
+          console.error('Failed to fetch Zcash balance:', error);
           // Keep the wallet.balance as fallback
         } finally {
           setBalanceLoading(false);
