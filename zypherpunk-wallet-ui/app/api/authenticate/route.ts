@@ -119,8 +119,12 @@ export async function POST(request: NextRequest) {
       parsed?.result?.jwtToken ?? 
       extracted.token;
     const avatarId =
-      parsed?.result?.result?.avatarId ??
-      parsed?.result?.avatarId ??
+      (parsed?.result?.result && typeof parsed.result.result === 'object' && 'avatarId' in parsed.result.result
+        ? (parsed.result.result as { avatarId?: string }).avatarId
+        : undefined) ??
+      (parsed?.result && typeof parsed.result === 'object' && 'avatarId' in parsed.result
+        ? (parsed.result as { avatarId?: string }).avatarId
+        : undefined) ??
       parsed?.result?.avatar?.id ??
       parsed?.result?.avatar?.AvatarId ??
       extracted.avatarId;
@@ -132,7 +136,9 @@ export async function POST(request: NextRequest) {
       const message =
         parsed?.message ??
         parsed?.result?.message ??
-        parsed?.result?.result?.message ??
+        (parsed?.result?.result && typeof parsed.result.result === 'object' && 'message' in parsed.result.result
+          ? (parsed.result.result as { message?: string }).message
+          : undefined) ??
         'Authentication succeeded but no token was returned';
       return NextResponse.json({ message }, { status: 502 });
     }
@@ -142,13 +148,13 @@ export async function POST(request: NextRequest) {
         token,
         avatarId: avatarId ?? null,
         avatar: avatarData ? {
-          avatarId: avatarData.avatarId || avatarData.id,
-          id: avatarData.avatarId || avatarData.id,
-          username: avatarData.username,
-          email: avatarData.email,
-          firstName: avatarData.firstName,
-          lastName: avatarData.lastName,
-          fullName: avatarData.fullName,
+          avatarId: (avatarData as any)?.avatarId || (avatarData as any)?.id,
+          id: (avatarData as any)?.avatarId || (avatarData as any)?.id,
+          username: (avatarData as any)?.username,
+          email: (avatarData as any)?.email,
+          firstName: (avatarData as any)?.firstName,
+          lastName: (avatarData as any)?.lastName,
+          fullName: (avatarData as any)?.fullName,
         } : null,
         message: parsed?.message ?? parsed?.result?.message ?? 'Authenticated',
       },

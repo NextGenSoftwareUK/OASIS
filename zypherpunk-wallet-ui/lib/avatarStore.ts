@@ -5,6 +5,7 @@ import { persist } from 'zustand/middleware';
 import { avatarAPI } from './avatarApi';
 import { oasisWalletAPI } from './api';
 import { keysAPI } from './keysApi';
+import { stablecoinAPI } from './api/stablecoinApi';
 import type { AvatarAuthResponse, AvatarProfile, AvatarRegistrationRequest, User } from './types';
 import { useWalletStore } from './store';
 import { config } from './config';
@@ -48,6 +49,7 @@ const applyAuthState = (auth: AvatarAuthResponse) => {
   console.log('Setting auth token for wallet API:', jwtToken ? `${jwtToken.substring(0, 20)}...` : 'null');
   oasisWalletAPI.setAuthToken(jwtToken);
   keysAPI.setAuthToken(jwtToken);
+  stablecoinAPI.setAuthToken(jwtToken);
   console.log('Auth token set. Wallet API token:', oasisWalletAPI.getAuthToken() ? 'present' : 'missing');
 };
 
@@ -87,6 +89,21 @@ export const useAvatarStore = create<AvatarStoreState>()(
         set({ isAuthenticating: true, authError: null });
         try {
           const auth = await avatarAPI.register(payload);
+          
+          // Privacy Mode: Try to auto-verify if verification token is available
+          // This allows fake/disposable emails to work without manual verification
+          if (payload.privacyMode && auth.avatar?.verificationToken) {
+            try {
+              const verifyResult = await avatarAPI.verifyEmail(auth.avatar.verificationToken);
+              if (!verifyResult.isError) {
+                console.log('Privacy mode: Avatar auto-verified');
+              }
+            } catch (verifyError) {
+              console.warn('Privacy mode: Auto-verification failed, user may need to verify manually', verifyError);
+              // Don't throw - registration succeeded, verification is optional
+            }
+          }
+          
           applyAuthState(auth);
           set({
             avatar: auth.avatar,
@@ -113,6 +130,7 @@ export const useAvatarStore = create<AvatarStoreState>()(
         });
         oasisWalletAPI.setAuthToken(null);
         keysAPI.setAuthToken(null);
+        stablecoinAPI.setAuthToken(null);
         const walletStore = useWalletStore.getState();
         walletStore.setUser(null);
         walletStore.setWallets({});
@@ -158,10 +176,12 @@ if (typeof window !== 'undefined') {
       if (token) {
         oasisWalletAPI.setAuthToken(token);
         keysAPI.setAuthToken(token);
+        stablecoinAPI.setAuthToken(token);
             console.log('Restored auth token to wallet API');
       } else {
         oasisWalletAPI.setAuthToken(null);
         keysAPI.setAuthToken(null);
+        stablecoinAPI.setAuthToken(null);
             console.log('No token to restore');
       }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, Coins, TrendingUp, Shield, AlertTriangle, Loader2, DollarSign, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { useWalletStore } from '@/lib/store';
 import { ProviderType } from '@/lib/types';
 import { formatBalance } from '@/lib/utils';
 import { toastManager } from '@/lib/toast';
+import { fetchZcashBalance } from '@/lib/zcashBalance';
 
 interface StablecoinDashboardProps {
   onBack: () => void;
@@ -22,11 +23,28 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
   const [positions, setPositions] = useState<StablecoinPosition[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'mint' | 'redeem'>('dashboard');
+  const [zecBalance, setZecBalance] = useState<number | null>(null);
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
   // Mint form state
   const [mintZecAmount, setMintZecAmount] = useState('');
-  const [mintStablecoinAmount, setMintStablecoinAmount] = useState('');
   const [isMinting, setIsMinting] = useState(false);
+  
+  // Calculate zUSD amount based on ZEC amount and collateral ratio
+  // Uses default values if systemStatus isn't loaded yet
+  const calculatedZusdAmount = useMemo(() => {
+    if (!mintZecAmount) return 0;
+    const zecAmount = parseFloat(mintZecAmount);
+    if (isNaN(zecAmount) || zecAmount <= 0) return 0;
+    
+    // Use systemStatus if available, otherwise use reasonable defaults
+    const zecPrice = systemStatus?.zecPrice || 30; // Default ZEC price ~$30
+    const collateralRatio = systemStatus ? systemStatus.collateralRatio / 100 : 1.5; // Default 150% ratio
+    
+    // zUSD = (ZEC * ZEC Price) / Collateral Ratio
+    const zusdAmount = (zecAmount * zecPrice) / collateralRatio;
+    return Math.max(0, zusdAmount);
+  }, [mintZecAmount, systemStatus]);
 
   // Redeem form state
   const [redeemPositionId, setRedeemPositionId] = useState('');
@@ -46,6 +64,38 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
   useEffect(() => {
     loadData();
   }, []);
+
+  // Load ZEC balance when Zcash wallet is available
+  useEffect(() => {
+    const loadZecBalance = async () => {
+      if (!zcashWallet?.walletAddress) {
+        console.log('💰 No Zcash wallet address available yet');
+        setZecBalance(null);
+        return;
+      }
+
+      console.log(`💰 Loading ZEC balance for address: ${zcashWallet.walletAddress}`);
+      setIsLoadingBalance(true);
+      try {
+        const balance = await fetchZcashBalance(zcashWallet.walletAddress, 'testnet');
+        console.log(`💰 Successfully loaded ZEC balance: ${balance} ZEC for ${zcashWallet.walletAddress}`);
+        setZecBalance(balance);
+      } catch (error) {
+        console.error('💰 Failed to load ZEC balance:', error);
+        console.error('💰 Error details:', error instanceof Error ? error.message : error);
+        setZecBalance(null);
+      } finally {
+        setIsLoadingBalance(false);
+      }
+    };
+
+    // Small delay to ensure wallet is loaded
+    const timer = setTimeout(() => {
+      loadZecBalance();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [zcashWallet?.walletAddress, zcashWallet?.walletId]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -79,10 +129,24 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
     }
 
     const zecAmount = parseFloat(mintZecAmount);
-    const stablecoinAmount = parseFloat(mintStablecoinAmount);
 
-    if (!zecAmount || !stablecoinAmount || zecAmount <= 0 || stablecoinAmount <= 0) {
-      toastManager.error('Invalid amounts');
+    if (!zecAmount || zecAmount <= 0) {
+      toastManager.error('Please enter a valid ZEC amount');
+      return;
+    }
+
+    if (zecBalance !== null && zecAmount > zecBalance) {
+      toastManager.error(`Insufficient balance. You have ${formatBalance(zecBalance)} ZEC`);
+      return;
+    }
+
+    // Use default values if systemStatus isn't loaded
+    const effectiveZusdAmount = systemStatus 
+      ? calculatedZusdAmount 
+      : (zecAmount * 30) / 1.5; // Fallback calculation
+
+    if (effectiveZusdAmount <= 0) {
+      toastManager.error('Unable to calculate zUSD amount. Please try again.');
       return;
     }
 
@@ -90,7 +154,7 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
     try {
       const request: MintStablecoinRequest = {
         zecAmount,
-        stablecoinAmount,
+        stablecoinAmount: effectiveZusdAmount,
         zcashAddress: zcashWallet.walletAddress,
         aztecAddress: aztecWallet.walletAddress,
         generateViewingKey: true,
@@ -105,7 +169,11 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
 
       toastManager.success(`Stablecoin minted! Position ID: ${result.result?.positionId}`);
       setMintZecAmount('');
-      setMintStablecoinAmount('');
+      // Refresh balance after minting
+      if (zcashWallet?.walletAddress) {
+        const balance = await fetchZcashBalance(zcashWallet.walletAddress, 'testnet');
+        setZecBalance(balance);
+      }
       await loadData();
       setActiveTab('dashboard');
     } catch (error: any) {
@@ -147,7 +215,8 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
         return;
       }
 
-      toastManager.success('Stablecoin redeemed successfully!');
+      const successMessage = result.result?.message || 'Stablecoin redeemed successfully!';
+      toastManager.success(successMessage);
       setRedeemAmount('');
       await loadData();
       setActiveTab('dashboard');
@@ -365,28 +434,97 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
           {/* Mint Tab */}
           <TabsContent value="mint" className="space-y-6">
             <div className="rounded-3xl border border-white/5 bg-white/5 p-5 space-y-5">
-              <div>
-                <p className="text-xs uppercase tracking-widest text-gray-400">Mint zUSD</p>
-                <h2 className="text-xl font-semibold text-white">Lock ZEC to mint zUSD</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-gray-400">Mint zUSD</p>
+                  <h2 className="text-xl font-semibold text-white">Lock ZEC to mint zUSD</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Fill with demo values - use a reasonable amount (0.1 ZEC or available balance if less)
+                    const demoAmount = zecBalance !== null && zecBalance > 0 
+                      ? Math.min(0.1, zecBalance * 0.5).toFixed(6) // Use 0.1 or 50% of balance, whichever is smaller
+                      : '0.1';
+                    setMintZecAmount(demoAmount);
+                    toastManager.success(`Demo values loaded! ${demoAmount} ZEC entered. You can adjust this amount.`);
+                  }}
+                  className="flex items-center text-xs px-3 py-2 border border-white/20 text-white hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <Info className="w-3 h-3 mr-1.5" />
+                  Try Demo
+                </button>
               </div>
 
               <form className="space-y-4">
                 <div className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
                   <div className="flex items-center justify-between text-xs uppercase tracking-widest text-gray-400">
                     <span>ZEC Amount to Lock</span>
+                    {zcashWallet && zecBalance !== null && !isLoadingBalance && (
+                      <button
+                        type="button"
+                        onClick={() => setMintZecAmount(zecBalance.toString())}
+                        className="text-xs text-white bg-white/10 hover:bg-white/20 px-2 py-1 rounded"
+                      >
+                        Use Max ({formatBalance(zecBalance)} ZEC)
+                      </button>
+                    )}
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="flex-1">
                       <Input
                         type="number"
+                        step="0.01"
+                        min="0"
+                        max={zecBalance ?? undefined}
                         value={mintZecAmount}
-                        onChange={(e) => setMintZecAmount(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '' || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0)) {
+                            setMintZecAmount(value);
+                          }
+                        }}
                         placeholder="0.0"
                         className="bg-transparent border-none text-3xl font-semibold text-white focus-visible:ring-0 px-0"
                       />
                       {zcashWallet && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          Balance: {formatBalance(zcashWallet.balance || 0)} ZEC
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xs text-gray-500">
+                            {isLoadingBalance ? (
+                              'Loading balance...'
+                            ) : zecBalance !== null ? (
+                              `Balance: ${formatBalance(zecBalance)} ZEC`
+                            ) : (
+                              'Balance: Unable to load'
+                            )}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (zcashWallet?.walletAddress) {
+                                setIsLoadingBalance(true);
+                                try {
+                                  const balance = await fetchZcashBalance(zcashWallet.walletAddress, 'testnet');
+                                  setZecBalance(balance);
+                                  toastManager.success(`Balance refreshed: ${formatBalance(balance)} ZEC`);
+                                } catch (error) {
+                                  console.error('Failed to refresh balance:', error);
+                                  toastManager.error('Failed to refresh balance. Check console for details.');
+                                } finally {
+                                  setIsLoadingBalance(false);
+                                }
+                              }
+                            }}
+                            className="text-xs text-white hover:text-gray-300 underline"
+                            disabled={isLoadingBalance}
+                          >
+                            {isLoadingBalance ? 'Refreshing...' : 'Refresh'}
+                          </button>
+                        </div>
+                      )}
+                      {!zcashWallet && (
+                        <p className="text-xs text-red-500 mt-1">
+                          No Zcash wallet found. Please create a Zcash wallet first.
                         </p>
                       )}
                     </div>
@@ -395,20 +533,27 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
 
                 <div className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
                   <div className="flex items-center justify-between text-xs uppercase tracking-widest text-gray-400">
-                    <span>zUSD Amount to Mint</span>
+                    <span>zUSD Amount to Mint (Auto-calculated)</span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="flex-1">
-                      <Input
-                        type="number"
-                        value={mintStablecoinAmount}
-                        onChange={(e) => setMintStablecoinAmount(e.target.value)}
-                        placeholder="0.0"
-                        className="bg-transparent border-none text-3xl font-semibold text-white focus-visible:ring-0 px-0"
-                      />
-                      {systemStatus && (
+                      <div className="text-3xl font-semibold text-white">
+                        {mintZecAmount && !isNaN(parseFloat(mintZecAmount)) ? (
+                          formatBalance(calculatedZusdAmount)
+                        ) : (
+                          '0.0'
+                        )}
+                      </div>
+                      {systemStatus && mintZecAmount && !isNaN(parseFloat(mintZecAmount)) && (
                         <p className="text-xs text-gray-500 mt-1">
+                          Based on {formatBalance(parseFloat(mintZecAmount))} ZEC @ ${formatBalance(systemStatus.zecPrice)}/ZEC
+                          <br />
                           Collateral Ratio: {systemStatus.collateralRatio.toFixed(1)}% • APY: {systemStatus.currentAPY.toFixed(2)}%
+                        </p>
+                      )}
+                      {!systemStatus && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Loading system status...
                         </p>
                       )}
                     </div>
@@ -416,7 +561,7 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
                 </div>
 
                 {/* Preview */}
-                {mintZecAmount && mintStablecoinAmount && (
+                {mintZecAmount && !isNaN(parseFloat(mintZecAmount)) && calculatedZusdAmount > 0 && (
                   <div className="rounded-2xl bg-black/40 border border-white/5 p-4 text-sm text-gray-300 space-y-2">
                     <p className="flex justify-between">
                       <span>You lock</span>
@@ -424,8 +569,14 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
                     </p>
                     <p className="flex justify-between">
                       <span>You receive</span>
-                      <span className="font-semibold text-green-400">{formatBalance(parseFloat(mintStablecoinAmount))} zUSD</span>
+                      <span className="font-semibold text-green-400">{formatBalance(calculatedZusdAmount)} zUSD</span>
                     </p>
+                    {systemStatus && (
+                      <p className="flex justify-between text-xs">
+                        <span>Collateralization</span>
+                        <span className="text-yellow-400">{systemStatus.collateralRatio.toFixed(1)}%</span>
+                      </p>
+                    )}
                     <p className="flex justify-between">
                       <span>Privacy Features</span>
                       <span className="text-green-400">Private on Aztec</span>
@@ -433,20 +584,54 @@ export const StablecoinDashboard: React.FC<StablecoinDashboardProps> = ({ onBack
                   </div>
                 )}
 
-                <Button
-                  onClick={handleMint}
-                  disabled={isMinting || !mintZecAmount || !mintStablecoinAmount}
-                  className="w-full bg-white text-black hover:bg-white/90 text-base font-semibold"
-                >
-                  {isMinting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Minting...
-                    </>
-                  ) : (
-                    'Mint zUSD'
-                  )}
-                </Button>
+                {/* Disabled state feedback */}
+                {(() => {
+                  const zecAmount = parseFloat(mintZecAmount);
+                  const isValidZec = !isNaN(zecAmount) && zecAmount > 0;
+                  
+                  let disabledReason = '';
+                  if (isMinting) {
+                    disabledReason = '';
+                  } else if (!zcashWallet || !aztecWallet) {
+                    disabledReason = 'Zcash and Aztec wallets required';
+                  } else if (!systemStatus) {
+                    disabledReason = 'Loading system status...';
+                  } else if (!mintZecAmount || !isValidZec) {
+                    disabledReason = 'Enter a valid ZEC amount';
+                  } else if (calculatedZusdAmount <= 0) {
+                    disabledReason = systemStatus ? 'Calculating zUSD amount...' : 'Using default values (system status not loaded)';
+                  } else if (zecBalance !== null && zecAmount > zecBalance) {
+                    disabledReason = `Insufficient balance (${formatBalance(zecBalance)} ZEC available)`;
+                  }
+
+                  // Allow minting even without systemStatus if we have valid ZEC amount
+                  const canMint = isValidZec && calculatedZusdAmount > 0 && (!zecBalance || zecAmount <= zecBalance);
+                  const isDisabled = isMinting || !zcashWallet || !aztecWallet || !canMint;
+
+                  return (
+                    <div className="space-y-2">
+                      {disabledReason && (
+                        <p className="text-xs text-yellow-400 text-center">
+                          {disabledReason}
+                        </p>
+                      )}
+                      <Button
+                        onClick={handleMint}
+                        disabled={isDisabled}
+                        className="w-full bg-white text-black hover:bg-white/90 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isMinting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Minting...
+                          </>
+                        ) : (
+                          'Mint zUSD'
+                        )}
+                      </Button>
+                    </div>
+                  );
+                })()}
               </form>
             </div>
 
