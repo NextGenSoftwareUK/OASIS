@@ -27,6 +27,8 @@ export interface StablecoinPosition {
   createdAt: string;
   lastUpdated: string;
   viewingKeyHash?: string;
+  zcashAddress?: string;
+  aztecAddress?: string;
 }
 
 export interface SystemStatus {
@@ -45,6 +47,16 @@ class StablecoinAPI {
     this.baseUrl = baseUrl;
   }
 
+  private getAuthToken(): string | null {
+    // Get token from wallet API (which gets it from avatar store)
+    return oasisWalletAPI.getAuthToken() || null;
+  }
+
+  // Set auth token (syncs with wallet API)
+  setAuthToken(token: string | null) {
+    oasisWalletAPI.setAuthToken(token);
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -55,27 +67,43 @@ class StablecoinAPI {
     const proxyUrl = useProxy ? `/api/proxy/api/v1/stablecoin/${endpoint}` : url;
 
     try {
+      const token = this.getAuthToken();
+      const headers = new Headers({
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(options.headers as HeadersInit),
+      });
+
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+
       const response = await fetch(proxyUrl, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          ...(options.headers as HeadersInit),
-        },
+        headers,
         mode: useProxy ? 'same-origin' : 'cors',
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
       return data as OASISResult<T>;
     } catch (error) {
+      console.error('Stablecoin API request failed:', error);
       return {
         isError: true,
         message: error instanceof Error ? error.message : 'Unknown error occurred',
+        detailedMessage: error instanceof Error ? error.stack : undefined,
       };
     }
   }
@@ -93,8 +121,8 @@ class StablecoinAPI {
   /**
    * Redeem stablecoin for ZEC
    */
-  async redeemStablecoin(request: RedeemStablecoinRequest): Promise<OASISResult<string>> {
-    return this.request<string>('redeem', {
+  async redeemStablecoin(request: RedeemStablecoinRequest): Promise<OASISResult<{ message: string }>> {
+    return this.request<{ message: string }>('redeem', {
       method: 'POST',
       body: JSON.stringify(request),
     });
@@ -131,8 +159,8 @@ class StablecoinAPI {
   /**
    * Liquidate a position
    */
-  async liquidatePosition(positionId: string): Promise<OASISResult<string>> {
-    return this.request<string>(`liquidate/${positionId}`, {
+  async liquidatePosition(positionId: string): Promise<OASISResult<{ message: string }>> {
+    return this.request<{ message: string }>(`liquidate/${positionId}`, {
       method: 'POST',
     });
   }
@@ -140,8 +168,8 @@ class StablecoinAPI {
   /**
    * Generate yield for a position
    */
-  async generateYield(positionId: string): Promise<OASISResult<number>> {
-    return this.request<number>(`yield/${positionId}`, {
+  async generateYield(positionId: string): Promise<OASISResult<{ yieldAmount: number }>> {
+    return this.request<{ yieldAmount: number }>(`yield/${positionId}`, {
       method: 'POST',
     });
   }
