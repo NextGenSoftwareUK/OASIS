@@ -2520,7 +2520,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
 
                 // Real Elrond implementation: Load NFT data from Elrond blockchain
-                var nft = new Web4OASISNFT
+                var nft = new Web4NFT
                 {
                     Id = Guid.NewGuid(),
                     Title = "Elrond NFT",

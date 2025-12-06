@@ -2442,7 +2442,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
             IWeb4Web4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new Web4OASISNFT()
+                OASISNFT = new Web4NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2512,7 +2512,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
             IWeb4Web4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new Web4OASISNFT()
+                OASISNFT = new Web4NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2562,7 +2562,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
             var getNFTFunction = _contract.GetFunction(GetNFTDataFuncName);
             var nftData = await getNFTFunction.CallDeserializingToObjectAsync<NFTStruct>(nftTokenAddress);
             
-                var nft = new Web4OASISNFT();
+                var nft = new Web4NFT();
                 nft.Id = Guid.NewGuid();
                 nft.NFTTokenAddress = nftTokenAddress;
                 nft.MetaData.Add("AvalancheEntityId", nftData.EntityId);
@@ -2732,7 +2732,7 @@ file static class AvalancheContractHelper
         try
         {
             var nftData = JsonSerializer.Deserialize<JsonElement>(jsonData);
-            var nft = new Web4OASISNFT();
+            var nft = new Web4NFT();
             
             if (nftData.TryGetProperty("id", out var id))
                 nft.Id = Guid.Parse(id.GetString());
@@ -2747,7 +2747,7 @@ file static class AvalancheContractHelper
         }
         catch
         {
-            return new Web4OASISNFT();
+            return new Web4NFT();
         }
     }
 }

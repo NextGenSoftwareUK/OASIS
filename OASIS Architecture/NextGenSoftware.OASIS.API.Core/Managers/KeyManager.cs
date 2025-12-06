@@ -91,9 +91,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //TODO: Implement later (Cache Disabled).
         //public bool IsCacheEnabled { get; set; } = true;
 
-        public OASISResult<KeyValuePairAndWallet> GenerateKeyPairWithWalletAddress(ProviderType providerType)
+        public OASISResult<KeyPairAndWallet> GenerateKeyPairWithWalletAddress(ProviderType providerType)
         {
-            OASISResult<KeyValuePairAndWallet> result = new OASISResult<KeyValuePairAndWallet>();
+            OASISResult<KeyPairAndWallet> result = new OASISResult<KeyPairAndWallet>();
             result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
             return result;
         }
@@ -737,7 +737,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                KeyValuePairAndWallet keyPair =  GenerateKeyValuePairAndWalletAddress();
+                KeyPairAndWallet keyPair =  GenerateKeyValuePairAndWalletAddress();
 
                 if (keyPair != null)
                 {

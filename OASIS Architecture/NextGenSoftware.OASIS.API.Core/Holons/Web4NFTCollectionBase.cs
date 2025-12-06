@@ -5,9 +5,9 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
-    public class Web4OASISNFTCollectionBase : Holon, IWeb4OASISNFTCollectionBase
+    public class Web4NFTCollectionBase : Holon, IWeb4OASISNFTCollectionBase
     {
-        public Web4OASISNFTCollectionBase(HolonType holonType) : base(holonType) { }
+        public Web4NFTCollectionBase(HolonType holonType) : base(holonType) { }
 
         [CustomOASISProperty]
         public byte[] Image { get; set; }

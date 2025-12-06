@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
-    public interface IWeb4OASISNFTCollectionBase : IHolonBase
+    public interface IWeb4NFTCollectionBase : IHolonBase
     {
         byte[] Image { get; set; }
         string ImageUrl { get; set; }
