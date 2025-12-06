@@ -2402,7 +2402,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                         var nftTransactionResponse = new Web4NFTTransactionRespone
                         {
                             TransactionResult = resultElement.GetProperty("transaction_result").GetString() ?? "",
-                            OASISNFT = new Web4OASISNFT
+                            OASISNFT = new Web4NFT
                             {
                                 Id = Guid.Parse(resultElement.GetProperty("nft_id").GetString() ?? Guid.Empty.ToString()),
                                 Title = resultElement.GetProperty("nft_name").GetString() ?? "",
@@ -2477,7 +2477,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                         var nftTransactionResponse = new Web4NFTTransactionRespone
                         {
                             TransactionResult = resultElement.GetProperty("transaction_result").GetString() ?? "",
-                            OASISNFT = new Web4OASISNFT
+                            OASISNFT = new Web4NFT
                             {
                                 Id = Guid.Parse(resultElement.GetProperty("nft_id").GetString() ?? Guid.Empty.ToString()),
                                 Title = resultElement.GetProperty("nft_name").GetString() ?? "",
@@ -2549,7 +2549,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     
                     if (result.TryGetProperty("result", out var resultElement))
                     {
-                        var nft = new Web4OASISNFT
+                        var nft = new Web4NFT
                         {
                             Id = Guid.Parse(resultElement.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
                             Title = resultElement.GetProperty("name").GetString() ?? "",
@@ -3045,7 +3045,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
 
                     if (rpcResponse.TryGetProperty("result", out var result))
                     {
-                        var nftData = JsonSerializer.Deserialize<Web4OASISNFT>(result.GetProperty("result").GetString());
+                        var nftData = JsonSerializer.Deserialize<Web4NFT>(result.GetProperty("result").GetString());
                         response.Result = nftData;
                         response.IsError = false;
                         response.Message = "NFT loaded from NEAR blockchain successfully";

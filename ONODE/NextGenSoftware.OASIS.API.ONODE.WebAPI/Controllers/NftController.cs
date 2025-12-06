@@ -60,10 +60,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-nft-by-id/{id}")]
-        [ProducesResponseType(typeof(OASISResult<IWeb4OASISNFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<IWeb4OASISNFT>> LoadWeb4NftByIdAsync(Guid id)
+        public async Task<OASISResult<IWeb4NFT>> LoadWeb4NftByIdAsync(Guid id)
         {
             return await NFTManager.LoadWeb4NftAsync(id);
         }
@@ -71,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-nft-by-id/{id}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IWeb4OASISNFT>> LoadWeb4NftByIdAsync(Guid id, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IWeb4NFT>> LoadWeb4NftByIdAsync(Guid id, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadWeb4NftByIdAsync(id);
@@ -80,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-nft-by-hash/{hash}")]
-        public async Task<OASISResult<IWeb4OASISNFT>> LoadWeb4NftByHashAsync(string hash)
+        public async Task<OASISResult<IWeb4NFT>> LoadWeb4NftByHashAsync(string hash)
         {
             return await NFTManager.LoadWeb4NftAsync(hash);
         }
@@ -88,7 +88,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-nft-by-hash/{hash}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IWeb4OASISNFT>> LoadWeb4NftByHashAsync(string hash, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IWeb4NFT>> LoadWeb4NftByHashAsync(string hash, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadWeb4NftByHashAsync(hash);
@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-all-nfts-for_avatar/{avatarId}")]
-        public async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> LoadAllWeb4NFTsForAvatarAsync(Guid avatarId)
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForAvatarAsync(Guid avatarId)
         {
             return await NFTManager.LoadAllWeb4NFTsForAvatarAsync(avatarId);
         }
@@ -105,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-all-nfts-for_avatar/{avatarId}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> LoadAllWeb4NFTsForAvatarAsync(Guid avatarId, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForAvatarAsync(Guid avatarId, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadAllWeb4NFTsForAvatarAsync(avatarId);
@@ -114,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-all-nfts-for-mint-wallet-address/{mintWalletAddress}")]
-        public async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> LoadAllWeb4NFTsForMintAddressAsync(string mintWalletAddress)
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForMintAddressAsync(string mintWalletAddress)
         {
             return await NFTManager.LoadAllWeb4NFTsForMintAddressAsync(mintWalletAddress);
         }
@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("load-all-nfts-for-mint-wallet-address/{mintWalletAddress}/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> LoadAllWeb4NFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadAllWeb4NFTsForMintAddressAsync(mintWalletAddress);
@@ -165,7 +165,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize(AvatarType.Wizard)]
         [HttpGet]
         [Route("load-all-nfts")]
-        public async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> LoadAllWeb4NFTsAsync()
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsAsync()
         {
             return await NFTManager.LoadAllWeb4NFTsAsync();
         }
@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize(AvatarType.Wizard)]
         [HttpGet]
         [Route("load-all-nfts/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IEnumerable<IWeb4OASISNFT>>> LoadAllWeb4NFTsAsync(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsAsync(ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadAllWeb4NFTsAsync();
@@ -236,7 +236,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("mint-nft")]
-        public async Task<OASISResult<IWeb4OASISNFT>> MintNftAsync(Models.NFT.MintNFTTransactionRequest request)
+        public async Task<OASISResult<IWeb4NFT>> MintNftAsync(Models.NFT.MintNFTTransactionRequest request)
         {
             ProviderType onChainProvider = ProviderType.None;
             ProviderType offChainProvider = ProviderType.None;
@@ -251,28 +251,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject))
                 onChainProvider = (ProviderType)onChainProviderObject;
             else
-                return new OASISResult<IWeb4OASISNFT>() { IsError = true, Message = $"The OnChainProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+                return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The OnChainProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
             if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider, out offChainProviderObject))
                 offChainProvider = (ProviderType)offChainProviderObject;
             else
-                return new OASISResult<IWeb4OASISNFT>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+                return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
             if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject))
                 NFTOffChainMetaType = (NFTOffChainMetaType)NFTOffChainMetaTypeObject;
             else
-                return new OASISResult<IWeb4OASISNFT>() { IsError = true, Message = $"The NFTOffChainMetaType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
+                return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The NFTOffChainMetaType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
             if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject))
                 NFTStandardType = (NFTStandardType)NFTStandardTypeObject;
             else
-                return new OASISResult<IWeb4OASISNFT>() { IsError = true, Message = $"The NFTStandardType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
+                return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The NFTStandardType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
             if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingId) && !Guid.TryParse(request.SendToAvatarAfterMintingId, out sendToAvatarAfterMintingId))
-                return new OASISResult<IWeb4OASISNFT>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
+                return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
 
             API.Core.Objects.NFT.Request.MintWeb4NFTRequest mintRequest = new API.Core.Objects.NFT.Request.MintWeb4NFTRequest()
             {

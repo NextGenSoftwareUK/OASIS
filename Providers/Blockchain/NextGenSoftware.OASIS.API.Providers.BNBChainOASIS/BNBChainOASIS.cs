@@ -3280,7 +3280,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     {
                         // Parse NFT data from blockchain response
                         var nftData = JsonSerializer.Deserialize<JsonElement>(resultData.GetString());
-                        var nft = new Web4OASISNFT
+                        var nft = new Web4NFT
                         {
                             Id = Guid.NewGuid(),
                             Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "BNB NFT",

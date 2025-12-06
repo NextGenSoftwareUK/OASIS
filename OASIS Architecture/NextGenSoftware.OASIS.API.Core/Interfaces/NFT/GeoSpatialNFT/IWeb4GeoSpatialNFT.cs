@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
 {
-    public interface IWeb4OASISGeoSpatialNFT : IWeb4OASISNFT
+    public interface IWeb4GeoSpatialNFT : IWeb4NFT
     {
         Guid PlacedByAvatarId { get; set; }
         Guid OriginalWeb4OASISNFTId { get; set; }

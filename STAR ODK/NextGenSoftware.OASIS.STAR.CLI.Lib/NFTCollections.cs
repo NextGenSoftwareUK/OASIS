@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public override async Task<OASISResult<STARNFTCollection>> CreateAsync(ISTARNETCreateOptions<STARNFTCollection, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARNFTCollection> result = new OASISResult<STARNFTCollection>();
-            OASISResult<IWeb4OASISNFTCollection> collectionResult = null;
+            OASISResult<IWeb4NFTCollection> collectionResult = null;
             bool mint = false;
 
             ShowHeader();
@@ -86,7 +86,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (collectionResult != null && collectionResult.Result != null && !collectionResult.IsError)
             {
-                IWeb4OASISNFTCollection collection = collectionResult.Result;
+                IWeb4NFTCollection collection = collectionResult.Result;
                 collection.Web4OASISNFTs.Clear();
 
                 if (!mint || (mint && CLIEngine.GetConfirmation("Would you like to submit the WEB4 OASIS NFT Collection to WEB5 STARNET which will create a WEB5 STAR NFT Collection that wraps around the WEB4 OASISNFT Collection allowing you to version control, publish, share, use in Our World, Quests, etc? (recommended).")))
@@ -114,7 +114,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
                             collection.MetaData["Web5STARGeoNFTId"] = saveResult.Result.Id;
-                            OASISResult<IWeb4OASISNFTCollection> web4NFTCollection = await NFTCommon.NFTManager.UpdateWeb4NFTCollectionAsync(new UpdateWeb4NFTCollectionRequest() { Id = collection.Id, ModifiedBy = STAR.BeamedInAvatar.Id, MetaData = collection.MetaData }, providerType: providerType);
+                            OASISResult<IWeb4NFTCollection> web4NFTCollection = await NFTCommon.NFTManager.UpdateWeb4NFTCollectionAsync(new UpdateWeb4NFTCollectionRequest() { Id = collection.Id, ModifiedBy = STAR.BeamedInAvatar.Id, MetaData = collection.MetaData }, providerType: providerType);
 
                             if (!(web4NFTCollection != null && web4NFTCollection.Result != null && !web4NFTCollection.IsError))
                                 OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 NFT Collection after creation of WEB5 STAR NFT Collection in CreateAsync method. Reason: {web4NFTCollection.Message}");
@@ -164,10 +164,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (starHolon.STARNETDNA != null && starHolon.STARNETDNA.MetaData != null && starHolon.STARNETDNA.MetaData.ContainsKey("NFTCollection") && starHolon.STARNETDNA.MetaData["NFTCollection"] != null)
             {
-                IWeb4OASISNFTCollection collection = starHolon.STARNETDNA.MetaData["NFTCollection"] as IWeb4OASISNFTCollection;
+                IWeb4NFTCollection collection = starHolon.STARNETDNA.MetaData["NFTCollection"] as IWeb4NFTCollection;
 
                 if (collection == null)
-                    collection = JsonConvert.DeserializeObject<Web4OASISNFTCollection>(starHolon.STARNETDNA.MetaData["NFTCollection"].ToString());
+                    collection = JsonConvert.DeserializeObject<Web4NFTCollection>(starHolon.STARNETDNA.MetaData["NFTCollection"].ToString());
 
                 if (collection != null)
                 {
@@ -180,9 +180,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> CreateWeb4NFTCollectionAsync(object createOptions = null, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFTCollection>> CreateWeb4NFTCollectionAsync(object createOptions = null, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IWeb4OASISNFTCollection> result = new OASISResult<IWeb4OASISNFTCollection>();
+            OASISResult<IWeb4NFTCollection> result = new OASISResult<IWeb4NFTCollection>();
             CreateWeb4NFTCollectionRequest request = new CreateWeb4NFTCollectionRequest();
 
             request.Title = CLIEngine.GetValidInput("Please enter a title for the WEB4 NFT Collection: ");
@@ -228,8 +228,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine("");
             if (CLIEngine.GetConfirmation("Do you wish to add any WEB4 NFTs to this collection now? (You can always add more later)."))
             {
-                request.Web4OASISNFTs = new List<IWeb4OASISNFT>();
-                OASISResult<IWeb4OASISNFT> nftResult = null;
+                request.Web4OASISNFTs = new List<IWeb4NFT>();
+                OASISResult<IWeb4NFT> nftResult = null;
 
                 do
                 {
@@ -279,12 +279,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> UpdateWeb4NFTCollectionAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFTCollection>> UpdateWeb4NFTCollectionAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IWeb4OASISNFTCollection> result = new OASISResult<IWeb4OASISNFTCollection>();
+            OASISResult<IWeb4NFTCollection> result = new OASISResult<IWeb4NFTCollection>();
             UpdateWeb4NFTCollectionRequest request = new UpdateWeb4NFTCollectionRequest();
 
-            OASISResult<IWeb4OASISNFTCollection> collectionResult = await FindWeb4NFTCollectionAsync("update", idOrName, providerType: providerType);
+            OASISResult<IWeb4NFTCollection> collectionResult = await FindWeb4NFTCollectionAsync("update", idOrName, providerType: providerType);
 
             if (collectionResult != null && collectionResult.Result != null && !collectionResult.IsError)
             {
@@ -318,26 +318,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IWeb4OASISNFTCollection>>> ListAllWeb4NFTCollections(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> ListAllWeb4NFTCollections(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading WEB4 NFT Collections...");
-            OASISResult<IEnumerable<IWeb4OASISNFTCollection>> result = new OASISResult<IEnumerable<IWeb4OASISNFTCollection>>();
+            OASISResult<IEnumerable<IWeb4NFTCollection>> result = new OASISResult<IEnumerable<IWeb4NFTCollection>>();
             result = ListWeb4NFTCollections(await NFTCommon.NFTManager.LoadAllWeb4NFTCollectionsAsync(providerType: providerType));
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IWeb4OASISNFTCollection>>> ListWeb4NFTCollectionsForAvatar(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> ListWeb4NFTCollectionsForAvatar(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading WEB4 NFT Collections...");
-            OASISResult<IEnumerable<IWeb4OASISNFTCollection>> result = new OASISResult<IEnumerable<IWeb4OASISNFTCollection>>();
+            OASISResult<IEnumerable<IWeb4NFTCollection>> result = new OASISResult<IEnumerable<IWeb4NFTCollection>>();
             result = ListWeb4NFTCollections(await NFTCommon.NFTManager.LoadWeb4NFTCollectionsForAvatarAsync(STAR.BeamedInAvatar.Id, providerType: providerType));
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> AddWeb4NFTToCollectionAsync(string collectionIdOrName, string nftIdOrName, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFTCollection>> AddWeb4NFTToCollectionAsync(string collectionIdOrName, string nftIdOrName, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IWeb4OASISNFTCollection> result = new OASISResult<IWeb4OASISNFTCollection>();
-            OASISResult<IWeb4OASISNFTCollection> collection = await FindWeb4NFTCollectionAsync("add to", collectionIdOrName, true);
+            OASISResult<IWeb4NFTCollection> result = new OASISResult<IWeb4NFTCollection>();
+            OASISResult<IWeb4NFTCollection> collection = await FindWeb4NFTCollectionAsync("add to", collectionIdOrName, true);
 
             if (collection == null || collection.Result == null || collection.IsError)
             {
@@ -345,7 +345,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return result;
             }
 
-            OASISResult<IWeb4OASISNFT> geoNft = await STARCLI.NFTs.FindWeb4NFTAsync("add", nftIdOrName, true);
+            OASISResult<IWeb4NFT> geoNft = await STARCLI.NFTs.FindWeb4NFTAsync("add", nftIdOrName, true);
 
             if (geoNft == null || geoNft.Result == null || geoNft.IsError)
             {
@@ -367,10 +367,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> RemoveWeb4NFTFromCollectionAsync(string collectionIdOrName, string nftIdOrName, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFTCollection>> RemoveWeb4NFTFromCollectionAsync(string collectionIdOrName, string nftIdOrName, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IWeb4OASISNFTCollection> result = new OASISResult<IWeb4OASISNFTCollection>();
-            OASISResult<IWeb4OASISNFTCollection> collection = await FindWeb4NFTCollectionAsync("remove from", collectionIdOrName, true);
+            OASISResult<IWeb4NFTCollection> result = new OASISResult<IWeb4NFTCollection>();
+            OASISResult<IWeb4NFTCollection> collection = await FindWeb4NFTCollectionAsync("remove from", collectionIdOrName, true);
 
             if (collection == null || collection.Result == null || collection.IsError)
             {
@@ -378,7 +378,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return result;
             }
 
-            OASISResult<IWeb4OASISNFT> geoNft = await STARCLI.NFTs.FindWeb4NFTAsync("add", nftIdOrName, true);
+            OASISResult<IWeb4NFT> geoNft = await STARCLI.NFTs.FindWeb4NFTAsync("add", nftIdOrName, true);
 
             if (geoNft == null || geoNft.Result == null || geoNft.IsError)
             {
@@ -400,9 +400,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IWeb4OASISNFTCollection>> DeleteWeb4NFTCollectionAsync(string collectionIdOrName, bool? softDelete = true, bool? deleteChildWeb4NFTs = false, bool? deleteChildWeb3NFTs = false, bool? burnChildWebNFTs = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFTCollection>> DeleteWeb4NFTCollectionAsync(string collectionIdOrName, bool? softDelete = true, bool? deleteChildWeb4NFTs = false, bool? deleteChildWeb3NFTs = false, bool? burnChildWebNFTs = false, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IWeb4OASISNFTCollection> collection = await FindWeb4NFTCollectionAsync("delete", collectionIdOrName, true);
+            OASISResult<IWeb4NFTCollection> collection = await FindWeb4NFTCollectionAsync("delete", collectionIdOrName, true);
 
             if (collection == null || collection.Result == null || collection.IsError)
             {
@@ -447,9 +447,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return collection;
         }
 
-        public virtual async Task<OASISResult<IWeb4OASISNFTCollection>> ShowWeb4NFTCollectionAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IWeb4NFTCollection>> ShowWeb4NFTCollectionAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IWeb4OASISNFTCollection> result = new OASISResult<IWeb4OASISNFTCollection>();
+            OASISResult<IWeb4NFTCollection> result = new OASISResult<IWeb4NFTCollection>();
 
             //Console.WriteLine("");
             //CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT Collection's...");
@@ -474,9 +474,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ListWeb4NFTCollections(await NFTCommon.NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
         }
 
-        private async Task<OASISResult<IWeb4OASISNFTCollection>> FindWeb4NFTCollectionAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 NFT Collection", ProviderType providerType = ProviderType.Default)
+        private async Task<OASISResult<IWeb4NFTCollection>> FindWeb4NFTCollectionAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 NFT Collection", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IWeb4OASISNFTCollection> result = new OASISResult<IWeb4OASISNFTCollection>();
+            OASISResult<IWeb4NFTCollection> result = new OASISResult<IWeb4NFTCollection>();
             Guid id = Guid.Empty;
 
             if (idOrName == Guid.Empty.ToString())
@@ -487,7 +487,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (string.IsNullOrEmpty(idOrName))
                 {
                     bool cont = true;
-                    OASISResult<IEnumerable<IWeb4OASISNFTCollection>> starHolonsResult = null;
+                    OASISResult<IEnumerable<IWeb4NFTCollection>> starHolonsResult = null;
 
                     if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {UIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
                     {
@@ -536,7 +536,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb4OASISNFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4NFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb4NFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4NFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -623,7 +623,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private OASISResult<IEnumerable<IWeb4OASISNFTCollection>> ListWeb4NFTCollections(OASISResult<IEnumerable<IWeb4OASISNFTCollection>> collections, bool showNumbers = false, bool showDetailedInfo = false)
+        private OASISResult<IEnumerable<IWeb4NFTCollection>> ListWeb4NFTCollections(OASISResult<IEnumerable<IWeb4NFTCollection>> collections, bool showNumbers = false, bool showDetailedInfo = false)
         {
             if (collections != null)
             {
@@ -653,7 +653,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return collections;
         }
 
-        private async Task ShowNFTCollectionAsync(IWeb4OASISNFTCollection collection, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH)
+        private async Task ShowNFTCollectionAsync(IWeb4NFTCollection collection, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH)
         {
             if (DisplayFieldLength > displayFieldLength)
                 displayFieldLength = DisplayFieldLength;
@@ -699,7 +699,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (collection.Web4OASISNFTs.Count() == 0 && collection.Web4OASISNFTIds.Count() > 0)
             {
-                OASISResult<IList<IWeb4OASISNFT>> nfts = await NFTCommon.NFTManager.LoadChildWeb4NFTsForNFTCollectionAsync(collection.Web4OASISNFTIds);
+                OASISResult<IList<IWeb4NFT>> nfts = await NFTCommon.NFTManager.LoadChildWeb4NFTsForNFTCollectionAsync(collection.Web4OASISNFTIds);
 
                 if (nfts != null && nfts.Result != null && !nfts.IsError)
                     collection.Web4OASISNFTs = nfts.Result.ToList();
@@ -713,7 +713,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowDivider();
         }
 
-        private void ShowNFTCollectionNFTs(IEnumerable<IWeb4OASISNFT> nfts, bool showDetailed = false, int defaultFieldLength = 37)
+        private void ShowNFTCollectionNFTs(IEnumerable<IWeb4NFT> nfts, bool showDetailed = false, int defaultFieldLength = 37)
         {
             if (nfts != null)
             {
@@ -722,7 +722,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (showDetailed)
                 {
-                    foreach (IWeb4OASISNFT nft in nfts)
+                    foreach (IWeb4NFT nft in nfts)
                     {
                         if (nft != null)
                         {
@@ -738,7 +738,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     CLIEngine.ShowMessage(string.Concat("ID".PadRight(defaultFieldLength), " | TITLE".PadRight(defaultFieldLength)));
 
-                    foreach (IWeb4OASISNFT nft in nfts)
+                    foreach (IWeb4NFT nft in nfts)
                     {
                         if (nft != null)
                             CLIEngine.ShowMessage(string.Concat(nft.Id.ToString().PadRight(defaultFieldLength), " | ", nft.Title.PadRight(defaultFieldLength)), false);

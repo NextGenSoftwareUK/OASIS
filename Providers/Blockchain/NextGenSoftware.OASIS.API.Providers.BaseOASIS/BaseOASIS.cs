@@ -2448,7 +2448,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
             IWeb4Web4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new Web4OASISNFT()
+                OASISNFT = new Web4NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2518,7 +2518,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
             IWeb4Web4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new Web4OASISNFT()
+                OASISNFT = new Web4NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2809,7 +2809,7 @@ file static class BaseContractHelper
         {
             var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
             
-            return new Web4OASISNFT
+            return new Web4NFT
             {
                 Id = Guid.NewGuid(),
                 TokenId = jsonElement.TryGetProperty("tokenId", out var tokenIdElement) ? tokenIdElement.GetString() : "",
@@ -2854,7 +2854,7 @@ file static class BaseContractHelper
         catch (Exception ex)
         {
             Console.WriteLine($"Error parsing Base NFT: {ex.Message}");
-            return new Web4OASISNFT
+            return new Web4NFT
             {
                 Id = Guid.NewGuid(),
                 TokenId = "",
