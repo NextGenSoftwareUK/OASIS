@@ -2002,7 +2002,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Load NFT data from ChainLink oracle
-                var nft = new Web4OASISNFT
+                var nft = new Web4NFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     MetaData = new Dictionary<string, object>
@@ -2031,7 +2031,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Load NFT data from ChainLink oracle
-                var nft = new Web4OASISNFT
+                var nft = new Web4NFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     MetaData = new Dictionary<string, object>

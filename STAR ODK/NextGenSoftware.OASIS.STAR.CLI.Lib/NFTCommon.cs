@@ -638,7 +638,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return web3Request;
         }
 
-        public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IWeb4OASISNFT web4NFT)
+        public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IWeb4NFT web4NFT)
         {
             return await GenerateWeb3NFTRequestsAsync(new MintWeb4NFTRequest()
             {
@@ -769,7 +769,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IUpdateWeb4NFTRequest>> UpdateWeb4NFTAsync(IUpdateWeb4NFTRequest request, IWeb4OASISNFT nft, string displayName, bool updateTags = true, bool updateMetaData = true)
+        public async Task<OASISResult<IUpdateWeb4NFTRequest>> UpdateWeb4NFTAsync(IUpdateWeb4NFTRequest request, IWeb4NFT nft, string displayName, bool updateTags = true, bool updateMetaData = true)
         {
             OASISResult<IUpdateWeb4NFTRequest> result = new OASISResult<IUpdateWeb4NFTRequest>();
 
@@ -1084,7 +1084,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowDivider();
         }
 
-        public void ShowNFTDetails(INFTBase nft, IWeb4OASISNFT web4NFT, int displayFieldLength, bool displayTags = true, bool displayMetaData = true)
+        public void ShowNFTDetails(INFTBase nft, IWeb4NFT web4NFT, int displayFieldLength, bool displayTags = true, bool displayMetaData = true)
         {
             DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
 

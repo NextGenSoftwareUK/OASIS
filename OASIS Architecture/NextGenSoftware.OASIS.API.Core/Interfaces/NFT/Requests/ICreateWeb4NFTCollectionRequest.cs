@@ -10,8 +10,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
         byte[] Image { get; set; }
         string ImageUrl { get; set; }
         Dictionary<string, object> MetaData { get; set; }
-        List<string> Web4OASISNFTIds { get; set; }
-        List<IWeb4OASISNFT> Web4OASISNFTs { get; set; }
+        List<string> Web4NFTIds { get; set; }
+        List<IWeb4NFT> Web4NFTs { get; set; }
         byte[] Thumbnail { get; set; }
         string ThumbnailUrl { get; set; }
         string Title { get; set; }

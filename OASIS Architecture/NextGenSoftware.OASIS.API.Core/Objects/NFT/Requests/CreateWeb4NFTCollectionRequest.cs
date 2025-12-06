@@ -15,8 +15,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         public byte[] Thumbnail { get; set; }
         public string ThumbnailUrl { get; set; }
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
-        public List<IWeb4OASISNFT> Web4OASISNFTs { get; set; } = new List<IWeb4OASISNFT>(); //Can pass in either full NFT objects or just their IDs in the OASISNFTIds property
-        public List<string> Web4OASISNFTIds { get; set; } = new List<string>();
+        public List<IWeb4NFT> Web4NFTs { get; set; } = new List<IWeb4NFT>(); //Can pass in either full NFT objects or just their IDs in the OASISNFTIds property
+        public List<string> Web4NFTIds { get; set; } = new List<string>();
         public List<string> Tags { get; set; }
     }
 }
