@@ -1,0 +1,2381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS Portal - Dashboard</title>
+    <meta name="description" content="Your OASIS dashboard - Manage wallets, NFTs, contracts, data, and more.">
+    <link rel="stylesheet" href="../oasisweb4 site/new-v2/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Portal-specific styles - LayerZero inspired */
+        .portal-nav {
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .portal-nav-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .portal-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .portal-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .portal-header {
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid var(--border-color);
+            padding: 3rem 0 2rem;
+        }
+
+        .portal-header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .portal-avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .portal-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .portal-info {
+            flex: 1;
+        }
+
+        .portal-org {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .portal-name {
+            font-size: 1.75rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .portal-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .portal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 400;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .portal-badge.plan {
+            color: var(--text-secondary);
+        }
+
+        .portal-badge.status {
+            color: var(--text-secondary);
+        }
+
+        .portal-id {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .portal-tabs {
+            background: rgba(0, 0, 0, 0.6);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0;
+            position: sticky;
+            top: 65px;
+            z-index: 999;
+        }
+
+        .portal-tabs-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+        }
+
+        .portal-tab {
+            padding: 1rem 1.25rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .portal-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .portal-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--text-primary);
+        }
+
+        .portal-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .portal-section {
+            margin-bottom: 4rem;
+        }
+
+        .portal-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .portal-section-title {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .portal-section-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .portal-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .portal-grid-2 {
+            grid-template-columns: 2fr 1fr;
+        }
+
+        .portal-grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .portal-card {
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .portal-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .portal-card-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .portal-card-link {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .portal-card-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* OAPP List */
+        .oapp-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .oapp-item {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .oapp-item:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .oapp-info {
+            flex: 1;
+        }
+
+        .oapp-name {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .oapp-desc {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .oapp-status {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            padding: 0.25rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Quest List */
+        .quest-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quest-item {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.2s;
+        }
+
+        .quest-item:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .quest-header {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .quest-name {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .quest-progress {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .quest-desc {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .quest-progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .quest-progress-fill {
+            height: 100%;
+            background: var(--text-primary);
+            transition: width 0.3s;
+        }
+
+        /* Transaction History */
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .transaction-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-type {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .transaction-details {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .transaction-amount {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        .transaction-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+
+        /* Message History */
+        .message-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message-item {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .message-item:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .message-sender {
+            flex: 1;
+        }
+
+        .message-sender-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.125rem;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .message-preview {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .message-unread {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            margin-left: auto;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-detail {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        /* Empty States */
+        .empty-state {
+            padding: 3rem 1.5rem;
+            text-align: center;
+        }
+
+        .empty-state-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .empty-state-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 1024px) {
+            .portal-grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .portal-grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Avatar Dashboard Styles */
+        .avatar-dashboard-hero {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(to bottom right, rgba(99, 102, 241, 0.5), rgba(147, 51, 234, 0.4), rgba(0, 0, 0, 1));
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-hero-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .avatar-hero-content {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+        }
+
+        .avatar-hero-left {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+        }
+
+        .avatar-hero-icon {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            box-shadow: 0 4px 6px rgba(147, 51, 234, 0.2);
+        }
+
+        .avatar-hero-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .avatar-hero-greeting {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: rgba(196, 181, 253, 1);
+        }
+
+        .avatar-hero-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .avatar-copy-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+
+        .avatar-copy-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .avatar-hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .avatar-trust-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .avatar-trust-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .avatar-id-link {
+            background: none;
+            border: none;
+            color: rgba(196, 181, 253, 1);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .avatar-id-link:hover {
+            color: rgba(196, 181, 253, 0.8);
+        }
+
+        .avatar-hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .avatar-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .avatar-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-stat-card {
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            background: linear-gradient(to bottom right, rgba(17, 17, 17, 0.7), rgba(0, 0, 0, 0.7));
+        }
+
+        .avatar-stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: var(--text-tertiary);
+            margin-bottom: 0.75rem;
+        }
+
+        .avatar-stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .avatar-stat-sublabel {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .avatar-stat-trend {
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .avatar-dashboard-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .avatar-dashboard-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .avatar-activity-feed,
+        .avatar-missions-panel,
+        .avatar-rewards-grid {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.25rem;
+        }
+
+        .avatar-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .avatar-section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: var(--text-tertiary);
+        }
+
+        .avatar-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 0.25rem;
+        }
+
+        .avatar-section-link {
+            background: none;
+            border: none;
+            color: rgba(196, 181, 253, 1);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .avatar-section-link:hover {
+            color: rgba(196, 181, 253, 0.8);
+        }
+
+        .avatar-activity-list,
+        .avatar-missions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .avatar-activity-item {
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+        }
+
+        .avatar-activity-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .avatar-activity-icon img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+        }
+
+        .avatar-activity-icon span {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .avatar-activity-content {
+            flex: 1;
+        }
+
+        .avatar-activity-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .avatar-activity-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .avatar-activity-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .avatar-activity-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .avatar-activity-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .avatar-activity-source {
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.125rem 0.5rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .avatar-activity-change {
+            color: rgba(16, 185, 129, 1);
+        }
+
+        .avatar-mission-item {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1rem;
+        }
+
+        .avatar-mission-header {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .avatar-mission-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .avatar-mission-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .avatar-mission-status {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .avatar-mission-progress {
+            margin-top: 0.75rem;
+        }
+
+        .avatar-mission-progress-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .avatar-mission-progress-bar {
+            height: 0.5rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        .avatar-mission-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(147, 51, 234, 1), rgba(236, 72, 153, 1));
+            border-radius: 9999px;
+            transition: width 0.3s;
+        }
+
+        .avatar-rewards-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .avatar-reward-item {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(to bottom right, rgba(17, 17, 17, 0.8), rgba(0, 0, 0, 1));
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .avatar-reward-image {
+            position: relative;
+            width: 100%;
+            height: 9rem;
+            overflow: hidden;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .avatar-reward-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 1.5rem;
+        }
+
+        .avatar-reward-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .avatar-reward-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .avatar-reward-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .avatar-reward-status {
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .avatar-reward-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .avatar-reward-source {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        @media (max-width: 768px) {
+            .avatar-hero-content {
+                flex-direction: column;
+            }
+
+            .avatar-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .avatar-dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .avatar-rewards-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Telegram Gamification Styles */
+        .telegram-section {
+            margin-bottom: 2rem;
+        }
+
+        /* Connection Status Banner */
+        .telegram-connection-banner {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .telegram-connection-banner.linked {
+            background: linear-gradient(to right, rgba(34, 197, 94, 0.1), rgba(0, 0, 0, 0.3));
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .telegram-connection-banner.not-linked {
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.1), rgba(0, 0, 0, 0.3));
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .telegram-connection-content {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .telegram-connection-icon {
+            font-size: 2.5rem;
+        }
+
+        .telegram-connection-info {
+            flex: 1;
+        }
+
+        .telegram-connection-info h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .telegram-connection-info p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .telegram-connection-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        /* Telegram Stats Grid */
+        .telegram-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .telegram-stat-card {
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            background: linear-gradient(to bottom right, rgba(17, 17, 17, 0.7), rgba(0, 0, 0, 0.7));
+        }
+
+        .telegram-stat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .telegram-stat-icon {
+            font-size: 1.5rem;
+        }
+
+        .telegram-stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: var(--text-tertiary);
+        }
+
+        .telegram-stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .telegram-stat-sublabel {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Recent Rewards Feed */
+        .telegram-rewards-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .telegram-reward-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+        }
+
+        .telegram-reward-item:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .telegram-reward-icon {
+            font-size: 1.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .telegram-reward-content {
+            flex: 1;
+        }
+
+        .telegram-reward-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .telegram-reward-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9375rem;
+        }
+
+        .telegram-reward-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .telegram-reward-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .telegram-reward-amounts {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .reward-karma {
+            font-size: 0.75rem;
+            color: rgba(251, 191, 36, 1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .reward-tokens {
+            font-size: 0.75rem;
+            color: rgba(34, 197, 94, 1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .reward-nft {
+            font-size: 0.75rem;
+            color: rgba(147, 51, 234, 1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        /* Achievement Badges */
+        .telegram-achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .telegram-achievement-badge {
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+        }
+
+        .telegram-achievement-badge:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .telegram-achievement-badge.completed {
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .telegram-achievement-badge.locked {
+            opacity: 0.5;
+        }
+
+        .telegram-achievement-badge.tier-bronze {
+            border-left: 3px solid rgba(245, 158, 11, 1);
+        }
+
+        .telegram-achievement-badge.tier-silver {
+            border-left: 3px solid rgba(156, 163, 175, 1);
+        }
+
+        .telegram-achievement-badge.tier-gold {
+            border-left: 3px solid rgba(251, 191, 36, 1);
+        }
+
+        .telegram-achievement-badge.tier-platinum {
+            border-left: 3px solid rgba(167, 139, 250, 1);
+        }
+
+        .achievement-badge-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .achievement-badge-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .achievement-badge-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .achievement-badge-progress {
+            margin-bottom: 0.75rem;
+        }
+
+        .achievement-progress-bar {
+            height: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.25rem;
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+
+        .achievement-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(99, 102, 241, 1), rgba(147, 51, 234, 1));
+            border-radius: 0.25rem;
+            transition: width 0.3s;
+        }
+
+        .achievement-progress-text {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .achievement-badge-rewards {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+        }
+
+        .achievement-badge-rewards span {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        /* Activity Timeline */
+        .telegram-activity-timeline {
+            padding: 1rem 0;
+        }
+
+        .timeline-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .timeline-filters .filter-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timeline-filters .filter-btn:hover,
+        .timeline-filters .filter-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .timeline-day {
+            margin-bottom: 2rem;
+        }
+
+        .timeline-day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .timeline-count {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .timeline-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .timeline-item-icon {
+            font-size: 1.25rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .timeline-item-content {
+            flex: 1;
+        }
+
+        .timeline-item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-item-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-item-rewards {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .timeline-item-rewards span {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .timeline-item-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+        }
+
+        /* Leaderboard */
+        .telegram-leaderboard {
+            padding: 1rem 0;
+        }
+
+        .leaderboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .leaderboard-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .leaderboard-period {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .leaderboard-entry.top-three {
+            background: linear-gradient(to right, rgba(251, 191, 36, 0.1), rgba(0, 0, 0, 0.3));
+            border-color: rgba(251, 191, 36, 0.2);
+        }
+
+        .leaderboard-rank {
+            font-size: 1.25rem;
+            font-weight: 600;
+            min-width: 2rem;
+        }
+
+        .leaderboard-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+        }
+
+        .leaderboard-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .leaderboard-username {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.125rem;
+        }
+
+        .leaderboard-achievements {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .leaderboard-stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .leaderboard-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .leaderboard-stat .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+        }
+
+        .leaderboard-stat .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Rewards Breakdown */
+        .telegram-rewards-breakdown {
+            padding: 1rem 0;
+        }
+
+        .telegram-rewards-breakdown h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .breakdown-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .breakdown-item {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .breakdown-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .breakdown-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .breakdown-count {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .breakdown-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .breakdown-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .breakdown-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+        }
+
+        .breakdown-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .breakdown-bar {
+            height: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+
+        .breakdown-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(99, 102, 241, 1), rgba(147, 51, 234, 1));
+            border-radius: 0.25rem;
+            transition: width 0.3s;
+        }
+
+        /* NFT Gallery */
+        .telegram-nft-gallery {
+            padding: 1rem 0;
+        }
+
+        .nft-gallery-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nft-gallery-filters .filter-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nft-gallery-filters .filter-btn:hover,
+        .nft-gallery-filters .filter-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .nft-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .nft-gallery-card {
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .nft-gallery-card:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .nft-card-image {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        .nft-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .nft-tier-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .nft-card-info {
+            padding: 1rem;
+        }
+
+        .nft-card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .nft-card-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .nft-card-date {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.75rem;
+        }
+
+        .nft-view-link {
+            font-size: 0.875rem;
+            color: rgba(99, 102, 241, 1);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nft-view-link:hover {
+            color: rgba(99, 102, 241, 0.8);
+            text-decoration: underline;
+        }
+
+        /* Link Modal */
+        .telegram-link-modal {
+            max-width: 500px;
+        }
+
+        .telegram-link-instructions {
+            padding: 1.5rem 0;
+        }
+
+        .telegram-link-instructions p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .telegram-link-code {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .telegram-link-code code {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        /* Error State */
+        .telegram-error-state {
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .error-message {
+            color: rgba(239, 68, 68, 1);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .telegram-main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .telegram-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .telegram-achievements-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .nft-gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .telegram-connection-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .telegram-connection-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .telegram-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .telegram-achievements-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nft-gallery-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .leaderboard-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Color utilities */
+        .text-yellow-400 { color: rgba(251, 191, 36, 1); }
+        .text-green-400 { color: rgba(34, 197, 94, 1); }
+        .text-purple-400 { color: rgba(147, 51, 234, 1); }
+        .text-orange-400 { color: rgba(251, 146, 60, 1); }
+        .text-blue-400 { color: rgba(96, 165, 250, 1); }
+        .text-cyan-400 { color: rgba(34, 211, 238, 1); }
+    </style>
+</head>
+<body>
+    <!-- Portal Navigation -->
+    <nav class="portal-nav">
+        <div class="portal-nav-content">
+            <div class="portal-nav-left">
+                <a href="../oasisweb4 site/new-v2/index.html" style="color: var(--text-primary); text-decoration: none; font-weight: 500;">OASIS</a>
+                <span style="color: var(--text-tertiary);">/</span>
+                <span style="color: var(--text-secondary);">Portal</span>
+            </div>
+            <div class="portal-nav-right">
+                <button class="btn-text" onclick="openLoginModal()" id="userMenuBtn">Account</button>
+                <a href="../oasisweb4 site/new-v2/index.html" class="btn-text">Back to site</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Portal Header -->
+    <div class="portal-header">
+        <div class="portal-header-content">
+            <div class="portal-avatar-section">
+                <div class="portal-avatar" id="avatarInitials">OA</div>
+                <div class="portal-info">
+                    <div class="portal-org" id="avatarOrg">OASIS Platform</div>
+                    <div class="portal-name" id="avatarName">Loading...</div>
+                    <div class="portal-meta">
+                        <span class="portal-badge plan">
+                            <span>Plan:</span>
+                            <span>Developer</span>
+                        </span>
+                        <span class="portal-badge status">
+                            <span>Status:</span>
+                            <span>Active</span>
+                        </span>
+                        <span class="portal-id">
+                            <span>ID:</span>
+                            <span id="avatarId">-</span>
+                            <button onclick="copyToClipboard('avatarId')" style="background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 0.75rem;">Copy</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portal Tabs -->
+    <div class="portal-tabs">
+        <div class="portal-tabs-content">
+            <button class="portal-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="portal-tab" data-tab="avatar" onclick="switchTab('avatar')">Avatar</button>
+            <button class="portal-tab" data-tab="wallets" onclick="switchTab('wallets')">Wallets</button>
+            <button class="portal-tab" data-tab="nfts" onclick="switchTab('nfts')">NFTs</button>
+            <button class="portal-tab" data-tab="contracts" onclick="switchTab('contracts')">Smart Contracts</button>
+            <button class="portal-tab" data-tab="data" onclick="switchTab('data')">Data</button>
+            <button class="portal-tab" data-tab="bridges" onclick="switchTab('bridges')">Bridges</button>
+            <button class="portal-tab" data-tab="developer" onclick="switchTab('developer')">Developer</button>
+            <button class="portal-tab" data-tab="telegram" onclick="switchTab('telegram')">Telegram</button>
+            <button class="portal-tab" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+        </div>
+    </div>
+
+    <!-- Portal Content -->
+    <div class="portal-content">
+        <!-- Dashboard Tab -->
+        <div id="tab-dashboard" class="portal-tab-content">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Wallets</div>
+                    <div class="stat-value" id="statWallets">0</div>
+                    <div class="stat-detail">Across all chains</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Portfolio Value</div>
+                    <div class="stat-value" id="statPortfolio">$0.00</div>
+                    <div class="stat-detail">USD equivalent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Karma Points</div>
+                    <div class="stat-value" id="statKarma">0</div>
+                    <div class="stat-detail">Reputation score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">NFTs Owned</div>
+                    <div class="stat-value" id="statNFTs">0</div>
+                    <div class="stat-detail">Across all chains</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Contracts Deployed</div>
+                    <div class="stat-value" id="statContracts">0</div>
+                    <div class="stat-detail">Smart contracts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Data Holons</div>
+                    <div class="stat-value" id="statHolons">0</div>
+                    <div class="stat-detail">Stored data modules</div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="portal-grid portal-grid-2">
+                <!-- Left Column -->
+                <div>
+                    <!-- Installed OAPPs -->
+                    <div class="portal-section">
+                        <div class="portal-section-header">
+                            <div>
+                                <h2 class="portal-section-title">Installed OAPPs</h2>
+                                <p class="portal-section-subtitle">OASIS Applications installed on your avatar</p>
+                            </div>
+                        </div>
+                        <div class="portal-card">
+                            <div class="portal-card-header">
+                                <div class="portal-card-title">Applications</div>
+                                <a href="#" class="portal-card-link" onclick="switchTab('developer'); return false;">Manage</a>
+                            </div>
+                            <div class="oapp-list" id="oappList">
+                                <div class="empty-state">
+                                    <p class="empty-state-text">No OAPPs installed. <a href="#" class="empty-state-link" onclick="switchTab('developer'); return false;">Browse OAPPs</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Quests -->
+                    <div class="portal-section">
+                        <div class="portal-section-header">
+                            <div>
+                                <h2 class="portal-section-title">Active Quests</h2>
+                                <p class="portal-section-subtitle">Quests and missions in progress</p>
+                            </div>
+                        </div>
+                        <div class="portal-card">
+                            <div class="portal-card-header">
+                                <div class="portal-card-title">Quests</div>
+                                <a href="#" class="portal-card-link">View all</a>
+                            </div>
+                            <div class="quest-list" id="questList">
+                                <div class="empty-state">
+                                    <p class="empty-state-text">No active quests. <a href="#" class="empty-state-link">Browse quests</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div>
+                    <!-- Transaction History -->
+                    <div class="portal-section">
+                        <div class="portal-section-header">
+                            <div>
+                                <h2 class="portal-section-title">Transaction History</h2>
+                                <p class="portal-section-subtitle">Recent blockchain transactions</p>
+                            </div>
+                        </div>
+                        <div class="portal-card">
+                            <div class="portal-card-header">
+                                <div class="portal-card-title">Transactions</div>
+                                <a href="#" class="portal-card-link">View all</a>
+                            </div>
+                            <div class="transaction-list" id="transactionList">
+                                <div class="empty-state">
+                                    <p class="empty-state-text">No transactions yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message History -->
+                    <div class="portal-section">
+                        <div class="portal-section-header">
+                            <div>
+                                <h2 class="portal-section-title">Messages</h2>
+                                <p class="portal-section-subtitle">Recent conversations with avatars</p>
+                            </div>
+                        </div>
+                        <div class="portal-card">
+                            <div class="portal-card-header">
+                                <div class="portal-card-title">Conversations</div>
+                                <a href="#" class="portal-card-link">View all</a>
+                            </div>
+                            <div class="message-list" id="messageList">
+                                <div class="empty-state">
+                                    <p class="empty-state-text">No messages yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avatar Dashboard Tab -->
+        <div id="tab-avatar" class="portal-tab-content" style="display: none;">
+            <div id="avatar-dashboard-content">
+                <div class="empty-state">
+                    <p class="empty-state-text">Loading avatar dashboard...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Tabs (initially hidden) -->
+        <div id="tab-wallets" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Multi-Chain Wallets</h2>
+                <p class="portal-section-subtitle">Manage your wallets across all supported blockchains</p>
+            </div>
+        </div>
+
+        <div id="tab-nfts" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">NFT Collections</h2>
+                <p class="portal-section-subtitle">View and manage your NFTs across all chains</p>
+            </div>
+        </div>
+
+        <div id="tab-contracts" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Smart Contracts</h2>
+                <p class="portal-section-subtitle">Deploy and manage your smart contracts</p>
+            </div>
+        </div>
+
+        <div id="tab-data" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Data Holons</h2>
+                <p class="portal-section-subtitle">Manage your data storage across all providers</p>
+            </div>
+        </div>
+
+        <div id="tab-bridges" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Bridge Transactions</h2>
+                <p class="portal-section-subtitle">View your cross-chain asset transfers</p>
+            </div>
+        </div>
+
+        <div id="tab-developer" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Developer Tools</h2>
+                <p class="portal-section-subtitle">Manage API keys, view usage stats, and access developer resources</p>
+            </div>
+        </div>
+
+        <div id="tab-settings" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Settings</h2>
+                <p class="portal-section-subtitle">Manage your avatar profile, preferences, and security settings</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal (same as index.html) -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeLoginModal()">×</button>
+            
+            <div class="auth-container">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <div class="auth-logo-circle">
+                            <div class="auth-logo-inner">O</div>
+                        </div>
+                    </div>
+                    <p class="auth-label">Avatar Access</p>
+                </div>
+                
+                <div class="auth-title-section">
+                    <div class="auth-subtitle">Connect Identity</div>
+                    <h2 class="auth-title">Connect your avatar</h2>
+                    <p class="auth-description">
+                        Sign in with your OASIS avatar to access your multi-chain wallets and data.
+                    </p>
+                </div>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-mode="login" onclick="switchAuthMode('login')">
+                        Sign in
+                    </button>
+                    <button class="auth-tab" data-mode="register" onclick="switchAuthMode('register')">
+                        Create avatar
+                    </button>
+                </div>
+
+                <form id="authForm" class="auth-form" onsubmit="handleAuthSubmit(event)">
+                    <div class="auth-field">
+                        <label class="auth-label-text">
+                            <span id="usernameLabel">Username or email</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            class="auth-input" 
+                            placeholder="email@oasis.com"
+                            required
+                        />
+                    </div>
+
+                    <div id="registerFields" style="display: none;">
+                        <div class="auth-field">
+                            <label class="auth-label-text">Email</label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email"
+                                class="auth-input" 
+                                placeholder="you@example.com"
+                            />
+                        </div>
+
+                        <div class="auth-field-row">
+                            <div class="auth-field">
+                                <label class="auth-label-text">First name</label>
+                                <input 
+                                    type="text" 
+                                    id="firstName" 
+                                    name="firstName"
+                                    class="auth-input" 
+                                    placeholder="Optional"
+                                />
+                            </div>
+                            <div class="auth-field">
+                                <label class="auth-label-text">Last name</label>
+                                <input 
+                                    type="text" 
+                                    id="lastName" 
+                                    name="lastName"
+                                    class="auth-input" 
+                                    placeholder="Optional"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label-text">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password"
+                            class="auth-input" 
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+
+                    <div id="authError" class="auth-error" style="display: none;"></div>
+
+                    <div class="auth-actions">
+                        <button type="submit" class="btn-primary auth-submit" id="authSubmitBtn">
+                            <span id="authSubmitText">Sign in</span>
+                        </button>
+                        <button type="button" class="btn-text auth-skip" onclick="useDemoAvatar()">
+                            Skip for now
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../oasisweb4 site/new-v2/script.js"></script>
+    <script src="avatar-dashboard.js"></script>
+    <script>
+        // Portal-specific JavaScript
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.portal-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.portal-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const selectedContent = document.getElementById(`tab-${tabName}`);
+            if (selectedContent) {
+                selectedContent.style.display = 'block';
+            }
+            
+            // Add active class to selected tab
+            const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            // Load avatar dashboard if switching to avatar tab
+            if (tabName === 'avatar') {
+                loadAvatarDashboard();
+            }
+            
+            // Load Telegram gamification if switching to telegram tab
+            if (tabName === 'telegram') {
+                loadTelegramGamification();
+            }
+        }
+
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                navigator.clipboard.writeText(element.textContent.trim());
+                // Show feedback
+                const btn = event.target;
+                const original = btn.textContent;
+                btn.textContent = 'Copied';
+                setTimeout(() => {
+                    btn.textContent = original;
+                }, 2000);
+            }
+        }
+
+        // Load portal data
+        function loadPortalData() {
+            const authData = localStorage.getItem('oasis_auth');
+            if (authData) {
+                try {
+                    const auth = JSON.parse(authData);
+                    const avatar = auth.avatar;
+                    
+                    if (avatar) {
+                        // Update header
+                        const initials = (avatar.firstName?.[0] || '') + (avatar.lastName?.[0] || '') || avatar.username?.[0]?.toUpperCase() || 'OA';
+                        document.getElementById('avatarInitials').textContent = initials;
+                        document.getElementById('avatarName').textContent = avatar.firstName && avatar.lastName 
+                            ? `${avatar.firstName} ${avatar.lastName}` 
+                            : avatar.username || 'OASIS User';
+                        document.getElementById('avatarId').textContent = avatar.avatarId || avatar.id || '-';
+                        
+                        // Update stats
+                        if (avatar.karma) {
+                            document.getElementById('statKarma').textContent = avatar.karma;
+                        }
+                        
+                        // Update user menu button
+                        const userBtn = document.getElementById('userMenuBtn');
+                        if (userBtn) {
+                            userBtn.textContent = avatar.username || 'Account';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading portal data:', e);
+                }
+            } else {
+                // Not logged in - for development, load sample data instead of redirecting
+                // Uncomment the line below to enable redirect in production:
+                // window.location.href = '../oasisweb4 site/new-v2/index.html';
+                console.log('No auth found - loading demo data');
+                loadSampleData();
+            }
+        }
+
+        // Load sample data for demo
+        function loadSampleData() {
+            // Sample OAPPs
+            const oappList = document.getElementById('oappList');
+            if (oappList && oappList.querySelector('.empty-state')) {
+                oappList.innerHTML = `
+                    <div class="oapp-item">
+                        <div class="oapp-info">
+                            <div class="oapp-name">NFT Mint Studio</div>
+                            <div class="oapp-desc">Multi-chain NFT minting platform</div>
+                        </div>
+                        <div class="oapp-status">Active</div>
+                    </div>
+                    <div class="oapp-item">
+                        <div class="oapp-info">
+                            <div class="oapp-name">Contract Generator</div>
+                            <div class="oapp-desc">Smart contract deployment tool</div>
+                        </div>
+                        <div class="oapp-status">Active</div>
+                    </div>
+                `;
+            }
+
+            // Sample Quests
+            const questList = document.getElementById('questList');
+            if (questList && questList.querySelector('.empty-state')) {
+                questList.innerHTML = `
+                    <div class="quest-item">
+                        <div class="quest-header">
+                            <div class="quest-name">Mint Your First NFT</div>
+                            <div class="quest-progress">60%</div>
+                        </div>
+                        <div class="quest-desc">Complete the NFT minting tutorial and deploy your first NFT</div>
+                        <div class="quest-progress-bar">
+                            <div class="quest-progress-fill" style="width: 60%;"></div>
+                        </div>
+                    </div>
+                    <div class="quest-item">
+                        <div class="quest-header">
+                            <div class="quest-name">Deploy Smart Contract</div>
+                            <div class="quest-progress">30%</div>
+                        </div>
+                        <div class="quest-desc">Use the Contract Generator to deploy a smart contract</div>
+                        <div class="quest-progress-bar">
+                            <div class="quest-progress-fill" style="width: 30%;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Sample Transactions
+            const transactionList = document.getElementById('transactionList');
+            if (transactionList && transactionList.querySelector('.empty-state')) {
+                transactionList.innerHTML = `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-type">NFT Mint</div>
+                            <div class="transaction-details">0x1234...5678 on Ethereum</div>
+                            <div class="transaction-time">2 hours ago</div>
+                        </div>
+                        <div class="transaction-amount">+1 NFT</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-type">Token Transfer</div>
+                            <div class="transaction-details">0xabcd...efgh on Solana</div>
+                            <div class="transaction-time">1 day ago</div>
+                        </div>
+                        <div class="transaction-amount">-50 USDC</div>
+                    </div>
+                `;
+            }
+
+            // Sample Messages
+            const messageList = document.getElementById('messageList');
+            if (messageList && messageList.querySelector('.empty-state')) {
+                messageList.innerHTML = `
+                    <div class="message-item">
+                        <div class="message-header">
+                            <div class="message-avatar">JD</div>
+                            <div class="message-sender">
+                                <div class="message-sender-name">John Doe</div>
+                                <div class="message-time">2 hours ago</div>
+                            </div>
+                            <div class="message-unread"></div>
+                        </div>
+                        <div class="message-preview">Hey, thanks for helping with the NFT minting quest!</div>
+                    </div>
+                    <div class="message-item">
+                        <div class="message-header">
+                            <div class="message-avatar">AS</div>
+                            <div class="message-sender">
+                                <div class="message-sender-name">Alice Smith</div>
+                                <div class="message-time">1 day ago</div>
+                            </div>
+                        </div>
+                        <div class="message-preview">Can you review my smart contract deployment?</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Call on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPortalData();
+            // Load sample data after a short delay to show empty states first
+            setTimeout(loadSampleData, 500);
+        });
+    </script>
+</body>
+</html>
