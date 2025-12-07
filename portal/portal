@@ -1,0 +1,3306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS Portal - Dashboard</title>
+    <meta name="description" content="Your OASIS dashboard - Manage wallets, NFTs, contracts, data, and more.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Portal-specific styles - LayerZero inspired */
+        .portal-nav {
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .portal-nav-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .portal-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .portal-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .portal-header {
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid var(--border-color);
+            padding: 3rem 0 2rem;
+        }
+
+        .portal-header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .portal-avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .portal-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .portal-info {
+            flex: 1;
+        }
+
+        .portal-org {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .portal-name {
+            font-size: 1.75rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .portal-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .portal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 400;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .portal-badge.plan {
+            color: var(--text-secondary);
+        }
+
+        .portal-badge.status {
+            color: var(--text-secondary);
+        }
+
+        .portal-id {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .portal-tabs {
+            background: rgba(0, 0, 0, 0.6);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0;
+            position: sticky;
+            top: 65px;
+            z-index: 999;
+        }
+
+        .portal-tabs-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+        }
+
+        .portal-tab {
+            padding: 1rem 1.25rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .portal-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .portal-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--text-primary);
+        }
+
+        .portal-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .portal-section {
+            margin-bottom: 4rem;
+        }
+
+        .portal-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .portal-section-title {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .portal-section-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .portal-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .portal-grid-2 {
+            grid-template-columns: 2fr 1fr;
+        }
+
+        .portal-grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .portal-card {
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .portal-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .portal-card-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .portal-card-link {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .portal-card-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* OAPP List */
+        .oapp-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .oapp-item {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .oapp-item:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .oapp-info {
+            flex: 1;
+        }
+
+        .oapp-name {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .oapp-desc {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .oapp-status {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            padding: 0.25rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Quest List */
+        .quest-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quest-item {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.2s;
+        }
+
+        .quest-item:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .quest-header {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .quest-name {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .quest-progress {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .quest-desc {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .quest-progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .quest-progress-fill {
+            height: 100%;
+            background: var(--text-primary);
+            transition: width 0.3s;
+        }
+
+        /* Transaction History */
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .transaction-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-type {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .transaction-details {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .transaction-amount {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        .transaction-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+
+        /* Message History */
+        .message-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message-item {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .message-item:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .message-sender {
+            flex: 1;
+        }
+
+        .message-sender-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.125rem;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .message-preview {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .message-unread {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            margin-left: auto;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-detail {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        /* Empty States */
+        .empty-state {
+            padding: 3rem 1.5rem;
+            text-align: center;
+        }
+
+        .empty-state-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .empty-state-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 1024px) {
+            .portal-grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .portal-grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Telegram Gamification Styles */
+        .telegram-section {
+            margin-bottom: 2rem;
+        }
+
+        .telegram-connection-banner {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .telegram-connection-banner.linked {
+            background: linear-gradient(to right, rgba(34, 197, 94, 0.1), rgba(0, 0, 0, 0.3));
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .telegram-connection-banner.not-linked {
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.1), rgba(0, 0, 0, 0.3));
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .telegram-connection-content {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .telegram-connection-icon {
+            font-size: 2.5rem;
+        }
+
+        .telegram-connection-info {
+            flex: 1;
+        }
+
+        .telegram-connection-info h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .telegram-connection-info p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .telegram-connection-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .telegram-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .telegram-stat-card {
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            background: linear-gradient(to bottom right, rgba(17, 17, 17, 0.7), rgba(0, 0, 0, 0.7));
+        }
+
+        .telegram-stat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .telegram-stat-icon {
+            font-size: 1.5rem;
+        }
+
+        .telegram-stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: var(--text-tertiary);
+        }
+
+        .telegram-stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .telegram-stat-sublabel {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .telegram-rewards-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .telegram-reward-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+        }
+
+        .telegram-reward-item:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .telegram-reward-icon {
+            font-size: 1.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .telegram-reward-content {
+            flex: 1;
+        }
+
+        .telegram-reward-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .telegram-reward-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9375rem;
+        }
+
+        .telegram-reward-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .telegram-reward-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .telegram-reward-amounts {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .reward-karma {
+            font-size: 0.75rem;
+            color: rgba(251, 191, 36, 1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .reward-tokens {
+            font-size: 0.75rem;
+            color: rgba(34, 197, 94, 1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .reward-nft {
+            font-size: 0.75rem;
+            color: rgba(147, 51, 234, 1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .telegram-achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .telegram-achievement-badge {
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+        }
+
+        .telegram-achievement-badge:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .telegram-achievement-badge.completed {
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .telegram-achievement-badge.locked {
+            opacity: 0.5;
+        }
+
+        .telegram-achievement-badge.tier-bronze {
+            border-left: 3px solid rgba(245, 158, 11, 1);
+        }
+
+        .telegram-achievement-badge.tier-silver {
+            border-left: 3px solid rgba(156, 163, 175, 1);
+        }
+
+        .telegram-achievement-badge.tier-gold {
+            border-left: 3px solid rgba(251, 191, 36, 1);
+        }
+
+        .telegram-achievement-badge.tier-platinum {
+            border-left: 3px solid rgba(167, 139, 250, 1);
+        }
+
+        .achievement-badge-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .achievement-badge-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .achievement-badge-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .achievement-badge-progress {
+            margin-bottom: 0.75rem;
+        }
+
+        .achievement-progress-bar {
+            height: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.25rem;
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+
+        .achievement-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(99, 102, 241, 1), rgba(147, 51, 234, 1));
+            border-radius: 0.25rem;
+            transition: width 0.3s;
+        }
+
+        .achievement-progress-text {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .achievement-badge-rewards {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+        }
+
+        .achievement-badge-rewards span {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .telegram-activity-timeline {
+            padding: 1rem 0;
+        }
+
+        .timeline-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .timeline-filters .filter-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timeline-filters .filter-btn:hover,
+        .timeline-filters .filter-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .timeline-day {
+            margin-bottom: 2rem;
+        }
+
+        .timeline-day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .timeline-count {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .timeline-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .timeline-item-icon {
+            font-size: 1.25rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .timeline-item-content {
+            flex: 1;
+        }
+
+        .timeline-item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-item-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-item-rewards {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .timeline-item-rewards span {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .timeline-item-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+        }
+
+        .telegram-leaderboard {
+            padding: 1rem 0;
+        }
+
+        .leaderboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .leaderboard-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .leaderboard-period {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .leaderboard-entry.top-three {
+            background: linear-gradient(to right, rgba(251, 191, 36, 0.1), rgba(0, 0, 0, 0.3));
+            border-color: rgba(251, 191, 36, 0.2);
+        }
+
+        .leaderboard-rank {
+            font-size: 1.25rem;
+            font-weight: 600;
+            min-width: 2rem;
+        }
+
+        .leaderboard-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+        }
+
+        .leaderboard-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .leaderboard-username {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.125rem;
+        }
+
+        .leaderboard-achievements {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .leaderboard-stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .leaderboard-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .leaderboard-stat .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+        }
+
+        .leaderboard-stat .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .telegram-rewards-breakdown {
+            padding: 1rem 0;
+        }
+
+        .telegram-rewards-breakdown h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .breakdown-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .breakdown-item {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .breakdown-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .breakdown-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .breakdown-count {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .breakdown-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .breakdown-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .breakdown-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+        }
+
+        .breakdown-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .breakdown-bar {
+            height: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+
+        .breakdown-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(99, 102, 241, 1), rgba(147, 51, 234, 1));
+            border-radius: 0.25rem;
+            transition: width 0.3s;
+        }
+
+        .telegram-nft-gallery {
+            padding: 1rem 0;
+        }
+
+        .nft-gallery-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nft-gallery-filters .filter-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nft-gallery-filters .filter-btn:hover,
+        .nft-gallery-filters .filter-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .nft-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .nft-gallery-card {
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .nft-gallery-card:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .nft-card-image {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        .nft-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .nft-tier-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .nft-card-info {
+            padding: 1rem;
+        }
+
+        .nft-card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .nft-card-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .nft-card-date {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.75rem;
+        }
+
+        .nft-view-link {
+            font-size: 0.875rem;
+            color: rgba(99, 102, 241, 1);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nft-view-link:hover {
+            color: rgba(99, 102, 241, 0.8);
+            text-decoration: underline;
+        }
+
+        .telegram-link-modal {
+            max-width: 500px;
+        }
+
+        .telegram-link-instructions {
+            padding: 1.5rem 0;
+        }
+
+        .telegram-link-instructions p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .telegram-link-code {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .telegram-link-code code {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .telegram-error-state {
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .error-message {
+            color: rgba(239, 68, 68, 1);
+            margin-bottom: 1.5rem;
+        }
+
+        .text-yellow-400 { color: rgba(251, 191, 36, 1); }
+        .text-green-400 { color: rgba(34, 197, 94, 1); }
+        .text-purple-400 { color: rgba(147, 51, 234, 1); }
+        .text-orange-400 { color: rgba(251, 146, 60, 1); }
+        .text-blue-400 { color: rgba(96, 165, 250, 1); }
+        .text-cyan-400 { color: rgba(34, 211, 238, 1); }
+
+        /* Dynamic Telegram Features - Animations & Notifications */
+        
+        /* Floating Notifications */
+        .telegram-notifications-floating {
+            position: fixed;
+            top: 6rem;
+            right: 1.5rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 20rem;
+            max-width: calc(100vw - 3rem);
+            pointer-events: none;
+        }
+
+        .telegram-notification-card {
+            pointer-events: all;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .telegram-notification-card:hover {
+            transform: translateX(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .telegram-notification-card.high-priority {
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .telegram-notification-card.normal-priority {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+        }
+
+        .telegram-notification-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .telegram-notification-icon {
+            font-size: 1.25rem;
+        }
+
+        .telegram-notification-type {
+            flex: 1;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .telegram-notification-close {
+            background: none;
+            border: none;
+            color: rgba(156, 163, 175, 1);
+            cursor: pointer;
+            font-size: 1.25rem;
+            line-height: 1;
+            padding: 0;
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .telegram-notification-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .telegram-notification-title {
+            font-weight: 600;
+            color: white;
+            font-size: 0.9375rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .telegram-notification-description {
+            font-size: 0.875rem;
+            color: rgba(209, 213, 219, 1);
+            margin-bottom: 0.5rem;
+        }
+
+        .telegram-notification-rewards {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        /* Animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.6);
+            }
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes achievement-pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes activity-highlight {
+            0% {
+                background: rgba(59, 130, 246, 0.3);
+            }
+            100% {
+                background: rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        /* Achievement Unlock Animation */
+        .achievement-unlocked {
+            animation: achievement-pulse 0.6s ease-in-out;
+            border-color: rgba(34, 197, 94, 0.5) !important;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
+
+        /* Progress Complete Animation */
+        .progress-complete .achievement-progress-fill {
+            background: linear-gradient(to right, rgba(34, 197, 94, 1), rgba(16, 185, 129, 1));
+            animation: pulse-glow 1s ease-in-out;
+        }
+
+        /* New Activity Highlight */
+        .activity-new {
+            animation: activity-highlight 3s ease-out;
+            border-color: rgba(59, 130, 246, 0.5) !important;
+        }
+
+        /* Streak Fire Animation */
+        .streak-active {
+            position: relative;
+        }
+
+        .streak-active::after {
+            content: '🔥';
+            position: absolute;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Responsive Notifications */
+        @media (max-width: 1280px) {
+            .telegram-notifications-floating {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .telegram-notifications-floating {
+                width: calc(100vw - 2rem);
+                right: 1rem;
+                top: 4rem;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .telegram-main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .telegram-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .telegram-achievements-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .nft-gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .telegram-connection-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .telegram-connection-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .telegram-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .telegram-achievements-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nft-gallery-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .leaderboard-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Reform Dashboard Styles */
+        .reform-hero-section {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(to bottom right, rgba(15, 23, 42, 1), rgba(0, 0, 0, 1), rgba(15, 23, 42, 1));
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reform-hero-gradient {
+            position: absolute;
+            inset-y: 0;
+            right: 0;
+            width: 33%;
+            filter: blur(3rem);
+            opacity: 0.5;
+            background: radial-gradient(circle, #00AEEF 0%, transparent 55%);
+        }
+
+        .reform-hero-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .reform-hero-left {
+            max-width: 48rem;
+        }
+
+        .reform-hero-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .reform-logo-container {
+            position: relative;
+            height: 5rem;
+            width: 24rem;
+            margin-left: -3rem;
+        }
+
+        .reform-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px #00AEEF);
+        }
+
+        .reform-hero-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: rgba(191, 219, 254, 0.8);
+        }
+
+        .reform-hero-subtitle {
+            font-size: 0.875rem;
+            color: rgba(209, 213, 219, 1);
+        }
+
+        .reform-hero-greeting {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.45em;
+            color: rgba(191, 219, 254, 0.8);
+            margin-bottom: 0.5rem;
+        }
+
+        .reform-hero-name {
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .reform-sparkle {
+            font-size: 1.5rem;
+            color: rgba(147, 197, 253, 1);
+        }
+
+        .reform-hero-description {
+            margin-top: 0.5rem;
+            color: rgba(209, 213, 219, 1);
+            font-size: 0.875rem;
+            max-width: 36rem;
+        }
+
+        .reform-hero-badges {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .reform-badge-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+        }
+
+        .reform-badge-icon {
+            font-size: 1rem;
+        }
+
+        .reform-hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        .reform-btn-primary {
+            background: white;
+            color: black;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reform-btn-primary:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .reform-btn-secondary {
+            background: transparent;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reform-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .reform-hero-stats {
+            width: 100%;
+            max-width: 28rem;
+        }
+
+        .reform-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .reform-stat-card {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .reform-stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .reform-stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-stat-detail {
+            font-size: 0.75rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        /* Pathways */
+        .reform-pathways-section {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .reform-pathways-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .reform-pathways-title-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .reform-toggle-btn {
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(209, 213, 219, 1);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reform-toggle-btn:hover {
+            color: white;
+        }
+
+        .reform-pathways-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .reform-filter-btn {
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(209, 213, 219, 1);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reform-filter-btn:hover,
+        .reform-filter-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .reform-pathways-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .reform-pathway-card {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .reform-pathway-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .reform-pathway-icon {
+            font-size: 1.875rem;
+        }
+
+        .reform-pathway-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-pathway-description {
+            font-size: 0.75rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-pathway-progress {
+            margin-top: 0.5rem;
+        }
+
+        .reform-progress-bar {
+            height: 0.5rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 0.25rem;
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+
+        .reform-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(99, 102, 241, 1), rgba(147, 51, 234, 1));
+            border-radius: 0.25rem;
+            transition: width 0.3s;
+        }
+
+        .reform-progress-text {
+            font-size: 0.75rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-pathway-steps {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .reform-pathway-step {
+            display: flex;
+            align-items: start;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: rgba(209, 213, 219, 1);
+        }
+
+        .reform-step-dot {
+            margin-top: 0.25rem;
+            height: 0.5rem;
+            width: 0.5rem;
+            border-radius: 50%;
+            background: rgba(107, 114, 128, 1);
+            flex-shrink: 0;
+        }
+
+        .reform-step-dot.completed {
+            background: rgba(52, 211, 153, 1);
+        }
+
+        .reform-pathway-step .completed {
+            color: white;
+            font-weight: 500;
+        }
+
+        .reform-step-description {
+            font-size: 0.75rem;
+            color: rgba(107, 114, 128, 1);
+        }
+
+        .reform-pathway-reward {
+            font-size: 0.75rem;
+            color: rgba(191, 219, 254, 1);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 0.75rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        /* Badges */
+        .reform-badges-section,
+        .reform-social-feed-section,
+        .reform-leaderboard-section,
+        .reform-roles-section,
+        .reform-news-section,
+        .reform-events-section,
+        .reform-notifications-section,
+        .reform-contacts-section,
+        .reform-hq-section {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .reform-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .reform-section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-top: 0.25rem;
+        }
+
+        .reform-section-subtitle {
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+            margin-top: 0.25rem;
+        }
+
+        .reform-link-btn {
+            font-size: 0.875rem;
+            color: rgba(147, 197, 253, 1);
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .reform-link-btn:hover {
+            color: rgba(191, 219, 254, 1);
+        }
+
+        .reform-badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .reform-badge-card {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .reform-badge-image {
+            position: relative;
+            height: 7rem;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .reform-badge-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 1.5rem;
+        }
+
+        .reform-badge-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .reform-badge-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-badge-status {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .reform-badge-status.unlocked {
+            color: rgba(167, 243, 208, 1);
+        }
+
+        .reform-badge-status.in-progress {
+            color: rgba(253, 224, 71, 1);
+        }
+
+        .reform-badge-description {
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-badge-reward {
+            font-size: 0.75rem;
+            color: rgba(191, 219, 254, 1);
+            margin-top: 0.5rem;
+        }
+
+        /* Social Feed */
+        .reform-feed-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .reform-feed-item {
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+        }
+
+        .reform-feed-icon {
+            margin-top: 0.25rem;
+            height: 2.5rem;
+            width: 2.5rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .reform-feed-content {
+            flex: 1;
+        }
+
+        .reform-feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .reform-feed-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-feed-time {
+            font-size: 0.75rem;
+            color: rgba(107, 114, 128, 1);
+        }
+
+        .reform-feed-description {
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-feed-meta {
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .reform-feed-source {
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.125rem 0.5rem;
+            color: rgba(209, 213, 219, 1);
+        }
+
+        .reform-feed-points {
+            color: rgba(167, 243, 208, 1);
+        }
+
+        /* Leaderboard */
+        .reform-leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .reform-leaderboard-entry {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1rem;
+        }
+
+        .reform-leaderboard-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .reform-leaderboard-rank {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: rgba(107, 114, 128, 1);
+            width: 1.5rem;
+        }
+
+        .reform-leaderboard-avatar {
+            height: 2.5rem;
+            width: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-leaderboard-name {
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-leaderboard-region {
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-leaderboard-platform {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: rgba(209, 213, 219, 1);
+            min-width: 120px;
+        }
+
+        .reform-leaderboard-stats {
+            text-align: right;
+            margin-left: auto;
+            min-width: 140px;
+        }
+
+        .reform-leaderboard-points {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-leaderboard-detail {
+            font-size: 0.75rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        /* Roles */
+        .reform-roles-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .reform-role-card {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .reform-role-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .reform-role-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-role-description {
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-role-status {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .reform-role-status.achieved {
+            color: rgba(167, 243, 208, 1);
+        }
+
+        .reform-role-status.locked {
+            color: rgba(107, 114, 128, 1);
+        }
+
+        .reform-role-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .reform-role-detail-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(107, 114, 128, 1);
+        }
+
+        .reform-role-requirements,
+        .reform-role-permissions {
+            list-style: none;
+            padding: 0;
+            margin-top: 0.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .reform-role-requirements li {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: rgba(209, 213, 219, 1);
+        }
+
+        .reform-requirement-dot {
+            height: 0.375rem;
+            width: 0.375rem;
+            border-radius: 50%;
+            background: rgba(75, 85, 99, 1);
+            flex-shrink: 0;
+        }
+
+        .reform-requirement-dot.achieved {
+            background: rgba(52, 211, 153, 1);
+        }
+
+        .reform-role-permissions {
+            color: rgba(191, 219, 254, 1);
+        }
+
+        /* News */
+        .reform-news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .reform-news-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1rem;
+            text-decoration: none;
+            transition: border-color 0.2s;
+        }
+
+        .reform-news-item:hover {
+            border-color: rgba(96, 165, 250, 0.4);
+        }
+
+        .reform-news-channel {
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex-shrink: 0;
+        }
+
+        .reform-news-content {
+            flex: 1;
+        }
+
+        .reform-news-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .reform-news-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-news-arrow {
+            color: rgba(156, 163, 175, 1);
+            font-size: 1rem;
+        }
+
+        .reform-news-summary {
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-news-time {
+            font-size: 0.75rem;
+            color: rgba(107, 114, 128, 1);
+            margin-top: 0.25rem;
+        }
+
+        /* Events */
+        .reform-events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .reform-event-card {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(15, 23, 42, 0.6);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .reform-event-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .reform-event-title {
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-event-status {
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .reform-event-status.open {
+            background: rgba(16, 185, 129, 0.2);
+            color: rgba(167, 243, 208, 1);
+        }
+
+        .reform-event-status.waitlist {
+            background: rgba(234, 179, 8, 0.2);
+            color: rgba(253, 224, 71, 1);
+        }
+
+        .reform-event-details {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-event-location {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .reform-event-rsvps {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: rgba(209, 213, 219, 1);
+        }
+
+        /* Notifications */
+        .reform-notifications-floating {
+            position: fixed;
+            top: 6rem;
+            right: 1.5rem;
+            z-index: 40;
+            display: none;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 18rem;
+        }
+
+        @media (min-width: 1280px) {
+            .reform-notifications-floating {
+                display: flex;
+            }
+        }
+
+        .reform-notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .reform-notification-card {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .reform-notification-card.high-priority {
+            border-color: rgba(248, 113, 113, 0.4);
+            box-shadow: 0 0 20px rgba(248, 113, 113, 0.2);
+        }
+
+        .reform-notification-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: rgba(156, 163, 175, 1);
+            margin-bottom: 0.25rem;
+        }
+
+        .reform-notification-type {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: white;
+        }
+
+        .reform-notification-time {
+            font-size: 0.75rem;
+            color: rgba(107, 114, 128, 1);
+        }
+
+        .reform-notification-title {
+            font-weight: 600;
+            color: white;
+            margin-top: 0.25rem;
+        }
+
+        .reform-notification-description {
+            font-size: 0.875rem;
+            color: rgba(209, 213, 219, 1);
+            margin-top: 0.25rem;
+        }
+
+        /* Contacts */
+        .reform-contacts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .reform-contact-card {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .reform-contact-card.high-priority {
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+        .reform-contact-info {
+            flex: 1;
+        }
+
+        .reform-contact-name {
+            font-weight: 600;
+            color: white;
+        }
+
+        .reform-contact-platform {
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .reform-contact-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .reform-contact-last-seen {
+            font-size: 0.75rem;
+            color: rgba(107, 114, 128, 1);
+        }
+
+        .reform-contact-action {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            color: white;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reform-contact-action:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* HQ Highlights */
+        .reform-hq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .reform-hq-item {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            text-decoration: none;
+            transition: border-color 0.2s;
+        }
+
+        .reform-hq-item:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .reform-hq-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(191, 219, 254, 1);
+            margin-bottom: 0.5rem;
+        }
+
+        .reform-hq-title {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .reform-hq-summary {
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+            margin-bottom: 0.5rem;
+        }
+
+        .reform-hq-time {
+            font-size: 0.75rem;
+            color: rgba(107, 114, 128, 1);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .reform-main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .reform-pathways-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .reform-badges-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .reform-hero-content {
+                flex-direction: column;
+            }
+
+            .reform-hero-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .reform-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .reform-badges-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .reform-leaderboard-entry {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .reform-leaderboard-stats {
+                margin-left: 0;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Portal Navigation -->
+    <nav class="portal-nav">
+        <div class="portal-nav-content">
+            <div class="portal-nav-left">
+                <a href="../oasisweb4 site/new-v2/index.html" style="color: var(--text-primary); text-decoration: none; font-weight: 500;">OASIS</a>
+                <span style="color: var(--text-tertiary);">/</span>
+                <span style="color: var(--text-secondary);">Portal</span>
+            </div>
+            <div class="portal-nav-right">
+                <button class="btn-text" onclick="openLoginModal()" id="userMenuBtn">Account</button>
+                <a href="../oasisweb4 site/new-v2/index.html" class="btn-text">Back to site</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Portal Header -->
+    <div class="portal-header">
+        <div class="portal-header-content">
+            <div class="portal-avatar-section">
+                <div class="portal-avatar" id="avatarInitials">OA</div>
+                <div class="portal-info">
+                    <div class="portal-org" id="avatarOrg">OASIS Platform</div>
+                    <div class="portal-name" id="avatarName">Loading...</div>
+                    <div class="portal-meta">
+                        <span class="portal-badge plan">
+                            <span>Plan:</span>
+                            <span>Developer</span>
+                        </span>
+                        <span class="portal-badge status">
+                            <span>Status:</span>
+                            <span>Active</span>
+                        </span>
+                        <span class="portal-id">
+                            <span>ID:</span>
+                            <span id="avatarId">-</span>
+                            <button onclick="copyToClipboard('avatarId')" style="background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 0.75rem;">Copy</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portal Tabs -->
+    <div class="portal-tabs">
+        <div class="portal-tabs-content">
+            <button class="portal-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="portal-tab" data-tab="wallets" onclick="switchTab('wallets')">Wallets</button>
+            <button class="portal-tab" data-tab="nfts" onclick="switchTab('nfts')">NFTs</button>
+            <button class="portal-tab" data-tab="contracts" onclick="switchTab('contracts')">Smart Contracts</button>
+            <button class="portal-tab" data-tab="data" onclick="switchTab('data')">Data</button>
+            <button class="portal-tab" data-tab="bridges" onclick="switchTab('bridges')">Bridges</button>
+            <button class="portal-tab" data-tab="developer" onclick="switchTab('developer')">Developer</button>
+            <button class="portal-tab" data-tab="telegram" onclick="switchTab('telegram')">Telegram</button>
+            <button class="portal-tab" data-tab="reform" onclick="switchTab('reform')">Reform</button>
+            <button class="portal-tab" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+        </div>
+    </div>
+
+    <!-- Portal Content -->
+    <div class="portal-content">
+        <!-- Dashboard Tab -->
+        <div id="tab-dashboard" class="portal-tab-content">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Wallets</div>
+                    <div class="stat-value" id="statWallets">0</div>
+                    <div class="stat-detail">Across all chains</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Portfolio Value</div>
+                    <div class="stat-value" id="statPortfolio">$0.00</div>
+                    <div class="stat-detail">USD equivalent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Karma Points</div>
+                    <div class="stat-value" id="statKarma">0</div>
+                    <div class="stat-detail">Reputation score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">NFTs Owned</div>
+                    <div class="stat-value" id="statNFTs">0</div>
+                    <div class="stat-detail">Across all chains</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Contracts Deployed</div>
+                    <div class="stat-value" id="statContracts">0</div>
+                    <div class="stat-detail">Smart contracts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Data Holons</div>
+                    <div class="stat-value" id="statHolons">0</div>
+                    <div class="stat-detail">Stored data modules</div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="portal-grid portal-grid-2">
+                <!-- Left Column -->
+                <div>
+                    <!-- Installed OAPPs -->
+                    <div class="portal-section">
+                        <div class="portal-section-header">
+                            <div>
+                                <h2 class="portal-section-title">Installed OAPPs</h2>
+                                <p class="portal-section-subtitle">OASIS Applications installed on your avatar</p>
+                            </div>
+                        </div>
+                        <div class="portal-card">
+                            <div class="portal-card-header">
+                                <div class="portal-card-title">Applications</div>
+                                <a href="#" class="portal-card-link" onclick="switchTab('developer'); return false;">Manage</a>
+                            </div>
+                            <div class="oapp-list" id="oappList">
+                                <div class="empty-state">
+                                    <p class="empty-state-text">No OAPPs installed. <a href="#" class="empty-state-link" onclick="switchTab('developer'); return false;">Browse OAPPs</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Quests -->
+                    <div class="portal-section">
+                        <div class="portal-section-header">
+                            <div>
+                                <h2 class="portal-section-title">Active Quests</h2>
+                                <p class="portal-section-subtitle">Quests and missions in progress</p>
+                            </div>
+                        </div>
+                        <div class="portal-card">
+                            <div class="portal-card-header">
+                                <div class="portal-card-title">Quests</div>
+                                <a href="#" class="portal-card-link">View all</a>
+                            </div>
+                            <div class="quest-list" id="questList">
+                                <div class="empty-state">
+                                    <p class="empty-state-text">No active quests. <a href="#" class="empty-state-link">Browse quests</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div>
+                    <!-- Transaction History -->
+                    <div class="portal-section">
+                        <div class="portal-section-header">
+                            <div>
+                                <h2 class="portal-section-title">Transaction History</h2>
+                                <p class="portal-section-subtitle">Recent blockchain transactions</p>
+                            </div>
+                        </div>
+                        <div class="portal-card">
+                            <div class="portal-card-header">
+                                <div class="portal-card-title">Transactions</div>
+                                <a href="#" class="portal-card-link">View all</a>
+                            </div>
+                            <div class="transaction-list" id="transactionList">
+                                <div class="empty-state">
+                                    <p class="empty-state-text">No transactions yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message History -->
+                    <div class="portal-section">
+                        <div class="portal-section-header">
+                            <div>
+                                <h2 class="portal-section-title">Messages</h2>
+                                <p class="portal-section-subtitle">Recent conversations with avatars</p>
+                            </div>
+                        </div>
+                        <div class="portal-card">
+                            <div class="portal-card-header">
+                                <div class="portal-card-title">Conversations</div>
+                                <a href="#" class="portal-card-link">View all</a>
+                            </div>
+                            <div class="message-list" id="messageList">
+                                <div class="empty-state">
+                                    <p class="empty-state-text">No messages yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Tabs (initially hidden) -->
+        <div id="tab-wallets" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Multi-Chain Wallets</h2>
+                <p class="portal-section-subtitle">Manage your wallets across all supported blockchains</p>
+            </div>
+        </div>
+
+        <div id="tab-nfts" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">NFT Collections</h2>
+                <p class="portal-section-subtitle">View and manage your NFTs across all chains</p>
+            </div>
+        </div>
+
+        <div id="tab-contracts" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Smart Contracts</h2>
+                <p class="portal-section-subtitle">Deploy and manage your smart contracts</p>
+            </div>
+        </div>
+
+        <div id="tab-data" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Data Holons</h2>
+                <p class="portal-section-subtitle">Manage your data storage across all providers</p>
+            </div>
+        </div>
+
+        <div id="tab-bridges" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Bridge Transactions</h2>
+                <p class="portal-section-subtitle">View your cross-chain asset transfers</p>
+            </div>
+        </div>
+
+        <div id="tab-developer" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Developer Tools</h2>
+                <p class="portal-section-subtitle">Manage API keys, view usage stats, and access developer resources</p>
+            </div>
+        </div>
+
+        <div id="tab-settings" class="portal-tab-content" style="display: none;">
+            <div class="portal-section">
+                <h2 class="portal-section-title">Settings</h2>
+                <p class="portal-section-subtitle">Manage your avatar profile, preferences, and security settings</p>
+            </div>
+        </div>
+
+        <!-- Telegram Gamification Tab -->
+        <div id="tab-telegram" class="portal-tab-content" style="display: none;">
+            <div id="telegram-gamification-content">
+                <!-- Connection Status Banner -->
+                <div id="telegram-connection-status" class="telegram-section"></div>
+
+                <!-- Stats Grid -->
+                <div class="telegram-section">
+                    <div class="portal-section-header">
+                        <div>
+                            <h2 class="portal-section-title">Telegram Rewards</h2>
+                            <p class="portal-section-subtitle">Your contributions to the OASIS Telegram community</p>
+                        </div>
+                    </div>
+                    <div id="telegram-stats"></div>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="portal-grid portal-grid-2 telegram-main-grid">
+                    <!-- Left Column -->
+                    <div>
+                        <!-- Recent Rewards -->
+                        <div class="portal-section">
+                            <div class="portal-card">
+                                <div class="portal-card-header">
+                                    <div class="portal-card-title">Recent Rewards</div>
+                                    <a href="#" class="portal-card-link" onclick="switchTab('telegram'); loadTelegramGamification(); return false;">Refresh</a>
+                                </div>
+                                <div id="telegram-recent-rewards"></div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Timeline -->
+                        <div class="portal-section">
+                            <div class="portal-card">
+                                <div class="portal-card-header">
+                                    <div class="portal-card-title">Activity Timeline</div>
+                                    <a href="#" class="portal-card-link">View all</a>
+                                </div>
+                                <div id="telegram-activity-timeline"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div>
+                        <!-- Achievement Badges -->
+                        <div class="portal-section">
+                            <div class="portal-card">
+                                <div class="portal-card-header">
+                                    <div class="portal-card-title">Achievement Badges</div>
+                                    <a href="#" class="portal-card-link">View all</a>
+                                </div>
+                                <div id="telegram-achievement-badges"></div>
+                            </div>
+                        </div>
+
+                        <!-- Leaderboard -->
+                        <div class="portal-section">
+                            <div class="portal-card">
+                                <div class="portal-card-header">
+                                    <div class="portal-card-title">Leaderboard</div>
+                                    <a href="#" class="portal-card-link">View full</a>
+                                </div>
+                                <div id="telegram-leaderboard"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rewards Breakdown -->
+                <div class="portal-section">
+                    <div class="portal-card">
+                        <div class="portal-card-header">
+                            <div class="portal-card-title">Rewards Breakdown</div>
+                        </div>
+                        <div id="telegram-rewards-breakdown"></div>
+                    </div>
+                </div>
+
+                <!-- NFT Gallery -->
+                <div class="portal-section">
+                    <div class="portal-card">
+                        <div class="portal-card-header">
+                            <div class="portal-card-title">NFTs Earned from Telegram</div>
+                            <a href="#" class="portal-card-link" onclick="switchTab('nfts'); return false;">View in NFTs tab</a>
+                        </div>
+                        <div id="telegram-nft-gallery"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal (same as index.html) -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeLoginModal()">×</button>
+            
+            <div class="auth-container">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <div class="auth-logo-circle">
+                            <div class="auth-logo-inner">O</div>
+                        </div>
+                    </div>
+                    <p class="auth-label">Avatar Access</p>
+                </div>
+                
+                <div class="auth-title-section">
+                    <div class="auth-subtitle">Connect Identity</div>
+                    <h2 class="auth-title">Connect your avatar</h2>
+                    <p class="auth-description">
+                        Sign in with your OASIS avatar to access your multi-chain wallets and data.
+                    </p>
+                </div>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-mode="login" onclick="switchAuthMode('login')">
+                        Sign in
+                    </button>
+                    <button class="auth-tab" data-mode="register" onclick="switchAuthMode('register')">
+                        Create avatar
+                    </button>
+                </div>
+
+                <form id="authForm" class="auth-form" onsubmit="handleAuthSubmit(event)">
+                    <div class="auth-field">
+                        <label class="auth-label-text">
+                            <span id="usernameLabel">Username or email</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            class="auth-input" 
+                            placeholder="email@oasis.com"
+                            required
+                        />
+                    </div>
+
+                    <div id="registerFields" style="display: none;">
+                        <div class="auth-field">
+                            <label class="auth-label-text">Email</label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email"
+                                class="auth-input" 
+                                placeholder="you@example.com"
+                            />
+                        </div>
+
+                        <div class="auth-field-row">
+                            <div class="auth-field">
+                                <label class="auth-label-text">First name</label>
+                                <input 
+                                    type="text" 
+                                    id="firstName" 
+                                    name="firstName"
+                                    class="auth-input" 
+                                    placeholder="Optional"
+                                />
+                            </div>
+                            <div class="auth-field">
+                                <label class="auth-label-text">Last name</label>
+                                <input 
+                                    type="text" 
+                                    id="lastName" 
+                                    name="lastName"
+                                    class="auth-input" 
+                                    placeholder="Optional"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label-text">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password"
+                            class="auth-input" 
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+
+                    <div id="authError" class="auth-error" style="display: none;"></div>
+
+                    <div class="auth-actions">
+                        <button type="submit" class="btn-primary auth-submit" id="authSubmitBtn">
+                            <span id="authSubmitText">Sign in</span>
+                        </button>
+                        <button type="button" class="btn-text auth-skip" onclick="useDemoAvatar()">
+                            Skip for now
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="telegram-gamification.js"></script>
+    <script src="reform-dashboard.js"></script>
+    <script>
+        // Portal-specific JavaScript
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.portal-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.portal-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const selectedContent = document.getElementById(`tab-${tabName}`);
+            if (selectedContent) {
+                selectedContent.style.display = 'block';
+            }
+            
+            // Add active class to selected tab
+            const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            // Load Telegram gamification if switching to telegram tab
+            if (tabName === 'telegram' && typeof loadTelegramGamification === 'function') {
+                loadTelegramGamification();
+            }
+            
+            // Load Reform dashboard if switching to reform tab
+            if (tabName === 'reform' && typeof loadReformDashboard === 'function') {
+                loadReformDashboard();
+            }
+        }
+
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                navigator.clipboard.writeText(element.textContent.trim());
+                // Show feedback
+                const btn = event.target;
+                const original = btn.textContent;
+                btn.textContent = 'Copied';
+                setTimeout(() => {
+                    btn.textContent = original;
+                }, 2000);
+            }
+        }
+
+        // Load portal data
+        function loadPortalData() {
+            const authData = localStorage.getItem('oasis_auth');
+            if (authData) {
+                try {
+                    const auth = JSON.parse(authData);
+                    const avatar = auth.avatar;
+                    
+                    if (avatar) {
+                        // Update header
+                        const initials = (avatar.firstName?.[0] || '') + (avatar.lastName?.[0] || '') || avatar.username?.[0]?.toUpperCase() || 'OA';
+                        document.getElementById('avatarInitials').textContent = initials;
+                        document.getElementById('avatarName').textContent = avatar.firstName && avatar.lastName 
+                            ? `${avatar.firstName} ${avatar.lastName}` 
+                            : avatar.username || 'OASIS User';
+                        document.getElementById('avatarId').textContent = avatar.avatarId || avatar.id || '-';
+                        
+                        // Update stats
+                        if (avatar.karma) {
+                            document.getElementById('statKarma').textContent = avatar.karma;
+                        }
+                        
+                        // Update user menu button
+                        const userBtn = document.getElementById('userMenuBtn');
+                        if (userBtn) {
+                            userBtn.textContent = avatar.username || 'Account';
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading portal data:', e);
+                }
+            } else {
+                // Not logged in - for development, load sample data instead of redirecting
+                // Uncomment the line below to enable redirect in production:
+                // window.location.href = '../oasisweb4 site/new-v2/index.html';
+                console.log('No auth found - loading demo data');
+                loadSampleData();
+            }
+        }
+
+        // Load sample data for demo
+        function loadSampleData() {
+            // Sample OAPPs
+            const oappList = document.getElementById('oappList');
+            if (oappList && oappList.querySelector('.empty-state')) {
+                oappList.innerHTML = `
+                    <div class="oapp-item">
+                        <div class="oapp-info">
+                            <div class="oapp-name">NFT Mint Studio</div>
+                            <div class="oapp-desc">Multi-chain NFT minting platform</div>
+                        </div>
+                        <div class="oapp-status">Active</div>
+                    </div>
+                    <div class="oapp-item">
+                        <div class="oapp-info">
+                            <div class="oapp-name">Contract Generator</div>
+                            <div class="oapp-desc">Smart contract deployment tool</div>
+                        </div>
+                        <div class="oapp-status">Active</div>
+                    </div>
+                `;
+            }
+
+            // Sample Quests
+            const questList = document.getElementById('questList');
+            if (questList && questList.querySelector('.empty-state')) {
+                questList.innerHTML = `
+                    <div class="quest-item">
+                        <div class="quest-header">
+                            <div class="quest-name">Mint Your First NFT</div>
+                            <div class="quest-progress">60%</div>
+                        </div>
+                        <div class="quest-desc">Complete the NFT minting tutorial and deploy your first NFT</div>
+                        <div class="quest-progress-bar">
+                            <div class="quest-progress-fill" style="width: 60%;"></div>
+                        </div>
+                    </div>
+                    <div class="quest-item">
+                        <div class="quest-header">
+                            <div class="quest-name">Deploy Smart Contract</div>
+                            <div class="quest-progress">30%</div>
+                        </div>
+                        <div class="quest-desc">Use the Contract Generator to deploy a smart contract</div>
+                        <div class="quest-progress-bar">
+                            <div class="quest-progress-fill" style="width: 30%;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Sample Transactions
+            const transactionList = document.getElementById('transactionList');
+            if (transactionList && transactionList.querySelector('.empty-state')) {
+                transactionList.innerHTML = `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-type">NFT Mint</div>
+                            <div class="transaction-details">0x1234...5678 on Ethereum</div>
+                            <div class="transaction-time">2 hours ago</div>
+                        </div>
+                        <div class="transaction-amount">+1 NFT</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-type">Token Transfer</div>
+                            <div class="transaction-details">0xabcd...efgh on Solana</div>
+                            <div class="transaction-time">1 day ago</div>
+                        </div>
+                        <div class="transaction-amount">-50 USDC</div>
+                    </div>
+                `;
+            }
+
+            // Sample Messages
+            const messageList = document.getElementById('messageList');
+            if (messageList && messageList.querySelector('.empty-state')) {
+                messageList.innerHTML = `
+                    <div class="message-item">
+                        <div class="message-header">
+                            <div class="message-avatar">JD</div>
+                            <div class="message-sender">
+                                <div class="message-sender-name">John Doe</div>
+                                <div class="message-time">2 hours ago</div>
+                            </div>
+                            <div class="message-unread"></div>
+                        </div>
+                        <div class="message-preview">Hey, thanks for helping with the NFT minting quest!</div>
+                    </div>
+                    <div class="message-item">
+                        <div class="message-header">
+                            <div class="message-avatar">AS</div>
+                            <div class="message-sender">
+                                <div class="message-sender-name">Alice Smith</div>
+                                <div class="message-time">1 day ago</div>
+                            </div>
+                        </div>
+                        <div class="message-preview">Can you review my smart contract deployment?</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Call on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPortalData();
+            // Load sample data after a short delay to show empty states first
+            setTimeout(loadSampleData, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "oasis-portal",
+  "version": "1.0.0",
+  "description": "OASIS Portal - Dashboard for managing wallets, NFTs, contracts, data, and more",
+  "main": "portal.html",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "python3 -m http.server 8080",
+    "serve": "python3 -m http.server 8080",
+    "validate": "node validate.js"
+  },
+  "keywords": [
+    "oasis",
+    "portal",
+    "dashboard",
+    "web3"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "html-validator": "^5.1.17"
+  }
+}
