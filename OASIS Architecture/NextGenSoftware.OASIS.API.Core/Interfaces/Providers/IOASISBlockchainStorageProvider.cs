@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using NBitcoin;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
-using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
@@ -23,16 +17,16 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         // You cannot turn VersionControl off for Blockchains because it is built in.
         // public bool IsVersionControlEnabled { get; set; }
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWeb3WalletTransactionRequest request);
-        public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWeb3WalletTransactionRequest request);
-        public OASISResult<ITransactionRespone> MintToken(IMintWeb3TokenRequest request);
-        public Task<OASISResult<ITransactionRespone>> MintTokenAsync(IMintWeb3TokenRequest request);
-        public OASISResult<ITransactionRespone> BurnToken(IBurnWeb3TokenRequest request);
-        public Task<OASISResult<ITransactionRespone>> BurnTokenAsync(IBurnWeb3TokenRequest request);
-        public OASISResult<ITransactionRespone> LockToken(ILockWeb3TokenRequest request);
-        public Task<OASISResult<ITransactionRespone>> LockTokenAsync(ILockWeb3TokenRequest request);
-        public OASISResult<ITransactionRespone> UnlockToken(IUnlockWeb3TokenRequest request);
-        public Task<OASISResult<ITransactionRespone>> UnlockTokenAsync(IUnlockWeb3TokenRequest request);
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request);
+        public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request);
+        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request);
+        public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request);
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request);
+        public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request);
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request);
+        public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request);
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request);
+        public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request);
         public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request);
         public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request);
         public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request);

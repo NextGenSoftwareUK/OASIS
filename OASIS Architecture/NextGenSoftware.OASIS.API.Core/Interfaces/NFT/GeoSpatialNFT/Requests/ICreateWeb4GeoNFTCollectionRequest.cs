@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
         byte[] Thumbnail { get; set; }
         string ThumbnailUrl { get; set; }
         string Title { get; set; }
-        List<string> Web4OASISGeoNFTIds { get; set; }
-        List<IWeb4OASISGeoSpatialNFT> Web4OASISGeoNFTs { get; set; }
+        List<string> Web4GeoNFTIds { get; set; }
+        List<IWeb4GeoSpatialNFT> Web4GeoNFTs { get; set; }
         List<string> Tags { get; set; }
     }
 }

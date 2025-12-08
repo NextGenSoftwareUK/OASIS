@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
+namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
 {
-    public class MintNFTRequestBase : IMintNFTRequestBase
+    public class MintNFTRequestBase : MintTokenRequestBase, IMintNFTRequestBase
     {
         //Default Global NFT Properties (these will be applied to all Web3 NFTs being minted unless overridden in the individual Web3NFTs):
         //public int NumberToMint { get; set; }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
 {
     public interface IUnlockWeb3NFTRequest
     {

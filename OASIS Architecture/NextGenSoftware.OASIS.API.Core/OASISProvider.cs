@@ -18,8 +18,8 @@ namespace NextGenSoftware.OASIS.API.Core
 
         //TODO: Phase this out
         public EnumValue<ProviderCategory> ProviderCategory { get; set; }
-        
-        public List<EnumValue<ProviderCategory>> ProviderCategories { get; set; }
+
+        public List<EnumValue<ProviderCategory>> ProviderCategories { get; set; } = new List<EnumValue<ProviderCategory>>();
 
         public EnumValue<ProviderType> ProviderType { get; set; }
         //public bool ProviderActivated { get; set; }

@@ -10,11 +10,11 @@ using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
@@ -654,9 +654,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTokenAsync(IWeb4WalletTransactionRequest request)
+        public async Task<OASISResult<ISendWeb4TokenResponse>> SendTokenAsync(ISendWeb4TokenRequest request)
         {
-            OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
+            OASISResult<ISendWeb4TokenResponse> result = new OASISResult<ISendWeb4TokenResponse>(new SendWeb4TokenResponse());
+            OASISResult<ITransactionResponse> blockchainResult = new OASISResult<ITransactionResponse>();
             string errorMessage = "Error Occured in SendTokenAsync function. Reason: ";
 
             if (string.IsNullOrEmpty(request.FromWalletAddress))
@@ -724,161 +725,107 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (result.IsError)
                 return result;
 
-            Web3WalletTransactionRequest web3Request = new Web3WalletTransactionRequest()
-            {
-                Amount = request.Amount,
-                FromProvider = request.FromProvider,
-                FromWalletAddress = request.FromWalletAddress,
-                MemoText = request.MemoText,
-                ToProvider = request.ToProvider,
-                ToWalletAddress = request.ToWalletAddress
-            };
-
             if (request.FromProvider.Name == request.ToProvider.Name)
             {
-                IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISBlockchainStorageProvider;
+                blockchainResult = await SendTokenInternalAsync(request);
 
-                if (oasisBlockchainProvider != null)
+                if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
                 {
-                    bool attemptingToSend = true;
-                    DateTime startTime = DateTime.Now;
-
-                    do
-                    {
-                        result = await oasisBlockchainProvider.SendTransactionAsync(web3Request);
-
-                        if (result != null && result.Result != null && !result.IsError)
-                        {
-                            attemptingToSend = false;
-                            result.Message = "Token Sent Successfully";
-                            break;
-                        }
-                        else if (!request.WaitTillTokenSent)
-                        {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to send the token & WaitTillTokenSent is false. Reason: {result.Message}");
-                            break;
-                        }
-
-                        Thread.Sleep(request.AttemptToSendTokenEveryXSeconds * 1000);
-
-                        if (startTime.AddSeconds(request.WaitForTokenToSendInSeconds).Ticks < DateTime.Now.Ticks)
-                        {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to send the token. Reason: Timeout expired, WaitForTokenToSendInSeconds ({request.WaitForTokenToSendInSeconds}) exceeded, try increasing and trying again!");
-                            break;
-                        }
-
-                    } while (attemptingToSend);
+                    result.Message = "Token Sent Successfully";
+                    result.Result.SendTransactionResult = blockchainResult.Result.TransactionResult;
                 }
             }
             else
             {
-                BurnWeb3TokenRequest burnWeb3TokenRequest = new BurnWeb3TokenRequest()
+                blockchainResult = await LockTokenAsync(new LockWeb4TokenRequest()
                 {
-                    TokenAddress = web3Request.FromTokenAddress
-                };
+                    AttemptToLockEveryXSeconds = request.AttemptToLockEveryXSeconds,
+                    LockedByAvatarId = request.FromAvatarId,
+                    ProviderType = request.FromProvider,
+                    TokenAddress = request.FromTokenAddress,
+                    WaitForTokenToLockInSeconds = request.WaitForTokenToLockInSeconds,
+                    WaitTillTokenLocked = request.WaitTillTokenLocked,
+                    Web3TokenId = request.Web3TokenId
+                });
 
-                //BurnWeb3TokenRequest burnWeb4TokenRequest = new BurnWeb4TokenRequest()
-                //{
-                //    TokenAddress = web3Request.FromTokenAddress
-                //};
-
-                IOASISBlockchainStorageProvider fromOasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISBlockchainStorageProvider;
-                IOASISBlockchainStorageProvider toOasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.ToProvider.Value) as IOASISBlockchainStorageProvider;
-
-                if (fromOasisBlockchainProvider != null && toOasisBlockchainProvider != null)
+                if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
                 {
-                    bool attemptingToLock = true;
-                    bool attemptingToSend = true;
-                    bool attemptingToBurn = true;
-                    DateTime startTime = DateTime.Now;
+                    result.Result.LockTransactionResult = blockchainResult.Result.TransactionResult;
+                    blockchainResult = await SendTokenInternalAsync(request);
 
-                    do
+                    if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
                     {
-                        result = await fromOasisBlockchainProvider.LockTransactionRequest(web3Request);
-
-                        if (result != null && result.Result != null && !result.IsError)
+                        result.Result.SendTransactionResult = blockchainResult.Result.TransactionResult;
+                        blockchainResult = await BurnTokenAsync(new BurnWeb4TokenRequest()
                         {
-                            attemptingToLock = false;
-                            result.Message = "Token Locked Successfully";
-                            break;
-                        }
-                        else if (!request.WaitTillTokenLocked)
-                        {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to lock the token & WaitTillTokenLocked is false. Reason: {result.Message}");
-                            return result;
-                        }
-
-                        Thread.Sleep(request.AttemptToLockTokenEveryXSeconds * 1000);
-
-                        if (startTime.AddSeconds(request.WaitForTokenToLockInSeconds).Ticks < DateTime.Now.Ticks)
-                        {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to lock the token. Reason: Timeout expired, WaitForTokenToLockInSeconds ({request.WaitForTokenToLockInSeconds}) exceeded, try increasing and trying again!");
-                            return result;
-                        }
-
-                    } while (attemptingToLock);
-
-                    do
-                    {
-                        result = await toOasisBlockchainProvider.SendTransactionAsync(web3Request);
+                            AttemptToBurnEveryXSeconds = request.AttemptToBurnEveryXSeconds,
+                            BurntByAvatarId = request.FromAvatarId,
+                            ProviderType = request.FromProvider,
+                            TokenAddress = request.FromTokenAddress,
+                            WaitForTokenToBurnInSeconds = request.WaitForTokenToBurnInSeconds,
+                            WaitTillTokenBurnt = request.WaitTillTokenBurnt,
+                            Web3TokenId = request.Web3TokenId
+                        });
 
                         if (result != null && result.Result != null && !result.IsError)
                         {
                             result.Message = "Token Sent Successfully";
-                            break;
+                            result.Result.BurnTransactionResult = blockchainResult.Result.TransactionResult;
                         }
-                        else if (!request.WaitTillTokenSent)
+                        else
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to send the token & WaitTillTokenSent is false. Reason: {result.Message}");
-                            
-                            //TODO: Need to unlock token here.
-                            
-                            return result;
+                            //TODO: Dont we need to also unsend the token somehow here?!
+                            string burnError = result.Message;
+                            blockchainResult = await UnlockTokenAsync(new UnlockWeb4TokenRequest()
+                            {
+                                AttemptToUnlockEveryXSeconds = request.AttemptToUnlockEveryXSeconds,
+                                UnlockedByAvatarId = request.FromAvatarId,
+                                ProviderType = request.FromProvider,
+                                TokenAddress = request.FromTokenAddress,
+                                WaitForTokenToUnlockInSeconds = request.WaitForTokenToUnlockInSeconds,
+                                WaitTillTokenUnlocked = request.WaitTillTokenUnlocked,
+                                Web3TokenId = request.Web3TokenId
+                            });
+
+                            if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
+                            {
+                                result.Result.UnlockTransactionResult = blockchainResult.Result.TransactionResult;
+                                result.Message = $"Sending the token succeeded but there was an error burning it with error message: {burnError} but it was successfully unlocked.";
+                                result.IsError = true;
+                            }
+                            else
+                            {
+                                result.Message = $"Sending the token succeeded but there was an error burning it with error message: {burnError} and there was also an error unlocking it: {blockchainResult.Message}";
+                                result.IsError = true;
+                            }
                         }
-
-                        Thread.Sleep(request.AttemptToSendTokenEveryXSeconds * 1000);
-
-                        if (startTime.AddSeconds(request.WaitForTokenToSendInSeconds).Ticks < DateTime.Now.Ticks)
-                        {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to send the token. Reason: Timeout expired, WaitForTokenToSendInSeconds ({request.WaitForTokenToSendInSeconds}) exceeded, try increasing and trying again!");
-
-                            //TODO: Need to unlock token here.
-
-                            return result;
-                        }
-
-                    } while (attemptingToSend);
-
-                    do
+                    }
+                    else
                     {
-                        result = await fromOasisBlockchainProvider.BurnTokenAsync(burnWeb3TokenRequest);
-
-                        if (result != null && result.Result != null && !result.IsError)
+                        string sendError = result.Message;
+                        blockchainResult = await UnlockTokenAsync(new UnlockWeb4TokenRequest()
                         {
-                            result.Message = "Token Sent Successfully";
-                            break;
-                        }
-                        else if (!request.WaitTillTokenBurnt)
+                            AttemptToUnlockEveryXSeconds = request.AttemptToUnlockEveryXSeconds,
+                            UnlockedByAvatarId = request.FromAvatarId,
+                            ProviderType = request.FromProvider,
+                            TokenAddress = request.FromTokenAddress,
+                            WaitForTokenToUnlockInSeconds = request.WaitForTokenToUnlockInSeconds,
+                            WaitTillTokenUnlocked = request.WaitTillTokenUnlocked,
+                            Web3TokenId = request.Web3TokenId
+                        });
+
+                        if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to burn the token & WaitTillTokenBurnt is false. Reason: {result.Message}");
-
-                            //TODO: Need to unlock token here and unsend somehow?!
-
-                            break;
+                            result.Result.UnlockTransactionResult = blockchainResult.Result.TransactionResult;
+                            result.Message = $"Sending the token failed with error message: {sendError} but it was successfully unlocked.";
+                            result.IsError = true;
                         }
-
-                        Thread.Sleep(request.AttemptToBurnEveryXSeconds * 1000);
-
-                        if (startTime.AddSeconds(request.AttemptToBurnEveryXSeconds).Ticks < DateTime.Now.Ticks)
+                        else
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to burn the token. Reason: Timeout expired, AttemptToBurnEveryXSeconds ({request.AttemptToBurnEveryXSeconds}) exceeded, try increasing and trying again!");
-
-                            //TODO: Need to unlock token here and unsend somehow?!
-
-                            break;
+                            result.Message = $"Sending the token failed with error message: {sendError} and there was also an error unlocking it: {blockchainResult.Message}";
+                            result.IsError = true;
                         }
-
-                    } while (attemptingToBurn);
+                    }
                 }
 
                 //TODO: Implement cross chain transfer logic here.
@@ -888,9 +835,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendToken(IWeb4WalletTransactionRequest request)
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb4TokenRequest request)
         {
-            OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
+            OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
             string errorMessage = "Error Occured in SendToken function. Reason: ";
 
             if (string.IsNullOrEmpty(request.FromWalletAddress))
@@ -967,19 +914,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     bool attemptingToSend = true;
                     DateTime startTime = DateTime.Now;
 
-                    Web3WalletTransactionRequest web3Request = new Web3WalletTransactionRequest()
+                    SendWeb3TokenRequest web3Request = new SendWeb3TokenRequest()
                     {
                          Amount = request.Amount,
-                         FromProvider = request.FromProvider,
+                         //FromProvider = request.FromProvider,
                          FromWalletAddress = request.FromWalletAddress,
                          MemoText = request.MemoText,
-                         ToProvider = request.ToProvider,
+                         //ToProvider = request.ToProvider,
                          ToWalletAddress = request.ToWalletAddress
                     };
 
                     do
                     {
-                        result = oasisBlockchainProvider.SendTransaction(web3Request);
+                        result = oasisBlockchainProvider.SendToken(web3Request);
 
                         if (result != null && result.Result != null && !result.IsError)
                         {
@@ -1009,6 +956,455 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 //TODO: Implement cross chain transfer logic here.
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Cross-chain sending is coming soon!");
             }
+
+            return result;
+        }
+
+
+        private async Task<OASISResult<ITransactionResponse>> SendTokenInternalAsync(ISendWeb4TokenRequest request)
+        {
+            OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error occured in SendTokenInternalAsync. Reason: ";
+
+            SendWeb3TokenRequest web3Request = new SendWeb3TokenRequest()
+            {
+                Amount = request.Amount,
+                //FromProvider = request.FromProvider,
+                FromWalletAddress = request.FromWalletAddress,
+                MemoText = request.MemoText,
+                //ToProvider = request.ToProvider,
+                ToWalletAddress = request.ToWalletAddress
+            };
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                DateTime startTime = DateTime.Now;
+
+                do
+                {
+                    try
+                    {
+                        result = await oasisBlockchainProvider.SendTokenAsync(web3Request);
+
+                        if (result != null && result.Result != null && !result.IsError)
+                        {
+                            result.Message = "Token Sent Successfully";
+                            break;
+                        }
+                        else if (!request.WaitTillTokenSent)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to send the token & WaitTillTokenSent is false. Reason: {result.Message}");
+                            break;
+                        }
+
+                        Thread.Sleep(request.AttemptToSendTokenEveryXSeconds * 1000);
+
+                        if (startTime.AddSeconds(request.AttemptToSendTokenEveryXSeconds).Ticks < DateTime.Now.Ticks)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to send the token. Reason: Timeout expired, AttemptToSendTokenEveryXSeconds ({request.AttemptToSendTokenEveryXSeconds}) exceeded, try increasing and trying again!");
+                            break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured. Reason: {e}");
+                        break;
+                    }
+                } while (true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured getting provider {request.FromProvider.Name} calling ProviderManager.Instance.GetProvider.");
+
+            return result;
+        }
+
+        private OASISResult<ITransactionResponse> SendTokenInternal(ISendWeb4TokenRequest request)
+        {
+            OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error occured in SendTokenInternal. Reason: ";
+
+            SendWeb3TokenRequest web3Request = new SendWeb3TokenRequest()
+            {
+                Amount = request.Amount,
+                //FromProvider = request.FromProvider,
+                FromWalletAddress = request.FromWalletAddress,
+                MemoText = request.MemoText,
+                //ToProvider = request.ToProvider,
+                ToWalletAddress = request.ToWalletAddress
+            };
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                DateTime startTime = DateTime.Now;
+
+                do
+                {
+                    try
+                    {
+                        result = oasisBlockchainProvider.SendToken(web3Request);
+
+                        if (result != null && result.Result != null && !result.IsError)
+                        {
+                            result.Message = "Token Sent Successfully";
+                            break;
+                        }
+                        else if (!request.WaitTillTokenSent)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to send the token & WaitTillTokenSent is false. Reason: {result.Message}");
+                            break;
+                        }
+
+                        Thread.Sleep(request.AttemptToSendTokenEveryXSeconds * 1000);
+
+                        if (startTime.AddSeconds(request.AttemptToSendTokenEveryXSeconds).Ticks < DateTime.Now.Ticks)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to send the token. Reason: Timeout expired, AttemptToSendTokenEveryXSeconds ({request.AttemptToSendTokenEveryXSeconds}) exceeded, try increasing and trying again!");
+                            break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured. Reason: {e}");
+                        break;
+                    }
+                } while (true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured getting provider {request.FromProvider.Name} calling ProviderManager.Instance.GetProvider.");
+
+            return result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb4TokenRequest request)
+        {
+            OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error occured in BurnTokenAsync. Reason: ";
+
+            BurnWeb3TokenRequest burnWeb3TokenRequest = new BurnWeb3TokenRequest()
+            {
+                TokenAddress = request.TokenAddress,
+                Web3TokenId = request.Web3TokenId
+            };
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.ProviderType.Value) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                DateTime startTime = DateTime.Now;
+
+                do
+                {
+                    try
+                    {
+                        result = await oasisBlockchainProvider.BurnTokenAsync(burnWeb3TokenRequest);
+
+                        if (result != null && result.Result != null && !result.IsError)
+                        {
+                            result.Message = "Token Burnt Successfully";
+                            break;
+                        }
+                        else if (!request.WaitTillTokenBurnt)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to burn the token & WaitTillTokenBurnt is false. Reason: {result.Message}");
+                            break;
+                        }
+
+                        Thread.Sleep(request.AttemptToBurnEveryXSeconds * 1000);
+
+                        if (startTime.AddSeconds(request.AttemptToBurnEveryXSeconds).Ticks < DateTime.Now.Ticks)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to burn the token. Reason: Timeout expired, AttemptToBurnEveryXSeconds ({request.AttemptToBurnEveryXSeconds}) exceeded, try increasing and trying again!");
+                            break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured. Reason: {e}");
+                        break;
+                    }
+                } while (true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured getting provider {request.ProviderType.Name} calling ProviderManager.Instance.GetProvider.");
+
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb4TokenRequest request)
+        {
+            OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error occured in BurnToken. Reason: ";
+
+            BurnWeb3TokenRequest burnWeb3TokenRequest = new BurnWeb3TokenRequest()
+            {
+                TokenAddress = request.TokenAddress,
+                Web3TokenId = request.Web3TokenId
+            };
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.ProviderType.Value) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                DateTime startTime = DateTime.Now;
+
+                do
+                {
+                    try
+                    {
+                        result = oasisBlockchainProvider.BurnToken(burnWeb3TokenRequest);
+
+                        if (result != null && result.Result != null && !result.IsError)
+                        {
+                            result.Message = "Token Burnt Successfully";
+                            break;
+                        }
+                        else if (!request.WaitTillTokenBurnt)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to burn the token & WaitTillTokenBurnt is false. Reason: {result.Message}");
+                            break;
+                        }
+
+                        Thread.Sleep(request.AttemptToBurnEveryXSeconds * 1000);
+
+                        if (startTime.AddSeconds(request.AttemptToBurnEveryXSeconds).Ticks < DateTime.Now.Ticks)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to burn the token. Reason: Timeout expired, AttemptToBurnEveryXSeconds ({request.AttemptToBurnEveryXSeconds}) exceeded, try increasing and trying again!");
+                            break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured. Reason: {e}");
+                        break;
+                    }
+                } while (true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured getting provider {request.ProviderType.Name} calling ProviderManager.Instance.GetProvider.");
+
+            return result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb4TokenRequest request)
+        {
+            OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error occured in LockTokenAsync. Reason: ";
+
+            LockWeb3TokenRequest lockWeb3TokenRequest = new LockWeb3TokenRequest()
+            {
+                TokenAddress = request.TokenAddress,
+                Web3TokenId = request.Web3TokenId
+            };
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.ProviderType.Value) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                DateTime startTime = DateTime.Now;
+
+                do
+                {
+                    try
+                    {
+                        result = await oasisBlockchainProvider.LockTokenAsync(lockWeb3TokenRequest);
+
+                        if (result != null && result.Result != null && !result.IsError)
+                        {
+                            result.Message = "Token Locked Successfully";
+                            break;
+                        }
+                        else if (!request.WaitTillTokenLocked)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to lock the token & WaitTillTokenLocked is false. Reason: {result.Message}");
+                            break;
+                        }
+
+                        Thread.Sleep(request.AttemptToLockEveryXSeconds * 1000);
+
+                        if (startTime.AddSeconds(request.AttemptToLockEveryXSeconds).Ticks < DateTime.Now.Ticks)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to lock the token. Reason: Timeout expired, AttemptToLockEveryXSeconds ({request.AttemptToLockEveryXSeconds}) exceeded, try increasing and trying again!");
+                            break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured. Reason: {e}");
+                        break;
+                    }
+                } while (true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured getting provider {request.ProviderType.Name} calling ProviderManager.Instance.GetProvider.");
+
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb4TokenRequest request)
+        {
+            OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error occured in LockToken. Reason: ";
+
+            LockWeb3TokenRequest lockWeb3TokenRequest = new LockWeb3TokenRequest()
+            {
+                TokenAddress = request.TokenAddress,
+                Web3TokenId = request.Web3TokenId
+            };
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.ProviderType.Value) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                DateTime startTime = DateTime.Now;
+
+                do
+                {
+                    try
+                    {
+                        result = oasisBlockchainProvider.LockToken(lockWeb3TokenRequest);
+
+                        if (result != null && result.Result != null && !result.IsError)
+                        {
+                            result.Message = "Token Locked Successfully";
+                            break;
+                        }
+                        else if (!request.WaitTillTokenLocked)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to lock the token & WaitTillTokenLocked is false. Reason: {result.Message}");
+                            break;
+                        }
+
+                        Thread.Sleep(request.AttemptToLockEveryXSeconds * 1000);
+
+                        if (startTime.AddSeconds(request.AttemptToLockEveryXSeconds).Ticks < DateTime.Now.Ticks)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to lock the token. Reason: Timeout expired, AttemptToLockEveryXSeconds ({request.AttemptToLockEveryXSeconds}) exceeded, try increasing and trying again!");
+                            break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured. Reason: {e}");
+                        break;
+                    }
+                } while (true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured getting provider {request.ProviderType.Name} calling ProviderManager.Instance.GetProvider.");
+
+            return result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb4TokenRequest request)
+        {
+            OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error occured in UnlockTokenAsync. Reason: ";
+
+            UnlockWeb3TokenRequest unlockWeb3TokenRequest = new UnlockWeb3TokenRequest()
+            {
+                TokenAddress = request.TokenAddress,
+                Web3TokenId = request.Web3TokenId
+            };
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.ProviderType.Value) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                DateTime startTime = DateTime.Now;
+
+                do
+                {
+                    try
+                    {
+                        result = await oasisBlockchainProvider.UnlockTokenAsync(unlockWeb3TokenRequest);
+
+                        if (result != null && result.Result != null && !result.IsError)
+                        {
+                            result.Message = "Token Unlocked Successfully";
+                            break;
+                        }
+                        else if (!request.WaitTillTokenUnlocked)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to unlock the token & WaitTillTokenUnlocked is false. Reason: {result.Message}");
+                            break;
+                        }
+
+                        Thread.Sleep(request.AttemptToUnlockEveryXSeconds * 1000);
+
+                        if (startTime.AddSeconds(request.AttemptToUnlockEveryXSeconds).Ticks < DateTime.Now.Ticks)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to unlock the token. Reason: Timeout expired, AttemptToUnlockEveryXSeconds ({request.AttemptToUnlockEveryXSeconds}) exceeded, try increasing and trying again!");
+                            break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured. Reason: {e}");
+                        break;
+                    }
+                } while (true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured getting provider {request.ProviderType.Name} callingProviderManager.Instance.GetProvider.");
+
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb4TokenRequest request)
+        {
+            OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            string errorMessage = "Error occured in UnlockToken. Reason: ";
+
+            UnlockWeb3TokenRequest unlockWeb3TokenRequest = new UnlockWeb3TokenRequest()
+            {
+                TokenAddress = request.TokenAddress,
+                Web3TokenId = request.Web3TokenId
+            };
+
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.ProviderType.Value) as IOASISBlockchainStorageProvider;
+
+            if (oasisBlockchainProvider != null)
+            {
+                DateTime startTime = DateTime.Now;
+
+                do
+                {
+                    try
+                    {
+                        result = oasisBlockchainProvider.UnlockToken(unlockWeb3TokenRequest);
+
+                        if (result != null && result.Result != null && !result.IsError)
+                        {
+                            result.Message = "Token Unlocked Successfully";
+                            break;
+                        }
+                        else if (!request.WaitTillTokenUnlocked)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to unlock the token & WaitTillTokenUnlocked is false. Reason: {result.Message}");
+                            break;
+                        }
+
+                        Thread.Sleep(request.AttemptToUnlockEveryXSeconds * 1000);
+
+                        if (startTime.AddSeconds(request.AttemptToUnlockEveryXSeconds).Ticks < DateTime.Now.Ticks)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to unlock the token. Reason: Timeout expired, AttemptToUnlockEveryXSeconds ({request.AttemptToUnlockEveryXSeconds}) exceeded, try increasing and trying again!");
+                            break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured. Reason: {e}");
+                        break;
+                    }
+                } while (true);
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured getting provider {request.ProviderType.Name} calling ProviderManager.Instance.GetProvider.");
 
             return result;
         }
@@ -3934,7 +4330,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (generateKeyPair)
             {
-                KeyValuePairAndWallet keyPair = GenerateKeyValuePairAndWalletAddress();
+                IKeyPairAndWallet keyPair = GenerateKeyValuePairAndWalletAddress();
 
                 if (keyPair != null)
                 {
