@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 
-namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
+namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
 {
     public class CreateWeb4NFTCollectionRequest : ICreateWeb4NFTCollectionRequest
     {

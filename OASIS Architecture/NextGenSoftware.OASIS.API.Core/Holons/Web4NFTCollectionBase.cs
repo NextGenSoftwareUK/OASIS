@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
-    public class Web4NFTCollectionBase : Holon, IWeb4OASISNFTCollectionBase
+    public class Web4NFTCollectionBase : Holon, IWeb4NFTCollectionBase
     {
         public Web4NFTCollectionBase(HolonType holonType) : base(holonType) { }
 

@@ -216,7 +216,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             else
                 return new OASISResult<IWeb3NFTTransactionRespone>() { IsError = true, Message = $"The ToProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
-            API.Core.Objects.NFT.Request.Web4NFTWalletTransactionRequest nftRequest = new API.Core.Objects.NFT.Request.Web4NFTWalletTransactionRequest()
+            API.Core.Objects.NFT.Request.SendWeb4NFTRequest nftRequest = new API.Core.Objects.NFT.Request.SendWeb4NFTRequest()
             {
                  //MintWalletAddress = request.MintWalletAddress,
                  FromWalletAddress = request.FromWalletAddress,

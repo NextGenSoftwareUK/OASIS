@@ -1,4 +1,6 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using Solnet.Wallet;
 
@@ -210,7 +212,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         return response;
     }
 
-    public async Task<OASISResult<SendTransactionResult>> SendNftAsync(Web3NFTWalletTransactionRequest mintNftRequest)
+    public async Task<OASISResult<SendTransactionResult>> SendNftAsync(SendWeb3NFTRequest mintNftRequest)
     {
         OASISResult<SendTransactionResult> response = new OASISResult<SendTransactionResult>();
 

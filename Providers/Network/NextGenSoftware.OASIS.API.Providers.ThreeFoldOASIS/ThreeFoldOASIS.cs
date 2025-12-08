@@ -5,14 +5,8 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -22,10 +16,12 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Linq;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 
 namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 {
@@ -1106,9 +1102,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transation)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest transation)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1138,7 +1134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (transactionResponse != null)
                     {
@@ -1163,14 +1159,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transation)
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest transation)
         {
-            return SendTransactionAsync(transation).Result;
+            return SendTokenAsync(transation).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1193,7 +1189,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (transactionResponse != null)
                     {
@@ -1218,14 +1214,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTokenById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
+            return SendTokenByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1249,7 +1245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (transactionResponse != null)
                     {
@@ -1274,14 +1270,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTokenById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
+            return SendTokenByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1304,7 +1300,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (transactionResponse != null)
                     {
@@ -1329,14 +1325,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public OASISResult<ITransactionResponse> SendTokenByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
+            return SendTokenByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1360,7 +1356,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (transactionResponse != null)
                     {
@@ -1385,14 +1381,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTokenByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
+            return SendTokenByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1415,7 +1411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (transactionResponse != null)
                     {
@@ -1440,14 +1436,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public OASISResult<ITransactionResponse> SendTokenByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
+            return SendTokenByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1471,7 +1467,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (transactionResponse != null)
                     {
@@ -1496,20 +1492,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTokenByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
+            return SendTokenByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
         // IOASISBlockchainStorageProvider interface methods
-        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public OASISResult<ITransactionResponse> SendToken(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+            return SendTokenAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1534,7 +1530,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent);
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
                     result.Result = transactionResponse;
                     result.IsError = false;
                     result.Message = "Transaction sent successfully";
@@ -1551,9 +1547,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1576,7 +1572,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (transactionResponse != null)
                     {
@@ -1601,18 +1597,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTokenByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
+            return SendTokenByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         #endregion
 
         #region IOASISNFTProvider
 
-        public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transation)
         {
-            var result = new OASISResult<IWeb3NFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1643,7 +1639,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (nftResponse != null)
                     {
@@ -1668,14 +1664,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(IMintWeb3NFTRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest transation)
         {
-            var result = new OASISResult<IWeb3NFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1708,7 +1704,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionRespone>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (nftResponse != null)
                     {
@@ -1733,7 +1729,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb3NFTRequest transation)
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest transation)
         {
             return MintNFTAsync(transation).Result;
         }
@@ -1791,12 +1787,102 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
-        public OASISResult<IWeb3NFTTransactionRespone> BurnNFT(IBurnWeb3NFTRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<IWeb3NFTTransactionRespone>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        OASISResult<IWeb3NFTTransactionResponse> IOASISNFTProvider.LockToken(ILockWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OASISResult<IWeb3NFTTransactionResponse>> IOASISNFTProvider.LockTokenAsync(ILockWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        OASISResult<IWeb3NFTTransactionResponse> IOASISNFTProvider.UnlockToken(IUnlockWeb3TokenRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<OASISResult<IWeb3NFTTransactionResponse>> IOASISNFTProvider.UnlockTokenAsync(IUnlockWeb3TokenRequest request)
         {
             throw new NotImplementedException();
         }

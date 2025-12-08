@@ -10,9 +10,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public Web4GeoNFTCollection() : base(Enums.HolonType.Web4GeoNFTCollection) { }
 
         [CustomOASISProperty]
-        public List<IWeb4GeoSpatialNFT> Web4OASISGeoNFTs { get; set; } = new List<IWeb4GeoSpatialNFT>();
+        public List<IWeb4GeoSpatialNFT> Web4GeoNFTs { get; set; } = new List<IWeb4GeoSpatialNFT>();
 
         [CustomOASISProperty]
-        public List<string> Web4OASISGeoNFTIds { get; set; } = new List<string>();
+        public List<string> Web4GeoNFTIds { get; set; } = new List<string>();
     }
 }
