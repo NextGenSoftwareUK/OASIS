@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
@@ -380,10 +381,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return keyPair;
         }
 
-        public OASISResult<KeyValuePairAndWallet> GenerateKeyPairWithWallet(ProviderType providerType = ProviderType.Default)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPairWithWallet(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Generating KeyPair With Wallet Address...");
-            OASISResult<KeyValuePairAndWallet> keyPairResult = STAR.OASISAPI.Keys.GenerateKeyPairWithWalletAddress(providerType);
+            OASISResult<IKeyPairAndWallet> keyPairResult = STAR.OASISAPI.Keys.GenerateKeyPairWithWalletAddress(providerType);
 
             if (keyPairResult != null && keyPairResult.Result != null && !keyPairResult.IsError)
             {

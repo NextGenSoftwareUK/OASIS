@@ -3,11 +3,10 @@ using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
@@ -131,7 +130,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             request.Tags = TagHelper.ManageTags(request.Tags);
-            MetaDataHelper.ManageMetaData(request.MetaData, "NFT");
+            request.MetaData = MetaDataHelper.ManageMetaData(request.MetaData, "NFT");
             Console.WriteLine("");
             request.NumberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
 
@@ -534,13 +533,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             // Tags
             if (CLIEngine.GetConfirmation($"Do you wish to edit the Tags for this WEB3 Request? (It currently inherits '{(request.Tags != null ? string.Join(", ", request.Tags) : "none")}')"))
+            {
+                web3Request.Tags = request.Tags;
                 web3Request.Tags = TagHelper.ManageTags(web3Request.Tags);
+            }
             else
                 Console.WriteLine("");
 
             // MetaData
             if (CLIEngine.GetConfirmation($"Do you wish to edit the MetaData for this WEB3 Request? (It currently inherits from the parent WEB4 NFT)"))
+            {
+                web3Request.MetaData = request.MetaData;
                 web3Request.MetaData = MetaDataHelper.ManageMetaData(web3Request.MetaData, "WEB3 NFT");
+            }
             else
                 Console.WriteLine("");
 
@@ -1209,7 +1214,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return salesInfo;
         }
 
-        public OASISResult<IUpdateWeb4NFTCollectionRequestBase> UpdateWeb4NFTCollection(IUpdateWeb4NFTCollectionRequestBase request, IWeb4OASISNFTCollectionBase collection, string displayName, bool updateTags = true, bool updateMetaData = true)
+        public OASISResult<IUpdateWeb4NFTCollectionRequestBase> UpdateWeb4NFTCollection(IUpdateWeb4NFTCollectionRequestBase request, IWeb4NFTCollectionBase collection, string displayName, bool updateTags = true, bool updateMetaData = true)
         {
             OASISResult<IUpdateWeb4NFTCollectionRequestBase> result = new OASISResult<IUpdateWeb4NFTCollectionRequestBase>();
 

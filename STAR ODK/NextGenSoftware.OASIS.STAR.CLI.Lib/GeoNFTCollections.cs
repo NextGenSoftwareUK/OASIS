@@ -78,7 +78,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (geoNFTCollectionResult != null && geoNFTCollectionResult.Result != null && !geoNFTCollectionResult.IsError)
             {
                 IWeb4GeoNFTCollection geoNFTCollection = geoNFTCollectionResult.Result;
-                geoNFTCollection.Web4OASISGeoNFTs.Clear();
+                geoNFTCollection.Web4GeoNFTs.Clear();
 
                 if (!mint || (mint && CLIEngine.GetConfirmation("Would you like to submit the WEB4 OASIS Geo-NFT Collection to WEB5 STARNET which will create a WEB5 STAR GeoNFT Collection that wraps around the WEB4 GeoNFT Collection allowing you to version control, publish, share, use in Our World, Quests, etc? (recommended).")))
                 {
@@ -214,8 +214,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine("");
             if (CLIEngine.GetConfirmation("Do you wish to add any WEB4 GeoNFT's to this collection now? (You can always add more later)."))
             {
-                request.Web4OASISGeoNFTs = new List<IWeb4OASISGeoSpatialNFT>();
-                OASISResult<IWeb4OASISGeoSpatialNFT> nftResult = null;
+                request.Web4GeoNFTs = new List<IWeb4GeoSpatialNFT>();
+                OASISResult<IWeb4GeoSpatialNFT> nftResult = null;
 
                 do
                 {
@@ -233,7 +233,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
 
                     if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
-                        request.Web4OASISGeoNFTs.Add(nftResult.Result);
+                        request.Web4GeoNFTs.Add(nftResult.Result);
                     else
                     {
                         string msg = nftResult != null ? nftResult.Message : "";
@@ -242,7 +242,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
 
                     CLIEngine.ShowSuccessMessage("WEB4 Geo-NFT Successfully Added To The Collection.");
-                    ShowGeoNFTCollectionNFTs(request.Web4OASISGeoNFTs);
+                    ShowGeoNFTCollectionNFTs(request.Web4GeoNFTs);
 
                 } while (CLIEngine.GetConfirmation("Do you wish to add another WEB4 GeoNFT to this collection?"));
             }
@@ -369,7 +369,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return result;
             }
 
-            OASISResult<IWeb4OASISGeoSpatialNFT> geoNft = await STARCLI.GeoNFTs.FindWeb4GeoNFTAsync("add", nftIdOrName, true);
+            OASISResult<IWeb4GeoSpatialNFT> geoNft = await STARCLI.GeoNFTs.FindWeb4GeoNFTAsync("add", nftIdOrName, true);
 
             if (geoNft == null || geoNft.Result == null || geoNft.IsError)
             {
@@ -399,7 +399,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return result;
             }
 
-            OASISResult<IWeb4OASISGeoSpatialNFT> geoNft = await STARCLI.GeoNFTs.FindWeb4GeoNFTAsync("add", nftIdOrName, true);
+            OASISResult<IWeb4GeoSpatialNFT> geoNft = await STARCLI.GeoNFTs.FindWeb4GeoNFTAsync("add", nftIdOrName, true);
 
             if (geoNft == null || geoNft.Result == null || geoNft.IsError)
             {
@@ -708,30 +708,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             collection.MetaData.Remove("ImageUrl");
             collection.MetaData.Remove("Thumbnail");
             collection.MetaData.Remove("ThumbnailUrl");
-            collection.MetaData.Remove("Web4OASISGeoNFTs");
-            collection.MetaData.Remove("Web4OASISGeoNFTIds");
+            collection.MetaData.Remove("Web4GeoNFTs");
+            collection.MetaData.Remove("Web4GeoNFTIds");
             collection.MetaData.Remove("Tags");
 
             MetaDataHelper.ShowMetaData(collection.MetaData, displayFieldLength);
             collection.MetaData = metaData;
 
-            if (collection.Web4OASISGeoNFTs.Count() == 0 && collection.Web4OASISGeoNFTIds.Count() > 0)
+            if (collection.Web4GeoNFTs.Count() == 0 && collection.Web4GeoNFTIds.Count() > 0)
             {
-                OASISResult<IList<IWeb4OASISGeoSpatialNFT>> nfts = await NFTCommon.NFTManager.LoadChildWeb4GeoNFTsForNFTCollectionAsync(collection.Web4OASISGeoNFTIds);
+                OASISResult<IList<IWeb4GeoSpatialNFT>> nfts = await NFTCommon.NFTManager.LoadChildWeb4GeoNFTsForNFTCollectionAsync(collection.Web4GeoNFTIds);
 
                 if (nfts != null && nfts.Result != null && !nfts.IsError)
-                    collection.Web4OASISGeoNFTs = nfts.Result.ToList();
+                    collection.Web4GeoNFTs = nfts.Result.ToList();
                 else
                     CLIEngine.ShowErrorMessage($"Error occured loading child nfts. Reason: {nfts.Message}");
             }
 
-            ShowGeoNFTCollectionNFTs(collection.Web4OASISGeoNFTs, showDetailedInfo, 20);
+            ShowGeoNFTCollectionNFTs(collection.Web4GeoNFTs, showDetailedInfo, 20);
 
             if (showFooter)
                 CLIEngine.ShowDivider();
         }
 
-        private void ShowGeoNFTCollectionNFTs(IEnumerable<IWeb4OASISGeoSpatialNFT> geoNFTs, bool showDetailed = false, int defaultFieldLength = 37)
+        private void ShowGeoNFTCollectionNFTs(IEnumerable<IWeb4GeoSpatialNFT> geoNFTs, bool showDetailed = false, int defaultFieldLength = 37)
         {
             if (geoNFTs != null)
             {
@@ -740,7 +740,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (showDetailed)
                 {
-                    foreach (IWeb4OASISGeoSpatialNFT geoNFT in geoNFTs)
+                    foreach (IWeb4GeoSpatialNFT geoNFT in geoNFTs)
                     {
                         if (geoNFT != null)
                         {
@@ -756,7 +756,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     CLIEngine.ShowMessage(string.Concat("ID".PadRight(defaultFieldLength), " | TITLE".PadRight(defaultFieldLength), " | LAT/LONG"));
 
-                    foreach (IWeb4OASISGeoSpatialNFT geoNFT in geoNFTs)
+                    foreach (IWeb4GeoSpatialNFT geoNFT in geoNFTs)
                     {
                         if (geoNFT != null)
                             CLIEngine.ShowMessage(string.Concat(geoNFT.Id.ToString().PadRight(defaultFieldLength), " | ", geoNFT.Title.PadRight(34), " | ", $"{geoNFT.Lat}/{geoNFT.Long}"), false);

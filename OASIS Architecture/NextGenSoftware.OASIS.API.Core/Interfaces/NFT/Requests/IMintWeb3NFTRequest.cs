@@ -1,5 +1,4 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
 {

@@ -1,13 +1,10 @@
-﻿using System.Collections.Generic;
-using Grpc.Core;
-using Nethereum.RPC.Eth;
-using NextGenSoftware.CLI.Engine;
+﻿using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
@@ -101,10 +98,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendToken(ProviderType providerTypeToLoadSave = ProviderType.Default)
+        public async Task<OASISResult<ISendWeb4TokenResponse>> SendToken(ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
-            OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
-            IWalletTransactionRequest request = new WalletTransactionRequest()
+            OASISResult<ISendWeb4TokenResponse> result = new OASISResult<ISendWeb4TokenResponse>();
+            ISendWeb4TokenRequest request = new SendWeb4TokenRequest()
             {
                 FromAvatarId = STAR.BeamedInAvatar.Id,
                 FromAvatarEmail = STAR.BeamedInAvatar.Email,
@@ -196,7 +193,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             string path = CLIEngine.GetValidFile("What is the full path to the JSON file?");
             CLIEngine.ShowWorkingMessage("Importing Wallet..");
-            result = STAR.OASISAPI.Wallets.ImportWalletUsingJSONFile(STAR.BeamedInAvatar.Id, path);
+            result = STAR.OASISAPI.Wallets.ImportWalletUsingJSONFileById(STAR.BeamedInAvatar.Id, path);
 
             if (result != null && result.Result != null && !result.IsError)
             {
@@ -209,18 +206,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> ImportWalletsUsingJSONFile(ProviderType providerTypeToSaveTo = ProviderType.Default)
+        public OASISResult<IProviderWallet> ImportWalletsUsingJSONFile(ProviderType providerTypeToSaveTo = ProviderType.Default)
         {
-            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
             string path = CLIEngine.GetValidFile("What is the full path to the JSON file?");
             CLIEngine.ShowWorkingMessage("Importing Wallets..");
-            result = STAR.OASISAPI.Wallets.ImportWalletsUsingJSONFile(STAR.BeamedInAvatar.Id, path);
+            result = STAR.OASISAPI.Wallets.ImportWalletUsingJSONFileById(STAR.BeamedInAvatar.Id, path);
 
             if (result != null && result.Result != null && !result.IsError)
             {
                 CLIEngine.ShowSuccessMessage("Wallets Successfully Imported", addLineBefore: true);
-                ShowWallets(result.Result);
+                ShowWallet(result.Result);
             }
             else
                 CLIEngine.ShowErrorMessage($"Error Occured Importing Wallets. Reason: {result.Message}", addLineBefore: true);

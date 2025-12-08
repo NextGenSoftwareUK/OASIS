@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
@@ -87,7 +88,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (collectionResult != null && collectionResult.Result != null && !collectionResult.IsError)
             {
                 IWeb4NFTCollection collection = collectionResult.Result;
-                collection.Web4OASISNFTs.Clear();
+                collection.Web4NFTs.Clear();
 
                 if (!mint || (mint && CLIEngine.GetConfirmation("Would you like to submit the WEB4 OASIS NFT Collection to WEB5 STARNET which will create a WEB5 STAR NFT Collection that wraps around the WEB4 OASISNFT Collection allowing you to version control, publish, share, use in Our World, Quests, etc? (recommended).")))
                 {
@@ -228,7 +229,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine("");
             if (CLIEngine.GetConfirmation("Do you wish to add any WEB4 NFTs to this collection now? (You can always add more later)."))
             {
-                request.Web4OASISNFTs = new List<IWeb4NFT>();
+                request.Web4NFTs = new List<IWeb4NFT>();
                 OASISResult<IWeb4NFT> nftResult = null;
 
                 do
@@ -247,7 +248,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
 
                     if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
-                        request.Web4OASISNFTs.Add(nftResult.Result);
+                        request.Web4NFTs.Add(nftResult.Result);
                     else
                     {
                         string msg = nftResult != null ? nftResult.Message : "";
@@ -256,7 +257,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
 
                     CLIEngine.ShowSuccessMessage("WEB4 NFT Successfully Added To The Collection.");
-                    ShowNFTCollectionNFTs(request.Web4OASISNFTs);
+                    ShowNFTCollectionNFTs(request.Web4NFTs);
 
                 } while (CLIEngine.GetConfirmation("Do you wish to add another WEB4 NFT to this collection?"));
             }
@@ -690,24 +691,24 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             collection.MetaData.Remove("ImageUrl");
             collection.MetaData.Remove("Thumbnail");
             collection.MetaData.Remove("ThumbnailUrl");
-            collection.MetaData.Remove("Web4OASISNFTs");
+            collection.MetaData.Remove("Web4NFTs");
             collection.MetaData.Remove("Web4OASISNFTIds");
             collection.MetaData.Remove("Tags");
 
             MetaDataHelper.ShowMetaData(collection.MetaData, displayFieldLength);
             collection.MetaData = metaData;
 
-            if (collection.Web4OASISNFTs.Count() == 0 && collection.Web4OASISNFTIds.Count() > 0)
+            if (collection.Web4NFTs.Count() == 0 && collection.Web4NFTIds.Count() > 0)
             {
-                OASISResult<IList<IWeb4NFT>> nfts = await NFTCommon.NFTManager.LoadChildWeb4NFTsForNFTCollectionAsync(collection.Web4OASISNFTIds);
+                OASISResult<IList<IWeb4NFT>> nfts = await NFTCommon.NFTManager.LoadChildWeb4NFTsForNFTCollectionAsync(collection.Web4NFTIds);
 
                 if (nfts != null && nfts.Result != null && !nfts.IsError)
-                    collection.Web4OASISNFTs = nfts.Result.ToList();
+                    collection.Web4NFTs = nfts.Result.ToList();
                 else
                     CLIEngine.ShowErrorMessage($"Error occured loading child nfts. Reason: {nfts.Message}");
             }
 
-            ShowNFTCollectionNFTs(collection.Web4OASISNFTs, showDetailedInfo, 20);
+            ShowNFTCollectionNFTs(collection.Web4NFTs, showDetailedInfo, 20);
 
             if (showFooter)
                 CLIEngine.ShowDivider();

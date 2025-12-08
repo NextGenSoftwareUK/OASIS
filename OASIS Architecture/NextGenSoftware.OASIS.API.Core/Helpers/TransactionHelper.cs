@@ -1,12 +1,12 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
-using NextGenSoftware.OASIS.Common;
+﻿using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
     public static class TransactionHelper
     {
-        public static bool CheckForTransactionErrors(ref OASISResult<ITransactionRespone> transactionResult, bool automaticallyHandleError = true, string errorMessage = "Error occured during the transaction. Reason: ", string detailedMessage = "", bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, bool onlyLogToInnerMessages = false)
+        public static bool CheckForTransactionErrors(ref OASISResult<ITransactionResponse> transactionResult, bool automaticallyHandleError = true, string errorMessage = "Error occured during the transaction. Reason: ", string detailedMessage = "", bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, bool onlyLogToInnerMessages = false)
         {
             //TODO: Check that this captures all errors that can be returned.
             if (!string.IsNullOrEmpty(transactionResult.Result.TransactionResult) && !transactionResult.Result.TransactionResult.ToLower().Contains("error"))
@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return transactionResult.IsError;
         }
 
-        public static bool CheckForTransactionErrors(ref OASISResult<IWeb3NFTTransactionRespone> transactionResult, bool automaticallyHandleError = true, string errorMessage = "Error occured during the transaction. Reason: ", string detailedMessage = "", bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, bool onlyLogToInnerMessages = false)
+        public static bool CheckForTransactionErrors(ref OASISResult<IWeb3NFTTransactionResponse> transactionResult, bool automaticallyHandleError = true, string errorMessage = "Error occured during the transaction. Reason: ", string detailedMessage = "", bool log = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, bool onlyLogToInnerMessages = false)
         {
             //TODO: Check that this captures all errors that can be returned.
             if (!string.IsNullOrEmpty(transactionResult.Result.TransactionResult) && !transactionResult.Result.TransactionResult.ToLower().Contains("error"))
