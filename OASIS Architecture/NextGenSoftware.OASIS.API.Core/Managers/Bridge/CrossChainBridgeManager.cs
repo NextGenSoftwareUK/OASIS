@@ -139,11 +139,13 @@ private const string Starknet = "STARKNET";
 
             decimal convertedAmount = exchangeRateResult.Result * request.Amount;
 
-            // Check if this is a supported swap pair (SOL ↔ XRD, SOL ↔ ETH, ETH ↔ SOL)
+            // Check if this is a supported swap pair (SOL ↔ XRD, SOL ↔ ETH, ETH ↔ SOL, ZEC ↔ SOL, SOL ↔ ZEC)
             var isSupportedPair = (fromToken == Sol && toToken == Xrd) ||
                                   (fromToken == Xrd && toToken == Sol) ||
                                   (fromToken == Sol && toToken == Eth) ||
-                                  (fromToken == Eth && toToken == Sol);
+                                  (fromToken == Eth && toToken == Sol) ||
+                                  (fromToken == Zec && toToken == Sol) ||
+                                  (fromToken == Sol && toToken == Zec);
             
             if (isSupportedPair)
             {
@@ -771,4 +773,6 @@ private const string Starknet = "STARKNET";
         return result;
     }
 }
+
+
 

@@ -242,3 +242,4 @@ Want me to create the updated metadata upload script with your preferred:
 3. Weight multipliers (1x, 2x, 5x or different)?
 
 Let me know and I'll generate all 432 metadata files! 🎯
+

@@ -1003,31 +1003,227 @@ async function linkTelegramAccount() {
     }
 }
 
+let linkStatusPollInterval = null;
+
 function showLinkInstructionsModal(code, instructions) {
+    // Close any existing modal
+    const existingModal = document.querySelector('.telegram-link-modal')?.closest('.modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
     // Create modal
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = `
-        <div class="modal-overlay" onclick="this.closest('.modal').remove()"></div>
+        <div class="modal-overlay" onclick="closeTelegramLinkModal()"></div>
         <div class="modal-content telegram-link-modal">
-            <button class="modal-close" onclick="this.closest('.modal').remove()">×</button>
-            <h2>Link Telegram Account</h2>
-            <div class="telegram-link-instructions">
-                <p>1. Open Telegram and find the OASIS bot</p>
-                <p>2. Send the following command:</p>
-                <div class="telegram-link-code">
-                    <code>/link {code}</code>
-                    <button onclick="copyToClipboard('telegram-link-code-text')">Copy</button>
-                </div>
-                <p id="telegram-link-code-text" style="display: none;">/link ${code}</p>
-                <p>3. The bot will confirm the link</p>
-                <p>4. Refresh this page to see your rewards</p>
+            <button class="modal-close" onclick="closeTelegramLinkModal()">×</button>
+            
+            <div class="telegram-link-header">
+                <div class="telegram-link-icon">📱</div>
+                <h2>Link Your Telegram Account</h2>
+                <p>Follow these steps to connect your Telegram account</p>
             </div>
-            <button class="btn-primary" onclick="this.closest('.modal').remove()">Got it</button>
+            
+            <div class="telegram-link-steps">
+                <div class="telegram-link-step active">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Open Telegram</h3>
+                        <p>Open the Telegram app or <a href="https://web.telegram.org" target="_blank">web.telegram.org</a></p>
+                    </div>
+                </div>
+                
+                <div class="telegram-link-step active">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Find OASIS Bot</h3>
+                        <p>Search for <strong>@OASISBot</strong> or click:</p>
+                        <a href="https://t.me/OASISBot" target="_blank" class="telegram-bot-link">
+                            Open @OASISBot →
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="telegram-link-step active">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Send Link Command</h3>
+                        <p>Copy and send this command to the bot:</p>
+                        <div class="telegram-link-code-box">
+                            <code id="link-command-text">/link ${code}</code>
+                            <button class="copy-btn" onclick="copyTelegramLinkCommand()">
+                                <span class="copy-icon">📋</span>
+                                Copy
+                            </button>
+                        </div>
+                        <p class="code-expires">⏰ Code expires in 10 minutes</p>
+                    </div>
+                </div>
+                
+                <div class="telegram-link-step" id="link-step-4">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Wait for Confirmation</h3>
+                        <p>The bot will confirm when your account is linked.</p>
+                        <div class="link-status-indicator" id="link-status-indicator">
+                            <div class="status-spinner"></div>
+                            <span>Waiting for verification...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="telegram-link-actions">
+                <button class="btn-secondary" onclick="closeTelegramLinkModal()">Cancel</button>
+                <button class="btn-primary" onclick="checkTelegramLinkStatus()">Check Status</button>
+            </div>
+            
+            <div class="telegram-link-help">
+                <p>💡 <strong>Tip:</strong> Keep this window open. We'll automatically detect when your account is linked.</p>
+            </div>
         </div>
     `;
     document.body.appendChild(modal);
+    
+    // Start polling for link status
+    startTelegramLinkStatusPolling();
 }
+
+function startTelegramLinkStatusPolling() {
+    // Clear any existing polling
+    if (linkStatusPollInterval) {
+        clearInterval(linkStatusPollInterval);
+    }
+    
+    // Check every 3 seconds
+    linkStatusPollInterval = setInterval(async () => {
+        const linked = await checkTelegramLinkStatus();
+        if (linked) {
+            clearInterval(linkStatusPollInterval);
+            linkStatusPollInterval = null;
+            showTelegramLinkSuccess();
+            // Refresh dashboard after a short delay
+            setTimeout(() => {
+                loadTelegramGamification();
+            }, 1000);
+        }
+    }, 3000);
+    
+    // Stop after 10 minutes (code expires)
+    setTimeout(() => {
+        if (linkStatusPollInterval) {
+            clearInterval(linkStatusPollInterval);
+            linkStatusPollInterval = null;
+            showTelegramLinkExpired();
+        }
+    }, 600000);
+}
+
+async function checkTelegramLinkStatus() {
+    const authData = localStorage.getItem('oasis_auth');
+    if (!authData) return false;
+    
+    try {
+        const auth = JSON.parse(authData);
+        const avatarId = auth.avatar?.id || auth.avatar?.avatarId;
+        
+        if (!avatarId) return false;
+        
+        const response = await oasisAPI.request(
+            `/api/telegram/link-status/${avatarId}`
+        );
+        
+        if (response.isError || !response.result) {
+            return false;
+        }
+        
+        return response.result.linked === true;
+    } catch (error) {
+        console.error('Error checking link status:', error);
+        return false;
+    }
+}
+
+function copyTelegramLinkCommand() {
+    const commandText = document.getElementById('link-command-text');
+    if (!commandText) return;
+    
+    const command = commandText.textContent;
+    navigator.clipboard.writeText(command).then(() => {
+        const btn = event.target.closest('.copy-btn');
+        if (btn) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="copy-icon">✓</span> Copied!';
+            btn.style.background = 'rgba(34, 197, 94, 0.2)';
+            btn.style.color = 'rgba(34, 197, 94, 1)';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.background = '';
+                btn.style.color = '';
+            }, 2000);
+        }
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy. Please copy manually: ' + command);
+    });
+}
+
+function closeTelegramLinkModal() {
+    // Stop polling
+    if (linkStatusPollInterval) {
+        clearInterval(linkStatusPollInterval);
+        linkStatusPollInterval = null;
+    }
+    
+    const modal = document.querySelector('.telegram-link-modal')?.closest('.modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function showTelegramLinkSuccess() {
+    const modal = document.querySelector('.telegram-link-modal')?.closest('.modal');
+    if (modal) {
+        const modalContent = modal.querySelector('.modal-content');
+        modalContent.innerHTML = `
+            <div class="link-success-content">
+                <div class="success-icon">✅</div>
+                <h2>Successfully Linked!</h2>
+                <p>Your Telegram account is now connected to your OASIS avatar.</p>
+                <p class="success-message">You can now earn rewards for your Telegram activity!</p>
+                <button class="btn-primary" onclick="closeTelegramLinkModal(); loadTelegramGamification(); if(typeof loadTelegramMessageSection === 'function') { loadTelegramMessageSection(); }">
+                    View Telegram Dashboard
+                </button>
+            </div>
+        `;
+        modalContent.classList.add('success');
+    }
+    
+    // Also refresh message section if on dashboard
+    if (typeof loadTelegramMessageSection === 'function') {
+        setTimeout(() => {
+            loadTelegramMessageSection();
+        }, 1000);
+    }
+}
+
+function showTelegramLinkExpired() {
+    const statusIndicator = document.getElementById('link-status-indicator');
+    if (statusIndicator) {
+        statusIndicator.innerHTML = `
+            <div class="status-error">⏰</div>
+            <span style="color: rgba(239, 68, 68, 1);">Code expired. Please generate a new one.</span>
+        `;
+    }
+}
+
+// Make functions globally available
+window.closeTelegramLinkModal = closeTelegramLinkModal;
+window.copyTelegramLinkCommand = copyTelegramLinkCommand;
+window.checkTelegramLinkStatus = checkTelegramLinkStatus;
 
 async function disconnectTelegram() {
     if (!confirm('Are you sure you want to disconnect your Telegram account?')) {
@@ -1051,6 +1247,11 @@ async function disconnectTelegram() {
 
         // Reload Telegram section
         await loadTelegramGamification();
+        
+        // Reload message section if on dashboard
+        if (typeof loadTelegramMessageSection === 'function') {
+            loadTelegramMessageSection();
+        }
 
     } catch (error) {
         console.error('Error disconnecting Telegram:', error);
@@ -1358,8 +1559,13 @@ function handleTelegramUpdate(update) {
             break;
     }
 
-    // Refresh the dashboard
-    loadTelegramGamification();
+        // Refresh the dashboard
+        loadTelegramGamification();
+        
+        // Refresh message section if on dashboard
+        if (typeof loadTelegramMessageSection === 'function') {
+            loadTelegramMessageSection();
+        }
 }
 
 /**

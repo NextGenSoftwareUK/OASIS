@@ -1,14 +1,25 @@
 # PathPulse Pilot Onboarding - December 1st Launch
 
 **Pilot Start Date:** December 1st, 2025  
-**Days Until Launch:** 10 days  
-**Status:** Preparation Phase
+**Days Until Launch:** 7 days  
+**Goal: 200 Driver Signups**  
+**Status:** 🟢 ACTIVE - Preparation Phase
 
 ---
 
 ## 📋 Overview
 
-This folder contains all materials and resources needed to onboard TimoRides drivers to the PathPulse platform for the December 1st pilot program. The goal is to ensure drivers are fully prepared and incentivized to participate in data collection and use the PathPulse app.
+This folder contains all materials and resources needed to onboard **200 TimoRides drivers** to the PathPulse/Timo Scout platform for the December 1st pilot program. The goal is to coordinate driver outreach, ensure drivers understand they can **earn 10%+ more per day**, and collect data for the South African government MOU.
+
+## 🚀 Quick Start
+
+**NEW: Start here for 7-day action plan:**
+- **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - Quick start guide (2 min read)
+- **[PATHPULSE_PILOT_7DAY_ACTION_PLAN.md](./PATHPULSE_PILOT_7DAY_ACTION_PLAN.md)** - Complete 7-day timeline
+- **[KANBAN_BOARD.md](./KANBAN_BOARD.md)** - Task tracking board (update daily)
+- **[DRIVER_OUTREACH_MESSAGING.md](./DRIVER_OUTREACH_MESSAGING.md)** - All message templates
+- **[CRM/CRM_SETUP_GUIDE.md](./CRM/CRM_SETUP_GUIDE.md)** - CRM setup (5 min setup)
+- **[SEO_CAMPAIGN_STRATEGY.md](./SEO_CAMPAIGN_STRATEGY.md)** - SEO content plan
 
 ---
 
@@ -80,34 +91,47 @@ Project timeline and milestones:
 
 ---
 
-## 📅 Critical Timeline
+## 📅 Critical Timeline (7 Days)
 
-**Day 1-2 (Today - Tomorrow)**
-- Finalize requirements document
-- Design incentive program structure
+**See [PATHPULSE_PILOT_7DAY_ACTION_PLAN.md](./PATHPULSE_PILOT_7DAY_ACTION_PLAN.md) for detailed daily tasks.**
+
+**Day 1 (Today) - Foundation Setup**
+- Set up project management board
+- Create CRM structure (Google Sheets - 5 min)
+- Finalize messaging: "Earn 10%+ more per day"
 - Set up communication channels
 
-**Day 3-4**
-- Create landing page content
-- Develop email templates
-- Prepare onboarding materials
+**Day 2 - Content & Messaging**
+- Finalize all communication templates
+- Create SEO content strategy
+- Design visual assets
 
-**Day 5-6**
-- Set up CRM system
-- Test communication workflows
-- Review all materials
+**Day 3 - Technical Setup**
+- Set up CRM system fully
+- Integrate WhatsApp/Telegram/Email
+- Launch landing page
 
-**Day 7-8**
-- Soft launch with test group
+**Day 4 - Soft Launch & Testing**
+- Test group (20-30 drivers)
 - Gather feedback
-- Make final adjustments
+- Refine strategy
 
-**Day 9**
-- Final review and approval
-- Prepare launch communications
+**Day 5 - Full Outreach Launch**
+- Launch full campaign
+- Contact 150+ drivers
+- Monitor responses
 
-**Day 10 (December 1st)**
-- **PILOT LAUNCH** 🚀
+**Day 6 - Scale & Optimize**
+- Contact remaining drivers
+- Intensify follow-ups
+- Launch SEO content
+
+**Day 7 - Final Push**
+- Final outreach
+- Verify 200+ signups
+- Prepare for December 1st launch
+
+**December 1st - PILOT LAUNCH** 🚀
 
 ---
 

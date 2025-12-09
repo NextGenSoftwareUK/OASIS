@@ -557,3 +557,6 @@ markups (many) ──→ (many) quotes (via markupConfigId)
 
 **Document Status**: ✅ Complete - Ready for Implementation (Task 1.3)
 
+
+
+

@@ -23,7 +23,10 @@ using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.Common;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -42,8 +45,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         // Note: AvatarService is being phased out, use AvatarManager directly
         // private IAvatarService _avatarService => Program.AvatarService;
         
-        public AvatarController()
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<AvatarController> _logger;
+        
+        public AvatarController(IConfiguration configuration, ILogger<AvatarController> logger, IEmailService emailService = null)
         {
+            _emailService = emailService;
+            _configuration = configuration;
+            _logger = logger;
         }
 
         /// <summary>
@@ -69,6 +79,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
                 OASISType.OASISAPIREST
             );
+            
+            // Send verification email if registration was successful
+            if (!result.IsError && result.Result != null && _emailService != null && _emailService.IsConfigured())
+            {
+                try
+                {
+                    // Get verification token from avatar (if available)
+                    var avatar = result.Result;
+                    var verificationToken = avatar.VerificationToken;
+                    
+                    if (!string.IsNullOrEmpty(verificationToken))
+                    {
+                        var baseUrl = _configuration["Email:VerificationBaseUrl"] 
+                            ?? _configuration["FrontendUrl"] 
+                            ?? "https://oasisweb4.com";
+                        
+                        var verificationUrl = $"{baseUrl}/verify-email?token={Uri.EscapeDataString(verificationToken)}";
+                        
+                        var emailResult = await _emailService.SendVerificationEmailAsync(new EmailVerificationData
+                        {
+                            To = model.Email,
+                            Username = model.Username,
+                            VerificationToken = verificationToken,
+                            VerificationUrl = verificationUrl,
+                            Subject = "OASIS Avatar Email Verification"
+                        });
+                        
+                        if (emailResult.Success)
+                        {
+                            _logger?.LogInformation("✅ Verification email sent to {Email} for username: {Username}", 
+                                model.Email, model.Username);
+                        }
+                        else
+                        {
+                            _logger?.LogWarning("⚠️ Failed to send verification email to {Email}: {Error}", 
+                                model.Email, emailResult.ErrorMessage);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Don't fail registration if email sending fails
+                    _logger?.LogError(ex, "❌ Error sending verification email to {Email}", model.Email);
+                }
+            }
             
             return HttpResponseHelper.FormatResponse(result);
         }

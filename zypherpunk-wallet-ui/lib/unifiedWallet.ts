@@ -1,4 +1,5 @@
-import type { ProviderType, Wallet } from './types';
+import type { Wallet } from './types';
+import { ProviderType } from './types';
 import { keysAPI } from './keysApi';
 import { oasisWalletAPI } from './api';
 
@@ -6,24 +7,25 @@ export interface UnifiedWallet {
   id: string;
   avatarId: string;
   mnemonic: string; // Store encrypted or in secure storage
-  wallets: Partial<Record<ProviderType, Wallet>>;
+  wallets: Partial<Record<ProviderType, Wallet[]>>;
   createdAt: string;
   totalBalance: number;
 }
 
 /**
  * Supported providers for unified wallet generation
- * Includes privacy-focused chains: Zcash, Aztec, Miden, Starknet
+ * Privacy-focused chains first: Zcash, Aztec, Miden, Starknet
+ * Then other major chains: Ethereum, Solana, Polygon, Arbitrum
  */
 export const UNIFIED_WALLET_PROVIDERS: ProviderType[] = [
-  ProviderType.SolanaOASIS,
-  ProviderType.EthereumOASIS,
-  ProviderType.PolygonOASIS,
-  ProviderType.ArbitrumOASIS,
-  ProviderType.ZcashOASIS,      // Privacy chain - shielded transactions
-  ProviderType.AztecOASIS,       // Privacy chain - zk-rollup
-  ProviderType.MidenOASIS,      // Privacy chain - STARK-based zkVM
-  ProviderType.StarknetOASIS,   // Privacy chain - Cairo smart contracts
+  ProviderType.ZcashOASIS,      // Privacy chain - shielded transactions (Zypherpunk primary)
+  ProviderType.AztecOASIS,       // Privacy chain - zk-rollup (Zypherpunk primary)
+  ProviderType.MidenOASIS,      // Privacy chain - STARK-based zkVM (Zypherpunk primary)
+  ProviderType.StarknetOASIS,   // Privacy chain - Cairo smart contracts (Zypherpunk primary)
+  ProviderType.EthereumOASIS,   // Major L1
+  ProviderType.SolanaOASIS,     // High-throughput L1
+  ProviderType.PolygonOASIS,    // L2 scaling
+  ProviderType.ArbitrumOASIS,   // L2 scaling
 ];
 
 /**
@@ -320,20 +322,25 @@ export async function createUnifiedWallet(
   mnemonic?: string
 ): Promise<UnifiedWallet> {
   const seedPhrase = mnemonic || generateMnemonic(12);
-  const wallets: Partial<Record<ProviderType, Wallet>> = {};
+  const wallets: Partial<Record<ProviderType, Wallet[]>> = {};
 
   // Generate wallets for all supported providers
+  console.log('Creating unified wallet for providers:', UNIFIED_WALLET_PROVIDERS);
+  
   for (const providerType of UNIFIED_WALLET_PROVIDERS) {
     try {
+      console.log(`Creating wallet for ${providerType}...`);
+      
       // Generate keypair for this provider
       const keypairResult = await keysAPI.generateKeypair(avatarId, providerType);
       
       if (keypairResult.isError || !keypairResult.result) {
-        console.warn(`Failed to generate keypair for ${providerType}:`, keypairResult.message);
+        console.error(`❌ Failed to generate keypair for ${providerType}:`, keypairResult.message);
         continue;
       }
 
       const { privateKey, publicKey, walletAddress } = keypairResult.result;
+      console.log(`✅ Generated keypair for ${providerType}, wallet address: ${walletAddress?.substring(0, 10)}...`);
 
       // Link the keys to create the wallet
       const linkResult = await keysAPI.linkKeys({
@@ -345,18 +352,28 @@ export async function createUnifiedWallet(
       });
 
       if (linkResult.isError || !linkResult.result) {
-        console.warn(`Failed to link keys for ${providerType}:`, linkResult.message);
+        console.error(`❌ Failed to link keys for ${providerType}:`, linkResult.message);
         continue;
       }
 
-      // Load the created wallet
-      const walletResult = await oasisWalletAPI.loadWalletsById(avatarId, providerType);
+      console.log(`✅ Linked keys for ${providerType}, wallet ID: ${linkResult.result.walletId}`);
+
+      // Wait a bit for the wallet to be saved
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Load the created wallet - try loading all wallets first, then filter by provider
+      const walletResult = await oasisWalletAPI.loadWalletsById(avatarId);
       
       if (!walletResult.isError && walletResult.result) {
         const providerWallets = walletResult.result[providerType];
         if (providerWallets && providerWallets.length > 0) {
           wallets[providerType] = providerWallets;
+          console.log(`✅ Created wallet for ${providerType}:`, providerWallets.length, 'wallets');
+        } else {
+          console.warn(`⚠️ Wallet created for ${providerType} but not found when loading`);
         }
+      } else {
+        console.error(`❌ Failed to load wallets for ${providerType}:`, walletResult.message);
       }
     } catch (error) {
       console.error(`Error creating wallet for ${providerType}:`, error);

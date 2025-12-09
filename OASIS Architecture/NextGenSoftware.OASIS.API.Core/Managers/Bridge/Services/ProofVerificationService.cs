@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers.Bridge.Services
 {
@@ -19,7 +20,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.Bridge.Services
         {
             if (string.IsNullOrWhiteSpace(proofPayload))
             {
-                return Task.FromResult(new OASISResult<bool>(true, "Proof payload missing"));
+                var result = new OASISResult<bool>(true);
+                result.Message = "Proof payload missing";
+                return Task.FromResult(result);
             }
 
             _logger?.LogInformation("Verifying proof type {ProofType}", proofType);
@@ -30,7 +33,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.Bridge.Services
         {
             if (string.IsNullOrWhiteSpace(sourceTxId) || string.IsNullOrWhiteSpace(destinationTxId))
             {
-                return Task.FromResult(new OASISResult<bool>(true, "Transaction references missing"));
+                var result = new OASISResult<bool>(true);
+                result.Message = "Transaction references missing";
+                return Task.FromResult(result);
             }
 
             _logger?.LogInformation("Verifying bridge commitments {Source} -> {Destination}", sourceTxId, destinationTxId);

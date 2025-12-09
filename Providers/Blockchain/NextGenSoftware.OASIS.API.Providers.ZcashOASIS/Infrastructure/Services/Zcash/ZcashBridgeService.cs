@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Interfaces;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services.Zcash
 {
@@ -26,7 +27,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
         {
             if (string.IsNullOrWhiteSpace(accountAddress))
-                return new OASISResult<decimal>(true, "Address is required");
+            {
+                var result = new OASISResult<decimal>();
+                result.IsError = true;
+                result.Message = "Address is required";
+                return result;
+            }
 
             return await _rpcClient.GetBalanceAsync(accountAddress);
         }
@@ -38,7 +44,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
             var addressResult = await _rpcClient.GetNewAddressAsync();
             if (addressResult.IsError)
             {
-                return new OASISResult<(string, string, string)>(true, addressResult.Message);
+                var result = new OASISResult<(string, string, string)>();
+                result.IsError = true;
+                result.Message = addressResult.Message;
+                return result;
             }
 
             var message = "Private key/seed management must be handled by the node wallet. Use z_exportwallet for backups.";
@@ -51,7 +60,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
         public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
         {
             // Not supported via RPC without wallet import operations.
-            return Task.FromResult(new OASISResult<(string, string)>(true, "Zcash RPC does not support restoring accounts via API. Import wallet manually."));
+            var result = new OASISResult<(string, string)>();
+            result.IsError = true;
+            result.Message = "Zcash RPC does not support restoring accounts via API. Import wallet manually.";
+            return Task.FromResult(result);
         }
 
         public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
@@ -60,7 +72,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
             var tx = await _rpcClient.SendShieldedTransactionAsync(senderAccountAddress ?? _bridgePoolAddress, _bridgePoolAddress, amount, "withdrawal");
             if (tx.IsError)
             {
-                return new OASISResult<BridgeTransactionResponse>(true, tx.Message);
+                var errorResult = new OASISResult<BridgeTransactionResponse>();
+                errorResult.IsError = true;
+                errorResult.Message = tx.Message;
+                return errorResult;
             }
 
             return new OASISResult<BridgeTransactionResponse>(new BridgeTransactionResponse(
@@ -76,7 +91,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
             var tx = await _rpcClient.SendShieldedTransactionAsync(_bridgePoolAddress, receiverAccountAddress, amount, "deposit");
             if (tx.IsError)
             {
-                return new OASISResult<BridgeTransactionResponse>(true, tx.Message);
+                var errorResult = new OASISResult<BridgeTransactionResponse>();
+                errorResult.IsError = true;
+                errorResult.Message = tx.Message;
+                return errorResult;
             }
 
             return new OASISResult<BridgeTransactionResponse>(new BridgeTransactionResponse(
@@ -92,7 +110,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
             var tx = await _rpcClient.GetTransactionAsync(transactionHash);
             if (tx.IsError)
             {
-                return new OASISResult<BridgeTransactionStatus>(true, tx.Message);
+                var errorResult = new OASISResult<BridgeTransactionStatus>();
+                errorResult.IsError = true;
+                errorResult.Message = tx.Message;
+                return errorResult;
             }
 
             return new OASISResult<BridgeTransactionStatus>(BridgeTransactionStatus.Completed);
@@ -206,7 +227,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
                 Id = Guid.NewGuid(),
                 Name = $"Bridge Viewing Key: {txId}",
                 Description = $"Viewing key for bridge transaction to {destinationChain}",
-                HolonType = Core.Enums.HolonType.Bridge,
+                HolonType = Core.Enums.HolonType.Default,
                 ProviderMetaData = new System.Collections.Generic.Dictionary<Core.Enums.ProviderType, System.Collections.Generic.Dictionary<string, string>>
                 {
                     {

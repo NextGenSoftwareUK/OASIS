@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Models;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services.Aztec
 {
@@ -306,8 +307,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
                 Id = Guid.NewGuid(),
                 Name = $"Aztec Bridge Event - {eventType}",
                 Description = $"Event reference: {reference}",
-                HolonType = Core.Enums.HolonType.Bridge,
-                MetaData = new System.Collections.Generic.Dictionary<string, string>
+                HolonType = Core.Enums.HolonType.Default,
+                MetaData = new System.Collections.Generic.Dictionary<string, object>
                 {
                     { "EventType", eventType },
                     { "Reference", reference },
@@ -337,7 +338,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
             var response = await _apiClient.PostAsync<AztecProof>("/proofs", new { type, payload });
             if (response.IsError)
             {
-                return new OASISResult<AztecProof>(true, response.Message);
+                var result = new OASISResult<AztecProof>();
+                result.IsError = true;
+                result.Message = response.Message;
+                return result;
             }
 
             response.Result.CreatedAt = DateTime.UtcNow;

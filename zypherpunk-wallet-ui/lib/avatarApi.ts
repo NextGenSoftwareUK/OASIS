@@ -1,6 +1,6 @@
 import type { AvatarAuthResponse, AvatarProfile, AvatarRegistrationRequest, OASISResult } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_OASIS_API_URL || 'http://api.oasisplatform.world';
+const API_BASE_URL = process.env.NEXT_PUBLIC_OASIS_API_URL || 'https://localhost:5004';
 
 // Use proxy in development to avoid CORS issues
 const USE_PROXY = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_USE_API_PROXY === 'true';
@@ -33,6 +33,8 @@ const normalizeAvatar = (avatar?: AvatarProfile | null): AvatarProfile | null =>
   return {
     ...avatar,
     id: avatar.id || avatar.avatarId,
+    verificationToken: avatar.verificationToken,
+    verified: avatar.verified,
   };
 };
 
@@ -111,24 +113,44 @@ class OASISAvatarAPI {
     // Use the dedicated authentication route that handles self-signed certs via curl
     // This matches the working implementation in nft-mint-frontend
     try {
+      // Always use the proxy route for authentication to handle self-signed certs
       const authUrl = USE_PROXY 
         ? '/api/authenticate' 
         : `${this.baseUrl}/api/avatar/authenticate`;
       
+      console.log('🔐 Attempting login:', { 
+        username, 
+        authUrl, 
+        useProxy: USE_PROXY,
+        baseUrl: this.baseUrl,
+        nodeEnv: process.env.NODE_ENV
+      });
+      
       const response = await fetch(authUrl, {
-        method: 'POST',
+          method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: JSON.stringify({ username, password, baseUrl: this.baseUrl }),
         mode: USE_PROXY ? 'same-origin' : 'cors',
-      });
+        credentials: 'same-origin',
+        });
+
+      console.log('🔐 Login response status:', response.status, response.statusText);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
-        throw new Error(errorData.message || `Authentication failed (HTTP ${response.status})`);
-      }
+        let errorMessage = `HTTP ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          const text = await response.text().catch(() => '');
+          errorMessage = text || errorMessage;
+        }
+        console.error('🔐 Login failed:', errorMessage);
+        throw new Error(errorMessage);
+        }
 
       const data = await response.json();
       
@@ -147,7 +169,7 @@ class OASISAvatarAPI {
       return {
         avatar,
         jwtToken: data.token,
-        refreshToken: null,
+        refreshToken: undefined,
         expiresIn: undefined,
       };
     } catch (error) {
@@ -166,7 +188,56 @@ class OASISAvatarAPI {
       throw new Error(response.message || 'Unable to create avatar');
     }
 
-    return normalizeAuthResponse(response);
+    // Extract verification token from response if available
+    const authResponse = normalizeAuthResponse(response);
+    
+    // Try to get verification token from nested response structure
+    let verificationToken: string | undefined;
+    if (response?.result?.result?.verificationToken) {
+      verificationToken = response.result.result.verificationToken;
+    } else if (response?.result?.verificationToken) {
+      verificationToken = response.result.verificationToken;
+    } else if (response?.verificationToken) {
+      verificationToken = response.verificationToken;
+    }
+    
+    // Add verification token to avatar if found
+    if (verificationToken && authResponse.avatar) {
+      authResponse.avatar.verificationToken = verificationToken;
+    }
+
+    return authResponse;
+  }
+
+  /**
+   * Verify email using verification token
+   */
+  async verifyEmail(token: string): Promise<OASISResult<boolean>> {
+    try {
+      const response = await this.request<OASISResult<boolean> | any>(`/api/avatar/verify-email?token=${encodeURIComponent(token)}`, {
+        method: 'GET',
+      });
+
+      if ('isError' in response && response.isError) {
+        return {
+          isError: true,
+          message: response.message || 'Email verification failed',
+        };
+      }
+
+      // Handle nested result structure
+      const result = response.result || response;
+      return {
+        isError: result.isError || false,
+        message: result.message || 'Email verified successfully',
+        result: result.result !== undefined ? result.result : result,
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        message: error instanceof Error ? error.message : 'Email verification failed',
+      };
+    }
   }
 
   async getAvatarById(avatarId: string): Promise<AvatarProfile> {

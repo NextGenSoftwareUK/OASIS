@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Wallet, Transaction, WalletTransactionRequest, WalletImportRequest, ProviderType, User, WalletStore } from './types';
+import type { Wallet, Transaction, WalletTransactionRequest, WalletImportRequest, User, WalletStore } from './types';
+import { ProviderType } from './types';
 import { oasisWalletAPI } from './api';
 import { starknetWalletAPI } from './api/starknetApi';
 import { normalizeProviderType } from './providerTypeMapper';
@@ -93,7 +94,7 @@ export const useWalletStore = create<WalletStore>()(
               
               // Group by normalized providerType
               normalizedList.forEach(wallet => {
-                const normalizedType = wallet.providerType;
+                const normalizedType = wallet.providerType as ProviderType;
                 if (!normalizedWallets[normalizedType]) {
                   normalizedWallets[normalizedType] = [];
                 }
@@ -107,6 +108,8 @@ export const useWalletStore = create<WalletStore>()(
           set({ wallets: normalizedWallets, isLoading: false, error: null });
 
           // Attempt to hydrate Starknet wallets via the dedicated endpoint
+          // Note: This is optional - Starknet wallets are already loaded from the main API
+          // This endpoint might not exist or might be for external Starknet integration
           try {
             const starknetResult = await starknetWalletAPI.getWallets(targetId);
             if (!starknetResult.isError && starknetResult.result?.length) {
@@ -118,7 +121,8 @@ export const useWalletStore = create<WalletStore>()(
               }));
             }
           } catch (error) {
-            console.warn('Failed to load Starknet wallets:', error);
+            // Silently ignore - Starknet wallets are already loaded from main API
+            // This endpoint is optional and may not be available
           }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to load wallets';

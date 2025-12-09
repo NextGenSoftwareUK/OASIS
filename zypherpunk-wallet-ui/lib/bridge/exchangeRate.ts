@@ -1,10 +1,18 @@
 const COINGECKO_API = 'https://api.coingecko.com/api/v3';
 
 const TOKEN_IDS: Record<string, string> = {
+  // Privacy chains (Zypherpunk primary)
+  ZEC: 'zcash',
+  AZTEC: 'aztec', // Note: May not have CoinGecko listing
+  MIDEN: 'miden', // Note: May not have CoinGecko listing
+  STRK: 'starknet',
+  // Major L1 chains
   SOL: 'solana',
   ETH: 'ethereum',
+  // L2 scaling solutions
   MATIC: 'matic-network',
   ARB: 'arbitrum',
+  // Other chains
   AVAX: 'avalanche-2',
   BNB: 'binancecoin',
   FTM: 'fantom',
@@ -80,10 +88,18 @@ function getFallbackRate(fromSymbol: string, toSymbol: string): number {
 
 function getFallbackUsdPrice(symbol: string): number {
   const table: Record<string, number> = {
+    // Privacy chains (Zypherpunk primary)
+    ZEC: 30, // Zcash approximate price
+    AZTEC: 1, // Placeholder - Aztec may not have public token
+    MIDEN: 1, // Placeholder - Miden may not have public token
+    STRK: 0.5, // Starknet approximate price
+    // Major L1 chains
     SOL: 150,
     ETH: 3200,
+    // L2 scaling solutions
     MATIC: 0.8,
     ARB: 1.2,
+    // Other chains
     AVAX: 35,
     BNB: 600,
     FTM: 0.6,

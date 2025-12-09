@@ -132,8 +132,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 // Convert Guid to string for MongoDB query since HolonId is stored as string in MongoDB
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("HolonId", id.ToString());
-                result.Result = await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
+                var idString = id.ToString();
+                System.Diagnostics.Debug.WriteLine($"MongoDB Query: Looking for avatar with HolonId='{idString}'");
+                
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("HolonId", idString);
+                var findResult = await _dbContext.Avatar.FindAsync(filter);
+                result.Result = await findResult.FirstOrDefaultAsync();
+                
+                System.Diagnostics.Debug.WriteLine($"MongoDB Query Result (HolonId): {(result.Result != null ? "FOUND" : "NOT FOUND")}");
+                
+                if (result.Result == null)
+                {
+                    // Try alternative query in case field name is different (case sensitivity)
+                    System.Diagnostics.Debug.WriteLine($"Trying alternative query with lowercase 'holonId'");
+                    filter = Builders<Avatar>.Filter.Eq("holonId", idString);
+                    findResult = await _dbContext.Avatar.FindAsync(filter);
+                    result.Result = await findResult.FirstOrDefaultAsync();
+                    System.Diagnostics.Debug.WriteLine($"MongoDB Query Result (holonId): {(result.Result != null ? "FOUND" : "NOT FOUND")}");
+                }
+                
+                if (result.Result == null)
+                {
+                    // Try querying by _id (ObjectId) as fallback
+                    System.Diagnostics.Debug.WriteLine($"Avatar not found by HolonId. Query may need adjustment.");
+                }
             }
             catch (Exception ex)
             {

@@ -4,6 +4,7 @@ using System;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop;
+using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.StarknetOASIS;
@@ -101,6 +102,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                                 ProviderManager.RegisterProvider(EOSIOOASIS); //TODO: Need to pass connection string in.
                             }
                             break;
+
+                        case ProviderType.LocalFileOASIS:
+                            {
+                                LocalFileOASIS localFileOASIS = new LocalFileOASIS();
+                                localFileOASIS.StorageProviderError += LocalFileOASIS_StorageProviderError;
+                                ProviderManager.RegisterProvider(localFileOASIS);
+                            }
+                            break;
                     }
                 }
 
@@ -151,6 +160,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         {
             //TODO: {URGENT} Handle Errors properly here (log, etc)
             //  throw new Exception(string.Concat("ERROR: StarknetOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+        }
+
+        private static void LocalFileOASIS_StorageProviderError(object sender, AvatarManagerErrorEventArgs e)
+        {
+            //TODO: {URGENT} Handle Errors properly here (log, etc)
+            //  throw new Exception(string.Concat("ERROR: LocalFileOASIS_StorageProviderError. EndPoint: ", e.EndPoint, "Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
     }
 }

@@ -128,15 +128,15 @@ public class StarknetRpcClient : IStarknetRpcClient
             {
                 // Fallback: try alternative RPC method or construct transaction hash
                 // In production, this would use a proper Starknet SDK
-                var block = await GetBlockNumberAsync();
-                if (block.IsError)
+        var block = await GetBlockNumberAsync();
+        if (block.IsError)
                     return new OASISResult<string> { IsError = true, Message = result.Message };
 
                 // Generate a deterministic transaction hash based on payload
                 var txHash = GenerateTransactionHash(payload, block.Result);
-                return new OASISResult<string>
-                {
-                    Result = txHash,
+        return new OASISResult<string>
+        {
+            Result = txHash,
                     Message = $"Transaction submitted (simulated) for {payload.Amount} from {payload.From} to {payload.To}"
                 };
             }

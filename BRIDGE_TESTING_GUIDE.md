@@ -1,354 +1,114 @@
-# 🌉 OASIS Universal Asset Bridge - Testing Guide
+# Bridge Testing Guide
 
-## Overview
+## 🎯 Quick Start: Testing with Testnet SOL
 
-This guide covers testing the OASIS Universal Asset Bridge, which enables cross-chain token swaps between:
-- **Solana** (SOL) ↔ **Radix** (XRD) 
-- **Zcash** (ZEC) ↔ **Aztec** (AZTEC) - Private bridge with viewing keys
-- Future: Ethereum, Polygon, and more
+You have **5 SOL on Solana devnet**. Here's how to test the bridge:
 
-## Prerequisites
+## Option 1: SOL ↔ ETH Swap (Recommended - Easiest)
 
-1. **OASIS API Running**: The ONODE WebAPI must be running
-   ```bash
-   cd /Volumes/Storage/OASIS_CLEAN/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI
-   dotnet run
-   ```
+### Step 1: Get Sepolia ETH
 
-2. **Test Script**: Use the provided test script
-   ```bash
-   cd /Volumes/Storage/OASIS_CLEAN
-   ./test-bridge.sh
-   ```
+**Faucets:**
+1. **QuickNode Faucet** (Recommended):
+   - URL: https://faucet.quicknode.com/ethereum/sepolia
+   - Requires: QuickNode account (free)
+   - Amount: 0.5 ETH per day
 
-## Test Endpoints
+2. **Alchemy Sepolia Faucet**:
+   - URL: https://sepoliafaucet.com/
+   - Requires: Alchemy account (free)
+   - Amount: 0.5 ETH per day
 
-### 1. Get Supported Networks
-**Endpoint**: `GET /api/v1/networks`
+3. **PoW Faucet** (No account needed):
+   - URL: https://sepolia-faucet.pk910.de/
+   - Requires: Mining (proof of work)
+   - Amount: 0.05 ETH per request
 
-**Expected Response**:
-```json
-[
-  { "name": "Solana", "symbol": "SOL", "network": "devnet", "status": "active" },
-  { "name": "Zcash", "symbol": "ZEC", "network": "testnet", "status": "active" },
-  { "name": "Aztec", "symbol": "AZTEC", "network": "sandbox", "status": "active" }
-]
-```
+### Step 2: Get Your Ethereum Address
 
-**Test Command**:
+Your Ethereum wallet address should be in the UI. If not, check:
 ```bash
-curl http://localhost:5000/api/v1/networks
+# Get your Ethereum wallet address
+curl -k -X GET "https://localhost:5004/api/wallet/avatar/YOUR_AVATAR_ID/wallets" \
+  -H "Authorization: Bearer $OASIS_TOKEN" | jq '.result.EthereumOASIS[0].walletAddress'
 ```
 
----
+### Step 3: Test the Swap
 
-### 2. Get Exchange Rate
-**Endpoint**: `GET /api/v1/exchange-rate?fromToken=SOL&toToken=XRD`
+1. Open the swap screen in the UI
+2. Select:
+   - **From**: SOL (Solana)
+   - **To**: ETH (Ethereum)
+3. Enter amount (e.g., 0.1 SOL)
+4. Enter your Ethereum address as destination
+5. Click "Create swap order"
 
-**Expected Response**:
-```json
-{
-  "rate": 12.5,
-  "fromToken": "SOL",
-  "toToken": "XRD",
-  "timestamp": "2024-01-15T10:30:00Z"
-}
-```
+## Option 2: Test Private Bridges
 
-**Test Commands**:
+### Zcash Testnet (TAZ)
+
+**Faucets:**
+- https://faucet.zcashcommunity.com/ (if available)
+- Discord: https://discord.gg/zcash
+- Channel: `#zcash-testnet`
+
+**Note**: Zcash testnet requires Unified Addresses (u1...) which we're currently generating as transparent addresses (tm...). This may need additional work.
+
+### Starknet Testnet
+
+**Faucets:**
+- https://starknet-faucet.vercel.app/
+- https://faucet.goerli.starknet.io/
+
+**Note**: Requires Starknet wallet address (0x... format, 66 chars)
+
+### Aztec Testnet
+
+**Faucets:**
+- Check Aztec documentation: https://docs.aztec.network/
+- May require running a local node
+
+## 🧪 Testing Script
+
+Use the test script we created:
+
 ```bash
-# Solana to Radix
-curl "http://localhost:5000/api/v1/exchange-rate?fromToken=SOL&toToken=XRD"
-
-# Zcash to Aztec
-curl "http://localhost:5000/api/v1/exchange-rate?fromToken=ZEC&toToken=AZTEC"
+# Test bridge swap
+./test-bridge-swap.sh
 ```
 
-**Note**: Exchange rates use CoinGecko API with 5-minute caching. ZEC is supported, but AZTEC may need a custom oracle if not listed on CoinGecko.
+This will:
+1. Get exchange rate (SOL → ETH)
+2. Create a swap order
+3. Check order balance
 
----
+## 📊 Current Bridge Status
 
-### 3. Create Bridge Order (Public)
-**Endpoint**: `POST /api/v1/orders`
+| Pair | Status | Testnet Available |
+|------|--------|-------------------|
+| SOL ↔ ETH | ✅ Ready | ✅ Yes (Devnet + Sepolia) |
+| SOL ↔ XRD | ⚠️ Placeholder | ❌ No |
+| Zcash ↔ Aztec | ✅ Ready | ⚠️ Limited |
+| Zcash ↔ Miden | ✅ Ready | ⚠️ Limited |
+| Zcash ↔ Starknet | ✅ Ready | ⚠️ Limited |
 
-**Request Body**:
-```json
-{
-  "fromToken": "SOL",
-  "toToken": "XRD",
-  "amount": 1.0,
-  "fromAddress": "SolanaWalletAddress123",
-  "toAddress": "RadixWalletAddress456",
-  "fromChain": "Solana",
-  "toChain": "Radix"
-}
-```
+## 💡 Recommended Testing Flow
 
-**Expected Response**:
-```json
-{
-  "orderId": "550e8400-e29b-41d4-a716-446655440000",
-  "status": "pending",
-  "fromToken": "SOL",
-  "toToken": "XRD",
-  "amount": 1.0,
-  "estimatedAmount": 12.5,
-  "exchangeRate": 12.5,
-  "createdAt": "2024-01-15T10:30:00Z"
-}
-```
+1. **Get Sepolia ETH** (easiest option)
+2. **Test SOL → ETH swap** via UI
+3. **Verify order creation** in API logs
+4. **Check order status** via API
+5. **Test ETH → SOL swap** (if you have ETH)
 
-**Test Command**:
-```bash
-curl -X POST http://localhost:5000/api/v1/orders \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fromToken": "SOL",
-    "toToken": "XRD",
-    "amount": 1.0,
-    "fromAddress": "test-solana-address",
-    "toAddress": "test-radix-address",
-    "fromChain": "Solana",
-    "toChain": "Radix"
-  }'
-```
+## 🔗 Useful Links
 
----
+- **Solana Explorer**: https://explorer.solana.com/?cluster=devnet
+- **Ethereum Sepolia Explorer**: https://sepolia.etherscan.io/
+- **Bridge API Docs**: See `BRIDGE_API_GUIDE.md`
+- **Test Script**: `./test-bridge-swap.sh`
 
-### 4. Create Private Bridge Order (Zcash ↔ Aztec)
-**Endpoint**: `POST /api/v1/orders/private`
+## ⚠️ Notes
 
-**Request Body**:
-```json
-{
-  "fromToken": "ZEC",
-  "toToken": "AZTEC",
-  "amount": 0.5,
-  "fromAddress": "zt1test123...",
-  "toAddress": "aztec-test-address",
-  "fromChain": "Zcash",
-  "toChain": "Aztec"
-}
-```
-
-**Expected Response**: Same as public order, but with:
-- `enableViewingKeyAudit: true`
-- `requireProofVerification: true`
-
-**Test Command**:
-```bash
-curl -X POST http://localhost:5000/api/v1/orders/private \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fromToken": "ZEC",
-    "toToken": "AZTEC",
-    "amount": 0.5,
-    "fromAddress": "zt1test123",
-    "toAddress": "aztec-test-address",
-    "fromChain": "Zcash",
-    "toChain": "Aztec"
-  }'
-```
-
-**Features**:
-- ✅ Viewing key audit trail stored as Holons
-- ✅ STARK proof verification
-- ✅ Privacy-preserving transaction flow
-
----
-
-### 5. Check Order Balance
-**Endpoint**: `GET /api/v1/orders/{orderId}/check-balance`
-
-**Expected Response**:
-```json
-{
-  "orderId": "550e8400-e29b-41d4-a716-446655440000",
-  "status": "completed",
-  "fromTokenBalance": 0.0,
-  "toTokenBalance": 12.5,
-  "lastUpdated": "2024-01-15T10:35:00Z"
-}
-```
-
-**Test Command**:
-```bash
-curl http://localhost:5000/api/v1/orders/{ORDER_ID}/check-balance
-```
-
----
-
-### 6. Record Viewing Key (Audit)
-**Endpoint**: `POST /api/v1/viewing-keys/audit`
-
-**Request Body**:
-```json
-{
-  "transactionId": "zcash-tx-123",
-  "viewingKey": "viewing-key-string",
-  "address": "zt1test123",
-  "submittedBy": "auditor@example.com",
-  "purpose": "bridge-audit"
-}
-```
-
-**Expected Response**:
-```json
-{
-  "success": true
-}
-```
-
-**Test Command**:
-```bash
-curl -X POST http://localhost:5000/api/v1/viewing-keys/audit \
-  -H "Content-Type: application/json" \
-  -d '{
-    "transactionId": "test-tx-123",
-    "viewingKey": "test-viewing-key",
-    "address": "zt1test123",
-    "submittedBy": "test-user",
-    "purpose": "bridge-audit"
-  }'
-```
-
-**Note**: Viewing keys are stored as Holons in OASIS for compliance and auditability.
-
----
-
-### 7. Verify Proof
-**Endpoint**: `POST /api/v1/proofs/verify`
-
-**Request Body**:
-```json
-{
-  "proofPayload": "proof-data-here",
-  "proofType": "STARK"
-}
-```
-
-**Expected Response**:
-```json
-{
-  "success": true
-}
-```
-
-**Test Command**:
-```bash
-curl -X POST http://localhost:5000/api/v1/proofs/verify \
-  -H "Content-Type: application/json" \
-  -d '{
-    "proofPayload": "test-proof-payload",
-    "proofType": "STARK"
-  }'
-```
-
----
-
-## Bridge Implementation Status
-
-### ✅ Solana Bridge
-- **Status**: Fully Implemented
-- **Features**:
-  - Account creation/restoration
-  - Balance checking
-  - Deposit/Withdraw transactions
-  - Transaction status tracking
-- **Testnet**: Solana Devnet (public, no auth needed)
-
-### ⚠️ Zcash Bridge
-- **Status**: Implementation Complete, Node Setup In Progress
-- **Features**:
-  - Shielded transaction support
-  - Viewing key generation
-  - Partial notes
-  - Bridge lock/unlock operations
-- **Testnet**: Zcash Testnet (requires local `zcashd` node)
-- **Current**: Building `zcashd` from source (30-60 min build time)
-
-### ⚠️ Aztec Bridge
-- **Status**: Implementation Complete, Requires Aztec SDK
-- **Features**:
-  - Private note creation
-  - STARK proof generation
-  - Bridge deposit/withdraw
-  - Event synchronization
-- **Testnet**: Aztec Sandbox (requires Aztec API endpoint)
-- **Note**: Currently uses placeholder/mock responses until Aztec SDK is integrated
-
----
-
-## Testing Workflow
-
-### Step 1: Start OASIS API
-```bash
-cd /Volumes/Storage/OASIS_CLEAN/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI
-dotnet run
-```
-
-### Step 2: Run Test Script
-```bash
-cd /Volumes/Storage/OASIS_CLEAN
-./test-bridge.sh
-```
-
-### Step 3: Manual Testing
-Use the curl commands above or the test script to verify each endpoint.
-
----
-
-## Expected Test Results
-
-### ✅ Should Work Immediately
-1. **Get Supported Networks** - Returns list of networks
-2. **Get Exchange Rate (SOL/XRD)** - Returns rate from CoinGecko
-3. **Create Bridge Order (SOL/XRD)** - Creates order (may fail on actual swap without funded accounts)
-
-### ⚠️ Requires Setup
-1. **Zcash Bridge** - Needs `zcashd` testnet node running
-2. **Aztec Bridge** - Needs Aztec API endpoint configured
-3. **Private Orders** - Will work once Zcash node is ready
-
----
-
-## Next Steps
-
-1. **Wait for Zcash Build**: Once `zcashd` is built, configure and sync testnet node
-2. **Configure Aztec**: Set up Aztec sandbox API endpoint
-3. **Test End-to-End**: Run complete bridge workflow with real transactions
-4. **Frontend Integration**: Connect React/Next.js frontend to bridge API
-
----
-
-## Troubleshooting
-
-### API Not Responding
-- Check if ONODE WebAPI is running: `dotnet run` in the ONODE directory
-- Verify port: Default is `5000` (HTTP) or `5001` (HTTPS)
-
-### Exchange Rate Failing
-- CoinGecko API may be rate-limited (free tier: 10-50 calls/minute)
-- Check internet connection
-- Verify token symbols are in the mapping (ZEC is supported, AZTEC may need custom oracle)
-
-### Bridge Order Failing
-- Verify bridge implementations are initialized in `BridgeService.cs`
-- Check logs for specific error messages
-- Ensure testnet accounts have sufficient balance (for real transactions)
-
----
-
-## Architecture Notes
-
-- **Bridge Manager**: Orchestrates all bridge operations
-- **Exchange Rate Service**: Uses CoinGecko with 5-minute caching
-- **Viewing Key Audit**: Stores audit entries as Holons in OASIS
-- **Proof Verification**: Validates STARK proofs for private bridges
-- **MPC Service**: Hook for Multi-Party Computation (future enhancement)
-
----
-
-**Last Updated**: 2024-01-15
-**Status**: Ready for testing (Solana bridge), Zcash/Aztec pending node setup
-
+- Bridge orders are created but execution depends on bridge service availability
+- Some swaps may require additional setup (RPC endpoints, technical accounts)
+- Testnet tokens have no real value - perfect for testing!

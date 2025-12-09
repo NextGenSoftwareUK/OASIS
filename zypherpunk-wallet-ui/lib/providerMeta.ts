@@ -13,16 +13,46 @@ export interface ProviderMetadata {
 
 const defaultMeta: ProviderMetadata = {
   providerType: ProviderType.Default,
-  name: 'Universal',
+  name: 'OASIS',
   symbol: 'OASIS',
-  description: 'Universal OASIS provider',
+  description: 'OASIS Platform wallet',
   accentColor: '#6A00FF',
   backgroundGradient: 'from-purple-500 to-indigo-500',
-  logoUrl: 'https://cryptologos.cc/logos/oasis-network-rose-logo.svg?v=025',
+  logoUrl: '/oasis-logo.svg',
   category: 'Other',
 };
 
 export const providerMetadataMap: Partial<Record<ProviderType, ProviderMetadata>> = {
+  [ProviderType.Default]: {
+    providerType: ProviderType.Default,
+    name: 'OASIS',
+    symbol: 'OASIS',
+    description: 'OASIS Platform wallet',
+    accentColor: '#6A00FF',
+    backgroundGradient: 'from-purple-500 to-indigo-500',
+    logoUrl: '/oasis-logo.svg',
+    category: 'Other',
+  },
+  [ProviderType.LocalFileOASIS]: {
+    providerType: ProviderType.LocalFileOASIS,
+    name: 'Local Wallet',
+    symbol: 'OASIS',
+    description: 'Local file-based wallet storage',
+    accentColor: '#6A00FF',
+    backgroundGradient: 'from-purple-500 to-indigo-500',
+    logoUrl: '/oasis-logo.svg',
+    category: 'Storage',
+  },
+  [ProviderType.MongoDBOASIS]: {
+    providerType: ProviderType.MongoDBOASIS,
+    name: 'MongoDB Wallet',
+    symbol: 'OASIS',
+    description: 'MongoDB-stored wallet',
+    accentColor: '#6A00FF',
+    backgroundGradient: 'from-purple-500 to-indigo-500',
+    logoUrl: '/oasis-logo.svg',
+    category: 'Storage',
+  },
   [ProviderType.ZcashOASIS]: {
     providerType: ProviderType.ZcashOASIS,
     name: 'Zcash',
@@ -83,6 +113,26 @@ export const providerMetadataMap: Partial<Record<ProviderType, ProviderMetadata>
     logoUrl: '/starknet-logo.avif',
     category: 'Layer2',
   },
+  [ProviderType.PolygonOASIS]: {
+    providerType: ProviderType.PolygonOASIS,
+    name: 'Polygon',
+    symbol: 'MATIC',
+    description: 'Polygon Layer 2 scaling solution',
+    accentColor: '#8247E5',
+    backgroundGradient: 'from-[#8247E5] to-[#6B46C1]',
+    logoUrl: 'https://cryptologos.cc/logos/polygon-matic-logo.svg?v=025',
+    category: 'Layer2',
+  },
+  [ProviderType.ArbitrumOASIS]: {
+    providerType: ProviderType.ArbitrumOASIS,
+    name: 'Arbitrum',
+    symbol: 'ARB',
+    description: 'Arbitrum Layer 2 scaling solution',
+    accentColor: '#28A0F0',
+    backgroundGradient: 'from-[#28A0F0] to-[#1E88E5]',
+    logoUrl: 'https://cryptologos.cc/logos/arbitrum-arb-logo.svg?v=025',
+    category: 'Layer2',
+  },
 };
 
 export interface BridgeChain {
@@ -94,12 +144,14 @@ export interface BridgeChain {
   category: 'Layer1' | 'Layer2';
 }
 
-// Focused on Zypherpunk hackathon chains
+// Focused on Zypherpunk hackathon chains - Privacy chains first, then major L1
 export const universalBridgeChains: BridgeChain[] = [
+  // Privacy-focused chains (Zypherpunk primary)
   { name: 'Zcash', symbol: 'ZEC', logoUrl: 'https://cryptologos.cc/logos/zcash-zec-logo.svg?v=025', network: 'Zcash', description: 'Privacy-first with shielded transactions', category: 'Layer1' },
   { name: 'Aztec', symbol: 'AZTEC', logoUrl: '/aztec-logo.png', network: 'Aztec', description: 'Privacy-first L2 with private smart contracts', category: 'Layer2' },
   { name: 'Miden', symbol: 'MIDEN', logoUrl: '/miden-logo.png', network: 'Miden', description: 'Zero-knowledge VM for privacy-preserving applications', category: 'Layer2' },
   { name: 'Starknet', symbol: 'STRK', logoUrl: '/starknet-logo.avif', network: 'Starknet', description: 'ZK-based Layer 2 for Starknet-native apps', category: 'Layer2' },
+  // Major L1 chains
   { name: 'Ethereum', symbol: 'ETH', logoUrl: 'https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=025', network: 'Ethereum', description: 'Largest smart contract network', category: 'Layer1' },
   { name: 'Solana', symbol: 'SOL', logoUrl: 'https://cryptologos.cc/logos/solana-sol-logo.svg?v=025', network: 'Solana', description: 'High-throughput L1', category: 'Layer1' },
 ];
@@ -107,4 +159,6 @@ export const universalBridgeChains: BridgeChain[] = [
 export function getProviderMetadata(providerType: ProviderType): ProviderMetadata {
   return providerMetadataMap[providerType] || defaultMeta;
 }
+
+
 

@@ -39,4 +39,5 @@ Keeping these steps documented makes future provider additions predictable and c
 - Scaffolded `StarknetOASIS`/`StarknetBridge` under `Providers/Blockchain`, then added the enum entry plus socialized the provider in `Docs/PROVIDER_ONBOARDING.md`.
 - Injected the new bridge into `ONODE/.../BridgeService` so the `"STARKNET"` key hits the placeholder service while the `CrossChainBridgeManager` already understands ZEC↔Starknet as a private pair.
 - Wired `OASISProviderManager` to register `StarknetOASIS` when requested and extended ONODE settings (`OASISSettings`, `appsettings.json`, `OASIS_DNA.json`) with RPC/network defaults for the Starknet provider.
+- Added a `--test-starknet-bridge` mode to `NextGenSoftware.OASIS.API.Core.TestHarness` that exercises `StarknetBridge` with a fake RPC client so backend wiring can be smoke-tested (`dotnet run --project .../TestHarness -- --test-starknet-bridge`).
 

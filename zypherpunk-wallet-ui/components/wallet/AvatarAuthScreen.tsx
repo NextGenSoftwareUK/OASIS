@@ -8,9 +8,21 @@ import { useAvatarStore } from '@/lib/avatarStore';
 
 type Mode = 'login' | 'register';
 
+// Generate fake email for privacy mode
+const generateFakeEmail = (username: string): string => {
+  const randomId = Math.random().toString(36).substring(2, 9);
+  return `${username}_${randomId}@privacy.local`;
+};
+
+// Generate random username if not provided
+const generateRandomUsername = (): string => {
+  return `privacy_${Math.random().toString(36).substring(2, 11)}`;
+};
+
 export const AvatarAuthScreen: React.FC = () => {
   const { login, register, isAuthenticating, authError, useDemoAvatar } = useAvatarStore();
   const [mode, setMode] = useState<Mode>('login');
+  const [privacyMode, setPrivacyMode] = useState(true); // Default to privacy mode for hackathon
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -37,16 +49,36 @@ export const AvatarAuthScreen: React.FC = () => {
         }
         await login(form.username.trim(), form.password);
       } else {
-        if (!form.username || !form.email || !form.password) {
-          setLocalError('Username, email, and password are required.');
+        if (!form.password) {
+          setLocalError('Password is required.');
           return;
         }
+        
+        // Privacy mode: Generate fake email and random username if needed
+        const username = privacyMode 
+          ? (form.username.trim() || generateRandomUsername())
+          : form.username.trim();
+        
+        const email = privacyMode
+          ? generateFakeEmail(username)
+          : form.email.trim();
+        
+        if (!privacyMode && !email) {
+          setLocalError('Email is required when privacy mode is off.');
+          return;
+        }
+        
         await register({
-          username: form.username.trim(),
-          email: form.email.trim(),
+          username,
+          email,
           password: form.password,
-          firstName: form.firstName.trim() || undefined,
-          lastName: form.lastName.trim() || undefined,
+          confirmPassword: form.password, // Required by backend
+          firstName: form.firstName.trim() || 'Privacy', // Required - use default if empty
+          lastName: form.lastName.trim() || 'User', // Required - use default if empty
+          title: 'Mr', // Optional but can provide
+          avatarType: 'User', // Required by backend
+          acceptTerms: true, // Required by backend
+          privacyMode, // Pass privacy mode flag
         });
       }
     } catch {
@@ -98,6 +130,27 @@ export const AvatarAuthScreen: React.FC = () => {
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
+          {mode === 'register' && (
+            <div className="mb-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <input
+                  type="checkbox"
+                  id="privacy-mode"
+                  checked={privacyMode}
+                  onChange={(e) => setPrivacyMode(e.target.checked)}
+                  className="mt-1"
+                  disabled={isAuthenticating}
+                />
+                <label htmlFor="privacy-mode" className="text-sm text-purple-300 flex-1">
+                  <strong>Privacy Mode</strong> (Recommended for Zcash hackathon)
+                  <p className="text-xs text-purple-200/80 mt-1">
+                    Creates anonymous avatar with fake email. No real identity required. Auto-verifies for immediate access.
+                  </p>
+                </label>
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="text-sm text-gray-400 mb-1 block">
               {mode === 'login' ? 'Username or email' : 'Username'}
@@ -105,13 +158,18 @@ export const AvatarAuthScreen: React.FC = () => {
             <Input
               value={form.username}
               onChange={(e) => updateField('username', e.target.value)}
-              placeholder={mode === 'login' ? 'email@oasis.com' : 'Choose a handle'}
+              placeholder={mode === 'login' ? 'email@oasis.com' : privacyMode ? 'Optional (auto-generated if empty)' : 'Choose a handle'}
               className="bg-gray-900 border-gray-800 text-white placeholder:text-gray-600"
               disabled={isAuthenticating}
             />
+            {mode === 'register' && privacyMode && (
+              <p className="text-xs text-gray-500 mt-1">
+                Leave empty for random username
+              </p>
+            )}
           </div>
 
-          {mode === 'register' && (
+          {mode === 'register' && !privacyMode && (
             <>
               <div>
                 <label className="text-sm text-gray-400 mb-1 block">Email</label>
@@ -122,6 +180,7 @@ export const AvatarAuthScreen: React.FC = () => {
                   placeholder="you@example.com"
                   className="bg-gray-900 border-gray-800 text-white placeholder:text-gray-600"
                   disabled={isAuthenticating}
+                  required
                 />
               </div>
 
@@ -194,6 +253,25 @@ export const AvatarAuthScreen: React.FC = () => {
             >
               Skip for now
             </Button>
+            
+            {/* Quick test button for metabricks_admin (development only) */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-purple-500/30 text-purple-300 hover:bg-purple-500/10 text-xs"
+                onClick={async () => {
+                  try {
+                    await login('metabricks_admin', 'Uppermall1!');
+                  } catch (error) {
+                    console.error('Quick test login failed:', error);
+                  }
+                }}
+                disabled={isAuthenticating}
+              >
+                🔧 Quick Test (metabricks_admin)
+              </Button>
+            )}
           </div>
         </form>
       </div>

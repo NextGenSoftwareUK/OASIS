@@ -134,8 +134,8 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
             }
 
             result.Result = swapId;
-            result.IsError = false;
-            result.Message = $"Atomic swap intent created for {amount} ZEC -> {starknetAddress}";
+        result.IsError = false;
+        result.Message = $"Atomic swap intent created for {amount} ZEC -> {starknetAddress}";
         }
         catch (Exception ex)
         {

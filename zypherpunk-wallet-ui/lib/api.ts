@@ -9,7 +9,7 @@ import type {
   OASISResult 
 } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_OASIS_API_URL || 'http://api.oasisplatform.world';
+const API_BASE_URL = process.env.NEXT_PUBLIC_OASIS_API_URL || 'https://localhost:5004';
 
 // Use proxy in development to avoid CORS issues
 const USE_PROXY = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_USE_API_PROXY === 'true';
@@ -65,7 +65,7 @@ class OASISWalletAPI {
   }
 
   private async request<T>(
-    endpoint: string,
+    endpoint: string, 
     options: RequestInit = {}
   ): Promise<OASISResult<T>> {
     try {

@@ -13,6 +13,7 @@ const driverSignalRoutes = require('./driverSignalRoutes');
 const metricsRoutes = require('./metricsRoutes');
 const healthRoutes = require('./healthRoutes');
 const webhookRoutes = require('./webhookRoutes');
+const watiRoutes = require('./watiRoutes');
 const authenticateUser = require('../middleware/authMiddleware.js');
 const authorizeUser = require('../middleware/authorizationMiddleware.js');
 const {
@@ -24,6 +25,7 @@ const router = express.Router();
 
 router.use('/health', healthRoutes);
 router.use('/', webhookRoutes); // Webhooks don't need /api prefix
+router.use('/api/wati', watiRoutes);
 router.use('/api/distance', distanceRoutes);
 router.use('/api/notification', notificationRoutes);
 router.use('/api/auth', authLimiter, authRoutes);

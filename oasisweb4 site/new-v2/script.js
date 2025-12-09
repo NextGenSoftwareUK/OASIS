@@ -401,3 +401,17 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Product card toggle for mobile
+function toggleProductCard(button) {
+    const card = button.closest('.product-card');
+    const isExpanded = card.classList.contains('expanded');
+    
+    if (isExpanded) {
+        card.classList.remove('expanded');
+        button.classList.remove('active');
+    } else {
+        card.classList.add('expanded');
+        button.classList.add('active');
+    }
+}
+

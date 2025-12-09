@@ -1,6 +1,6 @@
 export async function createCheckoutSession(planId: string): Promise<void> {
   // Calls existing SubscriptionController endpoint
-  const apiBase = (import.meta as any).env?.VITE_WEB4_API_BASE ?? 'http://localhost:5000/api';
+  const apiBase = process.env.REACT_APP_WEB4_API_BASE || 'http://localhost:5000/api';
   try {
     const res = await fetch(`${apiBase}/subscription/checkout/session`, {
       method: 'POST',
@@ -20,7 +20,7 @@ export async function createCheckoutSession(planId: string): Promise<void> {
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error(e);
-    alert('Checkout not configured yet. Please set VITE_WEB4_API_BASE and backend endpoints.');
+    alert('Checkout not configured yet. Please set REACT_APP_WEB4_API_BASE and backend endpoints.');
   }
 }
 
