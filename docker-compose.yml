@@ -5,20 +5,21 @@ services:
   oasis-api:
     build:
       context: .
-      dockerfile: ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Dockerfile
+      dockerfile: docker/Dockerfile
     ports:
-      - "5000:8080"
+      - "5003:80"
+      - "5004:443"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
     networks:
       - oasis-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/swagger/index.html"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
   # STAR API Web API
   star-api:
