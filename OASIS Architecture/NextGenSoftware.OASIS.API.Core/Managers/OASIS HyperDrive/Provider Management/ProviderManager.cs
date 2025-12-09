@@ -205,10 +205,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IOASISNETProvider> networkProviders = new List<IOASISNETProvider>();
 
+            //TODO: Make work like GetAllBlockchainProviders once ProviderCategories has been set in the providers.
             foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategory.Value == ProviderCategory.Network || x.ProviderCategory.Value == ProviderCategory.StorageAndNetwork || x.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork).ToList())
                 networkProviders.Add((IOASISNETProvider)provider);
 
             return networkProviders;
+        }
+
+        public List<IOASISBlockchainStorageProvider> GetAllBlockchainProviders()
+        {
+            List<IOASISBlockchainStorageProvider> blockchainProviders = new List<IOASISBlockchainStorageProvider>();
+
+            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategories.Contains(new EnumValue<ProviderCategory>(ProviderCategory.Blockchain))))
+                blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
+
+            return blockchainProviders;
         }
 
         public List<ProviderType> GetNetworkProviderTypes()

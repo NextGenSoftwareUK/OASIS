@@ -172,4 +172,4 @@ namespace NextGenSoftware.OASIS.STAR.DNA
             return result;
         }
     }
-}
+} 

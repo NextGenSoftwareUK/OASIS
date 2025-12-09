@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
 {
     public interface IImportWeb3NFTRequest
     {

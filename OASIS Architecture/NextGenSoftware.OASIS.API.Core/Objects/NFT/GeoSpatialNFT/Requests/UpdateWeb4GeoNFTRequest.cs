@@ -1,5 +1,6 @@
 ﻿
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
 {

@@ -2034,6 +2034,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 switch (inputArgs[1].ToLower())
                 {
+                    case "create":
+                        await STARCLI.Wallets.CreateWalletAsync();
+                        break;
+
                     case "sendtoken":
                         CLIEngine.ShowMessage("Coming soon...");
                         break;

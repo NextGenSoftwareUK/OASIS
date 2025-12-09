@@ -64,6 +64,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             this.ProviderDescription = "Elrond Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ElrondOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
         #region IOASISStorageProvider Implementation
@@ -2517,7 +2520,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
 
                 // Real Elrond implementation: Load NFT data from Elrond blockchain
-                var nft = new Web4OASISNFT
+                var nft = new Web4NFT
                 {
                     Id = Guid.NewGuid(),
                     Title = "Elrond NFT",

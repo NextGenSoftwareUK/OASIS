@@ -1,5 +1,9 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
@@ -43,6 +47,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         this._rpcClient = ClientFactory.GetClient(hostUri);
         this._oasisSolanaAccount = new(privateKey, publicKey);
+
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
     }
 
     public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -867,7 +874,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return DeleteAvatarAsync(providerKey, softDelete).Result;
     }
 
-    public OASISResult<ITransactionRespone> SendTransaction(string fromAddress, string toAddress, decimal amount, string memo)
+    public OASISResult<ITransactionResponse> SendTransaction(string fromAddress, string toAddress, decimal amount, string memo)
     {
         return SendTransactionAsync(fromAddress, toAddress, amount, memo).Result;
     }
@@ -1503,9 +1510,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     }
 
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
+        OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
         string errorMessage = "Error occured in SendTransactionAsync method in SolanaOASIS Provider. Reason: ";
 
         try
@@ -1543,15 +1550,15 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     }
 
 
-    public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
         return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId,
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId,
         decimal amount)
     {
-        var result = new OASISResult<ITransactionRespone>();
+        var result = new OASISResult<ITransactionResponse>();
         var errorMessageTemplate =
             "Error was occured in SendTransactionByIdAsync method in SolanaOASIS while sending transaction. Reason: ";
 
@@ -1587,10 +1594,10 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername,
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername,
         string toAvatarUsername, decimal amount)
     {
-        var result = new OASISResult<ITransactionRespone>();
+        var result = new OASISResult<ITransactionResponse>();
         var errorMessageTemplate =
             "Error was occured in SendTransactionByUsernameAsync method in SolanaOASIS while sending transaction. Reason: ";
 
@@ -1630,16 +1637,16 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername,
+    public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername,
         string toAvatarUsername, decimal amount)
     {
         return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail,
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail,
         string toAvatarEmail, decimal amount)
     {
-        var result = new OASISResult<ITransactionRespone>();
+        var result = new OASISResult<ITransactionResponse>();
         var errorMessageTemplate =
             "Error was occured in SendTransactionByEmailAsync method in SolanaOASIS while sending transaction. Reason: ";
 
@@ -1676,22 +1683,22 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail,
+    public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail,
         decimal amount)
     {
         return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId,
+    public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId,
         decimal amount)
     {
         return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId,
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId,
         Guid toAvatarId, decimal amount)
     {
-        var result = new OASISResult<ITransactionRespone>();
+        var result = new OASISResult<ITransactionResponse>();
         var errorMessageTemplate =
             "Error was occured in SendTransactionByDefaultWallet method in SolanaOASIS while sending transaction. Reason: ";
 
@@ -1727,10 +1734,10 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    private async Task<OASISResult<ITransactionRespone>> SendSolanaTransaction(string fromAddress, string toAddress,
+    private async Task<OASISResult<ITransactionResponse>> SendSolanaTransaction(string fromAddress, string toAddress,
         decimal amount)
     {
-        var result = new OASISResult<ITransactionRespone>();
+        var result = new OASISResult<ITransactionResponse>();
         var errorMessageTemplate =
             "Error was occured in SendSolanaTransaction method in SolanaOASIS while sending transaction. Reason: ";
 
@@ -1769,19 +1776,19 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transaction)
+    public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transaction)
         => SendNFTAsync(transaction).Result;
 
 
-    public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transaction)
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transaction)
     {
         ArgumentNullException.ThrowIfNull(transaction);
 
-        OASISResult<IWeb3NFTTransactionRespone> result = new();
+        OASISResult<IWeb3NFTTransactionResponse> result = new();
         try
         {
             OASISResult<SendTransactionResult> solanaNftTransactionResult =
-                await _solanaService.SendNftAsync(transaction as Web3NFTWalletTransactionRequest);
+                await _solanaService.SendNftAsync(transaction as SendWeb3NFTRequest);
 
             if (solanaNftTransactionResult.IsError ||
                 string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
@@ -1794,7 +1801,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             result.IsError = false;
             result.IsSaved = true;
-            result.Result = new Web3NFTTransactionRespone()
+            result.Result = new Web3NFTTransactionResponse()
             {
                 TransactionResult = solanaNftTransactionResult.Result.TransactionHash
             };
@@ -2256,53 +2263,53 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return ExportAllAsync(version).Result;
     }
 
-    //OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId,
+    //OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId,
     //    Guid toAvatarId, decimal amount, string token)
     //{
     //    throw new NotImplementedException();
     //}
 
-    //Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByIdAsync(
+    //Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTransactionByIdAsync(
     //    Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     //{
     //    throw new NotImplementedException();
     //}
 
-    //Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(
+    //Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(
     //    string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     //{
     //    throw new NotImplementedException();
     //}
 
-    //OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByUsername(
+    //OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendTransactionByUsername(
     //    string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     //{
     //    throw new NotImplementedException();
     //}
 
-    //Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(
+    //Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(
     //    string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     //{
     //    throw new NotImplementedException();
     //}
 
-    //OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail,
+    //OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail,
     //    string toAvatarEmail, decimal amount, string token)
     //{
     //    throw new NotImplementedException();
     //}
 
-    public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb3NFTRequest transation)
+    public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest transation)
     {
         return MintNFTAsync(transation).Result;
     }
 
-    public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(
         IMintWeb3NFTRequest transaction)
     {
         ArgumentNullException.ThrowIfNull(transaction);
 
-        OASISResult<IWeb3NFTTransactionRespone> result = new(new Web3NFTTransactionRespone());
+        OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
 
         try
         {
@@ -2371,15 +2378,15 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<IWeb3NFTTransactionRespone> BurnNFT(IBurnWeb3NFTRequest request)
+    public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
     {
         return BurnNFTAsync(request).Result;
     }
 
-    public async Task<OASISResult<IWeb3NFTTransactionRespone>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        OASISResult<IWeb3NFTTransactionRespone> result = new(new Web3NFTTransactionRespone());
+        OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
 
         try
         {
@@ -2703,6 +2710,106 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             return null;
         }
+    }
+
+    public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    OASISResult<IWeb3NFTTransactionResponse> IOASISNFTProvider.LockToken(ILockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<OASISResult<IWeb3NFTTransactionResponse>> IOASISNFTProvider.LockTokenAsync(ILockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    OASISResult<IWeb3NFTTransactionResponse> IOASISNFTProvider.UnlockToken(IUnlockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<OASISResult<IWeb3NFTTransactionResponse>> IOASISNFTProvider.UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion
