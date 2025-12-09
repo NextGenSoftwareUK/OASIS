@@ -1745,6 +1745,37 @@
             color: var(--text-primary);
         }
 
+        .telegram-link-code {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .telegram-link-code label {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .telegram-link-instructions {
+            padding: 1.5rem 0;
+        }
+
+        .telegram-link-instructions p {
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .telegram-link-instructions code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
         /* Error State */
         .telegram-error-state {
             padding: 3rem;
@@ -1759,7 +1790,7 @@
         /* Responsive */
         @media (max-width: 1024px) {
             .telegram-main-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
             }
 
             .telegram-stats-grid {
@@ -1804,6 +1835,203 @@
             }
         }
 
+        /* Conversations List */
+        .conversations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .conversation-item:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateX(4px);
+        }
+
+        .conversation-icon {
+            font-size: 2rem;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .conversation-content {
+            flex: 1;
+        }
+
+        .conversation-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .conversation-role {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(99, 102, 241, 0.2);
+            color: rgba(99, 102, 241, 1);
+        }
+
+        .conversation-meta {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .conversation-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .conversation-stat {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .conversation-arrow {
+            font-size: 1.25rem;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        /* Quests/Challenges */
+        .quests-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .quests-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quests-section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .quests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quest-item {
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+        }
+
+        .quest-item.active {
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .quest-item.completed {
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.05);
+            opacity: 0.8;
+        }
+
+        .quest-header {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .quest-icon {
+            font-size: 1.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        .quest-info {
+            flex: 1;
+        }
+
+        .quest-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .quest-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .quest-progress {
+            margin-bottom: 0.75rem;
+        }
+
+        .quest-progress-bar {
+            height: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.25rem;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .quest-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(99, 102, 241, 1), rgba(147, 51, 234, 1));
+            border-radius: 0.25rem;
+            transition: width 0.3s;
+        }
+
+        .quest-progress-text {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .quest-rewards {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
         /* Color utilities */
         .text-yellow-400 { color: rgba(251, 191, 36, 1); }
         .text-green-400 { color: rgba(34, 197, 94, 1); }
@@ -1811,6 +2039,634 @@
         .text-orange-400 { color: rgba(251, 146, 60, 1); }
         .text-blue-400 { color: rgba(96, 165, 250, 1); }
         .text-cyan-400 { color: rgba(34, 211, 238, 1); }
+
+        /* Data Management Styles */
+        #data-management-content {
+            padding: 2rem 0;
+        }
+
+        .data-header {
+            margin-bottom: 3rem;
+        }
+
+        .data-header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .data-title {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+
+        .data-subtitle {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .data-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .data-stat-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+
+        .data-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .data-stat-value {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .data-stat-detail {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .data-section {
+            margin-bottom: 3rem;
+        }
+
+        .data-section-title {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .data-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .data-section-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .data-search {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            min-width: 200px;
+        }
+
+        .data-search:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .data-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .data-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Provider Grid */
+        .provider-category {
+            margin-bottom: 2.5rem;
+        }
+
+        .provider-category-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .provider-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .provider-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .provider-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .provider-card.active {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .provider-card.inactive {
+            opacity: 0.6;
+        }
+
+        .provider-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .provider-icon {
+            font-size: 2rem;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+        }
+
+        .provider-info {
+            flex: 1;
+        }
+
+        .provider-name {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .provider-type {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .provider-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .provider-badge.current {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: rgba(34, 197, 94, 1);
+        }
+
+        .provider-card-body {
+            margin-bottom: 1rem;
+        }
+
+        .provider-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .provider-status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+        }
+
+        .provider-status-indicator.active {
+            background: rgba(34, 197, 94, 1);
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+
+        .provider-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .provider-stat {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+
+        .provider-stat-label {
+            color: var(--text-secondary);
+        }
+
+        .provider-stat-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .provider-description {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+            margin-top: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .provider-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .provider-toggle {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .provider-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .provider-toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+
+        .provider-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-primary);
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .provider-toggle input:checked + .provider-toggle-slider {
+            background-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .provider-toggle input:checked + .provider-toggle-slider:before {
+            transform: translateX(20px);
+            background-color: rgba(34, 197, 94, 1);
+        }
+
+        .provider-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .provider-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Holons Table */
+        .holons-table-container {
+            overflow-x: auto;
+        }
+
+        .holons-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .holons-table thead {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .holons-table th {
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .holons-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .holons-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .holon-id {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .holon-copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+
+        .holon-copy-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .holon-type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .holon-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .holon-action-btn {
+            padding: 0.375rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.375rem;
+            color: var(--text-primary);
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .holon-action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .holon-action-btn.danger {
+            color: rgba(239, 68, 68, 1);
+        }
+
+        .holon-action-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 2rem;
+        }
+
+        .settings-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+
+        .settings-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .settings-description {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-left: 2rem;
+            line-height: 1.5;
+        }
+
+        .settings-select {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .settings-actions {
+            margin-top: 2rem;
+        }
+
+        /* Loading & Error States */
+        .data-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .data-loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--text-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .data-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .data-error-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .data-error h3 {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .data-error p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Holon Details Modal */
+        .holon-details-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .holon-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .holon-detail-item {
+            display: flex;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .holon-detail-item.full-width {
+            flex-direction: column;
+        }
+
+        .holon-detail-item label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 100px;
+        }
+
+        .holon-detail-item code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .holon-data-preview {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .provider-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+
+            .data-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .data-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .provider-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .holons-table {
+                font-size: 0.8125rem;
+            }
+
+            .holons-table th,
+            .holons-table td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .holon-actions {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2037,9 +2893,8 @@
         </div>
 
         <div id="tab-data" class="portal-tab-content" style="display: none;">
-            <div class="portal-section">
-                <h2 class="portal-section-title">Data Holons</h2>
-                <p class="portal-section-subtitle">Manage your data storage across all providers</p>
+            <div id="data-management-content">
+                <!-- Data management content will be loaded here -->
             </div>
         </div>
 
@@ -2054,6 +2909,130 @@
             <div class="portal-section">
                 <h2 class="portal-section-title">Developer Tools</h2>
                 <p class="portal-section-subtitle">Manage API keys, view usage stats, and access developer resources</p>
+            </div>
+        </div>
+
+        <!-- Telegram Tab -->
+        <div id="tab-telegram" class="portal-tab-content" style="display: none;">
+            <div id="telegram-gamification-content">
+                <!-- Connection Status Banner -->
+                <div id="telegram-connection-status" class="telegram-section"></div>
+
+                <!-- Stats Overview -->
+                <div id="telegram-stats" class="telegram-section"></div>
+
+                <!-- Main Content Grid -->
+                <div class="telegram-main-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <!-- Left Column -->
+                    <div>
+                        <!-- Recent Rewards Feed -->
+                        <div class="portal-section">
+                            <div class="portal-section-header">
+                                <div>
+                                    <h2 class="portal-section-title">Recent Rewards</h2>
+                                    <p class="portal-section-subtitle">Your latest Telegram activity rewards</p>
+                                </div>
+                            </div>
+                            <div class="portal-card">
+                                <div id="telegram-recent-rewards"></div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Timeline -->
+                        <div class="portal-section">
+                            <div class="portal-section-header">
+                                <div>
+                                    <h2 class="portal-section-title">Activity Timeline</h2>
+                                    <p class="portal-section-subtitle">Chronological feed of your Telegram activities</p>
+                                </div>
+                            </div>
+                            <div class="portal-card">
+                                <div id="telegram-activity-timeline"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div>
+                        <!-- Achievement Badges -->
+                        <div class="portal-section">
+                            <div class="portal-section-header">
+                                <div>
+                                    <h2 class="portal-section-title">Achievements</h2>
+                                    <p class="portal-section-subtitle">Track your progress and unlock rewards</p>
+                                </div>
+                            </div>
+                            <div class="portal-card">
+                                <div id="telegram-achievement-badges"></div>
+                            </div>
+                        </div>
+
+                        <!-- Leaderboard -->
+                        <div class="portal-section">
+                            <div class="portal-section-header">
+                                <div>
+                                    <h2 class="portal-section-title">Leaderboard</h2>
+                                    <p class="portal-section-subtitle">Top performers in Telegram activities</p>
+                                </div>
+                            </div>
+                            <div class="portal-card">
+                                <div id="telegram-leaderboard"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversations/Groups List -->
+                <div class="portal-section">
+                    <div class="portal-section-header">
+                        <div>
+                            <h2 class="portal-section-title">Active Conversations</h2>
+                            <p class="portal-section-subtitle">Telegram groups and chats you participate in</p>
+                        </div>
+                    </div>
+                    <div class="portal-card">
+                        <div id="telegram-conversations"></div>
+                    </div>
+                </div>
+
+                <!-- Quest/Challenge Panel -->
+                <div class="portal-section">
+                    <div class="portal-section-header">
+                        <div>
+                            <h2 class="portal-section-title">Quests & Challenges</h2>
+                            <p class="portal-section-subtitle">Active quests with progress tracking</p>
+                        </div>
+                    </div>
+                    <div class="portal-card">
+                        <div id="telegram-quests"></div>
+                    </div>
+                </div>
+
+                <!-- Rewards Breakdown -->
+                <div class="portal-section">
+                    <div class="portal-section-header">
+                        <div>
+                            <h2 class="portal-section-title">Rewards Breakdown</h2>
+                            <p class="portal-section-subtitle">Category breakdown of your rewards</p>
+                        </div>
+                    </div>
+                    <div class="portal-card">
+                        <div id="telegram-rewards-breakdown"></div>
+                    </div>
+                </div>
+
+                <!-- NFT Gallery -->
+                <div class="portal-section">
+                    <div class="portal-section-header">
+                        <div>
+                            <h2 class="portal-section-title">NFT Gallery</h2>
+                            <p class="portal-section-subtitle">NFTs earned from Telegram achievements</p>
+                        </div>
+                    </div>
+                    <div class="portal-card">
+                        <div id="telegram-nft-gallery"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -2177,7 +3156,10 @@
     </div>
 
     <script src="../oasisweb4 site/new-v2/script.js"></script>
+    <script src="api/oasisApi.js"></script>
+    <script src="telegram-gamification.js"></script>
     <script src="avatar-dashboard.js"></script>
+    <script src="data-management.js"></script>
     <script>
         // Portal-specific JavaScript
         function switchTab(tabName) {
@@ -2211,6 +3193,11 @@
             // Load Telegram gamification if switching to telegram tab
             if (tabName === 'telegram') {
                 loadTelegramGamification();
+            }
+            
+            // Load data management if switching to data tab
+            if (tabName === 'data') {
+                loadDataManagement();
             }
         }
 
