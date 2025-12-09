@@ -142,12 +142,12 @@ export function SwapForm() {
       // Prepare request body matching CreateBridgeOrderRequest format
       const requestBody = {
         userId: userId, // Will be converted to Guid on backend
-        fromToken: state.from.symbol,
-        toToken: state.to.symbol,
-        amount: parseFloat(state.fromAmount),
-        fromNetwork: state.from.network,
-        toNetwork: state.to.network,
-        destinationAddress: state.destination,
+          fromToken: state.from.symbol,
+          toToken: state.to.symbol,
+          amount: parseFloat(state.fromAmount),
+          fromNetwork: state.from.network,
+          toNetwork: state.to.network,
+          destinationAddress: state.destination,
       };
       
       const response = await fetch(targetUrl, {

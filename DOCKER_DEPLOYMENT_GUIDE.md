@@ -1,335 +1,271 @@
-# 🐳 Docker Deployment Guide for OASIS Ecosystem
+# OASIS API Docker Deployment Guide
 
 ## Overview
-This guide covers Docker deployment for all OASIS ecosystem components:
-- **OASIS API Web API** (.NET 8)
-- **STAR API Web API** (.NET 9)
-- **OASIS OPORTAL** (.NET 8 + React)
-- **STAR WEB UI** (.NET 8 + React)
-- **OASIS WEB UI** (React + Nginx)
+This guide explains how to build and deploy the OASIS API to AWS ECR and ECS.
 
 ## Prerequisites
-- Docker Desktop installed
-- Docker Compose installed
-- Git repository cloned
 
-## 🚀 Quick Start
+1. **Docker** - Must be installed and running
+2. **AWS CLI** - Must be installed and configured with appropriate credentials
+3. **AWS Permissions** - Need permissions for:
+   - ECR (Elastic Container Registry)
+   - ECS (Elastic Container Service)
+   - IAM (for task execution roles)
 
-### 1. Build All Images
+## Quick Start
+
+### Step 1: Build and Push Docker Image
+
 ```bash
-# Build all services
-docker-compose build
-
-# Or build specific service
-docker-compose build oasis-api
-docker-compose build star-api
-docker-compose build oasis-oportal
-docker-compose build star-web-ui
+cd /Volumes/Storage/OASIS_CLEAN
+./deploy-docker.sh
 ```
 
-### 2. Run All Services
+This script will:
+- ✅ Authenticate with AWS ECR
+- ✅ Check/create ECR repository
+- ✅ Build Docker image with latest code
+- ✅ Tag image with `latest` and version timestamp
+- ✅ Push image to ECR
+
+### Step 2: Update ECS Service (Optional)
+
+After pushing the image, update the ECS service to use the new image:
+
 ```bash
-# Start all services
-docker-compose up -d
+# Using latest tag
+./update-ecs-service.sh latest
 
-# View logs
-docker-compose logs -f
+# Using specific version tag
+./update-ecs-service.sh v20250122-143000
 
-# Stop all services
-docker-compose down
+# Using image digest (most specific)
+./update-ecs-service.sh sha256:179026ff5404c86f135d83120f842418b7749e0bfb7b01b7dd8d7fc8892f21fe
 ```
 
-### 3. Access Services
-- **OASIS API**: http://localhost:5000
-- **STAR API**: http://localhost:5001
-- **OASIS OPORTAL**: http://localhost:5002
-- **STAR WEB UI**: http://localhost:5003
-- **OASIS WEB UI**: http://localhost:3000
+## Manual Deployment Steps
 
-## 📋 Individual Service Deployment
+### 1. Authenticate with AWS ECR
 
-### OASIS API Web API (.NET 8)
 ```bash
-# Build image
-docker build -f ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Dockerfile -t oasis-api .
-
-# Run container
-docker run -p 5000:8080 -e ASPNETCORE_ENVIRONMENT=Production oasis-api
-
-# Health check
-curl http://localhost:5000/api/health
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin \
+  881490134703.dkr.ecr.us-east-1.amazonaws.com
 ```
 
-### STAR API Web API (.NET 9)
+### 2. Build Docker Image
+
 ```bash
-# Build image
-docker build -f "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Dockerfile" -t star-api .
+# Using production Dockerfile (recommended)
+docker build -f Dockerfile.production -t oasis-api:latest .
 
-# Run container
-docker run -p 5001:8080 -e ASPNETCORE_ENVIRONMENT=Production star-api
-
-# Health check
-curl http://localhost:5001/api/health
+# Or using ONODE Dockerfile
+docker build -f ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Dockerfile \
+  -t oasis-api:latest ONODE
 ```
 
-### OASIS OPORTAL (.NET 8 + React)
-```bash
-# Build image
-docker build -f ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL/Dockerfile -t oasis-oportal .
+### 3. Tag Image for ECR
 
-# Run container
-docker run -p 5002:8080 -e ASPNETCORE_ENVIRONMENT=Production oasis-oportal
+```bash
+docker tag oasis-api:latest \
+  881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api:latest
 ```
 
-### STAR WEB UI (.NET 8 + React)
+### 4. Push to ECR
+
 ```bash
-# Build image
-docker build -f "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI/Dockerfile" -t star-web-ui .
-
-# Run container
-docker run -p 5003:8080 -e ASPNETCORE_ENVIRONMENT=Production star-web-ui
-
-# Health check
-curl http://localhost:5003/
+docker push 881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api:latest
 ```
 
-### OASIS WEB UI (React + Nginx)
+### 5. Get Image Digest
+
 ```bash
-# Build image
-docker build -f oasisweb4.com/Dockerfile -t oasis-web-ui .
-
-# Run container
-docker run -p 3000:80 oasis-web-ui
-
-# Health check
-curl http://localhost:3000/health
+docker inspect 881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api:latest \
+  --format='{{index .RepoDigests 0}}'
 ```
 
-## 🔧 Configuration
+## Dockerfile Options
+
+### Production Dockerfile (`Dockerfile.production`)
+- ✅ Optimized for AWS ECS Fargate
+- ✅ Uses port 80 (matches ECS task definition)
+- ✅ Includes all necessary dependencies
+- ✅ Multi-stage build for smaller image size
+- **Recommended for production deployments**
+
+### ONODE Dockerfile (`ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Dockerfile`)
+- Uses port 8080 (can be overridden with environment variable)
+- Simpler build context
+- Good for local development
+
+### Root Dockerfile (`Dockerfile`)
+- Builds STAR WebAPI (different project)
+- Not used for OASIS API ONODE deployment
+
+## ECS Configuration
+
+### Current Task Definition
+- **Family**: `oasis-api-task`
+- **Cluster**: `oasis-api-cluster`
+- **Service**: `oasis-api-service`
+- **Container Port**: 80
+- **CPU**: 512
+- **Memory**: 1024 MB
 
 ### Environment Variables
-Create a `.env` file in the root directory:
-```env
-# Database
-POSTGRES_DB=oasis
-POSTGRES_USER=oasis
-POSTGRES_PASSWORD=oasis123
+- `ASPNETCORE_ENVIRONMENT=Production`
+- `ASPNETCORE_URLS=http://+:80`
+- `ConnectionStrings__MongoDBOASIS=mongodb+srv://...`
 
-# API URLs
-OASIS_API_URL=http://oasis-api:8080
-STAR_API_URL=http://star-api:8080
+## Updating ECS Task Definition
 
-# Environment
-ASPNETCORE_ENVIRONMENT=Production
-```
+### Option 1: Using Script (Recommended)
 
-### Custom Ports
-Modify `docker-compose.yml` to change ports:
-```yaml
-services:
-  oasis-api:
-    ports:
-      - "8080:8080"  # Change first number for host port
-```
-
-## 🏗️ Production Deployment
-
-### 1. Docker Swarm
 ```bash
-# Initialize swarm
-docker swarm init
-
-# Deploy stack
-docker stack deploy -c docker-compose.yml oasis-stack
-
-# Scale services
-docker service scale oasis-stack_oasis-api=3
+./update-ecs-service.sh latest
 ```
 
-### 2. Kubernetes
+### Option 2: Manual Update
+
+1. Get current task definition:
 ```bash
-# Convert compose to k8s manifests
-kompose convert
-
-# Apply to cluster
-kubectl apply -f .
+aws ecs describe-task-definition \
+  --task-definition oasis-api-task \
+  --region us-east-1 \
+  --query 'taskDefinition' > current-task-def.json
 ```
 
-### 3. Cloud Platforms
+2. Edit `current-task-def.json` to update the image:
+```json
+{
+  "containerDefinitions": [{
+    "image": "881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api:latest"
+  }]
+}
+```
 
-#### Railway
-- Push to GitHub
-- Connect repository to Railway
-- Railway auto-detects Dockerfiles
-
-#### AWS ECS
-- Build and push to ECR
-- Create ECS task definitions
-- Deploy using ECS service
-
-#### Azure Container Instances
-- Build and push to ACR
-- Deploy using Azure CLI
-
-## 📊 Monitoring & Health Checks
-
-### Health Check Endpoints
-- **OASIS API**: `/api/health`
-- **STAR API**: `/api/health`
-- **OPORTAL**: `/`
-- **STAR WEB UI**: `/`
-- **OASIS WEB UI**: `/health`
-
-### Logs
+3. Register new task definition:
 ```bash
-# View all logs
-docker-compose logs
-
-# View specific service logs
-docker-compose logs oasis-api
-
-# Follow logs in real-time
-docker-compose logs -f star-api
+aws ecs register-task-definition \
+  --cli-input-json file://current-task-def.json \
+  --region us-east-1
 ```
 
-### Resource Monitoring
+4. Update service:
 ```bash
-# Container stats
-docker stats
-
-# Service status
-docker-compose ps
+aws ecs update-service \
+  --cluster oasis-api-cluster \
+  --service oasis-api-service \
+  --task-definition oasis-api-task \
+  --force-new-deployment \
+  --region us-east-1
 ```
 
-## 🔒 Security Best Practices
+## Verification
 
-### 1. Use Multi-stage Builds
-All Dockerfiles use multi-stage builds to minimize image size.
-
-### 2. Non-root User
-```dockerfile
-# Add to Dockerfile
-RUN adduser -D -s /bin/sh appuser
-USER appuser
-```
-
-### 3. Security Scanning
+### Check ECR Image
 ```bash
-# Scan images for vulnerabilities
-docker scan oasis-api
-docker scan star-api
+aws ecr describe-images \
+  --repository-name oasis-api \
+  --region us-east-1
 ```
 
-### 4. Secrets Management
+### Check ECS Service Status
 ```bash
-# Use Docker secrets
-echo "mysecret" | docker secret create db_password -
+aws ecs describe-services \
+  --cluster oasis-api-cluster \
+  --services oasis-api-service \
+  --region us-east-1
 ```
 
-## 🚨 Troubleshooting
-
-### Common Issues
-
-#### Build Failures
+### Check Running Tasks
 ```bash
-# Clean build
-docker-compose build --no-cache
-
-# Check build logs
-docker-compose build oasis-api
+aws ecs list-tasks \
+  --cluster oasis-api-cluster \
+  --service-name oasis-api-service \
+  --region us-east-1
 ```
 
-#### Port Conflicts
+### View Logs
 ```bash
-# Check port usage
-netstat -tulpn | grep :5000
-
-# Change ports in docker-compose.yml
+aws logs tail /ecs/oasis-api --follow --region us-east-1
 ```
 
-#### Memory Issues
+## Troubleshooting
+
+### Build Fails
+- Check Docker is running: `docker info`
+- Verify all project files are present
+- Check for .NET SDK version compatibility
+
+### Push Fails
+- Verify AWS credentials: `aws sts get-caller-identity`
+- Check ECR repository exists
+- Ensure IAM permissions for ECR
+
+### ECS Service Not Updating
+- Check task definition was registered successfully
+- Verify service is in correct cluster
+- Check CloudWatch logs for errors
+
+### Container Not Starting
+- Check environment variables are set correctly
+- Verify MongoDB connection string
+- Check health check endpoint is accessible
+
+## Image Tags
+
+The deployment script creates two tags:
+- `latest` - Always points to most recent build
+- `v{timestamp}` - Versioned tag (e.g., `v20250122-143000`)
+
+**Recommendation**: Use versioned tags or image digests for production deployments to ensure reproducibility.
+
+## Image Digest
+
+For maximum specificity, use image digests:
 ```bash
-# Increase Docker memory limit
-# Docker Desktop → Settings → Resources → Memory
+IMAGE_DIGEST=$(docker inspect 881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api:latest \
+  --format='{{index .RepoDigests 0}}' | cut -d'@' -f2)
+
+echo "Image: 881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api@${IMAGE_DIGEST}"
 ```
 
-#### Database Connection
+## Best Practices
+
+1. **Always test locally first**: Build and run the Docker image locally before pushing
+2. **Use versioned tags**: Don't rely solely on `latest` tag
+3. **Monitor deployments**: Watch CloudWatch logs during deployment
+4. **Rollback plan**: Keep previous task definition revisions
+5. **Health checks**: Ensure health check endpoint is working
+6. **Resource limits**: Monitor CPU and memory usage
+
+## Local Testing
+
+Before deploying to AWS, test the Docker image locally:
+
 ```bash
-# Check database logs
-docker-compose logs postgres
+# Build image
+docker build -f Dockerfile.production -t oasis-api:test .
 
-# Connect to database
-docker-compose exec postgres psql -U oasis -d oasis
+# Run container
+docker run -p 5000:80 \
+  -e "ConnectionStrings__MongoDBOASIS=mongodb+srv://..." \
+  oasis-api:test
+
+# Test API
+curl http://localhost:5000/swagger/index.html
 ```
 
-### Debug Commands
-```bash
-# Enter container
-docker-compose exec oasis-api sh
+## Next Steps
 
-# Check container processes
-docker-compose exec oasis-api ps aux
-
-# Check network connectivity
-docker-compose exec oasis-api ping star-api
-```
-
-## 📈 Performance Optimization
-
-### 1. Image Optimization
-- Use Alpine Linux base images
-- Multi-stage builds
-- Remove unnecessary packages
-
-### 2. Caching
-- Layer caching for faster builds
-- Use .dockerignore files
-- Order Dockerfile commands by frequency of change
-
-### 3. Resource Limits
-```yaml
-services:
-  oasis-api:
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-```
-
-## 🔄 CI/CD Integration
-
-### GitHub Actions
-```yaml
-name: Build and Push Docker Images
-on: [push]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build and push
-        run: |
-          docker-compose build
-          docker-compose push
-```
-
-### GitLab CI
-```yaml
-build:
-  stage: build
-  script:
-    - docker-compose build
-    - docker-compose push
-```
-
-## 📚 Additional Resources
-
-- [Docker Documentation](https://docs.docker.com/)
-- [Docker Compose Reference](https://docs.docker.com/compose/)
-- [.NET Docker Images](https://hub.docker.com/_/microsoft-dotnet)
-- [Nginx Docker Image](https://hub.docker.com/_/nginx)
+After successful deployment:
+1. ✅ Verify API is accessible at `https://oasisweb4.one`
+2. ✅ Test NFT minting functionality
+3. ✅ Monitor CloudWatch logs for errors
+4. ✅ Check ECS service metrics
 
 ---
 
-**Happy Containerizing! 🐳**
+**Last Updated**: January 2025
+**Maintained By**: OASIS Development Team

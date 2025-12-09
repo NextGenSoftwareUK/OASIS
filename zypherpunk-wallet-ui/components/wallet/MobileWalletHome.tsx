@@ -35,6 +35,7 @@ interface MobileWalletHomeProps {
   onClaimDrop?: () => void;
   onLogout?: () => void;
   onCreateWallet?: () => void;
+  onWalletClick?: (wallet: Wallet) => void;
 }
 
 export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
@@ -168,7 +169,7 @@ export const MobileWalletHome: React.FC<MobileWalletHomeProps> = ({
   }
   
   // For each remaining type, get the most recent wallet
-  for (const providerType of remainingTypes) {
+  for (const providerType of Array.from(remainingTypes)) {
     const walletsOfType = finalWallets
       .filter(w => normalizeProviderType(w.providerType) === providerType)
       .sort((a, b) => {

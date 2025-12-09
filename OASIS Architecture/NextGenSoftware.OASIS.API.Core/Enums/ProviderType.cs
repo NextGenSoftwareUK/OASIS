@@ -31,6 +31,7 @@
         BitcoinOASIS,
         NEAROASIS,
         SuiOASIS,
+        StarknetOASIS,
         AptosOASIS,
         AztecOASIS,
         ZcashOASIS,

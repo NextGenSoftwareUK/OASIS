@@ -71,3 +71,6 @@ public class ShipoxCarrier
     public decimal? Rate { get; set; }
 }
 
+
+
+

@@ -38,6 +38,62 @@ export interface Transaction {
   networkChainId?: string;
 }
 
+// Privacy Drop Types - Unlinkable drop-claim mechanism for privacy-preserving transfers
+export interface PrivacyDrop {
+  dropId: string;
+  nullifier: string; // Prevents double-claiming while maintaining privacy
+  amount: number;
+  providerType: ProviderType;
+  claimCode: string; // Encrypted claim code (AES-256)
+  claimCodeHash: string; // Hash of claim code for verification
+  passwordHash?: string; // Optional password protection (scrypt-derived)
+  expiresAt: number; // Unix timestamp
+  createdAt: number;
+  status: 'active' | 'claimed' | 'expired' | 'cancelled';
+  senderWalletAddress: string; // Not linked to recipient on-chain
+  senderAvatarId?: string; // Optional, for tracking (not exposed to recipient)
+  memo?: string; // Encrypted memo
+  metadata?: {
+    purpose?: 'reward' | 'refund' | 'bonus' | 'reimbursement' | 'payout' | 'gift';
+    tags?: string[];
+  };
+}
+
+export interface CreateDropRequest {
+  fromWalletAddress: string;
+  fromProviderType: ProviderType;
+  amount: number;
+  expiresInHours?: number; // Default 24 hours
+  password?: string; // Optional password protection
+  memo?: string;
+  purpose?: 'reward' | 'refund' | 'bonus' | 'reimbursement' | 'payout' | 'gift';
+  tags?: string[];
+}
+
+export interface ClaimDropRequest {
+  dropId: string;
+  claimCode: string;
+  password?: string; // Required if drop is password-protected
+  toWalletAddress: string; // Recipient's wallet address
+  toProviderType: ProviderType; // Must match drop's provider type
+}
+
+export interface DropStatus {
+  dropId: string;
+  status: 'active' | 'claimed' | 'expired' | 'cancelled';
+  amount: number;
+  providerType: ProviderType;
+  expiresAt: number;
+  claimedAt?: number;
+  claimedBy?: string; // Wallet address (not linked to sender)
+  claimTransactionHash?: string;
+}
+
+export interface DropHistory {
+  created: PrivacyDrop[]; // Drops you created
+  claimed: DropStatus[]; // Drops you claimed
+}
+
 export interface AvatarProfile {
   id?: string;
   avatarId?: string;
@@ -53,14 +109,21 @@ export interface AvatarProfile {
   lastLoginDate?: string;
   trustLevel?: 'bronze' | 'silver' | 'gold' | 'platinum';
   region?: string;
+  verificationToken?: string; // Token for email verification
+  verified?: boolean; // Whether email is verified
 }
 
 export interface AvatarRegistrationRequest {
   username: string;
   email: string;
   password: string;
-  firstName?: string;
-  lastName?: string;
+  confirmPassword?: string; // Required by backend
+  firstName: string; // Required by backend (CreateRequest base class)
+  lastName: string; // Required by backend (CreateRequest base class)
+  title?: string; // Optional
+  avatarType?: string; // Required by backend, defaults to "User"
+  acceptTerms: boolean; // Required by backend
+  privacyMode?: boolean; // If true, use fake email and auto-verify
 }
 
 export interface AvatarAuthResponse {

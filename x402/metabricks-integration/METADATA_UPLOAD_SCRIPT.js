@@ -210,3 +210,4 @@ if (require.main === module) {
 
 module.exports = { generateMetadata, uploadToPinata };
 
+

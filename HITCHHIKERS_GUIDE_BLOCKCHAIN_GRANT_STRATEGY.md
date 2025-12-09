@@ -677,3 +677,4 @@ Let's not make the same mistake with blockchain. Let's give users **The Guide** 
 **Ready to submit?** Start with Cosmos, Polkadot, and Chainlink. The galaxy awaits. 🌌
 
 
+

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
@@ -21,8 +22,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.Bridge.Services
                 Id = Guid.NewGuid(),
                 Name = $"ViewingKey-{entry.TransactionId}",
                 Description = $"Viewing key for {entry.SourceChain} → {entry.DestinationChain}",
-                HolonType = Enums.HolonType.Bridge,
-                MetaData = new System.Collections.Generic.Dictionary<string, string>
+                HolonType = HolonType.Default,
+                MetaData = new System.Collections.Generic.Dictionary<string, object>
                 {
                     { "TransactionId", entry.TransactionId ?? string.Empty },
                     { "ViewingKey", entry.ViewingKey },

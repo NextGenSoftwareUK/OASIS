@@ -91,3 +91,4 @@ console.log('\n📋 Next steps:');
 console.log('   - Test locally: cd dist && python3 -m http.server 8080');
 console.log('   - Deploy to Vercel: vercel --prod');
 console.log('   - Deploy to Netlify: netlify deploy --prod');
+

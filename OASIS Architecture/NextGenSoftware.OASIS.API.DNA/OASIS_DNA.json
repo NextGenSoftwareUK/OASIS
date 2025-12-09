@@ -103,9 +103,10 @@
             "ThreeFoldOASIS": { "ConnectionString": "" },
             "EthereumOASIS": {
                 "ChainPrivateKey": "",
-                "ChainId": 0,
+                "ChainId": 11155111,
                 "ContractAddress": "",
-                "ConnectionString": "http://testchain.nethereum.com:8545"
+                "ConnectionString": "https://sepolia.infura.io/v3/YOUR_PROJECT_ID",
+                "Network": "testnet"
             },
             "ArbitrumOASIS": {
                 "ChainPrivateKey": "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a",
@@ -120,6 +121,18 @@
             "MidenOASIS": {
                 "ApiBaseUrl": "https://testnet.miden.xyz",
                 "Network": "testnet"
+            },
+            "ZcashOASIS": {
+                "Network": "testnet",
+                "RpcEndpoint": "https://zcash-testnet.gateway.tatum.io",
+                "RpcUser": "",
+                "RpcPassword": "",
+                "ApiKey": "t-69263a806c36b02bafbc5af2-fd23c07357a045f39b7a0efc"
+            },
+            "AztecOASIS": {
+                "Network": "testnet",
+                "ApiBaseUrl": "https://aztec-testnet.example.com",
+                "ChainId": "testnet"
             },
             "RootstockOASIS": {
                 "ChainPrivateKey": "",
@@ -273,6 +286,19 @@
             },
             "GoogleCloudOASIS": {
                 "ProjectId": "YOUR_PROJECT_ID",
+                "BucketName": "oasis-storage",
+                "CredentialsPath": "path/to/credentials.json",
+                "FirestoreDatabaseId": "oasis-db",
+                "BigQueryDatasetId": "oasis_data",
+                "EnableStorage": true,
+                "EnableFirestore": true,
+                "EnableBigQuery": true
+            }
+        },
+        "OASISSystemAccountId": "",
+        "OASISAPIURL": "https://oasisweb4.one/api"
+    }
+}
                 "BucketName": "oasis-storage",
                 "CredentialsPath": "path/to/credentials.json",
                 "FirestoreDatabaseId": "oasis-db",

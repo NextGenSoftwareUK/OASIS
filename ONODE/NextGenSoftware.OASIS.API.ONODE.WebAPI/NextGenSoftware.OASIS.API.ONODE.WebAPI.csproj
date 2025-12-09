@@ -26,6 +26,7 @@
   <ItemGroup>
     <Compile Remove="Helpers\OASISProviderManager.cs" />
     <Compile Remove="Helpers\OASISSettings.cs" />
+    <Compile Remove="Controllers\ContractGeneratorController.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -59,6 +60,8 @@
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\NextGenSoftware.OASIS.API.Providers.TelegramOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ZcashOASIS\NextGenSoftware.OASIS.API.Providers.ZcashOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.AztecOASIS\NextGenSoftware.OASIS.API.Providers.AztecOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>

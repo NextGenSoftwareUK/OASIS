@@ -9,6 +9,9 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
@@ -758,6 +761,58 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         {
             return ExportAllAsync(version).Result;
         }
+
+        #region IOASISBlockchainStorageProvider - SendTransaction
+
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddres, decimal amount, string memoText)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return await Task.FromResult(result);
+            }
+
+            OASISErrorHandling.HandleError(ref result, "SendTransaction not yet fully implemented for Zcash provider");
+            return await Task.FromResult(result);
+        }
+
+        #endregion
+
+        #region IOASISNETProvider - GetAvatarsNearMe and GetHolonsNearMe
+
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return result;
+            }
+
+            OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe not yet implemented for Zcash provider");
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return result;
+            }
+
+            OASISErrorHandling.HandleError(ref result, "GetHolonsNearMe not yet implemented for Zcash provider");
+            return result;
+        }
+
+        #endregion
     }
 }
 

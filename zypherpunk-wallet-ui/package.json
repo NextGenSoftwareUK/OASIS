@@ -19,9 +19,11 @@
     "framer-motion": "^10.16.16",
     "lucide-react": "^0.303.0",
     "next": "14.0.4",
+    "qrcode.react": "^4.2.0",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.48.2",
+    "recharts": "^3.5.1",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.22.4",
@@ -39,4 +41,3 @@
     "typescript": "^5"
   }
 }
-

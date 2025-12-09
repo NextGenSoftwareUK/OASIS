@@ -15,3 +15,6 @@ public class MerchantRegistrationRequest
     public string RateLimitTier { get; set; } = "Basic"; // Basic, Premium, Enterprise
 }
 
+
+
+

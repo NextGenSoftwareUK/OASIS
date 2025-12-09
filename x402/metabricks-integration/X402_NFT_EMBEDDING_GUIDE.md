@@ -383,3 +383,4 @@ async function queryBlockchainForCurrentHolders() {
 Let me update the code to query CURRENT holders from blockchain instead of database:
 
 
+

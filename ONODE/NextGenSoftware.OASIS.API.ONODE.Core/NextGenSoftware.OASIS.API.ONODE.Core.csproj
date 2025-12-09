@@ -76,6 +76,9 @@
 		<Compile Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
 		<EmbeddedResource Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
 		<None Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
+		<!-- TODO: Fix HoloOASIS - missing holochain-client-csharp dependency (excluded from Docker build) -->
+		<Compile Remove="Network\HoloNETClientExtensions.cs" />
+		<Compile Remove="Network\NetworkMetricsService.cs" />
 	</ItemGroup>
 
 </Project>

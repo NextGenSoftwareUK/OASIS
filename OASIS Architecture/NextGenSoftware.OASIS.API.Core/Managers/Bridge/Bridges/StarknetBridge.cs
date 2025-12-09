@@ -54,8 +54,8 @@ public class StarknetBridge : IOASISBridge
             var seedPhrase = GenerateSeedPhrase();
             var (publicKey, privateKey) = DeriveKeysFromSeed(seedPhrase);
 
-            var result = new OASISResult<(string, string, string)>
-            {
+        var result = new OASISResult<(string, string, string)>
+        {
                 Result = (publicKey, privateKey, seedPhrase),
                 IsError = false,
                 Message = $"Starknet account created on {_network}"
@@ -93,9 +93,9 @@ public class StarknetBridge : IOASISBridge
             var result = new OASISResult<(string, string)>
             {
                 Result = (publicKey, privateKey),
-                IsError = false,
+            IsError = false,
                 Message = $"Starknet account restored from seed on {_network}"
-            };
+        };
 
             return result;
         }

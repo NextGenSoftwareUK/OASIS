@@ -197,3 +197,4 @@ export function CelestialBodyNode({ body, onClick, showLabels }: CelestialBodyNo
   );
 }
 
+
