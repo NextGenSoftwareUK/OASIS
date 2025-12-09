@@ -3,44 +3,51 @@
 
 const TELEGRAM_GROUP_URL = 'https://t.me/your_oasis_group'; // Update with actual group URL
 
-// OASIS API client (should be defined in portal.html or separate file)
-// For now, using a simple fetch wrapper
-const oasisAPI = {
-    baseUrl: 'https://api.oasisplatform.world',
+// Use the global oasisAPI from api/oasisApi.js if available, otherwise create a fallback
+const telegramAPI = typeof oasisAPI !== 'undefined' ? oasisAPI : {
+    baseURL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5004'
+        : 'https://api.oasisweb4.one',
     
-    getToken() {
-        const auth = localStorage.getItem('oasis_auth');
-        if (auth) {
-            const parsed = JSON.parse(auth);
-            return parsed.token;
+    getAuthHeaders() {
+        try {
+            const authData = localStorage.getItem('oasis_auth');
+            if (!authData) {
+                return { 'Content-Type': 'application/json' };
+            }
+            const auth = JSON.parse(authData);
+            const headers = { 'Content-Type': 'application/json' };
+            if (auth.token) {
+                headers['Authorization'] = `Bearer ${auth.token}`;
+            }
+            return headers;
+        } catch (error) {
+            return { 'Content-Type': 'application/json' };
         }
-        return null;
     },
     
     async request(endpoint, options = {}) {
-        const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
-        const headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            ...options.headers
+        const url = `${this.baseURL}${endpoint}`;
+        const config = {
+            ...options,
+            headers: {
+                ...this.getAuthHeaders(),
+                ...(options.headers || {})
+            }
         };
         
-        const token = this.getToken();
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-        
         try {
-            const response = await fetch(url, {
-                ...options,
-                headers
-            });
-            
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
+            const response = await fetch(url, config);
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return {
+                    isError: !response.ok,
+                    message: response.statusText,
+                    status: response.status
+                };
             }
-            
-            return await response.json();
         } catch (error) {
             console.error('API request failed:', error);
             return { isError: true, message: error.message };
@@ -54,6 +61,7 @@ const oasisAPI = {
 async function loadTelegramGamification() {
     const authData = localStorage.getItem('oasis_auth');
     if (!authData) {
+        showLoginPrompt();
         return;
     }
 
@@ -62,26 +70,50 @@ async function loadTelegramGamification() {
         const avatarId = auth.avatar?.id || auth.avatar?.avatarId;
         
         if (!avatarId) {
+            showLoginPrompt();
             return;
         }
 
+        // Check if Telegram is linked
+        const telegramLink = await telegramAPI.getTelegramAvatarByOasis(avatarId);
+        
+        if (telegramLink.isError || !telegramLink.result) {
+            // Show connection banner with link option
+            renderTelegramConnectionStatus({ telegramLinked: false });
+            return;
+        }
+        
+        const telegramUserId = telegramLink.result.telegramUserId;
+        const telegramUser = telegramLink.result;
+
         // Load all Telegram data in parallel
-        const [stats, achievements, rewards, leaderboard] = await Promise.all([
-            loadTelegramStats(avatarId),
-            loadTelegramAchievements(avatarId),
-            loadTelegramRewards(avatarId),
-            loadTelegramLeaderboard()
+        const [stats, rewards, achievements, activities, groups, leaderboard] = await Promise.all([
+            telegramAPI.getTelegramStats(telegramUserId),
+            telegramAPI.getTelegramRewards(telegramUserId, 10),
+            telegramAPI.getTelegramAchievements(telegramUserId),
+            telegramAPI.getTelegramActivities(telegramUserId, 50),
+            telegramAPI.getTelegramGroups(telegramUserId),
+            telegramAPI.getTelegramLeaderboard(null, 'alltime') // Global leaderboard
         ]);
 
-        // Render all components
-        renderTelegramConnectionStatus(stats);
-        renderTelegramStats(stats);
-        renderRecentRewards(rewards);
-        renderAchievementBadges(achievements);
-        renderActivityTimeline(rewards);
-        renderLeaderboard(leaderboard);
-        renderRewardsBreakdown(rewards);
-        renderNFTGallery(achievements);
+        // Process and render all components
+        const statsData = stats.isError ? getDefaultStats() : {
+            ...getDefaultStats(),
+            ...stats.result,
+            telegramLinked: true,
+            telegramUsername: telegramUser.telegramUsername
+        };
+
+        renderTelegramConnectionStatus(statsData);
+        renderTelegramStats(statsData);
+        renderRecentRewards(rewards.isError ? [] : rewards.result || []);
+        renderAchievementBadges(achievements.isError ? [] : achievements.result || []);
+        renderActivityTimeline(activities.isError ? [] : activities.result || []);
+        renderConversations(groups.isError ? [] : groups.result || []);
+        renderLeaderboard(leaderboard.isError ? [] : leaderboard.result || []);
+        renderRewardsBreakdown(rewards.isError ? [] : rewards.result || []);
+        renderQuests(achievements.isError ? [] : achievements.result.filter(a => a.status === 'Active') || []);
+        renderNFTGallery(achievements.isError ? [] : achievements.result.filter(a => a.status === 'Completed' && a.nftReward) || []);
 
     } catch (error) {
         console.error('Error loading Telegram gamification:', error);
@@ -89,14 +121,25 @@ async function loadTelegramGamification() {
     }
 }
 
+function showLoginPrompt() {
+    const container = document.getElementById('telegram-gamification-content');
+    if (container) {
+        container.innerHTML = `
+            <div class="telegram-error-state">
+                <p class="error-message">Please log in to view your Telegram gamification data.</p>
+                <button class="btn-primary" onclick="document.getElementById('loginModal').style.display = 'flex';">Log In</button>
+            </div>
+        `;
+    }
+}
+
 /**
- * Load Telegram stats
+ * Load Telegram stats (now handled in main load function)
+ * Kept for backward compatibility
  */
-async function loadTelegramStats(avatarId) {
+async function loadTelegramStats(telegramUserId) {
     try {
-        const response = await oasisAPI.request(
-            `/api/telegram/gamification/stats/${avatarId}`
-        );
+        const response = await telegramAPI.getTelegramStats(telegramUserId);
         
         if (response.isError) {
             return getDefaultStats();
@@ -113,13 +156,19 @@ function getDefaultStats() {
     return {
         telegramLinked: false,
         telegramUsername: null,
+        totalKarma: 0,
+        totalTokens: 0,
+        totalNFTs: 0,
+        dailyStreak: 0,
+        longestStreak: 0,
+        achievementsCompleted: 0,
+        groupsJoined: 0,
+        totalCheckins: 0,
+        // Legacy field names for compatibility
         totalKarmaEarned: 0,
         totalTokensEarned: 0,
         nftsEarned: 0,
-        achievementsCompleted: 0,
         achievementsActive: 0,
-        groupsJoined: 0,
-        dailyStreak: 0,
         weeklyActive: false
     };
 }
@@ -127,12 +176,9 @@ function getDefaultStats() {
 /**
  * Load Telegram achievements
  */
-async function loadTelegramAchievements(avatarId) {
+async function loadTelegramAchievements(telegramUserId) {
     try {
-        const response = await oasisAPI.request(
-            `/api/telegram/achievements/user/${avatarId}`
-        );
-        
+        const response = await telegramAPI.getTelegramAchievements(telegramUserId);
         return response.result || [];
     } catch (error) {
         console.error('Error loading achievements:', error);
@@ -143,13 +189,10 @@ async function loadTelegramAchievements(avatarId) {
 /**
  * Load Telegram rewards
  */
-async function loadTelegramRewards(avatarId) {
+async function loadTelegramRewards(telegramUserId, limit = 50) {
     try {
-        const response = await oasisAPI.request(
-            `/api/telegram/gamification/rewards/${avatarId}?limit=50`
-        );
-        
-        return response.result?.rewards || [];
+        const response = await telegramAPI.getTelegramRewards(telegramUserId, limit);
+        return response.result || [];
     } catch (error) {
         console.error('Error loading rewards:', error);
         return [];
@@ -159,13 +202,10 @@ async function loadTelegramRewards(avatarId) {
 /**
  * Load leaderboard
  */
-async function loadTelegramLeaderboard(period = 'weekly') {
+async function loadTelegramLeaderboard(period = 'alltime', groupId = null) {
     try {
-        const response = await oasisAPI.request(
-            `/api/telegram/gamification/leaderboard?period=${period}`
-        );
-        
-        return response.result?.leaderboard || [];
+        const response = await telegramAPI.getTelegramLeaderboard(groupId, period);
+        return response.result || [];
     } catch (error) {
         console.error('Error loading leaderboard:', error);
         return [];
@@ -224,11 +264,16 @@ function renderTelegramStats(stats) {
     const container = document.getElementById('telegram-stats');
     if (!container) return;
 
+    const totalKarma = stats.totalKarma || stats.totalKarmaEarned || 0;
+    const totalTokens = stats.totalTokens || stats.totalTokensEarned || 0;
+    const totalNFTs = stats.totalNFTs || stats.nftsEarned || 0;
+    const achievementsActive = stats.achievementsActive || 0;
+    
     const statsData = [
         {
             id: 'karma',
             label: 'Karma Earned',
-            value: formatNumber(stats.totalKarmaEarned),
+            value: formatNumber(totalKarma),
             sublabel: 'From Telegram activities',
             icon: '⭐',
             color: 'text-yellow-400'
@@ -236,7 +281,7 @@ function renderTelegramStats(stats) {
         {
             id: 'tokens',
             label: 'Tokens Earned',
-            value: formatNumber(stats.totalTokensEarned, 1),
+            value: formatNumber(totalTokens, 1),
             sublabel: 'Token rewards',
             icon: '🪙',
             color: 'text-green-400'
@@ -244,7 +289,7 @@ function renderTelegramStats(stats) {
         {
             id: 'nfts',
             label: 'NFTs Earned',
-            value: stats.nftsEarned,
+            value: totalNFTs,
             sublabel: 'Achievement NFTs',
             icon: '🎨',
             color: 'text-purple-400'
@@ -252,7 +297,7 @@ function renderTelegramStats(stats) {
         {
             id: 'streak',
             label: 'Daily Streak',
-            value: `${stats.dailyStreak} days`,
+            value: `${stats.dailyStreak || 0} days`,
             sublabel: stats.dailyStreak > 0 ? '🔥 Keep it up!' : 'Start your streak',
             icon: '🔥',
             color: 'text-orange-400'
@@ -260,15 +305,15 @@ function renderTelegramStats(stats) {
         {
             id: 'achievements',
             label: 'Achievements',
-            value: `${stats.achievementsCompleted}/${stats.achievementsCompleted + stats.achievementsActive}`,
-            sublabel: `${stats.achievementsActive} in progress`,
+            value: `${stats.achievementsCompleted || 0}/${(stats.achievementsCompleted || 0) + achievementsActive}`,
+            sublabel: `${achievementsActive} in progress`,
             icon: '🏆',
             color: 'text-blue-400'
         },
         {
             id: 'groups',
             label: 'Groups Joined',
-            value: stats.groupsJoined,
+            value: stats.groupsJoined || 0,
             sublabel: 'Telegram groups',
             icon: '👥',
             color: 'text-cyan-400'
@@ -322,8 +367,11 @@ function renderRecentRewards(rewards) {
                             <p class="telegram-reward-title">${getRewardTitle(reward.type)}</p>
                             <span class="telegram-reward-time">${formatTimeAgo(reward.timestamp)}</span>
                         </div>
-                        <p class="telegram-reward-description">${reward.description || 'Telegram activity'}</p>
+                        <p class="telegram-reward-description">${reward.reason || reward.description || 'Telegram activity'}</p>
                         <div class="telegram-reward-amounts">
+                            ${reward.amount && reward.type === 'karma' ? `<span class="reward-karma">+${reward.amount} karma</span>` : ''}
+                            ${reward.amount && reward.type === 'token' ? `<span class="reward-tokens">+${reward.amount} tokens</span>` : ''}
+                            ${reward.type === 'nft' ? `<span class="reward-nft">+1 NFT</span>` : ''}
                             ${reward.karmaAwarded > 0 ? `<span class="reward-karma">+${reward.karmaAwarded} karma</span>` : ''}
                             ${reward.tokensAwarded > 0 ? `<span class="reward-tokens">+${reward.tokensAwarded} tokens</span>` : ''}
                             ${reward.nftAwarded ? `<span class="reward-nft">+1 NFT</span>` : ''}
@@ -457,8 +505,11 @@ function renderActivityTimeline(rewards) {
                                     <div class="timeline-item-icon">${getRewardIcon(reward.type)}</div>
                                     <div class="timeline-item-content">
                                         <p class="timeline-item-title">${getRewardTitle(reward.type)}</p>
-                                        <p class="timeline-item-description">${reward.description || ''}</p>
+                                        <p class="timeline-item-description">${reward.reason || reward.description || ''}</p>
                                         <div class="timeline-item-rewards">
+                                            ${reward.amount && reward.type === 'karma' ? `<span>+${reward.amount} karma</span>` : ''}
+                                            ${reward.amount && reward.type === 'token' ? `<span>+${reward.amount} tokens</span>` : ''}
+                                            ${reward.type === 'nft' ? `<span>+1 NFT</span>` : ''}
                                             ${reward.karmaAwarded > 0 ? `<span>+${reward.karmaAwarded} karma</span>` : ''}
                                             ${reward.tokensAwarded > 0 ? `<span>+${reward.tokensAwarded} tokens</span>` : ''}
                                             ${reward.nftAwarded ? `<span>+1 NFT</span>` : ''}
@@ -596,6 +647,160 @@ function renderRewardsBreakdown(rewards) {
             </div>
         </div>
     `;
+}
+
+/**
+ * Render conversations/groups list
+ */
+function renderConversations(groups) {
+    const container = document.getElementById('telegram-conversations');
+    if (!container) return;
+
+    if (groups.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <p class="empty-state-text">No active conversations. Join Telegram groups to start earning rewards!</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="conversations-list">
+            ${groups.map(group => {
+                const memberCount = group.memberIds?.length || group.memberCount || 0;
+                const isAdmin = group.adminIds?.includes(group.telegramUserId) || group.yourRole === 'admin';
+                const role = isAdmin ? 'Admin' : 'Member';
+                const lastActivity = group.lastActivity ? formatTimeAgo(group.lastActivity) : 'No recent activity';
+                
+                return `
+                    <div class="conversation-item" onclick="viewGroupDetails('${group.id}')">
+                        <div class="conversation-icon">👥</div>
+                        <div class="conversation-content">
+                            <div class="conversation-header">
+                                <h3 class="conversation-name">${group.name || 'Unnamed Group'}</h3>
+                                <span class="conversation-role">${role}</span>
+                            </div>
+                            <p class="conversation-meta">
+                                ${memberCount} members • Last activity: ${lastActivity}
+                            </p>
+                            ${group.yourStats ? `
+                                <div class="conversation-stats">
+                                    <span class="conversation-stat">⭐ ${group.yourStats.karma || 0} karma</span>
+                                    <span class="conversation-stat">✓ ${group.yourStats.checkins || 0} check-ins</span>
+                                    <span class="conversation-stat">🏆 ${group.yourStats.achievements || 0} achievements</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="conversation-arrow">→</div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+/**
+ * Render quests/challenges
+ */
+function renderQuests(achievements) {
+    const container = document.getElementById('telegram-quests');
+    if (!container) return;
+
+    // Filter active achievements as quests
+    const activeQuests = achievements.filter(a => a.status === 'Active' || a.status === 'active');
+    const completedQuests = achievements.filter(a => a.status === 'Completed' || a.status === 'completed');
+
+    if (activeQuests.length === 0 && completedQuests.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <p class="empty-state-text">No quests available. Complete Telegram activities to unlock quests!</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="quests-container">
+            ${activeQuests.length > 0 ? `
+                <div class="quests-section">
+                    <h3 class="quests-section-title">Active Quests</h3>
+                    <div class="quests-list">
+                        ${activeQuests.map(quest => {
+                            const progress = quest.progress || 0;
+                            const goal = quest.goal || quest.target || 1;
+                            const progressPct = goal > 0 ? Math.min(100, (progress / goal) * 100) : 0;
+                            
+                            return `
+                                <div class="quest-item active">
+                                    <div class="quest-header">
+                                        <div class="quest-icon">${getQuestIcon(quest.type || quest.id)}</div>
+                                        <div class="quest-info">
+                                            <h4 class="quest-name">${quest.name || quest.description || 'Quest'}</h4>
+                                            <p class="quest-description">${quest.description || ''}</p>
+                                        </div>
+                                    </div>
+                                    <div class="quest-progress">
+                                        <div class="quest-progress-bar">
+                                            <div class="quest-progress-fill" style="width: ${progressPct}%"></div>
+                                        </div>
+                                        <div class="quest-progress-text">
+                                            ${progress} / ${goal} (${Math.round(progressPct)}%)
+                                        </div>
+                                    </div>
+                                    <div class="quest-rewards">
+                                        ${quest.karmaReward > 0 ? `<span class="reward-karma">+${quest.karmaReward} karma</span>` : ''}
+                                        ${quest.tokenReward > 0 ? `<span class="reward-tokens">+${quest.tokenReward} tokens</span>` : ''}
+                                        ${quest.nftReward ? `<span class="reward-nft">+1 NFT</span>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${completedQuests.length > 0 ? `
+                <div class="quests-section">
+                    <h3 class="quests-section-title">Completed Quests</h3>
+                    <div class="quests-list">
+                        ${completedQuests.slice(0, 5).map(quest => `
+                            <div class="quest-item completed">
+                                <div class="quest-header">
+                                    <div class="quest-icon">✅</div>
+                                    <div class="quest-info">
+                                        <h4 class="quest-name">${quest.name || quest.description || 'Quest'}</h4>
+                                        <p class="quest-description">Completed ${quest.completedAt ? formatTimeAgo(quest.completedAt) : 'recently'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function getQuestIcon(questType) {
+    const icons = {
+        'checkin': '📅',
+        'streak': '🔥',
+        'mention': '💬',
+        'share': '🔗',
+        'post': '✍️',
+        'help': '💡',
+        'code': '💻',
+        'tutorial': '📚',
+        'viral': '🔥',
+        'invite': '👥'
+    };
+    return icons[questType] || '🎯';
+}
+
+function viewGroupDetails(groupId) {
+    // TODO: Implement group details view
+    console.log('View group details:', groupId);
 }
 
 /**
@@ -967,6 +1172,9 @@ async function loadLeaderboardPeriod(period) {
     renderLeaderboard(leaderboard);
 }
 
+// Make viewGroupDetails globally available
+window.viewGroupDetails = viewGroupDetails;
+
 /**
  * Link Telegram account
  */
@@ -981,21 +1189,14 @@ async function linkTelegramAccount() {
         const auth = JSON.parse(authData);
         const avatarId = auth.avatar?.id || auth.avatar?.avatarId;
 
-        // Get verification code
-        const codeResponse = await oasisAPI.request(
-            `/api/telegram/link-code/${avatarId}`
-        );
-
-        if (codeResponse.isError) {
-            alert('Error generating link code: ' + codeResponse.message);
+        if (!avatarId) {
+            alert('Avatar ID not found. Please log in again.');
             return;
         }
 
-        const code = codeResponse.result.verificationCode;
-        const instructions = codeResponse.result.instructions;
-
-        // Show instructions modal
-        showLinkInstructionsModal(code, instructions);
+        // Show instructions modal with manual linking process
+        // The user needs to get their Telegram user ID and verification code from the bot
+        showLinkInstructionsModal(null, null);
 
     } catch (error) {
         console.error('Error linking Telegram:', error);
@@ -1012,6 +1213,10 @@ function showLinkInstructionsModal(code, instructions) {
         existingModal.remove();
     }
 
+    const authData = localStorage.getItem('oasis_auth');
+    const auth = JSON.parse(authData);
+    const avatarId = auth.avatar?.id || auth.avatar?.avatarId;
+
     // Create modal
     const modal = document.createElement('div');
     modal.className = 'modal';
@@ -1026,70 +1231,85 @@ function showLinkInstructionsModal(code, instructions) {
                 <p>Follow these steps to connect your Telegram account</p>
             </div>
             
-            <div class="telegram-link-steps">
-                <div class="telegram-link-step active">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Open Telegram</h3>
-                        <p>Open the Telegram app or <a href="https://web.telegram.org" target="_blank">web.telegram.org</a></p>
-                    </div>
-                </div>
-                
-                <div class="telegram-link-step active">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>Find OASIS Bot</h3>
-                        <p>Search for <strong>@OASISBot</strong> or click:</p>
-                        <a href="https://t.me/OASISBot" target="_blank" class="telegram-bot-link">
-                            Open @OASISBot →
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="telegram-link-step active">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Send Link Command</h3>
-                        <p>Copy and send this command to the bot:</p>
-                        <div class="telegram-link-code-box">
-                            <code id="link-command-text">/link ${code}</code>
-                            <button class="copy-btn" onclick="copyTelegramLinkCommand()">
-                                <span class="copy-icon">📋</span>
-                                Copy
-                            </button>
-                        </div>
-                        <p class="code-expires">⏰ Code expires in 10 minutes</p>
-                    </div>
-                </div>
-                
-                <div class="telegram-link-step" id="link-step-4">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>Wait for Confirmation</h3>
-                        <p>The bot will confirm when your account is linked.</p>
-                        <div class="link-status-indicator" id="link-status-indicator">
-                            <div class="status-spinner"></div>
-                            <span>Waiting for verification...</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="telegram-link-instructions">
+                <p><strong>Step 1:</strong> Open Telegram and search for <strong>@OASISBot</strong> (or your OASIS bot name)</p>
+                <p><strong>Step 2:</strong> Send the <code>/start</code> command to the bot</p>
+                <p><strong>Step 3:</strong> Follow the bot's instructions to link your account</p>
+                <p><strong>Step 4:</strong> The bot will provide a verification code</p>
+                <p><strong>Step 5:</strong> Enter the verification code below</p>
+            </div>
+            
+            <div class="telegram-link-code">
+                <label for="verification-code-input">Verification Code:</label>
+                <input 
+                    type="text" 
+                    id="verification-code-input" 
+                    placeholder="Enter code from Telegram bot"
+                    class="auth-input"
+                />
             </div>
             
             <div class="telegram-link-actions">
                 <button class="btn-secondary" onclick="closeTelegramLinkModal()">Cancel</button>
-                <button class="btn-primary" onclick="checkTelegramLinkStatus()">Check Status</button>
+                <button class="btn-primary" onclick="submitTelegramLink()">Link Account</button>
             </div>
             
             <div class="telegram-link-help">
-                <p>💡 <strong>Tip:</strong> Keep this window open. We'll automatically detect when your account is linked.</p>
+                <p>💡 <strong>Tip:</strong> If you don't have the verification code, contact the bot first using <code>/start</code></p>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
-    
-    // Start polling for link status
-    startTelegramLinkStatusPolling();
 }
+
+async function submitTelegramLink() {
+    const codeInput = document.getElementById('verification-code-input');
+    const verificationCode = codeInput?.value?.trim();
+    
+    if (!verificationCode) {
+        alert('Please enter the verification code from the Telegram bot');
+        return;
+    }
+
+    try {
+        const authData = localStorage.getItem('oasis_auth');
+        const auth = JSON.parse(authData);
+        const avatarId = auth.avatar?.id || auth.avatar?.avatarId;
+
+        if (!avatarId) {
+            alert('Avatar ID not found. Please log in again.');
+            return;
+        }
+
+        // Note: This assumes the API endpoint accepts verificationCode
+        // The actual implementation may vary based on how the bot provides the linking data
+        const result = await telegramAPI.linkTelegram({
+            oasisAvatarId: avatarId,
+            verificationCode: verificationCode
+        });
+
+        if (result.isError) {
+            alert('Error linking account: ' + (result.message || 'Unknown error'));
+            return;
+        }
+
+        // Success - close modal and refresh
+        closeTelegramLinkModal();
+        await loadTelegramGamification();
+        
+        // Refresh message section if on dashboard
+        if (typeof loadTelegramMessageSection === 'function') {
+            loadTelegramMessageSection();
+        }
+
+    } catch (error) {
+        console.error('Error linking Telegram:', error);
+        alert('Error linking Telegram account: ' + error.message);
+    }
+}
+
+// Make submitTelegramLink globally available
+window.submitTelegramLink = submitTelegramLink;
 
 function startTelegramLinkStatusPolling() {
     // Clear any existing polling
@@ -1131,15 +1351,13 @@ async function checkTelegramLinkStatus() {
         
         if (!avatarId) return false;
         
-        const response = await oasisAPI.request(
-            `/api/telegram/link-status/${avatarId}`
-        );
+        const response = await telegramAPI.getTelegramAvatarByOasis(avatarId);
         
         if (response.isError || !response.result) {
             return false;
         }
         
-        return response.result.linked === true;
+        return true; // If we got a result, it's linked
     } catch (error) {
         console.error('Error checking link status:', error);
         return false;
@@ -1235,13 +1453,14 @@ async function disconnectTelegram() {
         const auth = JSON.parse(authData);
         const avatarId = auth.avatar?.id || auth.avatar?.avatarId;
 
-        const response = await oasisAPI.request(
+        // Note: This endpoint may need to be confirmed with the actual API
+        const response = await telegramAPI.request(
             `/api/telegram/disconnect/${avatarId}`,
             { method: 'POST' }
         );
 
         if (response.isError) {
-            alert('Error disconnecting: ' + response.message);
+            alert('Error disconnecting: ' + (response.message || 'Unknown error'));
             return;
         }
 
@@ -1481,8 +1700,15 @@ async function checkForTelegramUpdates() {
         if (!avatarId) return;
 
         // Check for new rewards since last check
-        const response = await oasisAPI.request(
-            `/api/telegram/gamification/updates/${avatarId}?since=${lastUpdateCheck || Date.now() - 60000}`
+        // Note: This endpoint may need to be implemented or use activities endpoint
+        const telegramLink = await telegramAPI.getTelegramAvatarByOasis(avatarId);
+        if (telegramLink.isError || !telegramLink.result) return;
+        
+        const telegramUserId = telegramLink.result.telegramUserId;
+        const response = await telegramAPI.getTelegramActivities(
+            telegramUserId, 
+            10, 
+            null
         );
 
         if (response.isError || !response.result) return;
