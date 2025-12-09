@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 
-namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
+namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
 {
     public class MintWeb4NFTRequest : MintNFTRequestBase, IMintWeb4NFTRequest
     {

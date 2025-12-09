@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return CurrentMapProvider.PlaceQuestOnMap(quest, x, y);
         }
 
-        public bool PlaceGeoNFTOnMap(IWeb4OASISGeoSpatialNFT geoNFT, float x, float y)
+        public bool PlaceGeoNFTOnMap(IWeb4GeoSpatialNFT geoNFT, float x, float y)
         {
             return CurrentMapProvider.PlaceGeoNFTOnMap(geoNFT, x, y);
         }
@@ -142,7 +142,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenQuests(fromQuestId, toQuestId);
         }
 
-        public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(IWeb4OASISGeoSpatialNFT fromGeoNFT, IWeb4OASISGeoSpatialNFT toGeoNFT)
+        public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(IWeb4GeoSpatialNFT fromGeoNFT, IWeb4GeoSpatialNFT toGeoNFT)
         {
             return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenGeoNFTs(fromGeoNFT, toGeoNFT);
         }
@@ -233,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return true;
         }
 
-        public bool SelectGeoNFTOnMap(IWeb4OASISGeoSpatialNFT geoNFT)
+        public bool SelectGeoNFTOnMap(IWeb4GeoSpatialNFT geoNFT)
         {
             return true;
         }
@@ -288,7 +288,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return CurrentMapProvider.ZoomToQuestOnMap(questId);
         }
 
-        public bool ZoomToGeoNFTOnMap(IWeb4OASISGeoSpatialNFT geoNFT)
+        public bool ZoomToGeoNFTOnMap(IWeb4GeoSpatialNFT geoNFT)
         {
             return CurrentMapProvider.ZoomToGeoNFTOnMap(geoNFT);
         }

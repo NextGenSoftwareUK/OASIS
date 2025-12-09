@@ -3,13 +3,10 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using Nethereum.JsonRpc.Client;
-using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using Nethereum.RPC.Eth.DTOs;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -19,8 +16,6 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using Nethereum.Contracts;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
@@ -29,6 +24,10 @@ using Newtonsoft.Json;
 using System.Numerics;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
@@ -1646,14 +1645,14 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         throw new NotImplementedException();
     }
 
-    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+    public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
         return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        OASISResult<ITransactionRespone> result = new();
+        OASISResult<ITransactionResponse> result = new();
         string errorMessage = "Error in SendTransactionAsync method in Web3CoreOASIS sending transaction. Reason: ";
 
         if (amount <= 0)
@@ -1698,12 +1697,12 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         => SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        OASISResult<ITransactionRespone> result = new();
+        OASISResult<ITransactionResponse> result = new();
         string errorMessage = "Error in SendTransactionByDefaultWalletAsync method in Web3CoreOASIS sending transaction. Reason: ";
 
         if (amount <= 0)
@@ -1747,59 +1746,59 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+    public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
         throw new NotImplementedException();
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
         throw new NotImplementedException();
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
         throw new NotImplementedException();
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
         throw new NotImplementedException();
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
         throw new NotImplementedException();
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
         throw new NotImplementedException();
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
         throw new NotImplementedException();
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
         throw new NotImplementedException();
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+    public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
     {
         return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
     }
 
-    public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
     {
-        OASISResult<ITransactionRespone> result = new();
+        OASISResult<ITransactionResponse> result = new();
         string errorMessage = "Error in SendTransactionByUsernameAsync method in Web3CoreOASIS sending transaction. Reason: ";
 
         if (amount <= 0)
@@ -1843,14 +1842,14 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
         throw new NotImplementedException();
     }
 
-    private async Task<OASISResult<ITransactionRespone>> SendTransactionBaseAsync(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
+    private async Task<OASISResult<ITransactionResponse>> SendTransactionBaseAsync(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
     {
-        OASISResult<ITransactionRespone> result = new();
+        OASISResult<ITransactionResponse> result = new();
         string errorMessage = "Error in SendTransactionBaseAsync method in Web3CoreOASIS sending transaction. Reason: ";
 
         if (amount <= 0)
@@ -1889,13 +1888,13 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public OASISResult<IWeb3NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transaction)
+    public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transaction)
         => SendNFTAsync(transaction).Result;
 
 
-    public async Task<OASISResult<IWeb3NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transaction)
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transaction)
     {
-        OASISResult<IWeb3NFTTransactionRespone> result = new();
+        OASISResult<IWeb3NFTTransactionResponse> result = new();
         string errorMessage = "Error in SendNFTAsync method in Web3CoreOASIS while sending nft. Reason: ";
 
         if (transaction.Amount <= 0)
@@ -1914,17 +1913,20 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
+            //TODO: Double check this still works! lol
             string transactionHash = await _web3CoreOASIS.SendNFTAsync(
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
-                transaction.TokenId,
-                transaction.FromProvider.Value.ToString(),
-                transaction.ToProvider.Value.ToString(),
-                amount: new BigInteger(transaction.Amount),
+                Convert.ToInt64(transaction.TokenId),
+                //transaction.FromProvider.Value.ToString(),
+                //transaction.ToProvider.Value.ToString(),
+                "None", //Obsolete.
+                "None",
+                new BigInteger(transaction.Amount),
                 transaction.MemoText
             );
 
-            IWeb3NFTTransactionRespone response = new Web3NFTTransactionRespone
+            IWeb3NFTTransactionResponse response = new Web3NFTTransactionResponse
             {
                 Web3NFT = new Web3NFT()
                 {
@@ -1954,12 +1956,12 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public OASISResult<IWeb3NFTTransactionRespone> MintNFT(IMintWeb3NFTRequest transation)
+    public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest transation)
         => MintNFTAsync(transation).Result;
 
-    public async Task<OASISResult<IWeb3NFTTransactionRespone>> MintNFTAsync(IMintWeb3NFTRequest transaction)
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest transaction)
     {
-        OASISResult<IWeb3NFTTransactionRespone> result = new();
+        OASISResult<IWeb3NFTTransactionResponse> result = new();
         string errorMessage = "Error in MintNFTAsync method in Web3CoreOASIS while minting nft. Reason: ";
 
         if (_web3CoreOASIS is null)
@@ -1975,7 +1977,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             //string transactionHash = await _web3CoreOASIS.MintAsync(transaction.MintWalletAddress, metadataJson);
             string transactionHash = await _web3CoreOASIS.MintAsync(transaction.SendToAddressAfterMinting, metadataJson);
 
-            IWeb3NFTTransactionRespone response = new Web3NFTTransactionRespone
+            IWeb3NFTTransactionResponse response = new Web3NFTTransactionResponse
             {
                 Web3NFT = new Web3NFT()
                 {
@@ -2015,12 +2017,112 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         throw new NotImplementedException();
     }
 
-    public OASISResult<IWeb3NFTTransactionRespone> BurnNFT(IBurnWeb3NFTRequest request)
+    public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
     {
         throw new NotImplementedException();
     }
 
-    public Task<OASISResult<IWeb3NFTTransactionRespone>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    OASISResult<IWeb3NFTTransactionResponse> IOASISNFTProvider.LockToken(ILockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<OASISResult<IWeb3NFTTransactionResponse>> IOASISNFTProvider.LockTokenAsync(ILockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    OASISResult<IWeb3NFTTransactionResponse> IOASISNFTProvider.UnlockToken(IUnlockWeb3TokenRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<OASISResult<IWeb3NFTTransactionResponse>> IOASISNFTProvider.UnlockTokenAsync(IUnlockWeb3TokenRequest request)
     {
         throw new NotImplementedException();
     }

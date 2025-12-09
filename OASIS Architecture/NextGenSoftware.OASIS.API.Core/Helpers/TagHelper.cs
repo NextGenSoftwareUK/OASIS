@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         public static void ShowTags(List<string> tags, int displayFieldLength)
         {
             if (tags != null && tags.Count > 0)
-                CLIEngine.ShowMessage(string.Concat("Tags:".PadRight(displayFieldLength), GetTags(tags), false));
+                CLIEngine.ShowMessage(string.Concat("Tags:".PadRight(displayFieldLength), GetTags(tags)), false);
             else
                 CLIEngine.ShowMessage(string.Concat("Tags:".PadRight(displayFieldLength), "None"), false);
         }

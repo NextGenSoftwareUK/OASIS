@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
+namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
 {
     public class UpdateWeb4NFTRequest : IUpdateWeb4NFTRequest
     {
@@ -40,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public bool UpdateAllChildWeb3NFTs { get; set; }
         public IList<string> UpdateChildWebNFTIds { get; set; } //Only update the web nfts with these ids.
 
-
+        public EnumValue<ProviderType> ProviderType { get; set; }
 
 
         //public EnumValue<ProviderType> OffChainProvider { get; set; }

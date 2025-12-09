@@ -1,8 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 
-namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
+namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
 {
     //All properties are optional, if not provided the values defined in the parent WEB4 OASIS NFT will be used.
     public class MintWeb3NFTRequest : MintNFTRequestBase, IMintWeb3NFTRequest

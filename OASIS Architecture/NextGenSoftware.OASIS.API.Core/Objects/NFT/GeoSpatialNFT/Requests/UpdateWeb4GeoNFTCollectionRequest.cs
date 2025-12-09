@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
-    public class UpdateWeb4GeoNFTCollectionRequest : IUpdateWeb4OASISGeoNFTCollectionRequest
+    public class UpdateWeb4GeoNFTCollectionRequest : IUpdateWeb4GeoNFTCollectionRequest
     {
         public Guid Id { get; set; }
         public string Title { get; set; }
