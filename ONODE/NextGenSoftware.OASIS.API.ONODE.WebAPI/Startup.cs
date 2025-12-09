@@ -34,12 +34,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // Helper method to get a unique display name for types, including generic types
         private static string GetTypeDisplayName(Type type)
         {
-            if (!type.IsGenericType)
-                return type.Name;
-            
-            var genericTypeName = type.Name.Split('`')[0];
-            var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
-            return $"{genericTypeName}Of{genericArgs}";
+            try
+            {
+                if (type == null)
+                    return "Unknown";
+                    
+                if (!type.IsGenericType)
+                    return type.Name ?? "Unknown";
+                
+                var genericTypeName = type.Name?.Split('`')[0] ?? "Generic";
+                var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => 
+                {
+                    try
+                    {
+                        return GetTypeDisplayName(arg);
+                    }
+                    catch
+                    {
+                        return arg?.Name ?? "Unknown";
+                    }
+                }));
+                return $"{genericTypeName}Of{genericArgs}";
+            }
+            catch
+            {
+                return type?.Name ?? "Unknown";
+            }
         }
         private const string VERSION = "WEB 4 OASIS API v4.0.0";
         //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -79,25 +99,71 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             services.AddSwaggerGen(c =>
             {
+                // Exclude incomplete controllers that reference missing types
+                c.SwaggerGeneratorOptions.IgnoreObsoleteActions = true;
+                
                 // Configure custom schema ID resolver to handle duplicate class names and generic types
                 c.CustomSchemaIds(type => 
                 {
-                    // If the type is from the WebAPI Models namespace, use a different schema ID
-                    if (type.Namespace != null && type.Namespace.Contains("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models"))
+                    try
                     {
-                        return $"{type.Name}WebAPI";
+                        if (type == null)
+                            return "UnknownType";
+                            
+                        // If the type is from the WebAPI Models namespace, use a different schema ID
+                        if (type.Namespace != null && type.Namespace.Contains("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models"))
+                        {
+                            return $"{type.Name}WebAPI";
+                        }
+                        
+                        // Handle Telegram.Bot types - include namespace to avoid conflicts
+                        if (type.Namespace != null && type.Namespace.StartsWith("Telegram.Bot"))
+                        {
+                            // Use namespace prefix to avoid conflicts with OASIS types
+                            // e.g., "Telegram.Bot.Types.Message" -> "TelegramBotTypesMessage"
+                            var namespacePrefix = type.Namespace.Replace("Telegram.Bot.", "TelegramBot").Replace(".", "");
+                            return $"{namespacePrefix}{type.Name}";
+                        }
+                        
+                        // Handle generic types to include the full generic parameter information
+                        if (type.IsGenericType)
+                        {
+                            var genericTypeName = type.Name.Split('`')[0]; // Get the base name (e.g., "EnumValue")
+                            var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => 
+                            {
+                                try
+                                {
+                                    return GetTypeDisplayName(arg);
+                                }
+                                catch
+                                {
+                                    return arg?.Name ?? "Unknown";
+                                }
+                            }));
+                            return $"{genericTypeName}Of{genericArgs}";
+                        }
+                        
+                        // For types that might conflict (like Message), include namespace info
+                        // Check if this is a common conflicting type name
+                        var commonConflictingNames = new[] { "Message", "Update", "User", "Chat", "File" };
+                        if (commonConflictingNames.Contains(type.Name) && type.Namespace != null)
+                        {
+                            // Include namespace identifier to make it unique
+                            // e.g., "NextGenSoftware.OASIS.API.Core.Managers.Message" -> "ManagersMessage"
+                            var nsParts = type.Namespace.Split('.');
+                            var nsIdentifier = nsParts.Length > 1 ? nsParts[nsParts.Length - 1] : nsParts[0];
+                            return $"{nsIdentifier}{type.Name}";
+                        }
+                        
+                        // For all other types, use the default behavior
+                        return type.Name;
                     }
-                    
-                    // Handle generic types to include the full generic parameter information
-                    if (type.IsGenericType)
+                    catch (Exception ex)
                     {
-                        var genericTypeName = type.Name.Split('`')[0]; // Get the base name (e.g., "EnumValue")
-                        var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
-                        return $"{genericTypeName}Of{genericArgs}";
+                        // Fallback to a safe schema ID if there's any error
+                        LoggingManager.Log($"Error generating schema ID for type {type?.Name ?? "Unknown"}: {ex.Message}", LogType.Warning);
+                        return type?.Name ?? "UnknownType";
                     }
-                    
-                    // For all other types, use the default behavior
-                    return type.Name;
                 });
                 
                 c.SwaggerDoc("v1", new OpenApiInfo

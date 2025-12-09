@@ -1,9 +1,10 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses
 {
-    public interface IWeb4NFTTransactionRespone : ITransactionRespone
+    public interface IWeb4NFTTransactionResponse : ITransactionResponse
     {
-        IWeb4OASISNFT Web4OASISNFT { get; set; }
+        IWeb4NFT Web4OASISNFT { get; set; }
     }
 }

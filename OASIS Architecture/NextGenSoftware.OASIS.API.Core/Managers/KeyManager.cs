@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IKeyPairAndWallet> GenerateKeyPairWithWalletAddress(ProviderType providerType)
         {
             OASISResult<IKeyPairAndWallet> result = new OASISResult<IKeyPairAndWallet>();
-            result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+            result.Result = GenerateKeyValuePairAndWalletAddress();
             return result;
         }
 
