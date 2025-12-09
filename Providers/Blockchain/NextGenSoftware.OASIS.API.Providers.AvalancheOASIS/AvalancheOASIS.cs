@@ -1,36 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Threading.Tasks;
-using System.Net.Http;
 using System.Linq;
-using Nethereum.Web3.Accounts;
+using System.Net.Http;
+using System.Numerics;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Nethereum.ABI.FunctionEncoding.Attributes;
+using Nethereum.Contracts;
+using Nethereum.Contracts.ContractHandlers;
+using Nethereum.Hex.HexTypes;
+using Nethereum.JsonRpc.Client;
+using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.Common;
-using Nethereum.JsonRpc.Client;
-using System.Text.Json;
-using NextGenSoftware.OASIS.API.Core.Utilities;
-using Nethereum.Contracts;
-using Nethereum.RPC.Eth.DTOs;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using Nethereum.Contracts.ContractHandlers;
-using Nethereum.ABI.FunctionEncoding.Attributes;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using Nethereum.Hex.HexTypes;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Utilities;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 
 namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
@@ -116,6 +117,8 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         this.ProviderDescription = "Avalanche Provider";
         this.ProviderType = new(Core.Enums.ProviderType.AvalancheOASIS);
         this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
 
         _hostURI = hostUri;
         _chainPrivateKey = chainPrivateKey;
@@ -2439,7 +2442,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
             IWeb4Web4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new Web4OASISNFT()
+                OASISNFT = new Web4NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2509,7 +2512,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
             IWeb4Web4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new Web4OASISNFT()
+                OASISNFT = new Web4NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2559,7 +2562,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
             var getNFTFunction = _contract.GetFunction(GetNFTDataFuncName);
             var nftData = await getNFTFunction.CallDeserializingToObjectAsync<NFTStruct>(nftTokenAddress);
             
-                var nft = new Web4OASISNFT();
+                var nft = new Web4NFT();
                 nft.Id = Guid.NewGuid();
                 nft.NFTTokenAddress = nftTokenAddress;
                 nft.MetaData.Add("AvalancheEntityId", nftData.EntityId);
@@ -2729,7 +2732,7 @@ file static class AvalancheContractHelper
         try
         {
             var nftData = JsonSerializer.Deserialize<JsonElement>(jsonData);
-            var nft = new Web4OASISNFT();
+            var nft = new Web4NFT();
             
             if (nftData.TryGetProperty("id", out var id))
                 nft.Id = Guid.Parse(id.GetString());
@@ -2744,7 +2747,7 @@ file static class AvalancheContractHelper
         }
         catch
         {
-            return new Web4OASISNFT();
+            return new Web4NFT();
         }
     }
 }

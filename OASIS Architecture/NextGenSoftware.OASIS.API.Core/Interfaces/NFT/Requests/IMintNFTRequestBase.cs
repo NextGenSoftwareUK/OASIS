@@ -1,23 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
 {
-    public interface IMintNFTRequestBase
+    public interface IMintNFTRequestBase : IMintTokenRequestBase//: IMintWeb4TokenRequest
     {
-        public Dictionary<string, object> MetaData { get; set; }
-        public List<string> Tags { get; set; }
-        public string Symbol { get; set; }
         public string JSONMetaDataURL { get; set; }
         public string JSONMetaData { get; set; }
-        public Guid MintedByAvatarId { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
         public byte[] Image { get; set; }
         public string ImageUrl { get; set; }
         public byte[] Thumbnail { get; set; }
         public string ThumbnailUrl { get; set; }
-        public string MemoText { get; set; }
         public bool? IsForSale { get; set; }
         public DateTime? SaleStartDate { get; set; }
         public DateTime? SaleEndDate { get; set; }

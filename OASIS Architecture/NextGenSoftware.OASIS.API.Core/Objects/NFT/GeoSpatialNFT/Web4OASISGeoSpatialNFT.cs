@@ -7,7 +7,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
-    public class Web4OASISGeoSpatialNFT : Web4OASISNFT, IWeb4OASISGeoSpatialNFT
+    public class Web4OASISGeoSpatialNFT : Web4NFT, IWeb4GeoSpatialNFT
     {
         public Guid PlacedByAvatarId { get; set; }
         public Guid OriginalWeb4OASISNFTId { get; set; }

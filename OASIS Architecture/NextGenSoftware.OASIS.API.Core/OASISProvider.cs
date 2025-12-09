@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -15,7 +16,10 @@ namespace NextGenSoftware.OASIS.API.Core
         public string ProviderName { get; set; }
         public string ProviderDescription { get; set; }
 
+        //TODO: Phase this out
         public EnumValue<ProviderCategory> ProviderCategory { get; set; }
+
+        public List<EnumValue<ProviderCategory>> ProviderCategories { get; set; } = new List<EnumValue<ProviderCategory>>();
 
         public EnumValue<ProviderType> ProviderType { get; set; }
         //public bool ProviderActivated { get; set; }

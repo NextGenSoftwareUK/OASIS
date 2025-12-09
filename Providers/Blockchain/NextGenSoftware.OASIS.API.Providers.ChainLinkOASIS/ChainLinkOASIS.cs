@@ -66,6 +66,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             this.ProviderDescription = "ChainLink Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ChainLinkOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
         #region IOASISStorageProvider Implementation
@@ -1999,7 +2002,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Load NFT data from ChainLink oracle
-                var nft = new Web4OASISNFT
+                var nft = new Web4NFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     MetaData = new Dictionary<string, object>
@@ -2028,7 +2031,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Load NFT data from ChainLink oracle
-                var nft = new Web4OASISNFT
+                var nft = new Web4NFT
                 {
                     NFTTokenAddress = nftTokenAddress,
                     MetaData = new Dictionary<string, object>

@@ -78,6 +78,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BNBChainOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
             _privateKey = privateKey;
@@ -3277,7 +3280,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     {
                         // Parse NFT data from blockchain response
                         var nftData = JsonSerializer.Deserialize<JsonElement>(resultData.GetString());
-                        var nft = new Web4OASISNFT
+                        var nft = new Web4NFT
                         {
                             Id = Guid.NewGuid(),
                             Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "BNB NFT",
