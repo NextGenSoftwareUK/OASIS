@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     /// </summary>
     [ApiController]
     [Route("api/v1/contracts")]
+    [ApiExplorerSettings(IgnoreApi = true)] // Exclude from Swagger until dependencies are implemented
     public class ContractGeneratorController : ControllerBase
     {
         private readonly ILogger<ContractGeneratorController> _logger;

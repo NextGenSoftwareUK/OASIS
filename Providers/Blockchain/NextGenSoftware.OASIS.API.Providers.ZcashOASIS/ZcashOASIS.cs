@@ -9,7 +9,8 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
@@ -762,23 +763,141 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
             return ExportAllAsync(version).Result;
         }
 
-        #region IOASISBlockchainStorageProvider - SendTransaction
+        #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
         {
-            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+            return SendTokenAsync(request).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddres, decimal amount, string memoText)
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             if (!IsProviderActivated)
             {
                 OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
                 return await Task.FromResult(result);
             }
+            OASISErrorHandling.HandleError(ref result, "SendToken not yet fully implemented for Zcash provider");
+            return await Task.FromResult(result);
+        }
 
-            OASISErrorHandling.HandleError(ref result, "SendTransaction not yet fully implemented for Zcash provider");
+        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+        {
+            return MintTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return await Task.FromResult(result);
+            }
+            OASISErrorHandling.HandleError(ref result, "MintToken not yet fully implemented for Zcash provider");
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+        {
+            return BurnTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return await Task.FromResult(result);
+            }
+            OASISErrorHandling.HandleError(ref result, "BurnToken not yet fully implemented for Zcash provider");
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+        {
+            return LockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return await Task.FromResult(result);
+            }
+            OASISErrorHandling.HandleError(ref result, "LockToken not yet fully implemented for Zcash provider");
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+        {
+            return UnlockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return await Task.FromResult(result);
+            }
+            OASISErrorHandling.HandleError(ref result, "UnlockToken not yet fully implemented for Zcash provider");
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+        {
+            return GetBalanceAsync(request).Result;
+        }
+
+        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var result = new OASISResult<double>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return await Task.FromResult(result);
+            }
+            OASISErrorHandling.HandleError(ref result, "GetBalance not yet fully implemented for Zcash provider");
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
+        {
+            return GetTransactionsAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+        {
+            var result = new OASISResult<IList<IWalletTransaction>>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return await Task.FromResult(result);
+            }
+            OASISErrorHandling.HandleError(ref result, "GetTransactions not yet fully implemented for Zcash provider");
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        {
+            return GenerateKeyPairAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                return await Task.FromResult(result);
+            }
+            OASISErrorHandling.HandleError(ref result, "GenerateKeyPair not yet fully implemented for Zcash provider");
             return await Task.FromResult(result);
         }
 

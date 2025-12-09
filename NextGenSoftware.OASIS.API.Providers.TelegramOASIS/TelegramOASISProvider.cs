@@ -10,10 +10,10 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
@@ -69,16 +69,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TelegramOASIS
                         return result;
                     }
 
-                    // Initialize Telegram Bot Client with SSL bypass for local development
-                    var handler = new System.Net.Http.HttpClientHandler
-                    {
-                        ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                    };
-                    var httpClient = new System.Net.Http.HttpClient(handler)
-                    {
-                        Timeout = TimeSpan.FromSeconds(10)
-                    };
-                    _botClient = new TelegramBotClient(_botToken, httpClient);
+                    // Initialize Telegram Bot Client
+                    // Telegram.Bot 20.0.1 constructor - just pass the token
+                    _botClient = new TelegramBotClient(_botToken);
 
                     // Initialize MongoDB
                     var mongoClient = new MongoClient(_mongoConnectionString);

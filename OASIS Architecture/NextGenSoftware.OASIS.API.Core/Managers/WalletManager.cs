@@ -19,7 +19,6 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Rijndael256;
-using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -4330,10 +4329,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (generateKeyPair)
             {
-                IKeyPairAndWallet keyPair = GenerateKeyValuePairAndWalletAddress();
+                OASISResult<IKeyPairAndWallet> keyPairResult = KeyManager.Instance.GenerateKeyPairWithWalletAddress(walletProviderType);
 
-                if (keyPair != null)
+                if (keyPairResult != null && !keyPairResult.IsError && keyPairResult.Result != null)
                 {
+                    IKeyPairAndWallet keyPair = keyPairResult.Result;
                     newWallet.PrivateKey = keyPair.PrivateKey;
                     newWallet.PublicKey = keyPair.PublicKey;
                     newWallet.WalletAddress = keyPair.WalletAddressLegacy;
