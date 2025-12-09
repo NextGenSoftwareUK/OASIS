@@ -59,8 +59,10 @@ const telegramAPI = typeof oasisAPI !== 'undefined' ? oasisAPI : {
  * Load Telegram gamification data
  */
 async function loadTelegramGamification() {
+    console.log('Loading Telegram gamification...');
     const authData = localStorage.getItem('oasis_auth');
     if (!authData) {
+        console.log('No auth data found, showing login prompt');
         showLoginPrompt();
         return;
     }
@@ -80,6 +82,16 @@ async function loadTelegramGamification() {
         if (telegramLink.isError || !telegramLink.result) {
             // Show connection banner with link option
             renderTelegramConnectionStatus({ telegramLinked: false });
+            // Render empty states for all sections so user can see the full interface
+            renderTelegramStats(getDefaultStats());
+            renderRecentRewards([]);
+            renderAchievementBadges([]);
+            renderActivityTimeline([]);
+            renderConversations([]);
+            renderLeaderboard([]);
+            renderRewardsBreakdown([]);
+            renderQuests([]);
+            renderNFTGallery([]);
             return;
         }
         
@@ -117,6 +129,17 @@ async function loadTelegramGamification() {
 
     } catch (error) {
         console.error('Error loading Telegram gamification:', error);
+        // Still render empty states so user can see the interface
+        renderTelegramConnectionStatus({ telegramLinked: false });
+        renderTelegramStats(getDefaultStats());
+        renderRecentRewards([]);
+        renderAchievementBadges([]);
+        renderActivityTimeline([]);
+        renderConversations([]);
+        renderLeaderboard([]);
+        renderRewardsBreakdown([]);
+        renderQuests([]);
+        renderNFTGallery([]);
         showTelegramError(error);
     }
 }
@@ -124,12 +147,32 @@ async function loadTelegramGamification() {
 function showLoginPrompt() {
     const container = document.getElementById('telegram-gamification-content');
     if (container) {
-        container.innerHTML = `
-            <div class="telegram-error-state">
-                <p class="error-message">Please log in to view your Telegram gamification data.</p>
-                <button class="btn-primary" onclick="document.getElementById('loginModal').style.display = 'flex';">Log In</button>
-            </div>
-        `;
+        // Show login prompt but keep the structure visible
+        const connectionStatus = document.getElementById('telegram-connection-status');
+        if (connectionStatus) {
+            connectionStatus.innerHTML = `
+                <div class="telegram-connection-banner not-linked">
+                    <div class="telegram-connection-content">
+                        <div class="telegram-connection-icon">🔒</div>
+                        <div class="telegram-connection-info">
+                            <h3>Please Log In</h3>
+                            <p>Log in to view your Telegram gamification data.</p>
+                        </div>
+                        <button class="btn-primary" onclick="document.getElementById('loginModal').style.display = 'flex';">Log In</button>
+                    </div>
+                </div>
+            `;
+        }
+        // Still render empty states for all sections
+        renderTelegramStats(getDefaultStats());
+        renderRecentRewards([]);
+        renderAchievementBadges([]);
+        renderActivityTimeline([]);
+        renderConversations([]);
+        renderLeaderboard([]);
+        renderRewardsBreakdown([]);
+        renderQuests([]);
+        renderNFTGallery([]);
     }
 }
 
