@@ -9,7 +9,7 @@
 
 ## 🚀 What is The OASIS?
 
-The OASIS (Open Advanced Scalable Secure Interoperable System) is a revolutionary Web4/Web5 infrastructure that unifies all Web2 and Web3 technologies into a single, intelligent, auto-failover system. It's the first universal API that connects everything to everything, eliminating silos and walled gardens.
+The OASIS (Open Advanced Secure Interoperable Scalable-System) is a revolutionary Web4/Web5 infrastructure that unifies all Web2 and Web3 technologies into a single, intelligent, auto-failover system. It's the first universal API that connects everything to everything, eliminating silos and walled gardens.
 
 ## 📋 Table of Contents
 
