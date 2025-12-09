@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -33,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Generated contract code</returns>
         [HttpPost("aztec/bridge")]
-        [ProducesResponseType(typeof(GenerateContractResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GenerateAztecBridgeContract(
             [FromBody] GenerateAztecBridgeContractRequest request,
@@ -68,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Generated contract code</returns>
         [HttpPost("generate")]
-        [ProducesResponseType(typeof(GenerateContractResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GenerateContract(
             [FromBody] GenerateContractRequest request,

@@ -42,7 +42,15 @@ export async function POST(request: NextRequest) {
 
     const targetBase = sanitizeBaseUrl(baseUrl);
     // API redirects HTTP to HTTPS, so use HTTPS directly
-    const httpsBase = targetBase.replace('http://', 'https://').replace(':5003', ':5004');
+    // Only convert if it's HTTP, otherwise use as-is
+    let httpsBase = targetBase;
+    if (targetBase.startsWith('http://')) {
+      httpsBase = targetBase.replace('http://', 'https://');
+      // Only replace port if it's 5003, otherwise keep the port from baseUrl
+      if (targetBase.includes(':5003')) {
+        httpsBase = httpsBase.replace(':5003', ':5004');
+      }
+    }
     const targetUrl = `${httpsBase.replace(/\/$/, '')}/api/avatar/authenticate`;
 
     const curlArgs = [

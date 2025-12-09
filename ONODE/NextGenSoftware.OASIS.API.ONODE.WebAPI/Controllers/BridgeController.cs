@@ -209,5 +209,116 @@ public class BridgeController : ControllerBase
 
         return Ok(new { success = true });
     }
+
+    /// <summary>
+    /// Creates a Starknet ↔ Zcash atomic swap
+    /// </summary>
+    /// <param name="request">Atomic swap request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Swap status response</returns>
+    [HttpPost("bridge/atomic-swap")]
+    [ProducesResponseType(typeof(AtomicSwapStatusResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateAtomicSwap(
+        [FromBody] AtomicSwapRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating atomic swap: {FromChain} → {ToChain}, Amount: {Amount}",
+                request.FromChain, request.ToChain, request.Amount);
+
+            var result = await _bridgeService.CreateAtomicSwapAsync(request, cancellationToken);
+
+            if (result.IsError)
+            {
+                _logger.LogWarning("Atomic swap creation failed: {Message}", result.Message);
+                return BadRequest(new { error = result.Message, isError = true });
+            }
+
+            _logger.LogInformation("Atomic swap created successfully: {BridgeId}", result.Result.BridgeId);
+            return Ok(result.Result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in CreateAtomicSwap");
+            return StatusCode(500, new { error = "Internal server error", isError = true });
+        }
+    }
+
+    /// <summary>
+    /// Gets the status of an atomic swap by bridge ID
+    /// </summary>
+    /// <param name="bridgeId">Bridge/swap ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Swap status response</returns>
+    [HttpGet("bridge/atomic-swap/status/{bridgeId}")]
+    [ProducesResponseType(typeof(AtomicSwapStatusResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAtomicSwapStatus(
+        [FromRoute] string bridgeId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Getting atomic swap status: {BridgeId}", bridgeId);
+
+            var result = await _bridgeService.GetAtomicSwapStatusAsync(bridgeId, cancellationToken);
+
+            if (result.IsError)
+            {
+                _logger.LogWarning("Atomic swap status check failed: {Message}", result.Message);
+                return NotFound(new { error = result.Message, isError = true });
+            }
+
+            return Ok(result.Result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in GetAtomicSwapStatus");
+            return StatusCode(500, new { error = "Internal server error", isError = true });
+        }
+    }
+
+    /// <summary>
+    /// Gets atomic swap history for the current user
+    /// </summary>
+    /// <param name="userId">User ID (optional, defaults to authenticated user)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Swap history response</returns>
+    [HttpGet("bridge/atomic-swap/history")]
+    [ProducesResponseType(typeof(AtomicSwapHistoryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAtomicSwapHistory(
+        [FromQuery] Guid? userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // If userId not provided, try to get from authenticated user
+            // For now, require userId in query string
+            if (!userId.HasValue)
+            {
+                return BadRequest(new { error = "userId query parameter is required", isError = true });
+            }
+
+            _logger.LogInformation("Getting atomic swap history for user: {UserId}", userId);
+
+            var result = await _bridgeService.GetAtomicSwapHistoryAsync(userId.Value, cancellationToken);
+
+            if (result.IsError)
+            {
+                _logger.LogWarning("Atomic swap history retrieval failed: {Message}", result.Message);
+                return BadRequest(new { error = result.Message, isError = true });
+            }
+
+            return Ok(result.Result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in GetAtomicSwapHistory");
+            return StatusCode(500, new { error = "Internal server error", isError = true });
+        }
+    }
 }
 

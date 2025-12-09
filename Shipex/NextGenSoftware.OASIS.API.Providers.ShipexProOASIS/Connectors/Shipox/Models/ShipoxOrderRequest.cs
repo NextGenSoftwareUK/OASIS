@@ -32,3 +32,6 @@ public class ShipoxApiResponse<T>
     public string? Error { get; set; }
 }
 
+
+
+

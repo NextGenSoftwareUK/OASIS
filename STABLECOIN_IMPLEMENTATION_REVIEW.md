@@ -224,3 +224,4 @@ User burns zUSD → Position updated → ZEC unlocked → Withdrawn to Zcash
 
 **Overall:** The frontend is production-ready. The backend needs verification and potentially completion of provider integrations.
 
+

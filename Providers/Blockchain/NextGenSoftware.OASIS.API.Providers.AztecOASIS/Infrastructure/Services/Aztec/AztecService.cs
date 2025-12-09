@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Models;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services.Aztec
 {
@@ -125,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
                 // Submit transaction
                 var tx = await SubmitProofAsync(proof);
                 
-                result.Result = tx.TransactionHash;
+                result.Result = tx?.TransactionId ?? "";
                 result.IsError = false;
                 result.Message = "Stablecoin minted successfully";
             }
@@ -161,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
                 // Submit transaction
                 var tx = await SubmitProofAsync(proof);
                 
-                result.Result = tx.TransactionHash;
+                result.Result = tx?.TransactionId ?? "";
                 result.IsError = false;
                 result.Message = "Stablecoin burned successfully";
             }
@@ -197,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
                 // Submit transaction
                 var tx = await SubmitProofAsync(proof);
                 
-                result.Result = tx.TransactionHash;
+                result.Result = tx?.TransactionId ?? "";
                 result.IsError = false;
                 result.Message = $"Deployed to {strategy} strategy successfully";
             }
@@ -232,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
                 // Submit transaction
                 var tx = await SubmitProofAsync(proof);
                 
-                result.Result = tx.TransactionHash;
+                result.Result = tx?.TransactionId ?? "";
                 result.IsError = false;
                 result.Message = "Collateral seized successfully";
             }

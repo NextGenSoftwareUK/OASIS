@@ -72,10 +72,10 @@ export default function WalletPage() {
                                    wallets[ProviderType.LocalFileOASIS]?.length;
         
         // Check if Zypherpunk wallets exist
-        const hasZcash = wallets[ProviderType.ZcashOASIS]?.length > 0;
-        const hasAztec = wallets[ProviderType.AztecOASIS]?.length > 0;
-        const hasMiden = wallets[ProviderType.MidenOASIS]?.length > 0;
-        const hasStarknet = wallets[ProviderType.StarknetOASIS]?.length > 0;
+        const hasZcash = (wallets[ProviderType.ZcashOASIS]?.length ?? 0) > 0;
+        const hasAztec = (wallets[ProviderType.AztecOASIS]?.length ?? 0) > 0;
+        const hasMiden = (wallets[ProviderType.MidenOASIS]?.length ?? 0) > 0;
+        const hasStarknet = (wallets[ProviderType.StarknetOASIS]?.length ?? 0) > 0;
         const hasZypherpunkWallets = hasZcash || hasAztec || hasMiden || hasStarknet;
         
         // Clean up Universal wallets first
@@ -108,7 +108,9 @@ export default function WalletPage() {
 
   useEffect(() => {
     const unsubscribe = toastManager.subscribe(setToasts);
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

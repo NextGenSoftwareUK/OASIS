@@ -127,7 +127,7 @@ export const ReceiveScreen: React.FC<ReceiveScreenProps> = ({
                 </>
               )}
             </Button>
-            {navigator.share && (
+            {typeof navigator !== 'undefined' && 'share' in navigator && typeof navigator.share === 'function' && (
               <Button
                 variant="outline"
                 onClick={handleShare}

@@ -9,7 +9,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using System.Text.Json;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
+// TODO: Fix HoloOASIS - missing holochain-client-csharp dependency (excluded from Docker build)
+//using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -26,7 +27,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         // P2P Network Support
         private IP2PNetworkProvider _p2pNetworkProvider;
         private P2PNetworkType _networkType = P2PNetworkType.Internal;
-        private HoloOASIS? _holoOASIS;
+        // TODO: Fix HoloOASIS - missing holochain-client-csharp dependency (excluded from Docker build)
+        //private HoloOASIS? _holoOASIS;
 
         private readonly List<ONETNode> _connectedNodes = new List<ONETNode>();
         private bool _isNetworkRunning = false;

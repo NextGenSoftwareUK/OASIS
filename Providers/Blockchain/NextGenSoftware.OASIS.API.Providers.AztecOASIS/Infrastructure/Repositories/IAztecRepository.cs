@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Repositories
 {

@@ -6,8 +6,11 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
@@ -32,8 +35,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         {
             ProviderName = nameof(AztecOASIS);
             ProviderDescription = "Aztec Privacy Provider";
-            ProviderType = new EnumValue<ProviderType>(ProviderType.AztecOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageAndNetwork);
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AztecOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             _apiBaseUrl = apiBaseUrl ?? Environment.GetEnvironmentVariable("AZTEC_API_URL") ?? "http://localhost:8080";
             _apiKey = apiKey ?? Environment.GetEnvironmentVariable("AZTEC_API_KEY");
@@ -183,7 +186,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
                 EnsureActivated(result);
                 if (result.IsError) return result;
 
-                result.Result = await _aztecService.MintStablecoinAsync(aztecAddress, amount, zcashTxHash, viewingKey);
+                var mintResult = await _aztecService.MintStablecoinAsync(aztecAddress, amount, zcashTxHash, viewingKey);
+                result.Result = mintResult.Result;
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -201,7 +205,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
                 EnsureActivated(result);
                 if (result.IsError) return result;
 
-                result.Result = await _aztecService.BurnStablecoinAsync(aztecAddress, amount, positionId);
+                var burnResult = await _aztecService.BurnStablecoinAsync(aztecAddress, amount, positionId);
+                result.Result = burnResult.Result;
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -219,7 +224,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
                 EnsureActivated(result);
                 if (result.IsError) return result;
 
-                result.Result = await _aztecService.DeployToYieldStrategyAsync(aztecAddress, amount, strategy);
+                var deployResult = await _aztecService.DeployToYieldStrategyAsync(aztecAddress, amount, strategy);
+                result.Result = deployResult.Result;
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -237,7 +243,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
                 EnsureActivated(result);
                 if (result.IsError) return result;
 
-                result.Result = await _aztecService.SeizeCollateralAsync(aztecAddress, amount);
+                var seizeResult = await _aztecService.SeizeCollateralAsync(aztecAddress, amount);
+                result.Result = seizeResult.Result;
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -511,7 +518,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
                 var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
                 if (saveResult.IsError && !continueOnError)
                 {
-                    return new OASISResult<IEnumerable<IHolon>>(saveResult.IsError, saveResult.Message);
+                    var errorResult = new OASISResult<IEnumerable<IHolon>>();
+                    errorResult.IsError = true;
+                    errorResult.Message = saveResult.Message;
+                    return errorResult;
                 }
                 if (!saveResult.IsError && saveResult.Result != null)
                 {
@@ -586,6 +596,49 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
+
+        #endregion
+
+        #region IOASISBlockchainStorageProvider - SendTransaction
+
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddres, decimal amount, string memoText)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            EnsureActivated(result);
+            if (result.IsError) return await Task.FromResult(result);
+
+            OASISErrorHandling.HandleError(ref result, "SendTransaction not yet fully implemented for Aztec provider");
+            return await Task.FromResult(result);
+        }
+
+        #endregion
+
+        #region IOASISNETProvider - GetAvatarsNearMe
+
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            EnsureActivated(result);
+            if (result.IsError) return result;
+
+            OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe not yet implemented for Aztec provider");
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            EnsureActivated(result);
+            if (result.IsError) return result;
+
+            OASISErrorHandling.HandleError(ref result, "GetHolonsNearMe not yet implemented for Aztec provider");
+            return result;
+        }
 
         #endregion
 

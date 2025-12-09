@@ -11,9 +11,9 @@ const numericToProviderTypeMap: Record<number, ProviderType> = {
   3: ProviderType.SolanaOASIS,
   4: ProviderType.RadixOASIS,
   5: ProviderType.ArbitrumOASIS,
-  6: ProviderType.AvalancheOASIS,
-  7: ProviderType.BaseOASIS,
-  8: ProviderType.MonadOASIS,
+  // 6: ProviderType.AvalancheOASIS, // Not in enum
+  // 7: ProviderType.BaseOASIS, // Not in enum
+  // 8: ProviderType.MonadOASIS, // Not in enum
   9: ProviderType.EthereumOASIS,
   10: ProviderType.PolygonOASIS,
   11: ProviderType.EOSIOOASIS,
@@ -29,20 +29,20 @@ const numericToProviderTypeMap: Record<number, ProviderType> = {
   21: ProviderType.CosmosBlockChainOASIS,
   22: ProviderType.RootstockOASIS,
   23: ProviderType.ChainLinkOASIS,
-  24: ProviderType.CardanoOASIS,
-  25: ProviderType.PolkadotOASIS,
-  26: ProviderType.BitcoinOASIS,
-  27: ProviderType.NEAROASIS,
-  28: ProviderType.SuiOASIS,
+  // 24: ProviderType.CardanoOASIS, // Not in enum
+  // 25: ProviderType.PolkadotOASIS, // Not in enum
+  // 26: ProviderType.BitcoinOASIS, // Not in enum
+  // 27: ProviderType.NEAROASIS, // Not in enum
+  // 28: ProviderType.SuiOASIS, // Not in enum
   29: ProviderType.StarknetOASIS,
-  30: ProviderType.AptosOASIS,
+  // 30: ProviderType.AptosOASIS, // Not in enum
   31: ProviderType.AztecOASIS,
   32: ProviderType.ZcashOASIS,
   33: ProviderType.MidenOASIS,
-  34: ProviderType.OptimismOASIS,
-  35: ProviderType.BNBChainOASIS,
-  36: ProviderType.FantomOASIS,
-  37: ProviderType.MoralisOASIS,
+  // 34: ProviderType.OptimismOASIS, // Not in enum
+  // 35: ProviderType.BNBChainOASIS, // Not in enum
+  // 36: ProviderType.FantomOASIS, // Not in enum
+  // 37: ProviderType.MoralisOASIS, // Not in enum
   38: ProviderType.IPFSOASIS,
   39: ProviderType.PinataOASIS,
   40: ProviderType.HoloOASIS,

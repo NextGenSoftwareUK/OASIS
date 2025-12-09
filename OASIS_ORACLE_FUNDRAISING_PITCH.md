@@ -379,3 +379,4 @@ A: (1) Series A in 18 months at $150M+, or (2) Strategic acquisition by Bloomber
 
 *Last Updated: November 2025*
 
+

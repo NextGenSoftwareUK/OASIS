@@ -9,3 +9,6 @@ public class ShipoxCredentials
     public string ApiSecret { get; set; }
 }
 
+
+
+

@@ -194,11 +194,6 @@ if (typeof window !== 'undefined') {
   // Try immediately
   checkHydration();
 
-  // Also set up the persist callback
-  useAvatarStore.persist?.onFinish?.(() => {
-    checkHydration();
-  });
-
   // Fallback: set hydrated after a short delay if not set
   setTimeout(() => {
     const state = useAvatarStore.getState();

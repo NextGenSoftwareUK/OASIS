@@ -59,6 +59,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                     //AvatarManager.LoggedInAvatarSessions[context.Session.Id] = avatarResult.Result; //TODO: Maybe not good idea to set this because its static so will be shared with all client sessions?!
                     //string test = context.User.Identity.Name;
                 }
+                else
+                {
+                    // Log the error for debugging
+                    System.Diagnostics.Debug.WriteLine($"JWT Middleware: Failed to load avatar. IsError: {avatarResult?.IsError}, Message: {avatarResult?.Message}");
+                }
             }
             catch (Exception ex)
             {

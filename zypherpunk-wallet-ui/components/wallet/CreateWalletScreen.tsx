@@ -27,7 +27,7 @@ export const CreateWalletScreen: React.FC<CreateWalletScreenProps> = ({
   const { avatar, token } = useAvatarStore();
   const { loadWallets } = useWalletStore();
   const [step, setStep] = useState<Step>('method');
-  const [providerType, setProviderType] = useState<ProviderType>(ProviderType.SolanaOASIS);
+  const [providerType, setProviderType] = useState<ProviderType>(ProviderType.ZcashOASIS); // Default to Zcash for Zypherpunk
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -128,7 +128,17 @@ export const CreateWalletScreen: React.FC<CreateWalletScreenProps> = ({
       // Create unified wallet
       const unifiedWallet = await createUnifiedWallet(avatarId, generatedMnemonic);
 
-      toastManager.success(`Unified wallet created! ${Object.keys(unifiedWallet.wallets).length} wallets generated.`);
+      const walletCount = Object.keys(unifiedWallet.wallets).length;
+      const providerNames = Object.keys(unifiedWallet.wallets).join(', ');
+      
+      if (walletCount > 0) {
+        toastManager.success(`Unified wallet created! ${walletCount} wallets generated: ${providerNames}`);
+      } else {
+        toastManager.warning('Wallet creation completed but no wallets were found. They may still be processing...');
+      }
+      
+      // Wait a bit for wallets to be fully saved
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Reload wallets
       if (avatarId) {
@@ -261,11 +271,14 @@ export const CreateWalletScreen: React.FC<CreateWalletScreenProps> = ({
           onChange={(e) => setProviderType(e.target.value as ProviderType)}
           className="w-full p-3 bg-gray-900 border border-gray-800 rounded-lg text-white"
         >
-          <option value={ProviderType.SolanaOASIS}>Solana</option>
+          <option value={ProviderType.ZcashOASIS}>Zcash (Privacy)</option>
+          <option value={ProviderType.AztecOASIS}>Aztec (Privacy L2)</option>
+          <option value={ProviderType.MidenOASIS}>Miden (Privacy zkVM)</option>
+          <option value={ProviderType.StarknetOASIS}>Starknet (Privacy L2)</option>
           <option value={ProviderType.EthereumOASIS}>Ethereum</option>
+          <option value={ProviderType.SolanaOASIS}>Solana</option>
           <option value={ProviderType.PolygonOASIS}>Polygon</option>
           <option value={ProviderType.ArbitrumOASIS}>Arbitrum</option>
-          <option value={ProviderType.ZcashOASIS}>Zcash</option>
         </select>
       </div>
     </div>
@@ -492,7 +505,7 @@ export const CreateWalletScreen: React.FC<CreateWalletScreenProps> = ({
               onChange={(e) => setPrivateKey(e.target.value)}
               placeholder="Enter private key"
               className="bg-gray-900 border-gray-800 text-white pr-20"
-              disabled={!!privateKey && publicKey}
+              disabled={Boolean(!!privateKey && publicKey)}
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
               <button

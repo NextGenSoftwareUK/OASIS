@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
@@ -20,6 +21,11 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.API.Providers.TelegramOASIS;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin;
+using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin.Services;
+using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin.Repositories;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -67,6 +73,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddHttpClient<TimoRidesApiService>();
             services.AddHttpClient<GoogleMapsService>();
             services.AddSingleton<RideBookingStateManager>();
+            
+            // Register Email Service
+            services.AddScoped<IEmailService, EmailService>();
 
             services.AddSwaggerGen(c =>
             {
@@ -327,6 +336,27 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 var configuration = sp.GetRequiredService<IConfiguration>();
                 return new BridgeService(logger, configuration);
             });
+
+            // Register Stablecoin Services
+            services.AddSingleton<IZecPriceOracle, CoinGeckoZecPriceOracle>(sp =>
+            {
+                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient();
+                return new CoinGeckoZecPriceOracle(httpClient);
+            });
+            services.AddSingleton<IZcashCollateralService, ZcashCollateralService>();
+            services.AddSingleton<IAztecStablecoinService, AztecStablecoinService>();
+            services.AddSingleton<IStablecoinRepository, StablecoinRepository>();
+            services.AddSingleton<IViewingKeyService, ViewingKeyService>();
+            services.AddSingleton<StablecoinManager>(sp =>
+            {
+                var repository = sp.GetRequiredService<IStablecoinRepository>();
+                var priceOracle = sp.GetRequiredService<IZecPriceOracle>();
+                var zcashService = sp.GetRequiredService<IZcashCollateralService>();
+                var aztecService = sp.GetRequiredService<IAztecStablecoinService>();
+                var viewingKeyService = sp.GetRequiredService<IViewingKeyService>();
+                return new StablecoinManager(repository, priceOracle, zcashService, aztecService, viewingKeyService);
+            });
             
             services.AddHttpContextAccessor();
 
@@ -357,6 +387,29 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             LoggingManager.Log("Test Info", LogType.Info);
             LoggingManager.Log("Test Warning", LogType.Warning);
             LoggingManager.Log("Test Error", LogType.Error);
+            
+            // Register LocalFileOASIS provider at startup (required for WalletManager)
+            try
+            {
+                // Ensure OASIS is booted first
+                if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                    OASISBootLoader.OASISBootLoader.BootOASIS();
+                
+                // Register and activate LocalFileOASIS provider using OASISBootLoader (same as controllers)
+                var localFileProviderResult = OASISBootLoader.OASISBootLoader.GetAndActivateStorageProvider(ProviderType.LocalFileOASIS, null, false, false);
+                if (localFileProviderResult != null && !localFileProviderResult.IsError && localFileProviderResult.Result != null)
+                {
+                    LoggingManager.Log("✅ LocalFileOASIS provider registered successfully at startup", LogType.Info);
+                }
+                else
+                {
+                    LoggingManager.Log($"⚠️ LocalFileOASIS provider registration failed: {localFileProviderResult?.Message ?? "Unknown error"}", LogType.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"❌ Error registering LocalFileOASIS provider at startup: {ex.Message}", LogType.Error);
+            }
             
             // Activate TelegramOASIS provider and start bot
             try
