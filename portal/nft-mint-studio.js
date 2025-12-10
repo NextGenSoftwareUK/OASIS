@@ -3,31 +3,182 @@
  * Direct integration into OASIS Portal (converted from React)
  */
 
+// Supported Blockchain Chains for NFT Minting
+// Logo paths match the logos/ directory (as used in oracle.js and bridge.js)
+const SUPPORTED_CHAINS = [
+    {
+        id: 'solana',
+        name: 'Solana',
+        logo: 'logos/solana.svg',
+        standard: 'SPL',
+        wallet: 'Phantom',
+        provider: 'SolanaOASIS',
+        gasEstimate: '$0.01-0.05',
+        status: 'available',
+        description: 'High-performance blockchain with low fees',
+        configOptions: ['Metaplex Standard', 'Collection with Verified Creator', 'Editioned Series', 'Compressed NFT (Bubblegum)'],
+        providerMapping: {
+            onChain: { value: 3, name: 'SolanaOASIS' },
+            offChain: { value: 23, name: 'MongoDBOASIS' },
+            nftOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
+            nftStandardType: { value: 2, name: 'SPL' }
+        }
+    },
+    {
+        id: 'ethereum',
+        name: 'Ethereum',
+        logo: 'logos/ethereum.svg',
+        standard: 'ERC-721',
+        wallet: 'MetaMask',
+        provider: 'EthereumOASIS',
+        gasEstimate: '$5-50',
+        status: 'available',
+        description: 'The original smart contract platform',
+        configOptions: ['ERC-721 Standard', 'ERC-1155', 'Custom Contract'],
+        providerMapping: {
+            onChain: { value: 1, name: 'EthereumOASIS' },
+            offChain: { value: 23, name: 'MongoDBOASIS' },
+            nftOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
+            nftStandardType: { value: 1, name: 'ERC721' }
+        }
+    },
+    {
+        id: 'polygon',
+        name: 'Polygon',
+        logo: 'logos/polygon.svg',
+        standard: 'ERC-721',
+        wallet: 'MetaMask',
+        provider: 'PolygonOASIS',
+        gasEstimate: '$0.01-0.10',
+        status: 'available',
+        description: 'Ethereum scaling solution with low fees',
+        configOptions: ['ERC-721 Standard', 'ERC-1155'],
+        providerMapping: {
+            onChain: { value: 6, name: 'PolygonOASIS' },
+            offChain: { value: 23, name: 'MongoDBOASIS' },
+            nftOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
+            nftStandardType: { value: 1, name: 'ERC721' }
+        }
+    },
+    {
+        id: 'arbitrum',
+        name: 'Arbitrum',
+        logo: 'logos/arbitrum.png',
+        standard: 'ERC-721',
+        wallet: 'MetaMask',
+        provider: 'ArbitrumOASIS',
+        gasEstimate: '$0.50-5',
+        status: 'available',
+        description: 'Ethereum Layer 2 with faster transactions',
+        configOptions: ['ERC-721 Standard', 'ERC-1155'],
+        providerMapping: {
+            onChain: { value: 2, name: 'ArbitrumOASIS' },
+            offChain: { value: 23, name: 'MongoDBOASIS' },
+            nftOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
+            nftStandardType: { value: 1, name: 'ERC721' }
+        }
+    },
+    {
+        id: 'base',
+        name: 'Base',
+        logo: 'logos/base.png',
+        standard: 'ERC-721',
+        wallet: 'MetaMask',
+        provider: 'BaseOASIS',
+        gasEstimate: '$0.10-2',
+        status: 'available',
+        description: 'Coinbase Layer 2 built on Optimism',
+        configOptions: ['ERC-721 Standard', 'ERC-1155'],
+        providerMapping: {
+            onChain: { value: 5, name: 'BaseOASIS' },
+            offChain: { value: 23, name: 'MongoDBOASIS' },
+            nftOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
+            nftStandardType: { value: 1, name: 'ERC721' }
+        }
+    },
+    {
+        id: 'optimism',
+        name: 'Optimism',
+        logo: 'logos/optimism-ethereum-op-logo.png',
+        standard: 'ERC-721',
+        wallet: 'MetaMask',
+        provider: 'OptimismOASIS',
+        gasEstimate: '$0.50-3',
+        status: 'available',
+        description: 'Ethereum Layer 2 with low fees',
+        configOptions: ['ERC-721 Standard', 'ERC-1155'],
+        providerMapping: {
+            onChain: { value: 4, name: 'OptimismOASIS' },
+            offChain: { value: 23, name: 'MongoDBOASIS' },
+            nftOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
+            nftStandardType: { value: 1, name: 'ERC721' }
+        }
+    },
+    {
+        id: 'avalanche',
+        name: 'Avalanche',
+        logo: 'logos/avalanche.svg',
+        standard: 'ERC-721',
+        wallet: 'MetaMask',
+        provider: 'AvalancheOASIS',
+        gasEstimate: '$0.20-1',
+        status: 'available',
+        description: 'High-performance blockchain platform',
+        configOptions: ['ERC-721 Standard', 'ERC-1155'],
+        providerMapping: {
+            onChain: { value: 7, name: 'AvalancheOASIS' },
+            offChain: { value: 23, name: 'MongoDBOASIS' },
+            nftOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
+            nftStandardType: { value: 1, name: 'ERC721' }
+        }
+    },
+    {
+        id: 'bnb-chain',
+        name: 'BNB Chain',
+        logo: 'logos/bnb.svg',
+        standard: 'ERC-721',
+        wallet: 'MetaMask',
+        provider: 'BNBChainOASIS',
+        gasEstimate: '$0.05-0.50',
+        status: 'available',
+        description: 'Binance Smart Chain - Low fee EVM chain',
+        configOptions: ['ERC-721 Standard', 'ERC-1155'],
+        providerMapping: {
+            onChain: { value: 8, name: 'BNBChainOASIS' },
+            offChain: { value: 23, name: 'MongoDBOASIS' },
+            nftOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
+            nftStandardType: { value: 1, name: 'ERC721' }
+        }
+    },
+    {
+        id: 'fantom',
+        name: 'Fantom',
+        logo: 'logos/fantom.svg',
+        standard: 'ERC-721',
+        wallet: 'MetaMask',
+        provider: 'FantomOASIS',
+        gasEstimate: '$0.01-0.20',
+        status: 'available',
+        description: 'Fast and scalable EVM-compatible chain',
+        configOptions: ['ERC-721 Standard', 'ERC-1155'],
+        providerMapping: {
+            onChain: { value: 9, name: 'FantomOASIS' },
+            offChain: { value: 23, name: 'MongoDBOASIS' },
+            nftOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
+            nftStandardType: { value: 1, name: 'ERC721' }
+        }
+    }
+];
+
 // NFT Mint Studio State
 const nftMintStudioState = {
     loading: false,
-    activeStep: 'solana-config',
-    configPreset: 'Metaplex Standard',
+    activeStep: 'chain-selection', // Start with chain selection
+    selectedChain: null, // Selected chain object
+    configPreset: null, // Chain-specific preset
     authToken: null,
     avatarId: null,
-    providerStates: [
-        {
-            id: 'solana',
-            label: 'SolanaOASIS',
-            description: 'Handles on-chain mint + transfer across Solana devnet',
-            registerEndpoint: '/api/provider/register-provider-type/SolanaOASIS',
-            activateEndpoint: '/api/provider/activate-provider/SolanaOASIS',
-            state: 'idle' // 'idle' | 'registered' | 'active'
-        },
-        {
-            id: 'mongo',
-            label: 'MongoDBOASIS',
-            description: 'Stores off-chain metadata JSON for NFTs',
-            registerEndpoint: '/api/provider/register-provider-type/MongoDBOASIS',
-            activateEndpoint: '/api/provider/activate-provider/MongoDBOASIS',
-            state: 'idle'
-        }
-    ],
+    providerStates: [], // Will be populated based on selected chain
     providerLoading: [],
     assetDraft: {
         title: 'MetaBrick Test NFT',
@@ -65,13 +216,34 @@ const nftMintStudioState = {
         : 'https://oasisweb4.one'
 };
 
-const WIZARD_STEPS = [
-    { id: 'solana-config', title: 'Solana Configuration', description: 'Select the minting profile you want to use (Metaplex, editions, compression).' },
-    { id: 'auth', title: 'Authenticate & Providers', description: 'Login with Site Avatar credentials and activate SolanaOASIS + MongoDBOASIS.' },
-    { id: 'assets', title: 'Assets & Metadata', description: 'Upload artwork, thumbnails, and JSON metadata placeholders.' },
-    { id: 'x402-revenue', title: 'x402 Revenue Sharing', description: 'Enable automatic payment distribution to NFT holders via x402 protocol.' },
-    { id: 'mint', title: 'Review & Mint', description: 'Generate the PascalCase payload and fire `/api/nft/mint-nft`.' }
+// All possible wizard steps (always show all, but disable future ones)
+const ALL_WIZARD_STEPS = [
+    { id: 'chain-selection', title: 'Select Chain', description: 'Choose the blockchain to mint your NFT on.' },
+    { id: 'auth', title: 'Authenticate & Providers', description: 'Login and activate providers for minting.' },
+    { id: 'assets', title: 'Assets & Metadata', description: 'Upload artwork, thumbnails, and JSON metadata.' },
+    { id: 'x402-revenue', title: 'x402 Revenue Sharing', description: 'Enable automatic payment distribution to NFT holders.' },
+    { id: 'mint', title: 'Review & Mint', description: 'Generate payload and mint your NFT.' }
 ];
+
+// Dynamic wizard steps - returns all steps, with chain-specific titles when chain is selected
+function getWizardSteps(selectedChain) {
+    if (!selectedChain) {
+        // No chain selected - only show chain selection step as enabled
+        return ALL_WIZARD_STEPS.map((step, index) => ({
+            ...step,
+            enabled: index === 0 // Only first step enabled
+        }));
+    }
+
+    // Chain selected - customize step titles and all steps are available
+    return [
+        { ...ALL_WIZARD_STEPS[0], enabled: true },
+        { ...ALL_WIZARD_STEPS[1], title: 'Authenticate & Providers', description: `Login and activate ${selectedChain.provider} + MongoDBOASIS.`, enabled: true },
+        { ...ALL_WIZARD_STEPS[2], enabled: true },
+        { ...ALL_WIZARD_STEPS[3], enabled: true },
+        { ...ALL_WIZARD_STEPS[4], title: 'Review & Mint', description: `Generate payload and mint your NFT on ${selectedChain.name}.`, enabled: true }
+    ];
+}
 
 /**
  * Load NFT Mint Studio into the portal
@@ -132,6 +304,16 @@ function renderNFTMintStudio(container) {
  * Render session summary
  */
 function renderSessionSummary() {
+    // Don't show summary on chain selection step
+    if (nftMintStudioState.activeStep === 'chain-selection') {
+        return '';
+    }
+
+    if (!nftMintStudioState.selectedChain) {
+        return '';
+    }
+
+    const chain = nftMintStudioState.selectedChain;
     const providerActive = nftMintStudioState.providerStates.every(p => p.state === 'active');
     const statusBadge = providerActive && nftMintStudioState.mintReady 
         ? '<span style="border: 1px solid rgba(34, 197, 94, 0.6); background: rgba(20, 118, 96, 0.25); color: rgba(34, 197, 94, 1); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;">Ready To Mint</span>'
@@ -141,16 +323,20 @@ function renderSessionSummary() {
         <div class="portal-card" style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; font-size: 0.6875rem;">
             <span style="font-size: 0.5625rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--text-tertiary);">Session Summary</span>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <span style="color: var(--text-primary); font-size: 0.75rem; font-weight: 500;">Profile</span>
-                <span style="color: var(--text-secondary);">${nftMintStudioState.configPreset}</span>
+                <span style="color: var(--text-primary); font-size: 0.75rem; font-weight: 500;">Chain</span>
+                <span style="color: var(--text-secondary);">${chain.name}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <span style="color: var(--text-primary); font-size: 0.75rem; font-weight: 500;">On-chain</span>
-                <span style="color: var(--text-secondary);">SolanaOASIS (3)</span>
+                <span style="color: var(--text-primary); font-size: 0.75rem; font-weight: 500;">Standard</span>
+                <span style="color: var(--text-secondary);">${chain.standard}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <span style="color: var(--text-primary); font-size: 0.75rem; font-weight: 500;">Off-chain</span>
-                <span style="color: var(--text-secondary);">MongoDBOASIS (23)</span>
+                <span style="color: var(--text-primary); font-size: 0.75rem; font-weight: 500;">Config</span>
+                <span style="color: var(--text-secondary);">${nftMintStudioState.configPreset || 'Not selected'}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="color: var(--text-primary); font-size: 0.75rem; font-weight: 500;">Provider</span>
+                <span style="color: var(--text-secondary);">${chain.provider}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <span style="color: var(--text-primary); font-size: 0.75rem; font-weight: 500;">x402</span>
@@ -167,7 +353,14 @@ function renderSessionSummary() {
  * Render wizard shell with steps
  */
 function renderWizardShell() {
-    const activeStepIndex = WIZARD_STEPS.findIndex(s => s.id === nftMintStudioState.activeStep);
+    const steps = getWizardSteps(nftMintStudioState.selectedChain);
+    const activeStepIndex = steps.findIndex(s => s.id === nftMintStudioState.activeStep);
+    const flowTitle = nftMintStudioState.selectedChain 
+        ? `${nftMintStudioState.selectedChain.name} Mint Flow`
+        : 'NFT Mint Flow';
+    const flowDescription = nftMintStudioState.selectedChain
+        ? `Configure ${nftMintStudioState.selectedChain.provider} + MongoDBOASIS, upload your assets, and mint.`
+        : 'Select a blockchain to begin minting your NFT.';
     
     return `
         <div class="portal-card" style="position: relative; overflow: hidden; padding: 2rem;">
@@ -175,21 +368,24 @@ function renderWizardShell() {
             <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2.5rem; position: relative;">
                 <aside style="display: flex; flex-direction: column; gap: 1.5rem;">
                     <div>
-                        <h2 style="font-size: 1.125rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.5rem;">Solana Mint Flow</h2>
+                        <h2 style="font-size: 1.125rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.5rem;">${flowTitle}</h2>
                         <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
-                            Configure SolanaOASIS + MongoDBOASIS, upload your assets, and submit a compliant payload.
+                            ${flowDescription}
                         </p>
                     </div>
                     <ol style="display: flex; flex-direction: column; gap: 0.75rem; list-style: none; padding: 0; margin: 0;">
-                        ${WIZARD_STEPS.map((step, index) => {
+                        ${steps.map((step, index) => {
                             const isActive = step.id === nftMintStudioState.activeStep;
                             const isPast = activeStepIndex > index;
+                            const isEnabled = step.enabled !== false; // Default to enabled if not specified
+                            const canClick = (isPast || isActive) && isEnabled;
                             return `
                                 <li>
                                     <button 
                                         type="button"
                                         class="wizard-step-btn"
                                         data-step="${step.id}"
+                                        ${!canClick ? 'disabled' : ''}
                                         style="
                                             width: 100%;
                                             display: flex;
@@ -199,12 +395,14 @@ function renderWizardShell() {
                                             border-radius: 0.5rem;
                                             border: 1px solid ${isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
                                             background: ${isActive ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.02)'};
-                                            color: ${isActive ? 'var(--text-primary)' : 'var(--text-secondary)'};
+                                            color: ${isActive ? 'var(--text-primary)' : canClick ? 'var(--text-secondary)' : 'var(--text-tertiary)'};
                                             text-align: left;
-                                            cursor: pointer;
+                                            cursor: ${canClick ? 'pointer' : 'not-allowed'};
+                                            opacity: ${canClick ? '1' : '0.4'};
                                             transition: all 0.2s;
                                             font-family: inherit;
                                         "
+                                        ${canClick ? `
                                         onmouseover="this.style.borderColor='rgba(255, 255, 255, 0.2)'; this.style.background='rgba(255, 255, 255, 0.04)'; this.style.color='var(--text-primary)';"
                                         onmouseout="
                                             const isActive = '${step.id}' === '${nftMintStudioState.activeStep}';
@@ -212,6 +410,7 @@ function renderWizardShell() {
                                             this.style.background = isActive ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.02)';
                                             this.style.color = isActive ? 'var(--text-primary)' : 'var(--text-secondary)';
                                         "
+                                        ` : ''}
                                     >
                                         <span style="
                                             display: flex;
@@ -222,8 +421,8 @@ function renderWizardShell() {
                                             border-radius: 50%;
                                             font-size: 0.75rem;
                                             font-weight: 500;
-                                            background: ${isActive ? 'var(--text-primary)' : 'rgba(255, 255, 255, 0.1)'};
-                                            color: ${isActive ? 'var(--bg-primary)' : 'var(--text-secondary)'};
+                                            background: ${isActive ? 'var(--text-primary)' : isPast && isEnabled ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'};
+                                            color: ${isActive ? 'var(--bg-primary)' : canClick ? 'var(--text-secondary)' : 'var(--text-tertiary)'};
                                         ">${index + 1}</span>
                                         <div>
                                             <p style="font-weight: 500; line-height: 1.3; margin: 0; font-size: 0.875rem;">${step.title}</p>
@@ -253,8 +452,8 @@ function renderWizardShell() {
  */
 function renderCurrentStep() {
     switch (nftMintStudioState.activeStep) {
-        case 'solana-config':
-            return renderSolanaConfigStep();
+        case 'chain-selection':
+            return renderChainSelectionStep();
         case 'auth':
             return renderAuthStep();
         case 'assets':
@@ -269,34 +468,79 @@ function renderCurrentStep() {
 }
 
 /**
- * Render Solana Configuration step
+ * Render Chain Selection Step - styled like Universal Asset Bridge
  */
-function renderSolanaConfigStep() {
-    const presets = [
-        { id: 'Metaplex Standard', title: 'Metaplex Standard', desc: 'Default Solana NFT format with metadata hosted off-chain and verified collection support.' },
-        { id: 'Collection with Verified Creator', title: 'Verified Creator', desc: 'Configure collection and creator signatures to comply with marketplaces like Magic Eden.' },
-        { id: 'Editioned Series', title: 'Editioned Series', desc: 'Enable limited edition prints or master edition drops managed through Metaplex.' },
-        { id: 'Compressed NFT (Bubblegum)', title: 'Compressed NFT (Bubblegum)', desc: 'Prepare metadata for compressed mints via OASIS + Metaplex Bubblegum pipelines.' }
-    ];
-
+function renderChainSelectionStep() {
     return `
-        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
             <div>
-                <h3 style="font-size: 1.25rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.5rem;">Select Minting Profile</h3>
-                <p style="font-size: 0.875rem; color: var(--text-secondary);">Choose the mint type that best fits your NFT collection needs.</p>
+                <h3 style="font-size: 1.5rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.5rem;">Select Your Blockchain</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary);">
+                    Choose the blockchain where you want to mint your NFT. Each chain has different fees, speeds, and NFT standards.
+                </p>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                ${presets.map(preset => {
-                    const isSelected = nftMintStudioState.configPreset === preset.id;
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;">
+                ${SUPPORTED_CHAINS.map(chain => {
+                    const isSelected = nftMintStudioState.selectedChain?.id === chain.id;
                     return `
                         <button
                             type="button"
-                            class="config-preset-btn trading-template-card"
-                            data-preset="${preset.id}"
-                            style="${isSelected ? 'border-color: rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.06);' : ''}"
+                            class="chain-selection-card trading-template-card"
+                            data-chain="${chain.id}"
+                            style="
+                                position: relative;
+                                flex-direction: column;
+                                align-items: center;
+                                text-align: center;
+                                border: 1px solid ${isSelected ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)'};
+                            "
+                            onclick="selectChain('${chain.id}')"
                         >
-                            <h4 style="font-size: 1rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.5rem;">${preset.title}</h4>
-                            <p style="font-size: 0.875rem; color: var(--text-secondary);">${preset.desc}</p>
+                            <div class="trading-template-icon" style="
+                                width: 40px;
+                                height: 40px;
+                                background: rgba(255, 255, 255, 0.05);
+                                border-radius: 0.5rem;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                flex-shrink: 0;
+                            ">
+                                <img 
+                                    src="${chain.logo}" 
+                                    alt="${chain.name}"
+                                    style="
+                                        width: 32px; 
+                                        height: 32px; 
+                                        object-fit: contain;
+                                        background: transparent !important;
+                                        background-color: transparent !important;
+                                        filter: none;
+                                        padding: 0;
+                                        margin: 0;
+                                    "
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                />
+                                <span style="display: none; font-size: 1.5rem; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.9);">${getChainEmoji(chain)}</span>
+                            </div>
+                            ${isSelected ? `
+                                <div style="
+                                    position: absolute;
+                                    top: 0.5rem;
+                                    right: 0.5rem;
+                                    width: 20px;
+                                    height: 20px;
+                                    border-radius: 50%;
+                                    background: var(--accent-color);
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: #041321;
+                                    font-size: 0.75rem;
+                                    font-weight: 600;
+                                ">✓</div>
+                            ` : ''}
                         </button>
                     `;
                 }).join('')}
@@ -306,22 +550,68 @@ function renderSolanaConfigStep() {
 }
 
 /**
+ * Get chain emoji fallback
+ */
+function getChainEmoji(chain) {
+    const icons = {
+        'solana': '◎',
+        'ethereum': 'Ξ',
+        'polygon': '⬟',
+        'arbitrum': '⟠',
+        'base': 'BASE'
+    };
+    return icons[chain.id] || chain.name.charAt(0);
+}
+
+/**
+ * Select a chain and initialize its flow
+ */
+function selectChain(chainId) {
+    const chain = SUPPORTED_CHAINS.find(c => c.id === chainId);
+    if (!chain) {
+        console.error('Chain not found:', chainId);
+        return;
+    }
+
+    nftMintStudioState.selectedChain = chain;
+    nftMintStudioState.configPreset = chain.configOptions[0] || null;
+
+    // Initialize provider states for selected chain
+    nftMintStudioState.providerStates = [
+        {
+            id: chain.id,
+            label: chain.provider,
+            description: `Handles on-chain mint + transfer on ${chain.name}`,
+            registerEndpoint: `/api/provider/register-provider-type/${chain.provider}`,
+            activateEndpoint: `/api/provider/activate-provider/${chain.provider}`,
+            state: 'idle'
+        },
+        {
+            id: 'mongo',
+            label: 'MongoDBOASIS',
+            description: 'Stores off-chain metadata JSON for NFTs',
+            registerEndpoint: '/api/provider/register-provider-type/MongoDBOASIS',
+            activateEndpoint: '/api/provider/activate-provider/MongoDBOASIS',
+            state: 'idle'
+        }
+    ];
+
+    // Move to auth step (chain-config removed)
+    nftMintStudioState.activeStep = 'auth';
+    updateWizardStep();
+}
+
+
+/**
  * Render Authentication step
  */
 function renderAuthStep() {
     return `
         <div style="display: flex; flex-direction: column; gap: 2rem;">
             <div>
-                <h3 style="font-size: 1.25rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.5rem;">Authenticate Site Avatar</h3>
-                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                    Enter the Site Avatar credentials to obtain a JWT. The token is required for every subsequent provider call.
-                </p>
-                ${renderCredentialsPanel()}
-            </div>
-            <div>
                 <h3 style="font-size: 1.25rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.5rem;">Register & Activate Providers</h3>
                 <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                    Flip the toggles to enable SolanaOASIS and MongoDBOASIS. Both must show Active before minting.
+                    Flip the toggles to enable ${nftMintStudioState.selectedChain ? nftMintStudioState.selectedChain.provider : 'chain'} and MongoDBOASIS. Both must show Active before minting.
                 </p>
                 ${renderProviderTogglePanel()}
             </div>
@@ -735,14 +1025,20 @@ async function handleNFTMint() {
     }
 
     try {
+        // Get chain-specific provider mapping
+        const chain = nftMintStudioState.selectedChain;
+        if (!chain || !chain.providerMapping) {
+            throw new Error('Chain not selected or invalid');
+        }
+
         const payload = {
             Title: nftMintStudioState.assetDraft.title,
             Description: nftMintStudioState.assetDraft.description,
             Symbol: nftMintStudioState.assetDraft.symbol,
-            OnChainProvider: { value: 3, name: 'SolanaOASIS' },
-            OffChainProvider: { value: 23, name: 'MongoDBOASIS' },
-            NFTOffChainMetaType: { value: 3, name: 'ExternalJsonURL' },
-            NFTStandardType: { value: 2, name: 'SPL' },
+            OnChainProvider: chain.providerMapping.onChain,
+            OffChainProvider: chain.providerMapping.offChain,
+            NFTOffChainMetaType: chain.providerMapping.nftOffChainMetaType,
+            NFTStandardType: chain.providerMapping.nftStandardType,
             JSONMetaDataURL: nftMintStudioState.assetDraft.jsonUrl,
             ImageUrl: nftMintStudioState.assetDraft.imageUrl,
             ThumbnailUrl: nftMintStudioState.assetDraft.thumbnailUrl || nftMintStudioState.assetDraft.imageUrl,
@@ -797,10 +1093,11 @@ async function handleNFTMint() {
  * Render wizard footer with navigation
  */
 function renderWizardFooter() {
-    const activeStepIndex = WIZARD_STEPS.findIndex(s => s.id === nftMintStudioState.activeStep);
+    const steps = getWizardSteps(nftMintStudioState.selectedChain);
+    const activeStepIndex = steps.findIndex(s => s.id === nftMintStudioState.activeStep);
     const canProceed = getCanProceed();
     const canGoBack = activeStepIndex > 0;
-    const canGoNext = activeStepIndex < WIZARD_STEPS.length - 1 && canProceed;
+    const canGoNext = activeStepIndex < steps.length - 1 && canProceed;
 
     return `
         <div style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -836,10 +1133,10 @@ function renderWizardFooter() {
  */
 function getCanProceed() {
     switch (nftMintStudioState.activeStep) {
-        case 'solana-config':
-            return true;
+        case 'chain-selection':
+            return !!nftMintStudioState.selectedChain;
         case 'auth':
-            return !!nftMintStudioState.authToken && nftMintStudioState.providerStates.every(p => p.state === 'active');
+            return nftMintStudioState.providerStates.every(p => p.state === 'active');
         case 'assets':
             return !!(nftMintStudioState.assetDraft.imageUrl && nftMintStudioState.assetDraft.jsonUrl && nftMintStudioState.assetDraft.sendToAddress);
         case 'x402-revenue':
@@ -853,14 +1150,15 @@ function getCanProceed() {
  * Navigate wizard step
  */
 function navigateWizardStep(direction) {
-    const currentIndex = WIZARD_STEPS.findIndex(s => s.id === nftMintStudioState.activeStep);
+    const steps = getWizardSteps(nftMintStudioState.selectedChain);
+    const currentIndex = steps.findIndex(s => s.id === nftMintStudioState.activeStep);
     const newIndex = currentIndex + direction;
     
-    if (newIndex >= 0 && newIndex < WIZARD_STEPS.length) {
+    if (newIndex >= 0 && newIndex < steps.length) {
         if (direction > 0 && !getCanProceed()) {
             return; // Can't proceed if requirements not met
         }
-        nftMintStudioState.activeStep = WIZARD_STEPS[newIndex].id;
+        nftMintStudioState.activeStep = steps[newIndex].id;
         updateWizardStep();
     }
 }
@@ -872,22 +1170,8 @@ function updateWizardStep() {
     const container = document.getElementById('nft-mint-studio-content');
     if (!container) return;
 
-    const stepContent = container.querySelector('#wizard-step-content');
-    const summarySection = container.querySelectorAll('.portal-section')[1];
-    const wizardSection = container.querySelectorAll('.portal-section')[2];
-
-    if (stepContent) {
-        stepContent.innerHTML = renderCurrentStep();
-    }
-    if (summarySection) {
-        summarySection.innerHTML = renderSessionSummary();
-    }
-    if (wizardSection) {
-        // Re-render the entire wizard to update step highlighting
-        wizardSection.innerHTML = renderWizardShell();
-    }
-
-    attachWizardListeners();
+    // Re-render everything to update wizard sidebar with new steps
+    renderNFTMintStudio(container);
 }
 
 /**
@@ -898,8 +1182,9 @@ function attachWizardListeners() {
     document.querySelectorAll('.wizard-step-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const stepId = e.currentTarget.getAttribute('data-step');
-            const stepIndex = WIZARD_STEPS.findIndex(s => s.id === stepId);
-            const currentIndex = WIZARD_STEPS.findIndex(s => s.id === nftMintStudioState.activeStep);
+            const steps = getWizardSteps(nftMintStudioState.selectedChain);
+            const stepIndex = steps.findIndex(s => s.id === stepId);
+            const currentIndex = steps.findIndex(s => s.id === nftMintStudioState.activeStep);
             
             // Only allow clicking past steps or current step
             if (stepIndex <= currentIndex || getCanProceed()) {
@@ -915,6 +1200,14 @@ function attachWizardListeners() {
             const preset = e.currentTarget.getAttribute('data-preset');
             nftMintStudioState.configPreset = preset;
             updateWizardStep();
+        });
+    });
+
+    // Chain selection cards
+    document.querySelectorAll('.chain-selection-card').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const chainId = e.currentTarget.getAttribute('data-chain');
+            selectChain(chainId);
         });
     });
 }
@@ -958,7 +1251,9 @@ if (typeof window !== 'undefined') {
     window.handleNFTMint = handleNFTMint;
     window.navigateWizardStep = navigateWizardStep;
     window.updateWizardStep = updateWizardStep;
+    window.selectChain = selectChain;
     window.nftMintStudioState = nftMintStudioState;
+    window.SUPPORTED_CHAINS = SUPPORTED_CHAINS;
     
-    console.log('NFT Mint Studio integration loaded (vanilla JS version)');
+    console.log('NFT Mint Studio integration loaded (multi-chain vanilla JS version)');
 }
