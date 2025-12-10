@@ -412,7 +412,11 @@ function renderTelegramConnectionStatus(stats) {
  */
 function renderTelegramStats(stats) {
     const container = document.getElementById('telegram-stats');
-    if (!container) return;
+    if (!container) {
+        console.error('telegram-stats container not found!');
+        return;
+    }
+    console.log('Rendering stats:', stats);
 
     const totalKarma = stats.totalKarma || stats.totalKarmaEarned || 0;
     const totalTokens = stats.totalTokens || stats.totalTokensEarned || 0;
@@ -491,7 +495,11 @@ function renderTelegramStats(stats) {
  */
 function renderRecentRewards(rewards) {
     const container = document.getElementById('telegram-recent-rewards');
-    if (!container) return;
+    if (!container) {
+        console.error('telegram-recent-rewards container not found!');
+        return;
+    }
+    console.log('Rendering rewards:', rewards);
 
     // Get most recent 10 rewards
     const recent = rewards
