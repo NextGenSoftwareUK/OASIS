@@ -2678,6 +2678,347 @@
             margin-bottom: 1.5rem;
         }
 
+        /* Quick Actions */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .quick-action-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .quick-action-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .quick-action-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .quick-action-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quick-action-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .quick-action-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .quick-action-meta {
+            margin-top: 0.5rem;
+        }
+
+        .quick-action-count {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        .data-section-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .data-ai-helper-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .data-ai-helper-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* AI Helper */
+        .data-ai-helper-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .data-ai-helper-panel {
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .data-ai-helper-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .data-ai-helper-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0 0 0.25rem 0;
+        }
+
+        .data-ai-helper-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .data-ai-helper-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .data-ai-helper-close:hover {
+            color: var(--text-primary);
+        }
+
+        .data-ai-helper-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 300px;
+            max-height: 400px;
+        }
+
+        .data-ai-message {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .data-ai-message-user {
+            justify-content: flex-end;
+        }
+
+        .data-ai-message-assistant {
+            justify-content: flex-start;
+        }
+
+        .data-ai-message-content {
+            max-width: 75%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .data-ai-message-user .data-ai-message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .data-ai-message-assistant .data-ai-message-content {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .data-ai-message-assistant .data-ai-message-content p {
+            margin: 0.5rem 0;
+        }
+
+        .data-ai-message-assistant .data-ai-message-content ul,
+        .data-ai-message-assistant .data-ai-message-content ol {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .data-ai-message-assistant .data-ai-message-content strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .data-ai-helper-input-container {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .data-ai-helper-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .data-ai-helper-input:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .data-ai-helper-send {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .data-ai-helper-send:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .data-ai-helper-suggestions {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .data-ai-suggestion-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .data-ai-suggestions-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .data-ai-suggestion-btn {
+            padding: 0.5rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.375rem;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .data-ai-suggestion-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        /* Workflow Progress */
+        .workflow-progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .workflow-progress-content {
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .workflow-progress-message {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .workflow-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .workflow-progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 9999px;
+            transition: width 0.3s;
+        }
+
+        .workflow-progress-count {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
         /* Holon Details Modal */
         .holon-details-modal {
             position: fixed;
@@ -3181,9 +3522,30 @@
         }
 
         /* Documentation */
+        .developer-docs-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .developer-docs-category {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .developer-docs-category-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
         .developer-docs-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
         }
 
@@ -3192,10 +3554,17 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0.75rem;
             padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .developer-doc-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
         }
 
         .developer-doc-title {
-            font-size: 1.125rem;
+            font-size: 1rem;
             font-weight: 500;
             color: var(--text-primary);
             margin-bottom: 0.5rem;
@@ -3213,10 +3582,90 @@
             text-decoration: none;
             font-size: 0.875rem;
             transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
         }
 
         .developer-doc-link:hover {
             color: var(--text-secondary);
+        }
+
+        .developer-doc-external-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .developer-doc-external-link:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .developer-doc-content {
+            line-height: 1.6;
+        }
+
+        .developer-doc-content h4 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .developer-doc-content h4:first-child {
+            margin-top: 0;
+        }
+
+        .developer-doc-content h5 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .developer-doc-content p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .developer-doc-content ul,
+        .developer-doc-content ol {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        .developer-doc-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .developer-doc-content pre {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .developer-doc-content code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+        }
+
+        .developer-doc-content pre code {
+            color: var(--text-primary);
+            line-height: 1.5;
         }
 
         /* Resources */
@@ -4900,11 +5349,21 @@
         }
 
         .oracle-task-node-icon {
-            font-size: 1.125rem;
             width: 2rem;
             height: 2rem;
             display: flex;
             align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .oracle-task-node-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .oracle-task-node-icon:not(:has(svg)) {
+            font-size: 1.125rem;
             justify-content: center;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -5037,6 +5496,328 @@
             justify-content: center;
         }
 
+        .oracle-task-config-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .oracle-task-config-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        .oracle-task-config-content {
+            position: relative;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .oracle-form-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .oracle-form-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Trading Tab Styles */
+        .trading-templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .trading-template-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .trading-template-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .trading-template-icon {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            flex-shrink: 0;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .trading-template-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .trading-template-content {
+            flex: 1;
+        }
+
+        .trading-template-name {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .trading-template-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .trading-template-meta {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .trading-template-category {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.25rem;
+            color: var(--text-secondary);
+        }
+
+        .trading-template-difficulty {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+
+        .trading-template-difficulty.beginner {
+            background: rgba(34, 197, 94, 0.2);
+            color: rgba(34, 197, 94, 1);
+        }
+
+        .trading-template-difficulty.intermediate {
+            background: rgba(251, 191, 36, 0.2);
+            color: rgba(251, 191, 36, 1);
+        }
+
+        .trading-template-difficulty.advanced {
+            background: rgba(239, 68, 68, 0.2);
+            color: rgba(239, 68, 68, 1);
+        }
+
+        .trading-template-card-large {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .trading-template-card-large:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .trading-template-header {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .trading-template-icon-large {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            flex-shrink: 0;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .trading-template-icon-large svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .trading-template-name-large {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .trading-template-description-large {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-top: 0.75rem;
+        }
+
+        .trading-feeds-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .trading-feed-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .trading-feed-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .trading-feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .trading-feed-name {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .trading-feed-category {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.25rem;
+            color: var(--text-secondary);
+        }
+
+        .trading-feed-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+
+        .trading-feed-status.active {
+            background: rgba(34, 197, 94, 0.2);
+            color: rgba(34, 197, 94, 1);
+        }
+
+        .trading-feed-status.inactive {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-tertiary);
+        }
+
+        .trading-feed-value {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .trading-feed-value-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .trading-feed-value-number {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .trading-feed-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .trading-feed-realtime-indicator {
+            font-size: 0.75rem;
+            color: rgba(34, 197, 94, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.125rem 0.5rem;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 0.25rem;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .trading-feed-value {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .trading-feed-update-time {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
         @media (max-width: 1400px) {
             .oracle-builder-layout {
                 grid-template-columns: 240px 1fr 280px;
@@ -5107,6 +5888,24 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        .oracle-task-type-card > div:first-child {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .oracle-task-type-card svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .oracle-task-type-card > div:first-child:not(:has(svg)) {
+            font-size: 1.5rem;
             justify-content: center;
             min-height: 140px;
         }
@@ -5762,6 +6561,7 @@
             <button class="portal-tab" data-tab="contracts" onclick="switchTab('contracts')">Smart Contracts</button>
             <button class="portal-tab" data-tab="data" onclick="switchTab('data')">Data</button>
             <button class="portal-tab" data-tab="bridges" onclick="switchTab('bridges')">Bridges</button>
+            <button class="portal-tab" data-tab="trading" onclick="switchTab('trading')">Trading</button>
             <button class="portal-tab" data-tab="oracle" onclick="switchTab('oracle')">Oracle</button>
             <button class="portal-tab" data-tab="developer" onclick="switchTab('developer')">Developer</button>
             <button class="portal-tab" data-tab="telegram" onclick="switchTab('telegram')">Telegram</button>
@@ -5919,9 +6719,8 @@
         </div>
 
         <div id="tab-nfts" class="portal-tab-content" style="display: none;">
-            <div class="portal-section">
-                <h2 class="portal-section-title">NFT Collections</h2>
-                <p class="portal-section-subtitle">View and manage your NFTs across all chains</p>
+            <div id="nft-mint-studio-content">
+                <!-- Content will be loaded by nft-mint-studio.js -->
             </div>
         </div>
 
@@ -5940,6 +6739,12 @@
         <div id="tab-bridges" class="portal-tab-content" style="display: none;">
             <div id="bridge-content">
                 <!-- Content will be loaded by bridge.js -->
+            </div>
+        </div>
+
+        <div id="tab-trading" class="portal-tab-content" style="display: none;">
+            <div id="trading-content">
+                <!-- Content will be loaded by trading.js -->
             </div>
         </div>
 
@@ -6207,41 +7012,50 @@
     <script src="tier-system.js"></script>
     <script src="telegram-gamification.js"></script>
     <script src="avatar-dashboard.js"></script>
+    <script src="avatar-portal-mvp.js"></script>
     <script src="data-management.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="developer-tools.js"></script>
     <script src="smart-contracts.js"></script>
     <script src="bridge.js"></script>
+    <script src="STANDARDIZED_FEEDS.js"></script>
+    <script src="trading.js"></script>
     <script src="oracle.js"></script>
+    <script src="nft-mint-studio.js"></script>
     <script>
         // Portal-specific JavaScript
         async function switchTab(tabName) {
-            // Check if tab is accessible
-            const avatarId = oasisAPI?.getAvatarId();
-            if (avatarId && typeof isTabAccessible === 'function') {
-                const accessible = await isTabAccessible(avatarId, tabName);
-                if (!accessible) {
-                    // Show locked message
-                    const selectedContent = document.getElementById(`tab-${tabName}`);
-                    if (selectedContent) {
-                        const featureDef = Object.values(window.FEATURE_NFTS || {}).find(f => f.unlocks.tab === tabName);
-                        if (featureDef) {
-                            selectedContent.innerHTML = `
-                                <div class="feature-locked" style="text-align: center; padding: 4rem 2rem;">
-                                    <div style="font-size: 4rem; margin-bottom: 1rem;">🔒</div>
-                                    <h2 style="margin-bottom: 1rem;">Feature Locked</h2>
-                                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
-                                        This feature requires the <strong>${featureDef.name}</strong> NFT
-                                    </p>
-                                    <p style="color: var(--text-tertiary); font-size: 0.875rem;">
-                                        ${featureDef.description}
-                                    </p>
-                                </div>
-                            `;
+            console.log('switchTab called with:', tabName);
+            // Check if tab is accessible (with error handling)
+            try {
+                const avatarId = oasisAPI?.getAvatarId();
+                if (avatarId && typeof isTabAccessible === 'function') {
+                    const accessible = await isTabAccessible(avatarId, tabName);
+                    if (!accessible) {
+                        // Show locked message
+                        const selectedContent = document.getElementById(`tab-${tabName}`);
+                        if (selectedContent) {
+                            const featureDef = Object.values(window.FEATURE_NFTS || {}).find(f => f.unlocks.tab === tabName);
+                            if (featureDef) {
+                                selectedContent.innerHTML = `
+                                    <div class="feature-locked" style="text-align: center; padding: 4rem 2rem;">
+                                        <h2 style="margin-bottom: 1rem;">Feature Locked</h2>
+                                        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                                            This feature requires the <strong>${featureDef.name}</strong> NFT
+                                        </p>
+                                        <p style="color: var(--text-tertiary); font-size: 0.875rem;">
+                                            ${featureDef.description}
+                                        </p>
+                                    </div>
+                                `;
+                            }
                         }
+                        return;
                     }
-                    return;
                 }
+            } catch (error) {
+                console.warn('Error checking tab accessibility:', error);
+                // Continue with tab switch even if accessibility check fails
             }
             
             // Hide all tab contents
@@ -6258,6 +7072,9 @@
             const selectedContent = document.getElementById(`tab-${tabName}`);
             if (selectedContent) {
                 selectedContent.style.display = 'block';
+                console.log('Tab content shown:', `tab-${tabName}`);
+            } else {
+                console.error('Tab content not found:', `tab-${tabName}`);
             }
             
             // Add active class to selected tab
@@ -6266,9 +7083,13 @@
                 selectedTab.classList.add('active');
             }
             
-            // Load avatar dashboard if switching to avatar tab
+            // Load avatar portal MVP if switching to avatar tab
             if (tabName === 'avatar') {
-                loadAvatarDashboard();
+                if (typeof loadAvatarPortalMVP === 'function') {
+                    loadAvatarPortalMVP();
+                } else if (typeof loadAvatarDashboard === 'function') {
+                    loadAvatarDashboard();
+                }
             }
             
             // Load Telegram gamification if switching to telegram tab
@@ -6296,11 +7117,54 @@
                 loadBridge();
             }
             
+            // Load trading if switching to trading tab
+            if (tabName === 'trading') {
+                if (typeof loadTrading === 'function') {
+                    loadTrading();
+                } else {
+                    console.error('loadTrading function not found. Trading.js may not be loaded.');
+                    const container = document.getElementById('trading-content');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="portal-section">
+                                <div style="text-align: center; padding: 3rem;">
+                                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Trading Dashboard</h3>
+                                    <p style="color: var(--text-secondary);">Error: Trading script not loaded. Please refresh the page.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+            // Load NFT Mint Studio if switching to NFTs tab
+            if (tabName === 'nfts') {
+                if (typeof loadNFTMintStudio === 'function') {
+                    loadNFTMintStudio();
+                } else {
+                    console.error('loadNFTMintStudio function not found. nft-mint-studio.js may not be loaded.');
+                    const container = document.getElementById('nft-mint-studio-content');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="portal-section">
+                                <div style="text-align: center; padding: 3rem;">
+                                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">NFT Mint Studio</h3>
+                                    <p style="color: var(--text-secondary);">Error: NFT Mint Studio script not loaded. Please refresh the page.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
             // Load oracle if switching to oracle tab
             if (tabName === 'oracle' && typeof loadOracle === 'function') {
                 loadOracle();
             }
         }
+        
+        // Ensure switchTab is available globally
+        window.switchTab = switchTab;
 
         function copyToClipboard(elementId) {
             const element = document.getElementById(elementId);
