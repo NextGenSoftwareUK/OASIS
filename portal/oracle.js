@@ -87,6 +87,31 @@ const TASK_TYPES = {
         description: 'Aggregate multiple values',
         icon: 'Σ',
         category: 'output'
+    },
+    // Trading-specific task types
+    priceFetch: {
+        name: 'Price Fetch',
+        description: 'Fetch token price from DEX/CEX',
+        icon: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 10.67L4.67 8L8 10.67L12 6.67L14 8.67" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="2" cy="10.67" r="1" fill="currentColor"/><circle cx="8" cy="10.67" r="1" fill="currentColor"/><circle cx="14" cy="8.67" r="1" fill="currentColor"/></svg>',
+        category: 'trading'
+    },
+    calculate: {
+        name: 'Calculate',
+        description: 'Calculate arbitrage, slippage, or other metrics',
+        icon: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 2L12 6M4 10L8 14L12 10M8 2V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="4" cy="6" r="0.75" fill="currentColor"/><circle cx="8" cy="8" r="0.75" fill="currentColor"/><circle cx="12" cy="10" r="0.75" fill="currentColor"/></svg>',
+        category: 'trading'
+    },
+    indicator: {
+        name: 'Technical Indicator',
+        description: 'Calculate RSI, SMA, EMA, MACD, etc.',
+        icon: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2.67" y="5.33" width="1.33" height="6.67" rx="0.67" fill="currentColor" opacity="0.8"/><rect x="5.33" y="7.33" width="1.33" height="4.67" rx="0.67" fill="currentColor" opacity="0.8"/><rect x="8" y="4" width="1.33" height="8" rx="0.67" fill="currentColor"/><rect x="10.67" y="6" width="1.33" height="6" rx="0.67" fill="currentColor" opacity="0.8"/></svg>',
+        category: 'trading'
+    },
+    alert: {
+        name: 'Alert',
+        description: 'Send alerts when conditions are met',
+        icon: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.67" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="4" stroke="currentColor" stroke-width="1" opacity="0.5"/><circle cx="8" cy="8" r="5.33" stroke="currentColor" stroke-width="0.75" opacity="0.3"/><path d="M8 4V8L10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        category: 'trading'
     }
 };
 
@@ -111,7 +136,70 @@ const QUERY_TYPES = {
         name: 'Blockchain Data',
         description: 'Query blockchain data (balances, transactions)',
         fields: ['address', 'dataType']
+    },
+    // Trading-specific query types
+    price: {
+        name: 'Price Query',
+        description: 'Fetch token price from exchange',
+        fields: ['source', 'pair', 'chain', 'pool']
     }
+};
+
+// Price sources for trading
+const PRICE_SOURCES = {
+    uniswap: { name: 'Uniswap', type: 'DEX', chains: ['ethereum', 'arbitrum', 'polygon', 'base', 'optimism'] },
+    sushiswap: { name: 'SushiSwap', type: 'DEX', chains: ['ethereum', 'arbitrum', 'polygon', 'avalanche'] },
+    curve: { name: 'Curve', type: 'DEX', chains: ['ethereum', 'arbitrum', 'polygon'] },
+    pancakeswap: { name: 'PancakeSwap', type: 'DEX', chains: ['bnb', 'ethereum'] },
+    quickswap: { name: 'QuickSwap', type: 'DEX', chains: ['polygon'] },
+    binance: { name: 'Binance', type: 'CEX', chains: [] },
+    coinbase: { name: 'Coinbase', type: 'CEX', chains: [] },
+    kraken: { name: 'Kraken', type: 'CEX', chains: [] },
+    coingecko: { name: 'CoinGecko', type: 'Aggregator', chains: [] }
+};
+
+// Calculate operations for trading
+const CALCULATE_OPERATIONS = {
+    arbitrage: {
+        name: 'Arbitrage Detection',
+        description: 'Calculate price differences across sources',
+        inputs: ['price1', 'price2', 'price3'],
+        parameters: ['bridgeCost', 'gasCost', 'minProfit']
+    },
+    slippage: {
+        name: 'Slippage Calculation',
+        description: 'Calculate expected slippage for trade size',
+        inputs: ['price', 'liquidity', 'tradeSize'],
+        parameters: ['poolFee']
+    },
+    priceDifference: {
+        name: 'Price Difference',
+        description: 'Calculate percentage difference between prices',
+        inputs: ['price1', 'price2'],
+        parameters: []
+    },
+    correlation: {
+        name: 'Correlation',
+        description: 'Calculate correlation between assets',
+        inputs: ['priceHistory1', 'priceHistory2'],
+        parameters: ['period']
+    },
+    whaleScore: {
+        name: 'Whale Activity Score',
+        description: 'Calculate whale activity score from wallet data',
+        inputs: ['walletBalances', 'exchangeFlows'],
+        parameters: ['largeTransferThreshold', 'inflowWeight', 'outflowWeight']
+    }
+};
+
+// Technical indicators
+const TECHNICAL_INDICATORS = {
+    SMA: { name: 'Simple Moving Average', period: true, description: 'Average price over period' },
+    EMA: { name: 'Exponential Moving Average', period: true, description: 'Weighted average with more weight on recent prices' },
+    RSI: { name: 'Relative Strength Index', period: true, description: 'Momentum oscillator (0-100)' },
+    MACD: { name: 'Moving Average Convergence Divergence', period: false, description: 'Trend-following momentum indicator' },
+    bollinger: { name: 'Bollinger Bands', period: true, description: 'Volatility bands around moving average' },
+    stochastic: { name: 'Stochastic Oscillator', period: true, description: 'Momentum indicator comparing closing price to price range' }
 };
 
 /**
@@ -554,31 +642,39 @@ function renderProviderPalette() {
 function getProviderLogo(providerId) {
     const logoMap = {
         // Blockchain providers
-        'EthereumOASIS': '../oasisweb4 site/new-v2/logos/ethereum.svg',
-        'SolanaOASIS': '../oasisweb4 site/new-v2/logos/solana.svg',
-        'PolygonOASIS': '../oasisweb4 site/new-v2/logos/polygon.svg',
-        'ArbitrumOASIS': '../UniversalAssetBridge/frontend/public/ARB.png',
-        'AvalancheOASIS': '../oasisweb4 site/new-v2/logos/avalanche.svg',
-        'BNBChainOASIS': '../oasisweb4 site/new-v2/logos/bnb.svg',
-        'BaseOASIS': '../oasisweb4 site/new-v2/logos/base.svg',
-        'OptimismOASIS': '../oasisweb4 site/new-v2/logos/optimism.svg',
-        'FantomOASIS': '../oasisweb4 site/new-v2/logos/fantom.svg',
+        'EthereumOASIS': 'logos/ethereum.svg',
+        'SolanaOASIS': 'logos/solana.svg',
+        'PolygonOASIS': 'logos/polygon.svg',
+        'ArbitrumOASIS': 'logos/arbitrum.png',
+        'AvalancheOASIS': 'logos/avalanche.svg',
+        'BNBChainOASIS': 'logos/bnb.svg',
+        'BaseOASIS': 'logos/base.png',
+        'OptimismOASIS': 'logos/optimism.svg',
+        'FantomOASIS': 'logos/fantom.svg',
+        'RadixOASIS': 'logos/radix.svg',
+        'ArweaveOASIS': 'logos/arweave.png',
+        'AztecOASIS': 'logos/aztec.png',
+        'HolochainOASIS': 'logos/holochain.png',
+        'MidenOASIS': 'logos/miden.png',
+        'SolidOASIS': 'logos/solid.png',
+        'ThreeFoldOASIS': 'logos/threefold.png',
+        'ZcashOASIS': 'logos/zcash.png',
         // Database providers
-        'MongoDBOASIS': '../oasisweb4 site/new-v2/logos/mongodb.png',
-        'SQLLiteDBOASIS': '../oasisweb4 site/new-v2/logos/ethereum.svg', // No specific logo, use fallback
-        'Neo4jOASIS': '../oasisweb4 site/new-v2/logos/ethereum.svg', // No specific logo, use fallback
-        'AzureCosmosDBOASIS': '../oasisweb4 site/new-v2/logos/azure.png',
+        'MongoDBOASIS': 'logos/mongodb.png',
+        'SQLLiteDBOASIS': 'logos/ethereum.svg', // No specific logo, use fallback
+        'Neo4jOASIS': 'logos/ethereum.svg', // No specific logo, use fallback
+        'AzureCosmosDBOASIS': 'logos/azure.png',
         // Cloud providers
-        'AWSOASIS': '../oasisweb4 site/new-v2/logos/aws.png',
-        'GoogleCloudOASIS': '../oasisweb4 site/new-v2/logos/google-cloud.png',
-        'AzureOASIS': '../oasisweb4 site/new-v2/logos/azure.png',
+        'AWSOASIS': 'logos/aws.png',
+        'GoogleCloudOASIS': 'logos/google-cloud.png',
+        'AzureOASIS': 'logos/azure.png',
         // Storage providers
-        'IPFSOASIS': '../oasisweb4 site/new-v2/logos/ipfs.png',
-        'PinataOASIS': '../oasisweb4 site/new-v2/logos/ipfs.png', // Use IPFS logo as Pinata is IPFS-based
-        'LocalFileOASIS': '../oasisweb4 site/new-v2/logos/ethereum.svg' // No specific logo, use fallback
+        'IPFSOASIS': 'logos/ipfs.png',
+        'PinataOASIS': 'logos/ipfs.png', // Use IPFS logo as Pinata is IPFS-based
+        'LocalFileOASIS': 'logos/ethereum.svg' // No specific logo, use fallback
     };
     
-    return logoMap[providerId] || '../oasisweb4 site/new-v2/logos/ethereum.svg';
+    return logoMap[providerId] || 'logos/ethereum.svg';
 }
 
 /**
@@ -687,6 +783,11 @@ function renderVisualTaskChain(jobIndex) {
                     </div>
                     ${taskIndex < job.tasks.length - 1 ? '<div class="oracle-task-connector"></div>' : ''}
                     <div class="oracle-task-node-actions">
+                        ${['priceFetch', 'calculate', 'indicator', 'alert'].includes(task.type) ? `
+                            <button type="button" class="oracle-task-action-btn" onclick="configureTradingTask(${jobIndex}, ${taskIndex})" title="Configure">
+                                ⚙️
+                            </button>
+                        ` : ''}
                         <button type="button" class="oracle-task-action-btn" onclick="insertTaskAfter(${jobIndex}, ${taskIndex})" title="Add task after">
                             +
                         </button>
@@ -985,10 +1086,17 @@ function renderTasksForJob(jobIndex) {
         <div class="oracle-task-card" data-task-index="${taskIndex}">
             <div class="oracle-task-header">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="color: var(--text-secondary); font-size: 0.75rem;">${TASK_TYPES[task.type]?.icon || '•'}</span>
+                    <span style="color: var(--text-secondary); font-size: 0.75rem; display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem;">
+                        ${typeof TASK_TYPES[task.type]?.icon === 'string' && TASK_TYPES[task.type].icon.includes('<svg') ? TASK_TYPES[task.type].icon : (TASK_TYPES[task.type]?.icon || '•')}
+                    </span>
                     <span style="font-size: 0.875rem; font-weight: 500;">${TASK_TYPES[task.type]?.name || task.type}</span>
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
+                    ${['priceFetch', 'calculate', 'indicator', 'alert'].includes(task.type) ? `
+                        <button type="button" class="btn-text" onclick="configureTradingTask(${jobIndex}, ${taskIndex})" style="font-size: 0.75rem; padding: 0.25rem;" title="Configure">
+                            ⚙️
+                        </button>
+                    ` : ''}
                     ${taskIndex > 0 ? `
                         <button type="button" class="btn-text" onclick="moveTask(${jobIndex}, ${taskIndex}, -1)" style="font-size: 0.75rem; padding: 0.25rem;" title="Move up">
                             ↑
@@ -1329,7 +1437,9 @@ function showTaskTypeSelector(jobIndex, insertIndex = null) {
                             class="oracle-task-type-card" 
                             onclick="selectTaskType(${jobIndex}, '${type}', ${insertIndex !== null ? insertIndex : 'null'})"
                         >
-                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">${taskType.icon}</div>
+                            <div style="margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.9);">
+                                ${typeof taskType.icon === 'string' && taskType.icon.includes('<svg') ? taskType.icon : `<span style="font-size: 1.5rem;">${taskType.icon || '•'}</span>`}
+                            </div>
                             <div style="font-weight: 500; margin-bottom: 0.25rem;">${taskType.name}</div>
                             <div style="font-size: 0.75rem; color: var(--text-secondary);">${taskType.description}</div>
                         </button>
@@ -1365,6 +1475,7 @@ function insertTaskAtPosition(jobIndex, taskType, position) {
         type: taskType
     };
     
+    // Initialize task with default values based on type
     if (taskType === 'fetch') {
         newTask.queryType = 'smartContract';
     } else if (taskType === 'parse') {
@@ -1373,10 +1484,33 @@ function insertTaskAtPosition(jobIndex, taskType, position) {
         newTask.transform = '';
     } else if (taskType === 'aggregate') {
         newTask.aggregateMethod = 'average';
+    } else if (taskType === 'priceFetch') {
+        newTask.source = 'uniswap';
+        newTask.pair = 'ETH/USDC';
+        newTask.chain = 'ethereum';
+    } else if (taskType === 'calculate') {
+        newTask.operation = 'arbitrage';
+        newTask.inputs = [];
+        newTask.parameters = {};
+    } else if (taskType === 'indicator') {
+        newTask.indicator = 'SMA';
+        newTask.period = 20;
+        newTask.source = '';
+    } else if (taskType === 'alert') {
+        newTask.condition = '';
+        newTask.threshold = 0;
+        newTask.channels = ['webhook'];
     }
     
     job.tasks.splice(position, 0, newTask);
     refreshOracleBuilder();
+    
+    // Open configuration for new trading tasks
+    if (['priceFetch', 'calculate', 'indicator', 'alert'].includes(taskType)) {
+        setTimeout(() => {
+            configureTradingTask(jobIndex, position);
+        }, 100);
+    }
 }
 
 /**
@@ -1384,6 +1518,309 @@ function insertTaskAtPosition(jobIndex, taskType, position) {
  */
 function closeTaskTypeSelector() {
     const modal = document.querySelector('.oracle-task-selector-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+/**
+ * Configure trading task
+ */
+function configureTradingTask(jobIndex, taskIndex) {
+    const job = oracleState.builderState.jobs[jobIndex];
+    if (!job || !job.tasks || !job.tasks[taskIndex]) return;
+    
+    const task = job.tasks[taskIndex];
+    const container = document.getElementById('oracle-content');
+    if (!container) return;
+    
+    let modalContent = '';
+    
+    if (task.type === 'priceFetch') {
+        modalContent = `
+            <div class="oracle-task-config-modal">
+                <div class="oracle-task-config-overlay" onclick="closeTradingTaskConfig()"></div>
+                <div class="oracle-task-config-content">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0; font-size: 1.125rem; font-weight: 500;">Configure Price Fetch</h3>
+                        <button class="btn-text" onclick="closeTradingTaskConfig()" style="font-size: 1.25rem; padding: 0.25rem;">×</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Price Source</label>
+                            <select id="priceSource" class="oracle-form-input" style="width: 100%;">
+                                ${Object.keys(PRICE_SOURCES).map(key => `
+                                    <option value="${key}" ${task.source === key ? 'selected' : ''}>${PRICE_SOURCES[key].name} (${PRICE_SOURCES[key].type})</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Trading Pair</label>
+                            <input type="text" id="pricePair" class="oracle-form-input" value="${task.pair || 'ETH/USDC'}" placeholder="ETH/USDC" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Chain</label>
+                            <select id="priceChain" class="oracle-form-input" style="width: 100%;">
+                                <option value="ethereum" ${task.chain === 'ethereum' ? 'selected' : ''}>Ethereum</option>
+                                <option value="arbitrum" ${task.chain === 'arbitrum' ? 'selected' : ''}>Arbitrum</option>
+                                <option value="polygon" ${task.chain === 'polygon' ? 'selected' : ''}>Polygon</option>
+                                <option value="base" ${task.chain === 'base' ? 'selected' : ''}>Base</option>
+                                <option value="optimism" ${task.chain === 'optimism' ? 'selected' : ''}>Optimism</option>
+                                <option value="solana" ${task.chain === 'solana' ? 'selected' : ''}>Solana</option>
+                                <option value="bnb" ${task.chain === 'bnb' ? 'selected' : ''}>BNB Chain</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Pool Address (Optional)</label>
+                            <input type="text" id="pricePool" class="oracle-form-input" value="${task.pool || ''}" placeholder="0x..." style="width: 100%;">
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn-primary" onclick="savePriceFetchConfig(${jobIndex}, ${taskIndex})" style="flex: 1;">Save</button>
+                            <button class="btn-secondary" onclick="closeTradingTaskConfig()" style="flex: 1;">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (task.type === 'calculate') {
+        modalContent = `
+            <div class="oracle-task-config-modal">
+                <div class="oracle-task-config-overlay" onclick="closeTradingTaskConfig()"></div>
+                <div class="oracle-task-config-content">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0; font-size: 1.125rem; font-weight: 500;">Configure Calculation</h3>
+                        <button class="btn-text" onclick="closeTradingTaskConfig()" style="font-size: 1.25rem; padding: 0.25rem;">×</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Operation</label>
+                            <select id="calcOperation" class="oracle-form-input" style="width: 100%;" onchange="updateCalcConfig()">
+                                ${Object.keys(CALCULATE_OPERATIONS).map(key => `
+                                    <option value="${key}" ${task.operation === key ? 'selected' : ''}>${CALCULATE_OPERATIONS[key].name}</option>
+                                `).join('')}
+                            </select>
+                            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;" id="calcDescription"></p>
+                        </div>
+                        <div id="calcParameters"></div>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn-primary" onclick="saveCalculateConfig(${jobIndex}, ${taskIndex})" style="flex: 1;">Save</button>
+                            <button class="btn-secondary" onclick="closeTradingTaskConfig()" style="flex: 1;">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (task.type === 'indicator') {
+        modalContent = `
+            <div class="oracle-task-config-modal">
+                <div class="oracle-task-config-overlay" onclick="closeTradingTaskConfig()"></div>
+                <div class="oracle-task-config-content">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0; font-size: 1.125rem; font-weight: 500;">Configure Technical Indicator</h3>
+                        <button class="btn-text" onclick="closeTradingTaskConfig()" style="font-size: 1.25rem; padding: 0.25rem;">×</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Indicator Type</label>
+                            <select id="indicatorType" class="oracle-form-input" style="width: 100%;">
+                                ${Object.keys(TECHNICAL_INDICATORS).map(key => `
+                                    <option value="${key}" ${task.indicator === key ? 'selected' : ''}>${TECHNICAL_INDICATORS[key].name}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Period</label>
+                            <input type="number" id="indicatorPeriod" class="oracle-form-input" value="${task.period || 20}" min="1" max="200" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Data Source (Task Name)</label>
+                            <input type="text" id="indicatorSource" class="oracle-form-input" value="${task.source || ''}" placeholder="Price History" style="width: 100%;">
+                            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Name of the task that provides price history</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn-primary" onclick="saveIndicatorConfig(${jobIndex}, ${taskIndex})" style="flex: 1;">Save</button>
+                            <button class="btn-secondary" onclick="closeTradingTaskConfig()" style="flex: 1;">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (task.type === 'alert') {
+        modalContent = `
+            <div class="oracle-task-config-modal">
+                <div class="oracle-task-config-overlay" onclick="closeTradingTaskConfig()"></div>
+                <div class="oracle-task-config-content">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0; font-size: 1.125rem; font-weight: 500;">Configure Alert</h3>
+                        <button class="btn-text" onclick="closeTradingTaskConfig()" style="font-size: 1.25rem; padding: 0.25rem;">×</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Condition</label>
+                            <select id="alertCondition" class="oracle-form-input" style="width: 100%;">
+                                <option value="price_difference > threshold" ${task.condition === 'price_difference > threshold' ? 'selected' : ''}>Price Difference > Threshold</option>
+                                <option value="arbitrage_profit > threshold" ${task.condition === 'arbitrage_profit > threshold' ? 'selected' : ''}>Arbitrage Profit > Threshold</option>
+                                <option value="whale_score > threshold" ${task.condition === 'whale_score > threshold' ? 'selected' : ''}>Whale Score > Threshold</option>
+                                <option value="rsi < threshold" ${task.condition === 'rsi < threshold' ? 'selected' : ''}>RSI < Threshold (Oversold)</option>
+                                <option value="rsi > threshold" ${task.condition === 'rsi > threshold' ? 'selected' : ''}>RSI > Threshold (Overbought)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Threshold</label>
+                            <input type="number" id="alertThreshold" class="oracle-form-input" value="${task.threshold || 0}" step="0.001" style="width: 100%;">
+                            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">For percentages, use decimal (0.01 = 1%)</p>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Alert Channels</label>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" value="webhook" ${(task.channels || []).includes('webhook') ? 'checked' : ''}>
+                                    <span>Webhook</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" value="telegram" ${(task.channels || []).includes('telegram') ? 'checked' : ''}>
+                                    <span>Telegram</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" value="email" ${(task.channels || []).includes('email') ? 'checked' : ''}>
+                                    <span>Email</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn-primary" onclick="saveAlertConfig(${jobIndex}, ${taskIndex})" style="flex: 1;">Save</button>
+                            <button class="btn-secondary" onclick="closeTradingTaskConfig()" style="flex: 1;">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (modalContent) {
+        const modal = document.createElement('div');
+        modal.innerHTML = modalContent;
+        modal.id = 'tradingTaskConfigModal';
+        document.body.appendChild(modal);
+        
+        // Update calc description on load
+        if (task.type === 'calculate') {
+            updateCalcConfig();
+        }
+    }
+}
+
+/**
+ * Update calculation config UI
+ */
+function updateCalcConfig() {
+    const operation = document.getElementById('calcOperation')?.value;
+    if (!operation || !CALCULATE_OPERATIONS[operation]) return;
+    
+    const op = CALCULATE_OPERATIONS[operation];
+    const descEl = document.getElementById('calcDescription');
+    const paramsEl = document.getElementById('calcParameters');
+    
+    if (descEl) {
+        descEl.textContent = op.description;
+    }
+    
+    if (paramsEl && op.parameters) {
+        paramsEl.innerHTML = op.parameters.map(param => {
+            const paramValue = document.getElementById(`calcParam_${param}`)?.value || '';
+            return `
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">${param}</label>
+                    <input type="text" id="calcParam_${param}" class="oracle-form-input" value="${paramValue}" placeholder="Enter ${param}" style="width: 100%;">
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+/**
+ * Save price fetch config
+ */
+function savePriceFetchConfig(jobIndex, taskIndex) {
+    const job = oracleState.builderState.jobs[jobIndex];
+    if (!job || !job.tasks || !job.tasks[taskIndex]) return;
+    
+    const task = job.tasks[taskIndex];
+    task.source = document.getElementById('priceSource')?.value || 'uniswap';
+    task.pair = document.getElementById('pricePair')?.value || 'ETH/USDC';
+    task.chain = document.getElementById('priceChain')?.value || 'ethereum';
+    task.pool = document.getElementById('pricePool')?.value || '';
+    
+    closeTradingTaskConfig();
+    refreshOracleBuilder();
+}
+
+/**
+ * Save calculate config
+ */
+function saveCalculateConfig(jobIndex, taskIndex) {
+    const job = oracleState.builderState.jobs[jobIndex];
+    if (!job || !job.tasks || !job.tasks[taskIndex]) return;
+    
+    const task = job.tasks[taskIndex];
+    task.operation = document.getElementById('calcOperation')?.value || 'arbitrage';
+    
+    const op = CALCULATE_OPERATIONS[task.operation];
+    if (op && op.parameters) {
+        task.parameters = {};
+        op.parameters.forEach(param => {
+            const value = document.getElementById(`calcParam_${param}`)?.value;
+            if (value) {
+                task.parameters[param] = parseFloat(value) || value;
+            }
+        });
+    }
+    
+    closeTradingTaskConfig();
+    refreshOracleBuilder();
+}
+
+/**
+ * Save indicator config
+ */
+function saveIndicatorConfig(jobIndex, taskIndex) {
+    const job = oracleState.builderState.jobs[jobIndex];
+    if (!job || !job.tasks || !job.tasks[taskIndex]) return;
+    
+    const task = job.tasks[taskIndex];
+    task.indicator = document.getElementById('indicatorType')?.value || 'SMA';
+    task.period = parseInt(document.getElementById('indicatorPeriod')?.value || '20');
+    task.source = document.getElementById('indicatorSource')?.value || '';
+    
+    closeTradingTaskConfig();
+    refreshOracleBuilder();
+}
+
+/**
+ * Save alert config
+ */
+function saveAlertConfig(jobIndex, taskIndex) {
+    const job = oracleState.builderState.jobs[jobIndex];
+    if (!job || !job.tasks || !job.tasks[taskIndex]) return;
+    
+    const task = job.tasks[taskIndex];
+    task.condition = document.getElementById('alertCondition')?.value || '';
+    task.threshold = parseFloat(document.getElementById('alertThreshold')?.value || '0');
+    
+    const checkboxes = document.querySelectorAll('#tradingTaskConfigModal input[type="checkbox"]');
+    task.channels = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+    
+    closeTradingTaskConfig();
+    refreshOracleBuilder();
+}
+
+/**
+ * Close trading task config
+ */
+function closeTradingTaskConfig() {
+    const modal = document.getElementById('tradingTaskConfigModal');
     if (modal) {
         modal.remove();
     }
@@ -1612,7 +2049,9 @@ function renderSimulationResults() {
                                 ${job.tasks.map((task, taskIndex) => `
                                     <div class="oracle-simulation-task">
                                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                            <span style="color: var(--text-secondary);">${TASK_TYPES[task.taskType]?.icon || '•'}</span>
+                                            <span style="color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem;">
+                                                ${typeof TASK_TYPES[task.taskType]?.icon === 'string' && TASK_TYPES[task.taskType].icon.includes('<svg') ? TASK_TYPES[task.taskType].icon : (TASK_TYPES[task.taskType]?.icon || '•')}
+                                            </span>
                                             <span style="font-size: 0.875rem;">${TASK_TYPES[task.taskType]?.name || task.taskType}</span>
                                             <span style="color: var(--text-tertiary); font-size: 0.75rem;">${task.latency.toFixed(0)}ms</span>
                                         </div>
@@ -2209,3 +2648,10 @@ window.insertTaskAfter = insertTaskAfter;
 window.insertTaskAtPosition = insertTaskAtPosition;
 window.editJobVisual = editJobVisual;
 window.addJobFromProvider = addJobFromProvider;
+window.configureTradingTask = configureTradingTask;
+window.closeTradingTaskConfig = closeTradingTaskConfig;
+window.updateCalcConfig = updateCalcConfig;
+window.savePriceFetchConfig = savePriceFetchConfig;
+window.saveCalculateConfig = saveCalculateConfig;
+window.saveIndicatorConfig = saveIndicatorConfig;
+window.saveAlertConfig = saveAlertConfig;
