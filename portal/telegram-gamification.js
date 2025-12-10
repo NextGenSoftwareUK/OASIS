@@ -1275,7 +1275,7 @@ function getAchievementTemplates() {
             name: 'Moderator',
             description: 'Become group moderator',
             tier: 'platinum',
-            icon: getIcon('achievement'),
+            icon: getIcon('shield'),
             target: 1,
             karmaReward: 500,
             tokenReward: 50,
