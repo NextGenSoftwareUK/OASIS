@@ -4,62 +4,153 @@
 const TELEGRAM_GROUP_URL = 'https://t.me/your_oasis_group'; // Update with actual group URL
 
 // Use the global oasisAPI from api/oasisApi.js if available, otherwise create a fallback
-const telegramAPI = typeof oasisAPI !== 'undefined' ? oasisAPI : {
-    baseURL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:5004'
-        : 'https://api.oasisweb4.one',
+// We'll initialize this after checking if oasisAPI exists
+let telegramAPI;
+
+// Initialize telegramAPI - use oasisAPI if available, otherwise create fallback with all methods
+function initializeTelegramAPI() {
+    if (typeof oasisAPI !== 'undefined' && oasisAPI.getTelegramAvatarByOasis) {
+        // Use the real oasisAPI which has all Telegram methods
+        telegramAPI = oasisAPI;
+        return;
+    }
     
-    getAuthHeaders() {
-        try {
-            const authData = localStorage.getItem('oasis_auth');
-            if (!authData) {
+    // Create fallback with all necessary methods
+    const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5004'
+        : 'https://api.oasisweb4.one';
+    
+    telegramAPI = {
+        baseURL: baseURL,
+        
+        getAuthHeaders() {
+            try {
+                const authData = localStorage.getItem('oasis_auth');
+                if (!authData) {
+                    return { 'Content-Type': 'application/json' };
+                }
+                const auth = JSON.parse(authData);
+                const headers = { 'Content-Type': 'application/json' };
+                if (auth.token) {
+                    headers['Authorization'] = `Bearer ${auth.token}`;
+                }
+                return headers;
+            } catch (error) {
                 return { 'Content-Type': 'application/json' };
             }
-            const auth = JSON.parse(authData);
-            const headers = { 'Content-Type': 'application/json' };
-            if (auth.token) {
-                headers['Authorization'] = `Bearer ${auth.token}`;
-            }
-            return headers;
-        } catch (error) {
-            return { 'Content-Type': 'application/json' };
-        }
-    },
-    
-    async request(endpoint, options = {}) {
-        const url = `${this.baseURL}${endpoint}`;
-        const config = {
-            ...options,
-            headers: {
-                ...this.getAuthHeaders(),
-                ...(options.headers || {})
-            }
-        };
+        },
         
-        try {
-            const response = await fetch(url, config);
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                return await response.json();
-            } else {
-                return {
-                    isError: !response.ok,
-                    message: response.statusText,
-                    status: response.status
-                };
+        async request(endpoint, options = {}) {
+            const url = `${this.baseURL}${endpoint}`;
+            const config = {
+                ...options,
+                headers: {
+                    ...this.getAuthHeaders(),
+                    ...(options.headers || {})
+                }
+            };
+            
+            try {
+                const response = await fetch(url, config);
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return await response.json();
+                } else {
+                    return {
+                        isError: !response.ok,
+                        message: response.statusText,
+                        status: response.status
+                    };
+                }
+            } catch (error) {
+                console.error('API request failed:', error);
+                return { isError: true, message: error.message };
             }
-        } catch (error) {
-            console.error('API request failed:', error);
-            return { isError: true, message: error.message };
+        },
+        
+        // Telegram API methods
+        async getTelegramAvatarByOasis(oasisAvatarId) {
+            return this.request(`/api/telegram/avatar/oasis/${oasisAvatarId}`);
+        },
+        
+        async getTelegramStats(telegramUserId) {
+            return this.request(`/api/telegram/stats/user/${telegramUserId}`);
+        },
+        
+        async getTelegramRewards(telegramUserId, limit = 10) {
+            return this.request(`/api/telegram/rewards/user/${telegramUserId}?limit=${limit}`);
+        },
+        
+        async getTelegramAchievements(telegramUserId) {
+            return this.request(`/api/telegram/achievements/user/${telegramUserId}`);
+        },
+        
+        async getTelegramActivities(telegramUserId, limit = 50, type = null) {
+            let endpoint = `/api/telegram/activities/user/${telegramUserId}?limit=${limit}`;
+            if (type) {
+                endpoint += `&type=${type}`;
+            }
+            return this.request(endpoint);
+        },
+        
+        async getTelegramGroups(telegramUserId) {
+            return this.request(`/api/telegram/groups/user/${telegramUserId}`);
+        },
+        
+        async getTelegramLeaderboard(groupId = null, period = 'alltime') {
+            if (groupId) {
+                return this.request(`/api/telegram/groups/${groupId}/leaderboard?period=${period}`);
+            } else {
+                return this.request(`/api/telegram/leaderboard?period=${period}`);
+            }
+        },
+        
+        async linkTelegram(data) {
+            return this.request('/api/telegram/link-avatar', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
         }
-    }
-};
+    };
+}
+
+// Initialize immediately
+initializeTelegramAPI();
+
+// Re-initialize if oasisAPI becomes available later
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', () => {
+        if (typeof oasisAPI !== 'undefined' && oasisAPI.getTelegramAvatarByOasis && telegramAPI !== oasisAPI) {
+            console.log('oasisAPI loaded, switching to use it');
+            telegramAPI = oasisAPI;
+        }
+    });
+}
 
 /**
  * Load Telegram gamification data
  */
 async function loadTelegramGamification() {
     console.log('Loading Telegram gamification...');
+    
+    // Ensure API is initialized
+    if (!telegramAPI) {
+        initializeTelegramAPI();
+    }
+    
+    // Always render empty states first so user sees something
+    const defaultStats = getDefaultStats();
+    renderTelegramConnectionStatus({ telegramLinked: false });
+    renderTelegramStats(defaultStats);
+    renderRecentRewards([]);
+    renderAchievementBadges([]);
+    renderActivityTimeline([]);
+    renderConversations([]);
+    renderLeaderboard([]);
+    renderRewardsBreakdown([]);
+    renderQuests([]);
+    renderNFTGallery([]);
+    
     const authData = localStorage.getItem('oasis_auth');
     if (!authData) {
         console.log('No auth data found, showing login prompt');
@@ -72,41 +163,57 @@ async function loadTelegramGamification() {
         const avatarId = auth.avatar?.id || auth.avatar?.avatarId;
         
         if (!avatarId) {
+            console.log('No avatar ID found');
             showLoginPrompt();
             return;
         }
 
+        console.log('Checking Telegram link for avatar:', avatarId);
+        
         // Check if Telegram is linked
         const telegramLink = await telegramAPI.getTelegramAvatarByOasis(avatarId);
+        console.log('Telegram link response:', telegramLink);
         
         if (telegramLink.isError || !telegramLink.result) {
-            // Show connection banner with link option
-            renderTelegramConnectionStatus({ telegramLinked: false });
-            // Render empty states for all sections so user can see the full interface
-            renderTelegramStats(getDefaultStats());
-            renderRecentRewards([]);
-            renderAchievementBadges([]);
-            renderActivityTimeline([]);
-            renderConversations([]);
-            renderLeaderboard([]);
-            renderRewardsBreakdown([]);
-            renderQuests([]);
-            renderNFTGallery([]);
+            console.log('Telegram not linked, showing connection banner');
+            // Connection banner already rendered above
             return;
         }
         
         const telegramUserId = telegramLink.result.telegramUserId;
         const telegramUser = telegramLink.result;
+        
+        console.log('Telegram linked! Loading data for user:', telegramUserId);
 
         // Load all Telegram data in parallel
         const [stats, rewards, achievements, activities, groups, leaderboard] = await Promise.all([
-            telegramAPI.getTelegramStats(telegramUserId),
-            telegramAPI.getTelegramRewards(telegramUserId, 10),
-            telegramAPI.getTelegramAchievements(telegramUserId),
-            telegramAPI.getTelegramActivities(telegramUserId, 50),
-            telegramAPI.getTelegramGroups(telegramUserId),
-            telegramAPI.getTelegramLeaderboard(null, 'alltime') // Global leaderboard
+            telegramAPI.getTelegramStats(telegramUserId).catch(e => {
+                console.error('Error loading stats:', e);
+                return { isError: true, result: null };
+            }),
+            telegramAPI.getTelegramRewards(telegramUserId, 10).catch(e => {
+                console.error('Error loading rewards:', e);
+                return { isError: true, result: [] };
+            }),
+            telegramAPI.getTelegramAchievements(telegramUserId).catch(e => {
+                console.error('Error loading achievements:', e);
+                return { isError: true, result: [] };
+            }),
+            telegramAPI.getTelegramActivities(telegramUserId, 50).catch(e => {
+                console.error('Error loading activities:', e);
+                return { isError: true, result: [] };
+            }),
+            telegramAPI.getTelegramGroups(telegramUserId).catch(e => {
+                console.error('Error loading groups:', e);
+                return { isError: true, result: [] };
+            }),
+            telegramAPI.getTelegramLeaderboard(null, 'alltime').catch(e => {
+                console.error('Error loading leaderboard:', e);
+                return { isError: true, result: [] };
+            })
         ]);
+        
+        console.log('Data loaded:', { stats, rewards, achievements, activities, groups, leaderboard });
 
         // Process and render all components
         const statsData = stats.isError ? getDefaultStats() : {
