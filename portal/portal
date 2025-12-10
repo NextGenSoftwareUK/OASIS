@@ -3792,7 +3792,7 @@
                     try {
                         const token = auth.token;
                         if (token) {
-                            const response = await fetch(`https://api.oasisplatform.world/api/telegram/link-status/${avatarId}`, {
+                            const response = await fetch(`https://api.oasisweb4.one/api/telegram/link-status/${avatarId}`, {
                                 headers: {
                                     'Authorization': `Bearer ${token}`,
                                     'Content-Type': 'application/json'
@@ -3863,13 +3863,13 @@
                     // Fallback to direct fetch
                     try {
                         const [rewardsRes, statsRes] = await Promise.all([
-                            fetch(`https://api.oasisplatform.world/api/telegram/gamification/rewards/${avatarId}?limit=5`, {
+                            fetch(`https://api.oasisweb4.one/api/telegram/gamification/rewards/${avatarId}?limit=5`, {
                                 headers: {
                                     'Authorization': `Bearer ${token}`,
                                     'Content-Type': 'application/json'
                                 }
                             }),
-                            fetch(`https://api.oasisplatform.world/api/telegram/gamification/stats/${avatarId}`, {
+                            fetch(`https://api.oasisweb4.one/api/telegram/gamification/stats/${avatarId}`, {
                                 headers: {
                                     'Authorization': `Bearer ${token}`,
                                     'Content-Type': 'application/json'
