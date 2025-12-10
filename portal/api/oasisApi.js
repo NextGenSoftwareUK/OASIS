@@ -214,6 +214,242 @@ const oasisAPI = {
     },
 
     // ============================================
+    // Avatar Authentication API Methods
+    // ============================================
+
+    /**
+     * Login with username/email and password
+     * @param {string} username - Username or email
+     * @param {string} password - Password
+     * @returns {Promise<object>} Authentication response with avatar and token
+     */
+    async login(username, password) {
+        try {
+            const response = await fetch(`${this.baseURL}/api/avatar/authenticate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            });
+
+            if (!response.ok) {
+                let errorMessage = `HTTP ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch (e) {
+                    const text = await response.text().catch(() => '');
+                    errorMessage = text || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+            
+            // Handle nested result structure
+            const avatar = data.result?.avatar || data.avatar || data.result;
+            const token = data.result?.jwtToken || data.jwtToken || data.token;
+            const refreshToken = data.result?.refreshToken || data.refreshToken;
+
+            if (!token) {
+                throw new Error(data.message || 'No token received from authentication service');
+            }
+
+            // Normalize avatar structure
+            const normalizedAvatar = {
+                ...avatar,
+                id: avatar?.avatarId || avatar?.id,
+                avatarId: avatar?.avatarId || avatar?.id
+            };
+
+            // Store auth data
+            const authData = {
+                avatar: normalizedAvatar,
+                token: token,
+                refreshToken: refreshToken || null,
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem('oasis_auth', JSON.stringify(authData));
+
+            return {
+                avatar: normalizedAvatar,
+                jwtToken: token,
+                refreshToken: refreshToken,
+                expiresIn: undefined
+            };
+        } catch (error) {
+            console.error('Avatar login failed:', error);
+            throw error instanceof Error ? error : new Error('Unable to authenticate avatar');
+        }
+    },
+
+    /**
+     * Register a new avatar
+     * @param {object} registrationData - Registration data
+     * @param {string} registrationData.username - Username
+     * @param {string} registrationData.email - Email
+     * @param {string} registrationData.password - Password
+     * @param {string} registrationData.confirmPassword - Password confirmation
+     * @param {string} [registrationData.firstName] - First name
+     * @param {string} [registrationData.lastName] - Last name
+     * @param {string} [registrationData.title] - Title (Mr, Mrs, etc.)
+     * @param {string} [registrationData.avatarType] - Avatar type (default: 'User')
+     * @param {boolean} [registrationData.acceptTerms] - Terms acceptance (required)
+     * @param {boolean} [registrationData.privacyMode] - Privacy mode flag
+     * @returns {Promise<object>} Authentication response with avatar and token
+     */
+    async register(registrationData) {
+        try {
+            // Set defaults
+            const payload = {
+                username: registrationData.username,
+                email: registrationData.email,
+                password: registrationData.password,
+                confirmPassword: registrationData.confirmPassword || registrationData.password,
+                firstName: registrationData.firstName || 'User',
+                lastName: registrationData.lastName || 'User',
+                title: registrationData.title || 'Mr',
+                avatarType: registrationData.avatarType || 'User',
+                acceptTerms: registrationData.acceptTerms !== undefined ? registrationData.acceptTerms : true,
+                privacyMode: registrationData.privacyMode || false
+            };
+
+            const response = await fetch(`${this.baseURL}/api/avatar/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                let errorMessage = `HTTP ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch (e) {
+                    const text = await response.text().catch(() => '');
+                    errorMessage = text || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+
+            // Handle nested result structure
+            const avatar = data.result?.avatar || data.result?.result?.avatar || data.avatar || data.result;
+            const token = data.result?.jwtToken || data.result?.result?.jwtToken || data.jwtToken || data.token;
+            const refreshToken = data.result?.refreshToken || data.refreshToken;
+            const verificationToken = data.result?.verificationToken || data.result?.result?.verificationToken || data.verificationToken;
+
+            if (!token) {
+                throw new Error(data.message || 'No token received from registration service');
+            }
+
+            // Normalize avatar structure
+            const normalizedAvatar = {
+                ...avatar,
+                id: avatar?.avatarId || avatar?.id,
+                avatarId: avatar?.avatarId || avatar?.id,
+                verificationToken: verificationToken
+            };
+
+            // Store auth data
+            const authData = {
+                avatar: normalizedAvatar,
+                token: token,
+                refreshToken: refreshToken || null,
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem('oasis_auth', JSON.stringify(authData));
+
+            // If privacy mode and verification token exists, try to auto-verify
+            if (registrationData.privacyMode && verificationToken) {
+                try {
+                    await this.verifyEmail(verificationToken);
+                    console.log('Privacy mode: Avatar auto-verified');
+                } catch (verifyError) {
+                    console.warn('Privacy mode: Auto-verification failed (optional)', verifyError);
+                    // Don't throw - registration succeeded
+                }
+            }
+
+            return {
+                avatar: normalizedAvatar,
+                jwtToken: token,
+                refreshToken: refreshToken,
+                expiresIn: undefined
+            };
+        } catch (error) {
+            console.error('Avatar registration failed:', error);
+            throw error instanceof Error ? error : new Error('Unable to register avatar');
+        }
+    },
+
+    /**
+     * Verify email using verification token
+     * @param {string} token - Verification token
+     * @returns {Promise<object>} Verification result
+     */
+    async verifyEmail(token) {
+        try {
+            const response = await this.request(`/api/avatar/verify-email?token=${encodeURIComponent(token)}`, {
+                method: 'GET'
+            });
+
+            if (response.isError) {
+                throw new Error(response.message || 'Email verification failed');
+            }
+
+            return {
+                isError: false,
+                message: response.message || 'Email verified successfully',
+                result: response.result || response
+            };
+        } catch (error) {
+            return {
+                isError: true,
+                message: error instanceof Error ? error.message : 'Email verification failed'
+            };
+        }
+    },
+
+    /**
+     * Get avatar by ID
+     * @param {string} avatarId - Avatar ID
+     * @returns {Promise<object>} Avatar profile
+     */
+    async getAvatar(avatarId) {
+        return this.request(`/api/avatar/${encodeURIComponent(avatarId)}`);
+    },
+
+    /**
+     * Get avatar by username
+     * @param {string} username - Username
+     * @returns {Promise<object>} Avatar profile
+     */
+    async getAvatarByUsername(username) {
+        return this.request(`/api/avatar/username/${encodeURIComponent(username)}`);
+    },
+
+    /**
+     * Logout - clear authentication data
+     */
+    logout() {
+        localStorage.removeItem('oasis_auth');
+        // Reload page to reset all state
+        window.location.reload();
+    },
+
+    // ============================================
     // Helper Methods
     // ============================================
 
@@ -250,6 +486,21 @@ const oasisAPI = {
         } catch (error) {
             console.error('Error getting avatar:', error);
             return null;
+        }
+    },
+
+    /**
+     * Check if user is authenticated
+     */
+    isAuthenticated() {
+        const authData = localStorage.getItem('oasis_auth');
+        if (!authData) return false;
+        
+        try {
+            const auth = JSON.parse(authData);
+            return !!(auth.token && auth.avatar);
+        } catch (error) {
+            return false;
         }
     },
 
