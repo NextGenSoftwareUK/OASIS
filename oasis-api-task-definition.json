@@ -9,7 +9,7 @@
   "containerDefinitions": [
     {
       "name": "oasis-api-container",
-      "image": "881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api@sha256:179026ff5404c86f135d83120f842418b7749e0bfb7b01b7dd8d7fc8892f21fe",
+      "image": "881490134703.dkr.ecr.us-east-1.amazonaws.com/oasis-api@sha256:3be9fbbd667475a86adf1215e28d67885bf98ff480d049e4039a937e5951b5f0",
       "cpu": 512,
       "memory": 1024,
       "portMappings": [
