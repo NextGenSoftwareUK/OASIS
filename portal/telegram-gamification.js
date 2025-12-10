@@ -3,6 +3,143 @@
 
 const TELEGRAM_GROUP_URL = 'https://t.me/your_oasis_group'; // Update with actual group URL
 
+/**
+ * Premium SVG Icon System
+ * Returns SVG icons with animations instead of emojis
+ */
+const TelegramIcons = {
+    karma: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" 
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+              fill="rgba(251, 191, 36, 0.2)"/>
+        <path d="M12 6V12L15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>`,
+    
+    tokens: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="rgba(34, 197, 94, 0.1)"/>
+        <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="2" fill="currentColor"/>
+    </svg>`,
+    
+    nft: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="rgba(147, 51, 234, 0.1)"/>
+        <path d="M8 12H16M12 8V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="7" cy="7" r="1" fill="currentColor"/>
+        <circle cx="17" cy="7" r="1" fill="currentColor"/>
+        <circle cx="7" cy="17" r="1" fill="currentColor"/>
+        <circle cx="17" cy="17" r="1" fill="currentColor"/>
+    </svg>`,
+    
+    streak: `<svg class="telegram-icon telegram-icon-pulse" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+              fill="rgba(251, 146, 60, 0.2)"/>
+        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+              fill="rgba(251, 146, 60, 0.15)"/>
+        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+              fill="rgba(251, 146, 60, 0.1)"/>
+    </svg>`,
+    
+    achievement: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 9L12 2L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 2V22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M18 9L22 20H2L6 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+              fill="rgba(96, 165, 250, 0.1)"/>
+        <circle cx="12" cy="20" r="2" fill="currentColor"/>
+    </svg>`,
+    
+    groups: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="rgba(34, 211, 238, 0.1)"/>
+        <circle cx="15" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="rgba(34, 211, 238, 0.1)"/>
+        <path d="M1 21C1 17 4 14 9 14C14 14 17 17 17 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M15 14C17.5 14 23 15.5 23 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>`,
+    
+    telegram: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" 
+              stroke="currentColor" stroke-width="2" fill="rgba(99, 102, 241, 0.1)"/>
+        <path d="M8 12L16 8L13 14L11 16L8 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+              stroke-linejoin="round" fill="currentColor" fill-opacity="0.3"/>
+    </svg>`,
+    
+    check: `<svg class="telegram-icon telegram-icon-check" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="rgba(34, 197, 94, 0.1)"/>
+        <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+    
+    reward: `<svg class="telegram-icon telegram-icon-bounce" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" 
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+              fill="rgba(251, 191, 36, 0.2)"/>
+    </svg>`,
+    
+    message: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" 
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+              fill="rgba(99, 102, 241, 0.1)"/>
+    </svg>`,
+    
+    link: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 13C10.4295 13.5741 10.9774 14.0491 11.6066 14.3929C12.2357 14.7367 12.9315 14.9411 13.6467 14.9923C14.3618 15.0435 15.0796 14.9403 15.7513 14.6897C16.4231 14.4392 17.0331 14.047 17.54 13.54L20.54 10.54C21.4508 9.59695 21.9548 8.33394 21.9434 7.02296C21.932 5.71198 21.4061 4.45792 20.4791 3.53087C19.5521 2.60382 18.298 2.07799 16.987 2.0666C15.676 2.0552 14.413 2.55918 13.47 3.47L11.75 5.18" 
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 11C13.5705 10.4259 13.0226 9.95088 12.3934 9.60711C11.7643 9.26334 11.0685 9.05886 10.3533 9.00766C9.63816 8.95645 8.92037 9.05972 8.24869 9.31026C7.57701 9.5608 6.96693 9.95304 6.46 10.46L3.46 13.46C2.54918 14.403 2.04518 15.6661 2.0566 16.977C2.068 18.288 2.59382 19.5421 3.52087 20.4691C4.44792 21.3962 5.70198 21.922 7.01296 21.9334C8.32394 21.9448 9.58695 21.4408 10.53 20.53L12.24 18.82" 
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+    
+    post: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" 
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="rgba(99, 102, 241, 0.1)"/>
+        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>`,
+    
+    lightbulb: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M12 20V22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M4.93 4.93L6.34 6.34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M17.66 17.66L19.07 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M2 12H4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M20 12H22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6.34 17.66L4.93 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M19.07 4.93L17.66 6.34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12Z" 
+              stroke="currentColor" stroke-width="2" fill="rgba(251, 191, 36, 0.1)"/>
+    </svg>`,
+    
+    code: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="16 18 22 12 16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="8 6 2 12 8 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+    
+    book: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20" 
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6.5 2H20V20H6.5C5.83696 20 5.20107 19.7366 4.73223 19.2678C4.26339 18.7989 4 18.163 4 17.5V4.5C4 3.83696 4.26339 3.20107 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z" 
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="rgba(99, 102, 241, 0.1)"/>
+    </svg>`,
+    
+    calendar: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="rgba(99, 102, 241, 0.1)"/>
+        <path d="M16 2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M8 2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M3 10H21" stroke="currentColor" stroke-width="2"/>
+    </svg>`,
+    
+    target: `<svg class="telegram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="rgba(99, 102, 241, 0.1)"/>
+        <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="2" fill="rgba(99, 102, 241, 0.1)"/>
+        <circle cx="12" cy="12" r="2" fill="currentColor"/>
+    </svg>`
+};
+
+/**
+ * Get icon by name
+ */
+function getIcon(name) {
+    return TelegramIcons[name] || TelegramIcons.target;
+}
+
 // Use the global oasisAPI from api/oasisApi.js if available, otherwise create a fallback
 // We'll initialize this after checking if oasisAPI exists
 let telegramAPI;
@@ -373,7 +510,7 @@ function renderTelegramConnectionStatus(stats) {
         container.innerHTML = `
             <div class="telegram-connection-banner not-linked">
                 <div class="telegram-connection-content">
-                    <div class="telegram-connection-icon">📱</div>
+                    <div class="telegram-connection-icon">${getIcon('telegram')}</div>
                     <div class="telegram-connection-info">
                         <h3>Connect Your Telegram Account</h3>
                         <p>Link your Telegram account to start earning rewards for promoting OASIS!</p>
@@ -388,7 +525,7 @@ function renderTelegramConnectionStatus(stats) {
         container.innerHTML = `
             <div class="telegram-connection-banner linked">
                 <div class="telegram-connection-content">
-                    <div class="telegram-connection-icon">✅</div>
+                    <div class="telegram-connection-icon">${getIcon('check')}</div>
                     <div class="telegram-connection-info">
                         <h3>Telegram Connected</h3>
                         <p>Linked as <strong>@${stats.telegramUsername}</strong></p>
@@ -429,7 +566,7 @@ function renderTelegramStats(stats) {
             label: 'Karma Earned',
             value: formatNumber(totalKarma),
             sublabel: 'From Telegram activities',
-            icon: '⭐',
+            icon: getIcon('karma'),
             color: 'text-yellow-400'
         },
         {
@@ -437,7 +574,7 @@ function renderTelegramStats(stats) {
             label: 'Tokens Earned',
             value: formatNumber(totalTokens, 1),
             sublabel: 'Token rewards',
-            icon: '🪙',
+            icon: getIcon('tokens'),
             color: 'text-green-400'
         },
         {
@@ -445,15 +582,15 @@ function renderTelegramStats(stats) {
             label: 'NFTs Earned',
             value: totalNFTs,
             sublabel: 'Achievement NFTs',
-            icon: '🎨',
+            icon: getIcon('nft'),
             color: 'text-purple-400'
         },
         {
             id: 'streak',
             label: 'Daily Streak',
             value: `${stats.dailyStreak || 0} days`,
-            sublabel: stats.dailyStreak > 0 ? '🔥 Keep it up!' : 'Start your streak',
-            icon: '🔥',
+            sublabel: stats.dailyStreak > 0 ? 'Keep it up!' : 'Start your streak',
+            icon: getIcon('streak'),
             color: 'text-orange-400'
         },
         {
@@ -461,7 +598,7 @@ function renderTelegramStats(stats) {
             label: 'Achievements',
             value: `${stats.achievementsCompleted || 0}/${(stats.achievementsCompleted || 0) + achievementsActive}`,
             sublabel: `${achievementsActive} in progress`,
-            icon: '🏆',
+            icon: getIcon('achievement'),
             color: 'text-blue-400'
         },
         {
@@ -469,7 +606,7 @@ function renderTelegramStats(stats) {
             label: 'Groups Joined',
             value: stats.groupsJoined || 0,
             sublabel: 'Telegram groups',
-            icon: '👥',
+            icon: getIcon('groups'),
             color: 'text-cyan-400'
         }
     ];
@@ -479,7 +616,7 @@ function renderTelegramStats(stats) {
             ${statsData.map(stat => `
                 <div class="telegram-stat-card">
                     <div class="telegram-stat-header">
-                        <span class="telegram-stat-icon">${stat.icon}</span>
+                        <div class="telegram-stat-icon">${stat.icon}</div>
                         <p class="telegram-stat-label">${stat.label}</p>
                     </div>
                     <div class="telegram-stat-value ${stat.color}">${stat.value}</div>
@@ -844,9 +981,18 @@ function renderConversations(groups) {
                             </p>
                             ${group.yourStats ? `
                                 <div class="conversation-stats">
-                                    <span class="conversation-stat">⭐ ${group.yourStats.karma || 0} karma</span>
-                                    <span class="conversation-stat">✓ ${group.yourStats.checkins || 0} check-ins</span>
-                                    <span class="conversation-stat">🏆 ${group.yourStats.achievements || 0} achievements</span>
+                                    <span class="conversation-stat">
+                                        <span class="conversation-stat-icon">${getIcon('karma')}</span>
+                                        ${group.yourStats.karma || 0} karma
+                                    </span>
+                                    <span class="conversation-stat">
+                                        <span class="conversation-stat-icon">${getIcon('calendar')}</span>
+                                        ${group.yourStats.checkins || 0} check-ins
+                                    </span>
+                                    <span class="conversation-stat">
+                                        <span class="conversation-stat-icon">${getIcon('achievement')}</span>
+                                        ${group.yourStats.achievements || 0} achievements
+                                    </span>
                                 </div>
                             ` : ''}
                         </div>
@@ -925,7 +1071,7 @@ function renderQuests(achievements) {
                         ${completedQuests.slice(0, 5).map(quest => `
                             <div class="quest-item completed">
                                 <div class="quest-header">
-                                    <div class="quest-icon">✅</div>
+                                    <div class="quest-icon">${getIcon('check')}</div>
                                     <div class="quest-info">
                                         <h4 class="quest-name">${quest.name || quest.description || 'Quest'}</h4>
                                         <p class="quest-description">Completed ${quest.completedAt ? formatTimeAgo(quest.completedAt) : 'recently'}</p>
@@ -942,18 +1088,18 @@ function renderQuests(achievements) {
 
 function getQuestIcon(questType) {
     const icons = {
-        'checkin': '📅',
-        'streak': '🔥',
-        'mention': '💬',
-        'share': '🔗',
-        'post': '✍️',
-        'help': '💡',
-        'code': '💻',
-        'tutorial': '📚',
-        'viral': '🔥',
-        'invite': '👥'
+        'checkin': getIcon('calendar'),
+        'streak': getIcon('streak'),
+        'mention': getIcon('message'),
+        'share': getIcon('link'),
+        'post': getIcon('post'),
+        'help': getIcon('lightbulb'),
+        'code': getIcon('code'),
+        'tutorial': getIcon('book'),
+        'viral': getIcon('streak'),
+        'invite': getIcon('groups')
     };
-    return icons[questType] || '🎯';
+    return icons[questType] || getIcon('target');
 }
 
 function viewGroupDetails(groupId) {
@@ -1034,7 +1180,7 @@ function getAchievementTemplates() {
             name: 'OASIS Mentioner',
             description: 'Mention OASIS 10 times',
             tier: 'bronze',
-            icon: '💬',
+            icon: getIcon('message'),
             target: 10,
             karmaReward: 50,
             tokenReward: 0,
@@ -1133,19 +1279,19 @@ function getAchievementTemplates() {
 
 function getRewardIcon(type) {
     const icons = {
-        'mention': '💬',
-        'link_share': '🔗',
-        'quality_post': '✍️',
-        'helpful_answer': '💡',
-        'code_example': '💻',
-        'tutorial': '📚',
-        'viral': '🔥',
-        'invite': '👥',
-        'daily_active': '📅',
-        'weekly_active': '📆',
-        'nft_reward': '🎨'
+        'mention': getIcon('message'),
+        'link_share': getIcon('link'),
+        'quality_post': getIcon('post'),
+        'helpful_answer': getIcon('lightbulb'),
+        'code_example': getIcon('code'),
+        'tutorial': getIcon('book'),
+        'viral': getIcon('streak'),
+        'invite': getIcon('groups'),
+        'daily_active': getIcon('calendar'),
+        'weekly_active': getIcon('calendar'),
+        'nft_reward': getIcon('nft')
     };
-    return icons[type] || '🎉';
+    return icons[type] || getIcon('reward');
 }
 
 function getRewardTitle(type) {
