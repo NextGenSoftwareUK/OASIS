@@ -1,7 +1,9 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Requests;
 using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
@@ -11,12 +13,56 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     private const uint SellerFeeBasisPoints = 500;
     private const byte CreatorShare = 100;
     private const string Solana = "Solana";
+    private const decimal Lamports = 1_000_000_000m;
 
     private readonly List<Creator> _creators =
     [
         new(oasisAccount.PublicKey, share: CreatorShare, verified: true)
     ];
 
+
+    //TODO: Finish porting!
+    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(IGetWeb3WalletBalanceRequest request)
+    {
+        OASISResult<decimal> result = new OASISResult<decimal>();
+        string errorMessage = "Error occured in SolanaService calling GetAccountBalance. Reason: ";
+
+        try
+        {
+            MetadataClient metadataClient = new(rpcClient);
+
+            // Save the original Console.Out
+            var originalConsoleOut = Console.Out;
+
+            try
+            {
+                // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
+                Console.SetOut(new NullTextWriter());
+
+                RequestResult<ResponseValue<AccountInfo>> solResult = await rpcClient.GetAccountInfoAsync(request.WalletAddress);
+
+                if (solResult.WasSuccessful && solResult.Result.Value?.Lamports != null)
+                {
+                    decimal balanceInSol = solResult.Result.Value.Lamports / Lamports;
+                    result.Result = balanceInSol;
+                }
+
+                if (!solResult.WasSuccessful)
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {solResult.Reason}");
+            }
+            finally
+            {
+                // Restore the original Console.Out
+                Console.SetOut(originalConsoleOut);
+            }
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+        }
+
+        return result;
+    }
 
     public async Task<OASISResult<MintNftResult>> MintNftAsync(MintWeb3NFTRequest mintNftRequest)
     {
