@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <PackageId>NextGenSoftware.OASIS.API.Providers.MidenOASIS</PackageId>
+        <Company>NextGen Software Ltd</Company>
+        <Product>WEB4 OASIS API Miden OASIS Provider</Product>
+        <Title>WEB4 OASIS API Miden OASIS Provider</Title>
+        <Summary>Miden privacy provider for OASIS offering private note management, STARK proof workflows, and zkVM interactions.</Summary>
+        <Description>Miden privacy provider for OASIS offering private note management, STARK proof workflows, and zkVM interactions. Built for Zypherpunk hackathon Track 4 (Zcash ↔ Miden bridge).</Description>
+        <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+        <PackageIcon>OASISLogo128.jpg</PackageIcon>
+        <Authors>David Ellams (NextGen Software Ltd)</Authors>
+        <PackageTags>OASIS API; Miden; Privacy; ZK; STARK; Private Notes; zkVM</PackageTags>
+        <PackageReleaseNotes>Initial release for Zypherpunk hackathon Track 4.</PackageReleaseNotes>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+        <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+        <Version>1.0.0</Version>
+        <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\\..\\..\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\NextGenSoftware.OASIS.API.Core.csproj" />
+      <ProjectReference Include="..\\..\\..\\OASIS Architecture\\NextGenSoftware.OASIS.Common\\NextGenSoftware.OASIS.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="README.md">
+        <PackagePath>\\</PackagePath>
+        <Pack>True</Pack>
+      </None>
+    </ItemGroup>
+
+</Project>
+

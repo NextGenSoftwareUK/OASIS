@@ -10,6 +10,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
         public Guid Web3NFTId { get; set; }
         //public string MintWalletAddress { get; set; }
         public string NFTTokenAddress { get; set; }
+        public string OwnerPublicKey { get; init; }
+        public string OwnerPrivateKey { get; init; }
+        public string OwnerSeedPhrase { get; init; }
         public bool WaitTillNFTBurnt { get; set; }
         public int WaitForNFTToBurnInSeconds { get; set; }
         public int AttemptToBurnEveryXSeconds { get; set; }

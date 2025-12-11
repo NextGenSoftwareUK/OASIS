@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.Core.Helpers;
+﻿using NBitcoin.RPC;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
@@ -2764,12 +2765,35 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
     public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
     {
-        throw new NotImplementedException();
+        return GetBalanceAsync(request).Result;
     }
 
-    public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+    public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
     {
-        throw new NotImplementedException();
+        OASISResult<double> result = new OASISResult<double>();
+        DateTimeOffset date = DateTimeOffset.UtcNow;
+
+        try
+        {
+            OASISResult<decimal> solResult = await _solanaService.GetAccountBalanceAsync(request);
+
+            if (solResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result,
+                    solResult.Message,
+                    solResult.Exception);
+
+                return result;
+            }
+            else
+                result.Result = Convert.ToDouble(solResult.Result);
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Unknown error occured: {e}");
+        }
+
+        return result;
     }
 
     public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
