@@ -89,6 +89,28 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories
             return result;
         }
 
+        public async Task<OASISResult<Merchant>> GetMerchantByAvatarIdAsync(Guid avatarId)
+        {
+            OASISResult<Merchant> result = new OASISResult<Merchant>();
+
+            try
+            {
+                FilterDefinition<Merchant> filter = Builders<Merchant>.Filter.Where(x => x.AvatarId == avatarId);
+                result.Result = await _context.Merchants.FindAsync(filter).Result.FirstOrDefaultAsync();
+
+                if (result.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Merchant with avatar ID {avatarId} not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in GetMerchantByAvatarIdAsync method in ShipexProMongoRepository loading Merchant. Reason: {ex}");
+            }
+
+            return result;
+        }
+
         public async Task<OASISResult<Merchant>> SaveMerchantAsync(Merchant merchant)
         {
             OASISResult<Merchant> result = new OASISResult<Merchant>();
@@ -551,6 +573,24 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error in GetShipmentByTrackingNumberAsync method in ShipexProMongoRepository loading Shipment. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<List<Shipment>>> GetShipmentsByMerchantIdAsync(Guid merchantId)
+        {
+            OASISResult<List<Shipment>> result = new OASISResult<List<Shipment>>();
+
+            try
+            {
+                FilterDefinition<Shipment> filter = Builders<Shipment>.Filter.Where(x => x.MerchantId == merchantId);
+                var cursor = await _context.Shipments.FindAsync(filter);
+                result.Result = await cursor.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in GetShipmentsByMerchantIdAsync method in ShipexProMongoRepository loading Shipments. Reason: {ex}");
             }
 
             return result;
