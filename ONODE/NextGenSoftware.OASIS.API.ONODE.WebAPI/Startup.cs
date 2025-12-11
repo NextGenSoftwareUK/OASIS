@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -423,7 +423,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 var viewingKeyService = sp.GetRequiredService<IViewingKeyService>();
                 return new StablecoinManager(repository, priceOracle, zcashService, aztecService, viewingKeyService);
             });
-            
+
+            // Shipex Pro runs as a separate API service - see Shipex/ShipexPro.API/
+
             services.AddHttpContextAccessor();
 
             //services.AddCors(options =>

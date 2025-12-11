@@ -17,6 +17,7 @@ public interface IShipexProRepository
     Task<OASISResult<Merchant>> GetMerchantAsync(Guid merchantId);
     Task<OASISResult<Merchant>> GetMerchantByEmailAsync(string email);
     Task<OASISResult<Merchant>> GetMerchantByApiKeyHashAsync(string apiKeyHash);
+    Task<OASISResult<Merchant>> GetMerchantByAvatarIdAsync(Guid avatarId);
     Task<OASISResult<Merchant>> SaveMerchantAsync(Merchant merchant);
     
     // Quote operations
@@ -41,6 +42,7 @@ public interface IShipexProRepository
     Task<OASISResult<Shipment>> SaveShipmentAsync(Shipment shipment);
     Task<OASISResult<Shipment>> UpdateShipmentAsync(Shipment shipment);
     Task<OASISResult<Shipment>> GetShipmentByTrackingNumberAsync(string trackingNumber);
+    Task<OASISResult<List<Shipment>>> GetShipmentsByMerchantIdAsync(Guid merchantId);
     
     // Invoice operations
     Task<OASISResult<Invoice>> GetInvoiceAsync(Guid invoiceId);
