@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS - The Universal Web4/Web5 Infrastructure</title>
+    <meta name="description" content="One API. 50+ Chains. Infinite Possibilities. Build cross-chain applications with a single interface.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="nav-container">
+            <a href="#home" class="nav-logo">OASIS</a>
+            <div class="nav-menu" id="navMenu">
+                <a href="#products" class="nav-link">Products</a>
+                <a href="#solutions" class="nav-link">Solutions</a>
+                <a href="#developers" class="nav-link">Developers</a>
+                <a href="resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-text" onclick="openLoginModal()">Log in</button>
+                <button class="btn-primary">Start building</button>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Section 01: Hero / Positioning -->
+    <section class="section hero-section" id="home" data-section="01">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">01</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">07</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="title-line">Universal</span>
+                    <span class="title-line">
+                        <span class="carousel-word" id="carouselWord">RWA</span>
+                    </span>
+                    <span class="title-line">Infrastructure</span>
+                </h1>
+                <p class="hero-tagline">
+                    /// one API. all chains. infinite possibilities.
+                </p>
+                <div class="hero-description">
+                    <p>
+                        OASIS is a technology that enables applications to move data across blockchains, 
+                        uniquely supporting universal interoperability and permissionless development through 
+                        immutable infrastructure.
+                    </p>
+                </div>
+                <div class="hero-actions">
+                    <a href="https://docs.oasisweb4.com" class="btn-primary" target="_blank">
+                        <span>Start building</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="hero-links">
+                    <a href="https://docs.oasisweb4.com" class="hero-link" target="_blank">
+                        <span>Documentation</span>
+                    </a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" class="hero-link" target="_blank">
+                        <span>Github</span>
+                    </a>
+                    <a href="/blog" class="hero-link">
+                        <span>Blog</span>
+                    </a>
+                </div>
+            </div>
+            <div class="scroll-indicator">
+                <div class="scroll-text">Scroll to explore</div>
+                <div class="scroll-section">
+                    <span class="section-bracket">[</span>
+                    <span class="section-number">01</span>
+                    <span class="section-divider">/</span>
+                    <span class="section-total">07</span>
+                    <span class="section-bracket">]</span>
+                </div>
+                <div class="scroll-label">Positioning</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 02: Principles -->
+    <section class="section principles-section" id="principles" data-section="02">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">02</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">07</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Principles.</h2>
+            <div class="principles-grid">
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ 01</div>
+                    </div>
+                    <h3 class="principle-title">Universal Interoperability</h3>
+                    <p class="principle-description">
+                        The protocol ensures all data and assets can move across any blockchain or provider without selective interference.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ 02</div>
+                    </div>
+                    <h3 class="principle-title">Zero Downtime</h3>
+                    <p class="principle-description">
+                        The protocol ensures continuous availability by automatically routing operations to available providers when failures occur, maintaining service without interruption.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ 03</div>
+                    </div>
+                    <h3 class="principle-title">Permissionless</h3>
+                    <p class="principle-description">
+                        Anyone can run the required infrastructure to service applications that use the protocol.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 03: By the Numbers -->
+    <section class="section stats-section" id="stats" data-section="03">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">03</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">07</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <div class="stats-header">
+                <div class="live-badge">
+                    <span class="live-dot"></span>
+                    <span>LIVE</span>
+                </div>
+                <h2 class="section-title">OASIS By the numbers</h2>
+                <a href="/dashboard" class="stats-link">Visit OASIS Dashboard</a>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Total Messages</div>
+                    <div class="stat-value">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Value Transferred</div>
+                    <div class="stat-value">$<span data-target="0">0</span>B+</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Supported Blockchains</div>
+                    <div class="stat-value"><span data-target="20">0</span>+</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Applications Built on OASIS</div>
+                    <div class="stat-value"><span data-target="1000">0</span>+</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 04: Architecture / How It Works -->
+    <section class="section architecture-section" id="architecture" data-section="04">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">04</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">07</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">How OASIS Works</h2>
+            <div class="architecture-content">
+                <div class="architecture-text">
+                    <p class="architecture-description">
+                        OASIS connects blockchains through a universal abstraction layer, enabling seamless 
+                        data movement, asset transfers, and cross-chain applications.
+                    </p>
+                    <a href="/how-it-works" class="link-button">
+                        <span>Learn more</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 05: Products -->
+    <section class="section products-section" id="products" data-section="05">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">05</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">07</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Products</h2>
+            <p class="section-subtitle">Supporting a Universal Web4/Web5 Ecosystem.</p>
+            <div class="products-grid">
+                <a href="products/identity" class="product-card">
+                    <div class="product-category">IDENTITY</div>
+                    <h3 class="product-title">Identity & Access</h3>
+                    <p class="product-description">
+                        Unified identity system spanning Web2 and Web3. Avatar, Karma, Wallet, and Keys APIs 
+                        for complete identity management across all platforms.
+                    </p>
+                </a>
+                <a href="products/data" class="product-card">
+                    <div class="product-category">DATA</div>
+                    <h3 class="product-title">Data & Storage</h3>
+                    <p class="product-description">
+                        Holonic architecture with HyperDrive intelligent routing. Auto-replication, auto-failover, 
+                        and provider independence for 100% uptime.
+                    </p>
+                </a>
+                <a href="products/nfts" class="product-card">
+                    <div class="product-category">NFT</div>
+                    <h3 class="product-title">NFTs & Digital Assets</h3>
+                    <p class="product-description">
+                        Web4 OASIS NFTs, NFT Mint Studio, yNFTs, and GeoNFTs. Cross-chain collections with 
+                        universal metadata and auto-replication.
+                    </p>
+                </a>
+                <a href="products/smart-contracts" class="product-card">
+                    <div class="product-category">CONTRACTS</div>
+                    <h3 class="product-title">Smart Contracts</h3>
+                    <p class="product-description">
+                        Multi-chain contract generator supporting Ethereum, Solana, Radix. UAT standard for 
+                        RWA tokenization. Write once, deploy everywhere.
+                    </p>
+                </a>
+                <a href="products/bridges" class="product-card">
+                    <div class="product-category">BRIDGE</div>
+                    <h3 class="product-title">Interoperability & Bridges</h3>
+                    <p class="product-description">
+                        Universal Asset Bridge with atomic swaps. Cross-chain transfers with real-time exchange 
+                        rates and transaction tracking.
+                    </p>
+                </a>
+                <a href="products/infrastructure" class="product-card">
+                    <div class="product-category">INFRASTRUCTURE</div>
+                    <h3 class="product-title">Infrastructure & Tools</h3>
+                    <p class="product-description">
+                        STAR CLI, OAPPs framework, provider system, SDKs, and developer tools. Everything 
+                        you need to build on OASIS.
+                    </p>
+                </a>
+            </div>
+            <a href="/products" class="link-button">
+                <span>View more</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Section 06: Ecosystem -->
+    <section class="section ecosystem-section" id="ecosystem" data-section="06">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">06</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">07</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Ecosystem Overview</h2>
+            <p class="section-subtitle">Supporting a Universal Web4/Web5 Ecosystem.</p>
+            <div class="ecosystem-filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="blockchain">Blockchains</button>
+                <button class="filter-btn" data-filter="cloud">Cloud</button>
+                <button class="filter-btn" data-filter="storage">Storage</button>
+                <button class="filter-btn" data-filter="network">Networks</button>
+            </div>
+            <div class="ecosystem-grid">
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/miden.png" alt="Miden" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Miden</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/zcash.png" alt="Zcash" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Zcash</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/aztec.png" alt="Aztec" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Aztec</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/ethereum.svg" alt="Ethereum" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Ethereum</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/solana.svg" alt="Solana" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Solana</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/polygon.svg" alt="Polygon" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Polygon</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/arbitrum.png" alt="Arbitrum" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Arbitrum</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/base.png" alt="Base" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Base</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/avalanche.svg" alt="Avalanche" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Avalanche</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/radix.svg" alt="Radix" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Radix</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/bnb.svg" alt="BNB Chain" class="ecosystem-logo" />
+                    <div class="ecosystem-name">BNB Chain</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/optimism.png" alt="Optimism" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Optimism</div>
+                </div>
+                <div class="ecosystem-item" data-category="blockchain">
+                    <img src="logos/fantom.png" alt="Fantom" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Fantom</div>
+                </div>
+                <div class="ecosystem-item" data-category="cloud">
+                    <img src="logos/aws.png" alt="AWS" class="ecosystem-logo" />
+                    <div class="ecosystem-name">AWS</div>
+                </div>
+                <div class="ecosystem-item" data-category="cloud">
+                    <img src="logos/azure.png" alt="Azure" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Azure</div>
+                </div>
+                <div class="ecosystem-item" data-category="cloud">
+                    <img src="logos/google-cloud.png" alt="Google Cloud" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Google Cloud</div>
+                </div>
+                <div class="ecosystem-item" data-category="storage">
+                    <img src="logos/mongodb.png" alt="MongoDB" class="ecosystem-logo" />
+                    <div class="ecosystem-name">MongoDB</div>
+                </div>
+                <div class="ecosystem-item" data-category="storage">
+                    <img src="logos/ipfs.png" alt="IPFS" class="ecosystem-logo" />
+                    <div class="ecosystem-name">IPFS</div>
+                </div>
+                <div class="ecosystem-item" data-category="storage">
+                    <img src="logos/arweave.png" alt="Arweave" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Arweave</div>
+                </div>
+                <div class="ecosystem-item" data-category="network">
+                    <img src="logos/holochain.png" alt="Holochain" class="ecosystem-logo" />
+                    <div class="ecosystem-name">Holochain</div>
+                </div>
+                <div class="ecosystem-item" data-category="network">
+                    <img src="logos/threefold.png" alt="ThreeFold" class="ecosystem-logo" />
+                    <div class="ecosystem-name">ThreeFold</div>
+                </div>
+                <div class="ecosystem-item" data-category="network">
+                    <img src="logos/solid.png" alt="SOLID" class="ecosystem-logo" />
+                    <div class="ecosystem-name">SOLID</div>
+                </div>
+            </div>
+            <a href="/ecosystem" class="link-button">
+                <span>View more</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Section 07: Code Examples -->
+    <section class="section code-section" id="developers" data-section="07">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">07</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">07</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">code examples</h2>
+            <div class="code-header">
+                <div class="code-intro">
+                    <h3 class="code-title">Develop with OASIS.</h3>
+                    <p class="code-description">
+                        OASIS protocol provides developers with the necessary tools to send messages across blockchains 
+                        while retaining ownership of security. Move data, issue tokens, and build dApps on any blockchain 
+                        through universal contract standards like OAPP, OFT, and ONFT.
+                    </p>
+                    <a href="https://docs.oasisweb4.com" class="link-button" target="_blank">
+                        <span>Learn more</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="code-examples">
+                <div class="code-tabs">
+                    <button class="code-tab active" data-tab="identity">
+                        <span>[ IDENTITY_API.ts ]</span>
+                        <span class="code-tab-label">Identity</span>
+                    </button>
+                    <button class="code-tab" data-tab="nft">
+                        <span>[ NFT_MINT.ts ]</span>
+                        <span class="code-tab-label">NFT</span>
+                    </button>
+                    <button class="code-tab" data-tab="bridge">
+                        <span>[ BRIDGE_TRANSFER.ts ]</span>
+                        <span class="code-tab-label">Bridge</span>
+                    </button>
+                </div>
+                <div class="code-content">
+                    <div class="code-block active" data-code="identity">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Identity</span>
+                            <span class="code-block-subtitle">Provides developers with unified identity management across Web2 and Web3</span>
+                        </div>
+                        <div class="code-block-hint">[ Hover ]</div>
+                        <pre><code>import { OASISClient } from '@oasis/sdk';
+
+const client = new OASISClient({
+  apiKey: 'your-api-key',
+  endpoint: 'https://api.oasisweb4.com'
+});
+
+// Create Avatar
+const avatar = await client.identity.createAvatar({
+  username: 'developer',
+  email: 'dev@example.com'
+});
+
+// Get Karma
+const karma = await client.identity.getKarma(avatar.id);
+
+// Create Wallet
+const wallet = await client.identity.createWallet({
+  avatarId: avatar.id,
+  chain: 'ethereum'
+});
+
+// Manage Keys
+const keys = await client.identity.generateKeys({
+  walletId: wallet.id
+});</code></pre>
+                    </div>
+                    <div class="code-block" data-code="nft">
+                        <div class="code-block-header">
+                            <span class="code-block-title">NFT</span>
+                            <span class="code-block-subtitle">Mint NFTs across multiple blockchains with universal metadata</span>
+                        </div>
+                        <div class="code-block-hint">[ Hover ]</div>
+                        <pre><code>import { OASISClient } from '@oasis/sdk';
+
+const client = new OASISClient({
+  apiKey: 'your-api-key'
+});
+
+// Mint NFT on Multiple Chains
+const nft = await client.nft.mint({
+  name: 'My NFT',
+  description: 'Cross-chain NFT',
+  image: 'ipfs://Qm...',
+  chains: ['ethereum', 'solana', 'polygon']
+});
+
+// Create Collection
+const collection = await client.nft.createCollection({
+  name: 'My Collection',
+  chains: ['ethereum', 'solana']
+});
+
+// Auto-replication to all chains
+console.log(nft.chains);</code></pre>
+                    </div>
+                    <div class="code-block" data-code="bridge">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Bridge</span>
+                            <span class="code-block-subtitle">Transfer assets across blockchains with atomic swap guarantees</span>
+                        </div>
+                        <div class="code-block-hint">[ Hover ]</div>
+                        <pre><code>import { OASISClient } from '@oasis/sdk';
+
+const client = new OASISClient({
+  apiKey: 'your-api-key'
+});
+
+// Bridge Assets
+const bridge = await client.bridge.transfer({
+  fromChain: 'ethereum',
+  toChain: 'solana',
+  token: 'USDC',
+  amount: '1000',
+  recipient: 'solana-address'
+});
+
+// Check Status
+const status = await client.bridge.getStatus({
+  transactionId: bridge.id
+});
+
+// Atomic swap guarantees
+console.log(status.status);</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Social Media</h4>
+                    <a href="https://x.com/oasisweb4" target="_blank">X (Twitter)</a>
+                    <a href="https://discord.gg/oasis" target="_blank">Discord</a>
+                    <a href="https://t.me/oasisweb4" target="_blank">Telegram</a>
+                    <a href="/blog">Blog</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <a href="/whitepaper">Whitepaper</a>
+                    <a href="https://docs.oasisweb4.com" target="_blank">Documentation</a>
+                </div>
+                <div class="footer-col">
+                    <h4>For the developers</h4>
+                    <a href="/dashboard">OASIS Dashboard</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">OASIS Github</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Ecosystem</h4>
+                    <a href="/ecosystem">Application</a>
+                    <a href="/ecosystem/submit">Submission Form</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Careers</h4>
+                    <a href="/careers">We're hiring</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-links">
+                    <a href="/media-kit">Media Kit</a>
+                    <a href="/support">Support</a>
+                    <a href="/terms">Terms of Use</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/cookies">Cookie Policy</a>
+                </div>
+                <div class="footer-copyright">© 2025 OASIS</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeLoginModal()">×</button>
+            
+            <div class="auth-container">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <div class="auth-logo-circle">
+                            <div class="auth-logo-inner">O</div>
+                        </div>
+                    </div>
+                    <p class="auth-label">Avatar Access</p>
+                </div>
+                
+                <div class="auth-title-section">
+                    <div class="auth-subtitle">Connect Identity</div>
+                    <h2 class="auth-title">Connect your avatar</h2>
+                    <p class="auth-description">
+                        Sign in with your OASIS avatar to access your multi-chain wallets and data.
+                    </p>
+                </div>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-mode="login" onclick="switchAuthMode('login')">
+                        Sign in
+                    </button>
+                    <button class="auth-tab" data-mode="register" onclick="switchAuthMode('register')">
+                        Create avatar
+                    </button>
+                </div>
+
+                <form id="authForm" class="auth-form" onsubmit="handleAuthSubmit(event)">
+                    <div class="auth-field">
+                        <label class="auth-label-text">
+                            <span id="usernameLabel">Username or email</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            class="auth-input" 
+                            placeholder="email@oasis.com"
+                            required
+                        />
+                    </div>
+
+                    <div id="registerFields" style="display: none;">
+                        <div class="auth-field">
+                            <label class="auth-label-text">Email</label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email"
+                                class="auth-input" 
+                                placeholder="you@example.com"
+                            />
+                        </div>
+
+                        <div class="auth-field-row">
+                            <div class="auth-field">
+                                <label class="auth-label-text">First name</label>
+                                <input 
+                                    type="text" 
+                                    id="firstName" 
+                                    name="firstName"
+                                    class="auth-input" 
+                                    placeholder="Optional"
+                                />
+                            </div>
+                            <div class="auth-field">
+                                <label class="auth-label-text">Last name</label>
+                                <input 
+                                    type="text" 
+                                    id="lastName" 
+                                    name="lastName"
+                                    class="auth-input" 
+                                    placeholder="Optional"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label-text">Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password"
+                            class="auth-input" 
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+
+                    <div id="authError" class="auth-error" style="display: none;"></div>
+
+                    <div class="auth-actions">
+                        <button type="submit" class="btn-primary auth-submit" id="authSubmitBtn">
+                            <span id="authSubmitText">Sign in</span>
+                        </button>
+                        <button type="button" class="btn-text auth-skip" onclick="useDemoAvatar()">
+                            Skip for now
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

@@ -3,11 +3,12 @@
 ## Current Status: PARTIAL IMPLEMENTATION
 
 ### ✅ **What's Currently Implemented:**
-- Basic provider structure for all 7 blockchain providers
+- Basic provider structure for all 7 blockchain providers (now including Monad & TON via the Web3Core engine)
 - Smart contract integration (Web3 SDK for EVM chains, Move for Aptos, etc.)
 - Basic SaveAvatarAsync methods with some field persistence
 - Provider activation and connection handling
 - Build success (0 compilation errors)
+- Draft `StarknetOASIS` provider + placeholder `StarknetBridge` so the Zypherpunk Starknet track has a starting point for atomic swaps
 
 ### ❌ **What's MISSING (Critical Issues):**
 

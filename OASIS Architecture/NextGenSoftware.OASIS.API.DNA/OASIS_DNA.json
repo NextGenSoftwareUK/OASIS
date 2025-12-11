@@ -90,7 +90,7 @@
             },
             "MongoDBOASIS": {
                 "DBName": "OASISAPI_DEV",
-                "ConnectionString": "mongodb://localhost:27017"
+                "ConnectionString": "mongodb+srv://OASISWEB4:Uppermall1%21@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4"
             },
             "EOSIOOASIS": {
                 "AccountName": "oasis",
@@ -103,15 +103,36 @@
             "ThreeFoldOASIS": { "ConnectionString": "" },
             "EthereumOASIS": {
                 "ChainPrivateKey": "",
-                "ChainId": 0,
+                "ChainId": 11155111,
                 "ContractAddress": "",
-                "ConnectionString": "http://testchain.nethereum.com:8545"
+                "ConnectionString": "https://sepolia.infura.io/v3/YOUR_PROJECT_ID",
+                "Network": "testnet"
             },
             "ArbitrumOASIS": {
                 "ChainPrivateKey": "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a",
                 "ChainId": 421614,
                 "ContractAddress": "0xd56B495571Ea5793fC3960D6af86420dF161c50a",
                 "ConnectionString": "https://sepolia-rollup.arbitrum.io/rpc"
+            },
+            "StarknetOASIS": {
+                "Network": "alpha-goerli",
+                "ApiBaseUrl": "https://alpha4.starknet.io"
+            },
+            "MidenOASIS": {
+                "ApiBaseUrl": "https://testnet.miden.xyz",
+                "Network": "testnet"
+            },
+            "ZcashOASIS": {
+                "Network": "testnet",
+                "RpcEndpoint": "https://zcash-testnet.gateway.tatum.io",
+                "RpcUser": "",
+                "RpcPassword": "",
+                "ApiKey": "t-69263a806c36b02bafbc5af2-fd23c07357a045f39b7a0efc"
+            },
+            "AztecOASIS": {
+                "Network": "testnet",
+                "ApiBaseUrl": "https://aztec-testnet.example.com",
+                "ChainId": "testnet"
             },
             "RootstockOASIS": {
                 "ChainPrivateKey": "",
@@ -224,10 +245,28 @@
                 "NetworkId": "mainnet",
                 "ChainId": "0x2105"
             },
+            "MonadOASIS": {
+                "ConnectionString": "https://testnet-rpc.monad.xyz",
+                "ChainPrivateKey": "",
+                "ChainId": 2828,
+                "ContractAddress": ""
+            },
+            "TONOASIS": {
+                "ConnectionString": "https://evm-testnet.ton.org",
+                "ChainPrivateKey": "",
+                "ChainId": 1000,
+                "ContractAddress": ""
+            },
             "SuiOASIS": {
                 "RpcEndpoint": "https://fullnode.mainnet.sui.io:443",
                 "Network": "mainnet",
                 "ChainId": "mainnet"
+            },
+            "RadixOASIS": {
+                "HostUri": "https://stokenet.radixdlt.com",
+                "NetworkId": 2,
+                "AccountAddress": "",
+                "PrivateKey": ""
             },
             "MoralisOASIS": {
                 "ApiKey": "YOUR_MORALIS_API_KEY",
@@ -247,6 +286,19 @@
             },
             "GoogleCloudOASIS": {
                 "ProjectId": "YOUR_PROJECT_ID",
+                "BucketName": "oasis-storage",
+                "CredentialsPath": "path/to/credentials.json",
+                "FirestoreDatabaseId": "oasis-db",
+                "BigQueryDatasetId": "oasis_data",
+                "EnableStorage": true,
+                "EnableFirestore": true,
+                "EnableBigQuery": true
+            }
+        },
+        "OASISSystemAccountId": "",
+        "OASISAPIURL": "https://oasisweb4.one/api"
+    }
+}
                 "BucketName": "oasis-storage",
                 "CredentialsPath": "path/to/credentials.json",
                 "FirestoreDatabaseId": "oasis-db",

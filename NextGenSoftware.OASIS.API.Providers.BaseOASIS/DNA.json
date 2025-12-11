@@ -1,0 +1,28 @@
+{
+  "ProviderName": "BaseOASIS",
+  "ProviderDescription": "Base Blockchain Provider",
+  "ProviderType": "BaseOASIS",
+  "ProviderCategory": "StorageAndNetwork",
+  "IsEnabled": true,
+  "Priority": 1,
+  "CustomParams": "hostUri=https://mainnet.base.org;chainPrivateKey=your-private-key;chainId=8453;contractAddress=your-contract-address",
+  "Dependencies": [
+    "NextGenSoftware.OASIS.API.Core",
+    "NextGenSoftware.OASIS.Common",
+    "NextGenSoftware.Utilities"
+  ],
+  "NetworkConfiguration": {
+    "Mainnet": {
+      "ChainId": 8453,
+      "RpcUrl": "https://mainnet.base.org",
+      "ExplorerUrl": "https://basescan.org"
+    },
+    "Testnet": {
+      "ChainId": 84532,
+      "RpcUrl": "https://sepolia.base.org",
+      "ExplorerUrl": "https://sepolia.basescan.org"
+    }
+  }
+}
+
+

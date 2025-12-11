@@ -1,0 +1,18 @@
+{
+  "OASIS": {
+    "StorageProviders": {
+      "MongoDBOASIS": {
+        "DBName": "OASISAPI_DEV",
+        "ConnectionString": "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4"
+      },
+      "SolanaOASIS": {
+        "WalletMnemonicWords": "adapt afford abandon above age adult ahead accident aim advice agree accuse",
+        "PrivateKey": "kNln1+y3r9Xa1HbiakTDUmdpyzImmnpEs/+et8D6Jr2eE+KoOZJtHXdOOoNyP1NRDcfa44LE4y6llK9JaMpCEA==",
+        "PublicKey": "Be51B1n3m1MCtZYvH8JEX3LnZZwoREyH4rYoyhMrkxJs",
+        "ConnectionString": "https://api.devnet.solana.com"
+      }
+    },
+    "OASISSystemAccountId": "f3fbf32a-1864-4adf-b0e4-c9a9658deb68"
+  }
+}
+

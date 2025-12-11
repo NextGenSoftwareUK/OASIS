@@ -131,8 +131,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                result.Result = await _dbContext.Avatar.FindAsync(filter).Result.FirstOrDefaultAsync();
+                // Convert Guid to string for MongoDB query since HolonId is stored as string in MongoDB
+                var idString = id.ToString();
+                System.Diagnostics.Debug.WriteLine($"MongoDB Query: Looking for avatar with HolonId='{idString}'");
+                
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("HolonId", idString);
+                var findResult = await _dbContext.Avatar.FindAsync(filter);
+                result.Result = await findResult.FirstOrDefaultAsync();
+                
+                System.Diagnostics.Debug.WriteLine($"MongoDB Query Result (HolonId): {(result.Result != null ? "FOUND" : "NOT FOUND")}");
+                
+                if (result.Result == null)
+                {
+                    // Try alternative query in case field name is different (case sensitivity)
+                    System.Diagnostics.Debug.WriteLine($"Trying alternative query with lowercase 'holonId'");
+                    filter = Builders<Avatar>.Filter.Eq("holonId", idString);
+                    findResult = await _dbContext.Avatar.FindAsync(filter);
+                    result.Result = await findResult.FirstOrDefaultAsync();
+                    System.Diagnostics.Debug.WriteLine($"MongoDB Query Result (holonId): {(result.Result != null ? "FOUND" : "NOT FOUND")}");
+                }
+                
+                if (result.Result == null)
+                {
+                    // Try querying by _id (ObjectId) as fallback
+                    System.Diagnostics.Debug.WriteLine($"Avatar not found by HolonId. Query may need adjustment.");
+                }
             }
             catch (Exception ex)
             {
@@ -148,7 +171,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
+                // Convert Guid to string for MongoDB query since HolonId is stored as string in MongoDB
+                FilterDefinition<Avatar> filter = Builders<Avatar>.Filter.Eq("HolonId", id.ToString());
                 result.Result = _dbContext.Avatar.Find(filter).FirstOrDefault();
             }
             catch (Exception ex)
@@ -377,7 +401,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
+                // Convert Guid to string for MongoDB query since HolonId is stored as string in MongoDB
+                var filter = Builders<AvatarDetail>.Filter.Eq("HolonId", id.ToString());
                 result.Result = await _dbContext.AvatarDetail.Find(filter).FirstOrDefaultAsync();
 
                 if (result.Result == null)
@@ -397,7 +422,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
+                // Convert Guid to string for MongoDB query since HolonId is stored as string in MongoDB
+                var filter = Builders<AvatarDetail>.Filter.Eq("HolonId", id.ToString());
                 result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
 
                 if (result.Result == null)
@@ -566,11 +592,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     }
                     else
                     {
-                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                        _dbContext.Avatar.DeleteOne(data);
+                        // Convert Guid to string for MongoDB query since HolonId is stored as string in MongoDB
+                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("HolonId", id.ToString());
+                        await _dbContext.Avatar.DeleteOneAsync(data);
 
-                        FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
-                        _dbContext.AvatarDetail.DeleteOne(dataDetail);
+                        FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Eq("HolonId", id.ToString());
+                        await _dbContext.AvatarDetail.DeleteOneAsync(dataDetail);
                         result.Result = true;
                     }
                 }
@@ -580,9 +607,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 }
 
                 if (result.IsError)
-                    session.AbortTransaction();
+                    await session.AbortTransactionAsync();
                 else
-                    session.CommitTransaction();
+                    await session.CommitTransactionAsync();
             }
 
             return result;
@@ -636,10 +663,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     }
                     else
                     {
-                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
+                        // Convert Guid to string for MongoDB query since HolonId is stored as string in MongoDB
+                        FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Eq("HolonId", id.ToString());
                         _dbContext.Avatar.DeleteOne(data);
 
-                        FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
+                        FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Eq("HolonId", id.ToString());
                         _dbContext.AvatarDetail.DeleteOne(dataDetail);
                         result.Result = true;
                     }

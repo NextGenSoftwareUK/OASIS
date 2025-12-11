@@ -1,0 +1,13 @@
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services.Zcash
+{
+    public interface IZcashBridgeService
+    {
+        Task<string> LockZECForBridgeAsync(decimal amount, string destinationChain, string destinationAddress, string viewingKey = null);
+        Task<OASISResult<string>> ReleaseZECAsync(string lockTxHash, decimal amount, string destinationAddress);
+    }
+}
+

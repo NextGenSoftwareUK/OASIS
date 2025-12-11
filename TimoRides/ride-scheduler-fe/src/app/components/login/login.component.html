@@ -1,0 +1,82 @@
+<section class="app-login">
+  <div class="bg-ellipse">
+    <img
+      src="../../../assets/images/signup/ellipse-top-left.png"
+      alt="decoration icon"
+    />
+  </div>
+
+  <div class="bg-ellipse2">
+    <img
+      src="../../../assets/images/signup/ellipse-bottom-right.png"
+      alt="decoration icon"
+    />
+  </div>
+
+  <div class="bg-ellipse9-right-top">
+    <img
+      src="../../../assets/images/signup/ellipse-top-right.png"
+      alt="decoration icon"
+    />
+  </div>
+
+  <div class="left-bottom-small">
+    <img
+      src="../../../assets/images/signup/ellipse-bottom-left.png"
+      alt="decoration icon"
+    />
+  </div>
+
+  <div class="app-login__form-con">
+    <h1 class="login-title">Login</h1>
+
+    <!-- Personal Information Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="login()">
+      <!-- Text Email -->
+      <app-input-group
+        [inputConfig]="{
+          label: 'Email',
+          isRequired: true,
+          placeholder: 'E.g. your_email@domain.com',
+          id: 'email',
+          theme: 'dark'
+        }"
+        inputType="email"
+        controlName="email"
+        [form]="loginForm"
+      ></app-input-group>
+
+      <!-- Password -->
+      <app-input-group
+        [inputConfig]="{
+          label: 'Password',
+          isRequired: true,
+          placeholder: 'Enter password',
+          id: 'password',
+          theme: 'dark'
+        }"
+        inputType="password"
+        controlName="password"
+        [form]="loginForm"
+      ></app-input-group>
+
+      <!-- Add more input fields for other form controls -->
+      <div class="btn-con-form">
+        <app-button
+          [btnConfig]="{
+            label: 'Submit',
+            size: 'sm',
+            theme: 'primary',
+            block: true,
+            disabled: loginForm.invalid
+          }"
+        ></app-button>
+      </div>
+
+      <p class="login">
+        Not registered yet? Please
+        <span class="login__action" (click)="goToSignup()">Sign up</span>
+      </p>
+    </form>
+  </div>
+</section>

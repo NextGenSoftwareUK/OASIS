@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -13,8 +13,11 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Rijndael256;
-using static NextGenSoftware.Utilities.KeyHelper;
+using Solnet.Wallet;
+using SolnetMnemonic = Solnet.Wallet.Bip39.Mnemonic;
+using SolnetWordCount = Solnet.Wallet.Bip39.WordCount;
 using KeyPair = NextGenSoftware.OASIS.API.Core.Objects.KeyPair;
+using KeyValuePairAndWallet = NextGenSoftware.OASIS.API.Core.Objects.KeyValuePairAndWallet;
 using Rijndael = Rijndael256.Rijndael;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
@@ -94,8 +97,33 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IKeyPairAndWallet> GenerateKeyPairWithWalletAddress(ProviderType providerType)
         {
             OASISResult<IKeyPairAndWallet> result = new OASISResult<IKeyPairAndWallet>();
-            result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+            result.Result = GenerateKeyValuePairAndWalletAddress();
             return result;
+        }
+
+        private KeyValuePairAndWallet GenerateKeyValuePairAndWalletAddress()
+        {
+            // Generate key pair using default provider
+            OASISResult<KeyPair> keyPairResult = GenerateKeyPair(ProviderType.Default);
+            
+            if (keyPairResult.IsError || keyPairResult.Result == null)
+            {
+                return null;
+            }
+
+            // Create KeyValuePairAndWallet from KeyPair
+            KeyValuePairAndWallet keyValuePairAndWallet = new KeyValuePairAndWallet
+            {
+                PrivateKey = keyPairResult.Result.PrivateKey,
+                PublicKey = keyPairResult.Result.PublicKey
+            };
+
+            // Generate wallet addresses using WifUtility if available
+            // For now, set to empty strings - can be implemented later with proper wallet address generation
+            keyValuePairAndWallet.WalletAddressLegacy = "";
+            keyValuePairAndWallet.WalletAddressSegwitP2SH = "";
+
+            return keyValuePairAndWallet;
         }
 
         public OASISResult<KeyPair> GenerateKeyPair(ProviderType providerType)
@@ -121,15 +149,33 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             OASISResult<KeyPair> result = new OASISResult<KeyPair>(new KeyPair());
 
-            //// Create RSA instance
-            //RSA rsa = RSA.Create();
+            // Special handling for Solana (uses Ed25519, not Secp256K1)
+            if (prefix == "2") // Solana prefix
+            {
+                try
+                {
+                    // Generate Ed25519 keypair using Solnet.Wallet
+                    // Create a mnemonic first, then create wallet from it
+                    var mnemonic = new SolnetMnemonic(Solnet.Wallet.Bip39.WordList.English, SolnetWordCount.Twelve);
+                    var wallet = new Wallet(mnemonic);
+                    var account = wallet.Account;
 
-            //// Export keys
-            //string publicKeyXml = rsa.ToXmlString(false);
-            //string privateKeyXml = rsa.ToXmlString(true);
+                    // Solana public key is the account's public key in base58
+                    result.Result.PublicKey = account.PublicKey.Key;
+                    
+                    // Solana private key is the account's private key in base58
+                    result.Result.PrivateKey = account.PrivateKey.Key;
 
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in GenerateKeyPair for Solana. Reason: {ex.Message}");
+                    return result;
+                }
+            }
 
-
+            // Default: Use Secp256K1 for other providers (Bitcoin, Ethereum, etc.)
             byte[] privateKey = Secp256K1Manager.GenerateRandomKey();
 
             OASISResult<string> privateWifResult = GetPrivateWif(privateKey);
@@ -452,7 +498,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             CreatedByAvatarId = avatar.Id,
                             CreatedDate = DateTime.Now,
                             PublicKey = providerKey,
-                            WalletAddress = !string.IsNullOrEmpty(walletAddress) ? walletAddress : WalletAddressHelper.PublicKeyToAddress(providerKey),
+                            WalletAddress = !string.IsNullOrEmpty(walletAddress) ? walletAddress : Helpers.AddressDerivationHelper.DeriveAddress(providerKey, providerTypeToLinkTo, null, OASISDNA),
                             WalletAddressSegwitP2SH = walletAddressSegwitP2SH,
                             ProviderType = providerTypeToLinkTo,
                             SecretRecoveryPhrase = Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256)
@@ -473,7 +519,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (wallet != null)
                         {
-                            wallet.WalletAddress = !string.IsNullOrEmpty(walletAddress) ? walletAddress : WalletAddressHelper.PublicKeyToAddress(providerKey);
+                            wallet.WalletAddress = !string.IsNullOrEmpty(walletAddress) ? walletAddress : Helpers.AddressDerivationHelper.DeriveAddress(providerKey, providerTypeToLinkTo);
                             wallet.WalletAddressSegwitP2SH = walletAddressSegwitP2SH;
                             wallet.PublicKey = providerKey;
                             wallet.ModifiedByAvatarId = avatar.Id;
@@ -906,7 +952,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             //AvatarId = avatar.Id,
                             CreatedByAvatarId = avatar.Id,
                             CreatedDate = DateTime.Now,
-                            WalletAddress = WalletAddressHelper.PrivateKeyToAddress(providerPrivateKey), //TODO: Need to calucalte the walletAddress from the PublicKey!
+                            WalletAddress = "", // TODO: Implement proper wallet address generation from private key
                             ProviderType = providerTypeToLinkTo,
                             SecretRecoveryPhrase = Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256),
                             PrivateKey = Rijndael.Encrypt(providerPrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256)

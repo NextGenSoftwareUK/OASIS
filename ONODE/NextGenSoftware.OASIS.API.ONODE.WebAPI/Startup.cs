@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,14 +7,25 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Configuration;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
+using NextGenSoftware.OASIS.API.Providers.TelegramOASIS;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin;
+using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin.Services;
+using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin.Repositories;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -23,12 +34,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // Helper method to get a unique display name for types, including generic types
         private static string GetTypeDisplayName(Type type)
         {
-            if (!type.IsGenericType)
-                return type.Name;
-            
-            var genericTypeName = type.Name.Split('`')[0];
-            var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
-            return $"{genericTypeName}Of{genericArgs}";
+            try
+            {
+                if (type == null)
+                    return "Unknown";
+                    
+                if (!type.IsGenericType)
+                    return type.Name ?? "Unknown";
+                
+                var genericTypeName = type.Name?.Split('`')[0] ?? "Generic";
+                var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => 
+                {
+                    try
+                    {
+                        return GetTypeDisplayName(arg);
+                    }
+                    catch
+                    {
+                        return arg?.Name ?? "Unknown";
+                    }
+                }));
+                return $"{genericTypeName}Of{genericArgs}";
+            }
+            catch
+            {
+                return type?.Name ?? "Unknown";
+            }
         }
         private const string VERSION = "WEB 4 OASIS API v4.0.0";
         //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -56,27 +87,83 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddControllers(x => x.Filters.Add(typeof(ServiceExceptionInterceptor)))
                 .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.Configure<TimoRidesOptions>(Configuration.GetSection("TimoRides"));
+
+            services.AddHttpClient();
+            services.AddHttpClient<TimoRidesApiService>();
+            services.AddHttpClient<GoogleMapsService>();
+            services.AddSingleton<RideBookingStateManager>();
+            
+            // Register Email Service
+            services.AddScoped<IEmailService, EmailService>();
+
             services.AddSwaggerGen(c =>
             {
+                // Exclude incomplete controllers that reference missing types
+                c.SwaggerGeneratorOptions.IgnoreObsoleteActions = true;
+                
                 // Configure custom schema ID resolver to handle duplicate class names and generic types
                 c.CustomSchemaIds(type => 
                 {
-                    // If the type is from the WebAPI Models namespace, use a different schema ID
-                    if (type.Namespace != null && type.Namespace.Contains("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models"))
+                    try
                     {
-                        return $"{type.Name}WebAPI";
+                        if (type == null)
+                            return "UnknownType";
+                            
+                        // If the type is from the WebAPI Models namespace, use a different schema ID
+                        if (type.Namespace != null && type.Namespace.Contains("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models"))
+                        {
+                            return $"{type.Name}WebAPI";
+                        }
+                        
+                        // Handle Telegram.Bot types - include namespace to avoid conflicts
+                        if (type.Namespace != null && type.Namespace.StartsWith("Telegram.Bot"))
+                        {
+                            // Use namespace prefix to avoid conflicts with OASIS types
+                            // e.g., "Telegram.Bot.Types.Message" -> "TelegramBotTypesMessage"
+                            var namespacePrefix = type.Namespace.Replace("Telegram.Bot.", "TelegramBot").Replace(".", "");
+                            return $"{namespacePrefix}{type.Name}";
+                        }
+                        
+                        // Handle generic types to include the full generic parameter information
+                        if (type.IsGenericType)
+                        {
+                            var genericTypeName = type.Name.Split('`')[0]; // Get the base name (e.g., "EnumValue")
+                            var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => 
+                            {
+                                try
+                                {
+                                    return GetTypeDisplayName(arg);
+                                }
+                                catch
+                                {
+                                    return arg?.Name ?? "Unknown";
+                                }
+                            }));
+                            return $"{genericTypeName}Of{genericArgs}";
+                        }
+                        
+                        // For types that might conflict (like Message), include namespace info
+                        // Check if this is a common conflicting type name
+                        var commonConflictingNames = new[] { "Message", "Update", "User", "Chat", "File" };
+                        if (commonConflictingNames.Contains(type.Name) && type.Namespace != null)
+                        {
+                            // Include namespace identifier to make it unique
+                            // e.g., "NextGenSoftware.OASIS.API.Core.Managers.Message" -> "ManagersMessage"
+                            var nsParts = type.Namespace.Split('.');
+                            var nsIdentifier = nsParts.Length > 1 ? nsParts[nsParts.Length - 1] : nsParts[0];
+                            return $"{nsIdentifier}{type.Name}";
+                        }
+                        
+                        // For all other types, use the default behavior
+                        return type.Name;
                     }
-                    
-                    // Handle generic types to include the full generic parameter information
-                    if (type.IsGenericType)
+                    catch (Exception ex)
                     {
-                        var genericTypeName = type.Name.Split('`')[0]; // Get the base name (e.g., "EnumValue")
-                        var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
-                        return $"{genericTypeName}Of{genericArgs}";
+                        // Fallback to a safe schema ID if there's any error
+                        LoggingManager.Log($"Error generating schema ID for type {type?.Name ?? "Unknown"}: {ex.Message}", LogType.Warning);
+                        return type?.Name ?? "UnknownType";
                     }
-                    
-                    // For all other types, use the default behavior
-                    return type.Name;
                 });
                 
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -224,6 +311,121 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<ICargoService, CargoService>();
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
+            
+            // FIX: Allow .NET HttpClient to connect to Telegram on macOS
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = 
+                (sender, certificate, chain, sslPolicyErrors) => true;
+            
+            // Register Telegram services
+            services.AddSingleton<TelegramOASIS>(sp =>
+            {
+                // Load from OASIS_DNA.json TelegramOASIS config - TIMORIDES BOT - LOCAL POLLING
+                string botToken = "8000192131:AAE3DY-AxbnhaPBaLF_mBogV169CeRXGleg";
+                string webhookUrl = ""; // Empty for local polling
+                // Note: In C# code, use the actual ! character, not URL-encoded %21
+                string mongoConnectionString = "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4";
+                
+                var provider = new TelegramOASIS(botToken, webhookUrl, mongoConnectionString);
+                
+                // Activate the provider immediately
+                var activationResult = provider.ActivateProvider();
+                if (activationResult.IsError)
+                {
+                    System.Console.WriteLine($"❌ TelegramOASIS activation failed: {activationResult.Message}");
+                }
+                else
+                {
+                    System.Console.WriteLine("✅ TelegramOASIS provider activated in DI registration");
+                }
+                
+                return provider;
+            });
+            
+            services.AddSingleton<NFTService>(sp =>
+            {
+                var logger = sp.GetService<ILogger<NFTService>>();
+                return new NFTService(
+                    "http://localhost:5000",  // Fixed: Changed from 5003 to 5000 (actual OASIS API port)
+                    "max.gershfield1@gmail.com",
+                    "Uppermall1!",
+                    Guid.Parse("5f7daa80-160e-4213-9e81-94500390f31e"),
+                    logger
+                );
+            });
+            
+            services.AddSingleton<PinataService>(sp =>
+            {
+                var logger = sp.GetService<ILogger<PinataService>>();
+                return new PinataService(
+                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmMTg4ODA1Ny0yZDRhLTQ1MzMtOWI4ZS0wZGMxYjEwNmM4YzMiLCJlbWFpbCI6Im1heC5nZXJzaGZpZWxkMUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiOWJlZDEzNDUwNzliMTU5YzE0NDMiLCJzY29wZWRLZXlTZWNyZXQiOiI2MzAzNzBkNGVhZDNkNWZkOGZiMGQ0N2FmNzhhYTZiYWNkZmM5YzY4ODNjMzEyZDc1MTYzODRhNWYzZWRmYTk0IiwiZXhwIjoxNzkxNzI2NTM3fQ.sk7jWHU6JOAlW2eF-LQrOGg-Nh84kc0-Ja8XcjQJ2Yk",
+                    logger
+                );
+            });
+
+            services.AddSingleton<TelegramBotService>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var telegramProvider = sp.GetRequiredService<TelegramOASIS>();
+                var avatarManager = AvatarManager.Instance;
+                var achievementManager = new AchievementManager(telegramProvider, null, avatarManager);
+                var logger = sp.GetRequiredService<ILogger<TelegramBotService>>();
+                var nftService = sp.GetRequiredService<NFTService>();
+                var pinataService = sp.GetRequiredService<PinataService>();
+                var timoService = sp.GetRequiredService<TimoRidesApiService>();
+                var rideStateManager = sp.GetRequiredService<RideBookingStateManager>();
+                var mapsService = sp.GetRequiredService<GoogleMapsService>();
+                var timoOptions = sp.GetRequiredService<IOptions<TimoRidesOptions>>();
+                
+                var botToken = configuration["OASIS:StorageProviders:TelegramOASIS:BotToken"];
+                if (string.IsNullOrWhiteSpace(botToken))
+                {
+                    botToken = "8000192131:AAE3DY-AxbnhaPBaLF_mBogV169CeRXGleg";
+                }
+                
+                return new TelegramBotService(
+                    botToken,
+                    telegramProvider,
+                    avatarManager,
+                    logger,
+                    nftService,
+                    pinataService,
+                    timoService,
+                    rideStateManager,
+                    mapsService,
+                    timoOptions);
+            });
+
+            // Register Universal Asset Bridge Service
+            services.AddSingleton<BridgeService>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<BridgeService>>();
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                return new BridgeService(logger, configuration);
+            });
+
+            // Register Stablecoin Services
+            services.AddSingleton<IZecPriceOracle, CoinGeckoZecPriceOracle>(sp =>
+            {
+                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient();
+                return new CoinGeckoZecPriceOracle(httpClient);
+            });
+            services.AddSingleton<IZcashCollateralService, ZcashCollateralService>();
+            services.AddSingleton<IAztecStablecoinService, AztecStablecoinService>();
+            services.AddSingleton<IStablecoinRepository, StablecoinRepository>();
+            services.AddSingleton<IViewingKeyService, ViewingKeyService>();
+            services.AddSingleton<StablecoinManager>(sp =>
+            {
+                var repository = sp.GetRequiredService<IStablecoinRepository>();
+                var priceOracle = sp.GetRequiredService<IZecPriceOracle>();
+                var zcashService = sp.GetRequiredService<IZcashCollateralService>();
+                var aztecService = sp.GetRequiredService<IAztecStablecoinService>();
+                var viewingKeyService = sp.GetRequiredService<IViewingKeyService>();
+                return new StablecoinManager(repository, priceOracle, zcashService, aztecService, viewingKeyService);
+            });
+
+            // Shipex Pro runs as a separate API service - see Shipex/ShipexPro.API/
+
             services.AddHttpContextAccessor();
 
             //services.AddCors(options =>
@@ -253,6 +455,62 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             LoggingManager.Log("Test Info", LogType.Info);
             LoggingManager.Log("Test Warning", LogType.Warning);
             LoggingManager.Log("Test Error", LogType.Error);
+            
+            // Register LocalFileOASIS provider at startup (required for WalletManager)
+            try
+            {
+                // Ensure OASIS is booted first
+                if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                    OASISBootLoader.OASISBootLoader.BootOASIS();
+                
+                // Register and activate LocalFileOASIS provider using OASISBootLoader (same as controllers)
+                var localFileProviderResult = OASISBootLoader.OASISBootLoader.GetAndActivateStorageProvider(ProviderType.LocalFileOASIS, null, false, false);
+                if (localFileProviderResult != null && !localFileProviderResult.IsError && localFileProviderResult.Result != null)
+                {
+                    LoggingManager.Log("✅ LocalFileOASIS provider registered successfully at startup", LogType.Info);
+                }
+                else
+                {
+                    LoggingManager.Log($"⚠️ LocalFileOASIS provider registration failed: {localFileProviderResult?.Message ?? "Unknown error"}", LogType.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"❌ Error registering LocalFileOASIS provider at startup: {ex.Message}", LogType.Error);
+            }
+            
+            // Activate TelegramOASIS provider and start bot
+            try
+            {
+                var telegramProvider = app.ApplicationServices.GetService<TelegramOASIS>();
+                if (telegramProvider != null)
+                {
+                    var activationResult = telegramProvider.ActivateProvider();
+                    if (activationResult.IsError)
+                    {
+                        LoggingManager.Log($"❌ Error activating TelegramOASIS: {activationResult.Message}", LogType.Error);
+                    }
+                    else
+                    {
+                        LoggingManager.Log("✅ TelegramOASIS provider activated successfully", LogType.Info);
+                    }
+                }
+                
+                var botService = app.ApplicationServices.GetService<TelegramBotService>();
+                if (botService != null)
+                {
+                    botService.StartReceiving();
+                    LoggingManager.Log("✅ Telegram bot started receiving messages", LogType.Info);
+                }
+                else
+                {
+                    LoggingManager.Log("⚠️ TelegramBotService not found in DI container", LogType.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"❌ Exception activating TelegramOASIS or starting bot: {ex.Message}", LogType.Error);
+            }
 
             // migrate database changes on startup (includes initial db creation)
             //context.Database.Migrate();

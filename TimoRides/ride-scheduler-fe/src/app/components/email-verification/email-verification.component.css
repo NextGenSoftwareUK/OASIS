@@ -1,0 +1,30 @@
+.verify-email {
+  max-width: 60%;
+  margin: auto;
+  height: calc(100vh - 20px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  align-items: center;
+}
+
+.success-image {
+  width: 60px;
+}
+
+.verify-email__title {
+  font-size: 50px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.verify-email__status {
+  text-align: center;
+}
+
+@media screen and (max-width: 425px) {
+  .verify-email {
+    max-width: 80%;
+  }
+}

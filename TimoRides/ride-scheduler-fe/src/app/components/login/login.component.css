@@ -1,0 +1,99 @@
+.app-login {
+  background-color: var(--bg-color-main);
+  height: calc(100vh - 20px);
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-login__form-con {
+  max-width: 480px;
+  width: 90%;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 4rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+  z-index: 2;
+  max-height: 95vh;
+  overflow-y: auto;
+}
+
+.app-login__form-con ::-webkit-scrollbar-track,
+.app-login__form-con::-webkit-scrollbar {
+  appearance: none;
+}
+
+.login-title {
+  margin: 0;
+}
+
+.app-login__form-con h1 {
+  color: var(--text-color-main);
+  text-align: center;
+}
+
+.app-login__form-con form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.btn-con-form {
+  width: 100%;
+  align-self: center;
+}
+
+.login {
+  color: var(--text-color-main);
+}
+
+.login__action {
+  color: var(--color-main);
+  cursor: pointer;
+}
+
+/* Decoration */
+.bg-ellipse {
+  position: absolute;
+  top: 3rem;
+  left: 0;
+  z-index: 1;
+}
+
+.bg-ellipse2 {
+  position: absolute;
+  right: 0;
+  bottom: 3rem;
+  z-index: 1;
+}
+
+.bg-ellipse9-right-top {
+  position: absolute;
+  right: 0;
+  top: 3rem;
+  z-index: 1;
+}
+
+.left-bottom-small {
+  position: absolute;
+  bottom: -2rem;
+  left: 0;
+  z-index: 1;
+}
+
+.app-login__form-con-input-con .error-text {
+  margin-bottom: -1rem;
+}
+
+@media screen and (max-width: 425px) {
+  .login-choice-con {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,15 @@
+.book-info-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.car-amount {
+  font-weight: bold;
+  background: rebeccapurple;
+  color: white;
+  border-radius: 50px;
+  text-align: center;
+  padding: 2px 20px;
+  width: fit-content;
+}

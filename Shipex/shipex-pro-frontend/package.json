@@ -1,0 +1,17 @@
+{
+  "name": "shipex-pro-frontend",
+  "version": "1.0.0",
+  "description": "Shipex Pro Logistics Management Frontend",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "serve": "npx http-server -p 8000 -c-1",
+    "dev": "npx browser-sync start --server --files '**/*' --no-open"
+  },
+  "keywords": [
+    "logistics",
+    "shipping",
+    "oasis"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,44 @@
+EmptyJson=JSON file is empty.
+EmptyFile=File is empty.
+HandlebarTemplateNotFound=HandlebarTemplate file not found.
+HandlebarTemplateProcessingError=Error processing HandlebarTemplate file.
+InvalidJsonFile=Invalid JSON file.
+InvalidSolidityFile=Invalid Solidity file.
+FileTooLarge=File is too large.
+
+RpcUrlIsRequired=RPC URL is required.
+RpcUrlMustBeValid=RPC URL must be a valid URL.
+PrivateKeyIsRequired=Private key is required.
+PubKeyIsRequired=Public key is required.
+PrivateKeyMustBeValid=Private key must be at least 64 characters.
+PrivateKeyMustBeValidHex=Private key must be a valid hexadecimal string.
+GasLimitMustBeValid=Gas limit must be at least 21000.
+
+
+InvalidAbiFile=Invalid ABI file.
+EmptyAbi=ABI file is empty.
+InvalidBytecodeFile=Invalid bytecode file.
+EmptyBytecode=Bytecode file is empty.
+NodeProcessNotRun=Node process is not running.
+FailedToStartProcess=Failed to start process.
+FailedToStartNode=Failed to start node.
+EthereumNodeNotRunning=Ethereum node is not running.
+FileNotFound=File not found.
+WorkingDirectoryNotFound=Working directory not found.
+FailedToStartGanache=Failed to start Ganache process.
+GanacheFailed=Ganache failed .
+GanacheSuccessStart=Ganache started successfully .
+StartDeploymentInEthereum=Starting contract deployment.
+ContractSuccessfullyDeployed=Contract successfully deployed .
+ContractFailedDeployed=Contract deployment failed. 
+NotSupportedScGen=Generator this language  is not supported.
+InvalidFormatFile=Invalid format file.
+RequiredAbi=ABI file is required for Solidity contracts.
+MissingAbiFile=Missing ABI file for Solidity contracts.
+
+NotFoundAbi=After compilation, ABI file was not found.
+NotFoundBin=After compilation, Bytecode file was not found.
+ScryptoProjectNotFound=No Scrypto project found (Cargo.toml not found).
+WasmFileNotFound=WASM file not found after successful build.
+FailedToExtractContractAddress=Failed to extract package address from output.
+

@@ -12,7 +12,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 //using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
+// TODO: Fix HoloOASIS - missing holochain-client-csharp dependency (excluded from Docker build)
+//using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
@@ -21,10 +22,13 @@ using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+//using NextGenSoftware.OASIS.API.Providers.RadixOASIS; // TODO: Fix RadixOASIS provider - incomplete implementation
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
+using NextGenSoftware.OASIS.API.Providers.MonadOASIS;
+using NextGenSoftware.OASIS.API.Providers.TONOASIS;
 //using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 //using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
 //using NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
@@ -44,6 +48,10 @@ using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 //using NextGenSoftware.OASIS.API.Providers.MoralisOASIS;
 //using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
+// TODO: Fix StarknetOASIS - has compilation errors due to API changes (HolonType.BridgeTransaction, ProviderManager methods)
+//using NextGenSoftware.OASIS.API.Providers.StarknetOASIS;
+using NextGenSoftware.OASIS.API.Providers.AztecOASIS;
+using NextGenSoftware.OASIS.API.Providers.ZcashOASIS;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Utilities;
 using System.Runtime.InteropServices;
@@ -769,21 +777,22 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 {
                     switch (providerType)
                     {
-                        case ProviderType.HoloOASIS:
-                            {
-                                HoloOASIS holoOASIS = new HoloOASIS(
-                                            overrideConnectionString == null
-                                                ? OASISDNA.OASIS.StorageProviders.HoloOASIS.LocalNodeURI
-                                                : overrideConnectionString, 
-                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNetworkURI, 
-                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.UseLocalNode, 
-                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.UseHoloNetwork, 
-                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNETORMUseReflection);
-
-                                holoOASIS.OnStorageProviderError += HoloOASIS_StorageProviderError;
-                                result.Result = holoOASIS;
-                            }
-                            break;
+                        // TODO: Fix HoloOASIS - missing holochain-client-csharp dependency (excluded from Docker build)
+                        //case ProviderType.HoloOASIS:
+                        //    {
+                        //        HoloOASIS holoOASIS = new HoloOASIS(
+                        //                    overrideConnectionString == null
+                        //                        ? OASISDNA.OASIS.StorageProviders.HoloOASIS.LocalNodeURI
+                        //                        : overrideConnectionString, 
+                        //                    OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNetworkURI, 
+                        //                    OASISDNA.OASIS.StorageProviders.HoloOASIS.UseLocalNode, 
+                        //                    OASISDNA.OASIS.StorageProviders.HoloOASIS.UseHoloNetwork, 
+                        //                    OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNETORMUseReflection);
+                        //
+                        //        holoOASIS.OnStorageProviderError += HoloOASIS_StorageProviderError;
+                        //        result.Result = holoOASIS;
+                        //    }
+                        //    break;
 
                         case ProviderType.SQLLiteDBOASIS:
                             {
@@ -819,6 +828,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 result.Result = solanaOasis;
                             }
                             break;
+
+                        // TODO: Fix RadixOASIS provider - incomplete implementation
+                        //case ProviderType.RadixOASIS:
+                        //    {
+                        //        RadixOASIS radixOASIS = new(
+                        //            OASISDNA.OASIS.StorageProviders.RadixOASIS.HostUri,
+                        //            OASISDNA.OASIS.StorageProviders.RadixOASIS.NetworkId,
+                        //            OASISDNA.OASIS.StorageProviders.RadixOASIS.AccountAddress,
+                        //            OASISDNA.OASIS.StorageProviders.RadixOASIS.PrivateKey);
+                        //        radixOASIS.OnStorageProviderError += RadixOASIS_StorageProviderError;
+                        //        result.Result = radixOASIS;
+                        //    }
+                        //    break;
 
                         case ProviderType.EOSIOOASIS:
                             {
@@ -943,6 +965,54 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     OASISDNA.OASIS.StorageProviders.PolygonOASIS.ContractAddress);
                                 PolygonOASIS.OnStorageProviderError += PolygonOASIS_StorageProviderError;
                                 result.Result = PolygonOASIS;
+                            }
+                            break;
+                        case ProviderType.MonadOASIS:
+                            {
+                                MonadOASIS MonadoOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.MonadOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.MonadOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.MonadOASIS.ContractAddress);
+                                MonadoOASIS.OnStorageProviderError += MonadOASIS_StorageProviderError;
+                                result.Result = MonadoOASIS;
+                            }
+                            break;
+                        case ProviderType.TONOASIS:
+                            {
+                                TONOASIS tonoOASIS = new(
+                                    OASISDNA.OASIS.StorageProviders.TONOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.TONOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.TONOASIS.ContractAddress);
+                                tonoOASIS.OnStorageProviderError += TONOASIS_StorageProviderError;
+                                result.Result = tonoOASIS;
+                            }
+                            break;
+
+                        // TODO: Fix StarknetOASIS compilation errors before enabling
+                        //case ProviderType.StarknetOASIS:
+                        //    {
+                        //        StarknetOASIS starknetOASIS = new StarknetOASIS(
+                        //            OASISDNA.OASIS.StorageProviders.StarknetOASIS?.Network ?? "alpha-goerli",
+                        //            OASISDNA.OASIS.StorageProviders.StarknetOASIS?.ApiBaseUrl ?? "https://alpha4.starknet.io");
+                        //        result.Result = starknetOASIS;
+                        //    }
+                        //    break;
+
+                        case ProviderType.AztecOASIS:
+                            {
+                                // AztecOASIS - using default constructor (will use environment variables or defaults)
+                                // TODO: Add AztecOASIS configuration to OASIS_DNA.json structure
+                                AztecOASIS aztecOASIS = new AztecOASIS();
+                                result.Result = aztecOASIS;
+                            }
+                            break;
+
+                        case ProviderType.ZcashOASIS:
+                            {
+                                // ZcashOASIS - using default constructor (will use environment variables or defaults)
+                                // TODO: Add ZcashOASIS configuration to OASIS_DNA.json structure
+                                ZcashOASIS zcashOASIS = new ZcashOASIS();
+                                result.Result = zcashOASIS;
                             }
                             break;
 
@@ -1378,10 +1448,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("SolanaOASIS", e);
         }
 
-        private static void HoloOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
-        {
-            HandleProviderError("HoloOASIS", e);
-        }
+        // TODO: Fix RadixOASIS provider - incomplete implementation
+        //private static void RadixOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        //{
+        //    HandleProviderError("RadixOASIS", e);
+        //}
+
+        // TODO: Fix HoloOASIS - missing holochain-client-csharp dependency (excluded from Docker build)
+        //private static void HoloOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        //{
+        //    HandleProviderError("HoloOASIS", e);
+        //}
 
         private static void AzureCosmosDBOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
@@ -1411,6 +1488,16 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void PolygonOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("PolygonOASIS", e);
+        }
+
+        private static void MonadOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("MonadOASIS", e);
+        }
+
+        private static void TONOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("TONOASIS", e);
         }
 
         private static void RootstockOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)

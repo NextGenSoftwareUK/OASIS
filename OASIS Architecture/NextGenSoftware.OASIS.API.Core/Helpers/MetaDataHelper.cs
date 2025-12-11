@@ -170,7 +170,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                             }
                             else
                             {
-                                string newValue = CLIEngine.GetValidInput("Enter the new text value (or type 'clear' to remove):", addLineBefore: true);
+                                Console.WriteLine();
+                                string newValue = CLIEngine.GetValidInput("Enter the new text value (or type 'clear' to remove):");
                                 if (newValue.ToLower() == "clear")
                                     metaData.Remove(editKey);
                                 else
@@ -210,7 +211,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                         if (CLIEngine.GetConfirmation($"Are you sure you want to remove metadata '{delKey}'?"))
                         {
                             metaData.Remove(delKey);
-                            CLIEngine.ShowSuccessMessage($"Metadata '{delKey}' removed.", addLineBefore: true);
+                            Console.WriteLine();
+                            CLIEngine.ShowSuccessMessage($"Metadata '{delKey}' removed.", lineSpace: true);
                         }
                         else
                             Console.WriteLine("");

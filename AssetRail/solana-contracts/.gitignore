@@ -1,0 +1,27 @@
+# Anchor
+.anchor
+target/
+node_modules/
+test-ledger/
+.DS_Store
+
+# IDL
+*.so
+*.keypair
+
+# Build
+dist/
+build/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+
+
+
+
+

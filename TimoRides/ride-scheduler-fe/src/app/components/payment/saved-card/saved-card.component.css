@@ -1,0 +1,74 @@
+.payment-card-header {
+  margin-bottom: 5px;
+}
+
+.btn-actions {
+  display: flex;
+  column-gap: 20px;
+  justify-content: flex-start;
+}
+
+.asdf {
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
+.card-basic-info {
+  align-items: flex-start;
+  background-color: #d5ede963;
+  display: flex;
+  margin-bottom: 20px;
+  padding: 16px 8px;
+}
+
+.mdc-button--unelevated,
+.mdc-button {
+  padding: 0;
+}
+
+.btn-flat {
+  color: rgb(8, 104, 207);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.side {
+  align-items: flex-start;
+  column-gap: 10px;
+  display: flex;
+}
+
+.side > img {
+  height: 24px;
+  margin-top: 8px;
+  width: 32px;
+}
+
+.card-completed {
+  height: 18px;
+  margin-left: -40px;
+  margin-top: 18px;
+  width: 18px;
+  z-index: 1;
+}
+
+.security-inner {
+  display: flex;
+}
+
+.img-cover {
+  align-items: center;
+  column-gap: 5px;
+  display: flex;
+  margin-left: 14px;
+  margin-top: 14px;
+}
+
+.card-icon {
+  height: 40px;
+}
+
+.hint {
+  height: fit-content;
+}

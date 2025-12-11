@@ -1,0 +1,13 @@
+<li
+  (click)="selectCard(paymentCard)"
+  class="image"
+  [matTooltip]="paymentCard.cardName"
+  matTooltipHideDelay="100"
+  [ngClass]="{ focused: isSelected }"
+>
+  <img
+    [src]="paymentCard.cardImagepath"
+    [alt]="paymentCard.altName"
+    [id]="paymentCard.cardName"
+  />
+</li>

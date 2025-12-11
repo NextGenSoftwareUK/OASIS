@@ -1,0 +1,208 @@
+.mat-mdc-card-header.card-header {
+  padding: 0 !important;
+}
+
+.payment-page {
+  padding: 16px;
+  height: 60%;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 20px);
+  padding: 100px 3rem 5rem;
+}
+
+.payment {
+  gap: 3rem;
+}
+
+.card-title {
+  text-transform: uppercase;
+}
+
+.payment-container,
+.cash-content {
+  padding: 16px;
+}
+
+.cash-content {
+  margin: auto;
+  max-width: 400px;
+  width: 100%;
+}
+
+.card-content {
+  display: flex;
+  justify-content: center;
+}
+
+.cash-image {
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+.payment-title {
+  margin-bottom: 16px;
+  padding-left: 16px;
+}
+
+.image-list {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0;
+}
+
+.image-list__title {
+  width: 100%;
+}
+
+.image {
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  list-style: none;
+  padding: 2px;
+  text-decoration: none;
+}
+
+.image:not(.focused):hover {
+  border-color: #bfeba3;
+}
+
+.image > img {
+  width: 44px;
+}
+
+.focused {
+  border-color: #4ecc4b;
+}
+
+/* Optional Card Section */
+.optional-container {
+  padding: 0 16px;
+}
+
+.optional-title {
+  font-weight: 500;
+  margin: 0;
+  padding: 16px 0 0;
+}
+
+.terms {
+  color: rgb(2, 108, 223);
+  font-weight: 600;
+}
+
+.terms:hover {
+  color: rgb(1, 80, 167);
+}
+
+.btn-actions {
+  column-gap: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card-header-image {
+  align-items: center;
+  column-gap: 10px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.card-completed {
+  width: 18px;
+}
+
+.mat-mdc-card-content .summary-title {
+  border-bottom: 2px solid grey;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.payment-type-group {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.mat-mdc-card-content {
+  padding: 0 !important;
+  width: 100%;
+
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.mat-mdc-card-content.booking-summary-header {
+  justify-content: space-between;
+}
+
+.mat-mdc-card.mdc-card {
+  justify-content: space-between;
+  height: 100%;
+}
+
+.payment {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+}
+
+.card-container,
+.ride-summary {
+  flex: 1;
+}
+
+.card-container {
+  order: 1;
+}
+
+.mat-mdc-card {
+  box-shadow: none;
+}
+
+.tm__btn-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 1vh 0 8vh;
+  width: 100%;
+  margin: 0;
+}
+
+.payment,
+.tm__btn-actions {
+  margin: auto;
+  max-width: 1200px;
+}
+
+@media screen and (max-width: 1024px) {
+  .payment-page {
+    height: 60%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .payment {
+    flex-direction: column;
+  }
+
+  .payment-page {
+    height: 80%;
+    padding: 100px 1rem 4rem;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .tm__btn-actions {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+  }
+}

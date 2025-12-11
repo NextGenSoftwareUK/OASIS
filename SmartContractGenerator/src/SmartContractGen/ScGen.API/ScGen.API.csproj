@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ScGen.API</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="PuppeteerSharp" Version="20.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScGen.Lib\ScGen.Lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="test-ledger\faucet-keypair.json" />
+    <_ContentIncludedByDefault Remove="test-ledger\stake-account-keypair.json" />
+    <_ContentIncludedByDefault Remove="test-ledger\validator-keypair.json" />
+    <_ContentIncludedByDefault Remove="test-ledger\vote-account-keypair.json" />
+  </ItemGroup>
+
+</Project>

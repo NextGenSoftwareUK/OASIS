@@ -1,0 +1,8 @@
+[package]
+name = "bridge_contract"
+type = "contract"
+authors = ["OASIS"]
+compiler_version = ">=0.25.0"
+
+[dependencies]
+aztec = { git = "https://github.com/AztecProtocol/aztec-packages", tag = "aztec-packages-v0.50.0", directory = "noir-projects/aztec" }
