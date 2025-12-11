@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models
     public class Merchant
     {
         public Guid MerchantId { get; set; }
+        public Guid? AvatarId { get; set; } // OASIS Avatar ID - links merchant to avatar
         public string CompanyName { get; set; }
         public ContactInfo ContactInfo { get; set; }
         public string ApiKeyHash { get; set; } // Hashed API key
