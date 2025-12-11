@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.IShip.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services;
@@ -24,7 +26,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.IShip
         public IShipConnectorService(string baseUrl, ISecretVaultService secretVault, Guid? merchantId = null, ILogger<IShipConnectorService> logger = null)
         {
             _logger = logger;
-            _apiClient = new IShipApiClient(baseUrl, secretVault, merchantId, logger);
+            // IShipApiClient requires ILogger<IShipApiClient>, but we have ILogger<IShipConnectorService>
+            // Since logger is optional, pass null - IShipApiClient will work without it
+            _apiClient = new IShipApiClient(baseUrl, secretVault, merchantId, null);
         }
 
         /// <summary>
@@ -304,8 +308,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.IShip
                 Origin = TransformToIShipAddress(request.Origin),
                 Destination = TransformToIShipAddress(request.Destination),
                 ServiceLevel = request.ServiceLevel,
-                PackageValue = request.PackageValue,
-                SignatureRequired = request.SignatureRequired
+                PackageValue = null, // Optional - can be added to RateRequest if needed
+                SignatureRequired = false // Optional - can be added to RateRequest if needed
             };
         }
 

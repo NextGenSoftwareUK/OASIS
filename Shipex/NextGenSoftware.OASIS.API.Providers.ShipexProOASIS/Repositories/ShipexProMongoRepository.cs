@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 
 namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories
@@ -767,6 +768,74 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error in GetSecretRecordsByMerchantIdAsync method in ShipexProMongoRepository loading SecretRecords. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Webhook Operations
+
+        public async Task<OASISResult<WebhookEvent>> GetWebhookEventAsync(Guid eventId)
+        {
+            OASISResult<WebhookEvent> result = new OASISResult<WebhookEvent>();
+
+            try
+            {
+                FilterDefinition<WebhookEvent> filter = Builders<WebhookEvent>.Filter.Where(x => x.EventId == eventId);
+                result.Result = await _context.WebhookEvents.FindAsync(filter).Result.FirstOrDefaultAsync();
+
+                if (result.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Webhook event with id {eventId} not found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in GetWebhookEventAsync method in ShipexProMongoRepository loading WebhookEvent. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<WebhookEvent>> SaveWebhookEventAsync(WebhookEvent webhookEvent)
+        {
+            OASISResult<WebhookEvent> result = new OASISResult<WebhookEvent>();
+
+            try
+            {
+                if (webhookEvent.EventId == Guid.Empty)
+                {
+                    webhookEvent.EventId = Guid.NewGuid();
+                }
+
+                if (webhookEvent.ReceivedAt == default(DateTime))
+                {
+                    webhookEvent.ReceivedAt = DateTime.UtcNow;
+                }
+
+                // Check if webhook event exists
+                var existingWebhook = await GetWebhookEventAsync(webhookEvent.EventId);
+                
+                if (existingWebhook.Result != null)
+                {
+                    // Update existing webhook event
+                    await _context.WebhookEvents.ReplaceOneAsync(
+                        filter: g => g.EventId == webhookEvent.EventId,
+                        replacement: webhookEvent);
+                }
+                else
+                {
+                    // Insert new webhook event
+                    await _context.WebhookEvents.InsertOneAsync(webhookEvent);
+                }
+
+                result.Result = webhookEvent;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in SaveWebhookEventAsync method in ShipexProMongoRepository saving WebhookEvent. Reason: {ex}");
             }
 
             return result;

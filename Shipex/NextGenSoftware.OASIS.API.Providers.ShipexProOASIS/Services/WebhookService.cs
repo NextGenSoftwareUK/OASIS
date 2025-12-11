@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories;
-using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services;
 
@@ -15,8 +17,6 @@ public class WebhookService : IWebhookService
 {
     private readonly IShipexProRepository _repository;
     private readonly WebhookSecurityService _securityService;
-    private readonly string _iShipWebhookSecret;
-    private readonly string _shipoxWebhookSecret;
 
     // These services would be injected from Agent E's work
     // For now, we'll use interfaces that can be implemented later
@@ -25,14 +25,10 @@ public class WebhookService : IWebhookService
 
     public WebhookService(
         IShipexProRepository repository,
-        WebhookSecurityService securityService,
-        string iShipWebhookSecret,
-        string shipoxWebhookSecret)
+        WebhookSecurityService securityService)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _securityService = securityService ?? throw new ArgumentNullException(nameof(securityService));
-        _iShipWebhookSecret = iShipWebhookSecret ?? throw new ArgumentNullException(nameof(iShipWebhookSecret));
-        _shipoxWebhookSecret = shipoxWebhookSecret ?? throw new ArgumentNullException(nameof(shipoxWebhookSecret));
     }
 
     /// <summary>
@@ -92,7 +88,8 @@ public class WebhookService : IWebhookService
         }
 
         // 2. Verify signature
-        if (!_securityService.VerifyIShipSignature(payload, signature, _iShipWebhookSecret))
+        var signatureResult = await _securityService.VerifyIShipSignatureAsync(payload, signature);
+        if (signatureResult.IsError || !signatureResult.Result)
         {
             return new OASISResult<bool>
             {
@@ -155,7 +152,8 @@ public class WebhookService : IWebhookService
         }
 
         // 2. Verify signature
-        if (!_securityService.VerifyShipoxSignature(payload, signature, _shipoxWebhookSecret))
+        var signatureResult = await _securityService.VerifyShipoxSignatureAsync(payload, signature);
+        if (signatureResult.IsError || !signatureResult.Result)
         {
             return new OASISResult<bool>
             {
@@ -320,6 +318,76 @@ public class WebhookService : IWebhookService
             {
                 IsError = true,
                 Message = $"Failed to process shipped event: {ex.Message}",
+                Exception = ex
+            };
+        }
+    }
+
+    /// <summary>
+    /// Retry processing a failed webhook event.
+    /// </summary>
+    public async Task<OASISResult<bool>> RetryFailedWebhookAsync(Guid webhookEventId)
+    {
+        try
+        {
+            var webhookResult = await _repository.GetWebhookEventAsync(webhookEventId);
+            if (webhookResult.IsError || webhookResult.Result == null)
+            {
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Webhook event {webhookEventId} not found"
+                };
+            }
+
+            var webhook = webhookResult.Result;
+            webhook.ProcessingStatus = "Retrying";
+            webhook.ErrorMessage = null;
+            await _repository.SaveWebhookEventAsync(webhook);
+
+            return await ProcessWebhookAsync(webhook);
+        }
+        catch (Exception ex)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = $"Failed to retry webhook: {ex.Message}",
+                Exception = ex
+            };
+        }
+    }
+
+    /// <summary>
+    /// Verify webhook signature for security.
+    /// </summary>
+    public async Task<OASISResult<bool>> VerifyWebhookSignatureAsync(WebhookEvent webhook, string signature, string secret)
+    {
+        try
+        {
+            if (webhook.Source == "iShip")
+            {
+                var result = await _securityService.VerifyIShipSignatureAsync(webhook.Payload, signature);
+                return result;
+            }
+            else if (webhook.Source == "Shipox")
+            {
+                var result = await _securityService.VerifyShipoxSignatureAsync(webhook.Payload, signature);
+                return result;
+            }
+
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = $"Unknown webhook source: {webhook.Source}"
+            };
+        }
+        catch (Exception ex)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = $"Failed to verify signature: {ex.Message}",
                 Exception = ex
             };
         }

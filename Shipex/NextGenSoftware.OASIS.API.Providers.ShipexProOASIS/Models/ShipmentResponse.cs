@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 
 /// <summary>
