@@ -10,5 +10,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests
         public Guid Web3TokenId { get; set; }
         //public string MintWalletAddress { get; set; }
         public string TokenAddress { get; set; }
+        public string OwnerPublicKey { get; init; }
+        public string OwnerPrivateKey { get; init; }
+        public string OwnerSeedPhrase { get; init; }
     }
 }
