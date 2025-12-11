@@ -1,6 +1,12 @@
+using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -50,14 +56,18 @@ public class MerchantAuthMiddleware
             else
             {
                 context.Response.StatusCode = 401;
-                await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
+                context.Response.ContentType = "application/json";
+                var json = JsonSerializer.Serialize(new { error = "Unauthorized" });
+                await context.Response.WriteAsync(json);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in authentication middleware");
             context.Response.StatusCode = 500;
-            await context.Response.WriteAsJsonAsync(new { error = "Internal server error" });
+            context.Response.ContentType = "application/json";
+            var json = JsonSerializer.Serialize(new { error = "Internal server error" });
+            await context.Response.WriteAsync(json);
         }
     }
 
@@ -98,7 +108,7 @@ public class MerchantAuthMiddleware
 
     private string? ExtractTokenFromHeader(HttpRequest request)
     {
-        var authHeader = request.Headers["Authorization"].FirstOrDefault();
+        var authHeader = request.Headers["Authorization"].ToString();
         if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
         {
             return null;
@@ -110,14 +120,14 @@ public class MerchantAuthMiddleware
     private string? ExtractApiKeyFromHeader(HttpRequest request)
     {
         // Check X-API-Key header
-        var apiKey = request.Headers["X-API-Key"].FirstOrDefault();
+        var apiKey = request.Headers["X-API-Key"].ToString();
         if (!string.IsNullOrEmpty(apiKey))
         {
             return apiKey;
         }
 
         // Check Authorization header with ApiKey scheme
-        var authHeader = request.Headers["Authorization"].FirstOrDefault();
+        var authHeader = request.Headers["Authorization"].ToString();
         if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("ApiKey "))
         {
             return authHeader.Substring("ApiKey ".Length).Trim();

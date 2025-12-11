@@ -5,9 +5,11 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services;
 
 namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.IShip
 {
@@ -198,7 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.IShip
         /// <summary>
         /// GET request helper.
         /// </summary>
-        protected Task<OASISResult<T>> GetAsync<T>(string endpoint, CancellationToken cancellationToken = default)
+        public Task<OASISResult<T>> GetAsync<T>(string endpoint, CancellationToken cancellationToken = default)
         {
             return ExecuteRequestAsync<T>(HttpMethod.Get, endpoint, null, cancellationToken);
         }
@@ -206,7 +208,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.IShip
         /// <summary>
         /// POST request helper.
         /// </summary>
-        protected Task<OASISResult<T>> PostAsync<T>(string endpoint, object request, CancellationToken cancellationToken = default)
+        public Task<OASISResult<T>> PostAsync<T>(string endpoint, object request, CancellationToken cancellationToken = default)
         {
             return ExecuteRequestAsync<T>(HttpMethod.Post, endpoint, request, cancellationToken);
         }

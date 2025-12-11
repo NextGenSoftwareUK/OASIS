@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.IShip;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories;
@@ -68,8 +69,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services
                 foreach (var carrierRate in carrierRatesResult.Result)
                 {
                     var markup = _markupEngine.SelectMarkup(markups, carrierRate.Carrier, request.MerchantId);
-                    var quote = _markupEngine.ApplyMarkup(carrierRate, markup);
-                    quotes.Add(quote);
+                    var clientQuote = _markupEngine.ApplyMarkup(carrierRate, markup);
+                    quotes.Add(clientQuote);
                 }
             
                 // 4. Store quote in database

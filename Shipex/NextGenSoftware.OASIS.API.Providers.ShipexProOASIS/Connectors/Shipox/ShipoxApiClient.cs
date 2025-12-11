@@ -5,7 +5,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.Shipox.Models;
+using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services;
 
 namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.Shipox;

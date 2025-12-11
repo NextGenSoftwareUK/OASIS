@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 
 namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services
@@ -17,6 +18,24 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services
         /// <param name="webhook">Webhook event data</param>
         /// <returns>True if processing was successful</returns>
         Task<OASISResult<bool>> ProcessWebhookAsync(WebhookEvent webhook);
+
+        /// <summary>
+        /// Process an iShip webhook from raw payload.
+        /// </summary>
+        /// <param name="payload">Raw webhook payload</param>
+        /// <param name="signature">Webhook signature for verification</param>
+        /// <param name="sourceIP">Source IP address</param>
+        /// <returns>True if processing was successful</returns>
+        Task<OASISResult<bool>> ProcessIShipWebhookAsync(string payload, string signature, string sourceIP);
+
+        /// <summary>
+        /// Process a Shipox webhook from raw payload.
+        /// </summary>
+        /// <param name="payload">Raw webhook payload</param>
+        /// <param name="signature">Webhook signature for verification</param>
+        /// <param name="sourceIP">Source IP address</param>
+        /// <returns>True if processing was successful</returns>
+        Task<OASISResult<bool>> ProcessShipoxWebhookAsync(string payload, string signature, string sourceIP);
 
         /// <summary>
         /// Retry processing a failed webhook event.

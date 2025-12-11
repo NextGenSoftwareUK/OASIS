@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services;
 

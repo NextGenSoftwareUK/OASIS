@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services;
 
@@ -35,7 +39,7 @@ public class ShipexProShipoxController : ControllerBase
     /// POST /api/shipexpro/shipox/quote-request
     /// </summary>
     [HttpPost("quote-request")]
-    [ProducesResponseType(typeof(OASISResult<QuoteResponse>), 200)]
+    [ProducesResponseType(typeof(OASISResult<Models.QuoteResponse>), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(401)]
     public async Task<IActionResult> RequestQuote([FromBody] RateRequest request)
@@ -46,7 +50,7 @@ public class ShipexProShipoxController : ControllerBase
 
             if (request == null)
             {
-                return BadRequest(new OASISResult<QuoteResponse>
+                return BadRequest(new OASISResult<Models.QuoteResponse>
                 {
                     IsError = true,
                     Message = "Request body is required"
@@ -56,7 +60,7 @@ public class ShipexProShipoxController : ControllerBase
             // Validate request
             if (request.MerchantId == Guid.Empty)
             {
-                return BadRequest(new OASISResult<QuoteResponse>
+                return BadRequest(new OASISResult<Models.QuoteResponse>
                 {
                     IsError = true,
                     Message = "MerchantId is required"
@@ -77,7 +81,7 @@ public class ShipexProShipoxController : ControllerBase
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Exception in quote request");
-            return StatusCode(500, new OASISResult<QuoteResponse>
+            return StatusCode(500, new OASISResult<Models.QuoteResponse>
             {
                 IsError = true,
                 Message = $"Internal server error: {ex.Message}",
@@ -91,7 +95,7 @@ public class ShipexProShipoxController : ControllerBase
     /// POST /api/shipexpro/shipox/confirm-shipment
     /// </summary>
     [HttpPost("confirm-shipment")]
-    [ProducesResponseType(typeof(OASISResult<ShipmentResponse>), 200)]
+    [ProducesResponseType(typeof(OASISResult<Models.ShipmentResponse>), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(401)]
     public async Task<IActionResult> ConfirmShipment([FromBody] OrderRequest request)
@@ -102,7 +106,7 @@ public class ShipexProShipoxController : ControllerBase
 
             if (request == null)
             {
-                return BadRequest(new OASISResult<ShipmentResponse>
+                return BadRequest(new OASISResult<Models.ShipmentResponse>
                 {
                     IsError = true,
                     Message = "Request body is required"
@@ -112,7 +116,7 @@ public class ShipexProShipoxController : ControllerBase
             // Validate request
             if (request.QuoteId == Guid.Empty)
             {
-                return BadRequest(new OASISResult<ShipmentResponse>
+                return BadRequest(new OASISResult<Models.ShipmentResponse>
                 {
                     IsError = true,
                     Message = "QuoteId is required"
@@ -121,7 +125,7 @@ public class ShipexProShipoxController : ControllerBase
 
             if (string.IsNullOrWhiteSpace(request.SelectedCarrier))
             {
-                return BadRequest(new OASISResult<ShipmentResponse>
+                return BadRequest(new OASISResult<Models.ShipmentResponse>
                 {
                     IsError = true,
                     Message = "SelectedCarrier is required"
@@ -129,7 +133,14 @@ public class ShipexProShipoxController : ControllerBase
             }
 
             // Create shipment (reuses ShipmentService from Agent E)
-            var result = await _shipmentService.CreateShipmentAsync(request);
+            // Convert OrderRequest to CreateShipmentRequest
+            var createRequest = new Services.CreateShipmentRequest
+            {
+                QuoteId = request.QuoteId,
+                SelectedCarrier = request.SelectedCarrier,
+                CustomerInfo = request.CustomerInfo
+            };
+            var result = await _shipmentService.CreateShipmentAsync(createRequest);
 
             if (result.IsError)
             {
@@ -142,7 +153,7 @@ public class ShipexProShipoxController : ControllerBase
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Exception in shipment confirmation");
-            return StatusCode(500, new OASISResult<ShipmentResponse>
+            return StatusCode(500, new OASISResult<Models.ShipmentResponse>
             {
                 IsError = true,
                 Message = $"Internal server error: {ex.Message}",
@@ -156,7 +167,7 @@ public class ShipexProShipoxController : ControllerBase
     /// GET /api/shipexpro/shipox/track/{trackingNumber}
     /// </summary>
     [HttpGet("track/{trackingNumber}")]
-    [ProducesResponseType(typeof(OASISResult<TrackingResponse>), 200)]
+    [ProducesResponseType(typeof(OASISResult<Models.TrackingResponse>), 200)]
     [ProducesResponseType(404)]
     public async Task<IActionResult> TrackShipment(string trackingNumber)
     {
@@ -166,7 +177,7 @@ public class ShipexProShipoxController : ControllerBase
 
             if (string.IsNullOrWhiteSpace(trackingNumber))
             {
-                return BadRequest(new OASISResult<TrackingResponse>
+                return BadRequest(new OASISResult<Models.TrackingResponse>
                 {
                     IsError = true,
                     Message = "Tracking number is required"
@@ -174,7 +185,39 @@ public class ShipexProShipoxController : ControllerBase
             }
 
             // Get tracking information (reuses ShipmentService from Agent E)
-            var result = await _shipmentService.GetTrackingAsync(trackingNumber);
+            var shipmentResult = await _shipmentService.GetShipmentByTrackingNumberAsync(trackingNumber);
+            
+            if (shipmentResult.IsError || shipmentResult.Result == null)
+            {
+                var notFoundResult = new OASISResult<Models.TrackingResponse>
+                {
+                    IsError = true,
+                    Message = shipmentResult.Message ?? "Tracking information not found"
+                };
+                return NotFound(notFoundResult);
+            }
+            
+            // Convert Shipment to TrackingResponse
+            var shipment = shipmentResult.Result;
+            var trackingResponse = new Models.TrackingResponse
+            {
+                TrackingNumber = shipment.TrackingNumber ?? trackingNumber,
+                Status = shipment.Status.ToString(),
+                CurrentLocation = null, // Can be populated from carrier API if needed
+                EstimatedDelivery = null, // Can be populated from carrier API if needed
+                History = shipment.StatusHistory?.Select(h => new Models.TrackingHistoryItem
+                {
+                    Status = h.Status.ToString(),
+                    Timestamp = h.Timestamp,
+                    Location = h.Source,
+                    Description = $"Status changed to {h.Status}"
+                }).ToList() ?? new List<Models.TrackingHistoryItem>()
+            };
+            
+            var result = new OASISResult<Models.TrackingResponse>
+            {
+                Result = trackingResponse
+            };
 
             if (result.IsError)
             {
@@ -191,7 +234,7 @@ public class ShipexProShipoxController : ControllerBase
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Exception in tracking request");
-            return StatusCode(500, new OASISResult<TrackingResponse>
+            return StatusCode(500, new OASISResult<Models.TrackingResponse>
             {
                 IsError = true,
                 Message = $"Internal server error: {ex.Message}",

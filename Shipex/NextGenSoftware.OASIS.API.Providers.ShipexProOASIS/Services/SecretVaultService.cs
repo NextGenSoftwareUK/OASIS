@@ -2,6 +2,8 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories;
 

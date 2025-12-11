@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 
 namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories;
@@ -49,4 +53,8 @@ public interface IShipexProRepository
     Task<OASISResult<SecretRecord>> SaveSecretRecordAsync(SecretRecord secretRecord);
     Task<OASISResult<bool>> DeleteSecretRecordAsync(string key);
     Task<OASISResult<List<SecretRecord>>> GetSecretRecordsByMerchantIdAsync(Guid merchantId);
+    
+    // Webhook operations
+    Task<OASISResult<WebhookEvent>> GetWebhookEventAsync(Guid eventId);
+    Task<OASISResult<WebhookEvent>> SaveWebhookEventAsync(WebhookEvent webhookEvent);
 }
