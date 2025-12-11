@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.QuickBooks;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Connectors.QuickBooks.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
@@ -297,7 +298,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services
                 // Create new customer
                 var customer = new QuickBooksCustomer
                 {
-                    DisplayName = merchant.CompanyName ?? merchant.ContactInfo?.Name ?? "Merchant",
+                    DisplayName = merchant.CompanyName ?? "Merchant",
                     CompanyName = merchant.CompanyName,
                     Email = email
                 };

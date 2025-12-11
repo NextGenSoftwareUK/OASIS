@@ -20,14 +20,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models
         public DateTime UpdatedAt { get; set; }
     }
 
-    /// <summary>
-    /// Markup type enumeration
-    /// </summary>
-    public enum MarkupType
-    {
-        Fixed,        // Add fixed amount
-        Percentage    // Add percentage of base rate
-    }
 }
 
 

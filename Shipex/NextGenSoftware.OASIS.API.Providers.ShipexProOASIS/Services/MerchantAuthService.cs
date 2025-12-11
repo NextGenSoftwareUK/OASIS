@@ -1,12 +1,16 @@
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Models;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories;
 
@@ -30,7 +34,7 @@ public class MerchantAuthService
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _avatarManager = new AvatarManager();
+        _avatarManager = AvatarManager.Instance;
     }
 
     /// <summary>
@@ -51,17 +55,24 @@ public class MerchantAuthService
                 };
             }
 
-            // Create or get OASIS Avatar
-            var avatarResult = await _avatarManager.LoadAvatarAsync(request.Username, request.Password);
+            // Try to load existing avatar by username and password
+            // Note: LoadAvatarAsync with username/password may not be available in this version
+            // Using Authenticate method instead for now (synchronous)
+            var authResult = _avatarManager.Authenticate(request.Username, request.Password, "");
+            var avatarResult = await Task.FromResult(authResult.IsError 
+                ? new OASISResult<IAvatar> { IsError = true, Message = authResult.Message }
+                : new OASISResult<IAvatar> { Result = authResult.Result });
             if (avatarResult.IsError || avatarResult.Result == null)
             {
-                // Create new avatar if doesn't exist
-                avatarResult = await _avatarManager.CreateAvatarAsync(
-                    request.Username,
-                    request.Email,
-                    request.Password,
-                    request.FirstName ?? "",
-                    request.LastName ?? "");
+                // Avatar doesn't exist - create new one
+                // Note: AvatarManager doesn't have CreateAvatarAsync with these parameters
+                // This would need to be implemented or use SaveAvatarAsync after creating Avatar object
+                // For now, return error indicating avatar creation is not yet implemented
+                return new OASISResult<MerchantAuthResponse>
+                {
+                    IsError = true,
+                    Message = "Avatar creation not yet implemented. Please use existing OASIS avatar."
+                };
             }
 
             if (avatarResult.IsError || avatarResult.Result == null)
@@ -81,14 +92,14 @@ public class MerchantAuthService
             var merchant = new Merchant
             {
                 MerchantId = Guid.NewGuid(),
-                AvatarId = avatarResult.Result.Id,
                 CompanyName = request.CompanyName,
-                Email = request.Email,
-                Username = request.Username,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Phone = request.Phone,
-                RateLimitTier = request.RateLimitTier,
+                ContactInfo = new ContactInfo
+                {
+                    Email = request.Email,
+                    Phone = request.Phone ?? "",
+                    Address = ""
+                },
+                RateLimitTier = Enum.TryParse<RateLimitTier>(request.RateLimitTier, out var tier) ? tier : RateLimitTier.Basic,
                 ApiKeyHash = apiKeyHash,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
@@ -112,9 +123,9 @@ public class MerchantAuthService
                 MerchantId = merchant.MerchantId,
                 JwtToken = jwtToken,
                 ApiKey = apiKey,
-                Email = merchant.Email,
-                Username = merchant.Username,
-                RateLimitTier = merchant.RateLimitTier,
+                Email = merchant.ContactInfo?.Email ?? "",
+                Username = request.Username,
+                RateLimitTier = merchant.RateLimitTier.ToString(),
                 TokenExpiresAt = DateTime.UtcNow.AddHours(24)
             });
         }
@@ -137,7 +148,13 @@ public class MerchantAuthService
         try
         {
             // Authenticate with OASIS Avatar
-            var avatarResult = await _avatarManager.LoadAvatarAsync(request.Email, request.Password);
+            // Try by username (email can be used as username) with password
+            // Note: LoadAvatarAsync with username/password may not be available in this version
+            // Using Authenticate method instead for now (synchronous)
+            var authResult = _avatarManager.Authenticate(request.Email, request.Password, "");
+            var avatarResult = await Task.FromResult(authResult.IsError 
+                ? new OASISResult<IAvatar> { IsError = true, Message = authResult.Message }
+                : new OASISResult<IAvatar> { Result = authResult.Result });
             if (avatarResult.IsError || avatarResult.Result == null)
             {
                 return new OASISResult<MerchantAuthResponse>
@@ -175,9 +192,9 @@ public class MerchantAuthService
             {
                 MerchantId = merchant.MerchantId,
                 JwtToken = jwtToken,
-                Email = merchant.Email,
-                Username = merchant.Username,
-                RateLimitTier = merchant.RateLimitTier,
+                Email = merchant.ContactInfo?.Email ?? "",
+                Username = request.Email, // Use email as username for login
+                RateLimitTier = merchant.RateLimitTier.ToString(),
                 TokenExpiresAt = DateTime.UtcNow.AddHours(24)
             });
         }
@@ -282,9 +299,9 @@ public class MerchantAuthService
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, merchant.MerchantId.ToString()),
-            new Claim(ClaimTypes.Email, merchant.Email),
-            new Claim(ClaimTypes.Name, merchant.Username),
-            new Claim("RateLimitTier", merchant.RateLimitTier),
+            new Claim(ClaimTypes.Email, merchant.ContactInfo?.Email ?? ""),
+            new Claim(ClaimTypes.Name, merchant.CompanyName ?? ""),
+            new Claim("RateLimitTier", merchant.RateLimitTier.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 

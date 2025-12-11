@@ -1,3 +1,9 @@
+using System;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories;
 using NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Services;
@@ -51,7 +57,7 @@ public class RateLimitMiddleware
             }
 
             var tier = merchantResult.Result.RateLimitTier;
-            var rateLimitStatus = _rateLimitService.CheckRateLimit(merchantId, tier);
+            var rateLimitStatus = _rateLimitService.CheckRateLimit(merchantId, tier.ToString());
 
             // Add rate limit headers
             context.Response.Headers["X-RateLimit-Limit"] = rateLimitStatus.Limit.ToString();
@@ -64,12 +70,14 @@ public class RateLimitMiddleware
             {
                 _logger.LogWarning("Rate limit exceeded for merchant {MerchantId} (Tier: {Tier})", merchantId, tier);
                 context.Response.StatusCode = 429;
-                await context.Response.WriteAsJsonAsync(new
+                context.Response.ContentType = "application/json";
+                var json = JsonSerializer.Serialize(new
                 {
                     error = "Rate limit exceeded",
                     limit = rateLimitStatus.Limit,
                     resetAt = rateLimitStatus.ResetAt
                 });
+                await context.Response.WriteAsync(json);
                 return;
             }
 
