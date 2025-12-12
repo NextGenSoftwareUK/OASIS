@@ -158,7 +158,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             request.MemoText = CLIEngine.GetValidInput("What is the memo text for this transaction?");
 
             CLIEngine.ShowWorkingMessage("Sending Token..");
-            result = await STAR.OASISAPI.Wallets.SendTokenAsync(request);
+            result = await STAR.OASISAPI.Wallets.SendTokenAsync(STAR.BeamedInAvatar.Id, request);
 
             if (result != null && result.Result != null && !result.IsError)
                 CLIEngine.ShowSuccessMessage("Token Successfully Sent", addLineBefore: true);

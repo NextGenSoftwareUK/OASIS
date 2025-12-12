@@ -8,9 +8,9 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public Guid BurntByAvatarId { get; set; }
         public Guid Web3NFTId { get; set; }
         //public string MintWalletAddress { get; set; }
-        public required string OwnerPublicKey { get; init; }
-        public required string OwnerPrivateKey { get; init; }
-        public required string OwnerSeedPhrase { get; init; }
+        public required string OwnerPublicKey { get; init; } //TODO: Not sure if we need these?
+        public required string OwnerPrivateKey { get; init; } //TODO: Not sure if we need these?
+        public required string OwnerSeedPhrase { get; init; } //TODO: Not sure if we need these?
         public string NFTTokenAddress { get; set; }
         public bool WaitTillNFTBurnt { get; set; }
         public int WaitForNFTToBurnInSeconds { get; set; }
