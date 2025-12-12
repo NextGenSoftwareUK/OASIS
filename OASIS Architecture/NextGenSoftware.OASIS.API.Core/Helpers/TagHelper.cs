@@ -26,7 +26,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 foreach (string tag in tags)
                     tagsString = string.Concat(tagsString, tag, ", ");
 
-                tagsString = tagsString.Substring(0, tagsString.Length - 2);
+                if (tagsString.Length > 2)
+                    tagsString = tagsString.Substring(0, tagsString.Length - 2);
             
             }
 

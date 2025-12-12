@@ -1,35 +1,36 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Ipfs;
 using Newtonsoft.Json;
-using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -124,9 +125,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //    });
         //}
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
+        public async Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(Guid avatarId, ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
-            OASISResult<IWeb3NFTTransactionResponse> result = new OASISResult<IWeb3NFTTransactionResponse>();
+            OASISResult<ISendWeb4NFTResponse> result = new OASISResult<ISendWeb4NFTResponse>();
             string errorMessage = "Error occured in SendNFTAsync in NFTManager. Reason:";
 
             try
@@ -140,13 +141,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                     do
                     {
-                        result = await nftProviderResult.Result.SendNFTAsync(request);
+                        OASISResult<IWeb3NFTTransactionResponse> sendResult = await nftProviderResult.Result.SendNFTAsync(request);
 
-                        if (result != null && result.Result != null && !result.IsError)
+                        if (sendResult != null && sendResult.Result != null && !sendResult.IsError)
                         {
                             attemptingToSend = false;
-                            result.Result.Web3NFT.SendNFTTransactionHash = result.Result.TransactionResult;
-                            result.Message = FormatSuccessMessage(request, result, responseFormatType);
+                            sendResult.Result.Web3NFT.SendNFTTransactionHash = sendResult.Result.TransactionResult;
+                            result.Message = FormatSuccessMessage(request, sendResult, responseFormatType);
                             break;
                         }
                         else if (!request.WaitTillNFTSent)
@@ -181,9 +182,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
+        public OASISResult<ISendWeb4NFTResponse> SendNFT(Guid avatarId, ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
-            OASISResult<IWeb3NFTTransactionResponse> result = new OASISResult<IWeb3NFTTransactionResponse>();
+            OASISResult<ISendWeb4NFTResponse> result = new OASISResult<ISendWeb4NFTResponse>();
             string errorMessage = "Error occured in SendNFT in NFTManager. Reason:";
 
             try
@@ -197,12 +198,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                     do
                     {
-                        result = nftProviderResult.Result.SendNFT(request);
+                        OASISResult<IWeb3NFTTransactionResponse> sendResult = nftProviderResult.Result.SendNFT(request);
 
-                        if (result != null && result.Result != null && !result.IsError)
+                        if (sendResult != null && sendResult.Result != null && !sendResult.IsError)
                         {
                             attemptingToSend = false;
-                            result.Result.Web3NFT.SendNFTTransactionHash = result.Result.TransactionResult;
+                            sendResult.Result.Web3NFT.SendNFTTransactionHash = sendResult.Result.TransactionResult;
                             //result.Message = FormatSuccessMessage(request, result, responseFormatType);
                             break;
                         }
@@ -2156,7 +2157,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (burnWeb3NFT)
                 {
-                    OASISResult<IWeb3NFTTransactionResponse> burnResult = await BurnWeb3NFTAsync(avatarId, new BurnWeb3NFTRequest() { Web3NFTId = id }, providerType);
+                    OASISResult<IWeb3NFTTransactionResponse> burnResult = await BurnWeb3NFTAsync(avatarId, new BurnWeb3NFTRequest() 
+                    { 
+                        Web3NFTId = id, 
+                        OwnerPrivateKey = "", 
+                        OwnerPublicKey = "", 
+                        OwnerSeedPhrase = "" }, providerType);
 
                     if (!(burnResult != null && burnResult.Result != null && !burnResult.IsError))
                         OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured burning Web3 NFT with id {id}. Reason: {burnResult?.Message}");

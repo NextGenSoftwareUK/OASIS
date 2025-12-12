@@ -452,7 +452,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation($"Do you wish to edit the on-chain provider for this WEB3 Request? (It currently inherits '{request.OnChainProvider.Name}' from its parent WEB4 NFT.)"))
             {
-                object onChainProviderObj = CLIEngine.GetValidInputForEnum("What on-chain provider do you wish to mint on?", typeof(ProviderType));
+                object onChainProviderObj = CLIEngine.GetValidInputForEnum("What on-chain provider do you wish to mint on?", typeof(ProviderType), addLineBefore: true);
                 web3Request.OnChainProvider = (ProviderType)onChainProviderObj;
             }
             else
@@ -460,7 +460,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation($"Do you wish to edit whether the NFT metadata is stored on-chain or off-chain? (It currently inherits '{request.StoreNFTMetaDataOnChain}' from its parent WEB4 NFT. True is store on-chain, False is off-chain.)"))
             {
-                web3Request.StoreNFTMetaDataOnChain = CLIEngine.GetConfirmation("Do you wish to store the NFT metadata on-chain or off-chain? (Press Y for on-chain or N for off-chain)");
+                web3Request.StoreNFTMetaDataOnChain = CLIEngine.GetConfirmation("Do you wish to store the NFT metadata on-chain or off-chain? (Press Y for on-chain or N for off-chain)", addLineBefore: true);
                 Console.WriteLine("");
             }
             else
@@ -473,7 +473,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the offchain metadata type for this WEB3 Request? (It currently inherits '{request.NFTOffChainMetaType.Name}' from its parent WEB4 NFT.)"))
                 {
-                    object offChainMetaDataTypeObj = CLIEngine.GetValidInputForEnum("How do you wish to store the offchain meta data/image? OASIS, IPFS, Pinata or External JSON URI (for the last option you will need to generate the meta data yourself and host somewhere like Pinata and then enter the URI, for the first three options the metadata will be generated automatically)? If you choose OASIS, it will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive. If you choose OASIS and then IPFSOASIS for the next question for the OASIS Provider it will store it on IPFS via The OASIS and then benefit from the OASIS HyperDrive feature to provide more reliable service and up-time etc. If you choose IPFS or Pinata for this question then it will store it directly on IPFS/Pinata without any additional benefits of The OASIS.", typeof(NFTOffChainMetaType));
+                    object offChainMetaDataTypeObj = CLIEngine.GetValidInputForEnum("How do you wish to store the offchain meta data/image? OASIS, IPFS, Pinata or External JSON URI (for the last option you will need to generate the meta data yourself and host somewhere like Pinata and then enter the URI, for the first three options the metadata will be generated automatically)? If you choose OASIS, it will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive. If you choose OASIS and then IPFSOASIS for the next question for the OASIS Provider it will store it on IPFS via The OASIS and then benefit from the OASIS HyperDrive feature to provide more reliable service and up-time etc. If you choose IPFS or Pinata for this question then it will store it directly on IPFS/Pinata without any additional benefits of The OASIS.", typeof(NFTOffChainMetaType), addLineBefore: true);
                     web3Request.NFTOffChainMetaType = (NFTOffChainMetaType)offChainMetaDataTypeObj;
                 }
                 else
@@ -484,7 +484,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the off-chain provider for this WEB3 Request? (It currently inherits '{request.OffChainProvider.Name}' from its parent WEB4 NFT.)"))
                 {
-                    object offChainProviderObj = CLIEngine.GetValidInputForEnum("What off-chain provider do you wish to mint on?", typeof(ProviderType));
+                    object offChainProviderObj = CLIEngine.GetValidInputForEnum("What off-chain provider do you wish to mint on?", typeof(ProviderType), addLineBefore: true);
                     web3Request.OffChainProvider = (ProviderType)offChainProviderObj;
                 }
                 else
@@ -492,7 +492,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (web3Request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJSONURL && CLIEngine.GetConfirmation($"Do you wish to edit the JSON metadata URI for this WEB3 Request? (It currently inherits '{request.JSONMetaDataURL}' from its parent WEB4 NFT.)"))
                 {
-                    Uri uriResult = await CLIEngine.GetValidURIAsync("What is the URI to the JSON meta data you have created for this NFT?");
+                    Uri uriResult = await CLIEngine.GetValidURIAsync("What is the URI to the JSON meta data you have created for this NFT?", addLineBefore: true);
                     web3Request.JSONMetaDataURL = uriResult.AbsoluteUri;
                 }
                 else
@@ -502,7 +502,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             // NFT standard
             if (CLIEngine.GetConfirmation($"Do you wish to edit the NFT standard for this WEB3 Request? (It currently inherits '{request.NFTStandardType?.Name}')"))
             {
-                object nftStandardObj = CLIEngine.GetValidInputForEnum("What NFT standard do you wish to use? ERC721, ERC1155 or SPL?", typeof(NFTStandardType));
+                object nftStandardObj = CLIEngine.GetValidInputForEnum("What NFT standard do you wish to use? ERC721, ERC1155 or SPL?", typeof(NFTStandardType), addLineBefore: true);
                 web3Request.NFTStandardType = (NFTStandardType)nftStandardObj;
             }
             else
@@ -534,7 +534,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             // Tags
             if (CLIEngine.GetConfirmation($"Do you wish to edit the Tags for this WEB3 Request? (It currently inherits '{(request.Tags != null ? string.Join(", ", request.Tags) : "none")}')"))
             {
-                web3Request.Tags = request.Tags;
+                web3Request.Tags = request.Tags != null ? new List<string>(request.Tags) : new List<string>();
                 web3Request.Tags = TagHelper.ManageTags(web3Request.Tags);
             }
             else
@@ -543,7 +543,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             // MetaData
             if (CLIEngine.GetConfirmation($"Do you wish to edit the MetaData for this WEB3 Request? (It currently inherits from the parent WEB4 NFT)"))
             {
-                web3Request.MetaData = request.MetaData;
+                web3Request.MetaData = request.MetaData != null ? new Dictionary<string, object>(request.MetaData) : new Dictionary<string, object>();
                 web3Request.MetaData = MetaDataHelper.ManageMetaData(web3Request.MetaData, "WEB3 NFT");
             }
             else
@@ -551,7 +551,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             // Number to mint for this web3 request
             if (CLIEngine.GetConfirmation($"Do you wish to change the number of tokens to mint for this WEB3 Request? Defaults to 1."))
-                web3Request.NumberToMint = CLIEngine.GetValidInputForInt("How many of this WEB3 NFT should be minted?", true, 1, int.MaxValue);
+                web3Request.NumberToMint = CLIEngine.GetValidInputForInt("How many of this WEB3 NFT should be minted?", true, 1, int.MaxValue, addLineBefore: true);
             else
             {
                 Console.WriteLine("");
@@ -591,7 +591,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (CLIEngine.GetConfirmation("Do you wish to set how WEB3 tags should merge with parent WEB4 tags? If the tag already exists in the parent WEB4 OASIS NFT tags then select 'Merge' to keep the existing tag and do not overwrite it with the tag from the WEB3 NFT tags (default), select 'Replace' to completely replace the parent WEB4 OASIS NFT tags with the WEB3 NFT tags."))
             {
                 Console.WriteLine("");
-                object tagMergeObj = CLIEngine.GetValidInputForEnum("Select tag merge strategy:", typeof(NFTTagsMergeStrategy));
+                object tagMergeObj = CLIEngine.GetValidInputForEnum("Select tag merge strategy:", typeof(NFTTagsMergeStrategy), addLineBefore: true);
                 web3Request.NFTTagsMergeStrategy = (NFTTagsMergeStrategy)tagMergeObj;
             }
             else
@@ -600,7 +600,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (CLIEngine.GetConfirmation("Do you wish to set how WEB3 meta-data should merge with parent WEB4 meta-data? If the key already exists in the parent WEB4 OASIS NFT meta data then select 'Merge' to keep the existing value and do not overwrite it with the value from the WEB3 NFT meta data (default), select 'MergeAndOverwrite' to overwrite it with the value from the WEB3 NFT meta data and select 'Replace' to completely replace the parent WEB4 OASIS NFT meta data with the WEB3 NFT meta data."))
             {
                 Console.WriteLine("");
-                object metaMergeObj = CLIEngine.GetValidInputForEnum("Select meta-data merge strategy:", typeof(NFTMetaDataMergeStrategy));
+                object metaMergeObj = CLIEngine.GetValidInputForEnum("Select meta-data merge strategy:", typeof(NFTMetaDataMergeStrategy), addLineBefore: true);
                 web3Request.NFTMetaDataMergeStrategy = (NFTMetaDataMergeStrategy)metaMergeObj;
             }
             else

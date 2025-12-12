@@ -654,7 +654,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<ISendWeb4TokenResponse>> SendTokenAsync(ISendWeb4TokenRequest request)
+        public async Task<OASISResult<ISendWeb4TokenResponse>> SendTokenAsync(Guid avatarId, ISendWeb4TokenRequest request)
         {
             OASISResult<ISendWeb4TokenResponse> result = new OASISResult<ISendWeb4TokenResponse>(new SendWeb4TokenResponse());
             OASISResult<ITransactionResponse> blockchainResult = new OASISResult<ITransactionResponse>();
@@ -665,17 +665,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 //Try and lookup the wallet address from the avatar id/username/email if one of those is provided.
                 OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
 
-                if (request.FromAvatarId != Guid.Empty)
-                    walletsResult = await LoadProviderWalletsForAvatarByIdAsync(request.FromAvatarId, false, false, request.FromProvider.Value);
+                if (avatarId != Guid.Empty)
+                    walletsResult = await LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, request.FromProvider.Value);
 
-                else if (!string.IsNullOrEmpty(request.FromAvatarUsername))
-                    walletsResult = await LoadProviderWalletsForAvatarByUsernameAsync(request.FromAvatarUsername, false, false, request.FromProvider.Value);
 
-                else if (!string.IsNullOrEmpty(request.FromAvatarEmail))
-                    walletsResult = await LoadProviderWalletsForAvatarByEmailAsync(request.FromAvatarEmail, false, false, request.FromProvider.Value);
+                //if (request.FromAvatarId != Guid.Empty)
+                //    walletsResult = await LoadProviderWalletsForAvatarByIdAsync(request.FromAvatarId, false, false, request.FromProvider.Value);
 
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} You must provide at least one of the following to identify the sender: FromWalletAddress, FromAvatarId, FromAvatarUsername or FromAvatarEmail.");
+                //else if (!string.IsNullOrEmpty(request.FromAvatarUsername))
+                //    walletsResult = await LoadProviderWalletsForAvatarByUsernameAsync(request.FromAvatarUsername, false, false, request.FromProvider.Value);
+
+                //else if (!string.IsNullOrEmpty(request.FromAvatarEmail))
+                //    walletsResult = await LoadProviderWalletsForAvatarByEmailAsync(request.FromAvatarEmail, false, false, request.FromProvider.Value);
+
+                //else
+                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} You must provide at least one of the following to identify the sender: FromWalletAddress, FromAvatarId, FromAvatarUsername or FromAvatarEmail.");
 
                 if (!walletsResult.IsError && walletsResult.Result != null && walletsResult.Result.ContainsKey(request.FromProvider.Value) && walletsResult.Result[request.FromProvider.Value] != null)
                 {
@@ -740,7 +744,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 blockchainResult = await LockTokenAsync(new LockWeb4TokenRequest()
                 {
                     AttemptToLockEveryXSeconds = request.AttemptToLockEveryXSeconds,
-                    LockedByAvatarId = request.FromAvatarId,
+                    LockedByAvatarId = avatarId,//request.FromAvatarId,
                     ProviderType = request.FromProvider,
                     TokenAddress = request.FromTokenAddress,
                     WaitForTokenToLockInSeconds = request.WaitForTokenToLockInSeconds,
@@ -759,12 +763,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         blockchainResult = await BurnTokenAsync(new BurnWeb4TokenRequest()
                         {
                             AttemptToBurnEveryXSeconds = request.AttemptToBurnEveryXSeconds,
-                            BurntByAvatarId = request.FromAvatarId,
+                            BurntByAvatarId = avatarId, //request.FromAvatarId,
                             ProviderType = request.FromProvider,
                             TokenAddress = request.FromTokenAddress,
                             WaitForTokenToBurnInSeconds = request.WaitForTokenToBurnInSeconds,
                             WaitTillTokenBurnt = request.WaitTillTokenBurnt,
-                            Web3TokenId = request.Web3TokenId
+                            Web3TokenId = request.Web3TokenId,
+                            OwnerPrivateKey = request.OwnerPrivateKey, //TODO: May not need these?
+                            OwnerPublicKey = request.OwnerPublicKey, //TODO: May not need these?
+                            OwnerSeedPhrase = request.OwnerSeedPhrase //TODO: May not need these?
                         });
 
                         if (result != null && result.Result != null && !result.IsError)
@@ -779,7 +786,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             blockchainResult = await UnlockTokenAsync(new UnlockWeb4TokenRequest()
                             {
                                 AttemptToUnlockEveryXSeconds = request.AttemptToUnlockEveryXSeconds,
-                                UnlockedByAvatarId = request.FromAvatarId,
+                                UnlockedByAvatarId = avatarId, // request.FromAvatarId,
                                 ProviderType = request.FromProvider,
                                 TokenAddress = request.FromTokenAddress,
                                 WaitForTokenToUnlockInSeconds = request.WaitForTokenToUnlockInSeconds,
@@ -806,7 +813,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         blockchainResult = await UnlockTokenAsync(new UnlockWeb4TokenRequest()
                         {
                             AttemptToUnlockEveryXSeconds = request.AttemptToUnlockEveryXSeconds,
-                            UnlockedByAvatarId = request.FromAvatarId,
+                            UnlockedByAvatarId = avatarId, // request.FromAvatarId,
                             ProviderType = request.FromProvider,
                             TokenAddress = request.FromTokenAddress,
                             WaitForTokenToUnlockInSeconds = request.WaitForTokenToUnlockInSeconds,
@@ -835,7 +842,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<ITransactionResponse> SendToken(ISendWeb4TokenRequest request)
+        public OASISResult<ITransactionResponse> SendToken(Guid avatarId, ISendWeb4TokenRequest request)
         {
             OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
             string errorMessage = "Error Occured in SendToken function. Reason: ";
@@ -845,17 +852,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 //Try and lookup the wallet address from the avatar id/username/email if one of those is provided.
                 OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
 
-                if (request.FromAvatarId != Guid.Empty)
-                    walletsResult = LoadProviderWalletsForAvatarById(request.FromAvatarId, providerTypeToLoadFrom: request.FromProvider.Value);
+                if (avatarId != Guid.Empty)
+                    walletsResult = LoadProviderWalletsForAvatarById(avatarId, false, false, request.FromProvider.Value);
 
-                else if (!string.IsNullOrEmpty(request.FromAvatarUsername))
-                    walletsResult = LoadProviderWalletsForAvatarByUsername(request.FromAvatarUsername, providerTypeToLoadFrom: request.FromProvider.Value);
+                //if (request.FromAvatarId != Guid.Empty)
+                //    walletsResult = LoadProviderWalletsForAvatarById(request.FromAvatarId, providerTypeToLoadFrom: request.FromProvider.Value);
 
-                else if (!string.IsNullOrEmpty(request.FromAvatarEmail))
-                    walletsResult = LoadProviderWalletsForAvatarByEmail(request.FromAvatarEmail, providerTypeToLoadFrom: request.FromProvider.Value);
+                //else if (!string.IsNullOrEmpty(request.FromAvatarUsername))
+                //    walletsResult = LoadProviderWalletsForAvatarByUsername(request.FromAvatarUsername, providerTypeToLoadFrom: request.FromProvider.Value);
 
-                else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} You must provide at least one of the following to identify the sender: FromWalletAddress, FromAvatarId, FromAvatarUsername or FromAvatarEmail.");
+                //else if (!string.IsNullOrEmpty(request.FromAvatarEmail))
+                //    walletsResult = LoadProviderWalletsForAvatarByEmail(request.FromAvatarEmail, providerTypeToLoadFrom: request.FromProvider.Value);
+
+                //else
+                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} You must provide at least one of the following to identify the sender: FromWalletAddress, FromAvatarId, FromAvatarUsername or FromAvatarEmail.");
 
                 if (!walletsResult.IsError && walletsResult.Result != null && walletsResult.Result.ContainsKey(request.FromProvider.Value) && walletsResult.Result[request.FromProvider.Value] != null)
                 {
@@ -1087,7 +1097,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             BurnWeb3TokenRequest burnWeb3TokenRequest = new BurnWeb3TokenRequest()
             {
                 TokenAddress = request.TokenAddress,
-                Web3TokenId = request.Web3TokenId
+                Web3TokenId = request.Web3TokenId,
+                OwnerPrivateKey = request.OwnerPrivateKey,
+                OwnerPublicKey = request.OwnerPublicKey,
+                OwnerSeedPhrase = request.OwnerSeedPhrase
             };
 
             IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.ProviderType.Value) as IOASISBlockchainStorageProvider;
@@ -1142,7 +1155,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             BurnWeb3TokenRequest burnWeb3TokenRequest = new BurnWeb3TokenRequest()
             {
                 TokenAddress = request.TokenAddress,
-                Web3TokenId = request.Web3TokenId
+                Web3TokenId = request.Web3TokenId,
+                OwnerPrivateKey = request.OwnerPrivateKey,
+                OwnerPublicKey = request.OwnerPublicKey,
+                OwnerSeedPhrase = request.OwnerSeedPhrase
             };
 
             IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.ProviderType.Value) as IOASISBlockchainStorageProvider;
