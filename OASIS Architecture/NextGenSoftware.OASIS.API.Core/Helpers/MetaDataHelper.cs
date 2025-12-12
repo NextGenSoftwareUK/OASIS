@@ -31,7 +31,8 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 foreach (string key in metaData.Keys)
                     string.Concat(metaDataString, key, " = ", GetMetaValue(metaData[key]), ",");
 
-                metaDataString = metaDataString.Substring(0, metaDataString.Length - 2);
+                if (metaDataString.Length > 2)
+                    metaDataString = metaDataString.Substring(0, metaDataString.Length - 2);
             }
 
             return metaDataString;

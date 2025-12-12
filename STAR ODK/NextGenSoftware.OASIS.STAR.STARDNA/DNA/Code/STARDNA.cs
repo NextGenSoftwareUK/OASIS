@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
     {
         // Default values that are used to generate a new STARDNA.json file if it is not found.
         public string OASISDNAPath { get; set; } //Path to the OASIS DNA json file (if blank it will default to the built in SYSTEM OASIS DNA). Only change this if you want to work with custom providers, etc
-        public string BaseSTARPath { get; set; } = @"C:\Source\OASIS\STAR ODK\Release\STAR_ODK_v3.0.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
+        public string BaseSTARPath { get; set; } = @"C:\Source\OASIS2\STAR ODK\Releases\STAR_ODK_v3.0.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
         public string MetaDataDNATemplateFolder { get; set; } = "DNATemplates\\MetaDataDNATemplates"; //MetaData DNA Templates that are used to generate the meta data for CelestialBodies, Zomes & Holons. Can be relative to STARBasePath or absolute.
         public string RustDNARSMTemplateFolder { get; set; } = @"DNATemplates\RustDNATemplates\RSM";  //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above).
         public string CSharpDNATemplateFolder { get; set; } = @"DNATemplates\CSharpDNATemplates";  //C# DNA Templates (CelestialBodies, Zomes & Holons) that are used to generate OAPPs from (releative to STARBasePath above).
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultPlanetId { get; set; } //The default Planet ID (Our World) to use when creating new OAPPs and using COSMIC.
 
         //If this is left blank then all STARNET paths below will be absolute otherwise they will be relative (NOTE: This is NOT STARBasePath above to allow the user data to be stored in a different location if needed).
-        public string BaseSTARNETPath { get; set; } = @"C:\Source\OASIS\STAR ODK\Release\STAR_ODK_v3.0.0\STARNET";
+        public string BaseSTARNETPath { get; set; } = @"C:\Source\OASIS2\STAR ODK\Releases\STAR_ODK_v3.0.0\STARNET";
 
         //All paths below for STARNET can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
         //OAPP's are composed of Celestial Bodies, Zomes and Holons (which are all types of DNA) and can be used to create OAPPs (Omniverse/OASIS/Our World Applications) which are like Apps in the Omniverse/OASIS/Our World. OAPPs can be published, searched, downloaded, installed on the user's machine or downloaded from the OASIS/STARNET. They can also be published to the OASIS/STARNET for others to use and can be updated with new versions. The same applies for everything below here for STARNET.

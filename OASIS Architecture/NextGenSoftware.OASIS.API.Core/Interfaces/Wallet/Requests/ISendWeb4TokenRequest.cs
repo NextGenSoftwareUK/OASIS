@@ -6,12 +6,17 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests
 {
     public interface ISendWeb4TokenRequest : ISendWeb3TokenRequest
     {
+        //Optional (if FromWalletAddress is not provided then it can be retreived from the logged in avatar using the default wallet for the specified provider type).
         public EnumValue<ProviderType> FromProvider { get; set; }
+
+        //Optional (if ToWalletAddress is not provided then it can be retreived from either ToAvatarId,ToAvatarUsername or ToAvatarEmail using the default wallet for the specified provider type).
         public EnumValue<ProviderType> ToProvider { get; set; }
         //Need at least one of these to identify the sender.
-        public Guid FromAvatarId { get; set; }
-        public string FromAvatarUsername { get; set; }
-        public string FromAvatarEmail { get; set; }
+        
+        //Implicit from loggin in avtatar.
+        //public Guid FromAvatarId { get; set; }
+        //public string FromAvatarUsername { get; set; }
+        //public string FromAvatarEmail { get; set; }
 
         //Need at least one of these to identify the receiver.
         public Guid ToAvatarId { get; set; }

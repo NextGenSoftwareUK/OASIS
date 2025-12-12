@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
             return $"{genericTypeName}Of{genericArgs}";
         }
-        private const string VERSION = "WEB 4 OASIS API v4.0.0";
+        private const string VERSION = "WEB 4 OASIS API v4.1.0";
         //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
         public Startup(IConfiguration configuration)
@@ -92,7 +92,7 @@ To use the OASIS API follow these steps:
 
  <ol><li>First you need to create your avatar using the avatar/register method.</li><li>You will then receive an email to confirm your address with a token. You then need to call the avatar/verify-email method with this token to verify and activate your new avatar.</li><li>Now you can call the avatar/authenticate method to login and authenticate. This will return your avatar object, which will contain a JWT (JSON Web Token) Security Token.</li><li>You can then set this in your HEADER for all future API calls. See descriptions below for each method for more details on how to use the OASIS API...</li></ol>
 
-You will note that every request below has a corresponding overload that also takes a providerType. This allows you to overwrite the default provider configured for the ONODE you are making the request from. The ONODE can be configured to have a list of default providers, which it will fail over to the next one if that provider goes down/is too slow, etc. It will automatically switch to the fastest provider available (and load balance between them) but if the overload is used it will override this default behaviour. Set the setGlobal flag to false if you wish to override only for that given request or to true if you wish to persist this override for all subsequent calls. The current list of providers supported are as follows (in order of priority used):
+You will note that every request below has a corresponding overload that also takes a providerType. This allows you to overwrite the default provider configured for the ONODE you are making the request from. The ONODE can be configured to have a list of default providers, which it will fail over to the next one if that provider goes down/is too slow, etc. It will automatically switch to the fastest provider available (and load balance between them) but if the overload is used it will override this default behaviour. Set the setGlobal flag to false if you wish to override only for that given request or to true if you wish to persist this override for all subsequent calls. The current list of providers supported are as follows:
 
 <ul>
 <li><b>MongoDBOASIS</b> - MongoDB Provider (Document/Object Database).</li>
@@ -128,6 +128,15 @@ You will note that every request below has a corresponding overload that also ta
 <li><b>EOSIOOASIS</b> - EOSIO Provider.</li>
 <li><b>TelosOASIS</b> - Telos Provider.</li>
 <li><b>SEEDSOASIS</b> - SEEDS Provider.</li>
+<li><b>TONSOASIS</b> - TON Provider.</li>
+<li><b>ZcashOASIS</b> - Zcash Provider.</li>
+<li><b>MidenOASIS</b> - Miden Provider.</li>
+<li><b>AztecOASIS</b> - Aztec Provider.</li>
+<li><b>MonadOASIS</b> - Monad Provider.</li>
+<li><b>RadixOASIS</b> - Radix Provider.</li>
+<li><b>StarknetOASIS</b> - Starknet Provider.</li>
+<li><b>TelegramOASIS</b> - Telegram Provider.</li>
+
 </ul>
 
 The list above reflects the latest integrated providers. Please check the GitHub repo link below for more details and updates.

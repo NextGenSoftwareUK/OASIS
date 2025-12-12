@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
@@ -108,8 +109,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> SearchWeb4NFTCollectionsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default);
         OASISResult<IEnumerable<IWeb4NFT>> SearchWeb4NFTs(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<IWeb4NFT>>> SearchWeb4NFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default);
-        OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
-        Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
+        OASISResult<ISendWeb4NFTResponse> SendNFT(Guid avatarId, ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
+        Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(Guid avatarId, ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         Task<OASISResult<IWeb4GeoSpatialNFT>> UpdateWeb4GeoNFTAsync(IUpdateWeb4GeoNFTRequest request, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4GeoNFTCollection>> UpdateWeb4GeoNFTCollectionAsync(IUpdateWeb4GeoNFTCollectionRequest request, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4NFT>> UpdateWeb4NFTAsync(IUpdateWeb4NFTRequest request, ProviderType providerType = ProviderType.Default);

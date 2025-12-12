@@ -33,6 +33,13 @@
         OptimismOASIS,
         BNBChainOASIS,
         FantomOASIS,
+        StarknetOASIS,
+        AztecOASIS,
+        MidenOASIS,
+        ZcashOASIS,
+        RadixOASIS,
+        TelegramOASIS,
+        MonadOASIS,
         MoralisOASIS, //Web3 API
         IPFSOASIS, //IPFS
         PinataOASIS,
