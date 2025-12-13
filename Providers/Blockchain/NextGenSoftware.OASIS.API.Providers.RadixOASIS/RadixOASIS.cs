@@ -1,10 +1,18 @@
+using System;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Services.Radix;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Oracle;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.RadixOASIS;
 
@@ -376,6 +384,144 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             IsError = true,
             Message = "DeleteAvatarByUsername not implemented for RadixOASIS - use for bridge operations"
         };
+    }
+
+    #endregion
+
+    #region Bridge Methods (IOASISBlockchainStorageProvider)
+
+    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+    {
+        var result = new OASISResult<decimal>();
+        try
+        {
+            if (!IsProviderActivated || _radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                return result;
+            }
+
+            return await _radixService.GetAccountBalanceAsync(accountAddress, token);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting account balance: {ex.Message}", ex);
+            return result;
+        }
+    }
+
+    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+    {
+        var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+        try
+        {
+            if (!IsProviderActivated || _radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                return result;
+            }
+
+            return await _radixService.CreateAccountAsync(token);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error creating account: {ex.Message}", ex);
+            return result;
+        }
+    }
+
+    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+    {
+        var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+        try
+        {
+            if (!IsProviderActivated || _radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                return result;
+            }
+
+            return await _radixService.RestoreAccountAsync(seedPhrase, token);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error restoring account: {ex.Message}", ex);
+            return result;
+        }
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!IsProviderActivated || _radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                return result;
+            }
+
+            return await _radixService.WithdrawAsync(amount, senderAccountAddress, senderPrivateKey);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+            return result;
+        }
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!IsProviderActivated || _radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                return result;
+            }
+
+            return await _radixService.DepositAsync(amount, receiverAccountAddress);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+            return result;
+        }
+    }
+
+    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+    {
+        var result = new OASISResult<BridgeTransactionStatus>();
+        try
+        {
+            if (!IsProviderActivated || _radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                return result;
+            }
+
+            return await _radixService.GetTransactionStatusAsync(transactionHash, token);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting transaction status: {ex.Message}", ex);
+            return result;
+        }
     }
 
     #endregion

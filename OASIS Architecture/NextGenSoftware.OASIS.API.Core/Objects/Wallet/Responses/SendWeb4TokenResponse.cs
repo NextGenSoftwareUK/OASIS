@@ -8,5 +8,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses
         public string LockTransactionResult { get; set; }
         public string BurnTransactionResult { get; set; }
         public string UnlockTransactionResult { get; set; }
+        public string BridgeOrderId { get; set; }
     }
 }

@@ -53,5 +53,18 @@ public interface ICrossChainBridgeManager
     /// Verifies a submitted zero-knowledge proof payload
     /// </summary>
     Task<OASISResult<bool>> VerifyProofAsync(string proofPayload, string proofType, CancellationToken token = default);
+    
+    // NFT Bridge Methods
+    
+    /// <summary>
+    /// Creates a cross-chain NFT bridge order (e.g., NFT from Solana to Ethereum)
+    /// Performs atomic NFT transfer with automatic rollback on failure
+    /// </summary>
+    /// <param name="request">The NFT bridge order request details</param>
+    /// <param name="token">Cancellation token</param>
+    /// <returns>The created NFT bridge order response</returns>
+    Task<OASISResult<CreateBridgeOrderResponse>> CreateNFTBridgeOrderAsync(
+        CreateNFTBridgeOrderRequest request,
+        CancellationToken token = default);
 }
 

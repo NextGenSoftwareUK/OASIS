@@ -1,91 +1,95 @@
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Net.Http;
-//using System.Threading.Tasks;
-//using NextGenSoftware.OASIS.API.Core;
-//using NextGenSoftware.OASIS.API.Core.Enums;
-//using ProviderEnums = NextGenSoftware.OASIS.API.Core.Enums;
-//using NextGenSoftware.OASIS.API.Core.Holons;
-//using NextGenSoftware.OASIS.API.Core.Interfaces;
-//using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-//using NextGenSoftware.OASIS.API.Core.Managers;
-//using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
-//using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Starknet;
-//using NextGenSoftware.OASIS.API.Core.Objects.Search;
-//using NextGenSoftware.OASIS.Common;
-//using NextGenSoftware.Utilities;
-//using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-//using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Starknet;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 
-//namespace NextGenSoftware.OASIS.API.Providers.StarknetOASIS;
+namespace NextGenSoftware.OASIS.API.Providers.StarknetOASIS;
 
-//public sealed class StarknetOASIS : OASISStorageProviderBase,
-//    IOASISStorageProvider,
-//    IOASISBlockchainStorageProvider,
-//    IOASISNETProvider,
-//    IOASISSmartContractProvider
-//{
-//    private readonly HttpClient _httpClient;
-//    private readonly string _network;
-//    private readonly IStarknetRpcClient _rpcClient;
-//    private bool _isActivated;
+public sealed class StarknetOASIS : OASISStorageProviderBase,
+    IOASISStorageProvider,
+    IOASISBlockchainStorageProvider,
+    IOASISNETProvider,
+    IOASISSmartContractProvider
+{
+    private readonly HttpClient _httpClient;
+    private readonly string _network;
+    private readonly IStarknetRpcClient _rpcClient;
+    private bool _isActivated;
 
-//    public StarknetOASIS(string network = "alpha-goerli", string apiBaseUrl = "https://alpha4.starknet.io")
-//    {
-//        ProviderName = nameof(StarknetOASIS);
-//        ProviderDescription = "Starknet privacy provider for cross-chain swaps";
-//        ProviderType = new EnumValue<ProviderEnums.ProviderType>(ProviderEnums.ProviderType.StarknetOASIS);
-//        ProviderCategory = new EnumValue<ProviderEnums.ProviderCategory>(ProviderEnums.ProviderCategory.StorageAndNetwork);
+    public StarknetOASIS(string network = "alpha-goerli", string apiBaseUrl = "https://alpha4.starknet.io")
+    {
+        ProviderName = nameof(StarknetOASIS);
+        ProviderDescription = "Starknet privacy provider for cross-chain swaps";
+        ProviderType = new EnumValue<ProviderType>(ProviderType.StarknetOASIS);
+        ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageAndNetwork);
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(ProviderCategory.StorageAndNetwork));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(ProviderCategory.Blockchain));
 
-//        _network = network;
-//        _httpClient = new HttpClient
-//        {
-//            BaseAddress = new Uri(apiBaseUrl)
-//        };
-//        _rpcClient = new StarknetRpcClient(_httpClient, apiBaseUrl);
-//    }
+        _network = network;
+        _httpClient = new HttpClient
+        {
+            BaseAddress = new Uri(apiBaseUrl)
+        };
+        _rpcClient = new StarknetRpcClient(_httpClient, apiBaseUrl);
+    }
 
-//    public override Task<OASISResult<bool>> ActivateProviderAsync()
-//    {
-//        var result = new OASISResult<bool>();
-//        try
-//        {
-//            _isActivated = true;
-//            IsProviderActivated = true;
-//            result.Result = true;
-//            result.IsError = false;
-//            result.Message = $"{ProviderName} activated against {_network}";
-//        }
-//        catch (Exception ex)
-//        {
-//            OASISErrorHandling.HandleError(ref result, $"Failed to activate {ProviderName}: {ex.Message}", ex);
-//        }
+    public override Task<OASISResult<bool>> ActivateProviderAsync()
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            _isActivated = true;
+            IsProviderActivated = true;
+            result.Result = true;
+            result.IsError = false;
+            result.Message = $"{ProviderName} activated against {_network}";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Failed to activate {ProviderName}: {ex.Message}", ex);
+        }
 
-//        return Task.FromResult(result);
-//    }
+        return Task.FromResult(result);
+    }
 
-//    public override OASISResult<bool> ActivateProvider()
-//    {
-//        return ActivateProviderAsync().Result;
-//    }
+    public override OASISResult<bool> ActivateProvider()
+    {
+        return ActivateProviderAsync().Result;
+    }
 
-//    public override Task<OASISResult<bool>> DeActivateProviderAsync()
-//    {
-//        _isActivated = false;
-//        IsProviderActivated = false;
-//        return Task.FromResult(new OASISResult<bool>
-//        {
-//            Result = true,
-//            Message = $"{ProviderName} deactivated",
-//            IsError = false
-//        });
-//    }
+    public override Task<OASISResult<bool>> DeActivateProviderAsync()
+    {
+        _isActivated = false;
+        IsProviderActivated = false;
+        return Task.FromResult(new OASISResult<bool>
+        {
+            Result = true,
+            Message = $"{ProviderName} deactivated",
+            IsError = false
+        });
+    }
 
-//    public override OASISResult<bool> DeActivateProvider()
-//    {
-//        return DeActivateProviderAsync().Result;
-//    }
+    public override OASISResult<bool> DeActivateProvider()
+    {
+        return DeActivateProviderAsync().Result;
+    }
 
 //    public async Task<OASISResult<string>> CreateAtomicSwapIntentAsync(string starknetAddress, decimal amount, string zcashAddress)
 //    {
@@ -533,9 +537,316 @@
 //        throw new NotImplementedException();
 //    }
 
-//    public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
-//    {
-//        throw new NotImplementedException();
-//    }
-//}
+    public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    #region Bridge Methods (IOASISBlockchainStorageProvider)
+
+    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+    {
+        var result = new OASISResult<decimal>();
+        try
+        {
+            if (!_isActivated || _rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(accountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Account address is required");
+                return result;
+            }
+
+            var balanceResult = await _rpcClient.GetBalanceAsync(accountAddress);
+            if (balanceResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, balanceResult.Message, balanceResult.Exception);
+                return result;
+            }
+
+            result.Result = balanceResult.Result;
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting account balance: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+    {
+        var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                return result;
+            }
+
+            // Generate a new Starknet account
+            // In production, this would use a Starknet SDK like StarknetSharp or similar
+            var seedPhrase = GenerateSeedPhrase();
+            var (publicKey, privateKey) = DeriveKeysFromSeed(seedPhrase);
+
+            result.Result = (publicKey, privateKey, seedPhrase);
+            result.IsError = false;
+            result.Message = $"Starknet account created on {_network}";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error creating account: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+    {
+        var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(seedPhrase))
+            {
+                OASISErrorHandling.HandleError(ref result, "Seed phrase is required");
+                return result;
+            }
+
+            // Derive keys from seed phrase
+            var (publicKey, privateKey) = DeriveKeysFromSeed(seedPhrase);
+
+            result.Result = (publicKey, privateKey);
+            result.IsError = false;
+            result.Message = $"Starknet account restored from seed on {_network}";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error restoring account: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!_isActivated || _rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(senderAccountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Sender address is required");
+                return result;
+            }
+
+            // Check balance first
+            var balance = await _rpcClient.GetBalanceAsync(senderAccountAddress);
+            if (balance.IsError)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = balance.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, balance.Message, balance.Exception);
+                return result;
+            }
+
+            if (balance.Result < amount)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = $"Insufficient Starknet funds ({balance.Result}) for withdraw {amount}",
+                    Status = BridgeTransactionStatus.InsufficientFunds
+                };
+                OASISErrorHandling.HandleError(ref result, result.Result.ErrorMessage);
+                return result;
+            }
+
+            // Submit transaction
+            var txResult = await _rpcClient.SubmitTransactionAsync(new StarknetTransactionPayload
+            {
+                From = senderAccountAddress,
+                To = string.Empty, // Bridge pool address would go here
+                Amount = amount
+            });
+
+            if (txResult.IsError)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = txResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, txResult.Message, txResult.Exception);
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = txResult.Result,
+                IsSuccessful = true,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!_isActivated || _rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(receiverAccountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Receiver address is required");
+                return result;
+            }
+
+            // Submit deposit transaction
+            var txResult = await _rpcClient.SubmitTransactionAsync(new StarknetTransactionPayload
+            {
+                From = string.Empty, // Bridge pool address
+                To = receiverAccountAddress,
+                Amount = amount
+            });
+
+            if (txResult.IsError)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = txResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, txResult.Message, txResult.Exception);
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = txResult.Result,
+                IsSuccessful = true,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+    {
+        var result = new OASISResult<BridgeTransactionStatus>();
+        try
+        {
+            if (!_isActivated || _rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(transactionHash))
+            {
+                OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
+                return result;
+            }
+
+            return await _rpcClient.GetTransactionStatusAsync(transactionHash);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting transaction status: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    private string GenerateSeedPhrase()
+    {
+        // Generate a deterministic seed phrase
+        // In production, use a proper BIP39 or similar mnemonic generation
+        var words = new[]
+        {
+            "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract",
+            "absurd", "abuse", "access", "accident", "account", "accuse", "achieve", "acid"
+        };
+
+        var random = new Random();
+        var seedWords = new List<string>();
+        for (int i = 0; i < 12; i++)
+        {
+            seedWords.Add(words[random.Next(words.Length)]);
+        }
+
+        return string.Join(" ", seedWords);
+    }
+
+    private (string PublicKey, string PrivateKey) DeriveKeysFromSeed(string seedPhrase)
+    {
+        // Derive keys from seed phrase
+        // In production, use proper cryptographic key derivation (e.g., BIP32/BIP44)
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var seedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(seedPhrase));
+        
+        // Generate private key (64 hex chars = 32 bytes)
+        var privateKey = $"0x{BitConverter.ToString(seedBytes).Replace("-", "").ToLowerInvariant()}";
+        
+        // Derive public key from private key (simplified - in production use proper EC operations)
+        var publicKeyBytes = sha256.ComputeHash(seedBytes);
+        var publicKey = $"0x{BitConverter.ToString(publicKeyBytes).Replace("-", "").ToLowerInvariant()}";
+
+        return (publicKey, privateKey);
+    }
+
+    #endregion
+}
 

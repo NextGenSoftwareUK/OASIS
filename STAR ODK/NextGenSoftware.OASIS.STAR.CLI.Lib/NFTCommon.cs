@@ -318,7 +318,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     Console.WriteLine("");
                     CLIEngine.ShowSuccessMessage($"WEB3 NFT Varient {i + 1} Request Created.");
 
-                    if (i < request.NumberToMint && CLIEngine.GetConfirmation("Would you like the rest of the WEB3 NFT Varients to share the same propetites/metadata? If you select 'N' then you will need to continue inputting the values you want for each WEB3 NFT Varient."))
+                    if (i < request.NumberToMint - 1 && CLIEngine.GetConfirmation("Would you like the rest of the WEB3 NFT Varients to share the same propetites/metadata? If you select 'N' then you will need to continue inputting the values you want for each WEB3 NFT Varient."))
                     {
                         for (int j = i + 1; j < request.NumberToMint; j++)
                         {
@@ -349,8 +349,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             web3RequestInternal.OnChainProvider = web3Request.OnChainProvider;
                             web3RequestInternal.OffChainProvider = web3Request.OffChainProvider;
                             web3RequestInternal.StoreNFTMetaDataOnChain = web3Request.StoreNFTMetaDataOnChain;
+
                             if (web3Request.NFTOffChainMetaType.HasValue)
                                 web3RequestInternal.NFTOffChainMetaType = web3Request.NFTOffChainMetaType.Value;
+
                             if (web3Request.NFTStandardType.HasValue)
                                 web3RequestInternal.NFTStandardType = web3Request.NFTStandardType.Value;
 
@@ -1169,7 +1171,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 TagHelper.ShowTags(nft.Tags, displayFieldLength);
 
             if ((web4NFT != null && displayMetaData && MetaDataHelper.GetMetaData(nft.MetaData) != MetaDataHelper.GetMetaData(web4NFT.MetaData)) || web4NFT == null)
+            {
                 MetaDataHelper.ShowMetaData(nft.MetaData, displayFieldLength);
+                Console.WriteLine("");
+            }
 
             //CLIEngine.ShowDivider();
         }

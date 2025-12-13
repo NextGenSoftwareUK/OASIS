@@ -1,6 +1,8 @@
-﻿namespace NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+
+namespace NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses
 {
-    public interface ISendWeb4TokenResponse
+    public class SendWeb4NFTResponse : ISendWeb4NFTResponse
     {
         public string SendTransactionResult { get; set; }
         public string LockTransactionResult { get; set; }
@@ -9,3 +11,4 @@
         public string BridgeOrderId { get; set; }
     }
 }
+
