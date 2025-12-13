@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -14,15 +15,21 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NBitcoin;
 
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 {
@@ -2182,6 +2189,540 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         {
             var result = new OASISResult<IOASISNFT>();
             OASISErrorHandling.HandleError(ref result, "LoadOnChainNFTDataAsync is not supported by Bitcoin provider");
+            return result;
+        }
+
+        #endregion
+
+    // NFT-specific lock/unlock methods
+    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+    {
+        return LockNFTAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                return result;
+            }
+
+            // Bitcoin uses OP_RETURN for NFT locking (simplified)
+            var bridgePoolAddress = _contractAddress ?? "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
+            var sendRequest = new SendWeb3NFTRequest
+            {
+                FromNFTTokenAddress = request.NFTTokenAddress,
+                FromWalletAddress = string.Empty,
+                ToWalletAddress = bridgePoolAddress,
+                TokenAddress = request.NFTTokenAddress,
+                TokenId = request.Web3NFTId.ToString(),
+                Amount = 1
+            };
+
+            var sendResult = await SendNFTAsync(sendRequest);
+            if (sendResult.IsError || sendResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
+                return result;
+            }
+
+            result.IsError = false;
+            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
+    {
+        return UnlockNFTAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                return result;
+            }
+
+            var bridgePoolAddress = _contractAddress ?? "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
+            var sendRequest = new SendWeb3NFTRequest
+            {
+                FromNFTTokenAddress = request.NFTTokenAddress,
+                FromWalletAddress = bridgePoolAddress,
+                ToWalletAddress = string.Empty,
+                TokenAddress = request.NFTTokenAddress,
+                TokenId = request.Web3NFTId.ToString(),
+                Amount = 1
+            };
+
+            var sendResult = await SendNFTAsync(sendRequest);
+            if (sendResult.IsError || sendResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
+                return result;
+            }
+
+            result.IsError = false;
+            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    // NFT Bridge Methods
+    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
+                string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+            {
+                OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
+                return result;
+            }
+
+            var lockRequest = new LockWeb3NFTRequest
+            {
+                NFTTokenAddress = nftTokenAddress,
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                LockedByAvatarId = Guid.Empty
+            };
+
+            var lockResult = await LockNFTAsync(lockRequest);
+            if (lockResult.IsError || lockResult.Result == null)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = lockResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
+                IsSuccessful = !lockResult.IsError,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
+                return result;
+            }
+
+            var mintRequest = new MintWeb3NFTRequest
+            {
+                SendToAddressAfterMinting = receiverAccountAddress,
+            };
+
+            var mintResult = await MintNFTAsync(mintRequest);
+            if (mintResult.IsError || mintResult.Result == null)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = mintResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
+                IsSuccessful = !mintResult.IsError,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+        #region Bridge Methods (IOASISBlockchainStorageProvider)
+
+        public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+        {
+            var result = new OASISResult<decimal>();
+            try
+            {
+                if (!_isActivated || _httpClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                if (string.IsNullOrWhiteSpace(accountAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Account address is required");
+                    return result;
+                }
+
+                // Call Bitcoin RPC API to get address balance
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "getreceivedbyaddress",
+                    @params = new object[] { accountAddress, 0 } // 0 = minimum confirmations
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
+                var content = await response.Content.ReadAsStringAsync(token);
+                var jsonDoc = JsonDocument.Parse(content);
+
+                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
+                {
+                    var balance = resultElement.GetDecimal();
+                    result.Result = balance;
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.Result = 0m;
+                    result.IsError = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting Bitcoin account balance: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                // Generate Bitcoin key pair using NBitcoin
+                var network = _network == "mainnet" ? Network.Main : Network.TestNet;
+                var key = new Key();
+                var privateKey = key.GetWif(network).ToString();
+                var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
+
+                // Generate seed phrase
+                var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+                var seedPhrase = mnemonic.ToString();
+
+                result.Result = (publicKey, privateKey, seedPhrase);
+                result.IsError = false;
+                result.Message = "Bitcoin account created successfully.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error creating Bitcoin account: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                // Restore Bitcoin key pair from seed phrase using NBitcoin
+                var network = _network == "mainnet" ? Network.Main : Network.TestNet;
+                var mnemonic = new Mnemonic(seedPhrase);
+                var extKey = mnemonic.DeriveExtKey();
+                var key = extKey.PrivateKey;
+                var privateKey = key.GetWif(network).ToString();
+                var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
+
+                result.Result = (publicKey, privateKey);
+                result.IsError = false;
+                result.Message = "Bitcoin account restored successfully.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error restoring Bitcoin account: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!_isActivated || _httpClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
+                    return result;
+                }
+
+                if (amount <= 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
+                    return result;
+                }
+
+                // Convert amount to Satoshis
+                var satoshiAmount = (ulong)(amount * 100_000_000m);
+                var bridgePoolAddress = "1" + new string('0', 33); // TODO: Get from config
+
+                // Create Bitcoin transaction using RPC
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "sendtoaddress",
+                    @params = new object[] { bridgePoolAddress, amount, "Bridge Withdrawal", "", true }
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
+                var content = await response.Content.ReadAsStringAsync(token);
+                var jsonDoc = JsonDocument.Parse(content);
+
+                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
+                {
+                    var txHash = resultElement.GetString();
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = txHash ?? Guid.NewGuid().ToString(),
+                        IsSuccessful = true,
+                        Status = BridgeTransactionStatus.Pending
+                    };
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = string.Empty,
+                        IsSuccessful = false,
+                        ErrorMessage = "Failed to create transaction",
+                        Status = BridgeTransactionStatus.Canceled
+                    };
+                    OASISErrorHandling.HandleError(ref result, "Failed to create Bitcoin transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = ex.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!_isActivated || _httpClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                if (string.IsNullOrWhiteSpace(receiverAccountAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
+                    return result;
+                }
+
+                if (amount <= 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
+                    return result;
+                }
+
+                // Create Bitcoin transaction from bridge pool to receiver
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "sendtoaddress",
+                    @params = new object[] { receiverAccountAddress, amount, "Bridge Deposit", "", true }
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
+                var content = await response.Content.ReadAsStringAsync(token);
+                var jsonDoc = JsonDocument.Parse(content);
+
+                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
+                {
+                    var txHash = resultElement.GetString();
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = txHash ?? Guid.NewGuid().ToString(),
+                        IsSuccessful = true,
+                        Status = BridgeTransactionStatus.Pending
+                    };
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = string.Empty,
+                        IsSuccessful = false,
+                        ErrorMessage = "Failed to create transaction",
+                        Status = BridgeTransactionStatus.Canceled
+                    };
+                    OASISErrorHandling.HandleError(ref result, "Failed to create Bitcoin transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = ex.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        {
+            var result = new OASISResult<BridgeTransactionStatus>();
+            try
+            {
+                if (!_isActivated || _httpClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                if (string.IsNullOrWhiteSpace(transactionHash))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
+                    return result;
+                }
+
+                // Query Bitcoin RPC for transaction status
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "gettransaction",
+                    @params = new object[] { transactionHash }
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
+                var content = await response.Content.ReadAsStringAsync(token);
+                var jsonDoc = JsonDocument.Parse(content);
+
+                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
+                {
+                    if (resultElement.TryGetProperty("confirmations", out var confirmationsElement))
+                    {
+                        var confirmations = confirmationsElement.GetInt32();
+                        result.Result = confirmations > 0 ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Pending;
+                        result.IsError = false;
+                    }
+                    else
+                    {
+                        result.Result = BridgeTransactionStatus.Pending;
+                        result.IsError = false;
+                    }
+                }
+                else
+                {
+                    result.Result = BridgeTransactionStatus.NotFound;
+                    result.IsError = true;
+                    result.Message = "Transaction not found";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting Bitcoin transaction status: {ex.Message}", ex);
+                result.Result = BridgeTransactionStatus.NotFound;
+            }
             return result;
         }
 

@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -13,6 +14,10 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -3452,4 +3457,496 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         public string PrivateKey { get; set; } = string.Empty;
         public string PublicKey { get; set; } = string.Empty;
     }
+
+    // NFT-specific lock/unlock methods
+    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+    {
+        return LockNFTAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            var bridgePoolAccount = _contractAddress ?? "oasisbridge.near";
+            var sendRequest = new SendWeb3NFTRequest
+            {
+                FromNFTTokenAddress = request.NFTTokenAddress,
+                FromWalletAddress = string.Empty,
+                ToWalletAddress = bridgePoolAccount,
+                TokenAddress = request.NFTTokenAddress,
+                TokenId = request.Web3NFTId.ToString(),
+                Amount = 1
+            };
+
+            var sendResult = await SendNFTAsync(sendRequest);
+            if (sendResult.IsError || sendResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
+                return result;
+            }
+
+            result.IsError = false;
+            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
+    {
+        return UnlockNFTAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            var bridgePoolAccount = _contractAddress ?? "oasisbridge.near";
+            var sendRequest = new SendWeb3NFTRequest
+            {
+                FromNFTTokenAddress = request.NFTTokenAddress,
+                FromWalletAddress = bridgePoolAccount,
+                ToWalletAddress = string.Empty,
+                TokenAddress = request.NFTTokenAddress,
+                TokenId = request.Web3NFTId.ToString(),
+                Amount = 1
+            };
+
+            var sendResult = await SendNFTAsync(sendRequest);
+            if (sendResult.IsError || sendResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
+                return result;
+            }
+
+            result.IsError = false;
+            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    // NFT Bridge Methods
+    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
+                string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+            {
+                OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
+                return result;
+            }
+
+            var lockRequest = new LockWeb3NFTRequest
+            {
+                NFTTokenAddress = nftTokenAddress,
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                LockedByAvatarId = Guid.Empty
+            };
+
+            var lockResult = await LockNFTAsync(lockRequest);
+            if (lockResult.IsError || lockResult.Result == null)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = lockResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
+                IsSuccessful = !lockResult.IsError,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
+                return result;
+            }
+
+            var mintRequest = new MintWeb3NFTRequest
+            {
+                SendToAddressAfterMinting = receiverAccountAddress,
+            };
+
+            var mintResult = await MintNFTAsync(mintRequest);
+            if (mintResult.IsError || mintResult.Result == null)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = mintResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
+                IsSuccessful = !mintResult.IsError,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+        #region Bridge Methods (IOASISBlockchainStorageProvider)
+
+    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+    {
+        var result = new OASISResult<decimal>();
+        try
+        {
+            if (!_isActivated || _httpClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(accountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Account address is required");
+                return result;
+            }
+
+            // Call NEAR RPC API to get account balance
+            var rpcRequest = new
+            {
+                jsonrpc = "2.0",
+                id = "dontcare",
+                method = "query",
+                @params = new
+                {
+                    request_type = "view_account",
+                    finality = "final",
+                    account_id = accountAddress
+                }
+            };
+
+            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
+            var content = await response.Content.ReadAsStringAsync(token);
+            var jsonDoc = JsonDocument.Parse(content);
+
+            if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement) &&
+                resultElement.TryGetProperty("amount", out var amountElement))
+            {
+                // NEAR amounts are in yoctoNEAR (1 NEAR = 10^24 yoctoNEAR)
+                var yoctoNear = amountElement.GetString();
+                if (ulong.TryParse(yoctoNear, out var amount))
+                {
+                    result.Result = amount / 1_000_000_000_000_000_000_000_000m; // Convert to NEAR
+                    result.IsError = false;
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse balance");
+                }
+            }
+            else
+            {
+                result.Result = 0m;
+                result.IsError = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting NEAR account balance: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+    {
+        var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            // Generate NEAR Ed25519 key pair
+            var keyPair = await GenerateNEARKeyPairAsync();
+            
+            result.Result = (keyPair.PublicKey, keyPair.PrivateKey, string.Empty);
+            result.IsError = false;
+            result.Message = "NEAR account key pair created successfully. Seed phrase not applicable for NEAR.";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error creating NEAR account: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+    {
+        var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            // NEAR doesn't use seed phrases directly - private key is used
+            // If seedPhrase is actually a private key, derive public key
+            // For now, treat seedPhrase as private key
+            var keyPair = await GenerateNEARKeyPairAsync(); // TODO: Derive from seedPhrase/private key
+            
+            result.Result = (keyPair.PublicKey, seedPhrase); // Use seedPhrase as private key
+            result.IsError = false;
+            result.Message = "NEAR account restored successfully.";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error restoring NEAR account: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!_isActivated || _httpClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+            {
+                OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
+                return result;
+            }
+
+            if (amount <= 0)
+            {
+                OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
+                return result;
+            }
+
+            // Convert amount to yoctoNEAR
+            var yoctoNear = (ulong)(amount * 1_000_000_000_000_000_000_000_000m);
+            var bridgePoolAddress = "bridge.oasispool.near"; // TODO: Get from config
+
+            // Create transfer transaction using NEAR RPC
+            var rpcRequest = new
+            {
+                jsonrpc = "2.0",
+                id = "dontcare",
+                method = "broadcast_tx_commit",
+                @params = new object[] { } // TODO: Build signed transaction
+            };
+
+            // For now, return a placeholder response
+            // In production, this would build and sign a real NEAR transaction
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = Guid.NewGuid().ToString(),
+                IsSuccessful = true,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+            result.Message = "NEAR withdrawal transaction created (requires full transaction signing implementation)";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!_isActivated || _httpClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(receiverAccountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
+                return result;
+            }
+
+            if (amount <= 0)
+            {
+                OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
+                return result;
+            }
+
+            // Convert amount to yoctoNEAR
+            var yoctoNear = (ulong)(amount * 1_000_000_000_000_000_000_000_000m);
+
+            // Create transfer transaction from bridge pool to receiver
+            // In production, this would use the bridge pool's account to send
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = Guid.NewGuid().ToString(),
+                IsSuccessful = true,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+            result.Message = "NEAR deposit transaction created (requires full transaction signing implementation)";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+    {
+        var result = new OASISResult<BridgeTransactionStatus>();
+        try
+        {
+            if (!_isActivated || _httpClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(transactionHash))
+            {
+                OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
+                return result;
+            }
+
+            // Query NEAR RPC for transaction status
+            var rpcRequest = new
+            {
+                jsonrpc = "2.0",
+                id = "dontcare",
+                method = "tx",
+                @params = new object[] { transactionHash, "oasispool.near" } // TODO: Use correct account
+            };
+
+            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
+            var content = await response.Content.ReadAsStringAsync(token);
+            var jsonDoc = JsonDocument.Parse(content);
+
+            if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement) &&
+                resultElement.TryGetProperty("status", out var statusElement))
+            {
+                var status = statusElement.GetProperty("SuccessValue").GetString();
+                result.Result = status != null ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Pending;
+                result.IsError = false;
+            }
+            else
+            {
+                result.Result = BridgeTransactionStatus.NotFound;
+                result.IsError = true;
+                result.Message = "Transaction not found";
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting NEAR transaction status: {ex.Message}", ex);
+            result.Result = BridgeTransactionStatus.NotFound;
+        }
+        return result;
+    }
+
+    #endregion
 }

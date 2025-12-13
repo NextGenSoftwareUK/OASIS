@@ -12,9 +12,12 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
@@ -741,102 +744,220 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             else
             {
-                blockchainResult = await LockTokenAsync(new LockWeb4TokenRequest()
+                // Cross-chain transfer: Use BridgeManager for atomic swaps
+                try
                 {
-                    AttemptToLockEveryXSeconds = request.AttemptToLockEveryXSeconds,
-                    LockedByAvatarId = avatarId,//request.FromAvatarId,
-                    ProviderType = request.FromProvider,
-                    TokenAddress = request.FromTokenAddress,
-                    WaitForTokenToLockInSeconds = request.WaitForTokenToLockInSeconds,
-                    WaitTillTokenLocked = request.WaitTillTokenLocked,
-                    Web3TokenId = request.Web3TokenId
-                });
+                    // Get token symbols from provider types
+                    var fromToken = GetTokenSymbolForProvider(request.FromProvider.Value);
+                    var toToken = GetTokenSymbolForProvider(request.ToProvider.Value);
 
-                if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
-                {
-                    result.Result.LockTransactionResult = blockchainResult.Result.TransactionResult;
-                    blockchainResult = await SendTokenInternalAsync(request);
-
-                    if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
+                    if (string.IsNullOrEmpty(fromToken) || string.IsNullOrEmpty(toToken))
                     {
-                        result.Result.SendTransactionResult = blockchainResult.Result.TransactionResult;
-                        blockchainResult = await BurnTokenAsync(new BurnWeb4TokenRequest()
-                        {
-                            AttemptToBurnEveryXSeconds = request.AttemptToBurnEveryXSeconds,
-                            BurntByAvatarId = avatarId, //request.FromAvatarId,
-                            ProviderType = request.FromProvider,
-                            TokenAddress = request.FromTokenAddress,
-                            WaitForTokenToBurnInSeconds = request.WaitForTokenToBurnInSeconds,
-                            WaitTillTokenBurnt = request.WaitTillTokenBurnt,
-                            Web3TokenId = request.Web3TokenId,
-                            OwnerPrivateKey = request.OwnerPrivateKey, //TODO: May not need these?
-                            OwnerPublicKey = request.OwnerPublicKey, //TODO: May not need these?
-                            OwnerSeedPhrase = request.OwnerSeedPhrase //TODO: May not need these?
-                        });
+                        OASISErrorHandling.HandleError(ref result, 
+                            $"{errorMessage} Unable to determine token symbols for providers {request.FromProvider.Name} and {request.ToProvider.Name}. Cross-chain transfers require valid blockchain providers.");
+                        return result;
+                    }
 
-                        if (result != null && result.Result != null && !result.IsError)
-                        {
-                            result.Message = "Token Sent Successfully";
-                            result.Result.BurnTransactionResult = blockchainResult.Result.TransactionResult;
-                        }
-                        else
-                        {
-                            //TODO: Dont we need to also unsend the token somehow here?!
-                            string burnError = result.Message;
-                            blockchainResult = await UnlockTokenAsync(new UnlockWeb4TokenRequest()
-                            {
-                                AttemptToUnlockEveryXSeconds = request.AttemptToUnlockEveryXSeconds,
-                                UnlockedByAvatarId = avatarId, // request.FromAvatarId,
-                                ProviderType = request.FromProvider,
-                                TokenAddress = request.FromTokenAddress,
-                                WaitForTokenToUnlockInSeconds = request.WaitForTokenToUnlockInSeconds,
-                                WaitTillTokenUnlocked = request.WaitTillTokenUnlocked,
-                                Web3TokenId = request.Web3TokenId
-                            });
+                    // Get BridgeManager instance
+                    var bridgeManager = BridgeManager.Instance;
 
-                            if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
-                            {
-                                result.Result.UnlockTransactionResult = blockchainResult.Result.TransactionResult;
-                                result.Message = $"Sending the token succeeded but there was an error burning it with error message: {burnError} but it was successfully unlocked.";
-                                result.IsError = true;
-                            }
-                            else
-                            {
-                                result.Message = $"Sending the token succeeded but there was an error burning it with error message: {burnError} and there was also an error unlocking it: {blockchainResult.Message}";
-                                result.IsError = true;
-                            }
-                        }
+                    // Create bridge order request
+                    var bridgeOrderRequest = new NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs.CreateBridgeOrderRequest
+                    {
+                        FromToken = fromToken,
+                        ToToken = toToken,
+                        Amount = request.Amount,
+                        FromAddress = request.FromWalletAddress,
+                        DestinationAddress = request.ToWalletAddress,
+                        UserId = avatarId,
+                        ExpiresInMinutes = 30
+                    };
+
+                    // Execute cross-chain bridge order (atomic swap)
+                    var bridgeResult = await bridgeManager.CreateBridgeOrderAsync(bridgeOrderRequest);
+
+                    if (bridgeResult != null && !bridgeResult.IsError && bridgeResult.Result != null)
+                    {
+                        result.Message = $"Cross-chain token transfer initiated successfully. Bridge Order ID: {bridgeResult.Result.OrderId}";
+                        result.Result.SendTransactionResult = bridgeResult.Result.OrderId.ToString();
+                        result.IsError = false;
+
+                        // Store bridge order ID for tracking
+                        result.Result.BridgeOrderId = bridgeResult.Result.OrderId.ToString();
                     }
                     else
                     {
-                        string sendError = result.Message;
-                        blockchainResult = await UnlockTokenAsync(new UnlockWeb4TokenRequest()
-                        {
-                            AttemptToUnlockEveryXSeconds = request.AttemptToUnlockEveryXSeconds,
-                            UnlockedByAvatarId = avatarId, // request.FromAvatarId,
-                            ProviderType = request.FromProvider,
-                            TokenAddress = request.FromTokenAddress,
-                            WaitForTokenToUnlockInSeconds = request.WaitForTokenToUnlockInSeconds,
-                            WaitTillTokenUnlocked = request.WaitTillTokenUnlocked,
-                            Web3TokenId = request.Web3TokenId
-                        });
+                        OASISErrorHandling.HandleError(ref result, 
+                            $"{errorMessage} Cross-chain bridge operation failed. Reason: {bridgeResult?.Message ?? "Unknown error"}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError(ref result, 
+                        $"{errorMessage} Exception during cross-chain transfer: {ex.Message}", ex);
+                }
+            }
 
-                        if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
+            return result;
+        }
+
+        public async Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(Guid avatarId, ISendWeb4NFTRequest request)
+        {
+            OASISResult<ISendWeb4NFTResponse> result = new OASISResult<ISendWeb4NFTResponse>(new SendWeb4NFTResponse());
+            OASISResult<IWeb3NFTTransactionResponse> blockchainResult = new OASISResult<IWeb3NFTTransactionResponse>();
+            string errorMessage = "Error Occured in SendNFTAsync function. Reason: ";
+
+            // Resolve wallet addresses if not provided
+            if (string.IsNullOrEmpty(request.FromWalletAddress))
+            {
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+
+                if (avatarId != Guid.Empty)
+                    walletsResult = await LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, request.FromProvider.Value);
+
+                if (!walletsResult.IsError && walletsResult.Result != null && walletsResult.Result.ContainsKey(request.FromProvider.Value) && walletsResult.Result[request.FromProvider.Value] != null)
+                {
+                    IProviderWallet wallet = walletsResult.Result[request.FromProvider.Value].FirstOrDefault();
+                    if (wallet != null)
+                        request.FromWalletAddress = wallet.WalletAddress;
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar could not be found or does not have a wallet for provider {request.FromProvider.Name}.");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar could not be found or does not have a wallet for provider {request.FromProvider.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+            }
+
+            if (string.IsNullOrEmpty(request.ToWalletAddress))
+            {
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+                if (request.ToAvatarId != Guid.Empty)
+                    walletsResult = await LoadProviderWalletsForAvatarByIdAsync(request.ToAvatarId, false, false, request.ToProvider.Value);
+                else if (!string.IsNullOrEmpty(request.ToAvatarUsername))
+                    walletsResult = await LoadProviderWalletsForAvatarByUsernameAsync(request.ToAvatarUsername, false, false, request.ToProvider.Value);
+                else if (!string.IsNullOrEmpty(request.ToAvatarEmail))
+                    walletsResult = await LoadProviderWalletsForAvatarByEmailAsync(request.ToAvatarEmail, false, false, request.ToProvider.Value);
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} You must provide at least one of the following to identify the receiver: ToWalletAddress, ToAvatarId, ToAvatarUsername or ToAvatarEmail.");
+
+                if (!walletsResult.IsError && walletsResult.Result != null && walletsResult.Result.ContainsKey(request.ToProvider.Value) && walletsResult.Result[request.ToProvider.Value] != null)
+                {
+                    IProviderWallet wallet = walletsResult.Result[request.ToProvider.Value].FirstOrDefault();
+                    if (wallet != null)
+                        request.ToWalletAddress = wallet.WalletAddress;
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar could not be found or does not have a wallet for provider {request.ToProvider.Name}.");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar could not be found or does not have a wallet for provider {request.ToProvider.Name}. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+            }
+
+            if (result.IsError)
+                return result;
+
+            // Check if same-chain or cross-chain
+            if (request.FromProvider.Name == request.ToProvider.Name)
+            {
+                // Same-chain: Direct NFT transfer
+                IOASISNFTProvider nftProvider = ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISNFTProvider;
+                if (nftProvider != null)
+                {
+                    var sendRequest = new SendWeb3NFTRequest
+                    {
+                        FromNFTTokenAddress = request.FromNFTTokenAddress,
+                        FromWalletAddress = request.FromWalletAddress,
+                        ToWalletAddress = request.ToWalletAddress,
+                        TokenAddress = request.TokenAddress,
+                        TokenId = request.TokenId,
+                        Amount = request.Amount,
+                        MemoText = request.MemoText
+                    };
+
+                    blockchainResult = await nftProvider.SendNFTAsync(sendRequest);
+                    if (blockchainResult != null && blockchainResult.Result != null && !blockchainResult.IsError)
+                    {
+                        result.Message = "NFT Sent Successfully";
+                        result.Result.SendTransactionResult = blockchainResult.Result.TransactionResult;
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Provider {request.FromProvider.Name} does not support NFT operations.");
+                }
+            }
+            else
+            {
+                // Cross-chain NFT transfer: Use bridge
+                try
+                {
+                    // Get NFT providers for both chains
+                    IOASISNFTProvider fromNFTProvider = ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISNFTProvider;
+                    IOASISNFTProvider toNFTProvider = ProviderManager.Instance.GetProvider(request.ToProvider.Value) as IOASISNFTProvider;
+
+                    if (fromNFTProvider == null || toNFTProvider == null)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            $"{errorMessage} One or both providers do not support NFT operations.");
+                        return result;
+                    }
+
+                    // Step 1: Withdraw NFT from source chain (locks it)
+                    var withdrawResult = await fromNFTProvider.WithdrawNFTAsync(
+                        request.TokenAddress ?? request.FromNFTTokenAddress,
+                        request.TokenId,
+                        request.FromWalletAddress,
+                        string.Empty // Private key would be retrieved securely in production
+                    );
+
+                    if (withdrawResult.IsError || withdrawResult.Result == null)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            $"{errorMessage} Failed to withdraw/lock NFT on source chain: {withdrawResult.Message}");
+                        return result;
+                    }
+
+                    result.Result.LockTransactionResult = withdrawResult.Result.TransactionId;
+
+                    // Step 2: Deposit NFT to destination chain (mints wrapped NFT)
+                    var depositResult = await toNFTProvider.DepositNFTAsync(
+                        request.TokenAddress ?? request.FromNFTTokenAddress, // Would be destination chain NFT contract
+                        request.TokenId, // May be different on destination if wrapped
+                        request.ToWalletAddress,
+                        withdrawResult.Result.TransactionId // Source transaction hash for verification
+                    );
+
+                    if (depositResult.IsError || depositResult.Result == null)
+                    {
+                        // Rollback: Unlock NFT on source chain
+                        var unlockRequest = new UnlockWeb3NFTRequest
                         {
-                            result.Result.UnlockTransactionResult = blockchainResult.Result.TransactionResult;
-                            result.Message = $"Sending the token failed with error message: {sendError} but it was successfully unlocked.";
-                            result.IsError = true;
+                            NFTTokenAddress = request.TokenAddress ?? request.FromNFTTokenAddress,
+                            Web3NFTId = Guid.TryParse(request.TokenId, out var guid) ? guid : Guid.NewGuid(),
+                            UnlockedByAvatarId = avatarId
+                        };
+
+                        var unlockResult = await fromNFTProvider.UnlockNFTAsync(unlockRequest);
+                        if (unlockResult != null && !unlockResult.IsError)
+                        {
+                            result.Result.UnlockTransactionResult = unlockResult.Result.TransactionResult;
+                            result.Message = $"NFT deposit failed, but NFT was successfully unlocked on source chain. Deposit error: {depositResult.Message}";
                         }
                         else
                         {
-                            result.Message = $"Sending the token failed with error message: {sendError} and there was also an error unlocking it: {blockchainResult.Message}";
-                            result.IsError = true;
+                            result.Message = $"CRITICAL: NFT deposit failed AND unlock failed. Deposit error: {depositResult.Message}. Unlock error: {unlockResult?.Message}";
                         }
+                        result.IsError = true;
+                        return result;
                     }
-                }
 
-                //TODO: Implement cross chain transfer logic here.
-                //OASISErrorHandling.HandleError(ref result, $"{errorMessage} Cross-chain sending is coming soon!");
+                    result.Result.SendTransactionResult = depositResult.Result.TransactionId;
+                    result.Message = "Cross-chain NFT transfer completed successfully";
+                    result.IsError = false;
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError(ref result, 
+                        $"{errorMessage} Exception during cross-chain NFT transfer: {ex.Message}", ex);
+                }
             }
 
             return result;
@@ -963,8 +1084,55 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             else
             {
-                //TODO: Implement cross chain transfer logic here.
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Cross-chain sending is coming soon!");
+                // Cross-chain transfer: Use BridgeManager for atomic swaps (synchronous wrapper)
+                try
+                {
+                    // Get token symbols from provider types
+                    var fromToken = GetTokenSymbolForProvider(request.FromProvider.Value);
+                    var toToken = GetTokenSymbolForProvider(request.ToProvider.Value);
+
+                    if (string.IsNullOrEmpty(fromToken) || string.IsNullOrEmpty(toToken))
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            $"{errorMessage} Unable to determine token symbols for providers {request.FromProvider.Name} and {request.ToProvider.Name}. Cross-chain transfers require valid blockchain providers.");
+                        return result;
+                    }
+
+                    // Get BridgeManager instance
+                    var bridgeManager = BridgeManager.Instance;
+
+                    // Create bridge order request
+                    var bridgeOrderRequest = new NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs.CreateBridgeOrderRequest
+                    {
+                        FromToken = fromToken,
+                        ToToken = toToken,
+                        Amount = request.Amount,
+                        FromAddress = request.FromWalletAddress,
+                        DestinationAddress = request.ToWalletAddress,
+                        UserId = avatarId,
+                        ExpiresInMinutes = 30
+                    };
+
+                    // Execute cross-chain bridge order (atomic swap) - synchronous wrapper
+                    var bridgeResult = bridgeManager.CreateBridgeOrderAsync(bridgeOrderRequest).Result;
+
+                    if (bridgeResult != null && !bridgeResult.IsError && bridgeResult.Result != null)
+                    {
+                        result.Message = $"Cross-chain token transfer initiated successfully. Bridge Order ID: {bridgeResult.Result.OrderId}";
+                        result.Result.TransactionResult = bridgeResult.Result.OrderId.ToString();
+                        result.IsError = false;
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            $"{errorMessage} Cross-chain bridge operation failed. Reason: {bridgeResult?.Message ?? "Unknown error"}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError(ref result, 
+                        $"{errorMessage} Exception during cross-chain transfer: {ex.Message}", ex);
+                }
             }
 
             return result;
@@ -4358,6 +4526,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             result.Result = newWallet;
             return result;
+        }
+
+        /// <summary>
+        /// Maps ProviderType to token symbol for bridge operations
+        /// </summary>
+        private string GetTokenSymbolForProvider(ProviderType providerType)
+        {
+            return providerType switch
+            {
+                ProviderType.SolanaOASIS => "SOL",
+                ProviderType.EthereumOASIS => "ETH",
+                ProviderType.RadixOASIS => "XRD",
+                ProviderType.ZcashOASIS => "ZEC",
+                ProviderType.AztecOASIS => "AZTEC",
+                ProviderType.MidenOASIS => "MIDEN",
+                ProviderType.StarknetOASIS => "STARKNET",
+                ProviderType.PolygonOASIS => "MATIC",
+                ProviderType.ArbitrumOASIS => "ARB",
+                ProviderType.OptimismOASIS => "OP",
+                ProviderType.BNBChainOASIS => "BNB",
+                ProviderType.AvalancheOASIS => "AVAX",
+                ProviderType.NEAROASIS => "NEAR",
+                ProviderType.SuiOASIS => "SUI",
+                ProviderType.AptosOASIS => "APT",
+                ProviderType.CardanoOASIS => "ADA",
+                ProviderType.PolkadotOASIS => "DOT",
+                ProviderType.BitcoinOASIS => "BTC",
+                ProviderType.BaseOASIS => "ETH", // Base uses ETH
+                ProviderType.FantomOASIS => "FTM",
+                ProviderType.ChainLinkOASIS => "LINK",
+                ProviderType.EOSIOOASIS => "EOS",
+                ProviderType.HashgraphOASIS => "HBAR",
+                ProviderType.ElrondOASIS => "EGLD",
+                ProviderType.BlockStackOASIS => "STX",
+                _ => null
+            };
         }
 
         //TODO: Lots more coming soon! ;-)

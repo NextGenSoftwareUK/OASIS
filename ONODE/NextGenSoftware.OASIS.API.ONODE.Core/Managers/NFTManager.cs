@@ -329,7 +329,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         if (web3Request.NumberToMint == 0)
                             web3Request.NumberToMint = request.NumberToMint;
 
-                        result = await MintWeb3NFTsAsync(result, request, web3Request, null, isGeoNFT, responseFormatType, i == request.Web3NFTs.Count);
+                        IMintWeb4NFTRequest originalMintWeb4NFTRequest = CloneWeb4NFTRequest(request);
+                        result = await MintWeb3NFTsAsync(result, originalMintWeb4NFTRequest, web3Request, null, isGeoNFT, responseFormatType, i == request.Web3NFTs.Count);
                     }
                 }
                 else
@@ -342,369 +343,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             return result;
         }
-
-        private async Task<OASISResult<IWeb4NFT>> MintWeb3NFTsAsync(OASISResult<IWeb4NFT> result, IMintWeb4NFTRequest request, IMintWeb3NFTRequest web3Request = null, IWeb4NFT existingWeb4NFT = null, bool isGeoNFT = false, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, bool isLastWeb3NFT = false)
-        {
-            IMintWeb4NFTRequest originalWeb4Request = new MintWeb4NFTRequest()
-            {
-                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
-                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
-                Description = request.Description,
-                Discount = request.Discount,
-                Image = request.Image,
-                ImageUrl = request.ImageUrl,
-                IsForSale = request.IsForSale,
-                JSONMetaData = request.JSONMetaData,
-                MintedByAvatarId = request.MintedByAvatarId,
-                Title = request.Title,
-                MemoText = request.MemoText,
-                Price = request.Price,
-                RoyaltyPercentage = request.RoyaltyPercentage,
-                NumberToMint = request.NumberToMint,
-                SaleStartDate = request.SaleStartDate,
-                SaleEndDate = request.SaleEndDate,
-                OnChainProvider = request.OnChainProvider,
-                OffChainProvider = request.OffChainProvider,
-                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
-                NFTOffChainMetaType = request.NFTOffChainMetaType,
-                NFTStandardType = request.NFTStandardType,
-                Thumbnail = request.Thumbnail,
-                ThumbnailUrl = request.ThumbnailUrl,
-                JSONMetaDataURL = request.JSONMetaDataURL,
-                Tags = request.Tags != null ? new List<string>(request.Tags) : null,
-                MetaData = request.MetaData != null ? new Dictionary<string, object>(request.MetaData) : null,
-                Symbol = request.Symbol,
-                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
-                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
-                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
-                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
-                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
-                WaitTillNFTMinted = request.WaitTillNFTMinted,
-                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
-                WaitTillNFTSent = request.WaitTillNFTSent,
-                Web3NFTs = request.Web3NFTs != null ? request.Web3NFTs : new List<IMintWeb3NFTRequest>()
-            };
-
-            //Web3 Request overrides web4 (optional).
-            if (web3Request != null)
-            {
-                if (!string.IsNullOrEmpty(web3Request.Title))
-                    request.Title = web3Request.Title;
-
-                if (!string.IsNullOrEmpty(web3Request.Description))
-                    request.Description = web3Request.Description;
-
-                if (web3Request.Image != null)
-                    request.Image = web3Request.Image;
-
-                if (!string.IsNullOrEmpty(web3Request.ImageUrl))
-                    request.ImageUrl = web3Request.ImageUrl;
-
-                if (web3Request.Thumbnail != null)
-                    request.Thumbnail = web3Request.Thumbnail;
-
-                if (!string.IsNullOrEmpty(web3Request.ThumbnailUrl))
-                    request.ThumbnailUrl = web3Request.ThumbnailUrl;
-
-                if (web3Request.Discount.HasValue)
-                    request.Discount = web3Request.Discount.Value;
-
-                if (web3Request.Price.HasValue)
-                    request.Price = web3Request.Price.Value;
-
-                if (web3Request.RoyaltyPercentage.HasValue)
-                    request.RoyaltyPercentage = web3Request.RoyaltyPercentage.Value;
-
-                if (web3Request.IsForSale.HasValue)
-                    request.IsForSale = web3Request.IsForSale.Value;
-
-                if (web3Request.SaleStartDate.HasValue)
-                    request.SaleStartDate = web3Request.SaleStartDate.Value;
-
-                if (web3Request.SaleEndDate.HasValue)
-                    request.SaleEndDate = web3Request.SaleEndDate.Value;
-
-                if (!string.IsNullOrEmpty(web3Request.Symbol))
-                    request.Symbol = web3Request.Symbol;
-
-                if (!string.IsNullOrEmpty(web3Request.JSONMetaData))
-                    request.JSONMetaData = web3Request.JSONMetaData;
-
-                if (!string.IsNullOrEmpty(web3Request.JSONMetaDataURL))
-                    request.JSONMetaDataURL = web3Request.JSONMetaDataURL;
-
-                if (web3Request.NumberToMint.HasValue)
-                    request.NumberToMint = web3Request.NumberToMint.Value;
-
-                if (web3Request.NFTOffChainMetaType.HasValue)
-                    request.NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(web3Request.NFTOffChainMetaType.Value);
-
-                if (web3Request.NFTStandardType.HasValue)
-                    request.NFTStandardType = new EnumValue<NFTStandardType>(web3Request.NFTStandardType.Value);
-
-                if (web3Request.OnChainProvider.HasValue)
-                    request.OnChainProvider = new EnumValue<ProviderType>(web3Request.OnChainProvider.Value);
-
-                if (web3Request.OffChainProvider.HasValue)
-                    request.OffChainProvider = new EnumValue<ProviderType>(web3Request.OffChainProvider.Value);
-
-                if (web3Request.StoreNFTMetaDataOnChain.HasValue)
-                    request.StoreNFTMetaDataOnChain = web3Request.StoreNFTMetaDataOnChain.Value;
-
-                if (!string.IsNullOrEmpty(web3Request.SendToAddressAfterMinting))
-                    request.SendToAddressAfterMinting = web3Request.SendToAddressAfterMinting;
-
-                if (web3Request.SendToAvatarAfterMintingId != Guid.Empty)
-                    request.SendToAvatarAfterMintingId = web3Request.SendToAvatarAfterMintingId;
-
-                if (!string.IsNullOrEmpty(web3Request.SendToAvatarAfterMintingUsername))
-                    request.SendToAvatarAfterMintingUsername = web3Request.SendToAvatarAfterMintingUsername;
-
-                if (!string.IsNullOrEmpty(web3Request.SendToAvatarAfterMintingEmail))
-                    request.SendToAvatarAfterMintingEmail = web3Request.SendToAvatarAfterMintingEmail;
-
-                if (web3Request.AttemptToMintEveryXSeconds.HasValue)
-                    request.AttemptToMintEveryXSeconds = web3Request.AttemptToMintEveryXSeconds.Value;
-
-                if (web3Request.WaitForNFTToMintInSeconds.HasValue)
-                    request.AttemptToSendEveryXSeconds = web3Request.AttemptToSendEveryXSeconds.Value;
-
-                if (web3Request.WaitTillNFTMinted.HasValue)
-                    request.WaitForNFTToMintInSeconds = web3Request.WaitForNFTToMintInSeconds.Value;
-
-                if (web3Request.WaitTillNFTSent.HasValue)
-                    request.WaitForNFTToSendInSeconds = web3Request.WaitForNFTToSendInSeconds.Value;
-
-                if (web3Request.NFTTagsMergeStrategy == NFTTagsMergeStrategy.Replace)
-                    request.Tags.Clear();
-
-                if (web3Request.Tags != null)
-                {
-                    if (request.Tags == null)
-                        request.Tags = new List<string>();
-
-                    foreach (string tag in web3Request.Tags)
-                    {
-                        if (request.Tags.Contains(tag))
-                            continue;
-
-                        request.Tags.Add(tag);
-                    }
-                }
-
-                //Add web3 metadata to web4 (if any keys already exist then web3 overrides web4).
-                if (web3Request.NFTMetaDataMergeStrategy == NFTMetaDataMergeStrategy.Replace)
-                    request.MetaData.Clear();
-
-                if (web3Request.MetaData != null)
-                {
-                    if (request.MetaData == null)
-                        request.MetaData = new Dictionary<string, object>();
-
-                    foreach (string key in web3Request.MetaData.Keys)
-                    {
-                        if (request.MetaData.ContainsKey(key) && web3Request.NFTMetaDataMergeStrategy == NFTMetaDataMergeStrategy.Merge)
-                            continue;
-
-                        request.MetaData[key] = web3Request.MetaData[key];
-                    }
-                }
-            }
-
-            OASISResult<bool> validateResult = await ValidateNFTRequest(request);
-
-            if (validateResult != null && validateResult.Result && !validateResult.IsError)
-            {
-                if (request.OffChainProvider == null)
-                    request.OffChainProvider = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
-
-                if (web3Request == null)
-                    web3Request = new MintWeb3NFTRequest();
-
-                OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(request.OnChainProvider.Value);
-
-                if (nftProviderResult != null && nftProviderResult.Result != null && !nftProviderResult.IsError)
-                {
-                    string geoNFTMemoText = "";
-
-                    if (isGeoNFT)
-                        geoNFTMemoText = "Geo";
-
-                    request.MemoText = $"{request.OnChainProvider.Name} {geoNFTMemoText}NFT minted on The OASIS with title '{request.Title}' by avatar with id {request.MintedByAvatarId} for the price of {request.Price}. {request.MemoText}";
-
-                    EnumValue<ProviderType> NFTMetaDataProviderType;
-                    //request.OffChainProvider = new EnumValue<ProviderType>(ProviderType.None); //TODO: Not sure why it was defaulting to None?! lol
-
-                    if (request.StoreNFTMetaDataOnChain)
-                        NFTMetaDataProviderType = request.OnChainProvider;
-                    else
-                        NFTMetaDataProviderType = request.OffChainProvider;
-
-                    if (string.IsNullOrEmpty(request.Symbol))
-                    {
-                        if (isGeoNFT)
-                            request.Symbol = "GEONFT";
-                        else
-                            request.Symbol = "OASISNFT";
-                    }
-
-                    //Sync web3Request with web4.
-                    web3Request.AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds;
-                    web3Request.AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds;
-                    web3Request.Description = request.Description;
-                    web3Request.Discount = request.Discount;
-                    web3Request.JSONMetaDataURL = request.JSONMetaDataURL;
-                    web3Request.JSONMetaData = request.JSONMetaData;
-                    web3Request.MetaData = request.MetaData;
-                    web3Request.SaleStartDate = request.SaleStartDate;
-                    web3Request.SaleEndDate = request.SaleEndDate;
-                    web3Request.Image = request.Image;
-                    web3Request.ImageUrl = request.ImageUrl;
-                    web3Request.IsForSale = request.IsForSale;
-                    web3Request.MemoText = request.MemoText;
-                    web3Request.MintedByAvatarId = request.MintedByAvatarId;
-                    web3Request.NFTOffChainMetaType = request.NFTOffChainMetaType.Value;
-                    web3Request.NFTStandardType = request.NFTStandardType.Value;
-                    web3Request.OffChainProvider = request.OffChainProvider.Value;
-                    web3Request.OnChainProvider = request.OnChainProvider.Value;
-                    web3Request.Price = request.Price;
-                    web3Request.RoyaltyPercentage = request.RoyaltyPercentage;
-                    web3Request.SendToAddressAfterMinting = request.SendToAddressAfterMinting;
-                    web3Request.SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail;
-                    web3Request.SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId;
-                    web3Request.SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername;
-                    web3Request.StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain;
-                    web3Request.Symbol = request.Symbol;
-                    web3Request.Tags = request.Tags;
-                    web3Request.Thumbnail = request.Thumbnail;
-                    web3Request.ThumbnailUrl = request.ThumbnailUrl;
-                    web3Request.Title = request.Title;
-                    web3Request.WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds;
-                    web3Request.WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds;
-                    web3Request.WaitTillNFTMinted = request.WaitTillNFTMinted;
-                    web3Request.WaitTillNFTSent = request.WaitTillNFTSent;
-
-                    result = await MintNFTInternalAsync(result, originalWeb4Request, web3Request, request, NFTMetaDataProviderType, nftProviderResult, existingWeb4NFT, isGeoNFT, responseFormatType, isLastWeb3NFT);
-                }
-                else
-                {
-                    OASISErrorHandling.HandleWarning(ref result, $"Error occured minting web3 NFT in MintWeb3NFTsAsync. Error occured calling GetNFTProvider. Reason: {nftProviderResult.Message}");
-                    //result.Result = null;
-                    //result.Message = nftProviderResult.Message;
-                    //result.IsError = true;
-                }
-            }
-            else
-                OASISErrorHandling.HandleError(ref result, $"Error occured validating the NFT Request. Reason: {validateResult.Message}");
-
-            return result;
-        }
-
-        private async Task<OASISResult<bool>> ValidateNFTRequest(IMintWeb4NFTRequest request)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = $"Error occured in ValidateNFTRequest. Reason: ";
-            IAvatar currentAvatar = null;
-            OASISResult<bool> nftStandardValid = IsNFTStandardTypeValid(request, errorMessage);
-
-            if (nftStandardValid != null && nftStandardValid.IsError)
-            {
-                result.IsError = true;
-                result.Message = nftStandardValid.Message;
-                return result;
-            }
-
-            if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingEmail))
-            {
-                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarByEmailAsync(request.SendToAvatarAfterMintingEmail);
-
-                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                {
-                    request.SendToAvatarAfterMintingId = avatarResult.Result.Id;
-                    currentAvatar = avatarResult.Result;
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the SendToAvatarAfterMintingEmail {request.SendToAvatarAfterMintingEmail}. The email is likely not valid. Reason: {avatarResult.Message}");
-                    return result;
-                }
-            }
-
-            if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingUsername))
-            {
-                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(request.SendToAvatarAfterMintingUsername);
-
-                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                {
-                    request.SendToAvatarAfterMintingId = avatarResult.Result.Id;
-                    currentAvatar = avatarResult.Result;
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the SendToAvatarAfterMintingUsername {request.SendToAvatarAfterMintingEmail}. The username is likely not valid. Reason: {avatarResult.Message}");
-                    return result;
-                }
-            }
-
-            if (string.IsNullOrEmpty(request.SendToAddressAfterMinting) && request.SendToAvatarAfterMintingId == Guid.Empty)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} You need to specify at least one of the following: SendToAddressAfterMinting, SendToAvatarAfterMintingId, SendToAvatarAfterMintingUsername or SendToAvatarAfterMintingEmail.");
-                return result;
-            }
-
-            //If the wallet Address hasn't been set then set it now by looking up the relevant wallet address for this avatar and provider type.
-            if (string.IsNullOrEmpty(request.SendToAddressAfterMinting) && request.SendToAvatarAfterMintingId != Guid.Empty)
-            {
-                if (currentAvatar == null)
-                {
-                    OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(request.MintedByAvatarId);
-
-                    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
-                        currentAvatar = avatarResult.Result;
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the SendToAvatarAfterMinting {request.MintedByAvatarId}. Reason: {avatarResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (currentAvatar != null)
-                {
-                    foreach (ProviderType providerType in currentAvatar.ProviderWallets.Keys)
-                    {
-                        if (providerType == request.OnChainProvider.Value)
-                        {
-                            if (currentAvatar.ProviderWallets[request.OnChainProvider.Value].Count > 0)
-                            {
-                                IProviderWallet providerWallet = currentAvatar.ProviderWallets[request.OnChainProvider.Value].FirstOrDefault(x => x.IsDefaultWallet);
-
-                                if (providerWallet == null)
-                                    providerWallet = currentAvatar.ProviderWallets[request.OnChainProvider.Value][0];
-
-                                request.SendToAddressAfterMinting = providerWallet.WalletAddress;
-                            }
-                            break;
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(request.SendToAddressAfterMinting))
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet was found for avatar {request.MintedByAvatarId} and provider {request.OnChainProvider.Value}. Please make sure you link a valid wallet to the avatar using the Wallet API or Key API.");
-                        return result;
-                    }
-                }
-            }
-
-            if (string.IsNullOrEmpty(request.SendToAddressAfterMinting))
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} SendToAddressAfterMinting is null! Please make sure a valid SendToAddressAfterMinting is set or a valid SendToAvatarAfterMinting.");
-                return result;
-            }
-
-            result.Result = true;
-            return result;
-        }
-
 
         public async Task<OASISResult<IWeb4NFT>> ImportWeb3NFTAsync(IImportWeb3NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
@@ -3239,6 +2877,375 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             return result;
         }
+
+
+        private IMintWeb4NFTRequest CloneWeb4NFTRequest(IMintWeb4NFTRequest request)
+        {
+            return new MintWeb4NFTRequest()
+            {
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
+                Description = request.Description,
+                Discount = request.Discount,
+                Image = request.Image,
+                ImageUrl = request.ImageUrl,
+                IsForSale = request.IsForSale,
+                JSONMetaData = request.JSONMetaData,
+                MintedByAvatarId = request.MintedByAvatarId,
+                Title = request.Title,
+                MemoText = request.MemoText,
+                Price = request.Price,
+                RoyaltyPercentage = request.RoyaltyPercentage,
+                NumberToMint = request.NumberToMint,
+                SaleStartDate = request.SaleStartDate,
+                SaleEndDate = request.SaleEndDate,
+                OnChainProvider = request.OnChainProvider,
+                OffChainProvider = request.OffChainProvider,
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = request.NFTOffChainMetaType,
+                NFTStandardType = request.NFTStandardType,
+                Thumbnail = request.Thumbnail,
+                ThumbnailUrl = request.ThumbnailUrl,
+                JSONMetaDataURL = request.JSONMetaDataURL,
+                Tags = request.Tags != null ? new List<string>(request.Tags) : null,
+                MetaData = request.MetaData != null ? new Dictionary<string, object>(request.MetaData) : null,
+                Symbol = request.Symbol,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                Web3NFTs = request.Web3NFTs != null ? request.Web3NFTs : new List<IMintWeb3NFTRequest>()
+            };
+        }
+
+        private async Task<OASISResult<IWeb4NFT>> MintWeb3NFTsAsync(OASISResult<IWeb4NFT> result, IMintWeb4NFTRequest request, IMintWeb3NFTRequest web3Request = null, IWeb4NFT existingWeb4NFT = null, bool isGeoNFT = false, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, bool isLastWeb3NFT = false)
+        {
+            IMintWeb4NFTRequest originalWeb4Request = CloneWeb4NFTRequest(request);
+
+            //Web3 Request overrides web4 (optional).
+            if (web3Request != null)
+            {
+                if (!string.IsNullOrEmpty(web3Request.Title))
+                    request.Title = web3Request.Title;
+
+                if (!string.IsNullOrEmpty(web3Request.Description))
+                    request.Description = web3Request.Description;
+
+                if (web3Request.Image != null)
+                    request.Image = web3Request.Image;
+
+                if (!string.IsNullOrEmpty(web3Request.ImageUrl))
+                    request.ImageUrl = web3Request.ImageUrl;
+
+                if (web3Request.Thumbnail != null)
+                    request.Thumbnail = web3Request.Thumbnail;
+
+                if (!string.IsNullOrEmpty(web3Request.ThumbnailUrl))
+                    request.ThumbnailUrl = web3Request.ThumbnailUrl;
+
+                if (web3Request.Discount.HasValue)
+                    request.Discount = web3Request.Discount.Value;
+
+                if (web3Request.Price.HasValue)
+                    request.Price = web3Request.Price.Value;
+
+                if (web3Request.RoyaltyPercentage.HasValue)
+                    request.RoyaltyPercentage = web3Request.RoyaltyPercentage.Value;
+
+                if (web3Request.IsForSale.HasValue)
+                    request.IsForSale = web3Request.IsForSale.Value;
+
+                if (web3Request.SaleStartDate.HasValue)
+                    request.SaleStartDate = web3Request.SaleStartDate.Value;
+
+                if (web3Request.SaleEndDate.HasValue)
+                    request.SaleEndDate = web3Request.SaleEndDate.Value;
+
+                if (!string.IsNullOrEmpty(web3Request.Symbol))
+                    request.Symbol = web3Request.Symbol;
+
+                if (!string.IsNullOrEmpty(web3Request.JSONMetaData))
+                    request.JSONMetaData = web3Request.JSONMetaData;
+
+                if (!string.IsNullOrEmpty(web3Request.JSONMetaDataURL))
+                    request.JSONMetaDataURL = web3Request.JSONMetaDataURL;
+
+                if (web3Request.NumberToMint.HasValue)
+                    request.NumberToMint = web3Request.NumberToMint.Value;
+
+                if (web3Request.NFTOffChainMetaType.HasValue)
+                    request.NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(web3Request.NFTOffChainMetaType.Value);
+
+                if (web3Request.NFTStandardType.HasValue)
+                    request.NFTStandardType = new EnumValue<NFTStandardType>(web3Request.NFTStandardType.Value);
+
+                if (web3Request.OnChainProvider.HasValue)
+                    request.OnChainProvider = new EnumValue<ProviderType>(web3Request.OnChainProvider.Value);
+
+                if (web3Request.OffChainProvider.HasValue)
+                    request.OffChainProvider = new EnumValue<ProviderType>(web3Request.OffChainProvider.Value);
+
+                if (web3Request.StoreNFTMetaDataOnChain.HasValue)
+                    request.StoreNFTMetaDataOnChain = web3Request.StoreNFTMetaDataOnChain.Value;
+
+                if (!string.IsNullOrEmpty(web3Request.SendToAddressAfterMinting))
+                    request.SendToAddressAfterMinting = web3Request.SendToAddressAfterMinting;
+
+                if (web3Request.SendToAvatarAfterMintingId != Guid.Empty)
+                    request.SendToAvatarAfterMintingId = web3Request.SendToAvatarAfterMintingId;
+
+                if (!string.IsNullOrEmpty(web3Request.SendToAvatarAfterMintingUsername))
+                    request.SendToAvatarAfterMintingUsername = web3Request.SendToAvatarAfterMintingUsername;
+
+                if (!string.IsNullOrEmpty(web3Request.SendToAvatarAfterMintingEmail))
+                    request.SendToAvatarAfterMintingEmail = web3Request.SendToAvatarAfterMintingEmail;
+
+                if (web3Request.AttemptToMintEveryXSeconds.HasValue)
+                    request.AttemptToMintEveryXSeconds = web3Request.AttemptToMintEveryXSeconds.Value;
+
+                if (web3Request.WaitForNFTToMintInSeconds.HasValue)
+                    request.AttemptToSendEveryXSeconds = web3Request.AttemptToSendEveryXSeconds.Value;
+
+                if (web3Request.WaitTillNFTMinted.HasValue)
+                    request.WaitForNFTToMintInSeconds = web3Request.WaitForNFTToMintInSeconds.Value;
+
+                if (web3Request.WaitTillNFTSent.HasValue)
+                    request.WaitForNFTToSendInSeconds = web3Request.WaitForNFTToSendInSeconds.Value;
+
+                if (web3Request.NFTTagsMergeStrategy == NFTTagsMergeStrategy.Replace)
+                    request.Tags.Clear();
+
+                if (web3Request.Tags != null)
+                {
+                    if (request.Tags == null)
+                        request.Tags = new List<string>();
+
+                    foreach (string tag in web3Request.Tags)
+                    {
+                        if (request.Tags.Contains(tag))
+                            continue;
+
+                        request.Tags.Add(tag);
+                    }
+                }
+
+                //Add web3 metadata to web4 (if any keys already exist then web3 overrides web4).
+                if (web3Request.NFTMetaDataMergeStrategy == NFTMetaDataMergeStrategy.Replace)
+                    request.MetaData.Clear();
+
+                if (web3Request.MetaData != null)
+                {
+                    if (request.MetaData == null)
+                        request.MetaData = new Dictionary<string, object>();
+
+                    foreach (string key in web3Request.MetaData.Keys)
+                    {
+                        if (request.MetaData.ContainsKey(key) && web3Request.NFTMetaDataMergeStrategy == NFTMetaDataMergeStrategy.Merge)
+                            continue;
+
+                        request.MetaData[key] = web3Request.MetaData[key];
+                    }
+                }
+            }
+
+            OASISResult<bool> validateResult = await ValidateNFTRequest(request);
+
+            if (validateResult != null && validateResult.Result && !validateResult.IsError)
+            {
+                if (request.OffChainProvider == null)
+                    request.OffChainProvider = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
+
+                if (web3Request == null)
+                    web3Request = new MintWeb3NFTRequest();
+
+                OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(request.OnChainProvider.Value);
+
+                if (nftProviderResult != null && nftProviderResult.Result != null && !nftProviderResult.IsError)
+                {
+                    string geoNFTMemoText = "";
+
+                    if (isGeoNFT)
+                        geoNFTMemoText = "Geo";
+
+                    request.MemoText = $"{request.OnChainProvider.Name} {geoNFTMemoText}NFT minted on The OASIS with title '{request.Title}' by avatar with id {request.MintedByAvatarId} for the price of {request.Price}. {request.MemoText}";
+
+                    EnumValue<ProviderType> NFTMetaDataProviderType;
+                    //request.OffChainProvider = new EnumValue<ProviderType>(ProviderType.None); //TODO: Not sure why it was defaulting to None?! lol
+
+                    if (request.StoreNFTMetaDataOnChain)
+                        NFTMetaDataProviderType = request.OnChainProvider;
+                    else
+                        NFTMetaDataProviderType = request.OffChainProvider;
+
+                    if (string.IsNullOrEmpty(request.Symbol))
+                    {
+                        if (isGeoNFT)
+                            request.Symbol = "GEONFT";
+                        else
+                            request.Symbol = "OASISNFT";
+                    }
+
+                    //Sync web3Request with web4.
+                    web3Request.AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds;
+                    web3Request.AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds;
+                    web3Request.Description = request.Description;
+                    web3Request.Discount = request.Discount;
+                    web3Request.JSONMetaDataURL = request.JSONMetaDataURL;
+                    web3Request.JSONMetaData = request.JSONMetaData;
+                    web3Request.MetaData = request.MetaData;
+                    web3Request.SaleStartDate = request.SaleStartDate;
+                    web3Request.SaleEndDate = request.SaleEndDate;
+                    web3Request.Image = request.Image;
+                    web3Request.ImageUrl = request.ImageUrl;
+                    web3Request.IsForSale = request.IsForSale;
+                    web3Request.MemoText = request.MemoText;
+                    web3Request.MintedByAvatarId = request.MintedByAvatarId;
+                    web3Request.NFTOffChainMetaType = request.NFTOffChainMetaType.Value;
+                    web3Request.NFTStandardType = request.NFTStandardType.Value;
+                    web3Request.OffChainProvider = request.OffChainProvider.Value;
+                    web3Request.OnChainProvider = request.OnChainProvider.Value;
+                    web3Request.Price = request.Price;
+                    web3Request.RoyaltyPercentage = request.RoyaltyPercentage;
+                    web3Request.SendToAddressAfterMinting = request.SendToAddressAfterMinting;
+                    web3Request.SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail;
+                    web3Request.SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId;
+                    web3Request.SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername;
+                    web3Request.StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain;
+                    web3Request.Symbol = request.Symbol;
+                    web3Request.Tags = request.Tags;
+                    web3Request.Thumbnail = request.Thumbnail;
+                    web3Request.ThumbnailUrl = request.ThumbnailUrl;
+                    web3Request.Title = request.Title;
+                    web3Request.WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds;
+                    web3Request.WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds;
+                    web3Request.WaitTillNFTMinted = request.WaitTillNFTMinted;
+                    web3Request.WaitTillNFTSent = request.WaitTillNFTSent;
+
+                    result = await MintNFTInternalAsync(result, originalWeb4Request, web3Request, request, NFTMetaDataProviderType, nftProviderResult, existingWeb4NFT, isGeoNFT, responseFormatType, isLastWeb3NFT);
+                }
+                else
+                {
+                    OASISErrorHandling.HandleWarning(ref result, $"Error occured minting web3 NFT in MintWeb3NFTsAsync. Error occured calling GetNFTProvider. Reason: {nftProviderResult.Message}");
+                    //result.Result = null;
+                    //result.Message = nftProviderResult.Message;
+                    //result.IsError = true;
+                }
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured validating the NFT Request. Reason: {validateResult.Message}");
+
+            return result;
+        }
+
+        private async Task<OASISResult<bool>> ValidateNFTRequest(IMintWeb4NFTRequest request)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = $"Error occured in ValidateNFTRequest. Reason: ";
+            IAvatar currentAvatar = null;
+            OASISResult<bool> nftStandardValid = IsNFTStandardTypeValid(request, errorMessage);
+
+            if (nftStandardValid != null && nftStandardValid.IsError)
+            {
+                result.IsError = true;
+                result.Message = nftStandardValid.Message;
+                return result;
+            }
+
+            if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingEmail))
+            {
+                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarByEmailAsync(request.SendToAvatarAfterMintingEmail);
+
+                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                {
+                    request.SendToAvatarAfterMintingId = avatarResult.Result.Id;
+                    currentAvatar = avatarResult.Result;
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the SendToAvatarAfterMintingEmail {request.SendToAvatarAfterMintingEmail}. The email is likely not valid. Reason: {avatarResult.Message}");
+                    return result;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingUsername))
+            {
+                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(request.SendToAvatarAfterMintingUsername);
+
+                if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                {
+                    request.SendToAvatarAfterMintingId = avatarResult.Result.Id;
+                    currentAvatar = avatarResult.Result;
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the SendToAvatarAfterMintingUsername {request.SendToAvatarAfterMintingEmail}. The username is likely not valid. Reason: {avatarResult.Message}");
+                    return result;
+                }
+            }
+
+            if (string.IsNullOrEmpty(request.SendToAddressAfterMinting) && request.SendToAvatarAfterMintingId == Guid.Empty)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} You need to specify at least one of the following: SendToAddressAfterMinting, SendToAvatarAfterMintingId, SendToAvatarAfterMintingUsername or SendToAvatarAfterMintingEmail.");
+                return result;
+            }
+
+            //If the wallet Address hasn't been set then set it now by looking up the relevant wallet address for this avatar and provider type.
+            if (string.IsNullOrEmpty(request.SendToAddressAfterMinting) && request.SendToAvatarAfterMintingId != Guid.Empty)
+            {
+                if (currentAvatar == null)
+                {
+                    OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(request.MintedByAvatarId);
+
+                    if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
+                        currentAvatar = avatarResult.Result;
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured attempting to load the avatar details for the SendToAvatarAfterMinting {request.MintedByAvatarId}. Reason: {avatarResult.Message}");
+                        return result;
+                    }
+                }
+
+                if (currentAvatar != null)
+                {
+                    foreach (ProviderType providerType in currentAvatar.ProviderWallets.Keys)
+                    {
+                        if (providerType == request.OnChainProvider.Value)
+                        {
+                            if (currentAvatar.ProviderWallets[request.OnChainProvider.Value].Count > 0)
+                            {
+                                IProviderWallet providerWallet = currentAvatar.ProviderWallets[request.OnChainProvider.Value].FirstOrDefault(x => x.IsDefaultWallet);
+
+                                if (providerWallet == null)
+                                    providerWallet = currentAvatar.ProviderWallets[request.OnChainProvider.Value][0];
+
+                                request.SendToAddressAfterMinting = providerWallet.WalletAddress;
+                            }
+                            break;
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(request.SendToAddressAfterMinting))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet was found for avatar {request.MintedByAvatarId} and provider {request.OnChainProvider.Value}. Please make sure you link a valid wallet to the avatar using the Wallet API or Key API.");
+                        return result;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(request.SendToAddressAfterMinting))
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} SendToAddressAfterMinting is null! Please make sure a valid SendToAddressAfterMinting is set or a valid SendToAvatarAfterMinting.");
+                return result;
+            }
+
+            result.Result = true;
+            return result;
+        }
+
 
 
         ///// <summary>
