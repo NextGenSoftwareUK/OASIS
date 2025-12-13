@@ -1,10 +1,22 @@
-﻿using NBitcoin.RPC;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using NBitcoin.RPC;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
+using NextGenSoftware.OASIS.Common;
+using Solnet.Wallet;
+using Solnet.Wallet.Bip39;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
@@ -2424,6 +2436,96 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
+    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+    {
+        return LockNFTAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
+
+        try
+        {
+            // Lock NFT by transferring it to a bridge pool address or locking contract
+            // For Solana, this typically involves transferring to a program-owned account
+            var bridgePoolAddress = _oasisSolanaAccount.PublicKey.Key;
+            
+            var sendRequest = new SendWeb3NFTRequest
+            {
+                FromNFTTokenAddress = request.NFTTokenAddress,
+                FromWalletAddress = string.Empty, // Would be retrieved from request in real implementation
+                ToWalletAddress = bridgePoolAddress,
+                TokenAddress = request.NFTTokenAddress,
+                TokenId = request.Web3NFTId.ToString(),
+                Amount = 1 // NFTs are typically 1:1
+            };
+
+            var sendResult = await SendNFTAsync(sendRequest);
+            if (sendResult.IsError || sendResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
+                return result;
+            }
+
+            result.IsError = false;
+            result.IsSaved = true;
+            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
+        }
+
+        return result;
+    }
+
+    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
+    {
+        return UnlockNFTAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
+
+        try
+        {
+            // Unlock NFT by transferring it back from bridge pool to original owner
+            // For Solana, this involves transferring from program-owned account back to user
+            var bridgePoolAddress = _oasisSolanaAccount.PublicKey.Key;
+            
+            var sendRequest = new SendWeb3NFTRequest
+            {
+                FromNFTTokenAddress = request.NFTTokenAddress,
+                FromWalletAddress = bridgePoolAddress,
+                ToWalletAddress = string.Empty, // Would be retrieved from request in real implementation
+                TokenAddress = request.NFTTokenAddress,
+                TokenId = request.Web3NFTId.ToString(),
+                Amount = 1
+            };
+
+            var sendResult = await SendNFTAsync(sendRequest);
+            if (sendResult.IsError || sendResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
+                return result;
+            }
+
+            result.IsError = false;
+            result.IsSaved = true;
+            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
+        }
+
+        return result;
+    }
+
     public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
     {
         return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
@@ -2834,6 +2936,449 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     Task<OASISResult<IWeb3NFTTransactionResponse>> IOASISNFTProvider.UnlockTokenAsync(IUnlockWeb3TokenRequest request)
     {
         throw new NotImplementedException();
+    }
+
+    #endregion
+
+    #region Bridge Methods (IOASISBlockchainStorageProvider)
+
+    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+    {
+        var result = new OASISResult<decimal>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(accountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Account address is required");
+                return result;
+            }
+
+            var balanceRequest = new GetWeb3WalletBalanceRequest
+            {
+                WalletAddress = accountAddress
+            };
+
+            var balanceResult = await _solanaService.GetAccountBalanceAsync(balanceRequest);
+            if (balanceResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, balanceResult.Message, balanceResult.Exception);
+                return result;
+            }
+
+            result.Result = balanceResult.Result;
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting account balance: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+    {
+        var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Generate a new Solana wallet
+            var mnemonic = new Solnet.Wallet.Bip39.Mnemonic(Solnet.Wallet.Bip39.WordList.English, Solnet.Wallet.Bip39.WordCount.Twelve);
+            var wallet = new Solnet.Wallet.Wallet(mnemonic);
+            var account = wallet.Account;
+
+            result.Result = (
+                PublicKey: account.PublicKey.Key,
+                PrivateKey: Convert.ToBase64String(account.PrivateKey.KeyBytes),
+                SeedPhrase: mnemonic.ToString()
+            );
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error creating account: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+    {
+        var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(seedPhrase))
+            {
+                OASISErrorHandling.HandleError(ref result, "Seed phrase is required");
+                return result;
+            }
+
+            // Restore wallet from seed phrase
+            var mnemonic = new Solnet.Wallet.Bip39.Mnemonic(seedPhrase, Solnet.Wallet.Bip39.WordList.English);
+            var wallet = new Solnet.Wallet.Wallet(mnemonic);
+            var account = wallet.Account;
+
+            result.Result = (
+                PublicKey: account.PublicKey.Key,
+                PrivateKey: Convert.ToBase64String(account.PrivateKey.KeyBytes)
+            );
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error restoring account: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+            {
+                OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
+                return result;
+            }
+
+            if (amount <= 0)
+            {
+                OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
+                return result;
+            }
+
+            // Create account from private key
+            var privateKeyBytes = Convert.FromBase64String(senderPrivateKey);
+            var account = new Solnet.Wallet.Account(privateKeyBytes);
+
+            // For bridge withdrawals, we typically send to a bridge pool address
+            // Using the OASIS account as the bridge pool for now
+            var bridgePoolAddress = _oasisSolanaAccount.PublicKey.Key;
+
+            var sendRequest = new SendTransactionRequest
+            {
+                FromAccount = new BaseAccountRequest { PublicKey = senderAccountAddress },
+                ToAccount = new BaseAccountRequest { PublicKey = bridgePoolAddress },
+                Amount = (ulong)(amount * 1_000_000_000), // Convert SOL to lamports
+                Lampposts = (ulong)(amount * 1_000_000_000), // Convert SOL to lamports
+                MemoText = "Bridge Withdrawal"
+            };
+
+            var transactionResult = await _solanaService.SendTransaction(sendRequest);
+            if (transactionResult.IsError)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = transactionResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, transactionResult.Message, transactionResult.Exception);
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = transactionResult.Result.TransactionHash,
+                IsSuccessful = true,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(receiverAccountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
+                return result;
+            }
+
+            if (amount <= 0)
+            {
+                OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
+                return result;
+            }
+
+            // For bridge deposits, we send from the OASIS bridge pool to the receiver
+            var sendRequest = new SendTransactionRequest
+            {
+                FromAccount = new BaseAccountRequest { PublicKey = _oasisSolanaAccount.PublicKey.Key },
+                ToAccount = new BaseAccountRequest { PublicKey = receiverAccountAddress },
+                Amount = (ulong)(amount * 1_000_000_000), // Convert SOL to lamports
+                Lampposts = (ulong)(amount * 1_000_000_000), // Convert SOL to lamports
+                MemoText = "Bridge Deposit"
+            };
+
+            var transactionResult = await _solanaService.SendTransaction(sendRequest);
+            if (transactionResult.IsError)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = transactionResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, transactionResult.Message, transactionResult.Exception);
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = transactionResult.Result.TransactionHash,
+                IsSuccessful = true,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+    {
+        var result = new OASISResult<BridgeTransactionStatus>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(transactionHash))
+            {
+                OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
+                return result;
+            }
+
+            // Check transaction status using RPC
+            var transactionResult = await _rpcClient.GetTransactionAsync(transactionHash);
+            
+            if (!transactionResult.WasSuccessful)
+            {
+                // Transaction might not be found or failed
+                result.Result = BridgeTransactionStatus.NotFound;
+                result.IsError = false;
+                return result;
+            }
+
+            if (transactionResult.Result != null)
+            {
+                var transaction = transactionResult.Result;
+                if (transaction.Meta != null && transaction.Meta.Error != null)
+                {
+                    result.Result = BridgeTransactionStatus.Canceled;
+                }
+                else if (transaction.Meta != null && transaction.Meta.Err == null)
+                {
+                    // Check if transaction is finalized
+                    if (transaction.Slot > 0)
+                    {
+                        result.Result = BridgeTransactionStatus.Completed;
+                    }
+                    else
+                    {
+                        result.Result = BridgeTransactionStatus.Pending;
+                    }
+                }
+                else
+                {
+                    result.Result = BridgeTransactionStatus.Pending;
+                }
+            }
+            else
+            {
+                result.Result = BridgeTransactionStatus.NotFound;
+            }
+
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting transaction status: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
+                string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+            {
+                OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
+                return result;
+            }
+
+            // Use LockNFTAsync internally for withdrawal
+            var lockRequest = new LockWeb3NFTRequest
+            {
+                NFTTokenAddress = nftTokenAddress,
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                LockedByAvatarId = Guid.Empty // Would be passed in a real implementation
+            };
+
+            var lockResult = await LockNFTAsync(lockRequest);
+            if (lockResult.IsError || lockResult.Result == null)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = lockResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
+                IsSuccessful = !lockResult.IsError,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
+    }
+
+    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
+    {
+        var result = new OASISResult<BridgeTransactionResponse>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
+                return result;
+            }
+
+            // For deposit, we mint a wrapped NFT on the destination chain
+            // In production, you would retrieve NFT metadata from sourceTransactionHash
+            var mintRequest = new MintWeb3NFTRequest
+            {
+                SendToAddressAfterMinting = receiverAccountAddress,
+                // Additional metadata would be retrieved from source chain via sourceTransactionHash
+                // This is a simplified implementation
+            };
+
+            var mintResult = await MintNFTAsync(mintRequest);
+            if (mintResult.IsError || mintResult.Result == null)
+            {
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = mintResult.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
+                return result;
+            }
+
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
+                IsSuccessful = !mintResult.IsError,
+                Status = BridgeTransactionStatus.Pending
+            };
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
+            result.Result = new BridgeTransactionResponse
+            {
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = ex.Message,
+                Status = BridgeTransactionStatus.Canceled
+            };
+        }
+        return result;
     }
 
     #endregion

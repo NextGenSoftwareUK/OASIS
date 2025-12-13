@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -7,8 +8,11 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services.Miden;
 using NextGenSoftware.OASIS.API.Providers.MidenOASIS.Models;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 {
@@ -238,6 +242,144 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 
         // Additional required overrides would go here...
         // For now, implementing minimal set for bridge functionality
+
+        #endregion
+
+        #region Bridge Methods (IOASISBlockchainStorageProvider)
+
+        public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+        {
+            var result = new OASISResult<decimal>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.GetAccountBalanceAsync(accountAddress, token);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting account balance: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.CreateAccountAsync(token);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error creating account: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.RestoreAccountAsync(seedPhrase, token);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error restoring account: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.WithdrawAsync(amount, senderAccountAddress, senderPrivateKey);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = ex.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.DepositAsync(amount, receiverAccountAddress);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = ex.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        {
+            var result = new OASISResult<BridgeTransactionStatus>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.GetTransactionStatusAsync(transactionHash, token);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting transaction status: {ex.Message}", ex);
+                return result;
+            }
+        }
 
         #endregion
     }

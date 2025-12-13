@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -12,6 +13,8 @@ using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
@@ -736,6 +739,144 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 
             OASISErrorHandling.HandleError(ref result, "GetHolonsNearMe not yet implemented for Aztec provider");
             return result;
+        }
+
+        #endregion
+
+        #region Bridge Methods (IOASISBlockchainStorageProvider)
+
+        public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+        {
+            var result = new OASISResult<decimal>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Aztec provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.GetAccountBalanceAsync(accountAddress, token);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting account balance: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Aztec provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.CreateAccountAsync(token);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error creating account: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Aztec provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.RestoreAccountAsync(seedPhrase, token);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error restoring account: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Aztec provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.WithdrawAsync(amount, senderAccountAddress, senderPrivateKey);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = ex.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Aztec provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.DepositAsync(amount, receiverAccountAddress);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = string.Empty,
+                    IsSuccessful = false,
+                    ErrorMessage = ex.Message,
+                    Status = BridgeTransactionStatus.Canceled
+                };
+                return result;
+            }
+        }
+
+        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        {
+            var result = new OASISResult<BridgeTransactionStatus>();
+            try
+            {
+                if (!IsProviderActivated || _bridgeService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Aztec provider is not activated");
+                    return result;
+                }
+
+                return await _bridgeService.GetTransactionStatusAsync(transactionHash, token);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting transaction status: {ex.Message}", ex);
+                return result;
+            }
         }
 
         #endregion

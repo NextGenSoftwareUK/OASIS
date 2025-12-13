@@ -716,7 +716,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (web4NFT.Web3NFTs.Count > 0)
             {
-                Console.WriteLine("");
+                //Console.WriteLine("");
                 DisplayProperty("WEB3 NFT's", "", displayFieldLength);
                 Console.WriteLine("");
 

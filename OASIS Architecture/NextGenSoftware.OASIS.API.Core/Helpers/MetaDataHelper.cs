@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             if (metaData != null && metaData.Keys.Count > 0)
             {
                 foreach (string key in metaData.Keys)
-                    string.Concat(metaDataString, key, " = ", GetMetaValue(metaData[key]), ",");
+                    metaDataString = string.Concat(metaDataString, key, " = ", GetMetaValue(metaData[key]), ",");
 
                 if (metaDataString.Length > 2)
                     metaDataString = metaDataString.Substring(0, metaDataString.Length - 2);
