@@ -44,6 +44,7 @@
     <PackageReference Include="eos-sharp" Version="2.2.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.6" />
+    <PackageReference Include="Nethereum.Signer" Version="4.18.0" />
     <!--<PackageReference Include="NLog" Version="4.7.3" />
     <PackageReference Include="NLog.Config" Version="4.7.3" />-->
   </ItemGroup>

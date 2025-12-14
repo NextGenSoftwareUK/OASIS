@@ -2,6 +2,7 @@
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
@@ -234,11 +235,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && result.Result != null && !result.IsError)
             {
-                Console.WriteLine("");
-                List<IMintWeb3NFTRequest> web3Requests = await NFTCommon.GenerateWeb3NFTRequestsAsync(result.Result);
+                IRemintWeb4GeoNFTRequest remintRequest = await NFTCommon.GenerateWeb4GeoNFTRemintRequestAsync(result.Result);
 
-                CLIEngine.ShowWorkingMessage("Reminting WEB4 OASIS GeoNFT & WEB3 NFT's...");
-                result = await STAR.OASISAPI.NFTs.RemintGeoNftAsync(result.Result, web3Requests);
+                CLIEngine.ShowWorkingMessage("Reminting WEB4 OASIS Geo-NFT & WEB3 NFT's...");
+                result = await STAR.OASISAPI.NFTs.RemintGeoNftAsync(remintRequest);
 
                 if (result != null && result.Result != null && !result.IsError)
                     CLIEngine.ShowSuccessMessage(result.Message);

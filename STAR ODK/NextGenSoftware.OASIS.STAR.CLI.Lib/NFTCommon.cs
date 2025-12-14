@@ -3,6 +3,8 @@ using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
@@ -133,7 +135,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             request.MetaData = MetaDataHelper.ManageMetaData(request.MetaData, "NFT");
             Console.WriteLine("");
             request.NumberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
+            request = (MintWeb4NFTRequest)GetSendAndAdvancedOptions(request);
+            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
+            return request;
+        }
 
+        public IMintWeb4NFTRequest GetSendAndAdvancedOptions(IMintWeb4NFTRequest request)
+        {
             if (CLIEngine.GetConfirmation("Do you wish to send the NFT to yourself after it is minted?"))
             {
                 request.SendToAvatarAfterMintingId = STAR.BeamedInAvatar.Id;
@@ -191,107 +199,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 Console.WriteLine("");
-
-
-            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
-
-            //if (request.NumberToMint > 0 && !CLIEngine.GetConfirmation("Do all of the WEB3 NFT's share the same parent WEB4 NFT MetaData? (Select 'N' if you wish to create WEB3 NFT varients that share some or none of their parent WEB4 NFT MetaData)."))
-            //{
-            //    if (request.Web3NFTs == null)
-            //        request.Web3NFTs = new List<IMintWeb3NFTRequest>();
-
-            //    Console.WriteLine("");
-
-            //    for (int i = 0; i < request.NumberToMint; i++)
-            //    {
-            //        CLIEngine.ShowDivider();
-            //        CLIEngine.ShowMessage($"WEB3 OASIS NFT {i + 1}/{request.NumberToMint}");
-            //        CLIEngine.ShowDivider();
-            //        MintWeb3NFTRequest web3Request = (MintWeb3NFTRequest)await GenerateWeb3NFTRequestAsync(request);
-            //        request.Web3NFTs.Add(web3Request);
-            //        Console.WriteLine("");
-            //        CLIEngine.ShowSuccessMessage($"WEB3 NFT Varient {i+1} Request Created.");
-
-            //        if (i < request.NumberToMint && CLIEngine.GetConfirmation("Would you like the rest of the WEB3 NFT Varients to share the same propetites/metadata? If you select 'N' then you will need to continue inputting the values you want for each WEB3 NFT Varient."))
-            //        {
-            //            for (int j = i + 1; j < request.NumberToMint; j++)
-            //            {
-            //                MintWeb3NFTRequest web3RequestInternal = new MintWeb3NFTRequest();
-            //                // Copy retry/wait settings
-            //                web3RequestInternal.AttemptToMintEveryXSeconds = web3Request.AttemptToMintEveryXSeconds;
-            //                web3RequestInternal.AttemptToSendEveryXSeconds = web3Request.AttemptToSendEveryXSeconds;
-
-            //                // Basic fields
-            //                web3RequestInternal.Title = web3Request.Title;
-            //                web3RequestInternal.Description = web3Request.Description;
-            //                web3RequestInternal.MemoText = web3Request.MemoText;
-
-            //                // Pricing
-            //                web3RequestInternal.Price = web3Request.Price;
-            //                web3RequestInternal.Discount = web3Request.Discount;
-            //                web3RequestInternal.RoyaltyPercentage = web3Request.RoyaltyPercentage;
-
-            //                // Mint counts
-            //                web3RequestInternal.NumberToMint = web3Request.NumberToMint ?? 1;
-
-            //                // Sale info
-            //                web3RequestInternal.IsForSale = web3Request.IsForSale;
-            //                web3RequestInternal.SaleStartDate = web3Request.SaleStartDate;
-            //                web3RequestInternal.SaleEndDate = web3Request.SaleEndDate;
-
-            //                // Providers / standards
-            //                web3RequestInternal.OnChainProvider = web3Request.OnChainProvider;
-            //                web3RequestInternal.OffChainProvider = web3Request.OffChainProvider;
-            //                web3RequestInternal.StoreNFTMetaDataOnChain = web3Request.StoreNFTMetaDataOnChain;
-            //                if (web3Request.NFTOffChainMetaType.HasValue)
-            //                    web3RequestInternal.NFTOffChainMetaType = web3Request.NFTOffChainMetaType.Value;
-            //                if (web3Request.NFTStandardType.HasValue)
-            //                    web3RequestInternal.NFTStandardType = web3Request.NFTStandardType.Value;
-
-            //                // Images
-            //                web3RequestInternal.Image = web3Request.Image;
-            //                web3RequestInternal.ImageUrl = web3Request.ImageUrl;
-            //                web3RequestInternal.Thumbnail = web3Request.Thumbnail;
-            //                web3RequestInternal.ThumbnailUrl = web3Request.ThumbnailUrl;
-
-            //                // JSON metadata
-            //                web3RequestInternal.JSONMetaDataURL = web3Request.JSONMetaDataURL;
-            //                web3RequestInternal.JSONMetaData = web3Request.JSONMetaData;
-
-            //                // Tags
-            //                if (web3Request.Tags != null)
-            //                    web3RequestInternal.Tags = new List<string>(web3Request.Tags);
-
-            //                // MetaData
-            //                if (web3Request.MetaData != null)
-            //                    web3RequestInternal.MetaData = new Dictionary<string, object>(web3Request.MetaData);
-
-            //                // Merge strategies
-            //                web3RequestInternal.NFTTagsMergeStrategy = web3Request.NFTTagsMergeStrategy;
-            //                web3RequestInternal.NFTMetaDataMergeStrategy = web3Request.NFTMetaDataMergeStrategy;
-
-            //                // Send options
-            //                web3RequestInternal.SendToAddressAfterMinting = web3Request.SendToAddressAfterMinting;
-            //                web3RequestInternal.SendToAvatarAfterMintingId = web3Request.SendToAvatarAfterMintingId;
-            //                web3RequestInternal.SendToAvatarAfterMintingUsername = web3Request.SendToAvatarAfterMintingUsername;
-            //                web3RequestInternal.SendToAvatarAfterMintingEmail = web3Request.SendToAvatarAfterMintingEmail;
-
-            //                // Wait/send advanced options
-            //                web3RequestInternal.WaitTillNFTMinted = web3Request.WaitTillNFTMinted;
-            //                web3RequestInternal.WaitForNFTToMintInSeconds = web3Request.WaitForNFTToMintInSeconds;
-            //                web3RequestInternal.WaitTillNFTSent = web3Request.WaitTillNFTSent;
-            //                web3RequestInternal.WaitForNFTToSendInSeconds = web3Request.WaitForNFTToSendInSeconds;
-
-            //                Console.WriteLine("");
-            //                CLIEngine.ShowSuccessMessage($"WEB3 NFT Varient {j + 1} Request Created.");
-
-            //                request.Web3NFTs.Add(web3RequestInternal);
-            //            }
-
-            //            break;
-            //        }
-            //    }
-            //}
 
             return request;
         }
@@ -489,8 +396,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     object offChainProviderObj = CLIEngine.GetValidInputForEnum("What off-chain provider do you wish to mint on?", typeof(ProviderType), addLineBefore: true);
                     web3Request.OffChainProvider = (ProviderType)offChainProviderObj;
                 }
-                else
-                    Console.WriteLine("");
+                //else
+                //    Console.WriteLine("");
 
                 if (web3Request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJSONURL && CLIEngine.GetConfirmation($"Do you wish to edit the JSON metadata URI for this WEB3 Request? (It currently inherits '{request.JSONMetaDataURL}' from its parent WEB4 NFT.)"))
                 {
@@ -635,7 +542,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             web3Request.SendToAvatarAfterMintingUsername = CLIEngine.GetValidInput("What is the Username of the Avatar you want to send the NFT after it is minted?");
                             break;
 
-                        case 4:
+                         case 4:
                             web3Request.SendToAvatarAfterMintingEmail = CLIEngine.GetValidInputForEmail("What is the Email of the Avatar you want to send the NFT after it is minted?");
                             break;
                     }
@@ -645,18 +552,116 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return web3Request;
         }
 
-        public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IWeb4NFT web4NFT)
+        public async Task<IRemintWeb4NFTRequest> GenerateWeb4NFTRemintRequestAsync(IWeb4NFT web4NFT)
         {
-            return await GenerateWeb3NFTRequestsAsync(new MintWeb4NFTRequest()
-            {
-                 MintedByAvatarId = web4NFT.MintedByAvatarId,
-                 Description = web4NFT.Description,
-                 Discount = web4NFT.Discount,
-                 Image = web4NFT.Image,
+            int numberToMint = CLIEngine.GetValidInputForInt("How many additional WEB3 NFT's do you wish to mint for this WEB4 OASIS NFT? ");
 
-                 //TODO: Finish mapping rest of props...
-            });
+            MintWeb4NFTRequest request = new MintWeb4NFTRequest()
+            {
+                MintedByAvatarId = web4NFT.MintedByAvatarId,
+                Title = web4NFT.Title,
+                Description = web4NFT.Description,
+                MemoText = web4NFT.MemoText,
+                Price = web4NFT.Price,
+                Discount = web4NFT.Discount,
+                RoyaltyPercentage = web4NFT.RoyaltyPercentage,
+                IsForSale = web4NFT.IsForSale,
+                SaleStartDate = web4NFT.SaleStartDate,
+                SaleEndDate = web4NFT.SaleEndDate,
+                OnChainProvider = web4NFT.OnChainProvider,
+                OffChainProvider = web4NFT.OffChainProvider,
+                StoreNFTMetaDataOnChain = web4NFT.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = web4NFT.NFTOffChainMetaType,
+                NFTStandardType = web4NFT.NFTStandardType,
+                Image = web4NFT.Image,
+                ImageUrl = web4NFT.ImageUrl,
+                Thumbnail = web4NFT.Thumbnail,
+                ThumbnailUrl = web4NFT.ThumbnailUrl,
+                MetaData = web4NFT.MetaData,
+                Tags = web4NFT.Tags,
+                JSONMetaData = web4NFT.JSONMetaData,
+                JSONMetaDataURL = web4NFT.JSONMetaDataURL,
+                Symbol = web4NFT.Symbol,
+                NumberToMint = numberToMint
+            };
+
+            request = GetSendAndAdvancedOptions(request) as MintWeb4NFTRequest;
+            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
+
+            return new RemintWeb4NFTRequest()
+            {
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                Web3NFTs = request.Web3NFTs,
+                Web4NFT = web4NFT
+            };
         }
+
+        public async Task<IRemintWeb4GeoNFTRequest> GenerateWeb4GeoNFTRemintRequestAsync(IWeb4GeoSpatialNFT web4GeoNFT)
+        {
+            int numberToMint = CLIEngine.GetValidInputForInt("How many additional WEB3 NFT's do you wish to mint for this WEB4 OASIS Geo-NFT? ");
+
+            MintWeb4NFTRequest request = new MintWeb4NFTRequest()
+            {
+                MintedByAvatarId = web4GeoNFT.MintedByAvatarId,
+                Title = web4GeoNFT.Title,
+                Description = web4GeoNFT.Description,
+                MemoText = web4GeoNFT.MemoText,
+                Price = web4GeoNFT.Price,
+                Discount = web4GeoNFT.Discount,
+                RoyaltyPercentage = web4GeoNFT.RoyaltyPercentage,
+                IsForSale = web4GeoNFT.IsForSale,
+                SaleStartDate = web4GeoNFT.SaleStartDate,
+                SaleEndDate = web4GeoNFT.SaleEndDate,
+                OnChainProvider = web4GeoNFT.OnChainProvider,
+                OffChainProvider = web4GeoNFT.OffChainProvider,
+                StoreNFTMetaDataOnChain = web4GeoNFT.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = web4GeoNFT.NFTOffChainMetaType,
+                NFTStandardType = web4GeoNFT.NFTStandardType,
+                Image = web4GeoNFT.Image,
+                ImageUrl = web4GeoNFT.ImageUrl,
+                Thumbnail = web4GeoNFT.Thumbnail,
+                ThumbnailUrl = web4GeoNFT.ThumbnailUrl,
+                MetaData = web4GeoNFT.MetaData,
+                Tags = web4GeoNFT.Tags,
+                JSONMetaData = web4GeoNFT.JSONMetaData,
+                JSONMetaDataURL = web4GeoNFT.JSONMetaDataURL,
+                Symbol = web4GeoNFT.Symbol,
+                NumberToMint = numberToMint
+            };
+
+            request = GetSendAndAdvancedOptions(request) as MintWeb4NFTRequest;
+            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
+
+            return new RemintWeb4GeoNFTRequest()
+            {
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                Web3NFTs = request.Web3NFTs,
+                Web4GeoNFT = web4GeoNFT
+            };
+        }
+
+        //public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IMintWeb4NFTRequest request, int numberToMint = 1)
+        //{
+        //    return await GenerateWeb3NFTRequestsAsync(request);
+        //}
 
         public async Task<IImportWeb3NFTRequest> GenerateImportNFTRequestAsync()
         {
