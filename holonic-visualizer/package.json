@@ -1,0 +1,19 @@
+{
+  "name": "holonic-visualizer",
+  "version": "1.0.0",
+  "description": "Three.js visualizer for holonic data showing OAPPs as celestial bodies",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.160.0",
+    "dat.gui": "^0.7.9"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
+
