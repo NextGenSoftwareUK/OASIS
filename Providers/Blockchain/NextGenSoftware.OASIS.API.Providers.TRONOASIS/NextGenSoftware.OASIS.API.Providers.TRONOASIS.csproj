@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <PackageReference Include="TronNet" Version="0.2.0" />
+    <PackageReference Include="Nethereum.Signer" Version="4.18.0" />
   </ItemGroup>
 
   <ItemGroup>

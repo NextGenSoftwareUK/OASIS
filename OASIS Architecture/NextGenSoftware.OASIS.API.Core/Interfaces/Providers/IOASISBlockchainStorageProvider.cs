@@ -40,14 +40,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
         // Bridge methods ported from IOASISBridge
         /// <summary>
-        /// Retrieves the balance of an account based on its address.
-        /// </summary>
-        /// <param name="accountAddress">The address of the account to check.</param>
-        /// <param name="token">A cancellation token to support cancellation of the operation.</param>
-        /// <returns>The balance of the account.</returns>
-        Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default);
-
-        /// <summary>
         /// Creates a new account and returns the public key, private key, and seed phrase.
         /// </summary>
         /// <param name="token">A cancellation token to support cancellation of the operation.</param>

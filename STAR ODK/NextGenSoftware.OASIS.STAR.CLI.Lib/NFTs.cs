@@ -175,11 +175,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             
             if (result != null && result.Result != null && !result.IsError)
             {
-                Console.WriteLine("");
-                List<IMintWeb3NFTRequest> web3Requests = await NFTCommon.GenerateWeb3NFTRequestsAsync(result.Result);
+                IRemintWeb4NFTRequest remintRequest = await NFTCommon.GenerateWeb4NFTRemintRequestAsync(result.Result);
 
                 CLIEngine.ShowWorkingMessage("Reminting WEB4 OASIS NFT & WEB3 NFT's...");
-                result = await STAR.OASISAPI.NFTs.RemintNftAsync(result.Result, web3Requests);
+                result = await STAR.OASISAPI.NFTs.RemintNftAsync(remintRequest);
 
                 if (result != null && result.Result != null && !result.IsError)
                     CLIEngine.ShowSuccessMessage(result.Message);

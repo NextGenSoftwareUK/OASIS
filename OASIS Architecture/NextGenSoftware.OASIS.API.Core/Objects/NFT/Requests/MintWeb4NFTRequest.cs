@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
 {
+    //public class MintWeb4NFTRequest : NFTOptions, MintNFTRequestBase, IMintWeb4NFTRequest //TODO: If only c# supported multiple inheritance then we could do this way?
     public class MintWeb4NFTRequest : MintNFTRequestBase, IMintWeb4NFTRequest
     {
         public IList<IMintWeb3NFTRequest> Web3NFTs { get; set; } = new List<IMintWeb3NFTRequest>();

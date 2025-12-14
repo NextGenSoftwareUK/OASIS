@@ -7,7 +7,9 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
@@ -312,7 +314,30 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
         {
-            return await _provider.GetAccountBalanceAsync(accountAddress, token);
+            // Use GetBalanceAsync instead of redundant GetAccountBalanceAsync
+            var request = new GetWeb3WalletBalanceRequest
+            {
+                WalletAddress = accountAddress
+            };
+            var balanceResult = await _provider.GetBalanceAsync(request);
+            
+            // Convert double to decimal for bridge compatibility
+            if (balanceResult.IsError || balanceResult.Result == null)
+            {
+                return new OASISResult<decimal>
+                {
+                    IsError = balanceResult.IsError,
+                    Message = balanceResult.Message,
+                    DetailedMessage = balanceResult.DetailedMessage
+                };
+            }
+            
+            return new OASISResult<decimal>
+            {
+                Result = (decimal)balanceResult.Result,
+                IsError = false,
+                Message = balanceResult.Message
+            };
         }
 
         public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)

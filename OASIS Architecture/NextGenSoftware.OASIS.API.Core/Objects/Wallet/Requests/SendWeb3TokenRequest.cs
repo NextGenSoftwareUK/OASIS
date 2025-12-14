@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests
     public class SendWeb3TokenRequest : ISendWeb3TokenRequest
     {
         public Guid Web3TokenId { get; set; }
+        public string FromWalletPrivateKey { get; set; }
         public string FromTokenAddress { get; set; }
         public string FromWalletAddress { get; set; }
         public string ToWalletAddress { get; set; }

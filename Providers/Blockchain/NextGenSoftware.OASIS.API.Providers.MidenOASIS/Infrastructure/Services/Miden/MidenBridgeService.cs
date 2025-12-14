@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.MidenOASIS.Models;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services.Miden
 {
@@ -19,6 +20,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
             _midenService = midenService;
             _bridgePoolAddress = Environment.GetEnvironmentVariable("MIDEN_BRIDGE_POOL_ADDRESS") ?? "miden_bridge_pool";
         }
+
+        public string GetBridgePoolAddress() => _bridgePoolAddress;
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
         {
