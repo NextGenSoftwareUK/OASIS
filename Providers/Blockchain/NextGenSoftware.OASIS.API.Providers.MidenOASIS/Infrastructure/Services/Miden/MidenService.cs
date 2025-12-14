@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.MidenOASIS.Models;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services.Miden
 {

@@ -34,6 +34,8 @@
   <ItemGroup>
     <PackageReference Include="Nethereum.RPC" Version="4.21.4" />
     <PackageReference Include="Nethereum.Web3" Version="4.21.4" />
+    <PackageReference Include="Nethereum.Signer" Version="4.21.4" />
+    <PackageReference Include="Nethereum.HdWallet" Version="4.21.4" />
   </ItemGroup>
 
   <ItemGroup>

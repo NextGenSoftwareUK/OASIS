@@ -25,6 +25,7 @@
 	</PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Nethereum.Signer" Version="4.21.4" />
     <PackageReference Include="Nethereum.Web3" Version="4.20.0" />
   </ItemGroup>
 

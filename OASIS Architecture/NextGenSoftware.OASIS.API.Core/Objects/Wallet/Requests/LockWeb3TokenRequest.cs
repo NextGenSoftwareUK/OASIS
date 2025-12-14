@@ -10,5 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests
         public Guid Web3TokenId { get; set; }
         //public string MintWalletAddress { get; set; }
         public string TokenAddress { get; set; }
+        public string FromWalletPrivateKey { get; set; }
+        public decimal Amount { get; set; }
     }
 }
