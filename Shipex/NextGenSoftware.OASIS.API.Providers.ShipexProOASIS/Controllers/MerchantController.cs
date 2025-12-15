@@ -126,15 +126,16 @@ public class MerchantController : ControllerBase
             }
 
             // Create merchant
+            // Normalize email: use null instead of empty string to avoid unique index conflicts
             var merchant = new Merchant
             {
                 MerchantId = Guid.NewGuid(),
                 CompanyName = request.CompanyName,
                 ContactInfo = new ContactInfo
                 {
-                    Email = request.Email ?? "",
-                    Phone = request.Phone ?? "",
-                    Address = request.Address ?? ""
+                    Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
+                    Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
+                    Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim()
                 },
                 ApiKeyHash = apiKeyHash,
                 RateLimitTier = tier,
