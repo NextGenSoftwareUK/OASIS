@@ -170,7 +170,7 @@ Taking inspiration from the Reform Hub's engaging design, this document outlines
 #### Option A: WebSocket Connection
 ```javascript
 // Connect to WebSocket for real-time updates
-const ws = new WebSocket('wss://api.oasisplatform.world/telegram/updates');
+const ws = new WebSocket('wss://api.oasisweb4.one/telegram/updates');
 ws.onmessage = (event) => {
     const update = JSON.parse(event.data);
     handleRealTimeUpdate(update);

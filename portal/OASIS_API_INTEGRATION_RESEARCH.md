@@ -15,7 +15,7 @@ This document outlines the OASIS API architecture and how to integrate it with t
 
 The OASIS platform uses JWT-based authentication with avatar management:
 
-**Base URL**: `https://api.oasisplatform.world` (production) or `http://localhost:5004` (local)
+**Base URL**: `https://api.oasisweb4.one` (production) or `http://localhost:5004` (local)
 
 #### Authentication Endpoints
 
@@ -508,7 +508,7 @@ Body: {
 
 1. **Create API Client** (`portal/api/oasisApi.js`):
 ```javascript
-const OASIS_API_URL = 'https://api.oasisplatform.world';
+const OASIS_API_URL = 'https://api.oasisweb4.one';
 
 class OASISAPI {
   constructor() {
@@ -963,7 +963,7 @@ Password: Uppermall1!
 ## 15. API Base URLs
 
 ### Production
-- **OASIS API**: `https://api.oasisplatform.world`
+- **OASIS API**: `https://api.oasisweb4.one`
 - **Alternative**: `https://api.oasisweb4.one`
 
 ### Development

@@ -50,3 +50,6 @@ with socketserver.TCPServer(("", PORT), MyHTTPRequestHandler) as httpd:
     print(f"📍 Portal: http://localhost:{PORT}/portal")
     httpd.serve_forever()
 
+
+
+

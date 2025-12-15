@@ -160,9 +160,10 @@ function initializeTelegramAPI() {
     }
     
     // Create fallback with all necessary methods
+    // Using remote testing API: https://api.oasisweb4.com
     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:5004'
-        : 'https://api.oasisweb4.one';
+        : 'https://api.oasisweb4.com';
     
     telegramAPI = {
         baseURL: baseURL,

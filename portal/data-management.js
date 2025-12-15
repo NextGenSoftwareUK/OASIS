@@ -13,7 +13,9 @@ let dataManagementState = {
     failoverProviders: [],
     currentProvider: null,
     loading: false,
-    error: null
+    error: null,
+    aiHelperOpen: false,
+    aiMessages: []
 };
 
 /**
@@ -284,6 +286,7 @@ function renderDataManagement() {
     
     return `
         ${renderHeader(stats)}
+        ${renderQuickActions()}
         ${renderProviderGrid()}
         ${renderHolonsList()}
         ${renderSettingsPanel()}
@@ -297,8 +300,16 @@ function renderHeader(stats) {
     return `
         <div class="data-header">
             <div class="data-header-content">
-                <h2 class="data-title">Data Storage Management</h2>
-                <p class="data-subtitle">Control where your data is stored across providers</p>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                    <div>
+                        <h2 class="data-title">Data Storage Management</h2>
+                        <p class="data-subtitle">Control where your data is stored across providers</p>
+                    </div>
+                    <button class="data-ai-helper-btn" onclick="toggleAIHelper()" title="AI Helper">
+                        <span style="margin-right: 0.5rem;">💬</span>
+                        AI Helper
+                    </button>
+                </div>
                 <div class="data-stats-grid">
                     <div class="data-stat-card">
                         <div class="data-stat-label">Total Holons</div>
@@ -324,6 +335,188 @@ function renderHeader(stats) {
             </div>
         </div>
     `;
+}
+
+/**
+ * Render Quick Actions section
+ */
+function renderQuickActions() {
+    const { holons, holonsByProvider } = dataManagementState;
+    const nftHolons = holons.filter(h => h.holonType === 'NFT' || h.name?.toLowerCase().includes('nft'));
+    const criticalHolons = holons.filter(h => 
+        h.holonType === 'Profile' || 
+        h.holonType === 'Settings' || 
+        h.name?.toLowerCase().includes('profile') ||
+        h.name?.toLowerCase().includes('settings')
+    );
+    
+    return `
+        <div class="data-section">
+            <h3 class="data-section-title">Quick Actions</h3>
+            <p class="data-section-subtitle" style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                Common data management tasks made simple
+            </p>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card" onclick="startPrivacyWorkflow()">
+                    <div class="quick-action-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <img src="icons/lock.svg" alt="Privacy" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
+                    </div>
+                    <div class="quick-action-content">
+                        <h4 class="quick-action-title">Make My Data Private</h4>
+                        <p class="quick-action-description">Move sensitive data to decentralized storage for enhanced privacy</p>
+                        <div class="quick-action-meta">
+                            <span class="quick-action-count">${holons.length} holons available</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-action-card" onclick="startBackupWorkflow()">
+                    <div class="quick-action-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <img src="icons/backup.svg" alt="Backup" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
+                    </div>
+                    <div class="quick-action-content">
+                        <h4 class="quick-action-title">Backup My Data</h4>
+                        <p class="quick-action-description">Set up automatic replication across multiple providers</p>
+                        <div class="quick-action-meta">
+                            <span class="quick-action-count">${dataManagementState.replicationProviders.length} providers replicating</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-action-card" onclick="startCostOptimizationWorkflow()">
+                    <div class="quick-action-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <img src="icons/optimize.svg" alt="Optimize" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
+                    </div>
+                    <div class="quick-action-content">
+                        <h4 class="quick-action-title">Optimize Storage Costs</h4>
+                        <p class="quick-action-description">Move old or infrequently accessed data to cheaper storage</p>
+                        <div class="quick-action-meta">
+                            <span class="quick-action-count">Analyze ${holons.length} holons</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-action-card" onclick="startNFTMigrationWorkflow()">
+                    <div class="quick-action-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <img src="icons/nft.svg" alt="NFT" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
+                    </div>
+                    <div class="quick-action-content">
+                        <h4 class="quick-action-title">Move NFTs to Blockchain</h4>
+                        <p class="quick-action-description">Migrate NFT data to blockchain for permanence and ownership</p>
+                        <div class="quick-action-meta">
+                            <span class="quick-action-count">${nftHolons.length} NFT holons found</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-action-card" onclick="startCriticalDataBackup()">
+                    <div class="quick-action-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                        <img src="icons/critical.svg" alt="Critical" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
+                    </div>
+                    <div class="quick-action-content">
+                        <h4 class="quick-action-title">Backup Critical Data</h4>
+                        <p class="quick-action-description">Ensure important data is replicated across multiple providers</p>
+                        <div class="quick-action-meta">
+                            <span class="quick-action-count">${criticalHolons.length} critical holons</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-action-card" onclick="askAIHelper('How can I optimize my data storage?')">
+                    <div class="quick-action-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                        <img src="icons/ai.svg" alt="AI" style="width: 32px; height: 32px; filter: brightness(0) invert(1);">
+                    </div>
+                    <div class="quick-action-content">
+                        <h4 class="quick-action-title">Ask AI for Help</h4>
+                        <p class="quick-action-description">Get personalized recommendations for your data storage</p>
+                        <div class="quick-action-meta">
+                            <span class="quick-action-count">AI-powered suggestions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Render AI Helper interface
+ */
+function renderAIHelper() {
+    return `
+        <div class="data-ai-helper-overlay" onclick="toggleAIHelper()">
+            <div class="data-ai-helper-panel" onclick="event.stopPropagation()">
+                <div class="data-ai-helper-header">
+                    <div>
+                        <h3 class="data-ai-helper-title">AI Data Management Assistant</h3>
+                        <p class="data-ai-helper-subtitle">Ask me anything about your data storage</p>
+                    </div>
+                    <button class="data-ai-helper-close" onclick="toggleAIHelper()">×</button>
+                </div>
+                <div class="data-ai-helper-messages" id="aiHelperMessages">
+                    ${renderAIMessages()}
+                </div>
+                <div class="data-ai-helper-input-container">
+                    <input 
+                        type="text" 
+                        class="data-ai-helper-input" 
+                        id="aiHelperInput"
+                        placeholder="Ask me about data migration, provider recommendations, costs..."
+                        onkeypress="handleAIInputKeyPress(event)"
+                    />
+                    <button class="data-ai-helper-send" onclick="sendAIMessage()">Send</button>
+                </div>
+                <div class="data-ai-helper-suggestions">
+                    <div class="data-ai-suggestion-label">Quick questions:</div>
+                    <div class="data-ai-suggestions-list">
+                        <button class="data-ai-suggestion-btn" onclick="askAIHelper('What providers should I use for my NFT data?')">
+                            Best providers for NFTs?
+                        </button>
+                        <button class="data-ai-suggestion-btn" onclick="askAIHelper('How can I reduce storage costs?')">
+                            Reduce storage costs
+                        </button>
+                        <button class="data-ai-suggestion-btn" onclick="askAIHelper('Which data should I backup?')">
+                            What to backup?
+                        </button>
+                        <button class="data-ai-suggestion-btn" onclick="askAIHelper('Explain the difference between blockchain and database storage')">
+                            Blockchain vs Database
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Render AI messages
+ */
+function renderAIMessages() {
+    if (dataManagementState.aiMessages.length === 0) {
+        return `
+            <div class="data-ai-message data-ai-message-assistant">
+                <div class="data-ai-message-content">
+                    <p>Hello! I'm your AI Data Management Assistant. I can help you with:</p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li>Choosing the right storage providers</li>
+                        <li>Optimizing storage costs</li>
+                        <li>Setting up backups and replication</li>
+                        <li>Migrating data between providers</li>
+                        <li>Understanding provider differences</li>
+                    </ul>
+                    <p style="margin-top: 0.5rem;">What would you like to know?</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    return dataManagementState.aiMessages.map((msg, index) => `
+        <div class="data-ai-message data-ai-message-${msg.role}" data-message-index="${index}">
+            <div class="data-ai-message-content">
+                ${msg.content}
+            </div>
+        </div>
+    `).join('');
 }
 
 /**
@@ -735,6 +928,17 @@ function showLoginPrompt() {
 function attachEventListeners() {
     // Search functionality is handled inline
     // Other event listeners can be added here
+    
+    // Make functions globally available
+    window.toggleAIHelper = toggleAIHelper;
+    window.askAIHelper = askAIHelper;
+    window.sendAIMessage = sendAIMessage;
+    window.handleAIInputKeyPress = handleAIInputKeyPress;
+    window.startPrivacyWorkflow = startPrivacyWorkflow;
+    window.startBackupWorkflow = startBackupWorkflow;
+    window.startCostOptimizationWorkflow = startCostOptimizationWorkflow;
+    window.startNFTMigrationWorkflow = startNFTMigrationWorkflow;
+    window.startCriticalDataBackup = startCriticalDataBackup;
 }
 
 // ============================================
@@ -1048,4 +1252,724 @@ async function saveSettings() {
     // This would save replication/failover settings
     // Implementation depends on available API endpoints
     alert('Settings saved (implementation pending API endpoints)');
+}
+
+// ============================================
+// Quick Actions Workflows
+// ============================================
+
+/**
+ * Start privacy workflow
+ */
+async function startPrivacyWorkflow() {
+    const { holons, storageProviders } = dataManagementState;
+    const sensitiveHolons = holons.filter(h => 
+        h.holonType === 'Profile' || 
+        h.holonType === 'Settings' ||
+        h.name?.toLowerCase().includes('profile') ||
+        h.name?.toLowerCase().includes('settings') ||
+        h.name?.toLowerCase().includes('personal')
+    );
+    
+    if (sensitiveHolons.length === 0) {
+        alert('No sensitive data found to migrate.');
+        return;
+    }
+    
+    // Check if IPFS provider is available
+    const ipfsProvider = storageProviders.find(p => 
+        p.providerType === 'IPFSOASIS' && p.isProviderActivated
+    );
+    
+    if (!ipfsProvider) {
+        alert('IPFS provider is not available or not activated. Please enable IPFS provider first.');
+        return;
+    }
+    
+    const confirmed = confirm(
+        `Found ${sensitiveHolons.length} sensitive holons.\n\n` +
+        `Would you like to migrate them to decentralized storage (IPFS) for enhanced privacy?\n\n` +
+        `This will move your data from centralized databases to IPFS.`
+    );
+    
+    if (!confirmed) return;
+    
+    // Show progress
+    showWorkflowProgress('Migrating to IPFS...', sensitiveHolons.length);
+    
+    let migrated = 0;
+    let failed = 0;
+    const errors = [];
+    
+    for (const holon of sensitiveHolons) {
+        try {
+            const holonId = holon.id || holon.holonId;
+            const currentProvider = holon.providerType || holon.providerKey;
+            
+            // Load holon from current provider
+            const holonResult = await oasisAPI.getHolon(holonId, currentProvider);
+            
+            if (holonResult.isError) {
+                errors.push(`${holonId}: Failed to load - ${holonResult.message || 'Unknown error'}`);
+                failed++;
+                updateWorkflowProgress(migrated, sensitiveHolons.length);
+                continue;
+            }
+            
+            // Save to IPFS
+            const saveResult = await oasisAPI.saveHolon({
+                ...holonResult.result,
+                providerType: 'IPFSOASIS'
+            });
+            
+            if (saveResult.isError) {
+                errors.push(`${holonId}: Failed to save to IPFS - ${saveResult.message || 'Unknown error'}`);
+                failed++;
+            } else {
+                migrated++;
+            }
+            
+            updateWorkflowProgress(migrated, sensitiveHolons.length);
+        } catch (error) {
+            console.error(`Failed to migrate ${holon.id || holon.holonId}:`, error);
+            errors.push(`${holon.id || holon.holonId}: ${error.message || 'Unknown error'}`);
+            failed++;
+            updateWorkflowProgress(migrated, sensitiveHolons.length);
+        }
+    }
+    
+    hideWorkflowProgress();
+    
+    let message = `Migration complete!\n\n` +
+                  `Successfully migrated: ${migrated} of ${sensitiveHolons.length} holons\n` +
+                  `Failed: ${failed}`;
+    
+    if (errors.length > 0 && errors.length <= 5) {
+        message += `\n\nErrors:\n${errors.join('\n')}`;
+    } else if (errors.length > 5) {
+        message += `\n\n${errors.length} errors occurred. Check console for details.`;
+    }
+    
+    alert(message);
+    await loadDataManagement();
+}
+
+/**
+ * Start backup workflow
+ */
+async function startBackupWorkflow() {
+    const { storageProviders, holons } = dataManagementState;
+    const availableProviders = storageProviders.filter(p => 
+        p.isProviderActivated && 
+        p.providerType !== dataManagementState.currentProvider?.providerType
+    );
+    
+    if (availableProviders.length === 0) {
+        alert('No additional providers available for backup. Please enable more providers first.');
+        return;
+    }
+    
+    const providerList = availableProviders.map((p, i) => 
+        `${i + 1}. ${p.providerName || p.providerType}`
+    ).join('\n');
+    
+    const selected = prompt(
+        `Select providers for backup replication:\n\n${providerList}\n\n` +
+        `Enter provider numbers (comma-separated, e.g., 1,2,3):`,
+        '1'
+    );
+    
+    if (!selected) return;
+    
+    const indices = selected.split(',').map(s => parseInt(s.trim()) - 1).filter(i => !isNaN(i));
+    const selectedProviders = indices.map(i => availableProviders[i]).filter(Boolean);
+    
+    if (selectedProviders.length === 0) {
+        alert('Invalid selection.');
+        return;
+    }
+    
+    // Show progress
+    showWorkflowProgress('Setting up backup replication...', selectedProviders.length);
+    
+    try {
+        // Enable replication for selected providers using API
+        const providerTypes = selectedProviders.map(p => p.providerType);
+        const result = await oasisAPI.setAutoReplicateForProviders(true, providerTypes);
+        
+        if (result.isError) {
+            throw new Error(result.message || 'Failed to enable replication');
+        }
+        
+        hideWorkflowProgress();
+        
+        alert(`Backup replication enabled successfully!\n\n` +
+              `Providers configured for replication:\n` +
+              `${selectedProviders.map(p => `• ${p.providerName || p.providerType}`).join('\n')}\n\n` +
+              `Your data will now be automatically replicated across these providers.`);
+        
+        // Refresh data to show updated replication status
+        await loadDataManagement();
+    } catch (error) {
+        hideWorkflowProgress();
+        console.error('Error setting up backup replication:', error);
+        alert(`Failed to enable backup replication: ${error.message || 'Unknown error'}\n\n` +
+              `Please try again or contact support if the issue persists.`);
+    }
+}
+
+/**
+ * Start cost optimization workflow
+ */
+async function startCostOptimizationWorkflow() {
+    const { holons, storageProviders } = dataManagementState;
+    
+    // Analyze holons for cost optimization
+    const oldHolons = holons.filter(h => {
+        if (!h.createdDate) return false;
+        const created = new Date(h.createdDate);
+        const daysOld = (Date.now() - created.getTime()) / (1000 * 60 * 60 * 24);
+        return daysOld > 90; // Older than 90 days
+    });
+    
+    // Find cheaper storage providers (IPFS, LocalFile)
+    const cheapProviders = storageProviders.filter(p => 
+        (p.providerType === 'IPFSOASIS' || p.providerType === 'LocalFileOASIS') &&
+        p.isProviderActivated
+    );
+    
+    if (oldHolons.length === 0) {
+        alert('No old holons found for cost optimization. All your data is relatively recent.');
+        return;
+    }
+    
+    if (cheapProviders.length === 0) {
+        alert('No cheaper storage providers available. Please enable IPFS or LocalFile provider first.');
+        return;
+    }
+    
+    const confirmed = confirm(
+        `Found ${oldHolons.length} holons older than 90 days.\n\n` +
+        `Would you like to migrate them to cheaper storage (${cheapProviders.map(p => p.providerName || p.providerType).join(', ')})?\n\n` +
+        `This will help reduce storage costs.`
+    );
+    
+    if (!confirmed) return;
+    
+    // Use IPFS as default cheaper provider, or first available
+    const targetProvider = cheapProviders.find(p => p.providerType === 'IPFSOASIS') || cheapProviders[0];
+    
+    showWorkflowProgress(`Migrating to ${targetProvider.providerName || targetProvider.providerType}...`, oldHolons.length);
+    
+    let migrated = 0;
+    let failed = 0;
+    
+    for (const holon of oldHolons) {
+        try {
+            const holonId = holon.id || holon.holonId;
+            const currentProvider = holon.providerType || holon.providerKey;
+            
+            const holonResult = await oasisAPI.getHolon(holonId, currentProvider);
+            if (holonResult.isError) {
+                failed++;
+                updateWorkflowProgress(migrated, oldHolons.length);
+                continue;
+            }
+            
+            const saveResult = await oasisAPI.saveHolon({
+                ...holonResult.result,
+                providerType: targetProvider.providerType
+            });
+            
+            if (!saveResult.isError) {
+                migrated++;
+            } else {
+                failed++;
+            }
+            
+            updateWorkflowProgress(migrated, oldHolons.length);
+        } catch (error) {
+            console.error(`Failed to migrate ${holon.id || holon.holonId}:`, error);
+            failed++;
+            updateWorkflowProgress(migrated, oldHolons.length);
+        }
+    }
+    
+    hideWorkflowProgress();
+    
+    alert(`Cost optimization complete!\n\n` +
+          `Successfully migrated: ${migrated} of ${oldHolons.length} holons\n` +
+          `Failed: ${failed}\n\n` +
+          `Your older data has been moved to ${targetProvider.providerName || targetProvider.providerType} for cost savings.`);
+    
+    await loadDataManagement();
+}
+
+/**
+ * Start NFT migration workflow
+ */
+async function startNFTMigrationWorkflow() {
+    const nftHolons = dataManagementState.holons.filter(h => 
+        h.holonType === 'NFT' || h.name?.toLowerCase().includes('nft')
+    );
+    
+    if (nftHolons.length === 0) {
+        alert('No NFT holons found.');
+        return;
+    }
+    
+    const blockchainProviders = dataManagementState.storageProviders.filter(p =>
+        p.providerCategory === 'Blockchain' && p.isProviderActivated
+    );
+    
+    if (blockchainProviders.length === 0) {
+        alert('No blockchain providers available. Please enable a blockchain provider first.');
+        return;
+    }
+    
+    const providerList = blockchainProviders.map((p, i) => 
+        `${i + 1}. ${p.providerName || p.providerType}`
+    ).join('\n');
+    
+    const selected = prompt(
+        `Found ${nftHolons.length} NFT holons.\n\n` +
+        `Select blockchain provider for migration:\n\n${providerList}\n\n` +
+        `Enter provider number:`,
+        '1'
+    );
+    
+    if (!selected) return;
+    
+    const index = parseInt(selected.trim()) - 1;
+    const targetProvider = blockchainProviders[index];
+    
+    if (!targetProvider) {
+        alert('Invalid selection.');
+        return;
+    }
+    
+    const confirmed = confirm(
+        `Migrate ${nftHolons.length} NFT holons to ${targetProvider.providerName}?\n\n` +
+        `This will move your NFT data to the blockchain for permanent storage.\n\n` +
+        `Note: Blockchain transactions may incur gas fees.`
+    );
+    
+    if (!confirmed) return;
+    
+    showWorkflowProgress(`Migrating NFTs to ${targetProvider.providerName}...`, nftHolons.length);
+    
+    let migrated = 0;
+    let failed = 0;
+    const errors = [];
+    
+    for (const holon of nftHolons) {
+        try {
+            const holonId = holon.id || holon.holonId;
+            const currentProvider = holon.providerType || holon.providerKey;
+            
+            // Load holon from current provider
+            const holonResult = await oasisAPI.getHolon(holonId, currentProvider);
+            
+            if (holonResult.isError) {
+                errors.push(`${holonId}: Failed to load - ${holonResult.message || 'Unknown error'}`);
+                failed++;
+                updateWorkflowProgress(migrated, nftHolons.length);
+                continue;
+            }
+            
+            // Save to blockchain provider
+            const saveResult = await oasisAPI.saveHolon({
+                ...holonResult.result,
+                providerType: targetProvider.providerType
+            });
+            
+            if (saveResult.isError) {
+                errors.push(`${holonId}: Failed to save - ${saveResult.message || 'Unknown error'}`);
+                failed++;
+            } else {
+                migrated++;
+            }
+            
+            updateWorkflowProgress(migrated, nftHolons.length);
+        } catch (error) {
+            console.error(`Failed to migrate ${holon.id || holon.holonId}:`, error);
+            errors.push(`${holon.id || holon.holonId}: ${error.message || 'Unknown error'}`);
+            failed++;
+            updateWorkflowProgress(migrated, nftHolons.length);
+        }
+    }
+    
+    hideWorkflowProgress();
+    
+    let message = `NFT migration complete!\n\n` +
+                  `Successfully migrated: ${migrated} of ${nftHolons.length} NFT holons\n` +
+                  `Failed: ${failed}`;
+    
+    if (errors.length > 0 && errors.length <= 3) {
+        message += `\n\nErrors:\n${errors.join('\n')}`;
+    } else if (errors.length > 3) {
+        message += `\n\n${errors.length} errors occurred. Check console for details.`;
+    }
+    
+    alert(message);
+    await loadDataManagement();
+}
+
+/**
+ * Start critical data backup
+ */
+async function startCriticalDataBackup() {
+    const { holons, storageProviders } = dataManagementState;
+    const criticalHolons = holons.filter(h => 
+        h.holonType === 'Profile' || 
+        h.holonType === 'Settings' ||
+        h.name?.toLowerCase().includes('profile') ||
+        h.name?.toLowerCase().includes('settings') ||
+        h.name?.toLowerCase().includes('critical')
+    );
+    
+    if (criticalHolons.length === 0) {
+        alert('No critical data found.');
+        return;
+    }
+    
+    // Find available providers for replication (excluding current provider)
+    const availableProviders = storageProviders.filter(p => 
+        p.isProviderActivated && 
+        p.providerType !== dataManagementState.currentProvider?.providerType
+    );
+    
+    if (availableProviders.length === 0) {
+        alert('No additional providers available for backup. Please enable more providers first.');
+        return;
+    }
+    
+    // Recommend at least 2-3 providers for critical data backup
+    const recommendedProviders = availableProviders.slice(0, 3);
+    const providerList = recommendedProviders.map((p, i) => 
+        `${i + 1}. ${p.providerName || p.providerType}`
+    ).join('\n');
+    
+    const selected = prompt(
+        `Found ${criticalHolons.length} critical holons.\n\n` +
+        `Select providers for critical data backup (recommended: 2-3 providers):\n\n${providerList}\n\n` +
+        `Enter provider numbers (comma-separated, e.g., 1,2,3):`,
+        '1,2'
+    );
+    
+    if (!selected) return;
+    
+    const indices = selected.split(',').map(s => parseInt(s.trim()) - 1).filter(i => !isNaN(i));
+    const selectedProviders = indices.map(i => availableProviders[i]).filter(Boolean);
+    
+    if (selectedProviders.length === 0) {
+        alert('Invalid selection.');
+        return;
+    }
+    
+    const confirmed = confirm(
+        `Set up automatic replication for ${criticalHolons.length} critical holons across:\n\n` +
+        `${selectedProviders.map(p => `• ${p.providerName || p.providerType}`).join('\n')}\n\n` +
+        `This ensures your critical data is always backed up.`
+    );
+    
+    if (!confirmed) return;
+    
+    showWorkflowProgress('Setting up critical data backup...', selectedProviders.length);
+    
+    try {
+        // Enable replication for selected providers
+        const providerTypes = selectedProviders.map(p => p.providerType);
+        const result = await oasisAPI.setAutoReplicateForProviders(true, providerTypes);
+        
+        if (result.isError) {
+            throw new Error(result.message || 'Failed to enable replication');
+        }
+        
+        hideWorkflowProgress();
+        
+        alert(`Critical data backup configured successfully!\n\n` +
+              `${criticalHolons.length} critical holons will be automatically replicated to:\n` +
+              `${selectedProviders.map(p => `• ${p.providerName || p.providerType}`).join('\n')}\n\n` +
+              `Your critical data is now protected with multiple backups.`);
+        
+        // Refresh data to show updated replication status
+        await loadDataManagement();
+    } catch (error) {
+        hideWorkflowProgress();
+        console.error('Error setting up critical data backup:', error);
+        alert(`Failed to set up critical data backup: ${error.message || 'Unknown error'}\n\n` +
+              `Please try again or contact support if the issue persists.`);
+    }
+}
+
+// ============================================
+// AI Helper Functions
+// ============================================
+
+/**
+ * Toggle AI helper
+ */
+function toggleAIHelper() {
+    dataManagementState.aiHelperOpen = !dataManagementState.aiHelperOpen;
+    
+    // Remove existing overlay if any
+    const existingOverlay = document.querySelector('.data-ai-helper-overlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+    }
+    
+    if (dataManagementState.aiHelperOpen) {
+        // Append overlay to body
+        const overlayHTML = renderAIHelper();
+        document.body.insertAdjacentHTML('beforeend', overlayHTML);
+        
+        // Focus input
+        setTimeout(() => {
+            const input = document.getElementById('aiHelperInput');
+            if (input) input.focus();
+        }, 100);
+    }
+}
+
+/**
+ * Ask AI helper
+ */
+async function askAIHelper(question) {
+    if (!dataManagementState.aiHelperOpen) {
+        toggleAIHelper();
+    }
+    
+    // Add user message
+    dataManagementState.aiMessages.push({
+        role: 'user',
+        content: question
+    });
+    
+    // Update UI
+    updateAIMessages();
+    
+    // Simulate AI thinking
+    const thinkingMsg = {
+        role: 'assistant',
+        content: 'Thinking...'
+    };
+    dataManagementState.aiMessages.push(thinkingMsg);
+    updateAIMessages();
+    
+    // Generate AI response based on context
+    const response = await generateAIResponse(question);
+    
+    // Replace thinking message with actual response
+    dataManagementState.aiMessages[dataManagementState.aiMessages.length - 1] = {
+        role: 'assistant',
+        content: response
+    };
+    
+    updateAIMessages();
+    
+    // Scroll to bottom
+    const messagesContainer = document.getElementById('aiHelperMessages');
+    if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+}
+
+/**
+ * Generate AI response based on context
+ */
+async function generateAIResponse(question) {
+    const { holons, storageProviders, holonsByProvider } = dataManagementState;
+    const lowerQuestion = question.toLowerCase();
+    
+    // Analyze user's data context
+    const nftCount = holons.filter(h => h.holonType === 'NFT').length;
+    const profileCount = holons.filter(h => h.holonType === 'Profile').length;
+    const totalHolons = holons.length;
+    const activeProviders = storageProviders.filter(p => p.isProviderActivated).length;
+    
+    // Provider recommendations
+    if (lowerQuestion.includes('nft') || lowerQuestion.includes('non-fungible')) {
+        return `Based on your data, I found ${nftCount} NFT holons.\n\n` +
+               `**Recommendation:** Move NFT data to blockchain providers (Ethereum, Solana, Polygon) for:\n` +
+               `- Permanent, immutable storage\n` +
+               `- Direct ownership verification\n` +
+               `- Better integration with NFT marketplaces\n\n` +
+               `Would you like me to help migrate your NFTs?`;
+    }
+    
+    if (lowerQuestion.includes('cost') || lowerQuestion.includes('expensive') || lowerQuestion.includes('cheap')) {
+        const oldHolons = holons.filter(h => {
+            const created = new Date(h.createdDate);
+            const daysOld = (Date.now() - created.getTime()) / (1000 * 60 * 60 * 24);
+            return daysOld > 90;
+        });
+        
+        return `**Cost Analysis:**\n\n` +
+               `- Total holons: ${totalHolons}\n` +
+               `- Old holons (>90 days): ${oldHolons.length}\n` +
+               `- Active providers: ${activeProviders}\n\n` +
+               `**Recommendations:**\n` +
+               `1. Move old/infrequently accessed data to IPFS (free decentralized storage)\n` +
+               `2. Archive old data to LocalFile storage (lowest cost)\n` +
+               `3. Keep frequently accessed data on fast providers (MongoDB, blockchain)\n\n` +
+               `Would you like me to identify which holons to move?`;
+    }
+    
+    if (lowerQuestion.includes('backup') || lowerQuestion.includes('replicate')) {
+        const criticalHolons = holons.filter(h => 
+            h.holonType === 'Profile' || h.holonType === 'Settings'
+        );
+        
+        return `**Backup Recommendations:**\n\n` +
+               `- Critical holons found: ${criticalHolons.length}\n` +
+               `- Current replication: ${dataManagementState.replicationProviders.length} providers\n\n` +
+               `**Best Practice:**\n` +
+               `1. Replicate critical data (profiles, settings) across 2-3 providers\n` +
+               `2. Use different provider types (database + blockchain + IPFS)\n` +
+               `3. Enable auto-failover for critical systems\n\n` +
+               `Would you like to set up backup replication?`;
+    }
+    
+    if (lowerQuestion.includes('blockchain') && lowerQuestion.includes('database')) {
+        return `**Blockchain vs Database Storage:**\n\n` +
+               `**Blockchain (Ethereum, Solana, etc.):**\n` +
+               `✅ Permanent, immutable storage\n` +
+               `✅ Decentralized, no single point of failure\n` +
+               `✅ Direct ownership verification\n` +
+               `❌ Higher costs (gas fees)\n` +
+               `❌ Slower write operations\n` +
+               `❌ Limited storage capacity\n\n` +
+               `**Database (MongoDB, Neo4j, etc.):**\n` +
+               `✅ Fast read/write operations\n` +
+               `✅ Lower costs\n` +
+               `✅ Flexible data structures\n` +
+               `❌ Centralized (single point of failure)\n` +
+               `❌ Requires trust in provider\n\n` +
+               `**Recommendation:** Use blockchain for NFTs, ownership records, and critical data. Use databases for frequently accessed, mutable data.`;
+    }
+    
+    if (lowerQuestion.includes('optimize') || lowerQuestion.includes('recommend')) {
+        const recommendations = [];
+        
+        if (nftCount > 0) {
+            recommendations.push(`Move ${nftCount} NFT holons to blockchain for permanence`);
+        }
+        
+        if (profileCount > 0) {
+            recommendations.push(`Replicate ${profileCount} profile holons across multiple providers`);
+        }
+        
+        const oldHolons = holons.filter(h => {
+            const created = new Date(h.createdDate);
+            return (Date.now() - created.getTime()) / (1000 * 60 * 60 * 24) > 90;
+        });
+        
+        if (oldHolons.length > 0) {
+            recommendations.push(`Archive ${oldHolons.length} old holons to cheaper storage`);
+        }
+        
+        if (recommendations.length === 0) {
+            return `Your data storage looks well-optimized! You have ${totalHolons} holons across ${activeProviders} providers.\n\n` +
+                   `Consider enabling replication for critical data if you haven't already.`;
+        }
+        
+        return `**Optimization Recommendations:**\n\n` +
+               recommendations.map((r, i) => `${i + 1}. ${r}`).join('\n') +
+               `\n\nWould you like me to help implement any of these?`;
+    }
+    
+    // Default response
+    return `I can help you with:\n\n` +
+           `- **Provider Selection:** Choosing the right storage for your data types\n` +
+           `- **Cost Optimization:** Identifying ways to reduce storage costs\n` +
+           `- **Migration Planning:** Moving data between providers safely\n` +
+           `- **Backup Setup:** Configuring replication and failover\n` +
+           `- **Data Analysis:** Understanding your current storage distribution\n\n` +
+           `You currently have ${totalHolons} holons across ${activeProviders} providers. ` +
+           `What specific question can I help you with?`;
+}
+
+/**
+ * Update AI messages display
+ */
+function updateAIMessages() {
+    const container = document.getElementById('aiHelperMessages');
+    if (container) {
+        container.innerHTML = renderAIMessages();
+        // Scroll to bottom after a brief delay to ensure content is rendered
+        setTimeout(() => {
+            container.scrollTop = container.scrollHeight;
+        }, 50);
+    }
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Handle AI input key press
+ */
+function handleAIInputKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendAIMessage();
+    }
+}
+
+/**
+ * Send AI message
+ */
+function sendAIMessage() {
+    const input = document.getElementById('aiHelperInput');
+    if (!input || !input.value.trim()) return;
+    
+    const question = input.value.trim();
+    input.value = '';
+    
+    askAIHelper(question);
+}
+
+/**
+ * Show workflow progress
+ */
+function showWorkflowProgress(message, total) {
+    // Create progress overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'workflow-progress-overlay';
+    overlay.id = 'workflowProgress';
+    overlay.innerHTML = `
+        <div class="workflow-progress-content">
+            <div class="workflow-progress-message">${message}</div>
+            <div class="workflow-progress-bar">
+                <div class="workflow-progress-fill" id="workflowProgressFill" style="width: 0%"></div>
+            </div>
+            <div class="workflow-progress-count" id="workflowProgressCount">0 / ${total}</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+/**
+ * Update workflow progress
+ */
+function updateWorkflowProgress(current, total) {
+    const fill = document.getElementById('workflowProgressFill');
+    const count = document.getElementById('workflowProgressCount');
+    if (fill) fill.style.width = `${(current / total) * 100}%`;
+    if (count) count.textContent = `${current} / ${total}`;
+}
+
+/**
+ * Hide workflow progress
+ */
+function hideWorkflowProgress() {
+    const overlay = document.getElementById('workflowProgress');
+    if (overlay) overlay.remove();
 }
