@@ -195,29 +195,185 @@ if (carouselElement) {
     }, 2000); // Wait 2 seconds before starting
 }
 
-// Login Modal Functions
-const OASIS_API_URL = 'https://api.oasisplatform.world';
-
-let currentAuthMode = 'login';
+// Avatar Authentication Screen Functions (from zypherpunk-wallet-ui)
+let currentAvatarAuthMode = 'login';
+let privacyMode = true;
 
 function openLoginModal() {
-    const modal = document.getElementById('loginModal');
-    if (modal) {
-        modal.style.display = 'flex';
+    const screen = document.getElementById('avatarAuthScreen');
+    if (screen) {
+        screen.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+        // Reset to login mode
+        switchAvatarAuthMode('login');
     }
 }
 
 function closeLoginModal() {
-    const modal = document.getElementById('loginModal');
-    if (modal) {
-        modal.style.display = 'none';
+    const screen = document.getElementById('avatarAuthScreen');
+    if (screen) {
+        screen.style.display = 'none';
         document.body.style.overflow = '';
     }
     // Reset form
-    document.getElementById('authForm').reset();
-    document.getElementById('authError').style.display = 'none';
-    switchAuthMode('login');
+    const form = document.getElementById('avatarAuthForm');
+    if (form) {
+        form.reset();
+    }
+    const errorDiv = document.getElementById('avatarAuthError');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
+    switchAvatarAuthMode('login');
+}
+
+function switchAvatarAuthMode(mode) {
+    currentAvatarAuthMode = mode;
+    const tabs = document.querySelectorAll('.avatar-auth-tab');
+    const privacyModeDiv = document.getElementById('avatarAuthPrivacyMode');
+    const emailField = document.getElementById('avatarAuthEmailField');
+    const nameFields = document.getElementById('avatarAuthNameFields');
+    const usernameLabel = document.getElementById('avatarUsernameLabel');
+    const usernameHint = document.getElementById('avatarUsernameHint');
+    const submitText = document.getElementById('avatarAuthSubmitText');
+    
+    tabs.forEach(tab => {
+        if (tab.getAttribute('data-mode') === mode) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+    
+    if (mode === 'register') {
+        if (privacyModeDiv) privacyModeDiv.style.display = 'block';
+        if (usernameLabel) usernameLabel.textContent = 'Username';
+        if (usernameHint) usernameHint.style.display = privacyMode ? 'block' : 'none';
+        if (emailField) emailField.style.display = privacyMode ? 'none' : 'block';
+        if (nameFields) nameFields.style.display = privacyMode ? 'none' : 'block';
+        if (submitText) submitText.textContent = 'Create avatar';
+    } else {
+        if (privacyModeDiv) privacyModeDiv.style.display = 'none';
+        if (usernameLabel) usernameLabel.textContent = 'Username or email';
+        if (usernameHint) usernameHint.style.display = 'none';
+        if (emailField) emailField.style.display = 'none';
+        if (nameFields) nameFields.style.display = 'none';
+        if (submitText) submitText.textContent = 'Sign in';
+    }
+}
+
+function togglePrivacyMode() {
+    const checkbox = document.getElementById('privacyModeCheckbox');
+    privacyMode = checkbox ? checkbox.checked : true;
+    
+    if (currentAvatarAuthMode === 'register') {
+        const emailField = document.getElementById('avatarAuthEmailField');
+        const nameFields = document.getElementById('avatarAuthNameFields');
+        const usernameHint = document.getElementById('avatarUsernameHint');
+        
+        if (emailField) emailField.style.display = privacyMode ? 'none' : 'block';
+        if (nameFields) nameFields.style.display = privacyMode ? 'none' : 'block';
+        if (usernameHint) usernameHint.style.display = privacyMode ? 'block' : 'none';
+    }
+}
+
+// Generate fake email for privacy mode
+function generateFakeEmail(username) {
+    const randomId = Math.random().toString(36).substring(2, 9);
+    return `${username}_${randomId}@privacy.local`;
+}
+
+// Generate random username
+function generateRandomUsername() {
+    return `privacy_${Math.random().toString(36).substring(2, 11)}`;
+}
+
+async function handleAvatarAuthSubmit(event) {
+    event.preventDefault();
+    const errorDiv = document.getElementById('avatarAuthError');
+    const submitBtn = document.getElementById('avatarAuthSubmitBtn');
+    const submitText = document.getElementById('avatarAuthSubmitText');
+    
+    if (!errorDiv || !submitBtn || !submitText) {
+        console.error('Avatar auth form elements not found');
+        return;
+    }
+    
+    errorDiv.style.display = 'none';
+    submitBtn.disabled = true;
+    submitText.textContent = currentAvatarAuthMode === 'login' ? 'Connecting...' : 'Creating avatar...';
+    
+    try {
+        const username = document.getElementById('avatarUsername').value.trim();
+        const password = document.getElementById('avatarPassword').value;
+        
+        if (!password) {
+            throw new Error('Password is required');
+        }
+        
+        let authResult;
+        
+        if (currentAvatarAuthMode === 'login') {
+            if (!username) {
+                throw new Error('Enter your username/email and password.');
+            }
+            authResult = await authAPI.login(username, password);
+        } else {
+            // Register
+            let finalUsername = username;
+            let email = '';
+            let firstName = '';
+            let lastName = '';
+            
+            if (privacyMode) {
+                // Privacy mode: Generate fake email and random username if needed
+                finalUsername = username || generateRandomUsername();
+                email = generateFakeEmail(finalUsername);
+                firstName = 'Privacy';
+                lastName = 'User';
+            } else {
+                email = document.getElementById('avatarEmail').value.trim();
+                firstName = document.getElementById('avatarFirstName')?.value.trim() || '';
+                lastName = document.getElementById('avatarLastName')?.value.trim() || '';
+                
+                if (!email) {
+                    throw new Error('Email is required when privacy mode is off.');
+                }
+            }
+            
+            authResult = await authAPI.register({
+                username: finalUsername,
+                email: email,
+                password: password,
+                firstName: firstName || undefined,
+                lastName: lastName || undefined
+            });
+        }
+        
+        // Store auth data using centralized store
+        authStore.setAuth({
+            avatar: authResult.avatar,
+            token: authResult.token,
+            refreshToken: authResult.refreshToken
+        });
+        
+        // Close modal and update UI
+        closeLoginModal();
+        updateUserUI(authResult.avatar);
+        
+        // Dispatch custom event for other modules to listen to
+        window.dispatchEvent(new CustomEvent('oasis:auth:login', {
+            detail: { avatar: authResult.avatar }
+        }));
+        
+    } catch (error) {
+        console.error('Avatar authentication error:', error);
+        errorDiv.textContent = error.message || 'An error occurred. Please try again.';
+        errorDiv.style.display = 'block';
+    } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = currentAvatarAuthMode === 'login' ? 'Sign in' : 'Create avatar';
+    }
 }
 
 function switchAuthMode(mode) {
@@ -236,15 +392,17 @@ function switchAuthMode(mode) {
     });
     
     if (mode === 'register') {
-        registerFields.style.display = 'block';
-        usernameLabel.textContent = 'Username';
-        submitText.textContent = 'Create avatar';
-        document.getElementById('email').required = true;
+        if (registerFields) registerFields.style.display = 'block';
+        if (usernameLabel) usernameLabel.textContent = 'Username';
+        if (submitText) submitText.textContent = 'Create avatar';
+        const emailField = document.getElementById('email');
+        if (emailField) emailField.required = true;
     } else {
-        registerFields.style.display = 'none';
-        usernameLabel.textContent = 'Username or email';
-        submitText.textContent = 'Sign in';
-        document.getElementById('email').required = false;
+        if (registerFields) registerFields.style.display = 'none';
+        if (usernameLabel) usernameLabel.textContent = 'Username or email';
+        if (submitText) submitText.textContent = 'Sign in';
+        const emailField = document.getElementById('email');
+        if (emailField) emailField.required = false;
     }
 }
 
@@ -254,6 +412,11 @@ async function handleAuthSubmit(event) {
     const submitBtn = document.getElementById('authSubmitBtn');
     const submitText = document.getElementById('authSubmitText');
     
+    if (!errorDiv || !submitBtn || !submitText) {
+        console.error('Auth form elements not found');
+        return;
+    }
+    
     errorDiv.style.display = 'none';
     submitBtn.disabled = true;
     submitText.textContent = currentAuthMode === 'login' ? 'Signing in...' : 'Creating avatar...';
@@ -262,79 +425,52 @@ async function handleAuthSubmit(event) {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
         
+        if (!username || !password) {
+            throw new Error('Please fill in all required fields');
+        }
+        
+        let authResult;
+        
         if (currentAuthMode === 'login') {
-            // Login
-            const response = await fetch(`${OASIS_API_URL}/api/avatar/authenticate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password,
-                    ...(username.includes('@') && { email: username })
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok || (data.isError && data.isError)) {
-                throw new Error(data.message || 'Authentication failed');
-            }
-            
-            // Store auth data
-            const authData = {
-                avatar: data.result?.avatar || data.avatar || data.result,
-                token: data.result?.jwtToken || data.jwtToken || data.token,
-                refreshToken: data.result?.refreshToken || data.refreshToken
-            };
-            
-            localStorage.setItem('oasis_auth', JSON.stringify(authData));
-            
-            // Close modal and update UI
-            closeLoginModal();
-            updateUserUI(authData.avatar);
-            
+            // Login using centralized auth module
+            authResult = await authAPI.login(username, password);
         } else {
             // Register
             const email = document.getElementById('email').value.trim();
-            const firstName = document.getElementById('firstName').value.trim();
-            const lastName = document.getElementById('lastName').value.trim();
+            const firstName = document.getElementById('firstName')?.value.trim() || '';
+            const lastName = document.getElementById('lastName')?.value.trim() || '';
             
-            const response = await fetch(`${OASIS_API_URL}/api/avatar/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: username,
-                    email: email,
-                    password: password,
-                    firstName: firstName || undefined,
-                    lastName: lastName || undefined
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok || (data.isError && data.isError)) {
-                throw new Error(data.message || 'Registration failed');
+            if (!email) {
+                throw new Error('Email is required for registration');
             }
             
-            // Store auth data
-            const authData = {
-                avatar: data.result?.avatar || data.avatar || data.result,
-                token: data.result?.jwtToken || data.jwtToken || data.token,
-                refreshToken: data.result?.refreshToken || data.refreshToken
-            };
-            
-            localStorage.setItem('oasis_auth', JSON.stringify(authData));
-            
-            // Close modal and update UI
-            closeLoginModal();
-            updateUserUI(authData.avatar);
+            authResult = await authAPI.register({
+                username,
+                email,
+                password,
+                firstName: firstName || undefined,
+                lastName: lastName || undefined
+            });
         }
+        
+        // Store auth data using centralized store
+        authStore.setAuth({
+            avatar: authResult.avatar,
+            token: authResult.token,
+            refreshToken: authResult.refreshToken
+        });
+        
+        // Close modal and update UI
+        closeLoginModal();
+        updateUserUI(authResult.avatar);
+        
+        // Dispatch custom event for other modules to listen to
+        window.dispatchEvent(new CustomEvent('oasis:auth:login', {
+            detail: { avatar: authResult.avatar }
+        }));
+        
     } catch (error) {
+        console.error('Authentication error:', error);
         errorDiv.textContent = error.message || 'An error occurred. Please try again.';
         errorDiv.style.display = 'block';
     } finally {
@@ -346,30 +482,112 @@ async function handleAuthSubmit(event) {
 function useDemoAvatar() {
     const demoAvatar = {
         avatarId: 'demo-123',
+        id: 'demo-123',
         username: 'demo.explorer',
         firstName: 'Demo',
         lastName: 'Explorer'
     };
     
-    localStorage.setItem('oasis_auth', JSON.stringify({
+    authStore.setAuth({
         avatar: demoAvatar,
         token: null,
         refreshToken: null
-    }));
+    });
     
     closeLoginModal();
     updateUserUI(demoAvatar);
+    
+    // Dispatch custom event
+    window.dispatchEvent(new CustomEvent('oasis:auth:login', {
+        detail: { avatar: demoAvatar }
+    }));
+}
+
+function logout() {
+    authStore.clearAuth();
+    updateUserUI(null);
+    
+    // Dispatch custom event
+    window.dispatchEvent(new CustomEvent('oasis:auth:logout'));
 }
 
 function updateUserUI(avatar) {
-    // Update login button to show user info
+    // Update login button in main navigation (index.html)
     const loginBtn = document.querySelector('.nav-actions .btn-text');
-    if (loginBtn && avatar) {
-        loginBtn.textContent = avatar.username || avatar.email || 'Account';
-        loginBtn.onclick = () => {
-            // Redirect to portal
-            window.location.href = 'portal.html';
-        };
+    if (loginBtn) {
+        if (avatar) {
+            loginBtn.textContent = avatar.username || avatar.email || 'Account';
+            loginBtn.onclick = () => {
+                // Redirect to portal
+                window.location.href = 'portal.html';
+            };
+        } else {
+            loginBtn.textContent = 'Sign in';
+            loginBtn.onclick = openLoginModal;
+        }
+    }
+    
+    // Update login button in portal navigation (portal.html)
+    const portalLoginBtn = document.getElementById('userMenuBtn');
+    if (portalLoginBtn) {
+        if (avatar) {
+            portalLoginBtn.textContent = avatar.username || avatar.email || 'Account';
+            portalLoginBtn.onclick = () => {
+                // Show user menu or logout option
+                if (confirm('Would you like to log out?')) {
+                    logout();
+                }
+            };
+            portalLoginBtn.style.background = 'rgba(255, 255, 255, 0.15)';
+        } else {
+            portalLoginBtn.textContent = 'Sign in';
+            portalLoginBtn.onclick = openLoginModal;
+            portalLoginBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+        }
+    }
+    
+    // Update portal header if on portal page
+    const portalAvatar = document.querySelector('.portal-avatar');
+    const portalName = document.querySelector('.portal-name');
+    const avatarIdSpan = document.getElementById('avatarId');
+    
+    if (avatar) {
+        if (portalAvatar) {
+            // Generate initials from full name or username
+            const firstName = avatar.firstName || avatar.FirstName || '';
+            const lastName = avatar.lastName || avatar.LastName || '';
+            const fullName = avatar.fullName || avatar.FullName || 
+                           (firstName && lastName ? `${firstName} ${lastName}`.trim() : null);
+            const initials = (firstName?.[0] || '') + (lastName?.[0] || '') || 
+                            (fullName ? fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : null) ||
+                            (avatar.username?.[0]?.toUpperCase() || '?');
+            portalAvatar.textContent = initials;
+        }
+        if (portalName) {
+            // Show full name if available, otherwise username/email
+            const firstName = avatar.firstName || avatar.FirstName || '';
+            const lastName = avatar.lastName || avatar.LastName || '';
+            const fullName = avatar.fullName || avatar.FullName || 
+                           (firstName && lastName ? `${firstName} ${lastName}`.trim() : null) ||
+                           firstName || lastName ||
+                           avatar.username || avatar.Username || 
+                           avatar.email || avatar.Email || 
+                           'Avatar';
+            portalName.textContent = fullName;
+        }
+        if (avatarIdSpan) {
+            avatarIdSpan.textContent = avatar.id || avatar.avatarId || '-';
+        }
+    } else {
+        if (portalAvatar) {
+            portalAvatar.textContent = 'OA';
+        }
+        if (portalName) {
+            portalName.textContent = 'Loading...';
+        }
+        if (avatarIdSpan) {
+            avatarIdSpan.textContent = '-';
+        }
     }
 }
 
@@ -380,16 +598,10 @@ function showUserMenu(avatar) {
 
 // Check for existing auth on page load
 window.addEventListener('DOMContentLoaded', () => {
-    const authData = localStorage.getItem('oasis_auth');
-    if (authData) {
-        try {
-            const auth = JSON.parse(authData);
-            if (auth.avatar) {
-                updateUserUI(auth.avatar);
-            }
-        } catch (e) {
-            // Invalid auth data
-            localStorage.removeItem('oasis_auth');
+    if (authStore.isAuthenticated()) {
+        const avatar = authStore.getAvatar();
+        if (avatar) {
+            updateUserUI(avatar);
         }
     }
 });
@@ -397,7 +609,10 @@ window.addEventListener('DOMContentLoaded', () => {
 // Close modal on Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        closeLoginModal();
+        const screen = document.getElementById('avatarAuthScreen');
+        if (screen && screen.style.display !== 'none') {
+            closeLoginModal();
+        }
     }
 });
 

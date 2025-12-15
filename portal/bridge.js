@@ -63,21 +63,124 @@ const MOCK_RATES = {
 };
 
 /**
+ * Get authenticated avatar object
+ */
+function getAvatar() {
+    // Try to use centralized authStore first
+    if (typeof authStore !== 'undefined' && authStore.isAuthenticated()) {
+        return authStore.getAvatar();
+    }
+    
+    // Fallback to direct localStorage access
+    try {
+        const authData = localStorage.getItem('oasis_auth');
+        if (authData) {
+            const auth = JSON.parse(authData);
+            return auth.avatar || null;
+        }
+    } catch (error) {
+        console.error('Error getting avatar:', error);
+    }
+    
+    return null;
+}
+
+/**
  * Check if user is authenticated
- * DISABLED: Always returns true for now
  */
 function isAuthenticated() {
-    // Sign in disabled - always return true
-    return true;
+    // Try to use centralized authStore first
+    if (typeof authStore !== 'undefined') {
+        return authStore.isAuthenticated();
+    }
+    
+    // Fallback to direct localStorage access
+    try {
+        const authData = localStorage.getItem('oasis_auth');
+        if (authData) {
+            const auth = JSON.parse(authData);
+            return !!(auth.token && auth.avatar);
+        }
+    } catch (error) {
+        console.error('Error checking authentication:', error);
+    }
+    
+    return false;
 }
 
 /**
  * Get avatar ID from auth
- * DISABLED: Returns mock ID for now
+ * Uses centralized authStore if available, otherwise falls back to localStorage
  */
 function getAvatarId() {
-    // Sign in disabled - return mock ID
-    return 'mock-avatar-id';
+    // Try to use centralized authStore first (from api/auth.js)
+    if (typeof authStore !== 'undefined' && authStore.isAuthenticated()) {
+        const avatar = authStore.getAvatar();
+        if (avatar && (avatar.id || avatar.avatarId)) {
+            return avatar.id || avatar.avatarId;
+        }
+    }
+    
+    // Fallback to direct localStorage access
+    try {
+        const authData = localStorage.getItem('oasis_auth');
+        if (authData) {
+            const auth = JSON.parse(authData);
+            if (auth.avatar) {
+                return auth.avatar.id || auth.avatar.avatarId;
+            }
+        }
+    } catch (error) {
+        console.error('Error getting avatar ID:', error);
+    }
+    
+    return null;
+}
+
+/**
+ * Get authenticated avatar object
+ */
+function getAvatar() {
+    // Try to use centralized authStore first
+    if (typeof authStore !== 'undefined' && authStore.isAuthenticated()) {
+        return authStore.getAvatar();
+    }
+    
+    // Fallback to direct localStorage access
+    try {
+        const authData = localStorage.getItem('oasis_auth');
+        if (authData) {
+            const auth = JSON.parse(authData);
+            return auth.avatar || null;
+        }
+    } catch (error) {
+        console.error('Error getting avatar:', error);
+    }
+    
+    return null;
+}
+
+/**
+ * Check if user is authenticated
+ */
+function isAuthenticated() {
+    // Try to use centralized authStore first
+    if (typeof authStore !== 'undefined') {
+        return authStore.isAuthenticated();
+    }
+    
+    // Fallback to direct localStorage access
+    try {
+        const authData = localStorage.getItem('oasis_auth');
+        if (authData) {
+            const auth = JSON.parse(authData);
+            return !!(auth.token && auth.avatar);
+        }
+    } catch (error) {
+        console.error('Error checking authentication:', error);
+    }
+    
+    return false;
 }
 
 /**

@@ -5,39 +5,43 @@
 
 const oasisAPI = {
     // Base URL configuration
+    // Using local API when on localhost, otherwise remote API
+    // Local API uses HTTPS on port 5004, remote API uses HTTP
     baseURL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:5004'
-        : 'https://api.oasisweb4.one',
+        ? 'https://localhost:5004'  // Local API runs on HTTPS port 5004
+        : 'http://api.oasisweb4.com',
 
     /**
-     * Get authentication headers from localStorage
+     * Get authentication headers
+     * Uses centralized authStore if available, otherwise falls back to localStorage
      */
     getAuthHeaders() {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        // Try to use centralized authStore first (from api/auth.js)
+        if (typeof authStore !== 'undefined' && authStore.getAuthHeader()) {
+            headers['Authorization'] = authStore.getAuthHeader();
+            return headers;
+        }
+
+        // Fallback to direct localStorage access
         try {
             const authData = localStorage.getItem('oasis_auth');
             if (!authData) {
-                return {
-                    'Content-Type': 'application/json'
-                };
+                return headers;
             }
 
             const auth = JSON.parse(authData);
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-
-            // Add authorization token if available
             if (auth.token) {
                 headers['Authorization'] = `Bearer ${auth.token}`;
             }
-
-            return headers;
         } catch (error) {
             console.error('Error getting auth headers:', error);
-            return {
-                'Content-Type': 'application/json'
-            };
         }
+
+        return headers;
     },
 
     /**
@@ -143,6 +147,38 @@ const oasisAPI = {
     async deactivateProvider(providerType) {
         // Note: This endpoint may need to be confirmed with actual API
         return this.request(`/api/provider/deactivate/${encodeURIComponent(providerType)}`, {
+            method: 'POST'
+        });
+    },
+
+    /**
+     * Set auto-replication for all providers
+     * @param {boolean} autoReplicate - Enable or disable auto-replication
+     */
+    async setAutoReplicateForAllProviders(autoReplicate) {
+        return this.request(`/api/provider/set-auto-replicate-for-all-providers/${autoReplicate}`, {
+            method: 'POST'
+        });
+    },
+
+    /**
+     * Set auto-replication for a list of providers
+     * @param {boolean} autoReplicate - Enable or disable auto-replication
+     * @param {string[]} providerTypes - Array of provider types
+     */
+    async setAutoReplicateForProviders(autoReplicate, providerTypes) {
+        const providerTypesString = Array.isArray(providerTypes) ? providerTypes.join(',') : providerTypes;
+        return this.request(`/api/provider/set-auto-replicate-for-list-of-providers/${autoReplicate}/${encodeURIComponent(providerTypesString)}`, {
+            method: 'POST'
+        });
+    },
+
+    /**
+     * Set auto-failover for all providers
+     * @param {boolean} addToFailOverList - Enable or disable auto-failover
+     */
+    async setAutoFailOverForAllProviders(addToFailOverList) {
+        return this.request(`/api/provider/set-auto-fail-over-for-all-providers/${addToFailOverList}`, {
             method: 'POST'
         });
     },
@@ -621,6 +657,450 @@ const oasisAPI = {
      */
     async getTelegramStats(telegramUserId) {
         return this.request(`/api/telegram/stats/user/${telegramUserId}`);
+    },
+
+    // ============================================
+    // Developer API Methods
+    // ============================================
+
+    /**
+     * Get API keys for an avatar
+     * @param {string} avatarId - Avatar ID
+     */
+    async getAPIKeys(avatarId) {
+        return this.request(`/api/developer/api-keys?avatarId=${encodeURIComponent(avatarId)}`);
+    },
+
+    /**
+     * Create a new API key
+     * @param {object} data - { avatarId, name, permissions[], expiresIn? }
+     */
+    async createAPIKey(data) {
+        return this.request('/api/developer/api-keys', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    },
+
+    /**
+     * Revoke an API key
+     * @param {string} keyId - API key ID
+     */
+    async revokeAPIKey(keyId) {
+        return this.request(`/api/developer/api-keys/${encodeURIComponent(keyId)}`, {
+            method: 'DELETE'
+        });
+    },
+
+    /**
+     * Get API usage statistics
+     * @param {string} avatarId - Avatar ID
+     * @param {string} period - Period: 'daily', 'weekly', 'monthly', 'alltime'
+     */
+    async getUsage(avatarId, period = 'monthly') {
+        return this.request(`/api/developer/usage?avatarId=${encodeURIComponent(avatarId)}&period=${encodeURIComponent(period)}`);
+    },
+
+    /**
+     * Get usage history
+     * @param {string} avatarId - Avatar ID
+     * @param {number} days - Number of days (default: 30)
+     */
+    async getUsageHistory(avatarId, days = 30) {
+        return this.request(`/api/developer/usage/history?avatarId=${encodeURIComponent(avatarId)}&days=${days}`);
+    },
+
+    /**
+     * Get all OAPPs
+     * @param {string} category - Optional category filter
+     * @param {string} status - Optional status filter
+     */
+    async getAllOAPPs(category = null, status = null) {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (status) params.append('status', status);
+        const query = params.toString();
+        return this.request(`/api/oapp${query ? '?' + query : ''}`);
+    },
+
+    /**
+     * Get installed OAPPs for an avatar
+     * @param {string} avatarId - Avatar ID
+     */
+    async getInstalledOAPPs(avatarId) {
+        return this.request(`/api/oapp/avatar/${encodeURIComponent(avatarId)}/installed`);
+    },
+
+    /**
+     * Install an OAPP
+     * @param {string} avatarId - Avatar ID
+     * @param {string} oappId - OAPP ID
+     * @param {string} version - Optional OAPP version
+     */
+    async installOAPP(avatarId, oappId, version = null) {
+        const payload = { avatarId, oappId };
+        if (version) payload.oappVersion = version;
+        return this.request('/api/oapp/install', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    },
+
+    /**
+     * Uninstall an OAPP
+     * @param {string} avatarId - Avatar ID
+     * @param {string} oappId - OAPP ID
+     */
+    async uninstallOAPP(avatarId, oappId) {
+        return this.request('/api/oapp/uninstall', {
+            method: 'POST',
+            body: JSON.stringify({ avatarId, oappId })
+        });
+    },
+
+    /**
+     * Get OAPP details
+     * @param {string} oappId - OAPP ID
+     */
+    async getOAPPDetails(oappId) {
+        return this.request(`/api/oapp/${encodeURIComponent(oappId)}`);
+    },
+
+    /**
+     * Get available SDKs
+     */
+    async getSDKs() {
+        return this.request('/api/developer/sdks');
+    },
+
+    /**
+     * Get code examples
+     * @param {string} category - Optional category filter
+     * @param {string} language - Optional language filter
+     */
+    async getCodeExamples(category = null, language = null) {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (language) params.append('language', language);
+        const query = params.toString();
+        return this.request(`/api/developer/examples${query ? '?' + query : ''}`);
+    },
+
+    /**
+     * Get webhooks for an avatar
+     * @param {string} avatarId - Avatar ID
+     */
+    async getWebhooks(avatarId) {
+        return this.request(`/api/developer/webhooks?avatarId=${encodeURIComponent(avatarId)}`);
+    },
+
+    /**
+     * Create a webhook
+     * @param {object} data - { avatarId, url, events[], secret? }
+     */
+    async createWebhook(data) {
+        return this.request('/api/developer/webhooks', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    },
+
+    /**
+     * Delete a webhook
+     * @param {string} webhookId - Webhook ID
+     */
+    async deleteWebhook(webhookId) {
+        return this.request(`/api/developer/webhooks/${encodeURIComponent(webhookId)}`, {
+            method: 'DELETE'
+        });
+    },
+
+    /**
+     * Get API logs
+     * @param {string} avatarId - Avatar ID
+     * @param {number} limit - Limit of results (default: 100)
+     * @param {string} level - Optional log level filter: 'info', 'warning', 'error'
+     */
+    async getAPILogs(avatarId, limit = 100, level = null) {
+        const params = new URLSearchParams({ limit: limit.toString() });
+        if (level) params.append('level', level);
+        return this.request(`/api/developer/logs?avatarId=${encodeURIComponent(avatarId)}&${params.toString()}`);
+    },
+
+    // ============================================
+    // NFT API Methods
+    // ============================================
+
+    /**
+     * Get NFTs for an avatar
+     * @param {string} avatarId - Avatar ID
+     * @param {string} providerType - Optional provider type filter
+     */
+    async getAvatarNFTs(avatarId, providerType = null) {
+        let endpoint = `/api/nft/avatar/${encodeURIComponent(avatarId)}/nfts`;
+        if (providerType) {
+            endpoint += `?providerType=${encodeURIComponent(providerType)}`;
+        }
+        return this.request(endpoint);
+    },
+
+    /**
+     * Get NFT by ID
+     * @param {string} nftId - NFT ID
+     */
+    async getNFT(nftId) {
+        return this.request(`/api/nft/${encodeURIComponent(nftId)}`);
+    },
+
+    /**
+     * Mint NFT
+     * @param {object} nftData - NFT data to mint
+     * @param {string} nftData.avatarId - Avatar ID
+     * @param {string} nftData.name - NFT name
+     * @param {string} nftData.description - NFT description
+     * @param {string} nftData.imageUrl - NFT image URL
+     * @param {object} nftData.metadata - NFT metadata
+     * @param {string} nftData.providerType - Provider type (e.g., 'SolanaOASIS', 'EthereumOASIS')
+     */
+    async mintNFT(nftData) {
+        return this.request('/api/nft/mint', {
+            method: 'POST',
+            body: JSON.stringify(nftData)
+        });
+    },
+
+    // ============================================
+    // Wallet API Methods
+    // ============================================
+
+    /**
+     * Get all wallets for an avatar
+     * @param {string} avatarId - Avatar ID
+     */
+    async getAvatarWallets(avatarId) {
+        return this.request(`/api/wallet/avatar/${encodeURIComponent(avatarId)}/wallets`);
+    },
+
+    /**
+     * Get wallets for a specific chain
+     * @param {string} avatarId - Avatar ID
+     * @param {string} chain - Chain name (e.g., 'Solana', 'Ethereum')
+     */
+    async getWalletsByChain(avatarId, chain) {
+        return this.request(`/api/wallet/avatar/${encodeURIComponent(avatarId)}/wallets/chain/${encodeURIComponent(chain)}`);
+    },
+
+    /**
+     * Get default wallet for an avatar
+     * @param {string} avatarId - Avatar ID
+     */
+    async getDefaultWallet(avatarId) {
+        return this.request(`/api/wallet/avatar/${encodeURIComponent(avatarId)}/default-wallet`);
+    },
+
+    /**
+     * Create a new wallet
+     * @param {string} avatarId - Avatar ID
+     * @param {object} walletData - Wallet creation data
+     * @param {string} walletData.providerType - Provider type (e.g., 'SolanaOASIS', 'EthereumOASIS')
+     * @param {string} [walletData.name] - Wallet name
+     */
+    async createWallet(avatarId, walletData) {
+        return this.request(`/api/wallet/avatar/${encodeURIComponent(avatarId)}/wallets`, {
+            method: 'POST',
+            body: JSON.stringify(walletData)
+        });
+    },
+
+    /**
+     * Get wallet balance
+     * @param {string} walletId - Wallet ID
+     */
+    async getWalletBalance(walletId) {
+        return this.request(`/api/wallet/${encodeURIComponent(walletId)}/balance`);
+    },
+
+    /**
+     * Transfer tokens
+     * @param {object} transferData - Transfer data
+     * @param {string} transferData.fromWalletId - Source wallet ID
+     * @param {string} transferData.toAddress - Destination address
+     * @param {number} transferData.amount - Amount to transfer
+     * @param {string} [transferData.memo] - Optional memo
+     */
+    async transferTokens(transferData) {
+        return this.request('/api/wallet/transfer', {
+            method: 'POST',
+            body: JSON.stringify(transferData)
+        });
+    },
+
+    /**
+     * Get supported chains
+     */
+    async getSupportedChains() {
+        return this.request('/api/wallet/supported-chains');
+    },
+
+    /**
+     * Get wallet tokens
+     * @param {string} avatarId - Avatar ID
+     * @param {string} walletId - Wallet ID
+     */
+    async getWalletTokens(avatarId, walletId) {
+        return this.request(`/api/wallet/avatar/${encodeURIComponent(avatarId)}/wallet/${encodeURIComponent(walletId)}/tokens`);
+    },
+
+    // ============================================
+    // Bridge API Methods
+    // ============================================
+
+    /**
+     * Get exchange rate for bridge
+     * @param {string} fromToken - Source token
+     * @param {string} toToken - Destination token
+     */
+    async getBridgeExchangeRate(fromToken, toToken) {
+        return this.request(`/api/bridge/exchange-rate?fromToken=${encodeURIComponent(fromToken)}&toToken=${encodeURIComponent(toToken)}`);
+    },
+
+    /**
+     * Create bridge order
+     * @param {object} orderData - Order data
+     * @param {string} orderData.avatarId - Avatar ID
+     * @param {string} orderData.fromToken - Source token
+     * @param {string} orderData.fromNetwork - Source network
+     * @param {string} orderData.toToken - Destination token
+     * @param {string} orderData.toNetwork - Destination network
+     * @param {number} orderData.fromAmount - Amount to send
+     * @param {string} [orderData.fromWalletId] - Source wallet ID
+     * @param {string} [orderData.toWalletId] - Destination wallet ID
+     */
+    async createBridgeOrder(orderData) {
+        return this.request('/api/bridge/create-order', {
+            method: 'POST',
+            body: JSON.stringify(orderData)
+        });
+    },
+
+    /**
+     * Get bridge transaction status
+     * @param {string} orderId - Order ID
+     */
+    async getBridgeTransactionStatus(orderId) {
+        return this.request(`/api/bridge/order/${encodeURIComponent(orderId)}/status`);
+    },
+
+    /**
+     * Get bridge transactions for an avatar
+     * @param {string} avatarId - Avatar ID
+     */
+    async getBridgeTransactions(avatarId) {
+        return this.request(`/api/bridge/avatar/${encodeURIComponent(avatarId)}/transactions`);
+    },
+
+    // ============================================
+    // Oracle API Methods
+    // ============================================
+
+    /**
+     * Create custom oracle feed
+     * @param {object} feedData - Feed configuration
+     */
+    async createOracleFeed(feedData) {
+        return this.request('/api/oracle/feed', {
+            method: 'POST',
+            body: JSON.stringify(feedData)
+        });
+    },
+
+    /**
+     * Get oracle feed by ID
+     * @param {string} feedId - Feed ID
+     */
+    async getOracleFeed(feedId) {
+        return this.request(`/api/oracle/feed/${encodeURIComponent(feedId)}`);
+    },
+
+    /**
+     * Get all oracle feeds for avatar
+     * @param {string} avatarId - Avatar ID
+     */
+    async getOracleFeeds(avatarId) {
+        return this.request(`/api/oracle/feeds?avatarId=${encodeURIComponent(avatarId)}`);
+    },
+
+    /**
+     * Update oracle feed
+     * @param {string} feedId - Feed ID
+     * @param {object} updateData - Update data
+     */
+    async updateOracleFeed(feedId, updateData) {
+        return this.request(`/api/oracle/feed/${encodeURIComponent(feedId)}`, {
+            method: 'PUT',
+            body: JSON.stringify(updateData)
+        });
+    },
+
+    /**
+     * Delete oracle feed
+     * @param {string} feedId - Feed ID
+     */
+    async deleteOracleFeed(feedId) {
+        return this.request(`/api/oracle/feed/${encodeURIComponent(feedId)}`, {
+            method: 'DELETE'
+        });
+    },
+
+    /**
+     * Get public oracle feeds
+     * @param {object} filters - Filter options
+     */
+    async getPublicOracleFeeds(filters = {}) {
+        const params = new URLSearchParams();
+        if (filters.category) params.append('category', filters.category);
+        if (filters.limit) params.append('limit', filters.limit);
+        if (filters.offset) params.append('offset', filters.offset);
+        return this.request(`/api/oracle/feeds/public?${params.toString()}`);
+    },
+
+    /**
+     * Subscribe to oracle feed
+     * @param {string} feedId - Feed ID
+     */
+    async subscribeToOracleFeed(feedId) {
+        return this.request(`/api/oracle/feed/${encodeURIComponent(feedId)}/subscribe`, {
+            method: 'POST'
+        });
+    },
+
+    /**
+     * Unsubscribe from oracle feed
+     * @param {string} feedId - Feed ID
+     */
+    async unsubscribeFromOracleFeed(feedId) {
+        return this.request(`/api/oracle/feed/${encodeURIComponent(feedId)}/unsubscribe`, {
+            method: 'POST'
+        });
+    },
+
+    /**
+     * Get oracle feed data
+     * @param {string} feedId - Feed ID
+     * @param {object} options - Query options
+     */
+    async getOracleFeedData(feedId, options = {}) {
+        const params = new URLSearchParams();
+        if (options.history) params.append('history', 'true');
+        if (options.limit) params.append('limit', options.limit);
+        return this.request(`/api/oracle/feed/${encodeURIComponent(feedId)}/data?${params.toString()}`);
+    },
+
+    /**
+     * Get available providers for oracle
+     */
+    async getOracleProviders() {
+        return this.request('/api/oracle/providers');
     }
 };
 
