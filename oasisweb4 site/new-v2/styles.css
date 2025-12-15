@@ -28,6 +28,29 @@ body {
     font-weight: 300;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    right: 5%;
+    transform: translateY(-50%);
+    width: 600px;
+    height: 600px;
+    max-width: 40vw;
+    max-height: 40vw;
+    min-width: 300px;
+    min-height: 300px;
+    background-image: url('./pulsating-orb.gif');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.8;
+    display: block;
 }
 
 .container {
@@ -127,6 +150,32 @@ body {
     background-color: var(--text-secondary);
 }
 
+/* Login Button - White text on visible background */
+.btn-login {
+    padding: 0.75rem 1.5rem !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-family: inherit;
+    border-radius: 6px;
+    min-width: auto;
+    white-space: nowrap;
+}
+
+.btn-login:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
 .btn-text {
     padding: 0.75rem 1rem;
     background: none;
@@ -178,6 +227,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.25rem;
+    z-index: 10;
 }
 
 .section-bracket {
@@ -214,13 +264,18 @@ body {
 /* Hero Section */
 .hero-section {
     padding-top: 12rem;
+    position: relative;
+    overflow: hidden;
 }
+
 
 .hero-section .container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 2rem;
     display: block;
+    position: relative;
+    z-index: 2;
 }
 
 .hero-content {
@@ -229,6 +284,8 @@ body {
     margin-left: 0;
     padding-left: 0;
     width: 100%;
+    position: relative;
+    z-index: 10;
 }
 
 .hero-title {
@@ -326,6 +383,7 @@ body {
     text-align: center;
     color: var(--text-tertiary);
     font-size: 0.75rem;
+    z-index: 2;
 }
 
 .scroll-text {
@@ -1324,6 +1382,12 @@ body {
         padding: 0 1.5rem;
     }
     
+    body::before {
+        width: 500px;
+        height: 500px;
+        opacity: 0.7;
+    }
+    
     .hero-title {
         font-size: 5rem;
     }
@@ -1401,7 +1465,20 @@ body {
     }
     
     .nav-actions {
-        display: none;
+        display: flex !important;
+        gap: 0.5rem;
+    }
+    
+    .nav-actions .btn-login {
+        padding: 0.625rem 1rem !important;
+        font-size: 0.8125rem !important;
+    }
+    
+    body::before {
+        width: 400px;
+        height: 400px;
+        right: 2%;
+        opacity: 0.6;
     }
     
     .hero-title {

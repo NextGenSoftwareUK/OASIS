@@ -196,7 +196,9 @@ if (carouselElement) {
 }
 
 // Login Modal Functions
-const OASIS_API_URL = 'https://api.oasisplatform.world';
+// Using OASIS API: https://api.oasisweb4.com
+// Swagger documentation: https://api.oasisweb4.com/swagger/index.html
+const OASIS_API_URL = 'https://api.oasisweb4.com';
 
 let currentAuthMode = 'login';
 
@@ -262,38 +264,80 @@ async function handleAuthSubmit(event) {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
         
+        // Use oasisAPI if available (in portal), otherwise use direct fetch
+        const api = typeof oasisAPI !== 'undefined' ? oasisAPI : null;
+
         if (currentAuthMode === 'login') {
             // Login
-            const response = await fetch(`${OASIS_API_URL}/api/avatar/authenticate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password,
-                    ...(username.includes('@') && { email: username })
-                })
-            });
+            let authResult;
             
-            const data = await response.json();
-            
-            if (!response.ok || (data.isError && data.isError)) {
-                throw new Error(data.message || 'Authentication failed');
+            if (api && api.login) {
+                // Use oasisAPI.login method
+                authResult = await api.login(username, password);
+            } else {
+                // Fallback to direct fetch - using OASIS API
+                console.log('Authenticating with OASIS API:', `${OASIS_API_URL}/api/avatar/authenticate`);
+                
+                let response;
+                try {
+                    response = await fetch(`${OASIS_API_URL}/api/avatar/authenticate`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            password: password
+                        })
+                    });
+                } catch (networkError) {
+                    console.error('Network error:', networkError);
+                    throw new Error('Unable to connect to OASIS API. Please check your internet connection and try again.');
+                }
+                
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    console.error('Failed to parse response:', e);
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                    }
+                    throw new Error('Invalid response from server');
+                }
+                
+                if (!response.ok || (data.isError && data.isError)) {
+                    console.error('Authentication error:', data);
+                    throw new Error(data.message || data.error || 'Authentication failed');
+                }
+                
+                console.log('Authentication successful:', data);
+                
+                authResult = {
+                    avatar: data.result?.avatar || data.avatar || data.result,
+                    jwtToken: data.result?.jwtToken || data.jwtToken || data.token,
+                    refreshToken: data.result?.refreshToken || data.refreshToken
+                };
+
+                // Store auth data
+                const authData = {
+                    avatar: authResult.avatar,
+                    token: authResult.jwtToken,
+                    refreshToken: authResult.refreshToken || null,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('oasis_auth', JSON.stringify(authData));
             }
-            
-            // Store auth data
-            const authData = {
-                avatar: data.result?.avatar || data.avatar || data.result,
-                token: data.result?.jwtToken || data.jwtToken || data.token,
-                refreshToken: data.result?.refreshToken || data.refreshToken
-            };
-            
-            localStorage.setItem('oasis_auth', JSON.stringify(authData));
             
             // Close modal and update UI
             closeLoginModal();
-            updateUserUI(authData.avatar);
+            updateUserUI(authResult.avatar);
+            
+            // Reload portal data if on portal page
+            if (typeof loadPortalData === 'function') {
+                loadPortalData();
+            }
             
         } else {
             // Register
@@ -301,38 +345,91 @@ async function handleAuthSubmit(event) {
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
             
-            const response = await fetch(`${OASIS_API_URL}/api/avatar/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            let authResult;
+            
+            if (api && api.register) {
+                // Use oasisAPI.register method
+                authResult = await api.register({
                     username: username,
                     email: email,
                     password: password,
-                    firstName: firstName || undefined,
-                    lastName: lastName || undefined
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok || (data.isError && data.isError)) {
-                throw new Error(data.message || 'Registration failed');
+                    confirmPassword: password,
+                    firstName: firstName || 'User',
+                    lastName: lastName || 'User',
+                    avatarType: 'User',
+                    acceptTerms: true
+                });
+            } else {
+                // Fallback to direct fetch - using OASIS API at http://api.oasisweb4.com
+                console.log('Registering avatar with OASIS API:', `${OASIS_API_URL}/api/avatar/register`);
+                
+                let response;
+                try {
+                    response = await fetch(`${OASIS_API_URL}/api/avatar/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            email: email,
+                            password: password,
+                            confirmPassword: password,
+                            firstName: firstName || 'User',
+                            lastName: lastName || 'User',
+                            title: 'Mr',
+                            avatarType: 'User',
+                            acceptTerms: true
+                        })
+                    });
+                } catch (networkError) {
+                    console.error('Network error:', networkError);
+                    throw new Error('Unable to connect to OASIS API. Please check your internet connection and try again.');
+                }
+                
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    console.error('Failed to parse response:', e);
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                    }
+                    throw new Error('Invalid response from server');
+                }
+                
+                if (!response.ok || (data.isError && data.isError)) {
+                    console.error('Registration error:', data);
+                    throw new Error(data.message || data.error || 'Registration failed');
+                }
+                
+                console.log('Registration successful:', data);
+                
+                authResult = {
+                    avatar: data.result?.avatar || data.result?.result?.avatar || data.avatar || data.result,
+                    jwtToken: data.result?.jwtToken || data.result?.result?.jwtToken || data.jwtToken || data.token,
+                    refreshToken: data.result?.refreshToken || data.refreshToken
+                };
+
+                // Store auth data
+                const authData = {
+                    avatar: authResult.avatar,
+                    token: authResult.jwtToken,
+                    refreshToken: authResult.refreshToken || null,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('oasis_auth', JSON.stringify(authData));
             }
-            
-            // Store auth data
-            const authData = {
-                avatar: data.result?.avatar || data.avatar || data.result,
-                token: data.result?.jwtToken || data.jwtToken || data.token,
-                refreshToken: data.result?.refreshToken || data.refreshToken
-            };
-            
-            localStorage.setItem('oasis_auth', JSON.stringify(authData));
             
             // Close modal and update UI
             closeLoginModal();
-            updateUserUI(authData.avatar);
+            updateUserUI(authResult.avatar);
+            
+            // Reload portal data if on portal page
+            if (typeof loadPortalData === 'function') {
+                loadPortalData();
+            }
         }
     } catch (error) {
         errorDiv.textContent = error.message || 'An error occurred. Please try again.';
@@ -362,14 +459,31 @@ function useDemoAvatar() {
 }
 
 function updateUserUI(avatar) {
-    // Update login button to show user info
-    const loginBtn = document.querySelector('.nav-actions .btn-text');
+    // Update login button to show user info (works for both main site and portal)
+    const loginBtn = document.getElementById('userMenuBtn') || 
+                     document.querySelector('.nav-actions .btn-login') ||
+                     document.querySelector('.nav-actions button[onclick*="openLoginModal"]');
+    
     if (loginBtn && avatar) {
         loginBtn.textContent = avatar.username || avatar.email || 'Account';
-        loginBtn.onclick = () => {
-            // Redirect to portal
-            window.location.href = 'portal.html';
-        };
+        // Maintain btn-login class for white button styling
+        loginBtn.className = 'btn-login';
+        
+        // Portal uses handleUserMenuClick, main site redirects to portal
+        if (typeof handleUserMenuClick === 'function') {
+            // Portal - button already has correct onclick handler
+            loginBtn.title = 'Click to logout';
+        } else {
+            // Main site - redirect to portal
+            loginBtn.onclick = () => {
+                window.location.href = 'portal/portal.html';
+            };
+        }
+    }
+    
+    // Also update portal's auth button if on portal page
+    if (typeof updateAuthButton === 'function') {
+        updateAuthButton();
     }
 }
 
@@ -378,8 +492,36 @@ function showUserMenu(avatar) {
     window.location.href = 'portal.html';
 }
 
+// Ensure login button is visible with correct styling
+function ensureLoginButtonVisible() {
+    const loginButtons = document.querySelectorAll('.btn-login, button[onclick*="openLoginModal"]');
+    loginButtons.forEach(btn => {
+        if (!btn.classList.contains('btn-login')) {
+            btn.classList.add('btn-login');
+        }
+        // Force apply styles if CSS hasn't loaded
+        const computedStyle = window.getComputedStyle(btn);
+        if (computedStyle.backgroundColor === 'rgba(0, 0, 0, 0)' || 
+            computedStyle.backgroundColor === 'transparent' ||
+            computedStyle.color === 'rgb(255, 255, 255)' && computedStyle.backgroundColor.includes('rgb(10, 10, 10)')) {
+            btn.style.cssText += `
+                padding: 0.75rem 1.5rem !important;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                color: #ffffff !important;
+                border: none !important;
+                font-size: 0.875rem !important;
+                font-weight: 500 !important;
+                border-radius: 6px !important;
+            `;
+        }
+    });
+}
+
 // Check for existing auth on page load
 window.addEventListener('DOMContentLoaded', () => {
+    // Ensure login button is visible
+    ensureLoginButtonVisible();
+    
     const authData = localStorage.getItem('oasis_auth');
     if (authData) {
         try {
@@ -393,6 +535,10 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// Also check after a short delay to catch any late-loading elements
+setTimeout(ensureLoginButtonVisible, 100);
+setTimeout(ensureLoginButtonVisible, 500);
 
 // Close modal on Escape key
 document.addEventListener('keydown', (e) => {

@@ -9,6 +9,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Ensure login button is visible - inline fallback */
+        .btn-login {
+            padding: 0.75rem 1.5rem !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: #ffffff !important;
+            border: none !important;
+            font-size: 0.875rem !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            border-radius: 6px !important;
+            white-space: nowrap !important;
+            text-decoration: none !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .btn-login:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -17,12 +41,12 @@
             <a href="#home" class="nav-logo">OASIS</a>
             <div class="nav-menu" id="navMenu">
                 <a href="#products" class="nav-link">Products</a>
-                <a href="#solutions" class="nav-link">Solutions</a>
+                <a href="#ecosystem" class="nav-link">Ecosystem</a>
                 <a href="#developers" class="nav-link">Developers</a>
-                <a href="resources" class="nav-link">Resources</a>
+                <a href="resources.html" class="nav-link">Resources</a>
             </div>
             <div class="nav-actions">
-                <button class="btn-text" onclick="openLoginModal()">Log in</button>
+                <button class="btn-login" onclick="openLoginModal()">Log in</button>
                 <button class="btn-primary">Start building</button>
             </div>
             <button class="nav-toggle" id="navToggle">
@@ -76,8 +100,8 @@
                     <a href="https://github.com/NextGenSoftwareUK/OASIS" class="hero-link" target="_blank">
                         <span>Github</span>
                     </a>
-                    <a href="/blog" class="hero-link">
-                        <span>Blog</span>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/" class="hero-link" target="_blank">
+                        <span>Documentation</span>
                     </a>
                 </div>
             </div>
@@ -157,7 +181,7 @@
                     <span>LIVE</span>
                 </div>
                 <h2 class="section-title">OASIS By the numbers</h2>
-                <a href="/dashboard" class="stats-link">Visit OASIS Dashboard</a>
+                <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/core-architecture/starnet-web-ui-overview" class="stats-link" target="_blank">Visit OASIS Dashboard</a>
             </div>
             <div class="stats-grid">
                 <div class="stat-item">
@@ -197,7 +221,7 @@
                         OASIS connects blockchains through a universal abstraction layer, enabling seamless 
                         data movement, asset transfers, and cross-chain applications.
                     </p>
-                    <a href="/how-it-works" class="link-button">
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/core-architecture/oasis-interoperability-architecture" class="link-button" target="_blank">
                         <span>Learn more</span>
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                             <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -270,7 +294,7 @@
                     </p>
                 </a>
             </div>
-            <a href="/products" class="link-button">
+            <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/" class="link-button" target="_blank">
                 <span>View more</span>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -388,7 +412,7 @@
                     <div class="ecosystem-name">SOLID</div>
                 </div>
             </div>
-            <a href="/ecosystem" class="link-button">
+            <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/#supported-providers" class="link-button" target="_blank">
                 <span>View more</span>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -545,35 +569,31 @@ console.log(status.status);</code></pre>
                     <a href="https://x.com/oasisweb4" target="_blank">X (Twitter)</a>
                     <a href="https://discord.gg/oasis" target="_blank">Discord</a>
                     <a href="https://t.me/oasisweb4" target="_blank">Telegram</a>
-                    <a href="/blog">Blog</a>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/" target="_blank">Documentation</a>
                 </div>
                 <div class="footer-col">
                     <h4>Resources</h4>
-                    <a href="/whitepaper">Whitepaper</a>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/additional-resources/oasis-white-paper-nov-2024" target="_blank">Whitepaper</a>
                     <a href="https://docs.oasisweb4.com" target="_blank">Documentation</a>
                 </div>
                 <div class="footer-col">
                     <h4>For the developers</h4>
-                    <a href="/dashboard">OASIS Dashboard</a>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/core-architecture/starnet-web-ui-overview" target="_blank">OASIS Dashboard</a>
                     <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">OASIS Github</a>
                 </div>
                 <div class="footer-col">
                     <h4>Ecosystem</h4>
-                    <a href="/ecosystem">Application</a>
-                    <a href="/ecosystem/submit">Submission Form</a>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/#supported-providers" target="_blank">Ecosystem</a>
                 </div>
                 <div class="footer-col">
                     <h4>Careers</h4>
-                    <a href="/careers">We're hiring</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">Contribute</a>
                 </div>
             </div>
             <div class="footer-bottom">
                 <div class="footer-links">
-                    <a href="/media-kit">Media Kit</a>
-                    <a href="/support">Support</a>
-                    <a href="/terms">Terms of Use</a>
-                    <a href="/privacy">Privacy Policy</a>
-                    <a href="/cookies">Cookie Policy</a>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/" target="_blank">Documentation</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">Support</a>
                 </div>
                 <div class="footer-copyright">© 2025 OASIS</div>
             </div>
@@ -692,6 +712,68 @@ console.log(status.status);</code></pre>
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // Fallback: Ensure login functions are available even if script.js fails to load
+        if (typeof openLoginModal === 'undefined') {
+            window.openLoginModal = function() {
+                const modal = document.getElementById('loginModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+            };
+        }
+        if (typeof closeLoginModal === 'undefined') {
+            window.closeLoginModal = function() {
+                const modal = document.getElementById('loginModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            };
+        }
+        
+        // Ensure login button is visible on load - run immediately
+        (function() {
+            function styleLoginButton() {
+                const loginButtons = document.querySelectorAll('button[onclick*="openLoginModal"]');
+                loginButtons.forEach(btn => {
+                    // Remove old class and add new one
+                    btn.classList.remove('btn-text');
+                    btn.classList.add('btn-login');
+                    // Force visible styling with inline styles
+                    btn.style.cssText = `
+                        padding: 0.75rem 1.5rem !important;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                        color: #ffffff !important;
+                        border: none !important;
+                        font-size: 0.875rem !important;
+                        font-weight: 500 !important;
+                        cursor: pointer !important;
+                        display: inline-flex !important;
+                        align-items: center !important;
+                        gap: 0.5rem !important;
+                        border-radius: 6px !important;
+                        white-space: nowrap !important;
+                        text-decoration: none !important;
+                        font-family: 'Inter', sans-serif !important;
+                    `;
+                });
+            }
+            
+            // Run immediately
+            styleLoginButton();
+            
+            // Also run on DOMContentLoaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', styleLoginButton);
+            }
+            
+            // Run after a short delay to catch any late-loading elements
+            setTimeout(styleLoginButton, 100);
+            setTimeout(styleLoginButton, 500);
+        })();
+    </script>
 </body>
 </html>
 
