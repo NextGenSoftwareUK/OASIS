@@ -49,14 +49,40 @@ public sealed partial class SolanaContractCompile(
             ProcessExecutionResult result = await ProcessExtensions.RunAnchorAsync(tempDir, logger, token);
             if (!result.IsSuccess)
             {
-                if (!string.IsNullOrWhiteSpace(result.StandardError))
+                // Log full error details for debugging
+                logger.LogError("Compilation failed. ExitCode: {ExitCode}, Duration: {Duration}ms", 
+                    result.ExitCode, result.Duration.TotalMilliseconds);
+                logger.LogError("StandardOutput: {StdOut}", result.StandardOutput);
+                logger.LogError("StandardError: {StdErr}", result.StandardError);
+                
+                // Build comprehensive error message
+                string errorMessage = result.GetErrorMessage();
+                if (result.Duration.TotalMinutes >= 29.5)
+                {
+                    errorMessage = "Compilation timeout after 30 minutes. " +
+                        "First builds can take longer due to dependency downloads. " +
+                        "Please try again - subsequent builds will use cache and be faster. " +
+                        errorMessage;
+                }
+                
+                // Include both stdout and stderr in error for better debugging
+                string fullError = result.GetCombinedOutput();
+                if (fullError.Length > 2000)
+                {
+                    // Truncate but keep important parts
+                    fullError = fullError.Substring(0, 1000) + 
+                        "\n... [truncated] ...\n" + 
+                        fullError.Substring(fullError.Length - 1000);
+                }
+                
+                if (!string.IsNullOrWhiteSpace(fullError))
                 {
                     return Result<CompileContractResponse>.Failure(
-                        ResultPatternError.BadRequest(result.StandardError));
+                        ResultPatternError.BadRequest($"{errorMessage}\n\nDetails:\n{fullError}"));
                 }
 
                 return Result<CompileContractResponse>.Failure(
-                    ResultPatternError.InternalServerError(result.GetErrorMessage()));
+                    ResultPatternError.InternalServerError(errorMessage));
             }
 
             // Cache the target directory for next build

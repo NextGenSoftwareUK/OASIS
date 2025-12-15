@@ -279,7 +279,10 @@ public static class ProcessExtensions
             logger.LogWarning("sccache not found - compilation will be slower. Install with: cargo install sccache");
         }
         
-        return await process.ExecuteAsync(logger, cancellationToken, TimeSpan.FromMinutes(15));
+        // First builds can take 20+ minutes due to dependency downloads
+        // Anchor build runs multiple phases (program + tests/IDL) which can take time
+        // Increase timeout to 45 minutes to handle file lock contention on cargo cache
+        return await process.ExecuteAsync(logger, cancellationToken, TimeSpan.FromMinutes(45));
     }
     
     private static string FindSccache()
