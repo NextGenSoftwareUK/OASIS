@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@nestjs/schedule": "^6.1.0",
     "@solana/web3.js": "^1.98.4"
   }
 }
