@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization.Attributes;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
@@ -64,6 +65,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("NextGenSoftware") || type.FullName.StartsWith("System")); 
             BsonSerializer.RegisterSerializer(objectSerializer);
             //BsonClassMap.RegisterClassMap<OAPPDNA>();
+            
+            // Register ProviderWallet class map to ignore extra elements (like WalletAddressSegwitP2SH that may exist in old documents)
+            if (!BsonClassMap.IsClassMapRegistered(typeof(Core.Objects.ProviderWallet)))
+            {
+                BsonClassMap.RegisterClassMap<Core.Objects.ProviderWallet>(cm =>
+                {
+                    cm.AutoMap();
+                    cm.SetIgnoreExtraElements(true);
+                });
+            }
 
             /*
             ConventionRegistry.Register(
