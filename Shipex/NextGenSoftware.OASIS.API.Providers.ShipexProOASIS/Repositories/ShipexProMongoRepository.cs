@@ -125,6 +125,43 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories
 
                 merchant.UpdatedAt = DateTime.UtcNow;
 
+                // Normalize ContactInfo: convert empty strings to null to avoid unique index conflicts
+                if (merchant.ContactInfo == null)
+                {
+                    merchant.ContactInfo = new ContactInfo();
+                }
+                else
+                {
+                    // Normalize email: use null instead of empty string
+                    if (string.IsNullOrWhiteSpace(merchant.ContactInfo.Email))
+                    {
+                        merchant.ContactInfo.Email = null;
+                    }
+                    else
+                    {
+                        merchant.ContactInfo.Email = merchant.ContactInfo.Email.Trim();
+                    }
+                    
+                    // Normalize other fields too
+                    if (string.IsNullOrWhiteSpace(merchant.ContactInfo.Phone))
+                    {
+                        merchant.ContactInfo.Phone = null;
+                    }
+                    else
+                    {
+                        merchant.ContactInfo.Phone = merchant.ContactInfo.Phone.Trim();
+                    }
+                    
+                    if (string.IsNullOrWhiteSpace(merchant.ContactInfo.Address))
+                    {
+                        merchant.ContactInfo.Address = null;
+                    }
+                    else
+                    {
+                        merchant.ContactInfo.Address = merchant.ContactInfo.Address.Trim();
+                    }
+                }
+
                 // Check if merchant exists
                 var existingMerchant = await GetMerchantAsync(merchant.MerchantId);
                 

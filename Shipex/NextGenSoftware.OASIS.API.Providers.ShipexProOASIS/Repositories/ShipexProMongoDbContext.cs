@@ -91,10 +91,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ShipexProOASIS.Repositories
                 WebhookEvents.Indexes.CreateMany(webhookIndexes);
 
                 // Merchants indexes
+                // Note: Email index is sparse to allow multiple null emails
+                // Only non-null emails must be unique (empty strings are normalized to null in code)
                 var merchantsIndexes = new CreateIndexModel<Merchant>[]
                 {
                     new CreateIndexModel<Merchant>(Builders<Merchant>.IndexKeys.Ascending(x => x.MerchantId), new CreateIndexOptions { Unique = true, Name = "idx_merchantId" }),
-                    new CreateIndexModel<Merchant>(Builders<Merchant>.IndexKeys.Ascending(x => x.ContactInfo.Email), new CreateIndexOptions { Unique = true, Name = "idx_email" }),
+                    new CreateIndexModel<Merchant>(
+                        Builders<Merchant>.IndexKeys.Ascending(x => x.ContactInfo.Email), 
+                        new CreateIndexOptions 
+                        { 
+                            Unique = true, 
+                            Sparse = true,  // Only index non-null emails (null emails not indexed, so multiple nulls allowed)
+                            Name = "idx_email"
+                        }),
+                    new CreateIndexModel<Merchant>(Builders<Merchant>.IndexKeys.Ascending(x => x.AvatarId), new CreateIndexOptions { Unique = true, Sparse = true, Name = "idx_avatarId" }),
                     new CreateIndexModel<Merchant>(Builders<Merchant>.IndexKeys.Ascending(x => x.IsActive), new CreateIndexOptions { Name = "idx_isActive" })
                 };
                 Merchants.Indexes.CreateMany(merchantsIndexes);
