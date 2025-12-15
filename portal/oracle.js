@@ -222,19 +222,77 @@ function isAuthenticated() {
 
 /**
  * Get avatar ID from auth
- * DISABLED: Returns mock ID for now
+ * Uses centralized authStore if available, otherwise falls back to localStorage
  */
 function getAvatarId() {
-    // Sign in disabled - return mock ID
-    return 'mock-avatar-id';
-    // try {
-    //     const authData = localStorage.getItem('oasis_auth');
-    //     if (!authData) return null;
-    //     const auth = JSON.parse(authData);
-    //     return auth.avatar?.avatarId || auth.avatar?.id || null;
-    // } catch (error) {
-    //     return null;
-    // }
+    // Try to use centralized authStore first (from api/auth.js)
+    if (typeof authStore !== 'undefined' && authStore.isAuthenticated()) {
+        const avatar = authStore.getAvatar();
+        if (avatar && (avatar.id || avatar.avatarId)) {
+            return avatar.id || avatar.avatarId;
+        }
+    }
+    
+    // Fallback to direct localStorage access
+    try {
+        const authData = localStorage.getItem('oasis_auth');
+        if (authData) {
+            const auth = JSON.parse(authData);
+            if (auth.avatar) {
+                return auth.avatar.id || auth.avatar.avatarId;
+            }
+        }
+    } catch (error) {
+        console.error('Error getting avatar ID:', error);
+    }
+    
+    return null;
+}
+
+/**
+ * Get authenticated avatar object
+ */
+function getAvatar() {
+    // Try to use centralized authStore first
+    if (typeof authStore !== 'undefined' && authStore.isAuthenticated()) {
+        return authStore.getAvatar();
+    }
+    
+    // Fallback to direct localStorage access
+    try {
+        const authData = localStorage.getItem('oasis_auth');
+        if (authData) {
+            const auth = JSON.parse(authData);
+            return auth.avatar || null;
+        }
+    } catch (error) {
+        console.error('Error getting avatar:', error);
+    }
+    
+    return null;
+}
+
+/**
+ * Check if user is authenticated
+ */
+function isAuthenticated() {
+    // Try to use centralized authStore first
+    if (typeof authStore !== 'undefined') {
+        return authStore.isAuthenticated();
+    }
+    
+    // Fallback to direct localStorage access
+    try {
+        const authData = localStorage.getItem('oasis_auth');
+        if (authData) {
+            const auth = JSON.parse(authData);
+            return !!(auth.token && auth.avatar);
+        }
+    } catch (error) {
+        console.error('Error checking authentication:', error);
+    }
+    
+    return false;
 }
 
 /**
@@ -245,6 +303,12 @@ async function loadOracle() {
     if (!container) return;
 
     const authenticated = isAuthenticated();
+    const avatar = authenticated ? getAvatar() : null;
+    
+    // Update portal header if we have avatar data
+    if (avatar && typeof updatePortalHeader === 'function') {
+        updatePortalHeader(avatar);
+    }
     
     if (!authenticated) {
         renderLoginPrompt(container);
@@ -278,6 +342,114 @@ async function fetchOracleFeeds() {
 }
 
 /**
+ * Render Oracle Status Panel
+ */
+function renderOracleStatusPanel() {
+    // Fetch status data (mock for now, can be replaced with API call)
+    const statusData = {
+        dataSources: { active: 8, total: 12 },
+        chains: { healthy: 20, total: 20 },
+        verifications: 1234,
+        consensus: 98.5
+    };
+
+    return `
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 1.5rem;">
+            <div class="stat-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <div class="stat-label">Data Sources</div>
+                    <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: rgba(34, 197, 94, 0.2); border-radius: 4px;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 2L2 5V11L8 14L14 11V5L8 2Z" stroke="rgba(34, 197, 94, 1)" stroke-width="1.5" fill="none"/>
+                            <path d="M2 5L8 8L14 5" stroke="rgba(34, 197, 94, 1)" stroke-width="1.5"/>
+                            <path d="M8 8V14" stroke="rgba(34, 197, 94, 1)" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">${statusData.dataSources.active}/${statusData.dataSources.total}</div>
+                <div class="stat-detail">Price feed sources online</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: rgba(34, 197, 94, 1);">
+                    ↑ All active
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <div class="stat-label">Chain Health</div>
+                    <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: rgba(34, 197, 94, 0.2); border-radius: 4px;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="4" width="12" height="8" rx="1" stroke="rgba(34, 197, 94, 1)" stroke-width="1.5" fill="none"/>
+                            <path d="M5 7H11M5 9H11" stroke="rgba(34, 197, 94, 1)" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">${statusData.chains.healthy}/${statusData.chains.total}</div>
+                <div class="stat-detail">Blockchain observers</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">
+                    100% healthy
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <div class="stat-label">Verifications</div>
+                    <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.1); border-radius: 4px;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <path d="M6 8L7.5 9.5L10 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">${statusData.verifications.toLocaleString()}</div>
+                <div class="stat-detail">Transactions verified today</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: rgba(34, 197, 94, 1);">
+                    ↑ +12% vs yesterday
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <div class="stat-label">Consensus</div>
+                    <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: rgba(34, 197, 94, 0.2); border-radius: 4px;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 2V8L11 11" stroke="rgba(34, 197, 94, 1)" stroke-width="1.5" stroke-linecap="round"/>
+                            <circle cx="8" cy="8" r="6" stroke="rgba(34, 197, 94, 1)" stroke-width="1.5" fill="none"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">${statusData.consensus}%</div>
+                <div class="stat-detail">Oracle agreement level</div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: rgba(34, 197, 94, 1);">
+                    ↑ Optimal
+                </div>
+            </div>
+        </div>
+
+        <!-- Consensus Progress Bar -->
+        <div class="portal-card" style="margin-top: 1.5rem;">
+            <div style="padding: 1.5rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary);">
+                        Consensus Status
+                    </span>
+                    <span style="font-size: 0.875rem; color: rgba(34, 197, 94, 1); font-weight: 600;">
+                        ${statusData.consensus}% Agreement
+                    </span>
+                </div>
+                <div style="height: 8px; width: 100%; border-radius: 4px; background: rgba(0, 0, 0, 0.3); overflow: hidden;">
+                    <div 
+                        style="height: 100%; width: ${statusData.consensus}%; background: linear-gradient(to right, rgba(34, 197, 94, 1), rgba(34, 197, 94, 0.8)); border-radius: 4px; transition: width 0.5s;"
+                    ></div>
+                </div>
+                <p style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-tertiary);">
+                    High consensus indicates reliable oracle data across all sources
+                </p>
+            </div>
+        </div>
+    `;
+}
+
+/**
  * Render oracle dashboard
  */
 function renderOracleDashboard(container) {
@@ -297,6 +469,13 @@ function renderOracleDashboard(container) {
                 <button class="btn-primary" onclick="openOracleBuilder()">
                     Create Feed
                 </button>
+            </div>
+        </div>
+
+        <div class="portal-section">
+            <div style="margin-bottom: 2rem;">
+                <h3 class="portal-section-title" style="margin-bottom: 1.5rem;">Oracle Network Status</h3>
+                ${renderOracleStatusPanel()}
             </div>
         </div>
 
@@ -323,6 +502,22 @@ function renderOracleDashboard(container) {
         <div class="portal-section">
             <div class="portal-card">
                 <div class="portal-card-header">
+                    <div>
+                        <h3 class="portal-card-title">Standardized Feeds Library</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0.25rem 0 0 0;">
+                            Pre-configured oracle feeds (Chainlink-style) available for trading platforms
+                        </p>
+                    </div>
+                </div>
+                <div id="standardized-feeds-list" style="margin-top: 1rem;">
+                    ${renderStandardizedFeedsLibrary()}
+                </div>
+            </div>
+        </div>
+
+        <div class="portal-section" style="margin-top: 2rem;">
+            <div class="portal-card">
+                <div class="portal-card-header">
                     <h3 class="portal-card-title">My Feeds</h3>
                 </div>
                 <div id="oracle-feeds-list">
@@ -331,6 +526,148 @@ function renderOracleDashboard(container) {
             </div>
         </div>
     `;
+}
+
+/**
+ * Render standardized feeds library (Oracle network perspective)
+ */
+function renderStandardizedFeedsLibrary() {
+    if (typeof getAllStandardizedFeeds === 'undefined') {
+        return '<div class="empty-state">Standardized feeds library loading...</div>';
+    }
+
+    const standardizedFeeds = getAllStandardizedFeeds();
+    if (standardizedFeeds.length === 0) {
+        return '<div class="empty-state">No standardized feeds available.</div>';
+    }
+
+    // Group by category
+    const categories = ['price', 'arbitrage', 'analysis', 'signals'];
+    let html = '';
+
+    categories.forEach(category => {
+        const categoryFeeds = standardizedFeeds.filter(f => f.category === category);
+        if (categoryFeeds.length === 0) return;
+
+        html += `
+            <div style="margin-bottom: 2rem;">
+                <h4 style="margin: 0 0 1rem 0; color: var(--text-primary); text-transform: capitalize;">
+                    ${category} Feeds
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+                    ${categoryFeeds.map(feed => {
+                        const isDeployed = oracleState.feeds.some(f => f.standardFeedId === feed.id);
+                        return `
+                            <div class="oracle-feed-card" style="cursor: pointer;" onclick="deployStandardizedFeed('${feed.id}')">
+                                <div class="oracle-feed-header">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <h4 class="oracle-feed-name">${feed.name}</h4>
+                                            <span style="background: rgba(34, 197, 94, 0.2); color: rgba(34, 197, 94, 1); padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                                STANDARD
+                                            </span>
+                                        </div>
+                                        <p class="oracle-feed-description">${feed.description || ''}</p>
+                                    </div>
+                                </div>
+                                <div class="oracle-feed-details">
+                                    <div class="oracle-feed-detail">
+                                        <span class="oracle-feed-detail-label">Category:</span>
+                                        <span class="oracle-feed-detail-value">${feed.category}</span>
+                                    </div>
+                                    ${feed.symbol ? `
+                                        <div class="oracle-feed-detail">
+                                            <span class="oracle-feed-detail-label">Symbol:</span>
+                                            <span class="oracle-feed-detail-value">${feed.symbol}</span>
+                                        </div>
+                                    ` : ''}
+                                    <div class="oracle-feed-detail">
+                                        <span class="oracle-feed-detail-label">Status:</span>
+                                        <span class="oracle-feed-detail-value">${isDeployed ? 'Deployed' : 'Available'}</span>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 1rem;">
+                                    ${isDeployed ? `
+                                        <button class="btn-secondary" style="width: 100%;" onclick="event.stopPropagation(); viewOracleFeed('${feed.id}')">
+                                            View Feed
+                                        </button>
+                                    ` : `
+                                        <button class="btn-primary" style="width: 100%;" onclick="event.stopPropagation(); deployStandardizedFeed('${feed.id}')">
+                                            Deploy Feed
+                                        </button>
+                                    `}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    return html || '<div class="empty-state">No standardized feeds available.</div>';
+}
+
+/**
+ * Deploy standardized feed (Oracle network creates the feed)
+ */
+async function deployStandardizedFeed(feedId) {
+    const standardizedFeed = typeof getStandardizedFeedById !== 'undefined' 
+        ? getStandardizedFeedById(feedId)
+        : null;
+    
+    if (!standardizedFeed) {
+        alert('Standardized feed not found');
+        return;
+    }
+
+    try {
+        // Create oracle feed from standardized feed configuration
+        const feedConfig = {
+            ...standardizedFeed.config,
+            name: standardizedFeed.name,
+            description: standardizedFeed.description,
+            category: standardizedFeed.category,
+            visibility: 'public', // Standardized feeds are public
+            standardFeedId: feedId,
+            isStandardized: true
+        };
+
+        // Call OASIS API to create the feed
+        if (typeof oasisAPI === 'undefined' || !oasisAPI.createOracleFeed) {
+            throw new Error('OASIS API not available. Please ensure the API is properly configured.');
+        }
+
+        const avatarId = getAvatarId();
+        if (!avatarId) {
+            throw new Error('Avatar ID not found. Please ensure you are logged in.');
+        }
+
+        // Add avatarId to feed config for API
+        const feedConfigWithAvatar = {
+            ...feedConfig,
+            avatarId: avatarId
+        };
+
+        console.log('Deploying standardized feed via OASIS API:', feedConfigWithAvatar);
+        const response = await oasisAPI.createOracleFeed(feedConfigWithAvatar);
+        
+        if (response && !response.isError) {
+            const createdFeedId = response.result?.feedId || response.result?.id;
+            console.log('Standardized feed deployed successfully via OASIS API:', createdFeedId);
+            
+            // Success - refresh feeds from API
+            await fetchOracleFeeds();
+            loadOracle();
+        } else {
+            const errorMsg = response?.error || response?.message || 'Failed to deploy feed';
+            console.error('API Error:', response);
+            throw new Error(errorMsg);
+        }
+    } catch (error) {
+        console.error('Error deploying standardized feed:', error);
+        alert('Error deploying feed: ' + (error.message || 'Unknown error'));
+    }
 }
 
 /**
@@ -2655,3 +2992,6 @@ window.savePriceFetchConfig = savePriceFetchConfig;
 window.saveCalculateConfig = saveCalculateConfig;
 window.saveIndicatorConfig = saveIndicatorConfig;
 window.saveAlertConfig = saveAlertConfig;
+window.renderStandardizedFeedsLibrary = renderStandardizedFeedsLibrary;
+window.deployStandardizedFeed = deployStandardizedFeed;
+window.renderOracleStatusPanel = renderOracleStatusPanel;

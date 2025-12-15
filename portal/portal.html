@@ -43,6 +43,27 @@
             gap: 1rem;
         }
 
+        .btn-login {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-login:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-login:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         .portal-header {
             background: rgba(0, 0, 0, 0.4);
             border-bottom: 1px solid var(--border-color);
@@ -6504,6 +6525,312 @@
                 flex-direction: column;
             }
         }
+
+        /* Avatar Auth Screen Styles (from zypherpunk-wallet-ui) */
+        .avatar-auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .avatar-auth-container {
+            width: 100%;
+            max-width: 28rem;
+            background: linear-gradient(to bottom, rgba(17, 24, 39, 0.9), rgba(0, 0, 0, 1));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .avatar-auth-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar-auth-logo-outer {
+            height: 4rem;
+            width: 4rem;
+            border-radius: 50%;
+            border: 1px solid rgba(196, 181, 253, 0.4);
+            background: linear-gradient(to bottom right, rgba(126, 34, 206, 1), rgba(79, 70, 229, 1), rgba(0, 0, 0, 1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: spin 4s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .avatar-auth-logo-inner {
+            height: 2.5rem;
+            width: 2.5rem;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .avatar-auth-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .avatar-auth-title-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-auth-subtitle {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: rgba(156, 163, 175, 1);
+            margin-bottom: 1rem;
+        }
+
+        .avatar-auth-title {
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: var(--text-primary, #ffffff);
+            margin-bottom: 0.5rem;
+        }
+
+        .avatar-auth-description {
+            color: rgba(156, 163, 175, 1);
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .avatar-auth-tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.25rem;
+        }
+
+        .avatar-auth-tab {
+            flex: 1;
+            padding: 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+            color: rgba(156, 163, 175, 1);
+            cursor: pointer;
+        }
+
+        .avatar-auth-tab.active {
+            background: white;
+            color: black;
+        }
+
+        .avatar-auth-tab:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .avatar-auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .avatar-auth-privacy-mode {
+            margin-bottom: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 0.5rem;
+        }
+
+        .avatar-auth-privacy-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .avatar-auth-privacy-content input[type="checkbox"] {
+            margin-top: 0.125rem;
+            cursor: pointer;
+        }
+
+        .avatar-auth-privacy-label {
+            font-size: 0.875rem;
+            color: rgba(196, 181, 253, 1);
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .avatar-auth-privacy-label strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .avatar-auth-privacy-desc {
+            font-size: 0.75rem;
+            color: rgba(196, 181, 253, 0.8);
+            margin-top: 0.25rem;
+        }
+
+        .avatar-auth-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .avatar-auth-field-label {
+            font-size: 0.875rem;
+            color: rgba(156, 163, 175, 1);
+            margin-bottom: 0.25rem;
+        }
+
+        .avatar-auth-input {
+            background: rgba(17, 24, 39, 1);
+            border: 1px solid rgba(31, 41, 55, 1);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .avatar-auth-input::placeholder {
+            color: rgba(107, 114, 128, 1);
+        }
+
+        .avatar-auth-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(17, 24, 39, 0.8);
+        }
+
+        .avatar-auth-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .avatar-auth-hint {
+            font-size: 0.75rem;
+            color: rgba(107, 114, 128, 1);
+            margin-top: 0.25rem;
+        }
+
+        .avatar-auth-name-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .avatar-auth-error {
+            font-size: 0.875rem;
+            color: rgba(248, 113, 113, 1);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .avatar-auth-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .avatar-auth-submit-btn {
+            width: 100%;
+            background: white;
+            color: black;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .avatar-auth-submit-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .avatar-auth-submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .avatar-auth-skip-btn {
+            width: 100%;
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .avatar-auth-skip-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .avatar-auth-skip-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 640px) {
+            .avatar-auth-container {
+                padding: 1.5rem;
+            }
+            
+            .avatar-auth-name-fields {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -6516,8 +6843,7 @@
                 <span style="color: var(--text-secondary);">Portal</span>
             </div>
             <div class="portal-nav-right">
-                <!-- Login button disabled -->
-                <!-- <button class="btn-login" onclick="handleUserMenuClick()" id="userMenuBtn">Log in</button> -->
+                <button class="btn-login" onclick="openLoginModal()" id="userMenuBtn">Sign in</button>
                 <a href="../oasisweb4 site/new-v2/index.html" class="btn-text">Back to site</a>
             </div>
         </div>
@@ -6896,119 +7222,371 @@
         </div>
     </div>
 
-    <!-- Login Modal (same as index.html) -->
-    <div id="loginModal" class="modal" style="display: none;">
-        <div class="modal-overlay" onclick="closeLoginModal()"></div>
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeLoginModal()">×</button>
-            
-            <div class="auth-container">
-                <div class="auth-header">
-                    <div class="auth-logo">
-                        <div class="auth-logo-circle">
-                            <div class="auth-logo-inner">O</div>
-                        </div>
+    <!-- Avatar Authentication Screen (from zypherpunk-wallet-ui) -->
+    <div id="avatarAuthScreen" class="avatar-auth-screen" style="display: none;" onclick="if(event.target.id === 'avatarAuthScreen') closeLoginModal()">
+        <div class="avatar-auth-container" onclick="event.stopPropagation()">
+            <div class="avatar-auth-header">
+                <div class="avatar-auth-logo">
+                    <div class="avatar-auth-logo-outer">
+                        <div class="avatar-auth-logo-inner">O</div>
                     </div>
-                    <p class="auth-label">Avatar Access</p>
                 </div>
-                
-                <div class="auth-title-section">
-                    <div class="auth-subtitle">Connect Identity</div>
-                    <h2 class="auth-title">Connect your avatar</h2>
-                    <p class="auth-description">
-                        Sign in with your OASIS avatar to access your multi-chain wallets and data.
+                <p class="avatar-auth-label">Avatar Access</p>
+            </div>
+            
+            <div class="avatar-auth-title-section">
+                <div class="avatar-auth-subtitle">Connect Identity</div>
+                <h1 class="avatar-auth-title">Connect your avatar</h1>
+                <p class="avatar-auth-description">
+                    Sign in with your OASIS avatar to access your multi-chain wallets and data.
+                </p>
+            </div>
+
+            <div class="avatar-auth-tabs">
+                <button class="avatar-auth-tab active" data-mode="login" onclick="switchAvatarAuthMode('login')">
+                    Sign in
+                </button>
+                <button class="avatar-auth-tab" data-mode="register" onclick="switchAvatarAuthMode('register')">
+                    Create avatar
+                </button>
+            </div>
+
+            <form id="avatarAuthForm" class="avatar-auth-form" onsubmit="handleAvatarAuthSubmit(event)">
+                <div id="avatarAuthPrivacyMode" class="avatar-auth-privacy-mode" style="display: none;">
+                    <div class="avatar-auth-privacy-content">
+                        <input type="checkbox" id="privacyModeCheckbox" checked onchange="togglePrivacyMode()" />
+                        <label for="privacyModeCheckbox" class="avatar-auth-privacy-label">
+                            <strong>Privacy Mode</strong> (Recommended)
+                            <p class="avatar-auth-privacy-desc">
+                                Creates anonymous avatar with fake email. No real identity required. Auto-verifies for immediate access.
+                            </p>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="avatar-auth-field">
+                    <label class="avatar-auth-field-label" id="avatarUsernameLabel">Username or email</label>
+                    <input 
+                        type="text" 
+                        id="avatarUsername" 
+                        class="avatar-auth-input"
+                        placeholder="email@oasis.com"
+                        autocomplete="username"
+                    />
+                    <p id="avatarUsernameHint" class="avatar-auth-hint" style="display: none;">
+                        Leave empty for random username
                     </p>
                 </div>
 
-                <div class="auth-tabs">
-                    <button class="auth-tab active" data-mode="login" onclick="switchAuthMode('login')">
-                        Sign in
-                    </button>
-                    <button class="auth-tab" data-mode="register" onclick="switchAuthMode('register')">
-                        Create avatar
-                    </button>
+                <div id="avatarAuthEmailField" class="avatar-auth-field" style="display: none;">
+                    <label class="avatar-auth-field-label">Email</label>
+                    <input 
+                        type="email" 
+                        id="avatarEmail" 
+                        class="avatar-auth-input"
+                        placeholder="you@example.com"
+                    />
                 </div>
 
-                <form id="authForm" class="auth-form" onsubmit="handleAuthSubmit(event)">
-                    <div class="auth-field">
-                        <label class="auth-label-text">
-                            <span id="usernameLabel">Username or email</span>
-                        </label>
+                <div id="avatarAuthNameFields" class="avatar-auth-name-fields" style="display: none;">
+                    <div class="avatar-auth-field">
+                        <label class="avatar-auth-field-label">First name</label>
                         <input 
                             type="text" 
-                            id="username" 
-                            name="username"
-                            class="auth-input" 
-                            placeholder="email@oasis.com"
-                            required
+                            id="avatarFirstName" 
+                            class="avatar-auth-input"
+                            placeholder="Optional"
                         />
                     </div>
-
-                    <div id="registerFields" style="display: none;">
-                        <div class="auth-field">
-                            <label class="auth-label-text">Email</label>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                name="email"
-                                class="auth-input" 
-                                placeholder="you@example.com"
-                            />
-                        </div>
-
-                        <div class="auth-field-row">
-                            <div class="auth-field">
-                                <label class="auth-label-text">First name</label>
-                                <input 
-                                    type="text" 
-                                    id="firstName" 
-                                    name="firstName"
-                                    class="auth-input" 
-                                    placeholder="Optional"
-                                />
-                            </div>
-                            <div class="auth-field">
-                                <label class="auth-label-text">Last name</label>
-                                <input 
-                                    type="text" 
-                                    id="lastName" 
-                                    name="lastName"
-                                    class="auth-input" 
-                                    placeholder="Optional"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="auth-field">
-                        <label class="auth-label-text">Password</label>
+                    <div class="avatar-auth-field">
+                        <label class="avatar-auth-field-label">Last name</label>
                         <input 
-                            type="password" 
-                            id="password" 
-                            name="password"
-                            class="auth-input" 
-                            placeholder="••••••••"
-                            required
+                            type="text" 
+                            id="avatarLastName" 
+                            class="avatar-auth-input"
+                            placeholder="Optional"
                         />
                     </div>
+                </div>
 
-                    <div id="authError" class="auth-error" style="display: none;"></div>
+                <div class="avatar-auth-field">
+                    <label class="avatar-auth-field-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="avatarPassword" 
+                        class="avatar-auth-input"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                    />
+                </div>
 
-                    <div class="auth-actions">
-                        <button type="submit" class="btn-primary auth-submit" id="authSubmitBtn">
-                            <span id="authSubmitText">Sign in</span>
-                        </button>
-                        <button type="button" class="btn-text auth-skip" onclick="useDemoAvatar()">
-                            Skip for now
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div id="avatarAuthError" class="avatar-auth-error" style="display: none;"></div>
+
+                <div class="avatar-auth-actions">
+                    <button type="submit" id="avatarAuthSubmitBtn" class="avatar-auth-submit-btn">
+                        <span id="avatarAuthSubmitText">Sign in</span>
+                    </button>
+                    <button type="button" class="avatar-auth-skip-btn" onclick="useDemoAvatar()">
+                        Skip for now
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <script src="../oasisweb4 site/new-v2/script.js"></script>
+    <script src="api/auth.js"></script>
     <script src="api/oasisApi.js"></script>
+    <script>
+        // Avatar Authentication Screen Functions (from zypherpunk-wallet-ui)
+        let currentAvatarAuthMode = 'login';
+        let privacyMode = true;
+
+        function openLoginModal() {
+            console.log('openLoginModal called');
+            const screen = document.getElementById('avatarAuthScreen');
+            if (screen) {
+                screen.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                // Reset to login mode
+                switchAvatarAuthMode('login');
+            } else {
+                console.error('avatarAuthScreen element not found');
+            }
+        }
+
+        function closeLoginModal() {
+            const screen = document.getElementById('avatarAuthScreen');
+            if (screen) {
+                screen.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+            // Reset form
+            const form = document.getElementById('avatarAuthForm');
+            if (form) {
+                form.reset();
+            }
+            const errorDiv = document.getElementById('avatarAuthError');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+            switchAvatarAuthMode('login');
+        }
+
+        function switchAvatarAuthMode(mode) {
+            currentAvatarAuthMode = mode;
+            const tabs = document.querySelectorAll('.avatar-auth-tab');
+            const privacyModeDiv = document.getElementById('avatarAuthPrivacyMode');
+            const emailField = document.getElementById('avatarAuthEmailField');
+            const nameFields = document.getElementById('avatarAuthNameFields');
+            const usernameLabel = document.getElementById('avatarUsernameLabel');
+            const usernameHint = document.getElementById('avatarUsernameHint');
+            const submitText = document.getElementById('avatarAuthSubmitText');
+            
+            tabs.forEach(tab => {
+                if (tab.getAttribute('data-mode') === mode) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            if (mode === 'register') {
+                if (privacyModeDiv) privacyModeDiv.style.display = 'block';
+                if (usernameLabel) usernameLabel.textContent = 'Username';
+                if (usernameHint) usernameHint.style.display = privacyMode ? 'block' : 'none';
+                if (emailField) emailField.style.display = privacyMode ? 'none' : 'block';
+                if (nameFields) nameFields.style.display = privacyMode ? 'none' : 'block';
+                if (submitText) submitText.textContent = 'Create avatar';
+            } else {
+                if (privacyModeDiv) privacyModeDiv.style.display = 'none';
+                if (usernameLabel) usernameLabel.textContent = 'Username or email';
+                if (usernameHint) usernameHint.style.display = 'none';
+                if (emailField) emailField.style.display = 'none';
+                if (nameFields) nameFields.style.display = 'none';
+                if (submitText) submitText.textContent = 'Sign in';
+            }
+        }
+
+        function togglePrivacyMode() {
+            const checkbox = document.getElementById('privacyModeCheckbox');
+            privacyMode = checkbox ? checkbox.checked : true;
+            
+            if (currentAvatarAuthMode === 'register') {
+                const emailField = document.getElementById('avatarAuthEmailField');
+                const nameFields = document.getElementById('avatarAuthNameFields');
+                const usernameHint = document.getElementById('avatarUsernameHint');
+                
+                if (emailField) emailField.style.display = privacyMode ? 'none' : 'block';
+                if (nameFields) nameFields.style.display = privacyMode ? 'none' : 'block';
+                if (usernameHint) usernameHint.style.display = privacyMode ? 'block' : 'none';
+            }
+        }
+
+        // Generate fake email for privacy mode
+        function generateFakeEmail(username) {
+            const randomId = Math.random().toString(36).substring(2, 9);
+            return `${username}_${randomId}@privacy.local`;
+        }
+
+        // Generate random username
+        function generateRandomUsername() {
+            return `privacy_${Math.random().toString(36).substring(2, 11)}`;
+        }
+
+        async function handleAvatarAuthSubmit(event) {
+            event.preventDefault();
+            const errorDiv = document.getElementById('avatarAuthError');
+            const submitBtn = document.getElementById('avatarAuthSubmitBtn');
+            const submitText = document.getElementById('avatarAuthSubmitText');
+            
+            if (!errorDiv || !submitBtn || !submitText) {
+                console.error('Avatar auth form elements not found');
+                return;
+            }
+            
+            errorDiv.style.display = 'none';
+            submitBtn.disabled = true;
+            submitText.textContent = currentAvatarAuthMode === 'login' ? 'Connecting...' : 'Creating avatar...';
+            
+            try {
+                const username = document.getElementById('avatarUsername').value.trim();
+                const password = document.getElementById('avatarPassword').value;
+                
+                if (!password) {
+                    throw new Error('Password is required');
+                }
+                
+                let authResult;
+                
+                if (currentAvatarAuthMode === 'login') {
+                    if (!username) {
+                        throw new Error('Enter your username/email and password.');
+                    }
+                    authResult = await authAPI.login(username, password);
+                } else {
+                    // Register
+                    let finalUsername = username;
+                    let email = '';
+                    let firstName = '';
+                    let lastName = '';
+                    
+                    if (privacyMode) {
+                        // Privacy mode: Generate fake email and random username if needed
+                        finalUsername = username || generateRandomUsername();
+                        email = generateFakeEmail(finalUsername);
+                        firstName = 'Privacy';
+                        lastName = 'User';
+                    } else {
+                        email = document.getElementById('avatarEmail').value.trim();
+                        firstName = document.getElementById('avatarFirstName')?.value.trim() || '';
+                        lastName = document.getElementById('avatarLastName')?.value.trim() || '';
+                        
+                        if (!email) {
+                            throw new Error('Email is required when privacy mode is off.');
+                        }
+                    }
+                    
+                    authResult = await authAPI.register({
+                        username: finalUsername,
+                        email: email,
+                        password: password,
+                        firstName: firstName || 'Privacy',
+                        lastName: lastName || 'User'
+                    });
+                }
+                
+                // Check if email verification is required
+                if (authResult.requiresEmailVerification || !authResult.token) {
+                    // Show message about email verification
+                    errorDiv.textContent = authResult.message || 'Avatar created! Please check your email to verify your account before logging in.';
+                    errorDiv.style.display = 'block';
+                    errorDiv.style.background = 'rgba(59, 130, 246, 0.1)';
+                    errorDiv.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                    errorDiv.style.color = 'rgba(147, 197, 253, 1)';
+                    
+                    // Don't close modal - let user see the message
+                    // Don't store auth data since there's no token yet
+                    return;
+                }
+                
+                // Store auth data using centralized store
+                authStore.setAuth({
+                    avatar: authResult.avatar,
+                    token: authResult.token,
+                    refreshToken: authResult.refreshToken
+                });
+                
+                // Close modal and update UI
+                closeLoginModal();
+                if (typeof updateUserUI === 'function') {
+                    updateUserUI(authResult.avatar);
+                }
+                if (typeof updateAuthButton === 'function') {
+                    updateAuthButton();
+                }
+                
+                // Dispatch custom event for other modules to listen to
+                window.dispatchEvent(new CustomEvent('oasis:auth:login', {
+                    detail: { avatar: authResult.avatar }
+                }));
+                
+            } catch (error) {
+                console.error('Avatar authentication error:', error);
+                errorDiv.textContent = error.message || 'An error occurred. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitText.textContent = currentAvatarAuthMode === 'login' ? 'Sign in' : 'Create avatar';
+            }
+        }
+
+        function useDemoAvatar() {
+            const demoAvatar = {
+                avatarId: 'demo-123',
+                id: 'demo-123',
+                username: 'demo.explorer',
+                firstName: 'Demo',
+                lastName: 'Explorer'
+            };
+            
+            if (typeof authStore !== 'undefined') {
+                authStore.setAuth({
+                    avatar: demoAvatar,
+                    token: null,
+                    refreshToken: null
+                });
+            } else {
+                localStorage.setItem('oasis_auth', JSON.stringify({
+                    avatar: demoAvatar,
+                    token: null,
+                    refreshToken: null
+                }));
+            }
+            
+            closeLoginModal();
+            if (typeof updateUserUI === 'function') {
+                updateUserUI(demoAvatar);
+            }
+            if (typeof updateAuthButton === 'function') {
+                updateAuthButton();
+            }
+            
+            // Dispatch custom event
+            window.dispatchEvent(new CustomEvent('oasis:auth:login', {
+                detail: { avatar: demoAvatar }
+            }));
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const screen = document.getElementById('avatarAuthScreen');
+                if (screen && screen.style.display !== 'none') {
+                    closeLoginModal();
+                }
+            }
+        });
+    </script>
     <script src="tier-system.js"></script>
     <script src="telegram-gamification.js"></script>
     <script src="avatar-dashboard.js"></script>
@@ -7024,8 +7602,82 @@
     <script src="nft-mint-studio.js"></script>
     <script>
         // Portal-specific JavaScript
+        
+        // Helper function to get authenticated avatar
+        function getAvatar() {
+            // Try to use centralized authStore first
+            if (typeof authStore !== 'undefined' && authStore.isAuthenticated()) {
+                return authStore.getAvatar();
+            }
+            
+            // Fallback to direct localStorage access
+            try {
+                const authData = localStorage.getItem('oasis_auth');
+                if (authData) {
+                    const auth = JSON.parse(authData);
+                    return auth.avatar || null;
+                }
+            } catch (error) {
+                console.error('Error getting avatar:', error);
+            }
+            
+            return null;
+        }
+
+        // Helper function to update portal header with avatar info
+        function updatePortalHeader(avatar) {
+            if (!avatar) return;
+            
+            const firstName = avatar.firstName || avatar.FirstName || '';
+            const lastName = avatar.lastName || avatar.LastName || '';
+            const fullName = avatar.fullName || avatar.FullName || 
+                           (firstName && lastName ? `${firstName} ${lastName}`.trim() : null) ||
+                           firstName || lastName ||
+                           avatar.username || avatar.Username || 
+                           avatar.email || avatar.Email || 
+                           'OASIS User';
+            
+            // Generate initials from full name or username
+            const initials = (firstName?.[0] || '') + (lastName?.[0] || '') || 
+                           (fullName ? fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : null) ||
+                           avatar.username?.[0]?.toUpperCase() || 
+                           avatar.email?.[0]?.toUpperCase() || 
+                           'OA';
+            
+            const initialsEl = document.getElementById('avatarInitials');
+            const nameEl = document.getElementById('avatarName');
+            const idEl = document.getElementById('avatarId');
+            
+            if (initialsEl) initialsEl.textContent = initials;
+            if (nameEl) nameEl.textContent = fullName;
+            if (idEl) {
+                const avatarId = avatar.avatarId || avatar.id;
+                idEl.textContent = avatarId || '-';
+            }
+            
+            // Update user menu button
+            const userBtn = document.getElementById('userMenuBtn');
+            if (userBtn) {
+                userBtn.textContent = avatar.username || avatar.email || fullName || 'Account';
+                userBtn.title = 'Click to logout';
+                userBtn.className = 'btn-login';
+            }
+        }
+        
         async function switchTab(tabName) {
+            // Update avatar information in header when switching tabs
+            const avatar = getAvatar();
+            if (avatar) {
+                updatePortalHeader(avatar);
+            }
             console.log('switchTab called with:', tabName);
+            
+            // Update avatar information in header when switching tabs
+            const avatar = getAvatar();
+            if (avatar) {
+                updatePortalHeader(avatar);
+            }
+            
             // Check if tab is accessible (with error handling)
             try {
                 const avatarId = oasisAPI?.getAvatarId();
@@ -7226,59 +7878,117 @@
 
         // Load portal data
         async function loadPortalData() {
-            const authData = localStorage.getItem('oasis_auth');
-            if (authData) {
-                try {
-                    const auth = JSON.parse(authData);
-                    const avatar = auth.avatar;
-                    
-                    if (avatar) {
-                        const avatarId = avatar.avatarId || avatar.id;
-                        
-                        // Update header
-                        const initials = (avatar.firstName?.[0] || '') + (avatar.lastName?.[0] || '') || avatar.username?.[0]?.toUpperCase() || 'OA';
-                        document.getElementById('avatarInitials').textContent = initials;
-                        document.getElementById('avatarName').textContent = avatar.firstName && avatar.lastName 
-                            ? `${avatar.firstName} ${avatar.lastName}` 
-                            : avatar.username || 'OASIS User';
-                        document.getElementById('avatarId').textContent = avatarId || '-';
-                        
-                        // Update stats
-                        if (avatar.karma) {
-                            document.getElementById('statKarma').textContent = avatar.karma;
-                        }
-                        
-                        // Update user menu button to show username
-                        const userBtn = document.getElementById('userMenuBtn');
-                        if (userBtn) {
-                            userBtn.textContent = avatar.username || avatar.email || 'Account';
-                            userBtn.title = 'Click to logout';
-                            // Ensure button keeps login styling
-                            userBtn.className = 'btn-login';
-                        }
-                        
-                        // Check and update tier from NFTs
-                        if (avatarId && typeof updatePortalHeaderTier === 'function') {
-                            try {
-                                await updatePortalHeaderTier(avatarId);
-                            } catch (tierError) {
-                                console.warn('Could not load tier information:', tierError);
-                                // Keep default "Developer" / "Active" if tier check fails
-                            }
-                        }
-                        
-                        // Update tab visibility based on feature NFTs
-                        if (avatarId && typeof updateTabVisibility === 'function') {
-                            try {
-                                await updateTabVisibility(avatarId);
-                            } catch (featureError) {
-                                console.warn('Could not update tab visibility:', featureError);
-                            }
-                        }
+            // Use centralized authStore if available, otherwise fallback to localStorage
+            let avatar = null;
+            let authData = null;
+            
+            if (typeof authStore !== 'undefined' && authStore.isAuthenticated()) {
+                avatar = authStore.getAvatar();
+                authData = authStore.getAuth();
+            } else {
+                // Fallback to localStorage
+                const storedAuth = localStorage.getItem('oasis_auth');
+                if (storedAuth) {
+                    try {
+                        authData = JSON.parse(storedAuth);
+                        avatar = authData.avatar;
+                    } catch (e) {
+                        console.error('Error parsing auth data:', e);
                     }
-                } catch (e) {
-                    console.error('Error loading portal data:', e);
-                    updateAuthButton();
+                }
+            }
+            
+            if (avatar) {
+                const avatarId = avatar.avatarId || avatar.id;
+                
+                // Try to fetch complete avatar data from API if we only have basic info
+                let completeAvatar = avatar;
+                if (avatarId && (!avatar.firstName && !avatar.lastName && !avatar.fullName)) {
+                    try {
+                        if (typeof oasisAPI !== 'undefined' && oasisAPI.getAvatar) {
+                            const apiResponse = await oasisAPI.getAvatar(avatarId);
+                            if (apiResponse && !apiResponse.isError && apiResponse.result) {
+                                const apiAvatar = apiResponse.result.result || apiResponse.result;
+                                // Merge API data with existing avatar data
+                                completeAvatar = {
+                                    ...avatar,
+                                    ...apiAvatar,
+                                    // Preserve existing fields if API doesn't have them
+                                    id: apiAvatar.id || avatar.id || avatarId,
+                                    avatarId: apiAvatar.avatarId || apiAvatar.id || avatar.avatarId || avatarId
+                                };
+                                // Update authStore with complete data
+                                if (typeof authStore !== 'undefined') {
+                                    authStore.setAuth({
+                                        ...authData,
+                                        avatar: completeAvatar
+                                    });
+                                }
+                            }
+                        }
+                    } catch (apiError) {
+                        console.warn('Could not fetch complete avatar data from API:', apiError);
+                        // Continue with existing avatar data
+                    }
+                }
+                
+                // Update header with full avatar information
+                const firstName = completeAvatar.firstName || completeAvatar.FirstName || '';
+                const lastName = completeAvatar.lastName || completeAvatar.LastName || '';
+                const fullName = completeAvatar.fullName || completeAvatar.FullName || 
+                               (firstName && lastName ? `${firstName} ${lastName}`.trim() : null) ||
+                               firstName || lastName ||
+                               completeAvatar.username || completeAvatar.Username || 
+                               completeAvatar.email || completeAvatar.Email || 
+                               'OASIS User';
+                
+                // Generate initials from full name or username
+                const initials = (firstName?.[0] || '') + (lastName?.[0] || '') || 
+                               (fullName ? fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : null) ||
+                               completeAvatar.username?.[0]?.toUpperCase() || 
+                               completeAvatar.email?.[0]?.toUpperCase() || 
+                               'OA';
+                
+                const initialsEl = document.getElementById('avatarInitials');
+                const nameEl = document.getElementById('avatarName');
+                const idEl = document.getElementById('avatarId');
+                
+                if (initialsEl) initialsEl.textContent = initials;
+                if (nameEl) nameEl.textContent = fullName;
+                if (idEl) idEl.textContent = avatarId || '-';
+                
+                // Update stats
+                if (completeAvatar.karma) {
+                    const karmaEl = document.getElementById('statKarma');
+                    if (karmaEl) karmaEl.textContent = completeAvatar.karma;
+                }
+                
+                // Update user menu button to show username
+                const userBtn = document.getElementById('userMenuBtn');
+                if (userBtn) {
+                    userBtn.textContent = completeAvatar.username || completeAvatar.email || fullName || 'Account';
+                    userBtn.title = 'Click to logout';
+                    // Ensure button keeps login styling
+                    userBtn.className = 'btn-login';
+                }
+                
+                // Check and update tier from NFTs
+                if (avatarId && typeof updatePortalHeaderTier === 'function') {
+                    try {
+                        await updatePortalHeaderTier(avatarId);
+                    } catch (tierError) {
+                        console.warn('Could not load tier information:', tierError);
+                        // Keep default "Developer" / "Active" if tier check fails
+                    }
+                }
+                
+                // Update tab visibility based on feature NFTs
+                if (avatarId && typeof updateTabVisibility === 'function') {
+                    try {
+                        await updateTabVisibility(avatarId);
+                    } catch (featureError) {
+                        console.warn('Could not update tab visibility:', featureError);
+                    }
                 }
             } else {
                 // Not logged in
@@ -7294,23 +8004,54 @@
             if (userBtn) {
                 // Always use btn-login class for consistent white box styling
                 userBtn.className = 'btn-login';
+
+                // Use centralized authStore if available, otherwise fallback
+                let isAuth = false;
+                let avatar = null;
                 
-                const isAuth = oasisAPI && oasisAPI.isAuthenticated ? oasisAPI.isAuthenticated() : false;
-                if (isAuth) {
+                if (typeof authStore !== 'undefined' && authStore.isAuthenticated()) {
+                    isAuth = true;
+                    avatar = authStore.getAvatar();
+                } else {
+                    // Fallback to localStorage
                     const authData = localStorage.getItem('oasis_auth');
                     if (authData) {
                         try {
                             const auth = JSON.parse(authData);
-                            const avatar = auth.avatar;
-                            userBtn.textContent = avatar?.username || avatar?.email || 'Account';
-                            userBtn.title = 'Click to logout';
+                            if (auth.token && auth.avatar) {
+                                isAuth = true;
+                                avatar = auth.avatar;
+                            }
                         } catch (e) {
-                            userBtn.textContent = 'Account';
+                            console.error('Error parsing auth data:', e);
                         }
                     }
+                }
+                
+                if (isAuth && avatar) {
+                    userBtn.textContent = avatar?.username || avatar?.email || 'Account';
+                    userBtn.title = 'Click to logout';
+                    userBtn.onclick = () => {
+                        if (confirm('Would you like to log out?')) {
+                            if (typeof logout === 'function') {
+                                logout();
+                            } else if (typeof authStore !== 'undefined') {
+                                authStore.clearAuth();
+                                updateAuthButton();
+                                if (typeof loadPortalData === 'function') {
+                                    loadPortalData();
+                                }
+                            }
+                        }
+                    };
                 } else {
-                    userBtn.textContent = 'Log in';
+                    userBtn.textContent = 'Sign in';
                     userBtn.title = 'Click to login';
+                    userBtn.onclick = () => {
+                        if (typeof openLoginModal === 'function') {
+                            openLoginModal();
+                        }
+                    };
                 }
             }
         }
@@ -7431,6 +8172,21 @@
         }
 
         // Call on page load
+        // Initialize authentication state on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check for existing auth and update UI
+            if (typeof authStore !== 'undefined' && authStore.isAuthenticated()) {
+                const avatar = authStore.getAvatar();
+                if (avatar) {
+                    updateUserUI(avatar);
+                    // Also trigger loadPortalData to update all portal information
+                    if (typeof loadPortalData === 'function') {
+                        loadPortalData();
+                    }
+                }
+            }
+        });
+
         window.addEventListener('DOMContentLoaded', () => {
             loadPortalData();
             updateAuthButton();

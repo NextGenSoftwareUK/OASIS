@@ -160,10 +160,17 @@ function buildAvatarInsights(avatar) {
 
 function formatAvatarName(avatar) {
     if (!avatar) return 'Explorer';
-    if (avatar.firstName) {
-        return `${avatar.firstName} ${avatar.lastName || ''}`.trim();
+    // Try fullName first, then firstName+lastName, then username/email
+    const fullName = avatar.fullName || avatar.FullName;
+    if (fullName) return fullName;
+    
+    const firstName = avatar.firstName || avatar.FirstName || '';
+    const lastName = avatar.lastName || avatar.LastName || '';
+    if (firstName || lastName) {
+        return `${firstName} ${lastName}`.trim();
     }
-    return avatar.username || 'Explorer';
+    
+    return avatar.username || avatar.Username || avatar.email || avatar.Email || 'Explorer';
 }
 
 /**

@@ -123,7 +123,7 @@ public class TelegramGamificationService
     
     private readonly string[] OASIS_URLS = {
         "oasisplatform.world", "oasisweb4.one", 
-        "api.oasisplatform.world"
+        "api.oasisweb4.one"
     };
     
     /// <summary>
