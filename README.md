@@ -124,6 +124,7 @@ OASIS supports 50+ providers across multiple categories, providing universal com
   - Portfolio management and analytics
   - Transfer operations and transaction history
   - Import/export functionality
+  - Full cross chain support
 
 ### **Security & Keys**
 - **KEYS**: Cryptographic key management with 40+ endpoints
