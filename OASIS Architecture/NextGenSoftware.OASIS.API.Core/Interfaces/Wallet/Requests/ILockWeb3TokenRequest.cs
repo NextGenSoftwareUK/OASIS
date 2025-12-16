@@ -11,5 +11,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests
         //public string MintWalletAddress { get; set; }
         public string TokenAddress { get; set; }
         public string FromWalletPrivateKey { get; set; }
+        public string FromWalletAddress { get; set; }
     }
 }

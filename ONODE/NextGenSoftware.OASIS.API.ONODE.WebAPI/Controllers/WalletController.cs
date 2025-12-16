@@ -687,5 +687,130 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Message = "Wallet tokens retrieved successfully"
             };
         }
+
+        /// <summary>
+        ///     Create a new wallet for an avatar by ID.
+        /// </summary>
+        /// <param name="avatarId">The avatar ID.</param>
+        /// <param name="name">The wallet name.</param>
+        /// <param name="description">The wallet description.</param>
+        /// <param name="walletProviderType">The wallet provider type.</param>
+        /// <param name="generateKeyPair">Whether to generate a key pair.</param>
+        /// <param name="isDefaultWallet">Whether this should be the default wallet.</param>
+        /// <param name="providerTypeToLoadSave">The provider type to load/save from.</param>
+        /// <returns>OASIS result containing the created wallet or error details.</returns>
+        [Authorize]
+        [HttpPost("avatar/{avatarId}/create-wallet")]
+        [ProducesResponseType(typeof(OASISResult<IProviderWallet>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByIdAsync(Guid avatarId, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            return await WalletManager.CreateWalletForAvatarByIdAsync(avatarId, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+        }
+
+        /// <summary>
+        ///     Create a new wallet for an avatar by username.
+        /// </summary>
+        /// <param name="username">The avatar username.</param>
+        /// <param name="request">The wallet creation request.</param>
+        /// <param name="providerTypeToLoadSave">The provider type to load/save from.</param>
+        /// <returns>OASIS result containing the created wallet or error details.</returns>
+        [Authorize]
+        [HttpPost("avatar/username/{username}/create-wallet")]
+        [ProducesResponseType(typeof(OASISResult<IProviderWallet>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByUsernameAsync(string username, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            return await WalletManager.CreateWalletForAvatarByUsernameAsync(username, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+        }
+
+        /// <summary>
+        ///     Create a new wallet for an avatar by email.
+        /// </summary>
+        /// <param name="email">The avatar email.</param>
+        /// <param name="request">The wallet creation request.</param>
+        /// <param name="providerTypeToLoadSave">The provider type to load/save from.</param>
+        /// <returns>OASIS result containing the created wallet or error details.</returns>
+        [Authorize]
+        [HttpPost("avatar/email/{email}/create-wallet")]
+        [ProducesResponseType(typeof(OASISResult<IProviderWallet>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByEmailAsync(string email, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            return await WalletManager.CreateWalletForAvatarByEmailAsync(email, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+        }
+
+        /// <summary>
+        ///     Update a wallet for an avatar by ID.
+        /// </summary>
+        /// <param name="avatarId">The avatar ID.</param>
+        /// <param name="walletId">The wallet ID to update.</param>
+        /// <param name="request">The wallet update request.</param>
+        /// <param name="providerTypeToLoadSave">The provider type to load/save from.</param>
+        /// <returns>OASIS result containing the updated wallet or error details.</returns>
+        [Authorize]
+        [HttpPut("avatar/{avatarId}/wallet/{walletId}")]
+        [ProducesResponseType(typeof(OASISResult<IProviderWallet>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IProviderWallet>> UpdateWalletForAvatarByIdAsync(Guid avatarId, Guid walletId, [FromBody] UpdateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            return await WalletManager.UpdateWalletForAvatarByIdAsync(avatarId, walletId, request.Name, request.Description, request.WalletProviderType, providerTypeToLoadSave);
+        }
+
+        /// <summary>
+        ///     Update a wallet for an avatar by username.
+        /// </summary>
+        /// <param name="username">The avatar username.</param>
+        /// <param name="walletId">The wallet ID to update.</param>
+        /// <param name="request">The wallet update request.</param>
+        /// <param name="providerTypeToLoadSave">The provider type to load/save from.</param>
+        /// <returns>OASIS result containing the updated wallet or error details.</returns>
+        [Authorize]
+        [HttpPut("avatar/username/{username}/wallet/{walletId}")]
+        [ProducesResponseType(typeof(OASISResult<IProviderWallet>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IProviderWallet>> UpdateWalletForAvatarByUsernameAsync(string username, Guid walletId, [FromBody] UpdateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            return await WalletManager.UpdateWalletForAvatarByUsernameAsync(username, walletId, request.Name, request.Description, request.WalletProviderType, providerTypeToLoadSave);
+        }
+
+        /// <summary>
+        ///     Update a wallet for an avatar by email.
+        /// </summary>
+        /// <param name="email">The avatar email.</param>
+        /// <param name="walletId">The wallet ID to update.</param>
+        /// <param name="request">The wallet update request.</param>
+        /// <param name="providerTypeToLoadSave">The provider type to load/save from.</param>
+        /// <returns>OASIS result containing the updated wallet or error details.</returns>
+        [Authorize]
+        [HttpPut("avatar/email/{email}/wallet/{walletId}")]
+        [ProducesResponseType(typeof(OASISResult<IProviderWallet>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IProviderWallet>> UpdateWalletForAvatarByEmailAsync(string email, Guid walletId, [FromBody] UpdateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        {
+            return await WalletManager.UpdateWalletForAvatarByEmailAsync(email, walletId, request.Name, request.Description, request.WalletProviderType, providerTypeToLoadSave);
+        }
+    }
+
+    /// <summary>
+    /// Create wallet request model
+    /// </summary>
+    public class CreateWalletRequest
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public ProviderType WalletProviderType { get; set; }
+        public bool GenerateKeyPair { get; set; } = true;
+        public bool IsDefaultWallet { get; set; } = false;
+    }
+
+    /// <summary>
+    /// Update wallet request model
+    /// </summary>
+    public class UpdateWalletRequest
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public ProviderType WalletProviderType { get; set; }
     }
 }

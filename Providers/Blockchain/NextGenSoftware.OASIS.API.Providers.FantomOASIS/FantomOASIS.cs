@@ -20,8 +20,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Text.Json.Serialization;
@@ -512,9 +512,14 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         #region IOASISNFTProvider Implementation
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transaction)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transaction)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            return SendNFTAsync(transaction).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transaction)
+        {
+            var response = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!_isActivated)
@@ -532,25 +537,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             return response;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transaction)
-        {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "SendNFTAsync is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SendNFTAsync: {ex.Message}");
-            }
-            return response;
-        }
 
         public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transaction)
         {
@@ -2052,7 +2038,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 ToWalletAddress = bridgePoolAddress,
                 TokenAddress = request.NFTTokenAddress,
                 TokenId = request.Web3NFTId.ToString(),
-                Amount = 1
+                Amount = 1,
+                FromWalletPrivateKey = string.Empty
             };
 
             var sendResult = await SendNFTAsync(sendRequest);

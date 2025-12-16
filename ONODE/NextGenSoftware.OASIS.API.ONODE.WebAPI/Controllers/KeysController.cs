@@ -1047,6 +1047,150 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        ///     Link's a given Avatar to a Provider's Wallet Address by avatar ID.
+        /// </summary>
+        /// <param name="linkProviderWalletAddressToAvatarParams">The params include WalletId, AvatarId, ProviderType &amp; WalletAddress</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("link_provider_wallet_address_to_avatar_by_id")]
+        public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatarById(LinkProviderKeyToAvatarParams linkProviderWalletAddressToAvatarParams)
+        {
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            Guid avatarID;
+
+            (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(linkProviderWalletAddressToAvatarParams);
+
+            if (isValid)
+                return KeyManager.LinkProviderWalletAddressToAvatarById(linkProviderWalletAddressToAvatarParams.WalletId, avatarID, providerTypeToLinkTo, linkProviderWalletAddressToAvatarParams.WalletAddress, ProviderType.Default);
+            else
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
+        }
+
+        /// <summary>
+        ///     Link's a given Avatar to a Provider's Wallet Address by username.
+        /// </summary>
+        /// <param name="linkProviderWalletAddressToAvatarParams">The params include WalletId, AvatarUsername, ProviderType &amp; WalletAddress</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("link_provider_wallet_address_to_avatar_by_username")]
+        public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatarByUsername(LinkProviderKeyToAvatarParams linkProviderWalletAddressToAvatarParams)
+        {
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            Guid avatarID;
+
+            (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(linkProviderWalletAddressToAvatarParams);
+
+            if (isValid)
+                return KeyManager.LinkProviderWalletAddressToAvatarByUsername(linkProviderWalletAddressToAvatarParams.WalletId, linkProviderWalletAddressToAvatarParams.AvatarUsername, providerTypeToLinkTo, linkProviderWalletAddressToAvatarParams.WalletAddress, ProviderType.Default);
+            else
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
+        }
+
+        /// <summary>
+        ///     Link's a given Avatar to a Provider's Wallet Address by email.
+        /// </summary>
+        /// <param name="linkProviderWalletAddressToAvatarParams">The params include WalletId, AvatarEmail, ProviderType &amp; WalletAddress</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("link_provider_wallet_address_to_avatar_by_email")]
+        public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatarByEmail(LinkProviderKeyToAvatarParams linkProviderWalletAddressToAvatarParams)
+        {
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            Guid avatarID;
+
+            (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(linkProviderWalletAddressToAvatarParams);
+
+            if (isValid)
+                return KeyManager.LinkProviderWalletAddressToAvatarByEmail(linkProviderWalletAddressToAvatarParams.WalletId, linkProviderWalletAddressToAvatarParams.AvatarEmail, providerTypeToLinkTo, linkProviderWalletAddressToAvatarParams.WalletAddress, ProviderType.Default);
+            else
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
+        }
+
+        /// <summary>
+        ///     Generate's a new unique private/public keypair with wallet address &amp; then links to the given avatar for the given provider type by avatar ID.
+        /// </summary>
+        /// <param name="generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("generate_keypair_with_wallet_address_and_link_provider_keys_to_avatar_by_id")]
+        public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(LinkProviderKeyToAvatarParams generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams)
+        {
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            Guid avatarID;
+
+            (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams);
+
+            if (isValid)
+                return KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo, generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.ShowPrivateKey, generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.ShowSecretRecoveryWords);
+            else
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
+        }
+
+        /// <summary>
+        ///     Generate's a new unique private/public keypair with wallet address &amp; then links to the given avatar for the given provider type by username.
+        /// </summary>
+        /// <param name="generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("generate_keypair_with_wallet_address_and_link_provider_keys_to_avatar_by_username")]
+        public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByUsername(LinkProviderKeyToAvatarParams generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams)
+        {
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            Guid avatarID;
+
+            (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams);
+
+            if (isValid)
+                return KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByUsername(generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.AvatarUsername, providerTypeToLinkTo, generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.ShowPrivateKey, generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.ShowSecretRecoveryWords);
+            else
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
+        }
+
+        /// <summary>
+        ///     Generate's a new unique private/public keypair with wallet address &amp; then links to the given avatar for the given provider type by email.
+        /// </summary>
+        /// <param name="generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("generate_keypair_with_wallet_address_and_link_provider_keys_to_avatar_by_email")]
+        public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByEmail(LinkProviderKeyToAvatarParams generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams)
+        {
+            bool isValid;
+            string errorMessage = "";
+            ProviderType providerTypeToLinkTo;
+            Guid avatarID;
+
+            (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams);
+
+            if (isValid)
+                return KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByEmail(generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.AvatarEmail, providerTypeToLinkTo, generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.ShowPrivateKey, generateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarParams.ShowSecretRecoveryWords);
+            else
+                return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
+        }
+
+        /// <summary>
+        ///     Generate's a new unique private/public keypair with wallet address for a given provider type.
+        /// </summary>
+        /// <param name="providerType">The provider type to generate keys for.</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("generate_keypair_with_wallet_address_for_provider/{providerType}")]
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPairWithWalletAddressForProvider(ProviderType providerType)
+        {
+            return KeyManager.GenerateKeyPairWithWalletAddress(providerType);
+        }
+
         private (bool, ProviderType, Guid, string) ValidateParams(ProviderKeyForAvatarParams linkProviderKeyToAvatarParams)
         {
             object providerTypeToLinkTo = null;

@@ -135,30 +135,61 @@ POST   /api/data/save-holon-with-options               # Save holon with options
 
 ### **Karma Controller**
 ```http
-GET    /api/karma/load-karma-for-avatar/{avatarId}  # Load karma for avatar
-POST   /api/karma/add-karma-to-avatar                 # Add karma to avatar
-POST   /api/karma/remove-karma-from-avatar            # Remove karma from avatar
-GET    /api/karma/get-karma-balance/{avatarId}        # Get karma balance
-GET    /api/karma/get-karma-history/{avatarId}        # Get karma history
-POST   /api/karma/transfer-karma                      # Transfer karma between avatars
-GET    /api/karma/get-karma-leaderboard               # Get karma leaderboard
+GET    /api/karma/get-positive-karma-weighting/{karmaType}                      # Get positive karma weighting
+GET    /api/karma/get-positive-karma-weighting/{karmaType}/{providerType}/{setGlobally}
+GET    /api/karma/get-negative-karma-weighting/{karmaType}                      # Get negative karma weighting
+GET    /api/karma/get-negative-karma-weighting/{karmaType}/{providerType}/{setGlobally}
+GET    /api/karma/get-karma-for-avatar/{avatarId}                               # Get total karma for avatar
+GET    /api/karma/get-karma-for-avatar/{avatarId}/{providerType}/{setGlobally}
+GET    /api/karma/get-karma-akashic-records-for-avatar/{avatarId}              # Get karma Akashic records
+POST   /api/karma/add-karma-to-avatar/{avatarId}                               # Add karma to avatar
+POST   /api/karma/add-karma-to-avatar/{avatarId}/{providerType}/{setGlobally}
+POST   /api/karma/remove-karma-from-avatar/{avatarId}                          # Remove karma from avatar
+POST   /api/karma/remove-karma-from-avatar/{avatarId}/{providerType}/{setGlobally}
+GET    /api/karma/get-karma-stats/{avatarId}                                   # Get karma statistics
+GET    /api/karma/get-karma-stats/{avatarId}/{providerType}/{setGlobally}
+GET    /api/karma/get-karma-history/{avatarId}                                 # Get karma history
+GET    /api/karma/get-karma-history/{avatarId}/{providerType}/{setGlobally}
 ```
 
 ### **NFT Controller**
 ```http
-GET    /api/nft/load-nft-by-id/{id}                                    # Get NFT by ID
-GET    /api/nft/load-nft-by-hash/{hash}                               # Get NFT by hash
-GET    /api/nft/load-all-nfts-for_avatar/{avatarId}                   # Get all NFTs for avatar
-GET    /api/nft/load-all-nfts-for-mint-wallet-address/{mintWalletAddress} # Get NFTs for mint address
-GET    /api/nft/load-all-geo-nfts-for-avatar/{avatarId}              # Get all GeoNFTs for avatar
-GET    /api/nft/load-all-geo-nfts-for-mint-wallet-address/{mintWalletAddress} # Get GeoNFTs for mint address
-GET    /api/nft/load-all-nfts                                         # Get all NFTs
-GET    /api/nft/load-all-geo-nfts                                     # Get all GeoNFTs
-POST   /api/nft/send-nft                                              # Send NFT
-POST   /api/nft/mint-nft                                              # Mint NFT
-POST   /api/nft/place-geo-nft                                         # Place GeoNFT
-POST   /api/nft/mint-and-place-geo-nft                                # Mint and place GeoNFT
-GET    /api/nft/get-nft-provider-from-provider-type/{providerType}    # Get NFT provider
+GET    /api/nft/load-nft-by-id/{id}                                             # Load Web4 NFT by ID
+GET    /api/nft/load-nft-by-id/{id}/{providerType}/{setGlobally}
+GET    /api/nft/load-nft-by-hash/{hash}                                        # Load Web4 NFT by hash
+GET    /api/nft/load-nft-by-hash/{hash}/{providerType}/{setGlobally}
+GET    /api/nft/load-all-nfts-for_avatar/{avatarId}                            # All Web4 NFTs for avatar
+GET    /api/nft/load-all-nfts-for_avatar/{avatarId}/{providerType}/{setGlobally}
+GET    /api/nft/load-all-nfts-for-mint-wallet-address/{mintWalletAddress}      # Web4 NFTs by mint address
+GET    /api/nft/load-all-nfts-for-mint-wallet-address/{mintWalletAddress}/{providerType}/{setGlobally}
+GET    /api/nft/load-all-geo-nfts-for-avatar/{avatarId}                        # All GeoNFTs for avatar
+GET    /api/nft/load-all-geo-nfts-for-avatar/{avatarId}/{providerType}/{setGlobally}
+GET    /api/nft/load-all-geo-nfts-for-mint-wallet-address/{mintWalletAddress}  # GeoNFTs by mint address
+GET    /api/nft/load-all-geo-nfts-for-mint-wallet-address/{mintWalletAddress}/{providerType}/{setGlobally}
+GET    /api/nft/load-all-nfts                                                  # All Web4 NFTs (admin)
+GET    /api/nft/load-all-nfts/{providerType}/{setGlobally}
+GET    /api/nft/load-all-geo-nfts                                              # All GeoNFTs (admin)
+GET    /api/nft/load-all-geo-nfts/{providerType}/{setGlobally}
+POST   /api/nft/send-nft                                                       # Send NFT
+POST   /api/nft/mint-nft                                                       # Mint Web4 NFT
+POST   /api/nft/place-geo-nft                                                  # Place GeoNFT
+POST   /api/nft/mint-and-place-geo-nft                                         # Mint and place GeoNFT
+POST   /api/nft/remint-nft                                                     # Remint NFT
+POST   /api/nft/import-web3-nft                                                # Import Web3 NFT
+POST   /api/nft/import-web4-nft-from-file/{importedByAvatarId}/{fullPath}      # Import Web4 NFT from file
+POST   /api/nft/import-web4-nft/{importedByAvatarId}                           # Import Web4 NFT object
+POST   /api/nft/export-web4-nft-to-file/{oasisNFTId}/{fullPath}                # Export Web4 NFT to file
+POST   /api/nft/export-web4-nft                                                # Export Web4 NFT object
+GET    /api/nft/load-web3-nft-by-id/{id}                                       # Load Web3 NFT by ID
+GET    /api/nft/load-web3-nft-by-hash/{onChainNftHash}                         # Load Web3 NFT by hash
+GET    /api/nft/load-all-web3-nfts-for-avatar/{avatarId}                       # Web3 NFTs for avatar
+GET    /api/nft/load-all-web3-nfts-for-mint-address/{mintWalletAddress}        # Web3 NFTs for mint address
+GET    /api/nft/load-all-web3-nfts                                             # All Web3 NFTs (admin)
+POST   /api/nft/create-web4-nft-collection                                     # Create NFT collection
+GET    /api/nft/search-web4-nfts/{searchTerm}/{avatarId}                       # Search Web4 NFTs
+GET    /api/nft/search-web4-geo-nfts/{searchTerm}/{avatarId}                   # Search GeoNFTs
+GET    /api/nft/search-web4-nft-collections/{searchTerm}/{avatarId}            # Search NFT collections
+GET    /api/nft/get-nft-provider-from-provider-type/{providerType}             # Get NFT provider
 ```
 
 ### **Search Controller**
@@ -173,25 +204,87 @@ POST   /api/search/search-files                       # Search files
 
 ### **Wallet Controller**
 ```http
-POST   /api/wallet/send-token                         # Send token
-GET    /api/wallet/balance                            # Get wallet balance
-GET    /api/wallet/transactions                       # Get wallet transactions
-GET    /api/wallet/addresses                          # Get wallet addresses
-POST   /api/wallet/create-wallet                      # Create wallet
-POST   /api/wallet/import-wallet                      # Import wallet
-POST   /api/wallet/export-wallet                      # Export wallet
+POST   /api/wallet/send_token                                         # Send Web4 token
+GET    /api/wallet/avatar/{id}/wallets/{showOnlyDefault}/{decryptPrivateKeys}              # Provider wallets by ID
+GET    /api/wallet/avatar/username/{username}/wallets/{showOnlyDefault}/{decryptPrivateKeys} # Provider wallets by username
+GET    /api/wallet/avatar/email/{email}/wallets                       # Provider wallets by email
+GET    /api/wallet/avatar/email/{email}/wallets/{showOnlyDefault}/{decryptPrivateKeys}/{providerType}
+POST   /api/wallet/avatar/{id}/wallets                                # Save provider wallets by ID
+POST   /api/wallet/avatar/username/{username}/wallets                 # Save provider wallets by username
+POST   /api/wallet/avatar/email/{email}/wallets                       # Save provider wallets by email
+GET    /api/wallet/avatar/{id}/default-wallet                         # Get default wallet by ID
+GET    /api/wallet/avatar/username/{username}/default-wallet/{showOnlyDefault}/{decryptPrivateKeys} # Get default wallet by username
+GET    /api/wallet/avatar/email/{email}/default-wallet                # Get default wallet by email
+POST   /api/wallet/avatar/{id}/default-wallet/{walletId}              # Set default wallet by ID
+POST   /api/wallet/avatar/username/{username}/default-wallet/{walletId} # Set default wallet by username
+POST   /api/wallet/avatar/email/{email}/default-wallet/{walletId}     # Set default wallet by email
+POST   /api/wallet/avatar/{avatarId}/import/private-key               # Import wallet using private key (ID)
+POST   /api/wallet/avatar/username/{username}/import/private-key      # Import wallet using private key (username)
+POST   /api/wallet/avatar/email/{email}/import/private-key            # Import wallet using private key (email)
+POST   /api/wallet/avatar/{avatarId}/import/public-key                # Import wallet using public key (ID)
+POST   /api/wallet/avatar/username/{username}/import/public-key       # Import wallet using public key (username)
+POST   /api/wallet/avatar/email/{email}/import/public-key             # Import wallet using public key (email)
+GET    /api/wallet/find-wallet                                        # Get wallet for public key
+GET    /api/wallet/avatar/{avatarId}/portfolio/value                  # Portfolio value (demo)
+GET    /api/wallet/avatar/{avatarId}/wallets/chain/{chain}            # Wallets by chain (demo)
+POST   /api/wallet/transfer                                           # Transfer between wallets (demo)
+GET    /api/wallet/avatar/{avatarId}/wallet/{walletId}/analytics      # Wallet analytics (demo)
+GET    /api/wallet/supported-chains                                   # Supported chains (demo)
+GET    /api/wallet/avatar/{avatarId}/wallet/{walletId}/tokens         # Wallet tokens (demo)
+POST   /api/wallet/avatar/{avatarId}/create-wallet                    # Create wallet for avatar by ID
+POST   /api/wallet/avatar/username/{username}/create-wallet           # Create wallet for avatar by username
+POST   /api/wallet/avatar/email/{email}/create-wallet                 # Create wallet for avatar by email
+PUT    /api/wallet/avatar/{avatarId}/wallet/{walletId}                # Update wallet for avatar by ID
+PUT    /api/wallet/avatar/username/{username}/wallet/{walletId}       # Update wallet for avatar by username
+PUT    /api/wallet/avatar/email/{email}/wallet/{walletId}             # Update wallet for avatar by email
 ```
 
 ### **Keys Controller**
 ```http
-POST   /api/keys/link-telos-account                    # Link Telos account
-POST   /api/keys/link-eosio-account                   # Link EOSIO account
-POST   /api/keys/link-holochain-agent                 # Link Holochain agent
-GET    /api/keys/provider-key/{avatarUsername}/{providerType} # Get provider key
-POST   /api/keys/generate-key-pair                    # Generate key pair
-POST   /api/keys/import-key                           # Import key
-POST   /api/keys/export-key                           # Export key
-DELETE /api/keys/delete-key/{keyId}                   # Delete key
+POST   /api/keys/clear_cache                                         # Clear key cache
+POST   /api/keys/link_provider_public_key_to_avatar_by_id            # Link provider public key by ID
+POST   /api/keys/link_provider_public_key_to_avatar_by_username      # Link provider public key by username
+POST   /api/keys/link_provider_public_key_to_avatar_by_email         # Link provider public key by email
+POST   /api/keys/link_provider_private_key_to_avatar_by_id           # Link provider private key by ID
+POST   /api/keys/link_provider_private_key_to_avatar_by_username     # Link provider private key by username
+POST   /api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_id        # Generate keypair & link (ID)
+POST   /api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_username  # Generate keypair & link (username)
+POST   /api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_email     # Generate keypair & link (email)
+POST   /api/keys/generate_keypair_with_wallet_address_and_link_provider_keys_to_avatar_by_id       # Keypair+wallet & link (ID)
+POST   /api/keys/generate_keypair_with_wallet_address_and_link_provider_keys_to_avatar_by_username # Keypair+wallet & link (username)
+POST   /api/keys/generate_keypair_with_wallet_address_and_link_provider_keys_to_avatar_by_email    # Keypair+wallet & link (email)
+POST   /api/keys/generate_keypair_for_provider/{providerType}         # Generate keypair for provider
+POST   /api/keys/generate_keypair/{keyPrefix}                        # Generate keypair with prefix
+POST   /api/keys/generate_keypair_with_wallet_address_for_provider/{providerType} # Keypair+wallet for provider
+GET    /api/keys/get_provider_unique_storage_key_for_avatar_by_id    # Get unique storage key (ID)
+GET    /api/keys/get_provider_unique_storage_key_for_avatar_by_username # Get unique storage key (username)
+GET    /api/keys/get_provider_unique_storage_key_for_avatar_by_email    # Get unique storage key (email)
+GET    /api/keys/get_provider_private_key_for_avatar_by_id           # Get private keys (ID)
+GET    /api/keys/get_provider_private_key_for_avatar_by_username     # Get private keys (username)
+GET    /api/keys/get_provider_public_keys_for_avatar_by_id           # Get public keys (ID)
+GET    /api/keys/get_provider_public_keys_for_avatar_by_username     # Get public keys (username)
+GET    /api/keys/get_provider_public_keys_for_avatar_by_email        # Get public keys (email)
+GET    /api/keys/get_all_provider_public_keys_for_avatar_by_id/{id}  # All public keys (ID)
+GET    /api/keys/get_all_provider_public_keys_for_avatar_by_username/{username} # All public keys (username)
+GET    /api/keys/get_all_provider_public_keys_for_avatar_by_email/{email}      # All public keys (email)
+GET    /api/keys/get_all_provider_private_keys_for_avatar_by_id/{id} # All private keys (ID)
+GET    /api/keys/get_all_provider_private_keys_for_avatar_by_username/{username} # All private keys (username)
+GET    /api/keys/get_all_provider_unique_storage_keys_for_avatar_by_id/{id}    # All storage keys (ID)
+GET    /api/keys/get_all_provider_unique_storage_keys_for_avatar_by_username/{username} # All storage keys (username)
+GET    /api/keys/get_all_provider_unique_storage_keys_for_avatar_by_email/{email}      # All storage keys (email)
+GET    /api/keys/get_avatar_id_for_provider_unique_storage_key/{providerKey}   # Avatar by unique storage key
+GET    /api/keys/get_avatar_username_for_provider_unique_storage_key/{providerKey}
+GET    /api/keys/get_avatar_email_for_provider_unique_storage_key/{providerKey}
+GET    /api/keys/get_avatar_for_provider_unique_storage_key/{providerKey}
+GET    /api/keys/get_avatar_id_for_provider_public_key/{providerKey}           # Avatar by public key
+GET    /api/keys/get_avatar_username_for_provider_public_key/{providerKey}
+GET    /api/keys/get_avatar_email_for_provider_public_key/{providerKey}
+GET    /api/keys/get_avatar_for_provider_public_key/{providerKey}
+POST   /api/keys/get_private_wifi/{source}                                     # Get private WIF
+POST   /api/keys/get_public_wifi                                              # Get public WIF
+POST   /api/keys/decode_private_wif/{data}                                     # Decode private WIF
+POST   /api/keys/base58_check_decode/{data}                                    # Base58 check decode
+POST   /api/keys/encode_signature/{source}                                     # Encode signature
 ```
 
 ### **OLand Controller**
@@ -208,13 +301,12 @@ GET    /api/oland/avatar-oland/{avatarId}             # Get OLand for avatar
 
 ### **Files Controller**
 ```http
-GET    /api/files/avatar-files                        # Get files for avatar
-POST   /api/files/upload                              # Upload file
-GET    /api/files/download/{fileId}                   # Download file
-DELETE /api/files/{fileId}                            # Delete file
-GET    /api/files/file-info/{fileId}                   # Get file info
-POST   /api/files/share-file                          # Share file
-GET    /api/files/shared-files                        # Get shared files
+GET    /api/files/get-all-files-stored-for-current-logged-in-avatar    # Files for current avatar
+POST   /api/files/upload-file                                          # Upload file
+GET    /api/files/download-file/{fileId}                               # Download file
+DELETE /api/files/delete-file/{fileId}                                 # Delete file
+GET    /api/files/file-metadata/{fileId}                               # Get file metadata
+PUT    /api/files/update-file-metadata/{fileId}                        # Update file metadata
 ```
 
 ### **Chat Controller**

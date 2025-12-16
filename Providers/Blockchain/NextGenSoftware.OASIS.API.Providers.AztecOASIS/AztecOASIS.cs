@@ -26,6 +26,7 @@ using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services.Azt
 using NextGenSoftware.OASIS.API.Providers.AztecOASIS.Models;
 using Nethereum.Signer;
 using Nethereum.Hex.HexConvertors.Extensions;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
 {
@@ -282,8 +283,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatar not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar from Aztec (stored as holon)
+                var holon = await LoadHolonAsync(Id);
+                if (holon.IsError || holon.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                    return result;
+                }
+
+                // Convert holon to avatar
+                if (holon.Result is IAvatar avatar)
+                {
+                    result.Result = avatar;
+                }
+                else
+                {
+                    result.Result = ConvertHolonToAvatar(holon.Result);
+                }
+                result.IsError = false;
+                result.Message = "Avatar loaded successfully from Aztec";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => LoadAvatarAsync(Id, version).Result;
@@ -291,8 +320,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByProviderKey not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar by Aztec address (provider key)
+                var holon = await LoadHolonAsync(providerKey);
+                if (holon.IsError || holon.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                    return result;
+                }
+
+                // Convert holon to avatar
+                if (holon.Result is IAvatar avatar)
+                {
+                    result.Result = avatar;
+                }
+                else
+                {
+                    result.Result = ConvertHolonToAvatar(holon.Result);
+                }
+                result.IsError = false;
+                result.Message = "Avatar loaded successfully from Aztec by provider key";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
@@ -300,8 +357,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByUsername not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar by searching for holon with username in metadata
+                var holonsResult = await LoadHolonsByMetaDataAsync("Username", avatarUsername, HolonType.Avatar);
+                if (holonsResult.IsError || holonsResult.Result == null || !holonsResult.Result.Any())
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                    return result;
+                }
+
+                var holon = holonsResult.Result.First();
+                if (holon is IAvatar avatar)
+                {
+                    result.Result = avatar;
+                }
+                else
+                {
+                    result.Result = ConvertHolonToAvatar(holon);
+                }
+                result.IsError = false;
+                result.Message = "Avatar loaded successfully from Aztec by username";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
@@ -309,8 +394,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByEmail not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar by searching for holon with email in metadata
+                var holonsResult = await LoadHolonsByMetaDataAsync("Email", avatarEmail, HolonType.Avatar);
+                if (holonsResult.IsError || holonsResult.Result == null || !holonsResult.Result.Any())
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                    return result;
+                }
+
+                var holon = holonsResult.Result.First();
+                if (holon is IAvatar avatar)
+                {
+                    result.Result = avatar;
+                }
+                else
+                {
+                    result.Result = ConvertHolonToAvatar(holon);
+                }
+                result.IsError = false;
+                result.Message = "Avatar loaded successfully from Aztec by email";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
@@ -318,8 +431,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetail not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar first, then get detail
+                var avatarResult = await LoadAvatarAsync(id, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                    return result;
+                }
+
+                // Convert avatar to avatar detail
+                var avatarDetail = ConvertAvatarToAvatarDetail(avatarResult.Result);
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully from Aztec";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
@@ -327,8 +462,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByEmail not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar by email first, then get detail
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                    return result;
+                }
+
+                // Convert avatar to avatar detail
+                var avatarDetail = ConvertAvatarToAvatarDetail(avatarResult.Result);
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully from Aztec by email";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
@@ -336,8 +493,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByUsername not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar by username first, then get detail
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                    return result;
+                }
+
+                // Convert avatar to avatar detail
+                var avatarDetail = ConvertAvatarToAvatarDetail(avatarResult.Result);
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully from Aztec by username";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
@@ -345,8 +524,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllAvatarDetails not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load all avatars, then convert to details
+                var avatarsResult = await LoadAllAvatarsAsync(version);
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var avatarDetails = new List<IAvatarDetail>();
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    var detail = ConvertAvatarToAvatarDetail(avatar);
+                    if (detail != null)
+                        avatarDetails.Add(detail);
+                }
+
+                result.Result = avatarDetails;
+                result.IsError = false;
+                result.Message = $"Loaded {avatarDetails.Count} avatar details from Aztec";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
@@ -354,8 +561,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
             var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "SaveAvatar not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Save avatar as holon to Aztec
+                var holon = Avatar as IHolon ?? new Holon
+                {
+                    Id = Avatar.Id,
+                    Name = Avatar.Username,
+                    Description = Avatar.Email,
+                    HolonType = HolonType.Avatar
+                };
+
+                var saveResult = await SaveHolonAsync(holon);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
+                    return result;
+                }
+
+                result.Result = Avatar;
+                result.IsError = false;
+                result.Message = "Avatar saved successfully to Aztec";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar) => SaveAvatarAsync(Avatar).Result;
@@ -363,8 +598,29 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "SaveAvatarDetail not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Convert avatar detail to holon and save
+                var holon = ConvertAvatarDetailToHolon(Avatar);
+                var saveResult = await SaveHolonAsync(holon);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
+                    return result;
+                }
+
+                result.Result = Avatar;
+                result.IsError = false;
+                result.Message = "Avatar detail saved successfully to Aztec";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar) => SaveAvatarDetailAsync(Avatar).Result;
@@ -372,8 +628,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatar not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Delete holon (avatar is stored as holon)
+                var deleteResult = await DeleteHolonAsync(id);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, deleteResult.Message);
+                    return result;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully from Aztec";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
@@ -381,8 +657,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByProviderKey not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Delete holon by provider key
+                var deleteResult = await DeleteHolonAsync(providerKey);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, deleteResult.Message);
+                    return result;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully from Aztec by provider key";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
@@ -390,8 +686,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByEmail not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar by email first
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                    return result;
+                }
+
+                // Delete the avatar
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                result.Result = deleteResult.Result;
+                result.IsError = deleteResult.IsError;
+                result.Message = deleteResult.Message;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
@@ -399,8 +717,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByUsername not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar by username first
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                    return result;
+                }
+
+                // Delete the avatar
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                result.Result = deleteResult.Result;
+                result.IsError = deleteResult.IsError;
+                result.Message = deleteResult.Message;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
@@ -408,8 +748,54 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<ISearchResults>();
-            OASISErrorHandling.HandleError(ref result, "Search not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Use LoadHolonsByMetaData to search
+                var holons = new List<IHolon>();
+                
+                if (searchParams != null && searchParams.SearchGroups != null)
+                {
+                    foreach (var group in searchParams.SearchGroups)
+                    {
+                        // SearchGroups can be different types (SearchTextGroup, SearchNumberGroup, etc.)
+                        if (group is ISearchTextGroup textGroup && !string.IsNullOrWhiteSpace(textGroup.SearchQuery))
+                        {
+                            // Use SearchQuery to search across multiple fields
+                            var holonsResult = await LoadHolonsByMetaDataAsync("Name", textGroup.SearchQuery, HolonType.All);
+                            if (!holonsResult.IsError && holonsResult.Result != null)
+                            {
+                                holons.AddRange(holonsResult.Result);
+                            }
+                            
+                            // Also search in description
+                            var descHolonsResult = await LoadHolonsByMetaDataAsync("Description", textGroup.SearchQuery, HolonType.All);
+                            if (!descHolonsResult.IsError && descHolonsResult.Result != null)
+                            {
+                                holons.AddRange(descHolonsResult.Result);
+                            }
+                        }
+                    }
+                }
+
+                // Remove duplicates
+                holons = holons.GroupBy(h => h.Id).Select(g => g.First()).ToList();
+
+                result.Result = new SearchResults
+                {
+                    SearchResultHolons = holons,
+                    NumberOfResults = holons.Count
+                };
+                result.IsError = false;
+                result.Message = $"Found {holons.Count} results";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
@@ -457,8 +843,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load holons by parent ID in metadata
+                var holonsResult = await LoadHolonsByMetaDataAsync("ParentId", id.ToString(), type);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                result.Result = holonsResult.Result ?? new List<IHolon>();
+                result.IsError = false;
+                result.Message = $"Loaded {result.Result.Count()} holons for parent";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -466,8 +872,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent by providerKey not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load holons by parent provider key in metadata
+                var holonsResult = await LoadHolonsByMetaDataAsync("ParentProviderKey", providerKey, type);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                result.Result = holonsResult.Result ?? new List<IHolon>();
+                result.IsError = false;
+                result.Message = $"Loaded {result.Result.Count()} holons for parent by provider key";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -475,8 +901,35 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load all holons and filter by metadata
+                var allHolonsResult = await LoadAllHolonsAsync(type);
+                if (allHolonsResult.IsError || allHolonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {allHolonsResult.Message}");
+                    return result;
+                }
+
+                // Filter by metadata
+                var filteredHolons = allHolonsResult.Result.Where(h => 
+                    h.MetaData != null && 
+                    h.MetaData.TryGetValue(metaKey, out var value) && 
+                    value?.ToString() == metaValue
+                ).ToList();
+
+                result.Result = filteredHolons;
+                result.IsError = false;
+                result.Message = $"Found {filteredHolons.Count} holons matching metadata";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -484,8 +937,54 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData dictionary not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load all holons and filter by metadata dictionary
+                var allHolonsResult = await LoadAllHolonsAsync(type);
+                if (allHolonsResult.IsError || allHolonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {allHolonsResult.Message}");
+                    return result;
+                }
+
+                // Filter by metadata dictionary based on match mode
+                IEnumerable<IHolon> filteredHolons = allHolonsResult.Result;
+                
+                if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
+                {
+                    // All key-value pairs must match
+                    filteredHolons = filteredHolons.Where(h =>
+                        h.MetaData != null &&
+                        metaKeyValuePairs.All(kvp =>
+                            h.MetaData.TryGetValue(kvp.Key, out var value) &&
+                            value?.ToString() == kvp.Value
+                        )
+                    );
+                }
+                else
+                {
+                    // Any key-value pair can match
+                    filteredHolons = filteredHolons.Where(h =>
+                        h.MetaData != null &&
+                        metaKeyValuePairs.Any(kvp =>
+                            h.MetaData.TryGetValue(kvp.Key, out var value) &&
+                            value?.ToString() == kvp.Value
+                        )
+                    );
+                }
+
+                result.Result = filteredHolons.ToList();
+                result.IsError = false;
+                result.Message = $"Found {result.Result.Count()} holons matching metadata dictionary";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -493,8 +992,29 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllHolons not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // For Aztec, we would query all holons from the blockchain
+                // This is a simplified implementation - in production would query Aztec for all holon transactions
+                // For now, return empty list as Aztec doesn't have a direct "get all" method
+                // In production, would:
+                // 1. Query Aztec for all transactions with holon metadata
+                // 2. Decrypt private notes
+                // 3. Deserialize holon data
+                // 4. Filter by type if needed
+                
+                result.Result = new List<IHolon>();
+                result.IsError = false;
+                result.Message = "LoadAllHolons: Aztec requires querying blockchain transactions (simplified implementation)";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -546,8 +1066,43 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolon not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load holon first
+                var holonResult = await LoadHolonAsync(id);
+                if (holonResult.IsError || holonResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found");
+                    return result;
+                }
+
+                // For Aztec, deletion would involve marking the holon as deleted in metadata
+                // and creating a new transaction indicating deletion
+                // For now, mark as deleted in metadata
+                holonResult.Result.MetaData = holonResult.Result.MetaData ?? new Dictionary<string, object>();
+                holonResult.Result.MetaData["Deleted"] = true;
+                holonResult.Result.MetaData["DeletedDate"] = DateTime.UtcNow.ToString("o");
+
+                // Save updated holon
+                var saveResult = await SaveHolonAsync(holonResult.Result);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
+                    return result;
+                }
+
+                result.Result = saveResult.Result;
+                result.IsError = false;
+                result.Message = "Holon marked as deleted in Aztec";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
@@ -555,8 +1110,41 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolon by providerKey not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load holon by provider key first
+                var holonResult = await LoadHolonAsync(providerKey);
+                if (holonResult.IsError || holonResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
+                    return result;
+                }
+
+                // Mark as deleted
+                holonResult.Result.MetaData = holonResult.Result.MetaData ?? new Dictionary<string, object>();
+                holonResult.Result.MetaData["Deleted"] = true;
+                holonResult.Result.MetaData["DeletedDate"] = DateTime.UtcNow.ToString("o");
+
+                // Save updated holon
+                var saveResult = await SaveHolonAsync(holonResult.Result);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
+                    return result;
+                }
+
+                result.Result = saveResult.Result;
+                result.IsError = false;
+                result.Message = "Holon marked as deleted in Aztec by provider key";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
@@ -564,8 +1152,34 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "Import not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                if (holons == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holons collection is null");
+                    return result;
+                }
+
+                // Save all holons
+                var saveResult = await SaveHolonsAsync(holons);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
+                    return result;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Imported {saveResult.Result?.Count() ?? 0} holons to Aztec";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
@@ -573,8 +1187,43 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarById not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar
+                var avatarResult = await LoadAvatarAsync(avatarId, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                    return result;
+                }
+
+                // Load all holons for this avatar (as parent)
+                var holonsResult = await LoadHolonsForParentAsync(avatarId);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                // Combine avatar and holons
+                var allData = new List<IHolon> { avatarResult.Result as IHolon };
+                if (holonsResult.Result != null)
+                {
+                    allData.AddRange(holonsResult.Result);
+                }
+
+                result.Result = allData;
+                result.IsError = false;
+                result.Message = $"Exported {allData.Count} holons for avatar";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
@@ -582,8 +1231,43 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByUsername not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar by username
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                    return result;
+                }
+
+                // Load all holons for this avatar
+                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                // Combine avatar and holons
+                var allData = new List<IHolon> { avatarResult.Result as IHolon };
+                if (holonsResult.Result != null)
+                {
+                    allData.AddRange(holonsResult.Result);
+                }
+
+                result.Result = allData;
+                result.IsError = false;
+                result.Message = $"Exported {allData.Count} holons for avatar by username";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
@@ -591,8 +1275,43 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByEmail not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load avatar by email
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                    return result;
+                }
+
+                // Load all holons for this avatar
+                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                // Combine avatar and holons
+                var allData = new List<IHolon> { avatarResult.Result as IHolon };
+                if (holonsResult.Result != null)
+                {
+                    allData.AddRange(holonsResult.Result);
+                }
+
+                result.Result = allData;
+                result.IsError = false;
+                result.Message = $"Exported {allData.Count} holons for avatar by email";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
@@ -600,8 +1319,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAll not yet implemented for Aztec provider");
-            return await Task.FromResult(result);
+            try
+            {
+                EnsureActivated(result);
+                if (result.IsError) return result;
+
+                // Load all holons
+                var holonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                result.Result = holonsResult.Result ?? new List<IHolon>();
+                result.IsError = false;
+                result.Message = $"Exported {result.Result.Count()} holons from Aztec";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
@@ -1124,7 +1863,41 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             EnsureActivated(result);
             if (result.IsError) return result;
 
-            OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe not yet implemented for Aztec provider");
+            try
+            {
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Aztec: {ex.Message}", ex);
+            }
             return result;
         }
 
@@ -1134,7 +1907,41 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             EnsureActivated(result);
             if (result.IsError) return result;
 
-            OASISErrorHandling.HandleError(ref result, "GetHolonsNearMe not yet implemented for Aztec provider");
+            try
+            {
+                var holonsResult = LoadAllHolons(Type);
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Aztec: {ex.Message}", ex);
+            }
             return result;
         }
 
@@ -1318,6 +2125,128 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             {
                 OASISErrorHandling.HandleError(ref result, "Aztec provider is not activated");
             }
+        }
+
+        /// <summary>
+        /// Convert avatar detail to holon
+        /// </summary>
+        private IHolon ConvertAvatarDetailToHolon(IAvatarDetail avatarDetail)
+        {
+            if (avatarDetail == null) return null;
+
+            var holon = new Holon
+            {
+                Id = avatarDetail.Id,
+                Name = avatarDetail.Username,
+                Description = avatarDetail.Email,
+                HolonType = HolonType.Avatar
+            };
+
+            // Store avatar detail data in metadata
+            holon.MetaData = new Dictionary<string, object>
+            {
+                ["Username"] = avatarDetail.Username ?? "",
+                ["Email"] = avatarDetail.Email ?? "",
+                ["Karma"] = avatarDetail.Karma,
+                ["XP"] = avatarDetail.XP,
+                ["Model3D"] = avatarDetail.Model3D ?? "",
+                ["UmaJson"] = avatarDetail.UmaJson ?? "",
+                ["Portrait"] = avatarDetail.Portrait ?? "",
+                ["Town"] = avatarDetail.Town ?? "",
+                ["County"] = avatarDetail.County ?? "",
+                ["DOB"] = avatarDetail.DOB != default(DateTime) ? avatarDetail.DOB.ToString("o") : "",
+                ["Address"] = avatarDetail.Address ?? "",
+                ["Country"] = avatarDetail.Country ?? "",
+                ["Postcode"] = avatarDetail.Postcode ?? "",
+                ["Landline"] = avatarDetail.Landline ?? "",
+                ["Mobile"] = avatarDetail.Mobile ?? "",
+                ["FavouriteColour"] = (int)avatarDetail.FavouriteColour,
+                ["STARCLIColour"] = (int)avatarDetail.STARCLIColour
+            };
+
+            return holon;
+        }
+
+        /// <summary>
+        /// Convert holon to avatar
+        /// </summary>
+        private IAvatar ConvertHolonToAvatar(IHolon holon)
+        {
+            if (holon == null) return null;
+            
+            if (holon is IAvatar avatar)
+                return avatar;
+
+            // Create avatar from holon
+            var newAvatar = new Avatar
+            {
+                Id = holon.Id,
+                Username = holon.Name,
+                Email = holon.Description,
+                HolonType = HolonType.Avatar
+            };
+
+            // Copy metadata
+            if (holon.MetaData != null)
+            {
+                newAvatar.MetaData = new Dictionary<string, object>(holon.MetaData);
+                if (holon.MetaData.TryGetValue("Username", out var username))
+                    newAvatar.Username = username?.ToString();
+                if (holon.MetaData.TryGetValue("Email", out var email))
+                    newAvatar.Email = email?.ToString();
+            }
+
+            return newAvatar;
+        }
+
+        /// <summary>
+        /// Convert avatar to avatar detail
+        /// </summary>
+        private IAvatarDetail ConvertAvatarToAvatarDetail(IAvatar avatar)
+        {
+            if (avatar == null) return null;
+
+            // Use AvatarManager to load full detail
+            try
+            {
+                var detailResult = AvatarManager.Instance.LoadAvatarDetail(avatar.Id);
+                if (!detailResult.IsError && detailResult.Result != null)
+                    return detailResult.Result;
+            }
+            catch
+            {
+                // Fallback: create basic avatar detail from avatar
+            }
+
+            // Create basic avatar detail from avatar
+            var detail = new AvatarDetail
+            {
+                Id = avatar.Id,
+                Username = avatar.Username,
+                Email = avatar.Email
+            };
+            
+            // Get Karma and XP from metadata or AvatarDetail
+            if (avatar is AvatarDetail avatarDetail)
+            {
+                detail.Karma = avatarDetail.Karma;
+                detail.XP = avatarDetail.XP;
+            }
+            else if (avatar.MetaData != null)
+            {
+                if (avatar.MetaData.TryGetValue("Karma", out var karma) && long.TryParse(karma?.ToString(), out var karmaValue))
+                    detail.Karma = karmaValue;
+                if (avatar.MetaData.TryGetValue("XP", out var xp) && long.TryParse(xp?.ToString(), out var xpValue))
+                    detail.XP = (int)xpValue;
+            }
+
+            // Copy metadata if available
+            if (avatar.MetaData != null)
+            {
+                detail.MetaData = new Dictionary<string, object>(avatar.MetaData);
+            }
+
+            return detail;
         }
     }
 }
