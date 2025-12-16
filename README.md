@@ -95,7 +95,7 @@ OASIS supports 50+ providers across multiple categories, providing universal com
 - **ARC Membrane** - Advanced membrane technology
 
 
-## 🔑 Core WEB4 APIs (from existing oasisweb4.com)
+## 🔑 Core WEB4 APIs
 
 ### **Authentication & Identity**
 - **AVATAR**: Complete user management system with 80+ endpoints
@@ -124,6 +124,7 @@ OASIS supports 50+ providers across multiple categories, providing universal com
   - Portfolio management and analytics
   - Transfer operations and transaction history
   - Import/export functionality
+  - Full cross chain support
 
 ### **Security & Keys**
 - **KEYS**: Cryptographic key management with 40+ endpoints
@@ -146,9 +147,12 @@ OASIS supports 50+ providers across multiple categories, providing universal com
 - **FILES**: File management with 6+ endpoints
   - Upload, download, and metadata management
   - File sharing and organization
+    
 - **NFT**: NFT operations with 20+ endpoints
   - Cross-chain NFT management
   - Creation, trading, and analytics
+  - Collections
+Web4 NFTs wrap multiple Web3 NFTs sharing the same metadata across different chains.
 
 ### **Communication**
 - **CHAT**: Real-time communication with 3+ endpoints
@@ -236,6 +240,8 @@ OASIS supports 50+ providers across multiple categories, providing universal com
 - **INVENTORYITEMS**: Item management with 25+ endpoints
   - Avatar inventory systems
   - Item tracking and analytics
+  - Collections
+  - Web4 NFTs wrap multiple Web3 NFTs sharing the same metadata across different chains.
 
 ### **Development Tools**
 - **TEMPLATES**: Template system with 25+ endpoints
@@ -273,7 +279,8 @@ OASIS supports 50+ providers across multiple categories, providing universal com
 - **GEONFTS**: Location-based NFTs with 25+ endpoints
   - Geo-tagged NFT creation
   - Location-based trading
-  - Avatar-specific collections
+  - Collections
+  - Web4 GeoNFTs wrap multiple Web3 NFTs sharing the same metadata across different chains.
 
 ### **Social Features**
 - **PARKS**: Social spaces with 25+ endpoints
