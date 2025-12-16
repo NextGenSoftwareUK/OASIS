@@ -95,7 +95,7 @@ OASIS supports 50+ providers across multiple categories, providing universal com
 - **ARC Membrane** - Advanced membrane technology
 
 
-## 🔑 Core WEB4 APIs (from existing oasisweb4.com)
+## 🔑 Core WEB4 APIs
 
 ### **Authentication & Identity**
 - **AVATAR**: Complete user management system with 80+ endpoints
