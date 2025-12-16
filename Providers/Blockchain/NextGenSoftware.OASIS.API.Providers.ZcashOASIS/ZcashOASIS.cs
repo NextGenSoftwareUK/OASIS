@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services.Zcash;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Models;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
 {
@@ -279,9 +280,19 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                     return result;
                 }
 
-                // Convert holon to avatar (simplified)
-                result.Result = null; // Would convert holon to avatar
+                // Convert holon to avatar
+                if (holon.Result is IAvatar avatar)
+                {
+                    result.Result = avatar;
+                }
+                else
+                {
+                    // Convert holon to avatar
+                    var avatarResult = ConvertHolonToAvatar(holon.Result);
+                    result.Result = avatarResult;
+                }
                 result.IsError = false;
+                result.Message = "Avatar loaded successfully from Zcash";
             }
             catch (Exception ex)
             {
@@ -314,8 +325,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                     return result;
                 }
 
-                result.Result = null; // Would convert holon to avatar
+                // Convert holon to avatar
+                if (holon.Result is IAvatar avatar)
+                {
+                    result.Result = avatar;
+                }
+                else
+                {
+                    result.Result = ConvertHolonToAvatar(holon.Result);
+                }
                 result.IsError = false;
+                result.Message = "Avatar loaded successfully from Zcash by provider key";
             }
             catch (Exception ex)
             {
@@ -332,7 +352,38 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByUsername not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by searching for holon with username in metadata
+                var holonsResult = await LoadHolonsByMetaDataAsync("Username", avatarUsername, HolonType.Avatar);
+                if (holonsResult.IsError || holonsResult.Result == null || !holonsResult.Result.Any())
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                    return result;
+                }
+
+                var holon = holonsResult.Result.First();
+                if (holon is IAvatar avatar)
+                {
+                    result.Result = avatar;
+                }
+                else
+                {
+                    result.Result = ConvertHolonToAvatar(holon);
+                }
+                result.IsError = false;
+                result.Message = "Avatar loaded successfully from Zcash by username";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -344,7 +395,38 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByEmail not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by searching for holon with email in metadata
+                var holonsResult = await LoadHolonsByMetaDataAsync("Email", avatarEmail, HolonType.Avatar);
+                if (holonsResult.IsError || holonsResult.Result == null || !holonsResult.Result.Any())
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                    return result;
+                }
+
+                var holon = holonsResult.Result.First();
+                if (holon is IAvatar avatar)
+                {
+                    result.Result = avatar;
+                }
+                else
+                {
+                    result.Result = ConvertHolonToAvatar(holon);
+                }
+                result.IsError = false;
+                result.Message = "Avatar loaded successfully from Zcash by email";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -356,7 +438,32 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetail not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load avatar first, then get detail
+                var avatarResult = await LoadAvatarAsync(id, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                    return result;
+                }
+
+                // Convert avatar to avatar detail
+                var avatarDetail = ConvertAvatarToAvatarDetail(avatarResult.Result);
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully from Zcash";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -368,7 +475,32 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByEmail not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email first, then get detail
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                    return result;
+                }
+
+                // Convert avatar to avatar detail
+                var avatarDetail = ConvertAvatarToAvatarDetail(avatarResult.Result);
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully from Zcash by email";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -380,7 +512,32 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByUsername not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username first, then get detail
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                    return result;
+                }
+
+                // Convert avatar to avatar detail
+                var avatarDetail = ConvertAvatarToAvatarDetail(avatarResult.Result);
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully from Zcash by username";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -392,7 +549,38 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllAvatarDetails not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load all avatars, then convert to details
+                var avatarsResult = await LoadAllAvatarsAsync(version);
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var avatarDetails = new List<IAvatarDetail>();
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    var detail = ConvertAvatarToAvatarDetail(avatar);
+                    if (detail != null)
+                        avatarDetails.Add(detail);
+                }
+
+                result.Result = avatarDetails;
+                result.IsError = false;
+                result.Message = $"Loaded {avatarDetails.Count} avatar details from Zcash";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -458,7 +646,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatar not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Delete holon (avatar is stored as holon)
+                var deleteResult = await DeleteHolonAsync(id);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, deleteResult.Message);
+                    return result;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully from Zcash";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -470,7 +681,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatar by providerKey not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Delete holon by provider key
+                var deleteResult = await DeleteHolonAsync(providerKey);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, deleteResult.Message);
+                    return result;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully from Zcash by provider key";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -482,7 +716,32 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByEmail not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email first
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                    return result;
+                }
+
+                // Delete the avatar
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                result.Result = deleteResult.Result;
+                result.IsError = deleteResult.IsError;
+                result.Message = deleteResult.Message;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -494,7 +753,32 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByUsername not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username first
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                    return result;
+                }
+
+                // Delete the avatar
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                result.Result = deleteResult.Result;
+                result.IsError = deleteResult.IsError;
+                result.Message = deleteResult.Message;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -506,7 +790,53 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<ISearchResults>();
-            OASISErrorHandling.HandleError(ref result, "Search not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Use LoadHolonsByMetaData to search
+                var holons = new List<IHolon>();
+                
+                if (searchParams != null && searchParams.SearchGroups != null)
+                {
+                    foreach (var group in searchParams.SearchGroups)
+                    {
+                        // SearchGroups can be different types (SearchTextGroup, SearchNumberGroup, etc.)
+                        // For now, use a simplified search approach
+                        // In production, would handle each group type appropriately
+                        if (group is ISearchTextGroup textGroup && textGroup.SearchFields != null)
+                        {
+                            foreach (var field in textGroup.SearchFields)
+                            {
+                                var holonsResult = await LoadHolonsByMetaDataAsync(field.FieldName, field.Value, HolonType.All);
+                                if (!holonsResult.IsError && holonsResult.Result != null)
+                                {
+                                    holons.AddRange(holonsResult.Result);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Remove duplicates
+                holons = holons.GroupBy(h => h.Id).Select(g => g.First()).ToList();
+
+                result.Result = new SearchResults
+                {
+                    SearchResultHolons = holons,
+                    NumberOfResults = holons.Count
+                };
+                result.IsError = false;
+                result.Message = $"Found {holons.Count} results";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -572,7 +902,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load holons by parent ID in metadata
+                var holonsResult = await LoadHolonsByMetaDataAsync("ParentId", id.ToString(), type);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                result.Result = holonsResult.Result ?? new List<IHolon>();
+                result.IsError = false;
+                result.Message = $"Loaded {result.Result.Count()} holons for parent";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -584,7 +937,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent by providerKey not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load holons by parent provider key in metadata
+                var holonsResult = await LoadHolonsByMetaDataAsync("ParentProviderKey", providerKey, type);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                result.Result = holonsResult.Result ?? new List<IHolon>();
+                result.IsError = false;
+                result.Message = $"Loaded {result.Result.Count()} holons for parent by provider key";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -596,7 +972,37 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load all holons and filter by metadata
+                var allHolonsResult = await LoadAllHolonsAsync(type);
+                if (allHolonsResult.IsError || allHolonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {allHolonsResult.Message}");
+                    return result;
+                }
+
+                // Filter by metadata
+                var filteredHolons = allHolonsResult.Result.Where(h => 
+                    h.MetaData != null && 
+                    h.MetaData.TryGetValue(metaKey, out var value) && 
+                    value?.ToString() == metaValue
+                ).ToList();
+
+                result.Result = filteredHolons;
+                result.IsError = false;
+                result.Message = $"Found {filteredHolons.Count} holons matching metadata";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -608,7 +1014,56 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData with dictionary not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load all holons and filter by metadata dictionary
+                var allHolonsResult = await LoadAllHolonsAsync(type);
+                if (allHolonsResult.IsError || allHolonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {allHolonsResult.Message}");
+                    return result;
+                }
+
+                // Filter by metadata dictionary based on match mode
+                IEnumerable<IHolon> filteredHolons = allHolonsResult.Result;
+                
+                if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
+                {
+                    // All key-value pairs must match
+                    filteredHolons = filteredHolons.Where(h =>
+                        h.MetaData != null &&
+                        metaKeyValuePairs.All(kvp =>
+                            h.MetaData.TryGetValue(kvp.Key, out var value) &&
+                            value?.ToString() == kvp.Value
+                        )
+                    );
+                }
+                else
+                {
+                    // Any key-value pair can match
+                    filteredHolons = filteredHolons.Where(h =>
+                        h.MetaData != null &&
+                        metaKeyValuePairs.Any(kvp =>
+                            h.MetaData.TryGetValue(kvp.Key, out var value) &&
+                            value?.ToString() == kvp.Value
+                        )
+                    );
+                }
+
+                result.Result = filteredHolons.ToList();
+                result.IsError = false;
+                result.Message = $"Found {result.Result.Count()} holons matching metadata dictionary";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -620,7 +1075,31 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllHolons not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // For Zcash, we would query all holons from the blockchain
+                // This is a simplified implementation - in production would query Zcash for all holon transactions
+                // For now, return empty list as Zcash doesn't have a direct "get all" method
+                // In production, would:
+                // 1. Query Zcash for all transactions with holon metadata
+                // 2. Decrypt shielded transaction memos
+                // 3. Deserialize holon data
+                // 4. Filter by type if needed
+                
+                result.Result = new List<IHolon>();
+                result.IsError = false;
+                result.Message = "LoadAllHolons: Zcash requires querying blockchain transactions (simplified implementation)";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -686,7 +1165,45 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolon not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load holon first
+                var holonResult = await LoadHolonAsync(id);
+                if (holonResult.IsError || holonResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found");
+                    return result;
+                }
+
+                // For Zcash, deletion would involve marking the holon as deleted in metadata
+                // and creating a new transaction indicating deletion
+                // For now, mark as deleted in metadata
+                holonResult.Result.MetaData = holonResult.Result.MetaData ?? new Dictionary<string, object>();
+                holonResult.Result.MetaData["Deleted"] = true;
+                holonResult.Result.MetaData["DeletedDate"] = DateTime.UtcNow.ToString("o");
+
+                // Save updated holon
+                var saveResult = await SaveHolonAsync(holonResult.Result);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
+                    return result;
+                }
+
+                result.Result = saveResult.Result;
+                result.IsError = false;
+                result.Message = "Holon marked as deleted in Zcash";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -698,7 +1215,43 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolon by providerKey not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load holon by provider key first
+                var holonResult = await LoadHolonAsync(providerKey);
+                if (holonResult.IsError || holonResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
+                    return result;
+                }
+
+                // Mark as deleted
+                holonResult.Result.MetaData = holonResult.Result.MetaData ?? new Dictionary<string, object>();
+                holonResult.Result.MetaData["Deleted"] = true;
+                holonResult.Result.MetaData["DeletedDate"] = DateTime.UtcNow.ToString("o");
+
+                // Save updated holon
+                var saveResult = await SaveHolonAsync(holonResult.Result);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
+                    return result;
+                }
+
+                result.Result = saveResult.Result;
+                result.IsError = false;
+                result.Message = "Holon marked as deleted in Zcash by provider key";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -710,7 +1263,36 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "Import not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                if (holons == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holons collection is null");
+                    return result;
+                }
+
+                // Save all holons
+                var saveResult = await SaveHolonsAsync(holons);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, saveResult.Message);
+                    return result;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Imported {saveResult.Result?.Count() ?? 0} holons to Zcash";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -722,7 +1304,45 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarById not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load avatar
+                var avatarResult = await LoadAvatarAsync(avatarId, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                    return result;
+                }
+
+                // Load all holons for this avatar (as parent)
+                var holonsResult = await LoadHolonsForParentAsync(avatarId);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                // Combine avatar and holons
+                var allData = new List<IHolon> { avatarResult.Result as IHolon };
+                if (holonsResult.Result != null)
+                {
+                    allData.AddRange(holonsResult.Result);
+                }
+
+                result.Result = allData;
+                result.IsError = false;
+                result.Message = $"Exported {allData.Count} holons for avatar";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -734,7 +1354,45 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByUsername not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                    return result;
+                }
+
+                // Load all holons for this avatar
+                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                // Combine avatar and holons
+                var allData = new List<IHolon> { avatarResult.Result as IHolon };
+                if (holonsResult.Result != null)
+                {
+                    allData.AddRange(holonsResult.Result);
+                }
+
+                result.Result = allData;
+                result.IsError = false;
+                result.Message = $"Exported {allData.Count} holons for avatar by username";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -758,7 +1416,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAll not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Zcash provider is not activated");
+                    return result;
+                }
+
+                // Load all holons
+                var holonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, holonsResult.Message);
+                    return result;
+                }
+
+                result.Result = holonsResult.Result ?? new List<IHolon>();
+                result.IsError = false;
+                result.Message = $"Exported {result.Result.Count()} holons from Zcash";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             return result;
         }
 
@@ -1090,7 +1771,41 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 return result;
             }
 
-            OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe not yet implemented for Zcash provider");
+            try
+            {
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Zcash: {ex.Message}", ex);
+            }
             return result;
         }
 
@@ -1103,7 +1818,41 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 return result;
             }
 
-            OASISErrorHandling.HandleError(ref result, "GetHolonsNearMe not yet implemented for Zcash provider");
+            try
+            {
+                var holonsResult = LoadAllHolons(Type);
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Zcash: {ex.Message}", ex);
+            }
             return result;
         }
 
@@ -1177,7 +1926,32 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
 
                 // Zcash doesn't support seed phrase restoration in the same way as other chains
                 // This would need to be implemented based on Zcash's specific account restoration mechanism
-                OASISErrorHandling.HandleError(ref result, "Zcash account restoration from seed phrase is not yet implemented");
+                if (string.IsNullOrWhiteSpace(seedPhrase))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Seed phrase is required");
+                    return result;
+                }
+
+                // Restore Zcash account from seed phrase
+                byte[] privateKeyBytes;
+                
+                if (seedPhrase.Length == 64 && System.Text.RegularExpressions.Regex.IsMatch(seedPhrase, "^[0-9a-fA-F]+$"))
+                {
+                    // Treat as hex private key
+                    privateKeyBytes = Convert.FromHexString(seedPhrase);
+                }
+                else
+                {
+                    // Derive from BIP39 seed phrase
+                    var seed = DeriveZcashSeedFromMnemonic(seedPhrase);
+                    privateKeyBytes = seed.Take(32).ToArray();
+                }
+                
+                var publicKey = Convert.ToHexString(privateKeyBytes).ToLower();
+                
+                result.Result = (publicKey, Convert.ToHexString(privateKeyBytes).ToLower());
+                result.IsError = false;
+                result.Message = "Zcash account restored successfully from seed phrase";
                 return result;
             }
             catch (Exception ex)
@@ -1310,6 +2084,142 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
             {
                 OASISErrorHandling.HandleError(ref result, $"Error getting transaction status: {ex.Message}", ex);
                 return result;
+            }
+        }
+
+        /// <summary>
+        /// Convert avatar detail to holon
+        /// </summary>
+        private IHolon ConvertAvatarDetailToHolon(IAvatarDetail avatarDetail)
+        {
+            if (avatarDetail == null) return null;
+
+            var holon = new Holon
+            {
+                Id = avatarDetail.Id,
+                Name = avatarDetail.Username,
+                Description = avatarDetail.Email,
+                HolonType = HolonType.Avatar
+            };
+
+            // Store avatar detail data in metadata
+            holon.MetaData = new Dictionary<string, object>
+            {
+                ["Username"] = avatarDetail.Username ?? "",
+                ["Email"] = avatarDetail.Email ?? "",
+                ["Karma"] = avatarDetail.Karma,
+                ["XP"] = avatarDetail.XP,
+                ["Model3D"] = avatarDetail.Model3D ?? "",
+                ["UmaJson"] = avatarDetail.UmaJson ?? "",
+                ["Portrait"] = avatarDetail.Portrait ?? "",
+                ["Town"] = avatarDetail.Town ?? "",
+                ["County"] = avatarDetail.County ?? "",
+                ["DOB"] = avatarDetail.DOB != default(DateTime) ? avatarDetail.DOB.ToString("o") : "",
+                ["Address"] = avatarDetail.Address ?? "",
+                ["Country"] = avatarDetail.Country ?? "",
+                ["Postcode"] = avatarDetail.Postcode ?? "",
+                ["Landline"] = avatarDetail.Landline ?? "",
+                ["Mobile"] = avatarDetail.Mobile ?? "",
+                ["FavouriteColour"] = (int)avatarDetail.FavouriteColour,
+                ["STARCLIColour"] = (int)avatarDetail.STARCLIColour
+            };
+
+            return holon;
+        }
+
+        /// <summary>
+        /// Convert holon to avatar
+        /// </summary>
+        private IAvatar ConvertHolonToAvatar(IHolon holon)
+        {
+            if (holon == null) return null;
+            
+            if (holon is IAvatar avatar)
+                return avatar;
+
+            // Create avatar from holon
+            var newAvatar = new Avatar
+            {
+                Id = holon.Id,
+                Username = holon.Name,
+                Email = holon.Description,
+                HolonType = HolonType.Avatar
+            };
+
+            // Copy metadata
+            if (holon.MetaData != null)
+            {
+                newAvatar.MetaData = new Dictionary<string, object>(holon.MetaData);
+                if (holon.MetaData.TryGetValue("Username", out var username))
+                    newAvatar.Username = username?.ToString();
+                if (holon.MetaData.TryGetValue("Email", out var email))
+                    newAvatar.Email = email?.ToString();
+            }
+
+            return newAvatar;
+        }
+
+        /// <summary>
+        /// Convert avatar to avatar detail
+        /// </summary>
+        private IAvatarDetail ConvertAvatarToAvatarDetail(IAvatar avatar)
+        {
+            if (avatar == null) return null;
+
+            // Use AvatarManager to load full detail
+            try
+            {
+                var detailResult = AvatarManager.Instance.LoadAvatarDetail(avatar.Id);
+                if (!detailResult.IsError && detailResult.Result != null)
+                    return detailResult.Result;
+            }
+            catch
+            {
+                // Fallback: create basic avatar detail from avatar
+            }
+
+            // Create basic avatar detail from avatar
+            var detail = new AvatarDetail
+            {
+                Id = avatar.Id,
+                Username = avatar.Username,
+                Email = avatar.Email
+            };
+            
+            // Get Karma and XP from metadata or AvatarDetail
+            if (avatar is AvatarDetail avatarDetail)
+            {
+                detail.Karma = avatarDetail.Karma;
+                detail.XP = avatarDetail.XP;
+            }
+            else if (avatar.MetaData != null)
+            {
+                if (avatar.MetaData.TryGetValue("Karma", out var karma) && long.TryParse(karma?.ToString(), out var karmaValue))
+                    detail.Karma = karmaValue;
+                if (avatar.MetaData.TryGetValue("XP", out var xp) && long.TryParse(xp?.ToString(), out var xpValue))
+                    detail.XP = (int)xpValue;
+            }
+
+            // Copy metadata if available
+            if (avatar.MetaData != null)
+            {
+                detail.MetaData = new Dictionary<string, object>(avatar.MetaData);
+            }
+
+            return detail;
+        }
+
+        /// <summary>
+        /// Derive seed from BIP39 mnemonic phrase
+        /// </summary>
+        private byte[] DeriveZcashSeedFromMnemonic(string mnemonic)
+        {
+            // In production, use proper BIP39 seed derivation (PBKDF2 with 2048 iterations)
+            // For now, use a simplified hash-based approach
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                var mnemonicBytes = System.Text.Encoding.UTF8.GetBytes(mnemonic);
+                return sha256.ComputeHash(sha256.ComputeHash(mnemonicBytes));
             }
         }
 

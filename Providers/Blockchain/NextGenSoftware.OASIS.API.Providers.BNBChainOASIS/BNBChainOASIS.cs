@@ -16,10 +16,11 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Text.Json.Serialization;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
@@ -3056,15 +3057,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     nftData.metadata
                 );
 
-                if (transactionReceipt.Status.Value == 1)
+                if (transactionReceipt != null && transactionReceipt.Status.Value == 1)
                 {
-                    var nftResponse = new BNBChainTransactionResponse
+                    var nftResponse = new Web3NFTTransactionResponse
                     {
                         TransactionResult = transactionReceipt.TransactionHash,
-                        MemoText = $"NFT sent successfully from {nftData.fromAddress} to {nftData.toAddress}"
+                        SendNFTTransactionResult = transactionReceipt.TransactionHash,
+                        IsSuccessful = true
                     };
                     
-                    result.Result = (IWeb3NFTTransactionResponse)nftResponse;
+                    result.Result = nftResponse;
                     result.IsError = false;
                     result.Message = $"NFT sent successfully. Transaction hash: {transactionReceipt.TransactionHash}";
                 }

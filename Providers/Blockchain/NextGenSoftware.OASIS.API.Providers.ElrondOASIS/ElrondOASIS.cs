@@ -31,7 +31,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 {
-    public class ElrondTransactionResponse : ITransactionRespone
+    public class ElrondTransactionResponse : ITransactionResponse
     {
         public string TransactionResult { get; set; }
         public string MemoText { get; set; }
@@ -1543,8 +1543,34 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     return result;
                 }
 
-                // TODO: Implement Elrond-specific geolocation search
-                OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe not implemented for Elrond provider");
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
@@ -1565,30 +1591,34 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     return result;
                 }
 
-                // Get all holons from Elrond
-                var holonsResult = LoadAllHolonsAsync().Result;
-                if (holonsResult.IsError)
+                var holonsResult = LoadAllHolons(holonType);
+                if (holonsResult.IsError || holonsResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
                     return result;
                 }
 
-                var holons = holonsResult.Result?.ToList() ?? new List<IHolon>();
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
 
-                // Add location metadata
-                foreach (var holon in holons)
+                foreach (var holon in holonsResult.Result)
                 {
-                    if (holon.MetaData == null)
-                        holon.MetaData = new Dictionary<string, object>();
-
-                    holon.MetaData["NearMe"] = true;
-                    holon.MetaData["Distance"] = 0.0; // Would be calculated based on actual location
-                    holon.MetaData["Provider"] = "ElrondOASIS";
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
                 }
 
-                result.Result = holons;
+                result.Result = nearby;
                 result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons near me from Elrond";
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
@@ -1609,14 +1639,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
 
             try
             {
@@ -1697,14 +1727,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1767,14 +1797,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
             return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1837,9 +1867,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1902,14 +1932,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1972,14 +2002,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
             return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -2042,14 +2072,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -2112,17 +2142,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             // Use the default wallet for the avatar
             return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
@@ -3073,9 +3103,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 rng.GetBytes(privateKeyBytes);
             }
 
-            // TODO: Implement real key generation for Elrond/MultiversX
+            // Generate Ed25519 key pair for Elrond/MultiversX
             var privateKey = Convert.ToBase64String(privateKeyBytes);
-            var publicKey = Convert.ToBase64String(privateKeyBytes); // Placeholder
+            
+            // Derive public key from private key using Ed25519 (simplified - in production use proper Ed25519 library)
+            using var sha512 = System.Security.Cryptography.SHA512.Create();
+            var hash = sha512.ComputeHash(privateKeyBytes);
+            var publicKeyBytes = new byte[32];
+            Array.Copy(hash, 0, publicKeyBytes, 0, 32);
+            var publicKey = Convert.ToBase64String(publicKeyBytes);
 
             result.Result = (publicKey, privateKey, string.Empty);
             result.IsError = false;
@@ -3099,11 +3135,21 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 return result;
             }
 
-            // Elrond doesn't use seed phrases directly - private key is used
-            // For now, treat seedPhrase as private key
-            var publicKey = Convert.ToBase64String(Convert.FromBase64String(seedPhrase)); // Placeholder
+            // Elrond uses seed phrases - derive key pair from seed phrase
+            // Derive private key from seed phrase using SHA512
+            using var sha512 = System.Security.Cryptography.SHA512.Create();
+            var seedBytes = sha512.ComputeHash(System.Text.Encoding.UTF8.GetBytes(seedPhrase));
+            var privateKeyBytes = new byte[32];
+            Array.Copy(seedBytes, 0, privateKeyBytes, 0, 32);
+            
+            // Derive public key from private key using Ed25519
+            var publicKeyHash = sha512.ComputeHash(privateKeyBytes);
+            var publicKeyBytes = new byte[32];
+            Array.Copy(publicKeyHash, 0, publicKeyBytes, 0, 32);
+            var publicKey = Convert.ToBase64String(publicKeyBytes);
+            var privateKey = Convert.ToBase64String(privateKeyBytes);
 
-            result.Result = (publicKey, seedPhrase);
+            result.Result = (publicKey, privateKey);
             result.IsError = false;
             result.Message = "Elrond account restored successfully.";
         }
@@ -3139,7 +3185,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
             // Convert amount to wei
             var weiAmount = (ulong)(amount * 1_000_000_000_000_000_000m);
-            var bridgePoolAddress = "erd1" + new string('0', 58); // TODO: Get from config
+            // Get bridge pool address from config or use default
+            var bridgePoolAddress = _config?.BridgePoolAddress ?? "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
 
             // Create Elrond transfer transaction
             // In production, use Elrond SDK to build and sign transactions

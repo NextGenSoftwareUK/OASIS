@@ -36,7 +36,7 @@ using Nethereum.Web3.Accounts;
 
 namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 {
-    public class ChainLinkTransactionResponse : ITransactionRespone
+    public class ChainLinkTransactionResponse : ITransactionResponse
     {
         public string TransactionResult { get; set; }
         public string MemoText { get; set; }

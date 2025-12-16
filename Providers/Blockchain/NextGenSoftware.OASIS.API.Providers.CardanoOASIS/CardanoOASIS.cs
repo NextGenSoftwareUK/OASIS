@@ -2855,21 +2855,20 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
         }
 
         #endregion
-    }
 
-    /// <summary>
-    /// Cardano UTXO data structure
-    /// </summary>
-    public class CardanoUTXO
-    {
-        public string TxHash { get; set; } = string.Empty;
-        public int Index { get; set; }
-        public long Amount { get; set; }
-        public string Address { get; set; } = string.Empty;
-    }
+        /// <summary>
+        /// Cardano UTXO data structure
+        /// </summary>
+        public class CardanoUTXO
+        {
+            public string TxHash { get; set; } = string.Empty;
+            public int Index { get; set; }
+            public long Amount { get; set; }
+            public string Address { get; set; } = string.Empty;
+        }
 
-    // NFT-specific lock/unlock methods
-    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+        // NFT-specific lock/unlock methods
+        public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
     {
         return LockNFTAsync(request).Result;
     }

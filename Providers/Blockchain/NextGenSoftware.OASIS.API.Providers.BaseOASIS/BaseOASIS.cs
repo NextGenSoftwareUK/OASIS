@@ -3629,7 +3629,7 @@ file static class BaseContractHelper
                         var holon = new Holon
                         {
                             Id = Guid.NewGuid(),
-                            ProviderKey = entityIdElement.GetUInt64().ToString(),
+                            ProviderUniqueStorageKey = new Dictionary<ProviderType, string> { { ProviderType.BaseOASIS, entityIdElement.GetUInt64().ToString() } },
                             Name = holonIdElement.GetString() ?? "Base Holon",
                             Description = infoElement.GetString() ?? "Base Holon Description",
                             CreatedDate = DateTime.UtcNow,

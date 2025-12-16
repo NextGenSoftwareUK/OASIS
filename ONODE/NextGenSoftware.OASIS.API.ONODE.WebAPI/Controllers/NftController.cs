@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -482,6 +483,256 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IOASISNFTProvider> GetNFTProviderFromProviderType(ProviderType providerType)
         {
             return NFTManager.GetNFTProvider(providerType);
+        }
+
+        /// <summary>
+        /// Remints an existing NFT.
+        /// </summary>
+        /// <param name="request">The remint request containing NFT details.</param>
+        /// <returns>OASIS result containing the reminted NFT or error information.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("remint-nft")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb4NFT>> RemintNftAsync([FromBody] API.Core.Objects.NFT.Requests.RemintWeb4NFTRequest request)
+        {
+            return await NFTManager.RemintNftAsync(request, Core.Enums.ResponseFormatType.SimpleText);
+        }
+
+        /// <summary>
+        /// Imports a Web3 NFT into the OASIS system.
+        /// </summary>
+        /// <param name="request">The import request containing Web3 NFT details.</param>
+        /// <returns>OASIS result containing the imported NFT or error information.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("import-web3-nft")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb4NFT>> ImportWeb3NFTAsync([FromBody] API.Core.Interfaces.NFT.Requests.IImportWeb3NFTRequest request)
+        {
+            return await NFTManager.ImportWeb3NFTAsync(request, Core.Enums.ResponseFormatType.SimpleText);
+        }
+
+        /// <summary>
+        /// Imports a Web4 NFT from a JSON file.
+        /// </summary>
+        /// <param name="importedByAvatarId">The avatar ID importing the NFT.</param>
+        /// <param name="fullPathToOASISNFTJsonFile">Full path to the JSON file containing the NFT data.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the imported NFT or error information.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("import-web4-nft-from-file/{importedByAvatarId}/{fullPathToOASISNFTJsonFile}")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTFromFileAsync(Guid importedByAvatarId, string fullPathToOASISNFTJsonFile, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.ImportWeb4NFTAsync(importedByAvatarId, fullPathToOASISNFTJsonFile, providerType, Core.Enums.ResponseFormatType.SimpleText);
+        }
+
+        /// <summary>
+        /// Imports a Web4 NFT object.
+        /// </summary>
+        /// <param name="importedByAvatarId">The avatar ID importing the NFT.</param>
+        /// <param name="oasisNFT">The Web4 NFT object to import.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the imported NFT or error information.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("import-web4-nft/{importedByAvatarId}")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTAsync(Guid importedByAvatarId, [FromBody] IWeb4NFT oasisNFT, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.ImportWeb4NFTAsync(importedByAvatarId, oasisNFT, providerType, Core.Enums.ResponseFormatType.SimpleText);
+        }
+
+        /// <summary>
+        /// Exports a Web4 NFT to a JSON file.
+        /// </summary>
+        /// <param name="oasisNFTId">The ID of the NFT to export.</param>
+        /// <param name="fullPathToExportTo">Full path where the JSON file should be saved.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the exported NFT or error information.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("export-web4-nft-to-file/{oasisNFTId}/{fullPathToExportTo}")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb4NFT>> ExportWeb4NFTToFileAsync(Guid oasisNFTId, string fullPathToExportTo, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.ExportWeb4NFTAsync(oasisNFTId, fullPathToExportTo, providerType, Core.Enums.ResponseFormatType.SimpleText);
+        }
+
+        /// <summary>
+        /// Exports a Web4 NFT object.
+        /// </summary>
+        /// <param name="oasisNFT">The Web4 NFT object to export.</param>
+        /// <param name="fullPathToExportTo">Full path where the JSON file should be saved.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the exported NFT or error information.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("export-web4-nft")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb4NFT>> ExportWeb4NFTAsync([FromBody] IWeb4NFT oasisNFT, string fullPathToExportTo, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.ExportWeb4NFTAsync(oasisNFT, fullPathToExportTo, providerType, Core.Enums.ResponseFormatType.SimpleText);
+        }
+
+        /// <summary>
+        /// Loads a Web3 NFT by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the Web3 NFT to load.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the Web3 NFT details or error information.</returns>
+        [Authorize]
+        [HttpGet]
+        [Route("load-web3-nft-by-id/{id}")]
+        [ProducesResponseType(typeof(OASISResult<IWeb3NFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb3NFT>> LoadWeb3NftByIdAsync(Guid id, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.LoadWeb3NftAsync(id, providerType);
+        }
+
+        /// <summary>
+        /// Loads a Web3 NFT by its on-chain hash.
+        /// </summary>
+        /// <param name="onChainNftHash">The on-chain hash of the Web3 NFT to load.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the Web3 NFT details or error information.</returns>
+        [Authorize]
+        [HttpGet]
+        [Route("load-web3-nft-by-hash/{onChainNftHash}")]
+        [ProducesResponseType(typeof(OASISResult<IWeb3NFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb3NFT>> LoadWeb3NftByHashAsync(string onChainNftHash, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.LoadWeb3NftAsync(onChainNftHash, providerType);
+        }
+
+        /// <summary>
+        /// Loads all Web3 NFTs for a specific avatar.
+        /// </summary>
+        /// <param name="avatarId">The avatar ID.</param>
+        /// <param name="parentWeb4NFTId">Optional parent Web4 NFT ID.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the list of Web3 NFTs or error information.</returns>
+        [Authorize]
+        [HttpGet]
+        [Route("load-all-web3-nfts-for-avatar/{avatarId}")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb3NFT>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IEnumerable<IWeb3NFT>>> LoadAllWeb3NFTsForAvatarAsync(Guid avatarId, Guid parentWeb4NFTId = default, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.LoadAllWeb3NFTsForAvatarAsync(avatarId, parentWeb4NFTId, providerType);
+        }
+
+        /// <summary>
+        /// Loads all Web3 NFTs for a specific mint wallet address.
+        /// </summary>
+        /// <param name="mintWalletAddress">The mint wallet address.</param>
+        /// <param name="parentWeb4NFTId">Optional parent Web4 NFT ID.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the list of Web3 NFTs or error information.</returns>
+        [Authorize]
+        [HttpGet]
+        [Route("load-all-web3-nfts-for-mint-address/{mintWalletAddress}")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb3NFT>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IEnumerable<IWeb3NFT>>> LoadAllWeb3NFTsForMintAddressAsync(string mintWalletAddress, Guid parentWeb4NFTId = default, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.LoadAllWeb3NFTsForMintAddressAsync(mintWalletAddress, parentWeb4NFTId, providerType);
+        }
+
+        /// <summary>
+        /// Loads all Web3 NFTs (admin only).
+        /// </summary>
+        /// <param name="parentWeb4NFTId">Optional parent Web4 NFT ID.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the list of Web3 NFTs or error information.</returns>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet]
+        [Route("load-all-web3-nfts")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb3NFT>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IEnumerable<IWeb3NFT>>> LoadAllWeb3NFTsAsync(Guid parentWeb4NFTId = default, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.LoadAllWeb3NFTsAsync(parentWeb4NFTId, providerType);
+        }
+
+        /// <summary>
+        /// Creates a new Web4 NFT collection.
+        /// </summary>
+        /// <param name="request">The collection creation request.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the created collection or error information.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("create-web4-nft-collection")]
+        [ProducesResponseType(typeof(OASISResult<IWeb4NFTCollection>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IWeb4NFTCollection>> CreateWeb4NFTCollectionAsync([FromBody] API.Core.Interfaces.NFT.Requests.ICreateWeb4NFTCollectionRequest request, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.CreateWeb4NFTCollectionAsync(request, providerType);
+        }
+
+        /// <summary>
+        /// Searches for Web4 NFTs.
+        /// </summary>
+        /// <param name="searchTerm">The search term.</param>
+        /// <param name="avatarId">The avatar ID to search for.</param>
+        /// <param name="searchOnlyForCurrentAvatar">Whether to search only for the current avatar.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the list of matching NFTs or error information.</returns>
+        [Authorize]
+        [HttpGet]
+        [Route("search-web4-nfts/{searchTerm}/{avatarId}")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb4NFT>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> SearchWeb4NFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.SearchWeb4NFTsAsync(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType);
+        }
+
+        /// <summary>
+        /// Searches for Web4 Geo NFTs.
+        /// </summary>
+        /// <param name="searchTerm">The search term.</param>
+        /// <param name="avatarId">The avatar ID to search for.</param>
+        /// <param name="searchOnlyForCurrentAvatar">Whether to search only for the current avatar.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the list of matching Geo NFTs or error information.</returns>
+        [Authorize]
+        [HttpGet]
+        [Route("search-web4-geo-nfts/{searchTerm}/{avatarId}")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> SearchWeb4GeoNFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.SearchWeb4GeoNFTsAsync(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType);
+        }
+
+        /// <summary>
+        /// Searches for Web4 NFT collections.
+        /// </summary>
+        /// <param name="searchTerm">The search term.</param>
+        /// <param name="avatarId">The avatar ID to search for.</param>
+        /// <param name="searchOnlyForCurrentAvatar">Whether to search only for the current avatar.</param>
+        /// <param name="providerType">The provider type to use.</param>
+        /// <returns>OASIS result containing the list of matching collections or error information.</returns>
+        [Authorize]
+        [HttpGet]
+        [Route("search-web4-nft-collections/{searchTerm}/{avatarId}")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb4NFTCollection>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> SearchWeb4NFTCollectionsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        {
+            return await NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType);
         }
     }
 }

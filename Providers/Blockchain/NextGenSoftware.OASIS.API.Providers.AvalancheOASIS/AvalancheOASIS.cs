@@ -26,6 +26,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
@@ -2971,6 +2973,76 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                 ErrorMessage = ex.Message,
                 Status = BridgeTransactionStatus.Canceled
             };
+        }
+        return result;
+    }
+
+    public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+    {
+        return SendTokenAsync(request).Result;
+    }
+
+    public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+        try
+        {
+            if (!IsProviderActivated || _web3Client == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            if (request == null || string.IsNullOrWhiteSpace(request.FromTokenAddress) || 
+                string.IsNullOrWhiteSpace(request.ToWalletAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Token address and to wallet address are required");
+                return result;
+            }
+
+            // Get private key from request
+            string privateKey = null;
+            if (!string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+                privateKey = request.OwnerPrivateKey;
+            else if (request is SendWeb3TokenRequest sendRequest && !string.IsNullOrWhiteSpace(sendRequest.FromWalletPrivateKey))
+                privateKey = sendRequest.FromWalletPrivateKey;
+            
+            if (string.IsNullOrWhiteSpace(privateKey))
+            {
+                OASISErrorHandling.HandleError(ref result, "Private key is required (OwnerPrivateKey or FromWalletPrivateKey)");
+                return result;
+            }
+
+            var senderAccount = new Account(privateKey, _chainId);
+            var web3Client = new Web3(senderAccount, _hostURI);
+
+            // ERC20 transfer ABI
+            var erc20Abi = "[{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
+            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.FromTokenAddress);
+            var decimalsFunction = erc20Contract.GetFunction("decimals");
+            var decimals = await decimalsFunction.CallAsync<byte>();
+            var multiplier = BigInteger.Pow(10, decimals);
+            var amountBigInt = new BigInteger(request.Amount * (decimal)multiplier);
+            var transferFunction = erc20Contract.GetFunction("transfer");
+            var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                senderAccount.Address, 
+                _gasLimit, 
+                null, 
+                null, 
+                request.ToWalletAddress, 
+                amountBigInt);
+
+            result.Result = new TransactionResponse
+            {
+                TransactionResult = receipt.TransactionHash,
+                IsSuccessful = receipt.Status.Value == 1
+            };
+            result.IsError = false;
+            result.Message = "Token sent successfully on Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending token on Avalanche: {ex.Message}", ex);
         }
         return result;
     }
