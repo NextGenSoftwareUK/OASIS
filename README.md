@@ -237,6 +237,8 @@ OASIS supports 50+ providers across multiple categories, providing universal com
 - **INVENTORYITEMS**: Item management with 25+ endpoints
   - Avatar inventory systems
   - Item tracking and analytics
+  - Collections
+  - Web4 NFTs wrap multiple Web3 NFTs sharing the same metadata across different chains.
 
 ### **Development Tools**
 - **TEMPLATES**: Template system with 25+ endpoints
@@ -274,7 +276,8 @@ OASIS supports 50+ providers across multiple categories, providing universal com
 - **GEONFTS**: Location-based NFTs with 25+ endpoints
   - Geo-tagged NFT creation
   - Location-based trading
-  - Avatar-specific collections
+  - Collections
+  - Web4 GeoNFTs wrap multiple Web3 NFTs sharing the same metadata across different chains.
 
 ### **Social Features**
 - **PARKS**: Social spaces with 25+ endpoints
