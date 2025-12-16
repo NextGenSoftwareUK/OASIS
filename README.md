@@ -147,9 +147,12 @@ OASIS supports 50+ providers across multiple categories, providing universal com
 - **FILES**: File management with 6+ endpoints
   - Upload, download, and metadata management
   - File sharing and organization
+    
 - **NFT**: NFT operations with 20+ endpoints
   - Cross-chain NFT management
   - Creation, trading, and analytics
+  - Collections
+Web4 NFTs wrap multiple Web3 NFTs sharing the same metadata across different chains.
 
 ### **Communication**
 - **CHAT**: Real-time communication with 3+ endpoints
