@@ -242,8 +242,39 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatar not yet implemented for Miden provider");
-            return await Task.FromResult(result);
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                // Load avatar from Miden (stored as holon)
+                var holon = await LoadHolonAsync(Id);
+                if (holon.IsError || holon.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                    return result;
+                }
+
+                // Convert holon to avatar
+                if (holon.Result is IAvatar avatar)
+                {
+                    result.Result = avatar;
+                }
+                else
+                {
+                    result.Result = ConvertHolonToAvatar(holon.Result);
+                }
+                result.IsError = false;
+                result.Message = "Avatar loaded successfully from Miden";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => LoadAvatarAsync(Id, version).Result;
@@ -736,6 +767,178 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             {
                 return publicKey.Length >= 40 ? "0x" + publicKey.Substring(0, 40) : "0x" + publicKey.PadRight(40, '0');
             }
+        }
+
+        #endregion
+
+        #region IOASISNETProvider
+
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Miden: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                var holonsResult = LoadAllHolons(Type);
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Miden: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    return result;
+                }
+
+                // Load all holons and filter by metadata
+                var allHolonsResult = await LoadAllHolonsAsync(type);
+                if (allHolonsResult.IsError || allHolonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {allHolonsResult.Message}");
+                    return result;
+                }
+
+                // Filter by metadata
+                var filteredHolons = allHolonsResult.Result.Where(h => 
+                    h.MetaData != null && 
+                    h.MetaData.TryGetValue(metaKey, out var value) && 
+                    value?.ToString() == metaValue
+                ).ToList();
+
+                result.Result = filteredHolons;
+                result.IsError = false;
+                result.Message = $"Found {filteredHolons.Count} holons matching metadata";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Convert holon to avatar
+        /// </summary>
+        private IAvatar ConvertHolonToAvatar(IHolon holon)
+        {
+            if (holon == null) return null;
+            
+            if (holon is IAvatar avatar)
+                return avatar;
+
+            // Create avatar from holon
+            var newAvatar = new Avatar
+            {
+                Id = holon.Id,
+                Username = holon.Name,
+                Email = holon.Description,
+                HolonType = HolonType.Avatar
+            };
+
+            // Copy metadata
+            if (holon.MetaData != null)
+            {
+                newAvatar.MetaData = new Dictionary<string, object>(holon.MetaData);
+                if (holon.MetaData.TryGetValue("Username", out var username))
+                    newAvatar.Username = username?.ToString();
+                if (holon.MetaData.TryGetValue("Email", out var email))
+                    newAvatar.Email = email?.ToString();
+            }
+
+            return newAvatar;
         }
 
         #endregion

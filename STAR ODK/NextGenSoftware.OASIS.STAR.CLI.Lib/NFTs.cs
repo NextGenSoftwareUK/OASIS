@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
@@ -171,22 +172,57 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IWeb4NFT>> RemintNFTAsync(object mintParams = null)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
+            string errorMessage = "Error occured reminting WEB4 OASIS NFT in RemintNFTAsync method. Reason: ";
             result = await FindWeb4NFTAsync("remint");
-            
-            if (result != null && result.Result != null && !result.IsError)
+
+            try
             {
-                IRemintWeb4NFTRequest remintRequest = await NFTCommon.GenerateWeb4NFTRemintRequestAsync(result.Result);
-
-                CLIEngine.ShowWorkingMessage("Reminting WEB4 OASIS NFT & WEB3 NFT's...");
-                result = await STAR.OASISAPI.NFTs.RemintNftAsync(remintRequest);
-
                 if (result != null && result.Result != null && !result.IsError)
-                    CLIEngine.ShowSuccessMessage(result.Message);
-                else
                 {
-                    string msg = result != null ? result.Message : "";
-                    CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
+                    IRemintWeb4NFTRequest remintRequest = await NFTCommon.GenerateWeb4NFTRemintRequestAsync(result.Result);
+
+                    CLIEngine.ShowWorkingMessage("Reminting WEB4 OASIS NFT & WEB3 NFT's...");
+                    result = await STAR.OASISAPI.NFTs.RemintNftAsync(remintRequest);
+
+                    if (result != null && result.Result != null && !result.IsError)
+                    {
+                        if (result.Result.MetaData != null && result.Result.MetaData.ContainsKey("Web5STARNFTId"))
+                        {
+                            OASISResult<STARNFT> web5NFT = await STAR.STARAPI.NFTs.LoadAsync(STAR.BeamedInAvatar.Id, new Guid(result.Result.MetaData["Web5STARNFTId"].ToString()));
+
+                            if (web5NFT != null && web5NFT.Result != null && !web5NFT.IsError)
+                            {
+                                web5NFT.Result.STARNETDNA.MetaData["WEB4 NFT"] = result.Result;
+                                OASISResult<STARNFT> saveWeb5NFT = await STAR.STARAPI.NFTs.UpdateAsync(STAR.BeamedInAvatar.Id, web5NFT.Result, true);
+
+                                if (saveWeb5NFT != null && saveWeb5NFT.Result != null && !saveWeb5NFT.IsError)
+                                {
+                                    File.WriteAllText(Path.Combine(web5NFT.Result.STARNETDNA.SourcePath, $"OASISNFT_{result.Result.Id}.json"), JsonConvert.SerializeObject(result.Result));
+
+                                    if (!string.IsNullOrEmpty(result.Result.JSONMetaData))
+                                        File.WriteAllText(Path.Combine(web5NFT.Result.STARNETDNA.SourcePath, $"JSONMetaData_{result.Result.Id}.json"), result.Result.JSONMetaData);
+
+                                    CLIEngine.ShowSuccessMessage(result.Message);
+                                }
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed updating WEB5 STAR NFT after reminting WEB4 NFT. Reason: {saveWeb5NFT.Message}");
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed loading WEB5 STAR NFT to update after reminting WEB4 NFT. Reason: {web5NFT.Message}");
+                        }
+                        else
+                            CLIEngine.ShowSuccessMessage(result.Message);
+                    }
+                    else
+                    {
+                        string msg = result != null ? result.Message : "";
+                        CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}", e);
             }
 
             return result;

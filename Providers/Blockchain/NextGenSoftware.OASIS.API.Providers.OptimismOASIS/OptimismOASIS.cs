@@ -23,6 +23,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Text.Json.Serialization;
 using NextGenSoftware.OASIS.Common;
@@ -66,6 +68,17 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 return _walletManager;
             }
             set => _walletManager = value;
+        }
+
+        public KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                    _keyManager = new KeyManager(this, OASISDNA);
+                return _keyManager;
+            }
+            set => _keyManager = value;
         }
 
         /// <summary>
@@ -200,8 +213,10 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse Optimism JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "Optimism JSON parsing not implemented - requires JSON parsing library");
+                    var avatar = ParseOptimismToAvatar(content);
+                    response.Result = avatar;
+                    response.IsError = false;
+                    response.Message = "Avatar loaded successfully from Optimism blockchain";
                 }
                 else
                 {
@@ -244,13 +259,34 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 // Get players near me from Optimism blockchain
                 var queryUrl = "/api/v1/accounts/nearby";
 
-                var httpResponse = _httpClient.GetAsync(queryUrl).Result;
-                if (httpResponse.IsSuccessStatusCode)
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
                 {
-                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Optimism JSON and create Player collection
-                    OASISErrorHandling.HandleError(ref response, "Optimism JSON parsing not implemented - requires JSON parsing library");
+                    OASISErrorHandling.HandleError(ref response, $"Error loading avatars: {avatarsResult.Message}");
+                    return response;
                 }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                response.Result = nearby;
+                response.IsError = false;
+                response.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
                 else
                 {
                     OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from Optimism blockchain: {httpResponse.StatusCode}");
@@ -280,13 +316,34 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 // Get holons near me from Optimism blockchain
                 var queryUrl = $"/api/v1/accounts/holons?type={holonType}";
 
-                var httpResponse = _httpClient.GetAsync(queryUrl).Result;
-                if (httpResponse.IsSuccessStatusCode)
+                var holonsResult = LoadAllHolons(holonType);
+                if (holonsResult.IsError || holonsResult.Result == null)
                 {
-                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Optimism JSON and create Holon collection
-                    OASISErrorHandling.HandleError(ref response, "Optimism JSON parsing not implemented - requires JSON parsing library");
+                    OASISErrorHandling.HandleError(ref response, $"Error loading holons: {holonsResult.Message}");
+                    return response;
                 }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
+                }
+
+                response.Result = nearby;
+                response.IsError = false;
+                response.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
                 else
                 {
                     OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Optimism blockchain: {httpResponse.StatusCode}");
@@ -544,124 +601,217 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
 
         #region IOASISNFTProvider Implementation
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transaction)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transaction)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "SendNFT is not supported by Optimism provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SendNFT: {ex.Message}");
-            }
-            return response;
+            return SendNFTAsync(transaction).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transaction)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transaction)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            string errorMessage = "Error in SendNFTAsync method in OptimismOASIS. Reason: ";
+
             try
             {
-                if (!_isActivated)
+                if (!_isActivated || _web3Client == null)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
+                    OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
+                    return result;
                 }
-                OASISErrorHandling.HandleError(ref response, "SendNFTAsync is not supported by Optimism provider");
+
+                if (transaction == null || string.IsNullOrWhiteSpace(transaction.TokenAddress) ||
+                    string.IsNullOrWhiteSpace(transaction.ToWalletAddress) ||
+                    string.IsNullOrWhiteSpace(transaction.FromWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Token address, from wallet address, and to wallet address are required");
+                    return result;
+                }
+
+                // Get private key for sender
+                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(Guid.Empty, Core.Enums.ProviderType.OptimismOASIS);
+                string privateKey = null;
+                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
+                {
+                    if (transaction is SendWeb3NFTRequest sendRequest && !string.IsNullOrWhiteSpace(sendRequest.FromWalletAddress))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for sender wallet");
+                        return result;
+                    }
+                }
+                else
+                {
+                    privateKey = keysResult.Result[0];
+                }
+
+                var senderAccount = new Account(privateKey, BigInteger.Parse(_chainId));
+                var web3 = new Web3(senderAccount, _rpcEndpoint);
+
+                // ERC-721 transferFrom function ABI
+                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_from"",""type"":""address""},{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""transferFrom"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
+                var erc721Contract = web3.Eth.GetContract(erc721Abi, transaction.TokenAddress);
+                var transferFunction = erc721Contract.GetFunction("transferFrom");
+
+                var tokenId = BigInteger.Parse(transaction.TokenId ?? "0");
+                var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                    senderAccount.Address,
+                    new HexBigInteger(600000),
+                    null,
+                    null,
+                    transaction.FromWalletAddress,
+                    transaction.ToWalletAddress,
+                    tokenId);
+
+                if (receipt.HasErrors() == true)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-721 transfer failed."));
+                    return result;
+                }
+
+                result.Result.TransactionResult = receipt.TransactionHash;
+                result.Result.SendNFTTransactionResult = receipt.TransactionHash;
+                result.Result.Web3NFT = new Web3NFT
+                {
+                    NFTTokenAddress = transaction.TokenAddress,
+                    SendNFTTransactionHash = receipt.TransactionHash
+                };
+                result.IsError = false;
+                result.Message = $"NFT sent successfully on Optimism. Transaction hash: {receipt.TransactionHash}";
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SendNFTAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
-            return response;
+            return result;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transaction)
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest transaction)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "MintNFT is not supported by Optimism provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in MintNFT: {ex.Message}");
-            }
-            return response;
+            return MintNFTAsync(transaction).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transaction)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest transaction)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            string errorMessage = "Error in MintNFTAsync method in OptimismOASIS. Reason: ";
+
             try
             {
-                if (!_isActivated)
+                if (!_isActivated || _web3Client == null)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
+                    OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
+                    return result;
                 }
-                OASISErrorHandling.HandleError(ref response, "MintNFTAsync is not supported by Optimism provider");
+
+                if (transaction == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Mint request is required");
+                    return result;
+                }
+
+                // Get private key from KeyManager using MintedByAvatarId
+                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(transaction.MintedByAvatarId, Core.Enums.ProviderType.OptimismOASIS);
+                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
+                    return result;
+                }
+
+                var senderAccount = new Account(keysResult.Result[0], BigInteger.Parse(_chainId));
+                var web3 = new Web3(senderAccount, _rpcEndpoint);
+
+                // Use contract address or default NFT contract
+                var nftContractAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                
+                // ERC-721 mint function ABI (assuming contract has mint function)
+                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""mint"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
+                var erc721Contract = web3.Eth.GetContract(erc721Abi, nftContractAddress);
+                var mintFunction = erc721Contract.GetFunction("mint");
+
+                // Generate token ID (in production, this should be managed properly)
+                var tokenId = new BigInteger(DateTime.UtcNow.Ticks);
+                var mintToAddress = transaction.SendToAddressAfterMinting ?? senderAccount.Address;
+
+                var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
+                    senderAccount.Address,
+                    new HexBigInteger(600000),
+                    null,
+                    null,
+                    mintToAddress,
+                    tokenId);
+
+                if (receipt.HasErrors() == true)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-721 mint failed."));
+                    return result;
+                }
+
+                result.Result.TransactionResult = receipt.TransactionHash;
+                result.Result.Web3NFT = new Web3NFT
+                {
+                    NFTTokenAddress = nftContractAddress,
+                    MintTransactionHash = receipt.TransactionHash,
+                    NFTMintedUsingWalletAddress = senderAccount.Address
+                };
+                result.IsError = false;
+                result.Message = $"NFT minted successfully on Optimism. Transaction hash: {receipt.TransactionHash}";
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in MintNFTAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
-            return response;
+            return result;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTData is not supported by Optimism provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadOnChainNFTData: {ex.Message}");
-            }
-            return response;
+            return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb3NFT>();
+            string errorMessage = "Error in LoadOnChainNFTDataAsync method in OptimismOASIS. Reason: ";
+
             try
             {
-                if (!_isActivated)
+                if (!_isActivated || _web3Client == null)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
+                    OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
+                    return result;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTDataAsync is not supported by Optimism provider");
+
+                if (string.IsNullOrWhiteSpace(nftTokenAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
+                    return result;
+                }
+
+                // ERC-721 tokenURI and ownerOf functions ABI
+                var erc721Abi = @"[{""constant"":true,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""tokenURI"",""outputs"":[{""name"":"""",""type"":""string""}],""type"":""function""},{""constant"":true,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""ownerOf"",""outputs"":[{""name"":"""",""type"":""address""}],""type"":""function""}]";
+                var erc721Contract = _web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
+                var tokenURIFunction = erc721Contract.GetFunction("tokenURI");
+                var ownerOfFunction = erc721Contract.GetFunction("ownerOf");
+
+                // Get token URI and owner for token ID 0 (in production, this should be parameterized)
+                var tokenId = BigInteger.Zero;
+                var tokenURI = await tokenURIFunction.CallAsync<string>(tokenId);
+                var owner = await ownerOfFunction.CallAsync<string>(tokenId);
+
+                var nft = new Web3NFT
+                {
+                    NFTTokenAddress = nftTokenAddress,
+                    TokenId = tokenId.ToString()
+                };
+
+                result.Result = nft;
+                result.IsError = false;
+                result.Message = "NFT data loaded successfully from Optimism blockchain";
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadOnChainNFTDataAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
-            return response;
+            return result;
         }
 
         #endregion

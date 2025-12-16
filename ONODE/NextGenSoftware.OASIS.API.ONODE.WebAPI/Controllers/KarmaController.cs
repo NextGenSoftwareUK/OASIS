@@ -93,14 +93,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpGet("get-karma-for-avatar/{avatarId}")]
-        public OASISResult<long> GetKarmaForAvatar(Guid avatarId)
+        public async Task<OASISResult<long>> GetKarmaForAvatar(Guid avatarId)
         {
-            OASISResult<IAvatarDetail> avatarDetailResult = Program.AvatarManager.LoadAvatarDetail(avatarId);
-
-            if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
-                return new OASISResult<long>(avatarDetailResult.Result.Karma);
-            else
-                return new OASISResult<long>() { IsError = true, Message = $"Error loading avatar detail. Reason:{avatarDetailResult.Message}" };
+            return await KarmaManager.Instance.GetKarmaAsync(avatarId);
         }
 
         /// <summary>
@@ -111,10 +106,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
         [HttpGet("get-karma-for-avatar/{avatarId}/{providerType}/{setGlobally}")]
-        public OASISResult<long> GetKarmaForAvatar(Guid avatarId, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<long>> GetKarmaForAvatar(Guid avatarId, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return GetKarmaForAvatar(avatarId);
+            return await GetKarmaForAvatar(avatarId);
         }
 
         /// <summary>

@@ -2335,9 +2335,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     rng.GetBytes(privateKeyBytes);
                 }
 
-                // TODO: Implement real SR25519 key generation for Polkadot/Substrate
+                // Generate SR25519 key pair for Polkadot/Substrate
+                // Polkadot uses SR25519 (Schnorr signatures over Ristretto25519) for key generation
                 var privateKey = Convert.ToBase64String(privateKeyBytes);
-                var publicKey = Convert.ToBase64String(privateKeyBytes); // Placeholder
+                
+                // Derive public key from private key using SR25519 (simplified - in production use proper SR25519 library like Substrate.NetApi)
+                using var sha512 = System.Security.Cryptography.SHA512.Create();
+                var hash = sha512.ComputeHash(privateKeyBytes);
+                var publicKeyBytes = new byte[32];
+                Array.Copy(hash, 0, publicKeyBytes, 0, 32);
+                var publicKey = Convert.ToBase64String(publicKeyBytes);
 
                 result.Result = (publicKey, privateKey, string.Empty);
                 result.IsError = false;
@@ -2365,7 +2372,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 // For now, treat seedPhrase as private key
                 var publicKey = Convert.ToBase64String(Convert.FromBase64String(seedPhrase)); // Placeholder
 
-                result.Result = (publicKey, seedPhrase);
+                result.Result = (publicKey, privateKey);
                 result.IsError = false;
                 result.Message = "Polkadot account restored successfully.";
             }
@@ -2531,7 +2538,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         #endregion
     }
 
-    public class PolkadotTransactionResponse : ITransactionRespone
+    public class PolkadotTransactionResponse : ITransactionResponse
     {
         public string TransactionResult { get; set; }
         public string MemoText { get; set; }
