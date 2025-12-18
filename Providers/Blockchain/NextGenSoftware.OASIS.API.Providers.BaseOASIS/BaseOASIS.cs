@@ -1827,8 +1827,9 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public bool NativeCodeGenesis(ICelestialBody celestialBody)
+    public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
     {
+        // BaseOASIS does not generate native code itself.
         return true;
     }
 

@@ -18,6 +18,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<ISearchResults> searchResults = SearchManager.Instance.Search(new SearchParams()
             {
                 AvatarId = avatarId,
+                ParentId = parentId,
+                Recursive = recursive,
                 SearchOnlyForCurrentAvatar = searchOnlyForCurrentAvatar,
                 SearchGroups = new List<ISearchGroupBase>()
                 {
@@ -46,8 +48,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             OASISResult<ISearchResults> searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
             {
-                ParentId = parentId,
                 AvatarId = avatarId,
+                ParentId = parentId,
+                Recursive = recursive,
                 SearchOnlyForCurrentAvatar = searchOnlyForCurrentAvatar,
                 SearchGroups = new List<ISearchGroupBase>()
                 {
@@ -75,8 +78,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             OASISResult<ISearchResults> searchResults = SearchManager.Instance.Search(new SearchParams()
             {
-                ParentId = parentId,
                 AvatarId = avatarId,
+                ParentId = parentId,
+                Recursive = recursive,
                 SearchOnlyForCurrentAvatar = searchOnlyForCurrentAvatar,
                 SearchGroups = new List<ISearchGroupBase>()
                 {
@@ -117,6 +121,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<ISearchResults> searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
             {
                 AvatarId = avatarId,
+                ParentId = parentId,
+                Recursive = recursive,
                 SearchOnlyForCurrentAvatar = searchOnlyForCurrentAvatar,
                 SearchGroups = new List<ISearchGroupBase>()
                 {

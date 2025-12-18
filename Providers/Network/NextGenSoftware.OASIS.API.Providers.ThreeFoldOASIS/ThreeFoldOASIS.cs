@@ -1096,9 +1096,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
         #endregion
 
         #region IOASISSuperStar
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
-            throw new NotImplementedException();
+            // ThreeFold currently does not generate native code from STAR metadata.
+            return true;
         }
 
         #endregion

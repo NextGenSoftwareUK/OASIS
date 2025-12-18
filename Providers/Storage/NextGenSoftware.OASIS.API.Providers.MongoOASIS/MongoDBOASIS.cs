@@ -922,8 +922,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         //IOASISSuperStar Interface Implementation
 
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
+            // Mongo currently does not generate native code from STAR metadata.
             return true;
         }
 

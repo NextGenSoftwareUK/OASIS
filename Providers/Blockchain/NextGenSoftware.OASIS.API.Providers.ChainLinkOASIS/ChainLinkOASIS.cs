@@ -1593,8 +1593,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         #endregion
 
         #region IOASISSuperStar
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
+            // ChainLink currently does not generate native code from STAR metadata.
+            // Stub implementation simply returns true to indicate "no-op success".
             return true;
         }
 

@@ -1630,8 +1630,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         #endregion
 
         #region IOASISSuperStar
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
+            // Elrond currently does not generate native code from STAR metadata.
             return true;
         }
 
