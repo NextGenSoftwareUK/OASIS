@@ -2162,14 +2162,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest request)
         {
-            return SendNFTAsync(transation).Result;
+            return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -2178,16 +2178,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     return result;
                 }
 
-                // Create Elrond NFT transfer transaction
+                // Create Elrond NFT transfer transaction using ESDT NFT standard
+                // Elrond uses ESDT (Elrond Standard Digital Token) for NFTs
                 var transaction = new
                 {
                     nonce = 0,
                     value = "0",
-                    receiver = ((IWalletTransactionRequest)transation).ToWalletAddress,
-                    sender = ((IWalletTransactionRequest)transation).FromWalletAddress,
+                    receiver = request.ToWalletAddress,
+                    sender = request.FromWalletAddress,
                     gasPrice = 1000000000,
                     gasLimit = 50000,
-                    data = $"ESDTNFTTransfer@{"ELROND-NFT"}@01@{((IWalletTransactionRequest)transation).ToWalletAddress}",
+                    data = $"ESDTNFTTransfer@{request.TokenAddress}@{request.TokenId}@{request.ToWalletAddress}",
                     chainID = _chainId
                 };
 
@@ -2200,13 +2201,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var nftTransactionResponse = new ElrondTransactionResponse
+                    var nftTransactionResponse = new Web3NFTTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "nft-transfer-completed",
                         Success = true
                     };
 
-                    result.Result = (IWeb4Web4NFTTransactionRespone)nftTransactionResponse;
+                    result.Result = nftTransactionResponse;
                     result.IsError = false;
                     result.Message = "NFT transfer sent successfully via Elrond";
                 }
@@ -2222,14 +2223,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transation)
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         {
-            return MintNFTAsync(transation).Result;
+            return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -2260,13 +2261,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var nftTransactionResponse = new ElrondTransactionResponse
+                    var nftTransactionResponse = new Web3NFTTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "nft-mint-completed",
                         Success = true
                     };
 
-                    result.Result = (IWeb4Web4NFTTransactionRespone)nftTransactionResponse;
+                    result.Result = nftTransactionResponse;
                     result.IsError = false;
                     result.Message = "NFT minted successfully via Elrond";
                 }
@@ -2539,14 +2540,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
         #region IOASISNFTProvider Implementation
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string hash)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            return LoadOnChainNFTDataAsync(hash).Result;
+            return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string hash)
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var result = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb3NFT>();
             try
             {
                 if (!IsProviderActivated)
@@ -2555,36 +2556,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     return result;
                 }
 
-                // Real Elrond implementation: Load NFT data from Elrond blockchain
-                var nft = new Web4NFT
+                // Query Elrond NFT metadata using ESDT API
+                // Elrond API: GET /nfts/{identifier}
+                var response = await _httpClient.GetAsync($"/nfts/{Uri.EscapeDataString(nftTokenAddress)}");
+                if (response.IsSuccessStatusCode)
                 {
-                    Id = Guid.NewGuid(),
-                    Title = "Elrond NFT",
-                    Description = "NFT loaded from Elrond blockchain",
-                    ImageUrl = $"https://api.elrond.com/nfts/{hash}/image",
-                    ThumbnailUrl = $"https://api.elrond.com/nfts/{hash}/thumbnail",
-                    MintedOn = DateTime.UtcNow,
-                    ImportedOn = DateTime.UtcNow,
-                    MintTransactionHash = hash,
-                    JSONMetaDataURL = $"https://api.elrond.com/nfts/{hash}/metadata",
-                    Price = 0,
-                    Discount = 0,
-                    MemoText = "Loaded from Elrond blockchain",
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["blockchain"] = "Elrond",
-                        ["hash"] = hash,
-                        ["provider"] = "ElrondOASIS"
-                    },
-                    Tags = new List<string> { "Elrond", "NFT", "Blockchain" },
-                    OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.ElrondOASIS),
-                    OffChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.ElrondOASIS),
-                    StoreNFTMetaDataOnChain = true,
-                    NFTStandardType = new EnumValue<NFTStandardType>(Core.Enums.NFTStandardType.ERC721),
-                    NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(Core.Enums.NFTOffChainMetaType.ExternalJSONURL)
-                };
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var nftData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                result.Result = (IOASISNFT)nft;
+                    var web3NFT = new Web3NFT
+                    {
+                        NFTTokenAddress = nftTokenAddress,
+                        Name = nftData.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null,
+                        Symbol = nftData.TryGetProperty("ticker", out var tickerProp) ? tickerProp.GetString() : null,
+                        TokenUri = nftData.TryGetProperty("uri", out var uriProp) ? uriProp.GetString() : null
+                    };
+
+                    result.Result = web3NFT;
                 result.IsError = false;
                 result.Message = "NFT data loaded successfully from Elrond blockchain";
             }

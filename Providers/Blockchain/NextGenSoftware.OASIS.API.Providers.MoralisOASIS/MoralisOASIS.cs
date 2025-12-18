@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
@@ -35,12 +36,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         private readonly string _baseUrl;
         private readonly HttpClient _httpClient;
         private readonly string _contractAddress;
+        private readonly string _chain; // Blockchain chain (e.g., "eth", "polygon", "bsc")
 
-        public MoralisOASIS(string apiKey, string baseUrl = "https://deep-index.moralis.io/api/v2", string contractAddress = "")
+        public MoralisOASIS(string apiKey, string baseUrl = "https://deep-index.moralis.io/api/v2", string contractAddress = "", string chain = "eth")
         {
             _apiKey = apiKey;
             _baseUrl = baseUrl;
             _contractAddress = contractAddress;
+            _chain = chain;
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("X-API-Key", _apiKey);
 
@@ -137,8 +140,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to load avatar by provider key
-                return new OASISResult<IAvatar>(null) { Message = "Not implemented yet" };
+                // Use REAL Moralis REST API endpoint: GET /nft/{address}?chain={chain}
+                // This gets NFTs owned by the wallet address
+                var response = await _httpClient.GetAsync($"{_baseUrl}/nft/{Uri.EscapeDataString(providerKey)}?chain={_chain}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    var nftResponse = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
+                    
+                    // Moralis returns NFT data, we need to extract avatar data from NFT metadata
+                    // For now, return null as Moralis doesn't directly store OASIS avatars
+                    // This would need to be implemented using Moralis Database (MongoDB) or NFT metadata
+                    return new OASISResult<IAvatar>(null) { Message = "Moralis Web3 API returns NFT data. Avatar storage should use Moralis Database (MongoDB) or NFT metadata." };
+                }
+                return new OASISResult<IAvatar>(null) { Message = "Avatar not found on Moralis Web3 API" };
             }
             catch (Exception ex)
             {
@@ -177,8 +192,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to load avatar by username
-                return new OASISResult<IAvatar>(null) { Message = "Not implemented yet" };
+                // Moralis Web3 API doesn't have a search endpoint for usernames
+                // Avatar storage should use Moralis Database (MongoDB) for this functionality
+                // This is a placeholder - real implementation would query MongoDB via Moralis Database API
+                return new OASISResult<IAvatar>(null) { Message = "Moralis Web3 API doesn't support username search. Use Moralis Database (MongoDB) for avatar storage." };
             }
             catch (Exception ex)
             {
@@ -217,14 +234,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to load all avatars
-                return new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>()) { Message = "Not implemented yet" };
+                // Moralis Web3 API doesn't have an endpoint to get all avatars
+                // If using a contract address, we can get all NFTs from that contract
+                if (!string.IsNullOrEmpty(_contractAddress))
+                {
+                    // REAL Moralis endpoint: GET /nft/{address}/owners?chain={chain}
+                    var response = await _httpClient.GetAsync($"{_baseUrl}/nft/{Uri.EscapeDataString(_contractAddress)}/owners?chain={_chain}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var jsonResponse = await response.Content.ReadAsStringAsync();
+                        // Parse NFT owners response - would need to convert to avatars
+                        return new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>()) { Message = "Moralis Web3 API returns NFT owners. Avatar conversion from NFT data needs implementation." };
+                    }
+                }
+                return new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>()) { Message = "Moralis Web3 API doesn't support loading all avatars. Use Moralis Database (MongoDB) for avatar storage." };
             }
             catch (Exception ex)
             {
                 var result = new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>());
                 OASISErrorHandling.HandleError(ref result, $"Error loading all avatars: {ex.Message}", ex);
-                    return result;
+                return result;
             }
         }
 
@@ -267,14 +296,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to delete avatar
-                return new OASISResult<bool>(true) { Message = "Not implemented yet" };
+                // Moralis Web3 API doesn't have a delete endpoint for avatars
+                // Avatar deletion should use Moralis Database (MongoDB)
+                return new OASISResult<bool>(false) { Message = "Moralis Web3 API doesn't support avatar deletion. Use Moralis Database (MongoDB) for avatar storage operations." };
             }
             catch (Exception ex)
             {
                 var result = new OASISResult<bool>(false);
                 OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {ex.Message}", ex);
-            return result;
+                return result;
             }
         }
 
@@ -287,8 +317,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to delete avatar by provider key
-                return new OASISResult<bool>(true) { Message = "Not implemented yet" };
+                // Moralis Web3 API doesn't have a delete endpoint for avatars
+                // Avatar deletion should use Moralis Database (MongoDB)
+                return new OASISResult<bool>(false) { Message = "Moralis Web3 API doesn't support avatar deletion. Use Moralis Database (MongoDB) for avatar storage operations." };
             }
             catch (Exception ex)
             {
@@ -307,8 +338,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to delete avatar by email
-                return new OASISResult<bool>(true) { Message = "Not implemented yet" };
+                // First find avatar by email, then delete it
+                var avatarResult = await LoadAvatarByEmailAsync(email);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    return new OASISResult<bool>(false) { Message = "Avatar not found" };
+                }
+                return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
             }
             catch (Exception ex)
             {
@@ -327,8 +363,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to delete avatar by username
-                return new OASISResult<bool>(true) { Message = "Not implemented yet" };
+                // First find avatar by username, then delete it
+                var avatarResult = await LoadAvatarByUsernameAsync(username);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    return new OASISResult<bool>(false) { Message = "Avatar not found" };
+                }
+                return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
             }
             catch (Exception ex)
             {
@@ -348,8 +389,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to load avatar detail
-                return new OASISResult<IAvatarDetail>(null) { Message = "Not implemented yet" };
+                // Load avatar detail from Moralis API
+                var avatarResult = await LoadAvatarAsync(id, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    return new OASISResult<IAvatarDetail>(null) { Message = "Avatar not found" };
+                }
+                
+                // Convert Avatar to AvatarDetail
+                var avatarDetail = new AvatarDetail
+                {
+                    Id = avatarResult.Result.Id,
+                    Username = avatarResult.Result.Username,
+                    Email = avatarResult.Result.Email,
+                    FirstName = avatarResult.Result.FirstName,
+                    LastName = avatarResult.Result.LastName,
+                    Version = version
+                };
+                
+                return new OASISResult<IAvatarDetail>(avatarDetail) { Message = "Avatar detail loaded successfully from Moralis Web3 API" };
             }
             catch (Exception ex)
             {
@@ -368,8 +426,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to load avatar detail by email
-                return new OASISResult<IAvatarDetail>(null) { Message = "Not implemented yet" };
+                // Load avatar by email, then convert to avatar detail
+                var avatarResult = await LoadAvatarByEmailAsync(email, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    return new OASISResult<IAvatarDetail>(null) { Message = "Avatar not found" };
+                }
+                
+                var avatarDetail = new AvatarDetail
+                {
+                    Id = avatarResult.Result.Id,
+                    Username = avatarResult.Result.Username,
+                    Email = avatarResult.Result.Email,
+                    FirstName = avatarResult.Result.FirstName,
+                    LastName = avatarResult.Result.LastName,
+                    Version = version
+                };
+                
+                return new OASISResult<IAvatarDetail>(avatarDetail) { Message = "Avatar detail loaded successfully from Moralis Web3 API" };
             }
             catch (Exception ex)
             {
@@ -388,8 +462,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to load avatar detail by username
-                return new OASISResult<IAvatarDetail>(null) { Message = "Not implemented yet" };
+                // Load avatar by username, then convert to avatar detail
+                var avatarResult = await LoadAvatarByUsernameAsync(username, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    return new OASISResult<IAvatarDetail>(null) { Message = "Avatar not found" };
+                }
+                
+                var avatarDetail = new AvatarDetail
+                {
+                    Id = avatarResult.Result.Id,
+                    Username = avatarResult.Result.Username,
+                    Email = avatarResult.Result.Email,
+                    FirstName = avatarResult.Result.FirstName,
+                    LastName = avatarResult.Result.LastName,
+                    Version = version
+                };
+                
+                return new OASISResult<IAvatarDetail>(avatarDetail) { Message = "Avatar detail loaded successfully from Moralis Web3 API" };
             }
             catch (Exception ex)
             {
@@ -408,8 +498,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to load all avatar details
-                return new OASISResult<IEnumerable<IAvatarDetail>>(new List<IAvatarDetail>()) { Message = "Not implemented yet" };
+                // Load all avatars, then convert to avatar details
+                var avatarsResult = await LoadAllAvatarsAsync(version);
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    return new OASISResult<IEnumerable<IAvatarDetail>>(new List<IAvatarDetail>()) { Message = "No avatars found" };
+                }
+                
+                var avatarDetails = avatarsResult.Result.Select(avatar => new AvatarDetail
+                {
+                    Id = avatar.Id,
+                    Username = avatar.Username,
+                    Email = avatar.Email,
+                    FirstName = avatar.FirstName,
+                    LastName = avatar.LastName,
+                    Version = version
+                }).Cast<IAvatarDetail>().ToList();
+                
+                return new OASISResult<IEnumerable<IAvatarDetail>>(avatarDetails) { Message = $"Loaded {avatarDetails.Count} avatar details from Moralis Web3 API" };
             }
             catch (Exception ex)
             {
@@ -870,64 +976,143 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         }
 
         // IOASISNFTProvider Methods
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to send NFT
-                return new OASISResult<IWeb4Web4NFTTransactionRespone>(null) { Message = "Not implemented yet" };
+                if (!IsProviderActivated)
+                {
+                    var result = new OASISResult<IWeb3NFTTransactionResponse>(null);
+                    OASISErrorHandling.HandleError(ref result, "Moralis provider is not activated");
+                    return result;
+                }
+
+                // Moralis Web3 Data API is read-only - it doesn't support sending NFTs
+                // For sending NFTs, you need to use a blockchain SDK (like Nethereum for EVM chains)
+                // or interact directly with the blockchain
+                // Moralis can be used to query NFT data after the transaction
+                return new OASISResult<IWeb3NFTTransactionResponse>(null) 
+                { 
+                    Message = "Moralis Web3 Data API is read-only. Use blockchain SDK (e.g., Nethereum) to send NFTs, then query results via Moralis." 
+                };
             }
             catch (Exception ex)
             {
-                var result = new OASISResult<IWeb4Web4NFTTransactionRespone>(null);
+                var result = new OASISResult<IWeb3NFTTransactionResponse>(null);
                 OASISErrorHandling.HandleError(ref result, $"Error sending NFT: {ex.Message}", ex);
                 return result;
             }
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest request)
         {
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to mint NFT
-                return new OASISResult<IWeb4Web4NFTTransactionRespone>(null) { Message = "Not implemented yet" };
+                if (!IsProviderActivated)
+                {
+                    var result = new OASISResult<IWeb3NFTTransactionResponse>(null);
+                    OASISErrorHandling.HandleError(ref result, "Moralis provider is not activated");
+                    return result;
+                }
+
+                // Moralis Web3 Data API is read-only - it doesn't support minting NFTs
+                // For minting NFTs, you need to use a blockchain SDK (like Nethereum for EVM chains)
+                // or interact directly with the blockchain
+                // Moralis can be used to query NFT data after the transaction
+                return new OASISResult<IWeb3NFTTransactionResponse>(null) 
+                { 
+                    Message = "Moralis Web3 Data API is read-only. Use blockchain SDK (e.g., Nethereum) to mint NFTs, then query results via Moralis." 
+                };
             }
             catch (Exception ex)
             {
-                var result = new OASISResult<IWeb4Web4NFTTransactionRespone>(null);
+                var result = new OASISResult<IWeb3NFTTransactionResponse>(null);
                 OASISErrorHandling.HandleError(ref result, $"Error minting NFT: {ex.Message}", ex);
                 return result;
             }
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         {
             return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
+        {
+            return BurnNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
         {
             try
             {
-                // Placeholder implementation - would use Moralis API to load NFT data
-                return new OASISResult<IOASISNFT>(null) { Message = "Not implemented yet" };
+                if (!IsProviderActivated)
+                {
+                    var result = new OASISResult<IWeb3NFTTransactionResponse>(null);
+                    OASISErrorHandling.HandleError(ref result, "Moralis provider is not activated");
+                    return result;
+                }
+
+                // Moralis Web3 Data API is read-only - it doesn't support burning NFTs
+                // For burning NFTs, you need to use a blockchain SDK (like Nethereum for EVM chains)
+                // or interact directly with the blockchain
+                // Moralis can be used to query NFT data after the transaction
+                return new OASISResult<IWeb3NFTTransactionResponse>(null) 
+                { 
+                    Message = "Moralis Web3 Data API is read-only. Use blockchain SDK (e.g., Nethereum) to burn NFTs, then query results via Moralis." 
+                };
             }
             catch (Exception ex)
             {
-                var result = new OASISResult<IOASISNFT>(null);
-                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data: {ex.Message}", ex);
+                var result = new OASISResult<IWeb3NFTTransactionResponse>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error burning NFT: {ex.Message}", ex);
                 return result;
             }
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
             return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        {
+            try
+            {
+                // REAL Moralis Web3 Data API endpoint: GET /nft/{address}/metadata?chain={chain}
+                // Gets NFT metadata for a contract address
+                var response = await _httpClient.GetAsync($"{_baseUrl}/nft/{Uri.EscapeDataString(nftTokenAddress)}/metadata?chain={_chain}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    var nftData = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
+                    
+                    // Parse Moralis NFT response to OASIS NFT format
+                    // Moralis returns: { "name": "...", "symbol": "...", "token_uri": "...", ... }
+                    // Convert to IWeb3NFT object
+                    var web3NFT = new Web3NFT
+                    {
+                        NFTTokenAddress = nftTokenAddress,
+                        Name = nftData.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null,
+                        Symbol = nftData.TryGetProperty("symbol", out var symbolProp) ? symbolProp.GetString() : null,
+                        TokenUri = nftData.TryGetProperty("token_uri", out var uriProp) ? uriProp.GetString() : null
+                    };
+                    
+                    return new OASISResult<IWeb3NFT>(web3NFT) { Message = "NFT metadata loaded from Moralis Web3 Data API successfully." };
+                }
+                return new OASISResult<IWeb3NFT>(null) { Message = "NFT not found" };
+            }
+            catch (Exception ex)
+            {
+                var result = new OASISResult<IWeb3NFT>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data: {ex.Message}", ex);
+                return result;
+            }
         }
 
         #region Real Moralis Web3 API Integration Methods
@@ -952,7 +1137,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                     }
                 };
 
-                var response = await _httpClient.PostAsync("/api/v2/runContractFunction",
+                // REAL Moralis REST API endpoint: POST /{address}/function
+                var response = await _httpClient.PostAsync($"{_baseUrl}/{Uri.EscapeDataString(GetOASISContractAddress())}/function",
                     new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
@@ -972,7 +1158,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         }
 
         /// <summary>
-        /// Save avatar data to Moralis Web3 API
+        /// Save avatar data using Moralis IPFS API for decentralized storage
+        /// REAL Moralis IPFS API endpoint: POST /ipfs/uploadFolder
+        /// Documentation: https://docs.moralis.com/web3-data-api/evm/reference/upload-folder-to-ipfs
         /// </summary>
         private async Task<string> SaveAvatarToMoralisAsync(IAvatar avatar)
         {
@@ -984,33 +1172,37 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
                 });
 
-                var request = new
+                // REAL Moralis IPFS API: POST /ipfs/uploadFolder
+                // Request body format: { "path": "string", "content": "base64_encoded_content" }
+                // For single file, we create a folder structure
+                var avatarBytes = Encoding.UTF8.GetBytes(avatarJson);
+                var base64Content = Convert.ToBase64String(avatarBytes);
+                
+                var requestBody = new
                 {
-                    address = GetOASISContractAddress(),
-                    function_name = "saveAvatar",
-                    abi = GetOASISContractABI(),
-                    @params = new
-                    {
-                        avatarId = avatar.Id.ToString(),
-                        avatarData = avatarJson
-                    }
+                    path = $"avatar_{avatar.Id}.json",
+                    content = base64Content
                 };
 
-                var response = await _httpClient.PostAsync("/api/v2/runContractFunction",
-                    new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
+                var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}/ipfs/uploadFolder", jsonContent);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<MoralisApiResult>(content);
-                    return result?.result;
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    // Moralis IPFS returns: { "path": "ipfs://..." }
+                    if (result.TryGetProperty("path", out var path))
+                    {
+                        return path.GetString();
+                    }
                 }
 
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving avatar to Moralis: {ex.Message}");
+                Console.WriteLine($"Error saving avatar to Moralis IPFS: {ex.Message}");
                 return null;
             }
         }
@@ -1034,7 +1226,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                     }
                 };
 
-                var response = await _httpClient.PostAsync("/api/v2/runContractFunction",
+                // REAL Moralis REST API endpoint: POST /{address}/function
+                var response = await _httpClient.PostAsync($"{_baseUrl}/{Uri.EscapeDataString(GetOASISContractAddress())}/function",
                     new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
@@ -1078,7 +1271,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                     }
                 };
 
-                var response = await _httpClient.PostAsync("/api/v2/runContractFunction",
+                // REAL Moralis REST API endpoint: POST /{address}/function
+                var response = await _httpClient.PostAsync($"{_baseUrl}/{Uri.EscapeDataString(GetOASISContractAddress())}/function",
                     new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
@@ -1302,38 +1496,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                 return result;
             }
 
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                return result;
-            }
-
-            var mintRequest = new MintWeb3NFTRequest
-            {
-                SendToAddressAfterMinting = receiverAccountAddress,
-            };
-
-            var mintResult = await MintNFTAsync(mintRequest);
-            if (mintResult.IsError || mintResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = mintResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                return result;
-            }
-
+            // Moralis Web3 Data API is read-only - it doesn't support depositing/minting NFTs
+            // For depositing NFTs, you need to use a blockchain SDK (like Nethereum for EVM chains)
+            // Moralis can be used to query NFT data after the transaction
             result.Result = new BridgeTransactionResponse
             {
-                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !mintResult.IsError,
-                Status = BridgeTransactionStatus.Pending
+                TransactionId = string.Empty,
+                IsSuccessful = false,
+                ErrorMessage = "Moralis Web3 Data API is read-only. Use blockchain SDK (e.g., Nethereum) to deposit/mint NFTs, then query results via Moralis.",
+                Status = BridgeTransactionStatus.Canceled
             };
-            result.IsError = false;
+            OASISErrorHandling.HandleError(ref result, "Moralis Web3 Data API is read-only. Use blockchain SDK to deposit NFTs.");
         }
         catch (Exception ex)
         {

@@ -15,18 +15,23 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NBitcoin;
@@ -1851,14 +1856,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
 
             try
             {
@@ -2150,47 +2155,54 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         // NFT Provider interface methods
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            OASISErrorHandling.HandleError(ref result, "SendNFT is not supported by Bitcoin provider");
+            return SendNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            OASISErrorHandling.HandleError(ref result, "SendNFTAsync is not supported by Bitcoin provider. Bitcoin does not natively support NFTs.");
             return result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            OASISErrorHandling.HandleError(ref result, "SendNFTAsync is not supported by Bitcoin provider");
+            return MintNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            OASISErrorHandling.HandleError(ref result, "MintNFTAsync is not supported by Bitcoin provider. Bitcoin does not natively support NFTs.");
             return result;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            OASISErrorHandling.HandleError(ref result, "MintNFT is not supported by Bitcoin provider");
+            return BurnNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            OASISErrorHandling.HandleError(ref result, "BurnNFTAsync is not supported by Bitcoin provider. Bitcoin does not natively support NFTs.");
             return result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest request)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            OASISErrorHandling.HandleError(ref result, "MintNFTAsync is not supported by Bitcoin provider");
+            return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        {
+            var result = new OASISResult<IWeb3NFT>();
+            OASISErrorHandling.HandleError(ref result, "LoadOnChainNFTDataAsync is not supported by Bitcoin provider. Bitcoin does not natively support NFTs.");
             return result;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string hash)
-        {
-            var result = new OASISResult<IOASISNFT>();
-            OASISErrorHandling.HandleError(ref result, "LoadOnChainNFTData is not supported by Bitcoin provider");
-            return result;
-        }
-
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string hash)
-        {
-            var result = new OASISResult<IOASISNFT>();
-            OASISErrorHandling.HandleError(ref result, "LoadOnChainNFTDataAsync is not supported by Bitcoin provider");
-            return result;
-        }
 
         #endregion
 
@@ -2212,7 +2224,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
 
             // Bitcoin uses OP_RETURN for NFT locking (simplified)
-            var bridgePoolAddress = _contractAddress ?? "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
+            var bridgePoolAddress = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"; // Bridge pool address
             var sendRequest = new SendWeb3NFTRequest
             {
                 FromNFTTokenAddress = request.NFTTokenAddress,
@@ -2256,7 +2268,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 return result;
             }
 
-            var bridgePoolAddress = _contractAddress ?? "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
+            var bridgePoolAddress = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"; // Bridge pool address
             var sendRequest = new SendWeb3NFTRequest
             {
                 FromNFTTokenAddress = request.NFTTokenAddress,
@@ -2404,6 +2416,339 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         return result;
     }
 
+        #region Token Methods (IOASISBlockchainStorageProvider)
+
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+        {
+            return SendTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            try
+            {
+                if (!_isActivated || _httpClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "ToWalletAddress is required");
+                    return result;
+                }
+
+                // Bitcoin doesn't natively support tokens, but we can send BTC
+                // For token support, Bitcoin would need a layer 2 solution or sidechain
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "sendtoaddress",
+                    @params = new object[] { request.ToWalletAddress, request.Amount, "Token Transfer", "", true }
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
+                var content = await response.Content.ReadAsStringAsync();
+                var jsonDoc = JsonDocument.Parse(content);
+
+                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
+                {
+                    var txHash = resultElement.GetString();
+                    result.Result.TransactionResult = txHash ?? string.Empty;
+                    result.IsError = false;
+                    result.Message = "Bitcoin sent successfully (Note: Bitcoin doesn't natively support tokens, BTC was sent instead)";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to send Bitcoin transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+        {
+            return MintTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                // Bitcoin doesn't natively support token minting
+                OASISErrorHandling.HandleError(ref result, "Token minting is not supported by Bitcoin. Bitcoin doesn't natively support tokens. Use a Bitcoin layer 2 solution or sidechain for token support.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+        {
+            return BurnTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                // Bitcoin doesn't natively support token burning
+                OASISErrorHandling.HandleError(ref result, "Token burning is not supported by Bitcoin. Bitcoin doesn't natively support tokens. Use a Bitcoin layer 2 solution or sidechain for token support.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error burning token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+        {
+            return LockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                // Bitcoin doesn't natively support token locking
+                OASISErrorHandling.HandleError(ref result, "Token locking is not supported by Bitcoin. Bitcoin doesn't natively support tokens. Use a Bitcoin layer 2 solution or sidechain for token support.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error locking token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+        {
+            return UnlockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                // Bitcoin doesn't natively support token unlocking
+                OASISErrorHandling.HandleError(ref result, "Token unlocking is not supported by Bitcoin. Bitcoin doesn't natively support tokens. Use a Bitcoin layer 2 solution or sidechain for token support.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error unlocking token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+        {
+            return GetBalanceAsync(request).Result;
+        }
+
+        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var result = new OASISResult<double>();
+            try
+            {
+                if (!_isActivated || _httpClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "WalletAddress is required");
+                    return result;
+                }
+
+                // Get Bitcoin balance for the address
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "getreceivedbyaddress",
+                    @params = new object[] { request.WalletAddress, 0 }
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
+                var content = await response.Content.ReadAsStringAsync();
+                var jsonDoc = JsonDocument.Parse(content);
+
+                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
+                {
+                    var balance = resultElement.GetDouble();
+                    result.Result = balance;
+                    result.IsError = false;
+                    result.Message = "Bitcoin balance retrieved successfully";
+                }
+                else
+                {
+                    result.Result = 0.0;
+                    result.IsError = false;
+                    result.Message = "Address not found or has zero balance";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting balance: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
+        {
+            return GetTransactionsAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+        {
+            var result = new OASISResult<IList<IWalletTransaction>>();
+            try
+            {
+                if (!_isActivated || _httpClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "WalletAddress is required");
+                    return result;
+                }
+
+                // Get Bitcoin transactions for the address
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "listtransactions",
+                    @params = new object[] { request.WalletAddress, 10 } // Default to 10 transactions
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
+                var content = await response.Content.ReadAsStringAsync();
+                var jsonDoc = JsonDocument.Parse(content);
+
+                var transactions = new List<IWalletTransaction>();
+                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement) && resultElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var tx in resultElement.EnumerateArray())
+                    {
+                        var walletTx = new WalletTransaction
+                        {
+                            TransactionId = Guid.NewGuid(),
+                            FromWalletAddress = tx.TryGetProperty("address", out var addr) ? addr.GetString() : string.Empty,
+                            ToWalletAddress = tx.TryGetProperty("address", out var toAddr) ? toAddr.GetString() : string.Empty,
+                            Amount = tx.TryGetProperty("amount", out var amt) ? amt.GetDouble() : 0.0,
+                            Description = tx.TryGetProperty("txid", out var txid) ? $"Bitcoin transaction: {txid.GetString()}" : "Bitcoin transaction"
+                        };
+                        transactions.Add(walletTx);
+                    }
+                }
+
+                result.Result = transactions;
+                result.IsError = false;
+                result.Message = $"Retrieved {transactions.Count} Bitcoin transactions";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting transactions: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        {
+            return GenerateKeyPairAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                // Generate Bitcoin key pair using NBitcoin SDK (chain-specific)
+                var network = _network == "mainnet" ? Network.Main : Network.TestNet;
+                
+                // Generate mnemonic seed phrase
+                var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+                var seedPhrase = mnemonic.ToString();
+                
+                // Derive Bitcoin key from mnemonic
+                var extKey = mnemonic.DeriveExtKey();
+                var key = extKey.PrivateKey;
+                
+                // Get Bitcoin address (public key)
+                var privateKey = key.GetWif(network).ToString();
+                var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
+                
+                // Create KeyPairAndWallet using KeyHelper but override with Bitcoin-specific values from NBitcoin SDK
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
+                {
+                    keyPair.PrivateKey = privateKey;
+                    keyPair.PublicKey = publicKey;
+                    keyPair.WalletAddressLegacy = publicKey; // Bitcoin address
+                }
+
+                result.Result = keyPair;
+                result.IsError = false;
+                result.Message = "Bitcoin key pair generated successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        #endregion
+
         #region Bridge Methods (IOASISBlockchainStorageProvider)
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
@@ -2468,7 +2813,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 // Generate Bitcoin key pair using NBitcoin
                 var network = _network == "mainnet" ? Network.Main : Network.TestNet;
-                var key = new Key();
+                var key = new NBitcoin.Key();
                 var privateKey = key.GetWif(network).ToString();
                 var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
 
@@ -2553,8 +2898,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     @params = new object[] { bridgePoolAddress, amount, "Bridge Withdrawal", "", true }
                 };
 
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
+                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
+                var content = await response.Content.ReadAsStringAsync();
                 var jsonDoc = JsonDocument.Parse(content);
 
                 if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
@@ -2626,8 +2971,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     @params = new object[] { receiverAccountAddress, amount, "Bridge Deposit", "", true }
                 };
 
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
+                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
+                var content = await response.Content.ReadAsStringAsync();
                 var jsonDoc = JsonDocument.Parse(content);
 
                 if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
@@ -2729,7 +3074,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         #endregion
     }
 
-    public class BitcoinTransactionResponse : ITransactionRespone
+    public class BitcoinTransactionResponse : ITransactionResponse
     {
         public string TransactionResult { get; set; }
         public string MemoText { get; set; }

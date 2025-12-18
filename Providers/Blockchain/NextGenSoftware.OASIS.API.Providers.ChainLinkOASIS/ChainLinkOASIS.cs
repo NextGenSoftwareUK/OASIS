@@ -1918,14 +1918,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest request)
         {
-            return SendNFTAsync(transation).Result;
+            return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1934,15 +1934,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     return result;
                 }
 
-                // Create ChainLink NFT transfer transaction
+                // ChainLink runs on Ethereum, so use ERC-721 standard for NFT transfers
+                // Create ChainLink NFT transfer transaction using ERC-721 transferFrom
                 var nftTransferRequest = new
                 {
-                    from = transation.FromWalletAddress,
-                    to = transation.ToWalletAddress,
-                    tokenId = transation.TokenId,
+                    from = request.FromWalletAddress,
+                    to = request.ToWalletAddress,
+                    tokenId = request.TokenId,
                     gas = "0x7530", // 30000 gas for NFT transfer
                     gasPrice = "0x3b9aca00", // 1 gwei
-                    data = $"0x23b872dd{transation.FromWalletAddress.Substring(2).PadLeft(64, '0')}{transation.ToWalletAddress.Substring(2).PadLeft(64, '0')}{transation.TokenId.ToString("x").PadLeft(64, '0')}" // ERC-721 transferFrom function
+                    data = $"0x23b872dd{request.FromWalletAddress.Substring(2).PadLeft(64, '0')}{request.ToWalletAddress.Substring(2).PadLeft(64, '0')}{request.TokenId.ToString("x").PadLeft(64, '0')}" // ERC-721 transferFrom function
                 };
 
                 var jsonContent = JsonSerializer.Serialize(nftTransferRequest);
@@ -1954,13 +1955,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = (IWeb4Web4NFTTransactionRespone)new ChainLinkTransactionResponse
+                    result.Result = new Web3NFTTransactionResponse
                     {
                         TransactionHash = responseData.GetProperty("result").GetString(),
                         Success = true
                     };
                     result.IsError = false;
-                    result.Message = $"ChainLink NFT transfer sent successfully. TX Hash: {((ChainLinkTransactionResponse)result.Result).TransactionHash}";
+                    result.Message = $"ChainLink NFT transfer sent successfully. TX Hash: {result.Result.TransactionHash}";
                 }
                 else
                 {
@@ -1974,98 +1975,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transation)
-        {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            try
-            {
-                // Mint NFT using ChainLink oracle
-                var nftTransaction = new ChainLinkTransactionResponse
-                {
-                    TransactionHash = $"chainlink_{Guid.NewGuid()}",
-                    Success = true,
-                };
-
-                response.Result = (IWeb4Web4NFTTransactionRespone)nftTransaction;
-                response.Message = "NFT minted using ChainLink oracle successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error minting NFT using ChainLink: {ex.Message}");
-            }
-            return response;
-        }
-
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transation)
-        {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            try
-            {
-                // Mint NFT using ChainLink oracle
-                var nftTransaction = new ChainLinkTransactionResponse
-                {
-                    TransactionHash = $"chainlink_{Guid.NewGuid()}",
-                    Success = true,
-                };
-
-                response.Result = (IWeb4Web4NFTTransactionRespone)nftTransaction;
-                response.Message = "NFT minted using ChainLink oracle successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error minting NFT using ChainLink: {ex.Message}");
-            }
-            return response;
-        }
-
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
-        {
-            var response = new OASISResult<IOASISNFT>();
-            try
-            {
-                // Load NFT data from ChainLink oracle
-                var nft = new Web4NFT
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    MetaData = new Dictionary<string, object>
-                    {
-                        {"TokenURI", $"chainlink://oracle/{nftTokenAddress}"},
-                        {"Name", "ChainLink NFT"},
-                        {"Description", "NFT from ChainLink oracle"},
-                        {"Image", "https://chain.link/images/logo.png"}
-                    }
-                };
-
-                response.Result = nft;
-                response.Message = "NFT data loaded from ChainLink oracle successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading NFT data from ChainLink: {ex.Message}");
-            }
-            return response;
-        }
-
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
-        {
-            var response = new OASISResult<IOASISNFT>();
-            try
-            {
-                // Load NFT data from ChainLink oracle
-                var nft = new Web4NFT
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    MetaData = new Dictionary<string, object>
-                    {
-                        {"TokenURI", $"chainlink://oracle/{nftTokenAddress}"},
-                        {"Name", "ChainLink NFT"},
-                        {"Description", "NFT from ChainLink oracle"},
-                        {"Image", "https://chain.link/images/logo.png"}
-                    }
-                };
 
                 response.Result = nft;
                 response.Message = "NFT data loaded from ChainLink oracle successfully";

@@ -538,29 +538,14 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         }
 
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transaction)
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "MintNFT is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in MintNFT: {ex.Message}");
-            }
-            return response;
+            return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transaction)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var response = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!_isActivated)
@@ -568,7 +553,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "MintNFTAsync is not supported by Fantom provider");
+                // Fantom is EVM-compatible, so use ERC-721 standard for NFT minting
+                // Use Nethereum SDK for Fantom NFT operations
+                OASISErrorHandling.HandleError(ref response, "MintNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT minting");
             }
             catch (Exception ex)
             {
@@ -578,29 +565,39 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             return response;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
         {
-            var response = new OASISResult<IOASISNFT>();
+            return BurnNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTData is not supported by Fantom provider");
+                // Fantom is EVM-compatible, so use ERC-721 standard for NFT burning
+                OASISErrorHandling.HandleError(ref result, "BurnNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT burning");
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadOnChainNFTData: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error in BurnNFTAsync: {ex.Message}", ex);
             }
-            return response;
+            return result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var response = new OASISResult<IOASISNFT>();
+            return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        {
+            var response = new OASISResult<IWeb3NFT>();
             try
             {
                 if (!_isActivated)
@@ -608,7 +605,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTDataAsync is not supported by Fantom provider");
+                // Fantom is EVM-compatible, so use ERC-721 standard for NFT metadata querying
+                // Use Nethereum SDK to query NFT metadata
+                OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTDataAsync requires Nethereum SDK integration for Fantom ERC-721 NFT metadata querying");
             }
             catch (Exception ex)
             {
@@ -616,6 +615,46 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 OASISErrorHandling.HandleError(ref response, $"Error in LoadOnChainNFTDataAsync: {ex.Message}");
             }
             return response;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+                // Fantom is EVM-compatible, so use ERC-721 standard for NFT bridge
+                OASISErrorHandling.HandleError(ref result, "WithdrawNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT bridge");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+                // Fantom is EVM-compatible, so use ERC-721 standard for NFT bridge
+                OASISErrorHandling.HandleError(ref result, "DepositNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT bridge");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
+            }
+            return result;
         }
 
         #endregion

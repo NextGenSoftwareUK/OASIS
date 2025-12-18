@@ -2363,14 +2363,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         }
 
         // Missing IOASISNFTProvider methods
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest request)
         {
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var response = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!_isActivated)
@@ -2438,14 +2438,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             return response;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         {
             return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
         {
-            var response = new OASISResult<IWeb4Web4NFTTransactionRespone>();
+            var response = new OASISResult<IWeb3NFTTransactionResponse>();
             try
             {
                 if (!_isActivated)
@@ -2513,21 +2513,6 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             return response;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string hash)
-        {
-            return LoadOnChainNFTDataAsync(hash).Result;
-        }
-
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string hash)
-        {
-            var response = new OASISResult<IOASISNFT>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
-                }
 
                 // Load NFT data from NEAR blockchain
                 var rpcRequest = new
