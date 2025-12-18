@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
-        public OASISResult<IEnumerable<IHolon>> SearchHolons(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
+        public OASISResult<IEnumerable<IHolon>> SearchHolons(string searchTerm, Guid avatarId, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             OASISResult<ISearchResults> searchResults = SearchManager.Instance.Search(new SearchParams()
@@ -41,11 +41,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> SearchHolonsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
+        public async Task<OASISResult<IEnumerable<IHolon>>> SearchHolonsAsync(string searchTerm, Guid avatarId, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             OASISResult<ISearchResults> searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
             {
+                ParentId = parentId,
                 AvatarId = avatarId,
                 SearchOnlyForCurrentAvatar = searchOnlyForCurrentAvatar,
                 SearchGroups = new List<ISearchGroupBase>()
@@ -69,11 +70,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<T>> SearchHolons<T>(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
+        public OASISResult<IEnumerable<T>> SearchHolons<T>(string searchTerm, Guid avatarId, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             OASISResult<ISearchResults> searchResults = SearchManager.Instance.Search(new SearchParams()
             {
+                ParentId = parentId,
                 AvatarId = avatarId,
                 SearchOnlyForCurrentAvatar = searchOnlyForCurrentAvatar,
                 SearchGroups = new List<ISearchGroupBase>()
@@ -109,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<T>>> SearchHolonsAsync<T>(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
+        public async Task<OASISResult<IEnumerable<T>>> SearchHolonsAsync<T>(string searchTerm, Guid avatarId, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             OASISResult<ISearchResults> searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()

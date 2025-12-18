@@ -34,8 +34,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "NFTType",
             "onft",
             "oasis_nfts",
-            "NFTDNA.json",
-            "NFTDNAJSON")
+            "STARNFTDNA.json",
+            "STARNFTDNAJSON")
         { }
 
         public STARNFTManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
@@ -51,8 +51,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "NFTType",
             "onft",
             "oasis_nfts",
-            "NFTDNA.json",
-            "NFTDNAJSON")
+            "STARNFTDNA.json",
+            "STARNFTDNAJSON")
         { }
 
         //public async Task<OASISResult<ISTARNFT>> CreateNFTAsync(

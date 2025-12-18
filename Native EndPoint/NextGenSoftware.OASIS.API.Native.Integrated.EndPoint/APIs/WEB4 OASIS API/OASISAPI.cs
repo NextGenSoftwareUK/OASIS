@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         //private TelosManager _telos = null;
         private StatsManager _stats = null;
         private ProviderManager _provider = null;
-        private COSMICManager _cosmic = null;
+        //private COSMICManager _cosmic = null;
 
         public bool IsOASISBooted { get; set; }
         //public string OASISRunVersion { get; set; }
@@ -445,26 +445,26 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             }
         }
 
-        public COSMICManager COSMIC
-        {
-            get
-            {
-                if (_cosmic == null)
-                {
-                    if (IsOASISBooted)
-                    {
-                        if (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id != Guid.Empty)
-                            _cosmic = new COSMICManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.Id, OASISBootLoader.OASISBootLoader.OASISDNA);
-                        else
-                            _cosmic = new COSMICManager(ProviderManager.Instance.CurrentStorageProvider, Guid.NewGuid(), OASISBootLoader.OASISBootLoader.OASISDNA);
-                    }
-                    else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the COSMIC property!");
-                }
+        //public COSMICManager COSMIC
+        //{
+        //    get
+        //    {
+        //        if (_cosmic == null)
+        //        {
+        //            if (IsOASISBooted)
+        //            {
+        //                if (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id != Guid.Empty)
+        //                    _cosmic = new COSMICManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.Id, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //                else
+        //                    _cosmic = new COSMICManager(ProviderManager.Instance.CurrentStorageProvider, Guid.NewGuid(), OASISBootLoader.OASISBootLoader.OASISDNA);
+        //            }
+        //            else
+        //                throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the COSMIC property!");
+        //        }
 
-                return _cosmic;
-            }
-        }
+        //        return _cosmic;
+        //    }
+        //}
 
         public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, string userName = "", string password = "", bool startApolloServer = true)
         {

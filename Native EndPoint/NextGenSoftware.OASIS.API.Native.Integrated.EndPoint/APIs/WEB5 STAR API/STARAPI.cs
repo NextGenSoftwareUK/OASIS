@@ -34,6 +34,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private ZomeMetaDataDNAManager _zomesDNA = null;
         private HolonMetaDataDNAManager _holonsDNA = null;
         private PluginManager _plugins = null;
+        //private COSMICManager _cosmic = null;
 
         public STARAPI(STARDNA STARDNA, OASISAPI OASISAPI = null) 
         {
@@ -518,6 +519,27 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 return _plugins;
             }
         }
+
+        //public COSMICManager COSMIC
+        //{
+        //    get
+        //    {
+        //        if (_cosmic == null)
+        //        {
+        //            if (IsOASISBooted)
+        //            {
+        //                if (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id != Guid.Empty)
+        //                    _cosmic = new COSMICManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.Id, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //                else
+        //                    _cosmic = new COSMICManager(ProviderManager.Instance.CurrentStorageProvider, Guid.NewGuid(), OASISBootLoader.OASISBootLoader.OASISDNA);
+        //            }
+        //            else
+        //                throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the COSMIC property!");
+        //        }
+
+        //        return _cosmic;
+        //    }
+        //}
 
         public OASISResult<bool> BootOASISAPI(string userName, string password, OASISDNA OASISDNA, bool startApolloServer = true)
         {

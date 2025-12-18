@@ -308,7 +308,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
             }
-
+            else
+                Console.WriteLine("");
 
             return mintRequests;
         }
@@ -851,6 +852,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation($"Do you wish to change the sale status (Is For Sale)? (currently is: {nft.IsForSale})"))
             {
+                Console.WriteLine("");
                 SalesInfo salesInfo = UpdateSalesInfo(new SalesInfo() { IsForSale = nft.IsForSale, SaleStartDate = nft.SaleStartDate, SaleEndDate = nft.SaleEndDate });
                 
                 request.IsForSale = salesInfo.IsForSale;
@@ -867,18 +869,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (updateMetaData)
                 request.MetaData = MetaDataHelper.ManageMetaData(nft.MetaData, displayName);
 
-            request.UpdateAllChildWeb3NFTs = CLIEngine.GetConfirmation("Do you wish to apply these edits to all child WEB3 NFT's contained inside this WEB4 OASIS NFT?");
+            request.UpdateAllChildWeb3NFTs = CLIEngine.GetConfirmation("Do you wish to apply these edits to all child WEB3 NFT's contained inside this WEB4 OASIS NFT? NOTE: This will override any varients you created!");
 
             if (!request.UpdateAllChildWeb3NFTs)
             {
                 if (request.UpdateChildWebNFTIds == null)
                     request.UpdateChildWebNFTIds = new List<string>();
 
-                if (CLIEngine.GetConfirmation("Do you wish to apply these edits to a selection of child WEB3 NFT's contained inside this WEB4 OASIS NFT?"))
+                Console.WriteLine("");
+                if (CLIEngine.GetConfirmation("Do you wish to apply these edits to a selection of child WEB3 NFT's contained inside this WEB4 OASIS NFT? NOTE: This will override any varients you created!"))
                 {
                     do
                     {
-                        OASISResult<IWeb3NFT> web3NFTResult = await FindWeb3NFTAsync("edit");
+                        Console.WriteLine("");
+                        OASISResult<IWeb3NFT> web3NFTResult = await FindWeb3NFTAsync("edit", request.Id);
 
                         if (web3NFTResult != null && web3NFTResult.Result != null && !web3NFTResult.IsError)
                             request.UpdateChildWebNFTIds.Add(web3NFTResult.Result.Id.ToString());
@@ -953,7 +957,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, parentWeb4NFTId, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -1056,7 +1060,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB3 NFT's Found:");
 
                         for (int i = 0; i < nfts.Result.Count(); i++)
-                            ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
+                            ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, i == nfts.Result.Count() - 1, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No WEB3 NFT's Found.");
@@ -1090,7 +1094,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("NFT Token Address", web3NFT.NFTTokenAddress, displayFieldLength);
             DisplayProperty("Update Authority", web3NFT.UpdateAuthority, displayFieldLength);
             
-            CLIEngine.ShowDivider();
+            //CLIEngine.ShowDivider();
                
             if (showFooter)
                 CLIEngine.ShowDivider();
