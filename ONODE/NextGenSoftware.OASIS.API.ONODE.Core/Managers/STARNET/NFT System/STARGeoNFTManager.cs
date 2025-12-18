@@ -26,8 +26,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoNFTType",
             "ogeonft",
             "oasis_geonfts",
-            "GeoNFTDNA.json",
-            "GeoNFTDNAJSON")
+            "STARGeoNFTDNA.json",
+            "STARGeoNFTDNAJSON")
         { }
 
         public STARGeoNFTManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
@@ -43,8 +43,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoNFTType",
             "ogeonft",
             "oasis_geonfts",
-            "GeoNFTDNA.json",
-            "GeoNFTDNAJSON")
+            "STARGeoNFTDNA.json",
+            "STARGeoNFTDNAJSON")
         { }
 
         //public new async Task<OASISResult<ISTARGeoNFT>> CreateAsync(

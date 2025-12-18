@@ -26,8 +26,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoNFTCollectionType",
             "ogeonftcollection",
             "oasis_geonftcollections",
-            "GeoNFTCollectionDNA.json",
-            "GeoNFTCollectionDNAJSON")
+            "STARGeoNFTCollectionDNA.json",
+            "STARGeoNFTCollectionDNAJSON")
         { }
 
         public STARGeoNFTCollectionManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
@@ -43,8 +43,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoNFTCollectionType",
             "ogeonftcollection",
             "oasis_geonftcollections",
-            "GeoNFTCollectionDNA.json",
-            "GeoNFTCollectionDNAJSON")
+            "STARGeoNFTCollectionDNA.json",
+            "STARGeoNFTCollectionDNAJSON")
         { }
     }
 }

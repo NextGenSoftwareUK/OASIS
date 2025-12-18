@@ -1905,7 +1905,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public virtual async Task SearchAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task SearchAsync(string searchTerm = "", Guid parentId = default, bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
         {
             if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
             {
@@ -1915,7 +1915,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching {STARNETManager.STARNETHolonUIName}'s...");
-            ListStarHolons(await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, searchTerm, !showForAllAvatars, showAllVersions, 0, providerType));
+            ListStarHolons(await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, searchTerm, parentId, !showForAllAvatars, showAllVersions, 0, providerType));
         }
 
         public virtual async Task ShowAsync(string idOrName = "", bool showDetailed = false, ProviderType providerType = ProviderType.Default)
@@ -2193,7 +2193,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 DisplayProperty("Meta Tag Mappings", string.Concat(metaTagMappings != null && metaTagMappings.Count > 0 ? metaTagMappings.Count.ToString() : "None", metaTagMappings != null && metaTagMappings.Count > 0 ? " (use show/list detailed to view)" : ""), displayFieldLength);
         }
 
-        public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", Guid parentId = default, bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             Guid id = Guid.Empty;
@@ -2216,6 +2216,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage($"Loading {STARNETHolonUIName}'s...");
 
+                        //TODO: Add parentId to load functions below... 
                         if (showOnlyForCurrentAvatar)
                             starHolonsResult = await STARNETManager.LoadAllForAvatarAsync(STAR.BeamedInAvatar.AvatarId);
                         else
@@ -2258,7 +2259,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {STARNETHolonUIName}s...");
-                    OASISResult<IEnumerable<T1>> searchResults = await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, idOrName, showOnlyForCurrentAvatar, false, 0, providerType);
+                    OASISResult<IEnumerable<T1>> searchResults = await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, idOrName, parentId,showOnlyForCurrentAvatar, false, 0, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {

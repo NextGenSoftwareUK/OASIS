@@ -431,6 +431,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     request = (UpdateWeb4NFTRequest)updateResult.Result;
 
+                    Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage("Saving WEB4 NFT...");
                     result = await NFTCommon.NFTManager.UpdateWeb4NFTAsync(request, providerType);
 

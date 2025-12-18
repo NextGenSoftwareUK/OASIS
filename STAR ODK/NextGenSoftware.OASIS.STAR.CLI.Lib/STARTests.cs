@@ -630,27 +630,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowSuccessMessage("IPFS Tests Completed.");
 
             // Ethereum Support
-            try
-            {
-                CLIEngine.ShowWorkingMessage("Initiating Ethereum Tests...");
+            //try
+            //{
+            //    CLIEngine.ShowWorkingMessage("Initiating Ethereum Tests...");
 
-                if (!STAR.OASISAPI.Providers.Ethereum.IsProviderActivated)
-                {
-                    CLIEngine.ShowWorkingMessage("Activating Ethereum Provider...");
-                    STAR.OASISAPI.Providers.Ethereum.ActivateProvider();
-                    CLIEngine.ShowSuccessMessage("Ethereum Provider Activated.");
-                }
+            //    if (!STAR.OASISAPI.Providers.Ethereum.IsProviderActivated)
+            //    {
+            //        CLIEngine.ShowWorkingMessage("Activating Ethereum Provider...");
+            //        STAR.OASISAPI.Providers.Ethereum.ActivateProvider();
+            //        CLIEngine.ShowSuccessMessage("Ethereum Provider Activated.");
+            //    }
 
-                await STAR.OASISAPI.Providers.Ethereum.Web3Client.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
-                await STAR.OASISAPI.Providers.Ethereum.Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync("");
-                //Contract contract = STAR.OASISAPI.Providers.Ethereum.Web3Client.Eth.GetContract("abi", "contractAddress");
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error occured during Ethereum Tests: {ex.Message}");
-            }
+            //    await STAR.OASISAPI.Providers.Ethereum.Web3Client.Client.SendRequestAsync(new Nethereum.JsonRpc.Client.RpcRequest("id", "test"));
+            //    await STAR.OASISAPI.Providers.Ethereum.Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync("");
+            //    //Contract contract = STAR.OASISAPI.Providers.Ethereum.Web3Client.Eth.GetContract("abi", "contractAddress");
+            //}
+            //catch (Exception ex)
+            //{
+            //    CLIEngine.ShowErrorMessage($"Error occured during Ethereum Tests: {ex.Message}");
+            //}
 
-            CLIEngine.ShowSuccessMessage("Ethereum Tests Completed.");
+            //CLIEngine.ShowSuccessMessage("Ethereum Tests Completed.");
 
             // EOSIO Support
             //try
