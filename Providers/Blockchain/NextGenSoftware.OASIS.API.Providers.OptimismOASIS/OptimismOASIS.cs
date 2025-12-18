@@ -814,6 +814,82 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
             return result;
         }
 
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
+        {
+            return BurnNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            string errorMessage = "Error in BurnNFTAsync method in OptimismOASIS. Reason: ";
+
+            try
+            {
+                if (!_isActivated || _web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
+                    return result;
+                }
+
+                // Get private key from KeyManager
+                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(request.BurntByAvatarId, Core.Enums.ProviderType.OptimismOASIS);
+                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
+                    return result;
+                }
+
+                var senderAccount = new Account(keysResult.Result[0], BigInteger.Parse(_chainId));
+                var web3 = new Web3(senderAccount, _rpcEndpoint);
+
+                // ERC-721 burn function ABI (assuming contract has burn function)
+                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""burn"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
+                var erc721Contract = web3.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
+                var burnFunction = erc721Contract.GetFunction("burn");
+
+                // Token ID would need to be retrieved from the NFT record
+                var tokenId = BigInteger.Zero;
+                if (request.Web3NFT != null && !string.IsNullOrWhiteSpace(request.Web3NFT.TokenId))
+                {
+                    tokenId = BigInteger.Parse(request.Web3NFT.TokenId);
+                }
+
+                var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
+                    senderAccount.Address,
+                    new HexBigInteger(600000),
+                    null,
+                    null,
+                    tokenId);
+
+                if (receipt.HasErrors() == true)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-721 burn failed."));
+                    return result;
+                }
+
+                result.Result.TransactionResult = receipt.TransactionHash;
+                result.Result.Web3NFT = new Web3NFT
+                {
+                    NFTTokenAddress = request.NFTTokenAddress,
+                    TokenId = tokenId.ToString()
+                };
+                result.IsError = false;
+                result.Message = $"NFT burned successfully on Optimism. Transaction hash: {receipt.TransactionHash}";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+            return result;
+        }
+
         #endregion
 
         #region OASISStorageProviderBase Abstract Methods

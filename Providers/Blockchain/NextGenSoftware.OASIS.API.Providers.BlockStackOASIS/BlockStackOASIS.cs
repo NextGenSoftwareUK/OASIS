@@ -24,6 +24,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
@@ -1501,6 +1502,56 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
+            var response = new OASISResult<IEnumerable<IAvatar>>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "BlockStack provider is not activated");
+                    return response;
+                }
+
+                // Load all avatars and filter by location
+                var allAvatarsResult = LoadAllAvatars();
+                if (allAvatarsResult.IsError || allAvatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Failed to load avatars from BlockStack");
+                    return response;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearbyAvatars = new List<IAvatar>();
+
+                foreach (var avatar in allAvatarsResult.Result)
+                {
+                    if (avatar != null && avatar.GeoLocation != null)
+                    {
+                        var distance = GeoHelper.CalculateDistance(
+                            centerLat,
+                            centerLng,
+                            avatar.GeoLocation.Latitude,
+                            avatar.GeoLocation.Longitude);
+                        if (distance <= radiusInMeters)
+                            nearbyAvatars.Add(avatar);
+                    }
+                }
+
+                response.Result = nearbyAvatars;
+                response.IsError = false;
+                response.Message = $"Found {nearbyAvatars.Count} avatars within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error getting avatars near me from BlockStack: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        {
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
@@ -1874,28 +1925,189 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb3NFTWalletTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            OASISErrorHandling.HandleWarning(ref result, "NFT operations are not supported by BlockStack provider in this context.");
+            return SendNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // BlockStack/Stacks blockchain uses SIP-009 NFT standard
+                // For sending NFTs, we need to interact with the Stacks blockchain
+                // This requires Stacks.js SDK or direct RPC calls
+                // Placeholder: BlockStack Gaia storage doesn't support on-chain NFT transfers
+                // Use Stacks blockchain RPC for actual NFT transfers
+                OASISErrorHandling.HandleWarning(ref result, "BlockStack Gaia storage doesn't support on-chain NFT transfers. Use Stacks blockchain RPC for NFT operations.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending NFT: {ex.Message}", ex);
+            }
             return result;
         }
 
-        public Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb3NFTWalletTransactionRequest transation)
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         {
-            return Task.FromResult(SendNFT(transation));
+            return MintNFTAsync(request).Result;
         }
 
-        public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTRequest transation)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb4Web4NFTTransactionRespone>();
-            OASISErrorHandling.HandleWarning(ref result, "Minting NFTs is not supported by BlockStack provider in this context.");
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // BlockStack/Stacks blockchain uses SIP-009 NFT standard
+                // For minting NFTs, we need to interact with the Stacks blockchain
+                // This requires Stacks.js SDK or direct RPC calls
+                // Placeholder: BlockStack Gaia storage doesn't support on-chain NFT minting
+                // Use Stacks blockchain RPC for actual NFT minting
+                OASISErrorHandling.HandleWarning(ref result, "BlockStack Gaia storage doesn't support on-chain NFT minting. Use Stacks blockchain RPC for NFT operations.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting NFT: {ex.Message}", ex);
+            }
             return result;
         }
 
-        public Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTRequest transation)
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
         {
-            return Task.FromResult(MintNFT(transation));
+            return BurnNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // BlockStack/Stacks blockchain uses SIP-009 NFT standard
+                // For burning NFTs, we need to interact with the Stacks blockchain
+                OASISErrorHandling.HandleWarning(ref result, "BlockStack Gaia storage doesn't support on-chain NFT burning. Use Stacks blockchain RPC for NFT operations.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error burning NFT: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+        {
+            return LockNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // Lock NFT for cross-chain transfer
+                // Use Stacks blockchain RPC for NFT locking
+                OASISErrorHandling.HandleWarning(ref result, "BlockStack Gaia storage doesn't support on-chain NFT locking. Use Stacks blockchain RPC for NFT operations.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
+        {
+            return UnlockNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // Unlock NFT after cross-chain transfer
+                // Use Stacks blockchain RPC for NFT unlocking
+                OASISErrorHandling.HandleWarning(ref result, "BlockStack Gaia storage doesn't support on-chain NFT unlocking. Use Stacks blockchain RPC for NFT operations.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // Withdraw NFT for cross-chain transfer
+                // Use Stacks blockchain RPC for NFT withdrawal
+                OASISErrorHandling.HandleWarning(ref result, "BlockStack Gaia storage doesn't support on-chain NFT withdrawal. Use Stacks blockchain RPC for NFT operations.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // Deposit NFT from cross-chain transfer
+                // Use Stacks blockchain RPC for NFT deposit
+                OASISErrorHandling.HandleWarning(ref result, "BlockStack Gaia storage doesn't support on-chain NFT deposit. Use Stacks blockchain RPC for NFT operations.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<IOASISNFT> LoadNFT(Guid id)
@@ -2087,16 +2299,33 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return Task.FromResult(MintAndPlaceGeoNFT(request));
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            var result = new OASISResult<IOASISNFT>();
-            OASISErrorHandling.HandleWarning(ref result, "On-chain NFT data not supported by BlockStack provider.");
-            return result;
+            return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
-        public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            return Task.FromResult(LoadOnChainNFTData(nftTokenAddress));
+            var result = new OASISResult<IWeb3NFT>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // Load NFT metadata from BlockStack Gaia storage or Stacks blockchain
+                // BlockStack Gaia: https://gaia.blockstack.org/hub/{address}/nfts/{tokenId}.json
+                // Stacks blockchain: Use Stacks API to query NFT metadata
+                // For now, return placeholder - requires Stacks API integration
+                OASISErrorHandling.HandleWarning(ref result, "On-chain NFT data loading requires Stacks blockchain API integration.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data: {ex.Message}", ex);
+            }
+            return result;
         }
 
         #endregion

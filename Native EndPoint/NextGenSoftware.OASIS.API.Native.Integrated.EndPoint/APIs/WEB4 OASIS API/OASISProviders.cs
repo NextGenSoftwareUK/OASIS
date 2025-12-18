@@ -24,12 +24,12 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
     public class OASISProviders
     {
-        EthereumOASIS _ethereum;
+        //EthereumOASIS _ethereum;
         ArbitrumOASIS _arbitrum;
         RootstockOASIS _rootstock;
         PolygonOASIS _polygon;
         SolanaOASIS _solana;
-        EOSIOOASIS _EOSIO;
+        //EOSIOOASIS _EOSIO;
         //TelosOASIS _telos;
         //SEEDSOASIS _SEEDS;
         IPFSOASIS _IPFS;
@@ -89,26 +89,26 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             }
         }
 
-        public EOSIOOASIS EOSIO
-        {
-            get
-            {
-                if (_EOSIO == null)
-                {
-                    Task.Run(async () =>
-                    {
-                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EOSIOOASIS);
+        //public EOSIOOASIS EOSIO
+        //{
+        //    get
+        //    {
+        //        if (_EOSIO == null)
+        //        {
+        //            Task.Run(async () =>
+        //            {
+        //                OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EOSIOOASIS);
 
-                        if (result != null && !result.IsError)
-                            _EOSIO = (EOSIOOASIS)result.Result;
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In EOSIO Property Getter. Reason: {result.Message}");
-                    });
-                }
+        //                if (result != null && !result.IsError)
+        //                    _EOSIO = (EOSIOOASIS)result.Result;
+        //                else
+        //                    OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In EOSIO Property Getter. Reason: {result.Message}");
+        //            });
+        //        }
 
-                return _EOSIO;
-            }
-        }
+        //        return _EOSIO;
+        //    }
+        //}
 
         public SolanaOASIS Solana
         {
@@ -131,26 +131,26 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             }
         }
 
-        public EthereumOASIS Ethereum
-        {
-            get
-            {
-                if (_ethereum == null)
-                {
-                    Task.Run(async () =>
-                    {
-                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EthereumOASIS);
+        //public EthereumOASIS Ethereum
+        //{
+        //    get
+        //    {
+        //        if (_ethereum == null)
+        //        {
+        //            Task.Run(async () =>
+        //            {
+        //                OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.EthereumOASIS);
 
-                        if (result != null && !result.IsError)
-                            _ethereum = (EthereumOASIS)result.Result;
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Ethereum Property Getter. Reason: {result.Message}");
-                    });
-                }
+        //                if (result != null && !result.IsError)
+        //                    _ethereum = (EthereumOASIS)result.Result;
+        //                else
+        //                    OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In Ethereum Property Getter. Reason: {result.Message}");
+        //            });
+        //        }
 
-                return _ethereum;
-            }
-        }
+        //        return _ethereum;
+        //    }
+        //}
 
         public ArbitrumOASIS Arbitrum
         {
