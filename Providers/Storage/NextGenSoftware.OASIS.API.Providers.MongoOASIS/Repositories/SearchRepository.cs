@@ -168,12 +168,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 var collection = _dbContext.MongoDB.GetCollection<Holon>("Holon");
 
                                 // Perform a case-insensitive search using LINQ
-                                var query = from doc in collection.AsQueryable<Holon>()
-                                            where doc.Description.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
-                                            where doc.HolonType == searchTextGroup.HolonType
-                                            select doc;
+                                if (searchParams.ParentId != Guid.Empty)
+                                {
+                                    var query = from doc in collection.AsQueryable<Holon>()
+                                                where doc.Description.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
+                                                where doc.HolonType == searchTextGroup.HolonType
+                                                where doc.ParentHolonId == searchParams.ParentId
+                                                select doc;
 
-                                holons.AddRange(query.ToList());
+                                    holons.AddRange(query.ToList());
+                                }
+                                else
+                                {
+                                    var query = from doc in collection.AsQueryable<Holon>()
+                                                where doc.Description.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
+                                                where doc.HolonType == searchTextGroup.HolonType
+                                                select doc;
+
+                                    holons.AddRange(query.ToList());
+                                }
 
                                 //holonFilter = Builders<Holon>.Filter.Regex("Name", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 //holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());

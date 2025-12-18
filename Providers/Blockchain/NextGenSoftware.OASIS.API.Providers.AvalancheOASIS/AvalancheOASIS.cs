@@ -1787,8 +1787,9 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public bool NativeCodeGenesis(ICelestialBody celestialBody)
+    public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
     {
+        // Avalanche provider does not generate native code from STAR metadata yet.
         return true;
     }
 

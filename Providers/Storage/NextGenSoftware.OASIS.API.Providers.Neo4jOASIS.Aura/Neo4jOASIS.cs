@@ -253,8 +253,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             return result;
         }
 
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
+            // Neo4j provider does not generate native code from STAR metadata.
             return true;
         }
 
