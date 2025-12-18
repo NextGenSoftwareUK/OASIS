@@ -27,8 +27,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "NFTCollectionType",
             "onftcollection",
             "oasis_nftcollections",
-            "NFTCollectionDNA.json",
-            "NFTCollectionDNAJSON")
+            "STARNFTCollectionDNA.json",
+            "STARNFTCollectionDNAJSON")
         { }
 
         public STARNFTCollectionManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
@@ -44,8 +44,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "NFTCollectionType",
             "onftcollection",
             "oasis_nftcollections",
-            "NFTCollectionDNA.json",
-            "NFTCollectionDNAJSON")
+            "STARNFTCollectionDNA.json",
+            "STARNFTCollectionDNAJSON")
         { }
     }
 }
