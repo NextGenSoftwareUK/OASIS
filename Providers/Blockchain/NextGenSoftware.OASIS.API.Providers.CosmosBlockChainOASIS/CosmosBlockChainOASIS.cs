@@ -2306,8 +2306,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return result;
         }
 
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
+            // Cosmos provider does not generate native code from STAR metadata yet.
             return true;
         }
 

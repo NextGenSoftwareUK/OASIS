@@ -1802,9 +1802,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         #endregion
        
         #region IOASISSuperStar
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
-            return false; // Not applicable for BlockStack
+            // BlockStack currently does not generate native code from STAR metadata.
+            return false;
         }
 
         #endregion

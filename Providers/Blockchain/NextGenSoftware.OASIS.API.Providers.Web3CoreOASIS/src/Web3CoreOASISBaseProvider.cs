@@ -1436,9 +1436,10 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         throw new NotImplementedException();
     }
 
-    public bool NativeCodeGenesis(ICelestialBody celestialBody)
+    public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
     {
-        throw new System.NotImplementedException();
+        // Base Web3Core provider does not generate native code from STAR metadata yet.
+        return true;
     }
 
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)

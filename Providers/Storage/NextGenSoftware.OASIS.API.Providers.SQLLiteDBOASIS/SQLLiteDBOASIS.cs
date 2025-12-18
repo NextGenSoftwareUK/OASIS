@@ -490,8 +490,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return result;
         }
 
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
+            // SQLite provider does not generate native code from STAR metadata.
             return true;
         }
 
