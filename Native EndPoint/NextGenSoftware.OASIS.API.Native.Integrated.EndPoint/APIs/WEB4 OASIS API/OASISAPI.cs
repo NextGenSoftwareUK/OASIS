@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
@@ -36,6 +37,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         //private TelosManager _telos = null;
         private StatsManager _stats = null;
         private ProviderManager _provider = null;
+        private COSMICManager _cosmic = null;
 
         public bool IsOASISBooted { get; set; }
         //public string OASISRunVersion { get; set; }
@@ -440,6 +442,27 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 }
 
                 return _provider;
+            }
+        }
+
+        public COSMICManager COSMIC
+        {
+            get
+            {
+                if (_cosmic == null)
+                {
+                    if (IsOASISBooted)
+                    {
+                        if (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id != Guid.Empty)
+                            _cosmic = new COSMICManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.Id, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        else
+                            _cosmic = new COSMICManager(ProviderManager.Instance.CurrentStorageProvider, Guid.NewGuid(), OASISBootLoader.OASISBootLoader.OASISDNA);
+                    }
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the COSMIC property!");
+                }
+
+                return _cosmic;
             }
         }
 

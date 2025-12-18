@@ -1,492 +1,739 @@
-﻿//using System;
-//using System.Drawing;
-//using NextGenSoftware.OASIS.API.DNA;
-//using NextGenSoftware.OASIS.API.Core.Enums;
-//using NextGenSoftware.OASIS.API.Core.Objects;
-//using NextGenSoftware.OASIS.API.Core.Interfaces;
-//using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-//using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-//using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-//using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
-//using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
-//using NextGenSoftware.OASIS.API.Core.Helpers;
-//using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-//using NextGenSoftware.OASIS.Common;
-//using NextGenSoftware.Utilities;
-//using System.Threading.Tasks;
-
-//namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
-//{
-//    public class COSMICManager : OASISManager
-//    {
-//        IOmiverse _omiverse = null;
-
-//        public COSMICManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
-//        {
-
-//        }
-
-//        public COSMICManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
-//        {
-
-//        }
-
-//        public IOmiverse Omiverse
-//        {
-//            get
-//            {
-//                //if (_omiverse == null)
-//                //{
-//                //    OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
-
-//                //    if (_starId == Guid.Empty)
-//                //        result = await OASISOmniverseGenesisAsync();
-//                //    else
-//                //        result = await InitDefaultCelestialBodiesAsync(result);
-//                //}
-
-//                if (_omiverse == null)
-//                {
-//                    _omiverse = GetOmniverseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-//                }
-
-//                return _omiverse;
-//            }
-//        }
-        
-
-//        public IMultiverse AddMultiverse()
-//        {
-
-//        }
-
-//        public IMultiverse AddUniverse()
-//        {
-
-//        }
-
-//        private async Task<OASISResult<IOmiverse>> GetOmniverseAsync()
-//        {
-//            OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
-
-//            if (_omiverse == null)
-//            {
-//                if (_starId == Guid.Empty)
-//                    result = await OASISOmniverseGenesisAsync();
-//                else
-//                    result = await InitDefaultCelestialBodiesAsync(result);
-//            }
-
-//            return result;
-//        }
-
-
-//        /// <summary>
-//        /// Create's the OASIS Omniverse along with a new default Multiverse (with it's GrandSuperStar) containing the ThirdDimension containing UniversePrime (simulation) and the MagicVerse (contains OApp's), which itself contains a default GalaxyCluster containing a default Galaxy (along with it's SuperStar) containing a default SolarSystem (along wth it's Star) containing a default planet (Our World).
-//        /// </summary>
-//        /// <param name="result"></param>
-//        /// <returns></returns>
-//        private static async Task<OASISResult<IOmiverse>> OASISOmniverseGenesisAsync()
-//        {
-//            OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
-//            OASISResult<ICelestialSpace> celestialSpaceResult = new OASISResult<ICelestialSpace>();
-//            ShowStatusMessage(StarStatusMessageType.Processing, "OASIS Omniverse not found. Initiating Omniverse Genesis Process...");
-
-//            //OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Omniverse..." });
-
-//            //Will create the Omniverse with all the omniverse dimensions (8 - 12) along with one default Multiverse and it's dimensions (1-7), each containing a Universe. 
-//            //The 3rd Dimension will contain the UniversePrime and MagicVerse.
-//            //It will also create the GreatGrandCentralStar in the centre of the Omniverse and also a GrandCentralStar at the centre of the Multiverse.
-//            Omniverse omniverse = new Omniverse();
-//            celestialSpaceResult = await omniverse.SaveAsync();
-//            OASISResultHelper.CopyResult(celestialSpaceResult, result);
-//            result.Result = (IOmiverse)celestialSpaceResult.Result;
-
-//            if (!result.IsError && result.Result != null)
-//            {
-//                //OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "CelestialSpace Omniverse Created." });
-//                STARDNA.DefaultGreatGrandSuperStarId = omniverse.GreatGrandSuperStar.Id.ToString();
-//                STARDNA.DefaultGrandSuperStarId = omniverse.Multiverses[0].GrandSuperStar.Id.ToString();
-
-
-//                //TODO: May not need any of the code below because the Omniverse Save method will recursively save all it's child CelestialBodies & CelesitalSpaces...
-//                //OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Multiverse..." });
-//                //Multiverse multiverse = new Multiverse();
-//                //celestialSpaceResult = await multiverse.SaveAsync(); //TODO: Check tomorrow if this is better way than using old below method (On the STAR Core).
-//                ////OASISResult<IMultiverse> multiverseResult = await ((GreatGrandSuperStarCore)result.Result.GreatGrandSuperStar.CelestialBodyCore).AddMultiverseAsync(multiverse);
-
-//                //if (!celestialSpaceResult.IsError && celestialSpaceResult.Result != null)
-//                //{
-//                //    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Multiverse Created." });
-//                //    multiverse = (Multiverse)celestialSpaceResult.Result;
-//                //    STARDNA.DefaultGrandSuperStarId = multiverse.GrandSuperStar.Id.ToString();
-
-//                //GalaxyCluster galaxyCluster = new GalaxyCluster();
-//                //galaxyCluster.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-//                //galaxyCluster.Name = "Our Milky Way Galaxy Cluster.";
-//                //galaxyCluster.Description = "Our Galaxy Cluster that our Milky Way Galaxy belongs to, the default Galaxy Cluster.";
-//                //Mapper<IMultiverse, GalaxyCluster>.MapParentCelestialBodyProperties(multiverse, galaxyCluster);
-//                //galaxyCluster.ParentMultiverse = multiverse;
-//                //galaxyCluster.ParentMultiverseId = multiverse.Id;
-//                //galaxyCluster.ParentDimension = multiverse.Dimensions.ThirdDimension;
-//                //galaxyCluster.ParentDimensionId = multiverse.Dimensions.ThirdDimension.Id;
-//                //galaxyCluster.ParentUniverseId = multiverse.Dimensions.ThirdDimension.MagicVerse.Id;
-//                //galaxyCluster.ParentUniverse = multiverse.Dimensions.ThirdDimension.MagicVerse;
-
-//                //OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Galaxy Cluster..." });
-//                //OASISResult<IGalaxyCluster> galaxyClusterResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyClusterToUniverseAsync(multiverse.Dimensions.ThirdDimension.MagicVerse, galaxyCluster);
-
-//                GalaxyCluster galaxyCluster = new GalaxyCluster();
-//                galaxyCluster.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-//                galaxyCluster.Name = "Our Milky Way Galaxy Cluster (Default Galaxy Cluster).";
-//                galaxyCluster.Description = "Our Galaxy Cluster that our Milky Way Galaxy belongs to, the default Galaxy Cluster.";
-//                Mapper<IMultiverse, GalaxyCluster>.MapParentCelestialBodyProperties(omniverse.Multiverses[0], galaxyCluster);
-//                galaxyCluster.ParentMultiverse = omniverse.Multiverses[0];
-//                galaxyCluster.ParentMultiverseId = omniverse.Multiverses[0].Id;
-//                galaxyCluster.ParentHolon = omniverse.Multiverses[0];
-//                galaxyCluster.ParentHolonId = omniverse.Multiverses[0].Id;
-//                galaxyCluster.ParentCelestialSpace = omniverse.Multiverses[0];
-//                galaxyCluster.ParentCelestialSpaceId = omniverse.Multiverses[0].Id;
-//                galaxyCluster.ParentDimension = omniverse.Multiverses[0].Dimensions.ThirdDimension;
-//                galaxyCluster.ParentDimensionId = omniverse.Multiverses[0].Dimensions.ThirdDimension.Id;
-//                galaxyCluster.ParentUniverseId = omniverse.Multiverses[0].Dimensions.ThirdDimension.MagicVerse.Id;
-//                galaxyCluster.ParentUniverse = omniverse.Multiverses[0].Dimensions.ThirdDimension.MagicVerse;
-
-//                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = $"Creating CelestialSpace {galaxyCluster.Name}..." });
-//                OASISResult<IGalaxyCluster> galaxyClusterResult = await ((GrandSuperStarCore)omniverse.Multiverses[0].GrandSuperStar.CelestialBodyCore).AddGalaxyClusterToUniverseAsync(omniverse.Multiverses[0].Dimensions.ThirdDimension.MagicVerse, galaxyCluster);
-
-//                if (!galaxyClusterResult.IsError && galaxyClusterResult.Result != null)
-//                {
-//                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"CelestialSpace {galaxyCluster.Name} Created." }); ;
-//                    galaxyCluster = (GalaxyCluster)galaxyClusterResult.Result;
-
-//                    Galaxy galaxy = new Galaxy();
-//                    galaxy.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-//                    galaxy.Name = "Our Milky Way Galaxy (Default Galaxy)";
-//                    galaxy.Description = "Our Milky Way Galaxy, which is the default Galaxy.";
-//                    Mapper<IGalaxyCluster, Galaxy>.MapParentCelestialBodyProperties(galaxyCluster, galaxy);
-//                    galaxy.ParentGalaxyCluster = galaxyCluster;
-//                    galaxy.ParentGalaxyClusterId = galaxyCluster.Id;
-//                    galaxy.ParentHolon = galaxyCluster;
-//                    galaxy.ParentHolonId = galaxyCluster.Id;
-//                    galaxy.ParentCelestialSpace = galaxyCluster;
-//                    galaxy.ParentCelestialSpaceId = galaxyCluster.Id;
-
-//                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = $"Creating CelestialSpace {galaxy.Name}..." });
-//                    //OASISResult<IGalaxy> galaxyResult = await ((GrandSuperStarCore)multiverse.GrandSuperStar.CelestialBodyCore).AddGalaxyToGalaxyClusterAsync(galaxyCluster, galaxy);
-//                    OASISResult<IGalaxy> galaxyResult = await ((GrandSuperStarCore)omniverse.Multiverses[0].GrandSuperStar.CelestialBodyCore).AddGalaxyToGalaxyClusterAsync(galaxyCluster, galaxy);
-
-//                    if (!galaxyResult.IsError && galaxyResult.Result != null)
-//                    {
-//                        OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"CelestialSpace {galaxy.Name} Created." });
-//                        galaxy = (Galaxy)galaxyResult.Result;
-//                        STARDNA.DefaultSuperStarId = galaxy.SuperStar.Id.ToString();
-
-//                        SolarSystem solarSystem = new SolarSystem();
-//                        solarSystem.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-//                        solarSystem.Name = "Our Solar System (Default Solar System)";
-//                        solarSystem.Description = "Our Solar System, which is the default Solar System.";
-//                        solarSystem.Id = Guid.NewGuid();
-//                        solarSystem.IsNewHolon = true;
-
-//                        Mapper<IGalaxy, Star>.MapParentCelestialBodyProperties(galaxy, (Star)solarSystem.Star);
-//                        solarSystem.Star.Name = "Our Sun (Sol) (Default Star)";
-//                        solarSystem.Star.Description = "The Sun at the centre of our Solar System";
-//                        solarSystem.Star.ParentGalaxy = galaxy;
-//                        solarSystem.Star.ParentGalaxyId = galaxy.Id;
-//                        solarSystem.Star.ParentHolon = galaxy;
-//                        solarSystem.Star.ParentHolonId = galaxy.Id;
-//                        solarSystem.Star.ParentCelestialSpace = galaxy;
-//                        solarSystem.Star.ParentCelestialSpaceId = galaxy.Id;
-//                        solarSystem.Star.ParentSolarSystem = solarSystem;
-//                        solarSystem.Star.ParentSolarSystemId = solarSystem.Id;
-
-//                        //Star star = new Star();
-//                        //star.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-//                        //Mapper<IGalaxy, Star>.MapParentCelestialBodyProperties(galaxy, star);
-//                        //star.Name = "Our Sun (Sol)";
-//                        //star.Description = "The Sun at the centre of our Solar System";
-//                        //star.ParentGalaxy = galaxy;
-//                        //star.ParentGalaxyId = galaxy.Id;
-//                        //star.ParentSolarSystem = solarSystem;
-//                        //star.ParentSolarSystemId = solarSystem.Id;
-
-//                        OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = $"Creating CelestialBody {solarSystem.Star.Name}..." });
-//                        OASISResult<IStar> starResult = await ((SuperStarCore)galaxy.SuperStar.CelestialBodyCore).AddStarAsync(solarSystem.Star);
-
-//                        if (!starResult.IsError && starResult.Result != null)
-//                        {
-//                            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"CelestialBody {solarSystem.Star.Name} Created." });
-//                            solarSystem.Star = (Star)starResult.Result;
-//                            DefaultStar = solarSystem.Star; //TODO: TEMP: For now the default Star in STAR ODK will be our Sun (this will be more dynamic later on).
-//                            STARDNA.DefaultStarId = DefaultStar.Id.ToString();
-
-//                            Mapper<IStar, SolarSystem>.MapParentCelestialBodyProperties(solarSystem.Star, solarSystem);
-//                            solarSystem.ParentStar = solarSystem.Star;
-//                            solarSystem.ParentStarId = solarSystem.Star.Id;
-//                            solarSystem.ParentHolon = solarSystem;
-//                            solarSystem.ParentHolonId = solarSystem.Id;
-//                            solarSystem.ParentCelestialSpace = solarSystem;
-//                            solarSystem.ParentCelestialSpaceId = solarSystem.Id;
-//                            solarSystem.ParentSolarSystem = null;
-//                            solarSystem.ParentSolarSystemId = Guid.Empty;
-
-//                            //TODO: Not sure if this method should also automatically create a Star inside it like the methods above do for Galaxy, Universe etc?
-//                            // I like how a Star creates its own Solar System from its StarDust, which is how it works in real life I am pretty sure? So I think this is best... :)
-//                            //TODO: For some reason I could not get Galaxy and Universe to work the same way? Need to come back to this so they all work in the same consistent manner...
-
-//                            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = $"Creating CelestialSpace {solarSystem.Name}..." });
-//                            OASISResult<ISolarSystem> solarSystemResult = await ((StarCore)solarSystem.Star.CelestialBodyCore).AddSolarSystemAsync(solarSystem);
-
-//                            if (!solarSystemResult.IsError && solarSystemResult.Result != null)
-//                            {
-//                                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = $"CelestialSpace {solarSystem.Name} Created." });
-//                                solarSystem = (SolarSystem)solarSystemResult.Result;
-
-//                                Planet ourWorld = new Planet();
-//                                ourWorld.CreatedOASISType = new EnumValue<OASISType>(OASISType.STARCLI);
-//                                ourWorld.Name = "Our World (Default Planet)";
-//                                ourWorld.Description = "The digital twin of our planet and the default planet.";
-//                                Mapper<ISolarSystem, Planet>.MapParentCelestialBodyProperties(solarSystem, ourWorld);
-//                                ourWorld.ParentSolarSystem = solarSystem;
-//                                ourWorld.ParentSolarSystemId = solarSystem.Id;
-//                                ourWorld.ParentHolon = solarSystem;
-//                                ourWorld.ParentHolonId = solarSystem.Id;
-//                                ourWorld.ParentCelestialSpace = solarSystem;
-//                                ourWorld.ParentCelestialSpaceId = solarSystem.Id;
-//                                // await ourWorld.InitializeAsync();
-
-//                                //OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Processing, Message = "Creating Default Planet (Our World)..." });
-//                                OASISResult<IPlanet> ourWorldResult = await ((StarCore)solarSystem.Star.CelestialBodyCore).AddPlanetAsync(ourWorld);
-
-//                                if (!ourWorldResult.IsError && ourWorldResult.Result != null)
-//                                {
-//                                    //OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Our World Created." });
-//                                    ourWorld = (Planet)ourWorldResult.Result;
-//                                    STARDNA.DefaultPlanetId = ourWorld.Id.ToString();
-//                                }
-//                                else
-//                                {
-//                                    OASISResultHelper.CopyResult(ourWorldResult, result);
-//                                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Our World. Reason: {ourWorldResult.Message}." });
-//                                }
-//                            }
-//                            else
-//                                OASISResultHelper.CopyResult(solarSystemResult, result);
-//                        }
-//                        else
-//                        {
-//                            OASISResultHelper.CopyResult(starResult, result);
-//                            OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Star. Reason: {starResult.Message}." });
-//                        }
-//                    }
-//                    else
-//                    {
-//                        OASISResultHelper.CopyResult(galaxyResult, result);
-//                        OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy. Reason: {galaxyResult.Message}." });
-//                    }
-//                }
-//                else
-//                {
-//                    OASISResultHelper.CopyResult(galaxyClusterResult, result);
-//                    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Galaxy Cluster. Reason: {galaxyClusterResult.Message}." });
-//                }
-//                //}
-//                //else
-//                //{
-//                //    OASISResultHelper<IMultiverse, ICelestialBody>.CopyResult(multiverseResult, result);
-//                //    OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Multiverse. Reason: {multiverseResult.Message}." });
-//                //}
-//            }
-//            else
-//                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Omniverse. Reason: {result.Message}." });
-
-//            SaveDNA();
-
-//            if (!result.IsError)
-//            {
-//                result.Message = "STAR Ignited and The OASIS Omniverse Created.";
-//                OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Success, Message = "Omniverse Genesis Process Complete." });
-//            }
-
-//            return result;
-//        }
-
-//        private static OASISResult<IOmiverse> InitDefaultCelestialBodies(OASISResult<IOmiverse> result)
-//        {
-//            ShowStatusMessage(StarStatusMessageType.Success, "OASIS Omniverse Already Created.");
-//            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Celestial Bodies...");
-
-//            (result, DefaultPlanet) = InitCelestialBody<Planet>(STARDNA.DefaultPlanetId, "Default Planet", result);
-
-//            if (result.IsError || DefaultPlanet == null)
-//                return result;
-
-//            (result, DefaultStar) = InitCelestialBody<Star>(STARDNA.DefaultStarId, "Default Star", result);
-
-//            if (result.IsError || DefaultStar == null)
-//                return result;
-
-//            (result, DefaultSuperStar) = InitCelestialBody<SuperStar>(STARDNA.DefaultSuperStarId, "Default Super Star", result);
-
-//            if (result.IsError || DefaultSuperStar == null)
-//                return result;
-
-//            (result, DefaultGrandSuperStar) = InitCelestialBody<GrandSuperStar>(STARDNA.DefaultGrandSuperStarId, "Default Grand Super Star", result);
-
-//            if (result.IsError || DefaultGrandSuperStar == null)
-//                return result;
-
-//            (result, DefaultGreatGrandSuperStar) = InitCelestialBody<GreatGrandSuperStar>(STARDNA.DefaultGreatGrandSuperStarId, "Default Great Grand Super Star", result);
-
-//            if (result.IsError || DefaultGreatGrandSuperStar == null)
-//                return result;
-
-//            ShowStatusMessage(StarStatusMessageType.Success, "Default Celestial Bodies Initialized.");
-//            return result;
-//        }
-
-//        private static async Task<OASISResult<IOmiverse>> InitDefaultCelestialBodiesAsync(OASISResult<IOmiverse> result)
-//        {
-//            ShowStatusMessage(StarStatusMessageType.Success, "OASIS Omniverse Already Created.");
-//            ShowStatusMessage(StarStatusMessageType.Processing, "Initializing Default Celestial Bodies...");
-
-//            (result, DefaultPlanet) = await InitCelestialBodyAsync<Planet>(STARDNA.DefaultPlanetId, "Default Planet", result);
-
-//            if (result.IsError || DefaultPlanet == null)
-//                return result;
-
-//            (result, DefaultStar) = await InitCelestialBodyAsync<Star>(STARDNA.DefaultStarId, "Default Star", result);
-
-//            if (result.IsError || DefaultStar == null)
-//                return result;
-
-//            (result, DefaultSuperStar) = await InitCelestialBodyAsync<SuperStar>(STARDNA.DefaultSuperStarId, "Default Super Star", result);
-
-//            if (result.IsError || DefaultSuperStar == null)
-//                return result;
-
-//            (result, DefaultGrandSuperStar) = await InitCelestialBodyAsync<GrandSuperStar>(STARDNA.DefaultGrandSuperStarId, "Default Grand Super Star", result);
-
-//            if (result.IsError || DefaultGrandSuperStar == null)
-//                return result;
-
-//            (result, DefaultGreatGrandSuperStar) = await InitCelestialBodyAsync<GreatGrandSuperStar>(STARDNA.DefaultGreatGrandSuperStarId, "Default Great Grand Super Star", result);
-
-//            if (result.IsError || DefaultGreatGrandSuperStar == null)
-//                return result;
-
-//            ShowStatusMessage(StarStatusMessageType.Success, "Default Celestial Bodies Initialized.");
-
-//            return result;
-//        }
-
-//        private static (OASISResult<IOmiverse>, T) InitCelestialBody<T>(string id, string longName, OASISResult<IOmiverse> result) where T : ICelestialBody, new()
-//        {
-//            Guid guidId;
-//            ICelestialBody celestialBody = null;
-//            string name = longName.Replace(" ", "");
-
-//            ShowStatusMessage(StarStatusMessageType.Processing, $"Initializing {longName}...");
-
-//            if (!string.IsNullOrEmpty(id))
-//            {
-//                if (Guid.TryParse(id, out guidId))
-//                {
-//                    //Normally you would leave autoLoad set to true but if you need to process the result in-line then you need to manually call Load as we do here (otherwise you would process the result from the OnCelestialBodyLoaded or OnCelestialBodyError event handlers).
-//                    //ICelestialBody celestialBody = new T(guidId, false);
-//                    celestialBody = new T() { Id = guidId };
-//                    OASISResult<T> celestialBodyResult = celestialBody.Load<T>();
-
-//                    if (celestialBodyResult.IsError || celestialBodyResult.Result == null)
-//                    {
-//                        ShowStatusMessage(StarStatusMessageType.Error, $"Error Initializing {longName}.");
-//                        HandleCelesitalBodyInitError(result, name, id, celestialBodyResult);
-//                    }
-//                    else
-//                    {
-//                        ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
-//                        OnDefaultCeletialBodyInit?.Invoke(null, new DefaultCelestialBodyInitEventArgs() { Result = OASISResultHelper.CopyResultToICelestialBody(celestialBodyResult) });
-//                    }
-//                }
-//                else
-//                    HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
-//            }
-//            else
-//                HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is missing.");
-
-//            return (result, (T)celestialBody);
-//        }
-
-//        private static async Task<(OASISResult<IOmiverse>, T)> InitCelestialBodyAsync<T>(string id, string longName, OASISResult<IOmiverse> result) where T : ICelestialBody, new()
-//        {
-//            Guid guidId;
-//            ICelestialBody celestialBody = null;
-//            string name = longName.Replace(" ", "");
-
-//            ShowStatusMessage(StarStatusMessageType.Processing, $"Initializing {longName}..");
-
-//            if (!string.IsNullOrEmpty(id))
-//            {
-//                if (Guid.TryParse(id, out guidId))
-//                {
-//                    //Normally you would leave autoLoad set to true but if you need to process the result in-line then you need to manually call Load as we do here (otherwise you would process the result from the OnCelestialBodyLoaded or OnCelestialBodyError event handlers).
-//                    //ICelestialBody celestialBody = new T(guidId, false);
-//                    celestialBody = new T() { Id = guidId };
-//                    OASISResult<T> celestialBodyResult = await celestialBody.LoadAsync<T>();
-
-//                    if (celestialBodyResult.IsError || celestialBodyResult.Result == null)
-//                    {
-//                        ShowStatusMessage(StarStatusMessageType.Error, $"Error Initializing {longName}.");
-//                        HandleCelesitalBodyInitError(result, name, id, celestialBodyResult);
-//                    }
-//                    else
-//                    {
-//                        ShowStatusMessage(StarStatusMessageType.Success, $"{longName} Initialized.");
-//                        OnDefaultCeletialBodyInit?.Invoke(null, new DefaultCelestialBodyInitEventArgs() { Result = OASISResultHelper.CopyResultToICelestialBody(celestialBodyResult) });
-//                    }
-//                }
-//                else
-//                    HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is not a valid Guid.");
-//            }
-//            else
-//                HandleCelesitalBodyInitError<T>(result, name, id, $"The {name}Id value in STARDNA.json is missing.");
-
-//            return (result, (T)celestialBody);
-//        }
-
-//        //private static void HandleCelesitalBodyInitError(OASISResult<IOmiverse> result, string name, string id, string errorMessage, OASISResult<ICelestialBody> celstialBodyResult = null)
-//        //{
-//        //    string msg = $"Error occured in IgniteInnerStar initializing {name} with Id {id}. {errorMessage} Please correct or delete STARDNA to reset STAR ODK to then auto-generate new defaults.";
-
-//        //    if (celstialBodyResult != null)
-//        //        msg = string.Concat(msg, " Reason: ", celstialBodyResult.Message);
-
-//        //    OASISErrorHandling.HandleError(ref result, msg, celstialBodyResult != null ? celstialBodyResult.DetailedMessage : null);
-//        //}
-
-//        //private static void HandleCelesitalBodyInitError(OASISResult<IOmiverse> result, string name, string id, OASISResult<ICelestialBody> celstialBodyResult)
-//        //{
-//        //    HandleCelesitalBodyInitError(result, name, id, "Likely reason is that the id does not exist.", celstialBodyResult);
-//        //    //OASISErrorHandling.HandleError(ref result, $"Error occured in IgniteInnerStar initializing {name} with Id {id}. Likely reason is that the id does not exist. Please correct or delete STARDNA to reset STAR ODK to then auto-generate new defaults. Reason: {celstialBodyResult.Message}", celstialBodyResult.DetailedMessage);
-//        //    //OASISErrorHandling.HandleError(ref result, $"Error occured in IgniteInnerStar initializing {name} with Id {id}. Likely reason is that the id does not exist, in this case remove the {name}Id from STARDNA.json and then try again. Reason: {celstialBodyResult.Message}", celstialBodyResult.DetailedMessage);
-//        //}
-
-//        private static void HandleCelesitalBodyInitError<T>(OASISResult<IOmiverse> result, string name, string id, string errorMessage, OASISResult<T> celstialBodyResult = null) where T : ICelestialBody
-//        {
-//            string msg = $"Error occured in IgniteInnerStar initializing {name} with Id {id}. {errorMessage} Please correct or delete STARDNA to reset STAR ODK to then auto-generate new defaults.";
-
-//            if (celstialBodyResult != null)
-//                msg = string.Concat(msg, " Reason: ", celstialBodyResult.Message);
-
-//            OASISErrorHandling.HandleError(ref result, msg, celstialBodyResult != null ? celstialBodyResult.DetailedMessage : null);
-//        }
-
-//        private static void HandleCelesitalBodyInitError<T>(OASISResult<IOmiverse> result, string name, string id, OASISResult<T> celstialBodyResult) where T : ICelestialBody
-//        {
-//            HandleCelesitalBodyInitError(result, name, id, "Likely reason is that the id does not exist.", celstialBodyResult);
-//        }
-
-
-//    }
-//}
+﻿using System;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
+{
+    public class COSMICManager : OASISManager
+    {
+        private IOmiverse _omiverse = null;
+
+        public COSMICManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
+        {
+        }
+
+        public COSMICManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA)
+        {
+        }
+
+        public IOmiverse Omiverse
+        {
+            get
+            {
+                if (_omiverse == null)
+                {
+                    _omiverse = GetOmniverseAsync().ConfigureAwait(false).GetAwaiter().GetResult().Result;
+                }
+
+                return _omiverse;
+            }
+        }
+
+        private async Task<OASISResult<IOmiverse>> GetOmniverseAsync()
+        {
+            OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
+            
+            // Try to load existing omniverse or create new one
+            // This would need to be implemented based on your STAR project structure
+            // For now, returning a result that indicates omniverse needs to be created
+            return result;
+        }
+
+        #region Omniverse Methods
+
+        /// <summary>
+        /// Saves the specified Omniverse instance using the underlying STAR implementation.
+        /// The concrete Omniverse object must be created by the caller (in the STAR project) and
+        /// passed in via the IOmiverse interface.
+        /// </summary>
+        public async Task<OASISResult<IOmiverse>> SaveOmniverseAsync(IOmiverse omniverse)
+        {
+            var result = new OASISResult<IOmiverse>();
+
+            try
+            {
+                if (omniverse == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Omniverse cannot be null.");
+                    return result;
+                }
+
+                if (omniverse.Id == Guid.Empty)
+                {
+                    omniverse.Id = Guid.NewGuid();
+                    omniverse.IsNewHolon = true;
+                }
+
+                var saveResult = await omniverse.SaveAsync();
+                OASISResultHelper.CopyResult(saveResult, result);
+                result.Result = (IOmiverse)saveResult.Result;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving Omniverse: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Multiverse Methods
+
+        /// <summary>
+        /// Adds a Multiverse to an existing Omniverse. The concrete Multiverse is created in the STAR project
+        /// and passed in via the IMultiverse interface.
+        /// </summary>
+        public async Task<OASISResult<IMultiverse>> AddMultiverseAsync(IOmiverse parentOmniverse, IMultiverse multiverse)
+        {
+            var result = new OASISResult<IMultiverse>();
+
+            try
+            {
+                if (parentOmniverse == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Omniverse cannot be null.");
+                    return result;
+                }
+
+                if (multiverse == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Multiverse cannot be null.");
+                    return result;
+                }
+
+                if (multiverse.Id == Guid.Empty)
+                {
+                    multiverse.Id = Guid.NewGuid();
+                    multiverse.IsNewHolon = true;
+                }
+
+                Mapper<IOmiverse, IMultiverse>.MapParentCelestialBodyProperties(parentOmniverse, multiverse);
+                multiverse.ParentOmniverse = parentOmniverse;
+                multiverse.ParentOmniverseId = parentOmniverse.Id;
+                multiverse.ParentHolon = parentOmniverse;
+                multiverse.ParentHolonId = parentOmniverse.Id;
+                multiverse.ParentCelestialSpace = parentOmniverse;
+                multiverse.ParentCelestialSpaceId = parentOmniverse.Id;
+
+                var saveResult = await multiverse.SaveAsync();
+                OASISResultHelper.CopyResult(saveResult, result);
+                result.Result = (IMultiverse)saveResult.Result;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding Multiverse: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Universe Methods
+
+        /// <summary>
+        /// Adds a Universe to an existing Multiverse using the existing STAR GrandSuperStar core API
+        /// where available, otherwise falls back to saving the Universe directly.
+        /// </summary>
+        public async Task<OASISResult<IUniverse>> AddUniverseAsync(IMultiverse parentMultiverse, IUniverse universe)
+        {
+            var result = new OASISResult<IUniverse>();
+
+            try
+            {
+                if (parentMultiverse == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Multiverse cannot be null.");
+                    return result;
+                }
+
+                if (universe == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Universe cannot be null.");
+                    return result;
+                }
+
+                if (universe.Id == Guid.Empty)
+                {
+                    universe.Id = Guid.NewGuid();
+                    universe.IsNewHolon = true;
+                }
+
+                Mapper<IMultiverse, IUniverse>.MapParentCelestialBodyProperties(parentMultiverse, universe);
+                universe.ParentMultiverse = parentMultiverse;
+                universe.ParentMultiverseId = parentMultiverse.Id;
+                universe.ParentHolon = parentMultiverse;
+                universe.ParentHolonId = parentMultiverse.Id;
+                universe.ParentCelestialSpace = parentMultiverse;
+                universe.ParentCelestialSpaceId = parentMultiverse.Id;
+
+                // Use GrandSuperStar core to register the Universe in the 3rd Dimension when available.
+                if (parentMultiverse.GrandSuperStar != null && parentMultiverse.GrandSuperStar.CelestialBodyCore is IGrandSuperStarCore grandCore)
+                {
+                    var universeResult = await grandCore.AddParallelUniverseToThirdDimensionAsync(universe);
+                    OASISResultHelper.CopyResult(universeResult, result);
+                }
+                else
+                {
+                    var saveResult = await universe.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (IUniverse)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding Universe: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region GalaxyCluster Methods
+
+        public async Task<OASISResult<IGalaxyCluster>> AddGalaxyClusterAsync(IUniverse parentUniverse, IGalaxyCluster galaxyCluster)
+        {
+            var result = new OASISResult<IGalaxyCluster>();
+
+            try
+            {
+                if (parentUniverse == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Universe cannot be null.");
+                    return result;
+                }
+
+                if (galaxyCluster == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "GalaxyCluster cannot be null.");
+                    return result;
+                }
+
+                if (galaxyCluster.Id == Guid.Empty)
+                {
+                    galaxyCluster.Id = Guid.NewGuid();
+                    galaxyCluster.IsNewHolon = true;
+                }
+
+                var parentMultiverse = parentUniverse.ParentMultiverse;
+
+                if (parentMultiverse != null &&
+                    parentMultiverse.GrandSuperStar != null &&
+                    parentMultiverse.GrandSuperStar.CelestialBodyCore is IGrandSuperStarCore grandCore)
+                {
+                    Mapper<IMultiverse, IGalaxyCluster>.MapParentCelestialBodyProperties(parentMultiverse, galaxyCluster);
+                    galaxyCluster.ParentMultiverse = parentMultiverse;
+                    galaxyCluster.ParentMultiverseId = parentMultiverse.Id;
+                    galaxyCluster.ParentHolon = parentMultiverse;
+                    galaxyCluster.ParentHolonId = parentMultiverse.Id;
+                    galaxyCluster.ParentCelestialSpace = parentMultiverse;
+                    galaxyCluster.ParentCelestialSpaceId = parentMultiverse.Id;
+                    galaxyCluster.ParentUniverse = parentUniverse;
+                    galaxyCluster.ParentUniverseId = parentUniverse.Id;
+
+                    var galaxyClusterResult = await grandCore.AddGalaxyClusterToUniverseAsync(parentUniverse, galaxyCluster);
+                    OASISResultHelper.CopyResult(galaxyClusterResult, result);
+                }
+                else
+                {
+                    var saveResult = await galaxyCluster.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (IGalaxyCluster)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding GalaxyCluster: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Galaxy Methods
+
+        public async Task<OASISResult<IGalaxy>> AddGalaxyAsync(IGalaxyCluster parentGalaxyCluster, IGalaxy galaxy)
+        {
+            var result = new OASISResult<IGalaxy>();
+
+            try
+            {
+                if (parentGalaxyCluster == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent GalaxyCluster cannot be null.");
+                    return result;
+                }
+
+                if (galaxy == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Galaxy cannot be null.");
+                    return result;
+                }
+
+                if (galaxy.Id == Guid.Empty)
+                {
+                    galaxy.Id = Guid.NewGuid();
+                    galaxy.IsNewHolon = true;
+                }
+
+                var parentMultiverse = parentGalaxyCluster.ParentMultiverse;
+
+                if (parentMultiverse != null &&
+                    parentMultiverse.GrandSuperStar != null &&
+                    parentMultiverse.GrandSuperStar.CelestialBodyCore is IGrandSuperStarCore grandCore)
+                {
+                    Mapper<IGalaxyCluster, IGalaxy>.MapParentCelestialBodyProperties(parentGalaxyCluster, galaxy);
+                    galaxy.ParentGalaxyCluster = parentGalaxyCluster;
+                    galaxy.ParentGalaxyClusterId = parentGalaxyCluster.Id;
+                    galaxy.ParentHolon = parentGalaxyCluster;
+                    galaxy.ParentHolonId = parentGalaxyCluster.Id;
+                    galaxy.ParentCelestialSpace = parentGalaxyCluster;
+                    galaxy.ParentCelestialSpaceId = parentGalaxyCluster.Id;
+
+                    var galaxyResult = await grandCore.AddGalaxyToGalaxyClusterAsync(parentGalaxyCluster, galaxy);
+                    OASISResultHelper.CopyResult(galaxyResult, result);
+                }
+                else
+                {
+                    var saveResult = await galaxy.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (IGalaxy)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding Galaxy: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region SolarSystem Methods
+
+        public async Task<OASISResult<ISolarSystem>> AddSolarSystemAsync(IGalaxy parentGalaxy, ISolarSystem solarSystem)
+        {
+            var result = new OASISResult<ISolarSystem>();
+
+            try
+            {
+                if (parentGalaxy == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Galaxy cannot be null.");
+                    return result;
+                }
+
+                if (solarSystem == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SolarSystem cannot be null.");
+                    return result;
+                }
+
+                if (solarSystem.Id == Guid.Empty)
+                {
+                    solarSystem.Id = Guid.NewGuid();
+                    solarSystem.IsNewHolon = true;
+                }
+
+                // We expect the caller to have created and wired the central Star, but if they have
+                // not then we still persist the SolarSystem as a CelestialSpace.
+                if (parentGalaxy.SuperStar != null &&
+                    parentGalaxy.SuperStar.CelestialBodyCore is ISuperStarCore superCore &&
+                    solarSystem.Star != null &&
+                    solarSystem.Star.CelestialBodyCore is IStarCore starCore)
+                {
+                    Mapper<IGalaxy, IStar>.MapParentCelestialBodyProperties(parentGalaxy, solarSystem.Star);
+                    solarSystem.Star.ParentGalaxy = parentGalaxy;
+                    solarSystem.Star.ParentGalaxyId = parentGalaxy.Id;
+                    solarSystem.Star.ParentHolon = parentGalaxy;
+                    solarSystem.Star.ParentHolonId = parentGalaxy.Id;
+                    solarSystem.Star.ParentCelestialSpace = parentGalaxy;
+                    solarSystem.Star.ParentCelestialSpaceId = parentGalaxy.Id;
+                    solarSystem.Star.ParentSolarSystem = solarSystem;
+                    solarSystem.Star.ParentSolarSystemId = solarSystem.Id;
+
+                    var starResult = await superCore.AddStarAsync(solarSystem.Star);
+
+                    if (!starResult.IsError && starResult.Result != null)
+                    {
+                        solarSystem.Star = starResult.Result;
+                        Mapper<IStar, ISolarSystem>.MapParentCelestialBodyProperties(starResult.Result, solarSystem);
+                        solarSystem.ParentStar = starResult.Result;
+                        solarSystem.ParentStarId = starResult.Result.Id;
+                        solarSystem.ParentHolon = solarSystem;
+                        solarSystem.ParentHolonId = solarSystem.Id;
+                        solarSystem.ParentCelestialSpace = solarSystem;
+                        solarSystem.ParentCelestialSpaceId = solarSystem.Id;
+
+                        var solarSystemResult = await starCore.AddSolarSystemAsync(solarSystem);
+                        OASISResultHelper.CopyResult(solarSystemResult, result);
+                    }
+                    else
+                    {
+                        OASISResultHelper.CopyResult(starResult, result);
+                    }
+                }
+                else
+                {
+                    var saveResult = await solarSystem.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (ISolarSystem)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding SolarSystem: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Star Methods
+
+        public async Task<OASISResult<IStar>> AddStarAsync(IGalaxy parentGalaxy, IStar star)
+        {
+            var result = new OASISResult<IStar>();
+
+            try
+            {
+                if (parentGalaxy == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Galaxy cannot be null.");
+                    return result;
+                }
+
+                if (star == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Star cannot be null.");
+                    return result;
+                }
+
+                if (star.Id == Guid.Empty)
+                {
+                    star.Id = Guid.NewGuid();
+                    star.IsNewHolon = true;
+                }
+
+                if (parentGalaxy.SuperStar != null &&
+                    parentGalaxy.SuperStar.CelestialBodyCore is ISuperStarCore superCore)
+                {
+                    Mapper<IGalaxy, IStar>.MapParentCelestialBodyProperties(parentGalaxy, star);
+                    star.ParentGalaxy = parentGalaxy;
+                    star.ParentGalaxyId = parentGalaxy.Id;
+                    star.ParentHolon = parentGalaxy;
+                    star.ParentHolonId = parentGalaxy.Id;
+                    star.ParentCelestialSpace = parentGalaxy;
+                    star.ParentCelestialSpaceId = parentGalaxy.Id;
+
+                    var starResult = await superCore.AddStarAsync(star);
+                    OASISResultHelper.CopyResult(starResult, result);
+                }
+                else
+                {
+                    var saveResult = await star.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (IStar)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding Star: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Planet Methods
+
+        public async Task<OASISResult<IPlanet>> AddPlanetAsync(ISolarSystem parentSolarSystem, IPlanet planet)
+        {
+            var result = new OASISResult<IPlanet>();
+
+            try
+            {
+                if (parentSolarSystem == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent SolarSystem cannot be null.");
+                    return result;
+                }
+
+                if (planet == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Planet cannot be null.");
+                    return result;
+                }
+
+                if (planet.Id == Guid.Empty)
+                {
+                    planet.Id = Guid.NewGuid();
+                    planet.IsNewHolon = true;
+                }
+
+                if (parentSolarSystem.Star != null &&
+                    parentSolarSystem.Star.CelestialBodyCore is IStarCore starCore)
+                {
+                    Mapper<ISolarSystem, IPlanet>.MapParentCelestialBodyProperties(parentSolarSystem, planet);
+                    planet.ParentSolarSystem = parentSolarSystem;
+                    planet.ParentSolarSystemId = parentSolarSystem.Id;
+                    planet.ParentHolon = parentSolarSystem;
+                    planet.ParentHolonId = parentSolarSystem.Id;
+                    planet.ParentCelestialSpace = parentSolarSystem;
+                    planet.ParentCelestialSpaceId = parentSolarSystem.Id;
+
+                    var planetResult = await starCore.AddPlanetAsync(planet);
+                    OASISResultHelper.CopyResult(planetResult, result);
+                }
+                else
+                {
+                    var saveResult = await planet.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (IPlanet)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding Planet: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Moon Methods
+
+        public async Task<OASISResult<IMoon>> AddMoonAsync(IPlanet parentPlanet, IMoon moon)
+        {
+            var result = new OASISResult<IMoon>();
+
+            try
+            {
+                if (parentPlanet == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Planet cannot be null.");
+                    return result;
+                }
+
+                if (moon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Moon cannot be null.");
+                    return result;
+                }
+
+                if (moon.Id == Guid.Empty)
+                {
+                    moon.Id = Guid.NewGuid();
+                    moon.IsNewHolon = true;
+                }
+
+                var parentSolarSystem = parentPlanet.ParentSolarSystem;
+
+                if (parentSolarSystem != null &&
+                    parentSolarSystem.Star != null &&
+                    parentSolarSystem.Star.CelestialBodyCore is IStarCore starCore)
+                {
+                    Mapper<IPlanet, IMoon>.MapParentCelestialBodyProperties(parentPlanet, moon);
+                    moon.ParentPlanet = parentPlanet;
+                    moon.ParentPlanetId = parentPlanet.Id;
+                    moon.ParentHolon = parentPlanet;
+                    moon.ParentHolonId = parentPlanet.Id;
+                    moon.ParentCelestialSpace = parentPlanet;
+                    moon.ParentCelestialSpaceId = parentPlanet.Id;
+
+                    var moonResult = await starCore.AddMoonAsync(parentPlanet, moon);
+                    OASISResultHelper.CopyResult(moonResult, result);
+                }
+                else
+                {
+                    var saveResult = await moon.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (IMoon)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding Moon: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Other Celestial Bodies
+
+        public async Task<OASISResult<IAsteroid>> AddAsteroidAsync(IGalaxy parentGalaxy, IAsteroid asteroid)
+        {
+            var result = new OASISResult<IAsteroid>();
+
+            try
+            {
+                if (parentGalaxy == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Galaxy cannot be null.");
+                    return result;
+                }
+
+                if (asteroid == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Asteroid cannot be null.");
+                    return result;
+                }
+
+                if (asteroid.Id == Guid.Empty)
+                {
+                    asteroid.Id = Guid.NewGuid();
+                    asteroid.IsNewHolon = true;
+                }
+
+                if (parentGalaxy.SuperStar != null &&
+                    parentGalaxy.SuperStar.CelestialBodyCore is ISuperStarCore superCore)
+                {
+                    Mapper<IGalaxy, IAsteroid>.MapParentCelestialBodyProperties(parentGalaxy, asteroid);
+                    asteroid.ParentGalaxy = parentGalaxy;
+                    asteroid.ParentGalaxyId = parentGalaxy.Id;
+                    asteroid.ParentHolon = parentGalaxy;
+                    asteroid.ParentHolonId = parentGalaxy.Id;
+                    asteroid.ParentCelestialSpace = parentGalaxy;
+                    asteroid.ParentCelestialSpaceId = parentGalaxy.Id;
+
+                    var asteroidResult = await superCore.AddAsteroidAsync(asteroid);
+                    OASISResultHelper.CopyResult(asteroidResult, result);
+                }
+                else
+                {
+                    var saveResult = await asteroid.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (IAsteroid)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding Asteroid: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IComet>> AddCometAsync(IGalaxy parentGalaxy, IComet comet)
+        {
+            var result = new OASISResult<IComet>();
+
+            try
+            {
+                if (parentGalaxy == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Galaxy cannot be null.");
+                    return result;
+                }
+
+                if (comet == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Comet cannot be null.");
+                    return result;
+                }
+
+                if (comet.Id == Guid.Empty)
+                {
+                    comet.Id = Guid.NewGuid();
+                    comet.IsNewHolon = true;
+                }
+
+                if (parentGalaxy.SuperStar != null &&
+                    parentGalaxy.SuperStar.CelestialBodyCore is ISuperStarCore superCore)
+                {
+                    Mapper<IGalaxy, IComet>.MapParentCelestialBodyProperties(parentGalaxy, comet);
+                    comet.ParentGalaxy = parentGalaxy;
+                    comet.ParentGalaxyId = parentGalaxy.Id;
+                    comet.ParentHolon = parentGalaxy;
+                    comet.ParentHolonId = parentGalaxy.Id;
+                    comet.ParentCelestialSpace = parentGalaxy;
+                    comet.ParentCelestialSpaceId = parentGalaxy.Id;
+
+                    var cometResult = await superCore.AddCometAsync(comet);
+                    OASISResultHelper.CopyResult(cometResult, result);
+                }
+                else
+                {
+                    var saveResult = await comet.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (IComet)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding Comet: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IMeteroid>> AddMeteroidAsync(IGalaxy parentGalaxy, IMeteroid meteroid)
+        {
+            var result = new OASISResult<IMeteroid>();
+
+            try
+            {
+                if (parentGalaxy == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Galaxy cannot be null.");
+                    return result;
+                }
+
+                if (meteroid == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Meteroid cannot be null.");
+                    return result;
+                }
+
+                if (meteroid.Id == Guid.Empty)
+                {
+                    meteroid.Id = Guid.NewGuid();
+                    meteroid.IsNewHolon = true;
+                }
+
+                if (parentGalaxy.SuperStar != null &&
+                    parentGalaxy.SuperStar.CelestialBodyCore is ISuperStarCore superCore)
+                {
+                    Mapper<IGalaxy, IMeteroid>.MapParentCelestialBodyProperties(parentGalaxy, meteroid);
+                    meteroid.ParentGalaxy = parentGalaxy;
+                    meteroid.ParentGalaxyId = parentGalaxy.Id;
+                    meteroid.ParentHolon = parentGalaxy;
+                    meteroid.ParentHolonId = parentGalaxy.Id;
+                    meteroid.ParentCelestialSpace = parentGalaxy;
+                    meteroid.ParentCelestialSpaceId = parentGalaxy.Id;
+
+                    var meteroidResult = await superCore.AddMeteroidAsync(meteroid);
+                    OASISResultHelper.CopyResult(meteroidResult, result);
+                }
+                else
+                {
+                    var saveResult = await meteroid.SaveAsync();
+                    OASISResultHelper.CopyResult(saveResult, result);
+                    result.Result = (IMeteroid)saveResult.Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error adding Meteroid: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+    }
+}

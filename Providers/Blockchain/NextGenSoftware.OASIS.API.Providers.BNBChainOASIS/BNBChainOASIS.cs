@@ -3083,12 +3083,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
             return result;
         }
 
-        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb4NFTRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         {
             return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb4NFTRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
         {
             var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
@@ -3233,14 +3233,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
             return result;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string hash)
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            return LoadOnChainNFTDataAsync(hash).Result;
+            return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string hash)
+        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var result = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb3NFT>();
             try
             {
                 if (!_isActivated)
@@ -3285,23 +3285,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     {
                         // Parse NFT data from blockchain response
                         var nftData = JsonSerializer.Deserialize<JsonElement>(resultData.GetString());
-                        var nft = new Web4NFT
+                        var web3NFT = new Web3NFT
                         {
-                            Id = Guid.NewGuid(),
-                            Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "BNB NFT",
-                            Description = nftData.TryGetProperty("description", out var description) ? description.GetString() : "NFT from BNB Chain",
-                            ImageUrl = nftData.TryGetProperty("image", out var image) ? image.GetString() : "",
-                            NFTTokenAddress = nftData.TryGetProperty("tokenId", out var tokenId) ? tokenId.GetString() : hash,
-                            OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.BNBChainOASIS),
-                            MetaData = new Dictionary<string, object>
-                            {
-                                ["BNBChainData"] = resultData.GetString(),
-                                ["ParsedAt"] = DateTime.UtcNow,
+                            NFTTokenAddress = nftTokenAddress,
+                            Name = nftData.TryGetProperty("name", out var name) ? name.GetString() : "BNB NFT",
+                            Symbol = nftData.TryGetProperty("symbol", out var symbol) ? symbol.GetString() : "BNB",
+                            TokenUri = nftData.TryGetProperty("tokenURI", out var tokenURI) ? tokenURI.GetString() : null
                                 ["Provider"] = "BNBChainOASIS"
                             }
                         };
                         
-                        result.Result = nft;
+                        result.Result = web3NFT;
                         result.IsError = false;
                         result.Message = $"NFT data loaded from BNB Chain successfully";
                     }

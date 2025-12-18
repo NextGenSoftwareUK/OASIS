@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
+//using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 //using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
@@ -18,7 +18,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
-using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
+//using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
@@ -820,17 +820,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        case ProviderType.EOSIOOASIS:
-                            {
-                                EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
-                                EOSIOOASIS.OnStorageProviderError += EOSIOOASIS_StorageProviderError;
-                                result.Result = EOSIOOASIS;
-                            }
-                            break;
+                        //case ProviderType.EOSIOOASIS:
+                        //    {
+                        //        EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
+                        //        EOSIOOASIS.OnStorageProviderError += EOSIOOASIS_StorageProviderError;
+                        //        result.Result = EOSIOOASIS;
+                        //    }
+                        //    break;
 
                         //case ProviderType.TelosOASIS:
                         //    {
@@ -902,17 +902,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        case ProviderType.EthereumOASIS:
-                            {
-                                EthereumOASIS EthereumOASIS = new(
-                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress);
-                                EthereumOASIS.OnStorageProviderError += EthereumOASIS_StorageProviderError;
-                                result.Result = EthereumOASIS;
-                            }
-                            break;
+                        //case ProviderType.EthereumOASIS:
+                        //    {
+                        //        EthereumOASIS EthereumOASIS = new(
+                        //            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString,
+                        //            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainPrivateKey,
+                        //            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainId,
+                        //            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress);
+                        //        EthereumOASIS.OnStorageProviderError += EthereumOASIS_StorageProviderError;
+                        //        result.Result = EthereumOASIS;
+                        //    }
+                        //    break;
 
                         case ProviderType.ArbitrumOASIS:
                             {
