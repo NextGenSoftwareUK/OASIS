@@ -2330,30 +2330,115 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         #endregion
-        /*
+
         #region IOASISLocalStorageProvider
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
         {
-            throw new NotImplementedException();
+            return LoadProviderWalletsForAvatarByIdAsync(id).Result;
         }
 
-        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // Load avatar to get provider wallets
+                var avatarResult = await LoadAvatarAsync(id);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    return result;
+                }
+
+                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+                if (avatarResult.Result?.ProviderWallets != null)
+                {
+                    foreach (var group in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
+                    {
+                        providerWallets[group.Key] = group.SelectMany(g => g.Value).ToList();
+                    }
+                }
+
+                result.Result = providerWallets;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {providerWallets.Count} provider wallet types for avatar {id} from BlockStack";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading provider wallets for avatar from BlockStack: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            return SaveProviderWalletsForAvatarByIdAsync(id, providerWallets).Result;
         }
 
-        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                // Load avatar and update provider wallets
+                var avatarResult = await LoadAvatarAsync(id);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    return result;
+                }
+
+                var avatar = avatarResult.Result;
+                if (avatar != null)
+                {
+                    // Set the provider wallets dictionary directly
+                    avatar.ProviderWallets = providerWallets;
+
+                    // Save updated avatar
+                    var saveResult = await SaveAvatarAsync(avatar);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        return result;
+                    }
+
+                    // Count total wallets
+                    var allWallets = new List<IProviderWallet>();
+                    foreach (var kvp in providerWallets)
+                    {
+                        allWallets.AddRange(kvp.Value);
+                    }
+
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Successfully saved {allWallets.Count} provider wallets for avatar {id} to BlockStack";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving provider wallets for avatar to BlockStack: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        #endregion*/
+        #endregion
 
     // NFT-specific lock/unlock methods
     public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
@@ -2583,11 +2668,61 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
-                // BlockStack uses Bitcoin-like addresses, query via BlockStack API
-                // For now, return placeholder - in production, use BlockStack API
-                result.Result = 0m;
-                result.IsError = false;
-                result.Message = "BlockStack balance query (requires BlockStack API integration)";
+                // BlockStack uses Bitcoin-like addresses, query via Stacks API
+                // Query Stacks blockchain for account balance
+                try
+                {
+                    using (var httpClient = new HttpClient())
+                    {
+                        // Stacks API endpoint for account balance
+                        var stacksApiUrl = "https://api.stacks.co/v2/accounts";
+                        var response = await httpClient.GetAsync($"{stacksApiUrl}/{request.WalletAddress}");
+                        
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var content = await response.Content.ReadAsStringAsync();
+                            var jsonDoc = JsonDocument.Parse(content);
+                            
+                            // Parse balance from Stacks API response
+                            if (jsonDoc.RootElement.TryGetProperty("balance", out var balanceElement))
+                            {
+                                var balanceString = balanceElement.GetString();
+                                if (decimal.TryParse(balanceString, out var balance))
+                                {
+                                    // Convert from microSTX to STX (1 STX = 1,000,000 microSTX)
+                                    result.Result = balance / 1000000m;
+                                    result.IsError = false;
+                                    result.Message = $"Successfully retrieved BlockStack account balance";
+                                }
+                                else
+                                {
+                                    result.Result = 0m;
+                                    result.IsError = false;
+                                    result.Message = "Balance retrieved but could not parse value";
+                                }
+                            }
+                            else
+                            {
+                                result.Result = 0m;
+                                result.IsError = false;
+                                result.Message = "Account found but balance not available";
+                            }
+                        }
+                        else
+                        {
+                            result.Result = 0m;
+                            result.IsError = false;
+                            result.Message = $"Stacks API returned status {response.StatusCode}";
+                        }
+                    }
+                }
+                catch (Exception apiEx)
+                {
+                    // If API call fails, return 0 with warning
+                    result.Result = 0m;
+                    result.IsError = false;
+                    result.Message = $"BlockStack balance query attempted but API call failed: {apiEx.Message}";
+                }
             }
             catch (Exception ex)
             {
@@ -2770,11 +2905,63 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
-                // Query BlockStack API for transaction status
-                // For now, assume completed if hash exists
-                result.Result = BridgeTransactionStatus.Completed;
-                result.IsError = false;
-                result.Message = "BlockStack transaction status retrieved (requires full API integration)";
+                // Query Stacks API for transaction status
+                try
+                {
+                    using (var httpClient = new HttpClient())
+                    {
+                        // Stacks API endpoint for transaction status
+                        var stacksApiUrl = "https://api.stacks.co/v2/transactions";
+                        var response = await httpClient.GetAsync($"{stacksApiUrl}/{transactionHash}");
+                        
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var content = await response.Content.ReadAsStringAsync();
+                            var jsonDoc = JsonDocument.Parse(content);
+                            
+                            // Parse transaction status from Stacks API response
+                            if (jsonDoc.RootElement.TryGetProperty("tx_status", out var statusElement))
+                            {
+                                var status = statusElement.GetString();
+                                // Map Stacks transaction status to BridgeTransactionStatus
+                                result.Result = status switch
+                                {
+                                    "success" or "success_anchor_block_found" => BridgeTransactionStatus.Completed,
+                                    "pending" or "pending_anchor_block" => BridgeTransactionStatus.Pending,
+                                    "abort_by_response" or "abort_by_post_condition" => BridgeTransactionStatus.Canceled,
+                                    _ => BridgeTransactionStatus.NotFound
+                                };
+                                result.IsError = false;
+                                result.Message = $"Successfully retrieved BlockStack transaction status: {status}";
+                            }
+                            else
+                            {
+                                result.Result = BridgeTransactionStatus.NotFound;
+                                result.IsError = false;
+                                result.Message = "Transaction found but status not available";
+                            }
+                        }
+                        else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                        {
+                            result.Result = BridgeTransactionStatus.NotFound;
+                            result.IsError = false;
+                            result.Message = "Transaction not found on Stacks blockchain";
+                        }
+                        else
+                        {
+                            result.Result = BridgeTransactionStatus.NotFound;
+                            result.IsError = false;
+                            result.Message = $"Stacks API returned status {response.StatusCode}";
+                        }
+                    }
+                }
+                catch (Exception apiEx)
+                {
+                    // If API call fails, return NotFound
+                    result.Result = BridgeTransactionStatus.NotFound;
+                    result.IsError = false;
+                    result.Message = $"BlockStack transaction status query attempted but API call failed: {apiEx.Message}";
+                }
             }
             catch (Exception ex)
             {

@@ -10,13 +10,17 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.Utilities.ExtentionMethods;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using System.Text.Json.Serialization;
+using System.IO;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 {
@@ -24,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
     /// SOLID (Social Linked Data) Provider for OASIS
     /// Implements Tim Berners-Lee's decentralized web standard where users store data in "pods"
     /// </summary>
-    public class SOLIDOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public class SOLIDOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISSuperStar
     {
         private readonly HttpClient _httpClient;
         private readonly string _podServerUrl;
@@ -1986,14 +1990,67 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         #endregion
 
-        /*
         #region IOASISSuperStar
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
-            // SOLID provider doesn't support native code genesis
-            return false;
-        }
+            try
+            {
+                if (string.IsNullOrEmpty(outputFolder))
+                    return false;
 
+                string solidFolder = Path.Combine(outputFolder, "SOLID");
+                if (!Directory.Exists(solidFolder))
+                    Directory.CreateDirectory(solidFolder);
+
+                if (!string.IsNullOrEmpty(nativeSource))
+                {
+                    File.WriteAllText(Path.Combine(solidFolder, "pod.ttl"), nativeSource);
+                    return true;
+                }
+
+                if (celestialBody == null)
+                    return true;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .");
+                sb.AppendLine("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .");
+                sb.AppendLine("@prefix solid: <http://www.w3.org/ns/solid/terms#> .");
+                sb.AppendLine("@prefix oapp: <https://oasis.genesis/oapp#> .");
+                sb.AppendLine();
+                sb.AppendLine($"oapp:{celestialBody.Name?.ToPascalCase() ?? "OAPP"} a solid:Application ;");
+                sb.AppendLine($"    rdfs:label \"{celestialBody.Name ?? "OAPP"}\" ;");
+                if (!string.IsNullOrWhiteSpace(celestialBody.Description))
+                {
+                    sb.AppendLine($"    rdfs:comment \"{celestialBody.Description}\" ;");
+                }
+                sb.AppendLine("    oapp:hasHolon (");
+
+                var zomes = celestialBody.CelestialBodyCore?.Zomes;
+                if (zomes != null)
+                {
+                    foreach (var zome in zomes)
+                    {
+                        if (zome?.Children == null) continue;
+
+                        foreach (var holon in zome.Children)
+                        {
+                            if (holon == null || string.IsNullOrWhiteSpace(holon.Name)) continue;
+
+                            sb.AppendLine($"        oapp:{holon.Name.ToPascalCase()}");
+                        }
+                    }
+                }
+
+                sb.AppendLine("    ) .");
+
+                File.WriteAllText(Path.Combine(solidFolder, "pod.ttl"), sb.ToString());
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
         #endregion
 
         #region IOASISBlockchainStorageProvider

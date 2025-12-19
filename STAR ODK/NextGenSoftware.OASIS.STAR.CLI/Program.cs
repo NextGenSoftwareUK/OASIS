@@ -122,6 +122,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     DEFAULT_GENESIS_FOLDER = STAR.STARDNA.DefaultOAPPsSourcePath;
 
                     await STARCLI.Avatars.BeamInAvatar();
+                    
+                    // Scan and load installed plugins at boot time
+                    await ScanAndLoadPluginsAtBoot();
+                    
                     await ReadyPlayerOne(); //TODO: May allow this to be called with a different provider in future.
                 }
             }
@@ -130,6 +134,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occurred. Error Details: ", ex.ToString()));
                 //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+            }
+        }
+
+        private static async Task ScanAndLoadPluginsAtBoot()
+        {
+            try
+            {
+                var pluginLoader = new PluginLoader();
+                var scanResult = await pluginLoader.ScanAndLoadPluginsAsync();
+                
+                if (scanResult != null && !scanResult.IsError && scanResult.Result != null && scanResult.Result.Count > 0)
+                {
+                    CLIEngine.ShowMessage($"", false);
+                    CLIEngine.ShowSuccessMessage($"Loaded {scanResult.Result.Count} installed plugin(s) at boot time.");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error scanning plugins at boot: {ex.Message}");
             }
         }
 

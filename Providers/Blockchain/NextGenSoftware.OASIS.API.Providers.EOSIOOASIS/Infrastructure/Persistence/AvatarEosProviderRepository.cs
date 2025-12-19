@@ -230,14 +230,63 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             _eosClient.Dispose();
         }
 
-        public Task<ImmutableArray<HolonDto>> ReadAllByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All)
+        public async Task<ImmutableArray<HolonDto>> ReadAllByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All)
         {
-            throw new NotImplementedException();
+            // Get all avatars from EOSIO chain
+            var avatarTableRows = await _eosClient.GetTableRows<AvatarDto>(new GetTableRowsRequestDto
+            {
+                Code = _eosAccountName,
+                Scope = _eosAccountName,
+                Table = _avatarTable
+            });
+
+            // Filter by metadata - EOSIO stores metadata in Info field (JSON string)
+            var filteredAvatars = avatarTableRows.Rows.Where(avatar =>
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(avatar.Info))
+                        return false;
+
+                    // Parse Info JSON to check metadata
+                    var infoDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(avatar.Info);
+                    if (infoDict == null)
+                        return false;
+
+                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
+                    {
+                        return metaKeyValuePairs.All(kvp => 
+                            infoDict.ContainsKey(kvp.Key) && 
+                            infoDict[kvp.Key]?.ToString() == kvp.Value);
+                    }
+                    else // Or
+                    {
+                        return metaKeyValuePairs.Any(kvp => 
+                            infoDict.ContainsKey(kvp.Key) && 
+                            infoDict[kvp.Key]?.ToString() == kvp.Value);
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+
+            // Convert AvatarDto to HolonDto (they share similar structure)
+            var holonDtos = filteredAvatars.Select(avatar => new HolonDto
+            {
+                EntityId = avatar.EntityId,
+                Info = avatar.Info
+            });
+
+            return holonDtos.ToImmutableArray();
         }
 
-        public Task<ImmutableArray<HolonDto>> ReadAllByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All)
+        public async Task<ImmutableArray<HolonDto>> ReadAllByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All)
         {
-            throw new NotImplementedException();
+            // Use the dictionary version with single key-value pair
+            var metaKeyValuePairs = new Dictionary<string, string> { { metaKey, metaValue } };
+            return await ReadAllByMetaData(metaKeyValuePairs, MetaKeyValuePairMatchMode.All, type);
         }
 
         ~AvatarEosProviderRepository()

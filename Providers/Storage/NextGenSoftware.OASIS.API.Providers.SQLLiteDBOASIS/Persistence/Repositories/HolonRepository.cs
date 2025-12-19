@@ -515,71 +515,129 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
-            //try
-            //{
-            //    var holon = this.eFContext.HolonEntities.Where(p => p.ProvideKey == providerKey).FirstOrDefault();
-            //    if (holon != null)
-            //    {
-            //        if (softDelete)
-            //        {
-            //            holon.IsActive = false;
-            //            this.eFContext.HolonEntities.Update(holon);
-            //        }
-            //        else
-            //        {
-            //            this.eFContext.HolonEntities.Remove(holon);
-            //        }
-            //        this.eFContext.SaveChangesAsync();
-            //        return true;
-            //    }
-            //    else { return false; }
-            //}
-            //catch (Exception)
-            //{
-            //    throw;
-            //}
-            throw new NotImplementedException();
+            try
+            {
+                var holonEntity = _dbContext.Holons
+                    .FirstOrDefault(p => p.ProviderKey == providerKey);
+                
+                if (holonEntity != null)
+                {
+                    if (softDelete)
+                    {
+                        holonEntity.IsActive = false;
+                        holonEntity.DeletedDate = DateTime.UtcNow;
+                        _dbContext.Holons.Update(holonEntity);
+                    }
+                    else
+                    {
+                        _dbContext.Holons.Remove(holonEntity);
+                    }
+                    _dbContext.SaveChanges();
+                    
+                    var holon = GetHolonFromEntity(holonEntity);
+                    return new OASISResult<IHolon>
+                    {
+                        IsError = false,
+                        IsSaved = true,
+                        Message = softDelete ? "Holon soft deleted successfully" : "Holon deleted successfully",
+                        Result = holon
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IHolon>
+                    {
+                        IsError = true,
+                        Message = "Holon not found"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IHolon>
+                {
+                    IsError = true,
+                    Message = ex.ToString()
+                };
+            }
         }
 
         public async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
-            //try
-            //{
-            //    var holon = await this.eFContext.HolonEntities.Where(p => p.ProvideKey == providerKey).FirstOrDefaultAsync();
-            //    if (holon != null)
-            //    {
-            //        if (softDelete)
-            //        {
-            //            holon.IsActive = false;
-            //            this.eFContext.HolonEntities.Update(holon);
-            //        }
-            //        else
-            //        {
-            //            this.eFContext.HolonEntities.Remove(holon);
-            //        }
-            //        await this.eFContext.SaveChangesAsync();
-            //        return true;
-            //    }
-            //    else { return false; }
-            //}
-            //catch (Exception)
-            //{
-            //    throw;
-            //}
-            throw new NotImplementedException();
+            try
+            {
+                var holonEntity = await _dbContext.Holons
+                    .FirstOrDefaultAsync(p => p.ProviderKey == providerKey);
+                
+                if (holonEntity != null)
+                {
+                    if (softDelete)
+                    {
+                        holonEntity.IsActive = false;
+                        holonEntity.DeletedDate = DateTime.UtcNow;
+                        _dbContext.Holons.Update(holonEntity);
+                    }
+                    else
+                    {
+                        _dbContext.Holons.Remove(holonEntity);
+                    }
+                    await _dbContext.SaveChangesAsync();
+                    
+                    var holon = GetHolonFromEntity(holonEntity);
+                    return new OASISResult<IHolon>
+                    {
+                        IsError = false,
+                        IsSaved = true,
+                        Message = softDelete ? "Holon soft deleted successfully" : "Holon deleted successfully",
+                        Result = holon
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IHolon>
+                    {
+                        IsError = true,
+                        Message = "Holon not found"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IHolon>
+                {
+                    IsError = true,
+                    Message = ex.ToString()
+                };
+            }
         }
 
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
         {
-            //try
-            //{
-            //    return this.eFContext.HolonEntities.Where(p => p.Type == Type).ToList();
-            //}
-            //catch (Exception)
-            //{
-            //    throw;
-            //}
-            throw new NotImplementedException();
+            try
+            {
+                var holonEntities = _dbContext.Holons
+                    .Where(p => p.HolonType == Type.ToString())
+                    .ToList()
+                    .Select(GetHolonFromEntity)
+                    .ToList();
+                
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = true,
+                    IsError = false,
+                    Message = $"Loaded {holonEntities.Count} holons of type {Type}",
+                    Result = holonEntities
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString()
+                };
+            }
         }
 
         private IHolon GetHolonFromEntity(HolonModel holonEntity) =>
