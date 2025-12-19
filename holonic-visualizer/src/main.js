@@ -1,9 +1,19 @@
 import { HolonicVisualizer } from './visualizer/HolonicVisualizer.js';
 import { MockDataGenerator } from './data/MockDataGenerator.js';
+import { OASISClient } from './api/OASISClient.js';
+import { OASISDataTransformer } from './data/OASISDataTransformer.js';
 
 // Initialize the visualizer
 const container = document.getElementById('canvas-container');
 const visualizer = new HolonicVisualizer(container);
+
+// Initialize OASIS client
+// Use HTTP (port 5003) for localhost to avoid HTTP/2 protocol errors
+const oasisClient = new OASISClient({
+    baseUrl: import.meta.env.VITE_OASIS_API_URL || 'http://localhost:5003',
+    username: import.meta.env.VITE_OASIS_USERNAME || 'OASIS_ADMIN',
+    password: import.meta.env.VITE_OASIS_PASSWORD || 'Uppermall1!'
+});
 
 // Notification log system - subtle corner log
 let notificationLog = [];
@@ -195,6 +205,291 @@ document.getElementById('btn-clear').addEventListener('click', () => {
     updateStats({ oapps: [], holons: [] });
     showNotification('Cleared all', 'success');
 });
+
+// Store current avatar ID for filtering
+let currentAvatarId = null;
+
+// Load data from OASIS API
+async function loadFromOASIS(avatarId = null) {
+    try {
+        showNotification('Connecting to OASIS...', 'success');
+        
+        // Authenticate first
+        showNotification('Authenticating...', 'success');
+        await oasisClient.authenticate();
+        
+        // If avatarId is provided, get holons for that avatar, otherwise get all
+        let holons, oapps;
+        
+        if (avatarId) {
+            showNotification(`Loading holons for avatar...`, 'success');
+            holons = await oasisClient.getHolonsForAvatar(avatarId);
+            // Get OAPPs that belong to this avatar's holons
+            const holonOAPPIds = [...new Set(holons.map(h => h.oappId || h.OAPPId || h.metadata?.oappId || h.MetaData?.oappId).filter(Boolean))];
+            oapps = await oasisClient.getAllOAPPs();
+            // Filter OAPPs to only those with holons from this avatar
+            oapps = oapps.filter(oapp => {
+                const oappId = oapp.id || oapp.Id;
+                return holonOAPPIds.includes(oappId);
+            });
+        } else {
+            showNotification('Loading OAPPs and Avatars...', 'success');
+            
+            // Instead of loading "All" (which can be too large and cause chunked encoding errors),
+            // load specific types separately to avoid large responses
+            let allHolons = [];
+            
+            try {
+                // Load OAPPs using POST with LoadChildren: false to avoid loading all child holons
+                // This prevents ERR_INCOMPLETE_CHUNKED_ENCODING errors
+                showNotification('Loading OAPPs...', 'success');
+                let oappHolons = await oasisClient.getAllHolonsWithOptions(74, { LoadChildren: false });
+                if (!Array.isArray(oappHolons) || oappHolons.length === 0) {
+                    console.log('Trying OAPP as string...');
+                    oappHolons = await oasisClient.getAllHolonsWithOptions('OAPP', { LoadChildren: false });
+                }
+                if (Array.isArray(oappHolons)) {
+                    allHolons.push(...oappHolons);
+                    console.log(`Loaded ${oappHolons.length} OAPPs`);
+                } else if (oappHolons && oappHolons.errorType === 'INCOMPLETE_CHUNKED_ENCODING') {
+                    showNotification('OAPP response too large. Try using "Seed Sample Data" to create test data.', 'error');
+                    return;
+                }
+                
+                // Load Avatars using POST with LoadChildren: false
+                showNotification('Loading Avatars...', 'success');
+                let avatarHolons = await oasisClient.getAllHolonsWithOptions(3, { LoadChildren: false });
+                if (!Array.isArray(avatarHolons) || avatarHolons.length === 0) {
+                    console.log('Trying Avatar as string...');
+                    avatarHolons = await oasisClient.getAllHolonsWithOptions('Avatar', { LoadChildren: false });
+                }
+                if (Array.isArray(avatarHolons)) {
+                    allHolons.push(...avatarHolons);
+                    console.log(`Loaded ${avatarHolons.length} Avatars`);
+                } else if (avatarHolons && avatarHolons.errorType === 'INCOMPLETE_CHUNKED_ENCODING') {
+                    showNotification('Avatar response too large. Try using "Seed Sample Data" to create test data.', 'error');
+                    return;
+                }
+                
+                // Load regular holons (type 0) - these should be smaller batches
+                showNotification('Loading regular holons...', 'success');
+                const regularHolons = await oasisClient.getAllHolonsWithOptions(0, { LoadChildren: false });
+                if (Array.isArray(regularHolons)) {
+                    // Filter out any OAPPs or Avatars that might have been returned
+                    const filtered = regularHolons.filter(h => {
+                        const type = h.holonType || h.HolonType || h.type;
+                        return type !== 74 && type !== 3 && type !== 'OAPP' && type !== 'Avatar';
+                    });
+                    allHolons.push(...filtered);
+                    console.log(`Loaded ${filtered.length} regular holons (filtered from ${regularHolons.length} total)`);
+                }
+                
+                holons = allHolons;
+            } catch (error) {
+                console.warn('Error loading specific holon types:', error);
+                showNotification(`Error loading data: ${error.message}. Try using "Seed Sample Data" to create test data.`, 'error');
+                return;
+            }
+            
+            // Ensure holons is an array
+            if (!Array.isArray(holons)) {
+                console.warn('getAllHolons returned non-array:', holons);
+                holons = [];
+            }
+            
+            // Separate OAPPs and avatars from other holons
+            oapps = holons.filter(h => {
+                const type = h.holonType || h.HolonType || h.type;
+                return type === 'OAPP' || type === 74; // OAPP is enum value 74
+            });
+            
+            const avatars = holons.filter(h => {
+                const type = h.holonType || h.HolonType || h.type;
+                return type === 'Avatar' || type === 3; // Avatar is enum value 3
+            });
+            
+            // Filter out OAPPs and avatars from the main holons list (they'll be handled separately)
+            holons = holons.filter(h => {
+                const type = h.holonType || h.HolonType || h.type;
+                return type !== 'OAPP' && type !== 74 && type !== 'Avatar' && type !== 3;
+            });
+            
+            // Log what we found
+            console.log(`Found ${holons.length} regular holons, ${avatars.length} avatars, ${oapps.length} OAPPs`);
+        }
+
+        // Ensure oapps and holons are arrays (handle undefined/null)
+        if (!Array.isArray(holons)) holons = [];
+        if (!Array.isArray(oapps)) oapps = [];
+        
+        const totalItems = holons.length + oapps.length;
+        if (totalItems === 0) {
+            // Check if this is due to a chunked encoding error (response too large)
+            // vs actually no data
+            const hasChunkedError = holons === null || (typeof holons === 'object' && holons.errorType === 'INCOMPLETE_CHUNKED_ENCODING');
+            if (hasChunkedError) {
+                showNotification('Response too large. Try using "Seed Sample Data" to create test data, or request specific holon types.', 'error');
+            } else {
+                showNotification('No data found in OASIS. Try using "Seed Sample Data" to create some test data.', 'error');
+            }
+            return;
+        }
+
+        // Transform data
+        let data = OASISDataTransformer.transformToVisualizerFormat(oapps, holons);
+        
+        // Limit data if too large for performance
+        if (data.holons.length > 50000) {
+            showNotification(`Large dataset detected (${data.holons.length} holons). Sampling for performance...`, 'success');
+            data = OASISDataTransformer.limitData(data, 50000);
+        }
+
+        // Load into visualizer
+        visualizer.loadData(data);
+        updateStats(data);
+
+        const oappCount = data.oapps.length;
+        const holonCount = data.holons.length;
+        const avatarText = avatarId ? ` (Avatar: ${avatarId.substring(0, 8)}...)` : '';
+        showNotification(
+            `Loaded from OASIS${avatarText}\n${oappCount} OAPP(s)\n${holonCount.toLocaleString()} holon(s)`,
+            'success'
+        );
+        
+        currentAvatarId = avatarId;
+    } catch (error) {
+        console.error('Failed to load from OASIS:', error);
+        showNotification(`Error loading from OASIS:\n${error.message}`, 'error');
+    }
+}
+
+// Create a new avatar
+async function createAvatar() {
+    try {
+        const username = prompt('Enter username:');
+        if (!username) return;
+        
+        const email = prompt('Enter email:');
+        if (!email) return;
+        
+        const password = prompt('Enter password:');
+        if (!password) return;
+        
+        const firstName = prompt('Enter first name (optional):') || '';
+        const lastName = prompt('Enter last name (optional):') || '';
+        
+        showNotification('Creating avatar...', 'success');
+        
+        await oasisClient.authenticate();
+        
+        const avatar = await oasisClient.registerAvatar({
+            username: username,
+            email: email,
+            password: password,
+            firstName: firstName,
+            lastName: lastName,
+            avatarType: 'User'
+        });
+        
+        if (avatar && (avatar.id || avatar.Id)) {
+            const avatarId = avatar.id || avatar.Id;
+            showNotification(`Avatar created!\nUsername: ${username}\nID: ${avatarId.substring(0, 8)}...`, 'success');
+            
+            // Store avatar ID and reload with this avatar's holons
+            currentAvatarId = avatarId;
+            
+            // Switch to this avatar's credentials for future requests
+            oasisClient.username = username;
+            oasisClient.password = password;
+            
+            // Load holons for this avatar
+            setTimeout(() => {
+                loadFromOASIS(avatarId);
+            }, 1000);
+        } else {
+            showNotification('Avatar creation failed or returned invalid data', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to create avatar:', error);
+        showNotification(`Error creating avatar:\n${error.message}`, 'error');
+    }
+}
+
+// Load holons for current authenticated avatar
+async function loadCurrentAvatarHolons() {
+    try {
+        showNotification('Getting current avatar...', 'success');
+        await oasisClient.authenticate();
+        
+        const avatar = await oasisClient.getCurrentAvatar();
+        if (avatar && (avatar.id || avatar.Id)) {
+            const avatarId = avatar.id || avatar.Id;
+            showNotification(`Loading holons for: ${avatar.username || avatar.Username || avatarId.substring(0, 8)}...`, 'success');
+            await loadFromOASIS(avatarId);
+        } else {
+            showNotification('No avatar currently logged in', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to load current avatar holons:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+    }
+}
+
+// Seed OASIS data function
+async function seedOASISData() {
+    try {
+        showNotification('Seeding OASIS with sample data...', 'success');
+        
+        // Dynamically import the seed function
+        const { seedOASISData } = await import('./utils/seedOASISData.js');
+        const result = await seedOASISData();
+        
+        if (result.success) {
+            showNotification(
+                `Seeding complete!\n${result.oappsCreated} OAPPs created\n${result.unassignedHolons} unassigned holons`,
+                'success'
+            );
+            // Auto-load the data after seeding
+            setTimeout(() => {
+                loadFromOASIS();
+            }, 2000);
+        } else {
+            showNotification(`Seeding failed: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('Failed to seed OASIS data:', error);
+        showNotification(`Error seeding: ${error.message}`, 'error');
+    }
+}
+
+// Add event listeners (wait for DOM to be ready)
+function setupEventListeners() {
+    const loadBtn = document.getElementById('btn-load-oasis');
+    if (loadBtn) {
+        loadBtn.addEventListener('click', () => loadFromOASIS());
+    }
+    
+    const seedBtn = document.getElementById('btn-seed-oasis');
+    if (seedBtn) {
+        seedBtn.addEventListener('click', seedOASISData);
+    }
+    
+    const createAvatarBtn = document.getElementById('btn-create-avatar');
+    if (createAvatarBtn) {
+        createAvatarBtn.addEventListener('click', createAvatar);
+    }
+    
+    const loadMyHolonsBtn = document.getElementById('btn-load-my-holons');
+    if (loadMyHolonsBtn) {
+        loadMyHolonsBtn.addEventListener('click', loadCurrentAvatarHolons);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupEventListeners);
+} else {
+    setupEventListeners();
+}
 
 // Update stats
 function updateStats(data) {

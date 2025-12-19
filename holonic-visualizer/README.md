@@ -49,9 +49,33 @@ npm run build
 - **CyberspaceEffects**: Background effects (grid, stars, particles)
 - **MockDataGenerator**: Generates sample holonic data
 
-## Future Integration
+## OASIS API Integration
 
-This visualizer is designed to connect to the STAR API to load real holonic data. The data structure matches the OASIS holon format, making integration straightforward.
+The visualizer can now connect to the local OASIS API to load real holon data.
+
+### Configuration
+
+Create a `.env` file in the project root (or use environment variables):
+
+```env
+VITE_OASIS_API_URL=https://localhost:5004
+VITE_OASIS_USERNAME=OASIS_ADMIN
+VITE_OASIS_PASSWORD=Uppermall1!
+```
+
+### Usage
+
+1. Ensure the local OASIS API is running (see `/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI`)
+2. Click "Load from OASIS" button in the control panel
+3. The visualizer will authenticate and fetch all holons and OAPPs
+4. Data is automatically transformed and visualized as celestial bodies
+
+### API Client
+
+- **OASISClient**: Handles authentication (JWT tokens) and API requests
+- **OASISDataTransformer**: Transforms OASIS API data to visualizer format
+- Automatic token refresh and error handling
+- Performance optimization for large datasets (sampling)
 
 ## Data Structure
 
