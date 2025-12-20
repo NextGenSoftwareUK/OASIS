@@ -7381,16 +7381,17 @@
                         // Call getAPIBaseURL() dynamically to ensure we use the correct protocol
                         // Force HTTPS if page is HTTPS to prevent mixed content errors
                         const currentProtocol = window.location.protocol;
-                        const apiBaseURL = currentProtocol === 'https:' 
-                            ? 'https://api.oasisweb4.com' 
-                            : 'http://api.oasisweb4.com';
+                        let apiBaseURL;
+                        
+                        if (currentProtocol === 'https:') {
+                            // Page is HTTPS - try HTTPS API first, fallback to HTTP with CORS proxy if needed
+                            apiBaseURL = 'https://api.oasisweb4.com';
+                            // If HTTPS API doesn't work, we'll need to use a CORS proxy or configure HTTPS
+                        } else {
+                            apiBaseURL = 'http://api.oasisweb4.com';
+                        }
                         
                         console.log('Login attempt - API baseURL:', apiBaseURL, 'Page protocol:', currentProtocol, 'Hostname:', window.location.hostname);
-                        
-                        if (currentProtocol === 'https:' && apiBaseURL.startsWith('http://')) {
-                            console.error('MIXED CONTENT ERROR PREVENTED: Page is HTTPS but API is HTTP!');
-                            throw new Error('Cannot use HTTP API from HTTPS page. Please configure HTTPS for the API.');
-                        }
                         
                         const response = await fetch(`${apiBaseURL}/api/avatar/authenticate`, {
                             method: 'POST',
