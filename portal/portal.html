@@ -7379,8 +7379,19 @@
                 async login(username, password) {
                     try {
                         // Call getAPIBaseURL() dynamically to ensure we use the correct protocol
-                        const apiBaseURL = getAPIBaseURL();
-                        console.log('Login attempt - API baseURL:', apiBaseURL, 'Page protocol:', window.location.protocol);
+                        // Force HTTPS if page is HTTPS to prevent mixed content errors
+                        const currentProtocol = window.location.protocol;
+                        const apiBaseURL = currentProtocol === 'https:' 
+                            ? 'https://api.oasisweb4.com' 
+                            : 'http://api.oasisweb4.com';
+                        
+                        console.log('Login attempt - API baseURL:', apiBaseURL, 'Page protocol:', currentProtocol, 'Hostname:', window.location.hostname);
+                        
+                        if (currentProtocol === 'https:' && apiBaseURL.startsWith('http://')) {
+                            console.error('MIXED CONTENT ERROR PREVENTED: Page is HTTPS but API is HTTP!');
+                            throw new Error('Cannot use HTTP API from HTTPS page. Please configure HTTPS for the API.');
+                        }
+                        
                         const response = await fetch(`${apiBaseURL}/api/avatar/authenticate`, {
                             method: 'POST',
                             headers: {
@@ -7455,8 +7466,19 @@
                         };
 
                         // Call getAPIBaseURL() dynamically to ensure we use the correct protocol
-                        const apiBaseURL = getAPIBaseURL();
-                        console.log('Register attempt - API baseURL:', apiBaseURL, 'Page protocol:', window.location.protocol);
+                        // Force HTTPS if page is HTTPS to prevent mixed content errors
+                        const currentProtocol = window.location.protocol;
+                        const apiBaseURL = currentProtocol === 'https:' 
+                            ? 'https://api.oasisweb4.com' 
+                            : 'http://api.oasisweb4.com';
+                        
+                        console.log('Register attempt - API baseURL:', apiBaseURL, 'Page protocol:', currentProtocol, 'Hostname:', window.location.hostname);
+                        
+                        if (currentProtocol === 'https:' && apiBaseURL.startsWith('http://')) {
+                            console.error('MIXED CONTENT ERROR PREVENTED: Page is HTTPS but API is HTTP!');
+                            throw new Error('Cannot use HTTP API from HTTPS page. Please configure HTTPS for the API.');
+                        }
+                        
                         const response = await fetch(`${apiBaseURL}/api/avatar/register`, {
                             method: 'POST',
                             headers: {
