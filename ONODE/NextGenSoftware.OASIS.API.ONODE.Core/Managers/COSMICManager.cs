@@ -44,9 +44,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         {
             OASISResult<IOmiverse> result = new OASISResult<IOmiverse>();
 
-            // Try to load existing omniverse or create new one
-            // This would need to be implemented based on your STAR project structure
-            // For now, returning a result that indicates omniverse needs to be created
+            try
+            {
+                // Try to search for existing omniverse
+                var searchResult = await SearchHolonsForParentAsync<IOmiverse>(
+                    "",
+                    default(Guid),
+                    default(Guid),
+                    false,
+                    HolonType.Omniverse,
+                    ProviderType.Default
+                );
+
+                if (!searchResult.IsError && searchResult.Result != null && searchResult.Result.Any())
+                {
+                    // Return the first omniverse found (should only be one)
+                    result.Result = searchResult.Result.FirstOrDefault();
+                    return result;
+                }
+
+                // If not found, try to load by a known ID or create one
+                // For now, return error - omniverse should be created on system boot
+                OASISErrorHandling.HandleError(ref result, "Omniverse not found. The Omniverse should be created during system initialization.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting Omniverse: {ex.Message}", ex);
+            }
+
             return result;
         }
 
@@ -3994,6 +4019,581 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
 
             result.Result = star;
+            return result;
+        }
+
+        #endregion
+
+        #region Multi-Tenant System Helpers
+
+        /// <summary>
+        /// Gets or creates the user's default multiverse (parentId = avatarId, parentOmniverseId = main omniverse)
+        /// </summary>
+        public async Task<OASISResult<IMultiverse>> GetOrCreateUserMultiverseAsync()
+        {
+            var result = new OASISResult<IMultiverse>();
+
+            try
+            {
+                // First, try to find existing user multiverse
+                var searchResult = await SearchHolonsForParentAsync<IMultiverse>(
+                    "",
+                    AvatarId,
+                    default(Guid),
+                    true, // showOnlyForCurrentAvatar
+                    HolonType.Multiverse,
+                    ProviderType.Default
+                );
+
+                if (!searchResult.IsError && searchResult.Result != null && searchResult.Result.Any())
+                {
+                    // Find multiverse created by this avatar
+                    var userMultiverse = searchResult.Result.FirstOrDefault(m => m.CreatedByAvatarId == AvatarId);
+                    if (userMultiverse != null)
+                    {
+                        result.Result = userMultiverse;
+                        return result;
+                    }
+                }
+
+                // If not found, create a new user multiverse
+                // Get the main omniverse first
+                var omniverseResult = await GetOmniverseAsync();
+                if (omniverseResult.IsError || omniverseResult.Result == null)
+                {
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(omniverseResult, result);
+                    OASISErrorHandling.HandleError(ref result, "Could not load main Omniverse. Cannot create user multiverse.");
+                    return result;
+                }
+
+                // Create new multiverse for user using factory method
+                var multiverseResult = await CreateMultiverseFactoryAsync(
+                    omniverseResult.Result,
+                    $"Multiverse of Avatar {AvatarId}",
+                    $"Default multiverse for avatar {AvatarId}"
+                );
+
+                if (multiverseResult.IsError || multiverseResult.Result == null)
+                {
+                    OASISResultHelper.CopyResult(multiverseResult, result);
+                    return result;
+                }
+
+                result.Result = multiverseResult.Result;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting or creating user multiverse: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Checks if a holon belongs to the user's multiverse (user owns it)
+        /// </summary>
+        public async Task<OASISResult<bool>> IsUserOwnedAsync(IHolon holon)
+        {
+            var result = new OASISResult<bool> { Result = false };
+
+            try
+            {
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon cannot be null.");
+                    return result;
+                }
+
+                // Get user's multiverse
+                var userMultiverseResult = await GetOrCreateUserMultiverseAsync();
+                if (userMultiverseResult.IsError || userMultiverseResult.Result == null)
+                {
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(userMultiverseResult, result);
+                    return result;
+                }
+
+                var userMultiverseId = userMultiverseResult.Result.Id;
+
+                // Check if holon's ParentMultiverseId matches user's multiverse
+                // Or if it's a descendant of the user's multiverse
+                result.Result = holon.ParentMultiverseId == userMultiverseId || 
+                                holon.CreatedByAvatarId == AvatarId;
+
+                // Also check if it's a direct child or descendant by traversing up the parent chain
+                if (!result.Result)
+                {
+                    var current = holon;
+                    while (current != null && current.ParentHolonId != Guid.Empty)
+                    {
+                        if (current.ParentMultiverseId == userMultiverseId)
+                        {
+                            result.Result = true;
+                            break;
+                        }
+
+                        // Load parent to continue traversal
+                        if (current.ParentHolonId != Guid.Empty)
+                        {
+                            var parentLoad = await Data.LoadHolonAsync(current.ParentHolonId);
+                            if (parentLoad.IsError || parentLoad.Result == null)
+                                break;
+                            current = parentLoad.Result;
+                        }
+                        else
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error checking user ownership: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Checks if a multiverse is a system multiverse (MagicVerse or The Grand Simulation)
+        /// </summary>
+        public bool IsSystemMultiverse(IMultiverse multiverse)
+        {
+            if (multiverse == null || string.IsNullOrEmpty(multiverse.Name))
+                return false;
+
+            string name = multiverse.Name.Trim();
+            return name.Equals("MagicVerse", StringComparison.OrdinalIgnoreCase) ||
+                   name.Equals("The Grand Simulation", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Gets the MagicVerse system multiverse
+        /// </summary>
+        public async Task<OASISResult<IMultiverse>> GetMagicVerseAsync()
+        {
+            var result = new OASISResult<IMultiverse>();
+
+            try
+            {
+                var searchResult = await SearchHolonsForParentAsync<IMultiverse>(
+                    "MagicVerse",
+                    default(Guid),
+                    default(Guid),
+                    false,
+                    HolonType.Multiverse,
+                    ProviderType.Default
+                );
+
+                if (!searchResult.IsError && searchResult.Result != null)
+                {
+                    var magicVerse = searchResult.Result.FirstOrDefault(m => 
+                        m.Name.Equals("MagicVerse", StringComparison.OrdinalIgnoreCase));
+                    if (magicVerse != null)
+                    {
+                        result.Result = magicVerse;
+                        return result;
+                    }
+                }
+
+                OASISErrorHandling.HandleError(ref result, "MagicVerse not found.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting MagicVerse: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets The Grand Simulation system multiverse
+        /// </summary>
+        public async Task<OASISResult<IMultiverse>> GetGrandSimulationAsync()
+        {
+            var result = new OASISResult<IMultiverse>();
+
+            try
+            {
+                var searchResult = await SearchHolonsForParentAsync<IMultiverse>(
+                    "The Grand Simulation",
+                    default(Guid),
+                    default(Guid),
+                    false,
+                    HolonType.Multiverse,
+                    ProviderType.Default
+                );
+
+                if (!searchResult.IsError && searchResult.Result != null)
+                {
+                    var grandSim = searchResult.Result.FirstOrDefault(m => 
+                        m.Name.Equals("The Grand Simulation", StringComparison.OrdinalIgnoreCase));
+                    if (grandSim != null)
+                    {
+                        result.Result = grandSim;
+                        return result;
+                    }
+                }
+
+                OASISErrorHandling.HandleError(ref result, "The Grand Simulation not found.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting The Grand Simulation: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Factory method to create a Multiverse instance
+        /// </summary>
+        public async Task<OASISResult<IMultiverse>> CreateMultiverseFactoryAsync(
+            IOmiverse parentOmniverse,
+            string name,
+            string description = null)
+        {
+            var result = new OASISResult<IMultiverse>();
+
+            try
+            {
+                if (parentOmniverse == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Parent Omniverse cannot be null.");
+                    return result;
+                }
+
+                // Create a new Holon with Multiverse type and cast to IMultiverse
+                var multiverseHolon = new NextGenSoftware.OASIS.API.Core.Holons.Holon(HolonType.Multiverse)
+                {
+                    Id = Guid.NewGuid(),
+                    Name = name,
+                    Description = description ?? $"Multiverse: {name}",
+                    HolonType = HolonType.Multiverse,
+                    CreatedByAvatarId = AvatarId,
+                    ModifiedByAvatarId = AvatarId,
+                    IsNewHolon = true,
+                    ParentOmniverseId = parentOmniverse.Id,
+                    ParentOmniverse = parentOmniverse,
+                    ParentHolonId = parentOmniverse.Id,
+                    ParentHolon = parentOmniverse,
+                    ParentCelestialSpaceId = parentOmniverse.Id,
+                    ParentCelestialSpace = parentOmniverse
+                };
+
+                // Save the multiverse
+                var saveResult = await SaveHolonAsync<IMultiverse>(multiverseHolon, AvatarId);
+                OASISResultHelper.CopyResult(saveResult, result);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error creating multiverse: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Proposal System (for The Grand Simulation)
+
+        /// <summary>
+        /// Represents a proposal for The Grand Simulation
+        /// </summary>
+        public class SimulationProposal
+        {
+            public Guid Id { get; set; }
+            public Guid CreatedByAvatarId { get; set; }
+            public string CreatedByAvatarName { get; set; }
+            public DateTime CreatedDate { get; set; }
+            public IHolon ProposedHolon { get; set; } // The body/space being proposed
+            public Guid ParentId { get; set; } // Parent universe ID (top level for proposals)
+            public HolonType HolonType { get; set; }
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public Dictionary<Guid, bool> Votes { get; set; } = new Dictionary<Guid, bool>(); // AvatarId -> true=accept, false=reject
+            public int AcceptVotes => Votes.Values.Count(v => v);
+            public int RejectVotes => Votes.Values.Count(v => !v);
+        }
+
+        /// <summary>
+        /// Creates a proposal for The Grand Simulation
+        /// </summary>
+        public async Task<OASISResult<SimulationProposal>> CreateSimulationProposalAsync(
+            IHolon proposedHolon, Guid parentUniverseId)
+        {
+            var result = new OASISResult<SimulationProposal>();
+
+            try
+            {
+                if (proposedHolon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Proposed holon cannot be null.");
+                    return result;
+                }
+
+                // Validate that parent is a Universe (top level for proposals)
+                var parentLoad = await LoadTypedHolonAsync<IUniverse>(parentUniverseId, HolonType.Universe);
+                if (parentLoad.IsError || parentLoad.Result == null)
+                {
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(parentLoad, result);
+                    OASISErrorHandling.HandleError(ref result, "Parent must be a Universe for simulation proposals.");
+                    return result;
+                }
+
+                // Create proposal holon to store the proposal data
+                var proposalHolon = new NextGenSoftware.OASIS.API.Core.Holons.Holon(HolonType.Holon)
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"Proposal: {proposedHolon.Name}",
+                    Description = $"Proposal for {proposedHolon.HolonType}: {proposedHolon.Description}",
+                    HolonType = HolonType.Holon,
+                    CreatedByAvatarId = AvatarId,
+                    ModifiedByAvatarId = AvatarId,
+                    IsNewHolon = true,
+                    ParentUniverseId = parentUniverseId,
+                    ParentHolonId = parentUniverseId
+                };
+
+                // Get avatar name for proposal
+                string avatarName = AvatarId.ToString();
+                try
+                {
+                    var avatarLoad = await AvatarManager.Instance.LoadAvatarAsync(AvatarId);
+                    if (!avatarLoad.IsError && avatarLoad.Result != null)
+                    {
+                        avatarName = avatarLoad.Result.Username ?? avatarLoad.Result.Name ?? AvatarId.ToString();
+                    }
+                }
+                catch
+                {
+                    // Use ID if name lookup fails
+                }
+
+                // Store proposal metadata in the holon's MetaData property
+                var proposalData = new SimulationProposal
+                {
+                    Id = proposalHolon.Id,
+                    CreatedByAvatarId = AvatarId,
+                    CreatedByAvatarName = avatarName,
+                    CreatedDate = DateTime.UtcNow,
+                    ProposedHolon = proposedHolon,
+                    ParentId = parentUniverseId,
+                    HolonType = proposedHolon.HolonType,
+                    Name = proposedHolon.Name,
+                    Description = proposedHolon.Description ?? ""
+                };
+
+                // Serialize proposal data to JSON and store in holon metadata
+                proposalHolon.MetaData = System.Text.Json.JsonSerializer.Serialize(proposalData);
+
+                // Save the proposal holon
+                var saveResult = await Data.SaveHolonAsync(proposalHolon, AvatarId);
+                if (saveResult.IsError || saveResult.Result == null)
+                {
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+                    return result;
+                }
+
+                result.Result = proposalData;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error creating simulation proposal: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Lists all simulation proposals
+        /// </summary>
+        public async Task<OASISResult<IEnumerable<SimulationProposal>>> ListSimulationProposalsAsync(bool onlyMine = false)
+        {
+            var result = new OASISResult<IEnumerable<SimulationProposal>>();
+
+            try
+            {
+                // Get The Grand Simulation multiverse to find proposals
+                var grandSimResult = await GetGrandSimulationAsync();
+                if (grandSimResult.IsError || grandSimResult.Result == null)
+                {
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(grandSimResult, result);
+                    return result;
+                }
+
+                // Search for proposal holons (holons with name starting with "Proposal:")
+                var searchTerm = onlyMine ? $"Proposal:" : "Proposal:";
+                var searchResult = await SearchHolonsForParentAsync<IHolon>(
+                    searchTerm,
+                    onlyMine ? AvatarId : default(Guid),
+                    default(Guid),
+                    onlyMine,
+                    HolonType.Holon,
+                    ProviderType.Default
+                );
+
+                if (searchResult.IsError)
+                {
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(searchResult, result);
+                    return result;
+                }
+
+                var proposals = new List<SimulationProposal>();
+
+                if (searchResult.Result != null)
+                {
+                    foreach (var holon in searchResult.Result.Where(h => h.Name.StartsWith("Proposal:", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        try
+                        {
+                            // Deserialize proposal data from metadata
+                            if (!string.IsNullOrEmpty(holon.MetaData))
+                            {
+                                var proposalData = System.Text.Json.JsonSerializer.Deserialize<SimulationProposal>(holon.MetaData);
+                                if (proposalData != null)
+                                {
+                                    // Update with current vote counts from holon metadata if stored separately
+                                    proposals.Add(proposalData);
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // Skip invalid proposals
+                            continue;
+                        }
+                    }
+                }
+
+                result.Result = proposals;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error listing simulation proposals: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Votes on a simulation proposal (accept or reject)
+        /// </summary>
+        public async Task<OASISResult<bool>> VoteOnSimulationProposalAsync(
+            Guid proposalId, bool accept)
+        {
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                // Load the proposal holon
+                var loadResult = await Data.LoadHolonAsync(proposalId);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
+                    OASISErrorHandling.HandleError(ref result, "Proposal not found.");
+                    return result;
+                }
+
+                var proposalHolon = loadResult.Result;
+
+                // Deserialize proposal data
+                SimulationProposal proposalData = null;
+                if (!string.IsNullOrEmpty(proposalHolon.MetaData))
+                {
+                    try
+                    {
+                        proposalData = System.Text.Json.JsonSerializer.Deserialize<SimulationProposal>(proposalHolon.MetaData);
+                    }
+                    catch
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Invalid proposal data.");
+                        return result;
+                    }
+                }
+
+                if (proposalData == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Proposal data not found.");
+                    return result;
+                }
+
+                // Check if user already voted
+                if (proposalData.Votes.ContainsKey(AvatarId))
+                {
+                    OASISErrorHandling.HandleError(ref result, "You have already voted on this proposal. Only one vote per user is allowed.");
+                    return result;
+                }
+
+                // Add vote
+                proposalData.Votes[AvatarId] = accept;
+
+                // Update holon metadata with new vote
+                proposalHolon.MetaData = System.Text.Json.JsonSerializer.Serialize(proposalData);
+                proposalHolon.ModifiedByAvatarId = AvatarId;
+                proposalHolon.ModifiedDate = DateTime.UtcNow;
+
+                // Save updated proposal
+                var saveResult = await Data.SaveHolonAsync(proposalHolon, AvatarId);
+                if (saveResult.IsError)
+                {
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+                    return result;
+                }
+
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error voting on proposal: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets user's vote on a proposal (if they voted)
+        /// </summary>
+        public async Task<OASISResult<bool?>> GetUserVoteOnProposalAsync(Guid proposalId)
+        {
+            var result = new OASISResult<bool?>();
+
+            try
+            {
+                // Load the proposal holon
+                var loadResult = await Data.LoadHolonAsync(proposalId);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
+                    return result;
+                }
+
+                var proposalHolon = loadResult.Result;
+
+                // Deserialize proposal data
+                if (!string.IsNullOrEmpty(proposalHolon.MetaData))
+                {
+                    try
+                    {
+                        var proposalData = System.Text.Json.JsonSerializer.Deserialize<SimulationProposal>(proposalHolon.MetaData);
+                        if (proposalData != null && proposalData.Votes.ContainsKey(AvatarId))
+                        {
+                            result.Result = proposalData.Votes[AvatarId];
+                            return result;
+                        }
+                    }
+                    catch
+                    {
+                        // Invalid proposal data
+                    }
+                }
+
+                // No vote found
+                result.Result = null;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting user vote: {ex.Message}", ex);
+            }
+
             return result;
         }
 
