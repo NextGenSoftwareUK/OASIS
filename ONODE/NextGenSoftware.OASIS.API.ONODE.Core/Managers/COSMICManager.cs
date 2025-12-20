@@ -9,6 +9,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -4296,31 +4298,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         #region Proposal System (for The Grand Simulation)
 
         /// <summary>
-        /// Represents a proposal for The Grand Simulation
-        /// </summary>
-        public class SimulationProposal
-        {
-            public Guid Id { get; set; }
-            public Guid CreatedByAvatarId { get; set; }
-            public string CreatedByAvatarName { get; set; }
-            public DateTime CreatedDate { get; set; }
-            public IHolon ProposedHolon { get; set; } // The body/space being proposed
-            public Guid ParentId { get; set; } // Parent universe ID (top level for proposals)
-            public HolonType HolonType { get; set; }
-            public string Name { get; set; }
-            public string Description { get; set; }
-            public Dictionary<Guid, bool> Votes { get; set; } = new Dictionary<Guid, bool>(); // AvatarId -> true=accept, false=reject
-            public int AcceptVotes => Votes.Values.Count(v => v);
-            public int RejectVotes => Votes.Values.Count(v => !v);
-        }
-
-        /// <summary>
         /// Creates a proposal for The Grand Simulation
         /// </summary>
-        public async Task<OASISResult<SimulationProposal>> CreateSimulationProposalAsync(
+        public async Task<OASISResult<ISimulationProposal>> CreateSimulationProposalAsync(
             IHolon proposedHolon, Guid parentUniverseId)
         {
-            var result = new OASISResult<SimulationProposal>();
+            var result = new OASISResult<ISimulationProposal>();
 
             try
             {
@@ -4339,20 +4322,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                // Create proposal holon to store the proposal data
-                var proposalHolon = new NextGenSoftware.OASIS.API.Core.Holons.Holon(HolonType.Holon)
-                {
-                    Id = Guid.NewGuid(),
-                    Name = $"Proposal: {proposedHolon.Name}",
-                    Description = $"Proposal for {proposedHolon.HolonType}: {proposedHolon.Description}",
-                    HolonType = HolonType.Holon,
-                    CreatedByAvatarId = AvatarId,
-                    ModifiedByAvatarId = AvatarId,
-                    IsNewHolon = true,
-                    ParentUniverseId = parentUniverseId,
-                    ParentHolonId = parentUniverseId
-                };
-
                 // Get avatar name for proposal
                 string avatarName = AvatarId.ToString();
                 try
@@ -4368,32 +4337,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     // Use ID if name lookup fails
                 }
 
-                // Store proposal metadata in the holon's MetaData property
-                var proposalData = new SimulationProposal
+                // Create SimulationProposal holon
+                var proposal = new SimulationProposal
                 {
-                    Id = proposalHolon.Id,
+                    Id = Guid.NewGuid(),
+                    Name = $"Proposal: {proposedHolon.Name}",
+                    Description = $"Proposal for {proposedHolon.HolonType}: {proposedHolon.Description ?? ""}",
+                    HolonType = HolonType.Proposal,
                     CreatedByAvatarId = AvatarId,
                     CreatedByAvatarName = avatarName,
                     CreatedDate = DateTime.UtcNow,
                     ProposedHolon = proposedHolon,
-                    ParentId = parentUniverseId,
-                    HolonType = proposedHolon.HolonType,
-                    Name = proposedHolon.Name,
-                    Description = proposedHolon.Description ?? ""
+                    ProposedHolonId = proposedHolon.Id,
+                    ProposedHolonType = proposedHolon.HolonType,
+                    ProposedHolonName = proposedHolon.Name,
+                    ProposedHolonDescription = proposedHolon.Description ?? "",
+                    ParentUniverseId = parentUniverseId,
+                    ProposalCategory = $"Universe.{parentUniverseId}",
+                    ParentHolonId = parentUniverseId,
+                    IsNewHolon = true
                 };
 
-                // Serialize proposal data to JSON and store in holon metadata
-                proposalHolon.MetaData = System.Text.Json.JsonSerializer.Serialize(proposalData);
-
-                // Save the proposal holon
-                var saveResult = await Data.SaveHolonAsync(proposalHolon, AvatarId);
+                // Save the proposal holon using generic overload
+                var saveResult = await SaveHolonAsync<ISimulationProposal>(proposal);
                 if (saveResult.IsError || saveResult.Result == null)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
                     return result;
                 }
 
-                result.Result = proposalData;
+                result.Result = saveResult.Result;
             }
             catch (Exception ex)
             {
@@ -4406,28 +4379,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// <summary>
         /// Lists all simulation proposals
         /// </summary>
-        public async Task<OASISResult<IEnumerable<SimulationProposal>>> ListSimulationProposalsAsync(bool onlyMine = false)
+        public async Task<OASISResult<IEnumerable<ISimulationProposal>>> ListSimulationProposalsAsync(bool onlyMine = false)
         {
-            var result = new OASISResult<IEnumerable<SimulationProposal>>();
+            var result = new OASISResult<IEnumerable<ISimulationProposal>>();
 
             try
             {
-                // Get The Grand Simulation multiverse to find proposals
-                var grandSimResult = await GetGrandSimulationAsync();
-                if (grandSimResult.IsError || grandSimResult.Result == null)
-                {
-                    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(grandSimResult, result);
-                    return result;
-                }
-
-                // Search for proposal holons (holons with name starting with "Proposal:")
-                var searchTerm = onlyMine ? $"Proposal:" : "Proposal:";
-                var searchResult = await SearchHolonsForParentAsync<IHolon>(
-                    searchTerm,
+                // Load all Proposal holons with ProposalType = "Simulation"
+                var searchResult = await SearchHolonsForParentAsync<ISimulationProposal>(
+                    "Simulation",
                     onlyMine ? AvatarId : default(Guid),
                     default(Guid),
                     onlyMine,
-                    HolonType.Holon,
+                    HolonType.Proposal,
                     ProviderType.Default
                 );
 
@@ -4437,29 +4401,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                var proposals = new List<SimulationProposal>();
-
+                // Filter to only Simulation proposals
+                var proposals = new List<ISimulationProposal>();
                 if (searchResult.Result != null)
                 {
-                    foreach (var holon in searchResult.Result.Where(h => h.Name.StartsWith("Proposal:", StringComparison.OrdinalIgnoreCase)))
+                    foreach (var proposal in searchResult.Result)
                     {
-                        try
+                        if (proposal is ISimulationProposal simProposal && 
+                            simProposal.ProposalType == "Simulation")
                         {
-                            // Deserialize proposal data from metadata
-                            if (!string.IsNullOrEmpty(holon.MetaData))
-                            {
-                                var proposalData = System.Text.Json.JsonSerializer.Deserialize<SimulationProposal>(holon.MetaData);
-                                if (proposalData != null)
-                                {
-                                    // Update with current vote counts from holon metadata if stored separately
-                                    proposals.Add(proposalData);
-                                }
-                            }
-                        }
-                        catch
-                        {
-                            // Skip invalid proposals
-                            continue;
+                            proposals.Add(simProposal);
                         }
                     }
                 }
@@ -4484,8 +4435,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                // Load the proposal holon
-                var loadResult = await Data.LoadHolonAsync(proposalId);
+                // Load the proposal holon using generic overload
+                var loadResult = await Data.LoadHolonAsync<ISimulationProposal>(proposalId);
                 if (loadResult.IsError || loadResult.Result == null)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
@@ -4493,46 +4444,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                var proposalHolon = loadResult.Result;
-
-                // Deserialize proposal data
-                SimulationProposal proposalData = null;
-                if (!string.IsNullOrEmpty(proposalHolon.MetaData))
-                {
-                    try
-                    {
-                        proposalData = System.Text.Json.JsonSerializer.Deserialize<SimulationProposal>(proposalHolon.MetaData);
-                    }
-                    catch
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Invalid proposal data.");
-                        return result;
-                    }
-                }
-
-                if (proposalData == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Proposal data not found.");
-                    return result;
-                }
+                var proposal = loadResult.Result;
 
                 // Check if user already voted
-                if (proposalData.Votes.ContainsKey(AvatarId))
+                if (proposal.HasUserVoted(AvatarId))
                 {
                     OASISErrorHandling.HandleError(ref result, "You have already voted on this proposal. Only one vote per user is allowed.");
                     return result;
                 }
 
                 // Add vote
-                proposalData.Votes[AvatarId] = accept;
-
-                // Update holon metadata with new vote
-                proposalHolon.MetaData = System.Text.Json.JsonSerializer.Serialize(proposalData);
-                proposalHolon.ModifiedByAvatarId = AvatarId;
-                proposalHolon.ModifiedDate = DateTime.UtcNow;
+                if (!proposal.AddVote(AvatarId, accept))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to add vote.");
+                    return result;
+                }
 
                 // Save updated proposal
-                var saveResult = await Data.SaveHolonAsync(proposalHolon, AvatarId);
+                var saveResult = await SaveHolonAsync<ISimulationProposal>(proposal);
                 if (saveResult.IsError)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
@@ -4558,36 +4487,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                // Load the proposal holon
-                var loadResult = await Data.LoadHolonAsync(proposalId);
+                // Load the proposal holon using generic overload
+                var loadResult = await Data.LoadHolonAsync<IProposal>(proposalId);
                 if (loadResult.IsError || loadResult.Result == null)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
                     return result;
                 }
 
-                var proposalHolon = loadResult.Result;
+                var proposal = loadResult.Result;
 
-                // Deserialize proposal data
-                if (!string.IsNullOrEmpty(proposalHolon.MetaData))
-                {
-                    try
-                    {
-                        var proposalData = System.Text.Json.JsonSerializer.Deserialize<SimulationProposal>(proposalHolon.MetaData);
-                        if (proposalData != null && proposalData.Votes.ContainsKey(AvatarId))
-                        {
-                            result.Result = proposalData.Votes[AvatarId];
-                            return result;
-                        }
-                    }
-                    catch
-                    {
-                        // Invalid proposal data
-                    }
-                }
-
-                // No vote found
-                result.Result = null;
+                // Get user's vote
+                result.Result = proposal.GetUserVote(AvatarId);
             }
             catch (Exception ex)
             {

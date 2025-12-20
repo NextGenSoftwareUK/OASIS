@@ -29,6 +29,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
@@ -205,6 +207,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.Description = description;
                     STARNETDNA.STARNETHolonType = Enum.GetName(typeof(HolonType), STARNETHolonType);
                     STARNETDNA.STARNETCategory = Enum.GetName(holonSubTypeType, holonSubType);
+                    
+                    // Set STARNETSubCategory (Language) if provided in createOptions
+                    if (createOptions != null && createOptions.CustomCreateParams != null && 
+                        createOptions.CustomCreateParams.ContainsKey("STARNETSubCategory"))
+                    {
+                        var subCategory = createOptions.CustomCreateParams["STARNETSubCategory"];
+                        if (subCategory != null)
+                        {
+                            STARNETDNA.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
+                        }
+                    }
+                    
                     STARNETDNA.CreatedByAvatarId = avatarId;
                     STARNETDNA.CreatedByAvatarUsername = avatarResult.Result.Username;
                     STARNETDNA.CreatedOn = DateTime.Now;
@@ -353,6 +367,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.Description = description;
                     STARNETDNA.STARNETHolonType = Enum.GetName(typeof(HolonType), STARNETHolonType);
                     STARNETDNA.STARNETCategory = Enum.GetName(holonSubTypeType, holonSubType);
+                    
+                    // Set STARNETSubCategory (Language) if provided in dependency/MetaData
+                    if (dependency != null && dependency.ContainsKey("STARNETSubCategory"))
+                    {
+                        var subCategory = dependency["STARNETSubCategory"];
+                        if (subCategory != null)
+                        {
+                            STARNETDNA.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
+                        }
+                    }
+                    
                     STARNETDNA.CreatedByAvatarId = avatarId;
                     STARNETDNA.CreatedByAvatarUsername = avatarResult.Result.Username;
                     STARNETDNA.CreatedOn = DateTime.Now;
@@ -5427,7 +5452,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     result = await UpdateAsync(avatarId, parent, result, errorMessage, true, string.Concat(Enum.GetName(typeof(HolonType), parent.HolonType), "DNAJSON"), providerType: providerType);
 
                     if (result != null && result.Result != null && !result.IsError && installDependency)
+                    {
                         DirectoryHelper.CopyFilesRecursively(installedDependency.InstalledPath, dependencyResult.Result.installPath);
+                        
+                        // Generate proxy class if this is a Library dependency added to an OAPP
+                        if (dependencyType == DependencyType.Library && parent.HolonType == HolonType.OAPP)
+                        {
+                            await GenerateLibraryProxyForOAPPAsync(parent, installedDependency, dependencyResult.Result.installPath);
+                        }
+                    }
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured adding the dependency with AddDependency. Reason: {dependencyResult.Message}");
@@ -5454,7 +5487,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     result = Update(avatarId, parent, result, errorMessage, true, string.Concat(Enum.GetName(typeof(HolonType), parent.HolonType), "DNAJSON"), providerType: providerType);
 
                     if (result != null && result.Result != null && !result.IsError && installDependency)
+                    {
                         DirectoryHelper.CopyFilesRecursively(installedDependency.InstalledPath, dependencyResult.Result.installPath);
+                        
+                        // Generate proxy class if this is a Library dependency added to an OAPP
+                        if (dependencyType == DependencyType.Library && parent.HolonType == HolonType.OAPP)
+                        {
+                            var proxyTask = GenerateLibraryProxyForOAPPAsync(parent, installedDependency, dependencyResult.Result.installPath);
+                            proxyTask.Wait(); // Wait for proxy generation
+                        }
+                    }
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured adding the dependency with AddDependency. Reason: {dependencyResult.Message}");
@@ -7785,6 +7827,88 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     Result = default(T1)
                 };
             }
+        }
+
+        #endregion
+
+        #region Library Proxy Generation
+
+        /// <summary>
+        /// Generates a library proxy class when a library is added as a dependency to an OAPP
+        /// </summary>
+        private async Task GenerateLibraryProxyForOAPPAsync<T>(T1 oapp, T installedLibrary, string installPath) where T : IInstalledSTARNETHolon
+        {
+            try
+            {
+                if (oapp?.STARNETDNA?.SourcePath == null)
+                    return;
+
+                var sourcePath = oapp.STARNETDNA.SourcePath;
+                if (!Directory.Exists(sourcePath))
+                    return;
+
+                // Get library metadata to determine provider type
+                var libraryName = installedLibrary.Name ?? "Library";
+                var libraryId = installedLibrary.Id.ToString();
+                
+                // Determine provider type from library file extension or metadata
+                var libraryFiles = Directory.GetFiles(installPath, "*", SearchOption.AllDirectories);
+                var libraryFile = libraryFiles.FirstOrDefault(f => 
+                    f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ||
+                    f.EndsWith(".so", StringComparison.OrdinalIgnoreCase) ||
+                    f.EndsWith(".dylib", StringComparison.OrdinalIgnoreCase) ||
+                    f.EndsWith(".py", StringComparison.OrdinalIgnoreCase) ||
+                    f.EndsWith(".js", StringComparison.OrdinalIgnoreCase) ||
+                    f.EndsWith(".wasm", StringComparison.OrdinalIgnoreCase));
+
+                if (libraryFile == null)
+                    return;
+
+                var providerType = DetectInteropProviderType(libraryFile);
+                
+                // Generate proxy class
+                var proxyGenerator = new LibraryProxyGenerator();
+                var proxyResult = await proxyGenerator.SaveProxyClassToOAPPAsync(
+                    sourcePath,
+                    libraryId,
+                    libraryName,
+                    libraryFile,
+                    providerType);
+
+                if (!proxyResult.IsError)
+                {
+                    // Update Program.cs with library reference
+                    var libraries = new List<(string LibraryName, string LibraryId, InteropProviderType ProviderType)>
+                    {
+                        (libraryName, libraryId, providerType)
+                    };
+                    
+                    await proxyGenerator.UpdateOAPPProgramCsAsync(sourcePath, libraries);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the dependency addition
+                Console.WriteLine($"Warning: Failed to generate library proxy: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Detects interop provider type from file extension
+        /// </summary>
+        private InteropProviderType DetectInteropProviderType(string filePath)
+        {
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            return extension switch
+            {
+                ".dll" => InteropProviderType.DotNet, // Could also be native on Windows
+                ".so" => InteropProviderType.NativePInvoke,
+                ".dylib" => InteropProviderType.NativePInvoke,
+                ".py" => InteropProviderType.Python,
+                ".js" => InteropProviderType.JavaScript,
+                ".wasm" => InteropProviderType.WebAssembly,
+                _ => InteropProviderType.Auto
+            };
         }
 
         #endregion
