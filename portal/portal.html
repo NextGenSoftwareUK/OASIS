@@ -7334,8 +7334,67 @@
         </div>
     </div>
 
-    <script src="api/auth.js"></script>
+    <!-- Removed missing file: api/auth.js -->
     <script src="api/oasisApi.js"></script>
+    <script>
+        // Create authAPI alias for backward compatibility
+        if (typeof oasisAPI !== 'undefined') {
+            const authAPI = oasisAPI;
+            window.authAPI = authAPI;
+        }
+        
+        // Create authStore for centralized authentication management
+        const authStore = {
+            getAuth() {
+                try {
+                    const authData = localStorage.getItem('oasis_auth');
+                    return authData ? JSON.parse(authData) : null;
+                } catch (error) {
+                    console.error('Error getting auth:', error);
+                    return null;
+                }
+            },
+            
+            setAuth(authData) {
+                try {
+                    localStorage.setItem('oasis_auth', JSON.stringify(authData));
+                } catch (error) {
+                    console.error('Error setting auth:', error);
+                }
+            },
+            
+            clearAuth() {
+                try {
+                    localStorage.removeItem('oasis_auth');
+                } catch (error) {
+                    console.error('Error clearing auth:', error);
+                }
+            },
+            
+            isAuthenticated() {
+                const auth = this.getAuth();
+                return !!(auth && auth.token && auth.avatar);
+            },
+            
+            getAvatar() {
+                const auth = this.getAuth();
+                return auth ? auth.avatar : null;
+            },
+            
+            getToken() {
+                const auth = this.getAuth();
+                return auth ? auth.token : null;
+            },
+            
+            getAuthHeader() {
+                const token = this.getToken();
+                return token ? `Bearer ${token}` : null;
+            }
+        };
+        
+        // Make authStore globally available
+        window.authStore = authStore;
+    </script>
     <script>
         // Avatar Authentication Screen Functions (from zypherpunk-wallet-ui)
         let currentAvatarAuthMode = 'login';
@@ -7512,7 +7571,7 @@
                 // Store auth data using centralized store
                 authStore.setAuth({
                     avatar: authResult.avatar,
-                    token: authResult.token,
+                    token: authResult.jwtToken || authResult.token,
                     refreshToken: authResult.refreshToken
                 });
                 
@@ -7587,17 +7646,13 @@
             }
         });
     </script>
-    <script src="tier-system.js"></script>
+    <!-- Removed missing files: tier-system.js, avatar-portal-mvp.js, smart-contracts.js, STANDARDIZED_FEEDS.js, trading.js -->
     <script src="telegram-gamification.js"></script>
     <script src="avatar-dashboard.js"></script>
-    <script src="avatar-portal-mvp.js"></script>
     <script src="data-management.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="developer-tools.js"></script>
-    <script src="smart-contracts.js"></script>
     <script src="bridge.js"></script>
-    <script src="STANDARDIZED_FEEDS.js"></script>
-    <script src="trading.js"></script>
+    <script src="developer-tools.js"></script>
     <script src="oracle.js"></script>
     <script src="nft-mint-studio.js"></script>
     <script>
@@ -7672,12 +7727,6 @@
             }
             console.log('switchTab called with:', tabName);
             
-            // Update avatar information in header when switching tabs
-            const avatar = getAvatar();
-            if (avatar) {
-                updatePortalHeader(avatar);
-            }
-            
             // Check if tab is accessible (with error handling)
             try {
                 const avatarId = oasisAPI?.getAvatarId();
@@ -7741,6 +7790,19 @@
                     loadAvatarPortalMVP();
                 } else if (typeof loadAvatarDashboard === 'function') {
                     loadAvatarDashboard();
+                } else {
+                    console.error('loadAvatarDashboard function not found. avatar-dashboard.js may not be loaded.');
+                    const container = document.getElementById('avatar-dashboard-content');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="portal-section">
+                                <div style="text-align: center; padding: 3rem;">
+                                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Avatar Dashboard</h3>
+                                    <p style="color: var(--text-secondary);">Error: Avatar dashboard script not loaded. Please refresh the page.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
             }
             
@@ -7755,8 +7817,23 @@
             }
             
             // Load Developer Tools if switching to developer tab
-            if (tabName === 'developer' && typeof loadDeveloperTools === 'function') {
-                loadDeveloperTools();
+            if (tabName === 'developer') {
+                if (typeof loadDeveloperTools === 'function') {
+                    loadDeveloperTools();
+                } else {
+                    console.error('loadDeveloperTools function not found. developer-tools.js may not be loaded.');
+                    const container = document.getElementById('developer-tools-content');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="portal-section">
+                                <div style="text-align: center; padding: 3rem;">
+                                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Developer Tools</h3>
+                                    <p style="color: var(--text-secondary);">Error: Developer tools script not loaded. Please refresh the page.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
             }
             
             // Load smart contracts if switching to contracts tab
@@ -7765,8 +7842,23 @@
             }
             
             // Load bridge if switching to bridges tab
-            if (tabName === 'bridges' && typeof loadBridge === 'function') {
-                loadBridge();
+            if (tabName === 'bridges') {
+                if (typeof loadBridge === 'function') {
+                    loadBridge();
+                } else {
+                    console.error('loadBridge function not found. bridge.js may not be loaded.');
+                    const container = document.getElementById('bridge-content');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="portal-section">
+                                <div style="text-align: center; padding: 3rem;">
+                                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Universal Asset Bridge</h3>
+                                    <p style="color: var(--text-secondary);">Error: Bridge script not loaded. Please refresh the page.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
             }
             
             // Load trading if switching to trading tab
