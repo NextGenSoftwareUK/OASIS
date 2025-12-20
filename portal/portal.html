@@ -7372,6 +7372,7 @@
         // Create fallback authAPI - always create it first, then replace if oasisAPI loads
         const createFallbackAuthAPI = () => {
             const baseURL = getAPIBaseURL();
+            console.log('Fallback authAPI created with baseURL:', baseURL, 'Page protocol:', window.location.protocol);
             return {
                 baseURL: baseURL,
                 async login(username, password) {
