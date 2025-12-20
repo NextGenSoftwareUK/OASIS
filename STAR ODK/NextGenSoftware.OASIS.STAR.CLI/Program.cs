@@ -798,6 +798,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     await ShowConfigSubCommandAsync(inputArgs);
                                     break;
 
+                                case "cosmic":
+                                    await ShowCosmicSubCommandAsync(inputArgs);
+                                    break;
+
                                 case "runcosmictests":
                                     {
                                         object oappTypeObj = null;
@@ -2470,6 +2474,144 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    delete    {id}         Delete a OLAND for the given {id}.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    list      {all}        If [all] is omitted it will list all OLAND for the given beamed in avatar, otherwise it will list all OLAND for all avatars.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
+            }
+        }
+
+        private static async Task ShowCosmicSubCommandAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length > 1)
+            {
+                switch (inputArgs[1].ToLower())
+                {
+                    case "body":
+                    case "celestialbody":
+                        {
+                            if (inputArgs.Length > 2)
+                            {
+                                switch (inputArgs[2].ToLower())
+                                {
+                                    case "create":
+                                    case "add":
+                                        await STARCLI.COSMIC.CreateCelestialBodyWizardAsync();
+                                        break;
+
+                                    case "read":
+                                    case "show":
+                                    case "get":
+                                        await STARCLI.COSMIC.ReadCelestialBodyWizardAsync();
+                                        break;
+
+                                    case "update":
+                                    case "edit":
+                                        await STARCLI.COSMIC.UpdateCelestialBodyWizardAsync();
+                                        break;
+
+                                    case "delete":
+                                    case "remove":
+                                        await STARCLI.COSMIC.DeleteCelestialBodyWizardAsync();
+                                        break;
+
+                                    case "list":
+                                        await STARCLI.COSMIC.ListCelestialBodiesWizardAsync();
+                                        break;
+
+                                    case "search":
+                                        await STARCLI.COSMIC.SearchCelestialBodiesWizardAsync();
+                                        break;
+
+                                    default:
+                                        CLIEngine.ShowErrorMessage("Command Unknown. Available commands: create, read, update, delete, list, search");
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("");
+                                CLIEngine.ShowMessage($"COSMIC CELESTIAL BODY SUBCOMMANDS:", ConsoleColor.Green);
+                                Console.WriteLine("");
+                                CLIEngine.ShowMessage("    create/add        Create a new celestial body using the wizard.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    read/show/get      Read/display a celestial body by ID.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    update/edit        Update an existing celestial body using the wizard.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    delete/remove      Delete a celestial body by ID.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    list               List all celestial bodies.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    search             Search for celestial bodies by name or description.", ConsoleColor.Green, false);
+                            }
+                        }
+                        break;
+
+                    case "space":
+                    case "celestialspace":
+                        {
+                            if (inputArgs.Length > 2)
+                            {
+                                switch (inputArgs[2].ToLower())
+                                {
+                                    case "create":
+                                    case "add":
+                                        await STARCLI.COSMIC.CreateCelestialSpaceWizardAsync();
+                                        break;
+
+                                    case "read":
+                                    case "show":
+                                    case "get":
+                                        await STARCLI.COSMIC.ReadCelestialSpaceWizardAsync();
+                                        break;
+
+                                    case "update":
+                                    case "edit":
+                                        await STARCLI.COSMIC.UpdateCelestialSpaceWizardAsync();
+                                        break;
+
+                                    case "delete":
+                                    case "remove":
+                                        await STARCLI.COSMIC.DeleteCelestialSpaceWizardAsync();
+                                        break;
+
+                                    case "list":
+                                        await STARCLI.COSMIC.ListCelestialSpacesWizardAsync();
+                                        break;
+
+                                    case "search":
+                                        await STARCLI.COSMIC.SearchCelestialSpacesWizardAsync();
+                                        break;
+
+                                    default:
+                                        CLIEngine.ShowErrorMessage("Command Unknown. Available commands: create, read, update, delete, list, search");
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("");
+                                CLIEngine.ShowMessage($"COSMIC CELESTIAL SPACE SUBCOMMANDS:", ConsoleColor.Green);
+                                Console.WriteLine("");
+                                CLIEngine.ShowMessage("    create/add        Create a new celestial space using the wizard.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    read/show/get      Read/display a celestial space by ID.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    update/edit        Update an existing celestial space using the wizard.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    delete/remove      Delete a celestial space by ID.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    list               List all celestial spaces.", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    search             Search for celestial spaces by name or description.", ConsoleColor.Green, false);
+                            }
+                        }
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Command Unknown. Available commands: body, space");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage($"COSMIC SUBCOMMANDS:", ConsoleColor.Green);
+                Console.WriteLine("");
+                CLIEngine.ShowMessage("    body/celestialbody    Manage celestial bodies (stars, planets, moons, etc.)", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    space/celestialspace   Manage celestial spaces (omniverse, multiverse, universe, etc.)", ConsoleColor.Green, false);
+                Console.WriteLine("");
+                CLIEngine.ShowMessage("Examples:", ConsoleColor.Yellow);
+                CLIEngine.ShowMessage("    cosmic body create     Create a new celestial body", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    cosmic body list       List all celestial bodies", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    cosmic space search    Search for celestial spaces", ConsoleColor.Green, false);
             }
         }
 

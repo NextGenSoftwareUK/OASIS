@@ -774,7 +774,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 HoloOASIS holoOASIS = new HoloOASIS(
                                             overrideConnectionString == null
                                                 ? OASISDNA.OASIS.StorageProviders.HoloOASIS.LocalNodeURI
-                                                : overrideConnectionString, 
+                                                : overrideConnectionString,
+                                            OASISDNA, // Inject OASISDNA into constructor
                                             OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNetworkURI, 
                                             OASISDNA.OASIS.StorageProviders.HoloOASIS.UseLocalNode, 
                                             OASISDNA.OASIS.StorageProviders.HoloOASIS.UseHoloNetwork, 

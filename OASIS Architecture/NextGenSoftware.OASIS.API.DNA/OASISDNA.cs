@@ -330,6 +330,21 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string HoloNetworkURI { get; set; }
         public string LocalNodeURI {  get; set; }
         public bool HoloNETORMUseReflection { get; set; }
+        
+        // Rust DNA Template Configuration (moved from STARDNA)
+        public string RustDNARSMTemplateFolder { get; set; } = @"DNATemplates\RustDNATemplates\RSM";  //Rust DNA Templates that hAPPs are built from (relative to BaseSTARPath).
+        public string RustTemplateLib { get; set; } = @"core\lib.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateHolon { get; set; } = @"core\holon.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateValidation { get; set; } = @"core\validation.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateCreate { get; set; } = @"crud\create.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateRead { get; set; } = @"crud\read.rs";  //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateUpdate { get; set; } = @"crud\update.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateDelete { get; set; } = @"crud\delete.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateList { get; set; } = @"crud\list.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateInt { get; set; } = @"types\int.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateString { get; set; } = @"types\string.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateBool { get; set; } = @"types\bool.rs"; //relative to RustDNARSMTemplateFolder above.
+        public string BaseSTARPath { get; set; } = @"C:\Source\OASIS2\STAR ODK\Releases\STAR_ODK_v3.0.0"; //Base path for STAR templates (if blank then RustDNARSMTemplateFolder is absolute).
     }
 
     public class MongoDBOASISProviderSettings : ProviderSettingsBase
