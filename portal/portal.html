@@ -7493,6 +7493,19 @@
         // Make authAPI globally available immediately
         window.authAPI = authAPI;
         
+        // Also create a global reference for backward compatibility
+        if (typeof authAPI !== 'undefined') {
+            // Make it available in global scope as well
+            try {
+                // This ensures it's available in all scopes
+                if (typeof window !== 'undefined') {
+                    window.authAPI = authAPI;
+                }
+            } catch (e) {
+                console.warn('Could not set window.authAPI:', e);
+            }
+        }
+        
         // Try to load oasisAPI and replace authAPI if it loads successfully
         // Use a script tag with onload to detect when it's ready
         const script = document.createElement('script');
@@ -7687,7 +7700,11 @@
                     if (!username) {
                         throw new Error('Enter your username/email and password.');
                     }
-                    authResult = await authAPI.login(username, password);
+                    // Use window.authAPI to ensure it's available across script scopes
+                    if (!window.authAPI) {
+                        throw new Error('Authentication API not available. Please refresh the page.');
+                    }
+                    authResult = await window.authAPI.login(username, password);
                 } else {
                     // Register
                     let finalUsername = username;
@@ -7711,7 +7728,11 @@
                         }
                     }
                     
-                    authResult = await authAPI.register({
+                    // Use window.authAPI to ensure it's available across script scopes
+                    if (!window.authAPI) {
+                        throw new Error('Authentication API not available. Please refresh the page.');
+                    }
+                    authResult = await window.authAPI.register({
                         username: finalUsername,
                         email: email,
                         password: password,
