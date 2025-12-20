@@ -6,12 +6,22 @@
 const oasisAPI = {
     // Base URL configuration
     // Using local API when on localhost, otherwise remote API
-    // Local API uses HTTPS on port 5004, remote API uses HTTP
-    baseURL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'https://localhost:5004'  // Local API runs on HTTPS port 5004
-        : (window.location.hostname === 'oportal.oasisweb4.com' || window.location.hostname.includes('oasisweb4.com'))
-            ? 'http://api.oasisweb4.com'
-            : 'http://api.oasisweb4.com',  // Default to remote API
+    // Use HTTPS if page is served over HTTPS to avoid mixed content errors
+    baseURL: (() => {
+        const hostname = window.location.hostname;
+        const protocol = window.location.protocol;
+        
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'https://localhost:5004';  // Local API runs on HTTPS port 5004
+        }
+        
+        // Use HTTPS if the page is served over HTTPS, otherwise HTTP
+        // This prevents mixed content errors
+        if (protocol === 'https:') {
+            return 'https://api.oasisweb4.com';
+        }
+        return 'http://api.oasisweb4.com';
+    })(),
 
     /**
      * Get authentication headers

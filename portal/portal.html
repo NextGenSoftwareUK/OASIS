@@ -7355,8 +7355,16 @@
         // Determine API base URL
         const getAPIBaseURL = () => {
             const hostname = window.location.hostname;
+            const protocol = window.location.protocol; // Get current protocol (http: or https:)
+            
             if (hostname === 'localhost' || hostname === '127.0.0.1') {
                 return 'https://localhost:5004';
+            }
+            
+            // Use HTTPS if the page is served over HTTPS, otherwise HTTP
+            // This prevents mixed content errors
+            if (protocol === 'https:') {
+                return 'https://api.oasisweb4.com';
             }
             return 'http://api.oasisweb4.com';
         };
