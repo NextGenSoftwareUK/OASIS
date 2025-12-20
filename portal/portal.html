@@ -7335,13 +7335,153 @@
     </div>
 
     <!-- Removed missing file: api/auth.js -->
-    <script src="api/oasisApi.js"></script>
+    <script src="api/oasisApi.js" onerror="console.warn('Failed to load api/oasisApi.js, using fallback')"></script>
     <script>
-        // Create authAPI alias for backward compatibility
+        // Determine API base URL
+        const getAPIBaseURL = () => {
+            const hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'https://localhost:5004';
+            }
+            return 'http://api.oasisweb4.com';
+        };
+        
+        // Create fallback authAPI if oasisAPI didn't load
+        const createFallbackAuthAPI = () => {
+            const baseURL = getAPIBaseURL();
+            return {
+                baseURL: baseURL,
+                async login(username, password) {
+                    try {
+                        const response = await fetch(`${baseURL}/api/avatar/authenticate`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ username, password })
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+                            throw new Error(errorData.message || errorData.error || `HTTP ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        const result = data.result?.result || data.result || data;
+                        const avatar = result.avatar || data.result?.avatar || data.avatar;
+                        const token = result.jwtToken || data.result?.jwtToken || data.jwtToken || data.token;
+
+                        if (!token) {
+                            throw new Error(data.result?.message || data.message || 'No token received');
+                        }
+
+                        const normalizedAvatar = {
+                            ...(avatar || result),
+                            id: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id,
+                            avatarId: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id,
+                            username: avatar?.username || result?.username,
+                            email: avatar?.email || result?.email
+                        };
+
+                        const authData = {
+                            avatar: normalizedAvatar,
+                            token: token,
+                            refreshToken: result.refreshToken || data.refreshToken || null,
+                            timestamp: Date.now()
+                        };
+
+                        localStorage.setItem('oasis_auth', JSON.stringify(authData));
+
+                        return {
+                            avatar: normalizedAvatar,
+                            jwtToken: token,
+                            token: token,
+                            refreshToken: authData.refreshToken
+                        };
+                    } catch (error) {
+                        console.error('Avatar login failed:', error);
+                        throw error instanceof Error ? error : new Error('Unable to authenticate avatar');
+                    }
+                },
+                async register(registrationData) {
+                    try {
+                        const payload = {
+                            username: registrationData.username,
+                            email: registrationData.email,
+                            password: registrationData.password,
+                            confirmPassword: registrationData.confirmPassword || registrationData.password,
+                            firstName: registrationData.firstName || 'User',
+                            lastName: registrationData.lastName || 'User',
+                            title: registrationData.title || 'Mr',
+                            avatarType: registrationData.avatarType || 'User',
+                            acceptTerms: registrationData.acceptTerms !== undefined ? registrationData.acceptTerms : true,
+                            privacyMode: registrationData.privacyMode || false
+                        };
+
+                        const response = await fetch(`${baseURL}/api/avatar/register`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+                            throw new Error(errorData.message || errorData.error || `HTTP ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        const result = data.result?.result || data.result || data;
+                        const avatar = result.avatar || data.result?.avatar || data.avatar;
+                        const token = result.jwtToken || data.result?.jwtToken || data.jwtToken || data.token;
+
+                        if (!token) {
+                            throw new Error(data.result?.message || data.message || 'No token received');
+                        }
+
+                        const normalizedAvatar = {
+                            ...(avatar || result),
+                            id: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id,
+                            avatarId: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id
+                        };
+
+                        const authData = {
+                            avatar: normalizedAvatar,
+                            token: token,
+                            refreshToken: result.refreshToken || data.refreshToken || null,
+                            timestamp: Date.now()
+                        };
+
+                        localStorage.setItem('oasis_auth', JSON.stringify(authData));
+
+                        return {
+                            avatar: normalizedAvatar,
+                            jwtToken: token,
+                            token: token,
+                            refreshToken: authData.refreshToken
+                        };
+                    } catch (error) {
+                        console.error('Avatar registration failed:', error);
+                        throw error instanceof Error ? error : new Error('Unable to register avatar');
+                    }
+                }
+            };
+        };
+        
+        // Create authAPI - use oasisAPI if loaded, otherwise use fallback
+        let authAPI;
         if (typeof oasisAPI !== 'undefined') {
-            const authAPI = oasisAPI;
-            window.authAPI = authAPI;
+            authAPI = oasisAPI;
+        } else {
+            console.warn('oasisAPI not loaded, using fallback authAPI');
+            authAPI = createFallbackAuthAPI();
         }
+        
+        // Make authAPI globally available
+        window.authAPI = authAPI;
         
         // Create authStore for centralized authentication management
         const authStore = {
