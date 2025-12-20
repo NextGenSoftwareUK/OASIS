@@ -7454,7 +7454,10 @@
                             privacyMode: registrationData.privacyMode || false
                         };
 
-                        const response = await fetch(`${baseURL}/api/avatar/register`, {
+                        // Call getAPIBaseURL() dynamically to ensure we use the correct protocol
+                        const apiBaseURL = getAPIBaseURL();
+                        console.log('Register attempt - API baseURL:', apiBaseURL, 'Page protocol:', window.location.protocol);
+                        const response = await fetch(`${apiBaseURL}/api/avatar/register`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
