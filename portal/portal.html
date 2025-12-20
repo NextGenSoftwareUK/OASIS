@@ -7383,20 +7383,27 @@
                         }
 
                         const data = await response.json();
+                        
+                        // API response structure: data.result.result contains the avatar data and jwtToken
                         const result = data.result?.result || data.result || data;
-                        const avatar = result.avatar || data.result?.avatar || data.avatar;
+                        
+                        // Extract JWT token - it's directly in result
                         const token = result.jwtToken || data.result?.jwtToken || data.jwtToken || data.token;
 
                         if (!token) {
                             throw new Error(data.result?.message || data.message || 'No token received');
                         }
 
+                        // The avatar data IS the result object itself (not in a separate avatar field)
                         const normalizedAvatar = {
-                            ...(avatar || result),
-                            id: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id,
-                            avatarId: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id,
-                            username: avatar?.username || result?.username,
-                            email: avatar?.email || result?.email
+                            ...result,
+                            id: result.avatarId || result.id,
+                            avatarId: result.avatarId || result.id,
+                            username: result.username,
+                            email: result.email,
+                            firstName: result.firstName,
+                            lastName: result.lastName,
+                            fullName: result.fullName || `${result.firstName || ''} ${result.lastName || ''}`.trim()
                         };
 
                         const authData = {
@@ -7449,18 +7456,27 @@
                         }
 
                         const data = await response.json();
+                        
+                        // API response structure: data.result.result contains the avatar data and jwtToken
                         const result = data.result?.result || data.result || data;
-                        const avatar = result.avatar || data.result?.avatar || data.avatar;
+                        
+                        // Extract JWT token - it's directly in result
                         const token = result.jwtToken || data.result?.jwtToken || data.jwtToken || data.token;
 
                         if (!token) {
                             throw new Error(data.result?.message || data.message || 'No token received');
                         }
 
+                        // The avatar data IS the result object itself (not in a separate avatar field)
                         const normalizedAvatar = {
-                            ...(avatar || result),
-                            id: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id,
-                            avatarId: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id
+                            ...result,
+                            id: result.avatarId || result.id,
+                            avatarId: result.avatarId || result.id,
+                            username: result.username,
+                            email: result.email,
+                            firstName: result.firstName,
+                            lastName: result.lastName,
+                            fullName: result.fullName || `${result.firstName || ''} ${result.lastName || ''}`.trim()
                         };
 
                         const authData = {
