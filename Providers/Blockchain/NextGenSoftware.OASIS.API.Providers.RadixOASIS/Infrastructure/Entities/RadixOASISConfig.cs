@@ -24,5 +24,10 @@ public class RadixOASISConfig
     /// Private key (hex encoded) for the technical account
     /// </summary>
     public string PrivateKey { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// OASIS Storage Component address (deployed Scrypto component)
+    /// </summary>
+    public string ComponentAddress { get; set; } = string.Empty;
 }
 
