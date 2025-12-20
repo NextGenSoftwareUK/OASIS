@@ -9,7 +9,9 @@ const oasisAPI = {
     // Local API uses HTTPS on port 5004, remote API uses HTTP
     baseURL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'https://localhost:5004'  // Local API runs on HTTPS port 5004
-        : 'http://api.oasisweb4.com',
+        : (window.location.hostname === 'oportal.oasisweb4.com' || window.location.hostname.includes('oasisweb4.com'))
+            ? 'http://api.oasisweb4.com'
+            : 'http://api.oasisweb4.com',  // Default to remote API
 
     /**
      * Get authentication headers
@@ -287,20 +289,25 @@ const oasisAPI = {
 
             const data = await response.json();
             
-            // Handle nested result structure
-            const avatar = data.result?.avatar || data.avatar || data.result;
-            const token = data.result?.jwtToken || data.jwtToken || data.token;
-            const refreshToken = data.result?.refreshToken || data.refreshToken;
+            // Handle nested result structure (API returns: data.result.result.jwtToken)
+            const result = data.result?.result || data.result || data;
+            const avatar = result.avatar || data.result?.avatar || data.avatar;
+            const token = result.jwtToken || data.result?.jwtToken || data.jwtToken || data.token;
+            const refreshToken = result.refreshToken || data.result?.refreshToken || data.refreshToken;
 
             if (!token) {
-                throw new Error(data.message || 'No token received from authentication service');
+                throw new Error(data.result?.message || data.message || 'No token received from authentication service');
             }
 
             // Normalize avatar structure
             const normalizedAvatar = {
-                ...avatar,
-                id: avatar?.avatarId || avatar?.id,
-                avatarId: avatar?.avatarId || avatar?.id
+                ...(avatar || result),
+                id: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id,
+                avatarId: avatar?.avatarId || avatar?.id || result?.avatarId || result?.id,
+                username: avatar?.username || result?.username,
+                email: avatar?.email || result?.email,
+                firstName: avatar?.firstName || result?.firstName,
+                lastName: avatar?.lastName || result?.lastName
             };
 
             // Store auth data
