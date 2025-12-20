@@ -7371,13 +7371,17 @@
         
         // Create fallback authAPI - always create it first, then replace if oasisAPI loads
         const createFallbackAuthAPI = () => {
-            const baseURL = getAPIBaseURL();
-            console.log('Fallback authAPI created with baseURL:', baseURL, 'Page protocol:', window.location.protocol);
+            // Don't capture baseURL - call getAPIBaseURL() dynamically to always get current protocol
             return {
-                baseURL: baseURL,
+                get baseURL() {
+                    return getAPIBaseURL();
+                },
                 async login(username, password) {
                     try {
-                        const response = await fetch(`${baseURL}/api/avatar/authenticate`, {
+                        // Call getAPIBaseURL() dynamically to ensure we use the correct protocol
+                        const apiBaseURL = getAPIBaseURL();
+                        console.log('Login attempt - API baseURL:', apiBaseURL, 'Page protocol:', window.location.protocol);
+                        const response = await fetch(`${apiBaseURL}/api/avatar/authenticate`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
