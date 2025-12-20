@@ -39,6 +39,9 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using static NextGenSoftware.Utilities.KeyHelper;
 using DataHelper = NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers.DataHelper;
+using NextGenSoftware.Utilities.ExtentionMethods;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -96,11 +99,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         public bool UseHoloNetwork { get; private set; }
         public string HoloNetworkURI { get; private set; }
         public bool UseHoloNETORMReflection { get; private set; }
+        private OASISDNA _oasisDNA;
 
-        public HoloOASIS(HoloNETClientAdmin holoNETClientAdmin, HoloNETClientAppAgent holoNETClientAppAgent, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
+        public HoloOASIS(HoloNETClientAdmin holoNETClientAdmin, HoloNETClientAppAgent holoNETClientAppAgent, OASISDNA oasisDNA = null, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
         {
             this.HoloNETClientAdmin = holoNETClientAdmin;
             this.HoloNETClientAppAgent = holoNETClientAppAgent;
+            this._oasisDNA = oasisDNA ?? OASISBootLoader.OASISBootLoader.OASISDNA;
             this.HoloNetworkURI = holoNetworkURI;
             this.UseLocalNode = useLocalNode;
             this.UseHoloNetwork = useHoloNetwork;
@@ -108,8 +113,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             Initialize();
         }
 
-        public HoloOASIS(string holochainConductorAdminURI, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
+        public HoloOASIS(string holochainConductorAdminURI, OASISDNA oasisDNA = null, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
         {
+            this._oasisDNA = oasisDNA ?? OASISBootLoader.OASISBootLoader.OASISDNA;
             this.HoloNetworkURI = holoNetworkURI;
             this.UseLocalNode = useLocalNode;
             this.UseHoloNetwork = useHoloNetwork;
@@ -118,8 +124,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             Initialize();
         }
 
-        public HoloOASIS(string holochainConductorAdminURI, string holochainConductorAppAgentURI, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
+        public HoloOASIS(string holochainConductorAdminURI, string holochainConductorAppAgentURI, OASISDNA oasisDNA = null, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
         {
+            this._oasisDNA = oasisDNA ?? OASISBootLoader.OASISBootLoader.OASISDNA;
             _holochainConductorAppAgentURI = holochainConductorAppAgentURI;
             this.HoloNetworkURI = holoNetworkURI;
             this.UseLocalNode = useLocalNode;
@@ -1298,29 +1305,222 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         #endregion
 
         #region IOASISSuperStar
-        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeParams)
         {
             try
             {
-                if (string.IsNullOrEmpty(outputFolder) || string.IsNullOrEmpty(nativeSource))
+                if (string.IsNullOrEmpty(outputFolder))
                     return false;
+
+                // Parse nativeParams to get celestialBodyDNAFolder
+                // Format: JSON string with "celestialBodyDNAFolder" or just the folder path string
+                string celestialBodyDNAFolder = null;
+                if (!string.IsNullOrEmpty(nativeParams))
+                {
+                    try
+                    {
+                        var paramsObj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(nativeParams);
+                        paramsObj?.TryGetValue("celestialBodyDNAFolder", out celestialBodyDNAFolder);
+                    }
+                    catch
+                    {
+                        // If not JSON, assume it's the folder path directly
+                        celestialBodyDNAFolder = nativeParams;
+                    }
+                }
+
+                // If no folder provided, try to get from celestialBody metadata or skip
+                if (string.IsNullOrEmpty(celestialBodyDNAFolder))
+                {
+                    // Try to generate from celestialBody structure if available
+                    if (celestialBody?.CelestialBodyCore?.Zomes != null && celestialBody.CelestialBodyCore.Zomes.Count > 0)
+                    {
+                        return GenerateRustFromCelestialBody(celestialBody, outputFolder);
+                    }
+                    return false;
+                }
 
                 // Ensure the Rust output folder exists for this OAPP.
                 string rustFolder = Path.Combine(outputFolder, "Rust");
-
                 if (!Directory.Exists(rustFolder))
                     Directory.CreateDirectory(rustFolder);
 
-                // For HoloOASIS the current native payload is the fully composed lib.rs content
-                // generated by STAR.LightInternalAsync using the Rust DNA templates.
-                File.WriteAllText(Path.Combine(rustFolder, "lib.rs"), nativeSource);
+                // Get OASISDNA to access Rust template paths from HoloOASIS settings
+                // Use injected OASISDNA or fallback to OASISBootLoader
+                var oasisDNA = _oasisDNA ?? OASISBootLoader.OASISBootLoader.OASISDNA;
+                if (oasisDNA == null || oasisDNA.StorageProviders?.HoloOASIS == null)
+                    return false;
 
-                return true;
-            }
-            catch
-            {
+                var holoSettings = oasisDNA.StorageProviders.HoloOASIS;
+                
+                // Get base STAR path and Rust template folder from OASISDNA
+                string baseSTARPath = holoSettings.BaseSTARPath;
+                string rustTemplateFolder = holoSettings.RustDNARSMTemplateFolder;
+                
+                // Construct full path to Rust templates
+                string baseSTARPathFull = string.IsNullOrEmpty(baseSTARPath) 
+                    ? rustTemplateFolder  // If BaseSTARPath is empty, assume RustDNARSMTemplateFolder is absolute
+                    : Path.Combine(baseSTARPath, rustTemplateFolder);
+
+                if (!Directory.Exists(baseSTARPathFull))
+                    return false;
+
+                // Load Rust templates using paths from OASISDNA
+                string libTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateLib));
+                string createTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateCreate));
+                string readTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateRead));
+                string updateTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateUpdate));
+                string deleteTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateDelete));
+                string validationTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateValidation));
+                string holonTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateHolon));
+                string intTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateInt));
+                string stringTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateString));
+                string boolTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateBool));
+
+                // Process DNA files to generate Rust code
+                string libBuffer = "";
+                string holonBufferRust = "";
+                string holonFieldsClone = "";
+                string holonName = "";
+                string zomeName = "";
+                int nextLineToWrite = 0;
+                bool firstField = true;
+
+                DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
+                FileInfo[] files = dirInfo.GetFiles();
+
+                foreach (FileInfo file in files)
+                {
+                    if (file == null) continue;
+
+                    using (StreamReader reader = file.OpenText())
+                    {
+                        bool holonReached = false;
+                        IHolon currentHolon = null;
+
+                        while (!reader.EndOfStream)
+                        {
+                            string buffer = reader.ReadLine();
+                            if (string.IsNullOrEmpty(buffer)) continue;
+
+                            if (buffer.Contains("ZomeDNA"))
+                            {
+                                string[] parts = buffer.Split(' ');
+                                if (parts.Length >= 7)
+                                {
+                                    zomeName = parts[6].ToSnakeCase();
+                                    libBuffer = libTemplate.Replace("zome_name", zomeName);
+                                    nextLineToWrite = 0;
+                                }
+                            }
+
+                            if (holonReached && (buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool")))
+                            {
+                                string[] parts = buffer.Split(' ');
+                                if (parts.Length >= 15)
+                                {
+                                    string fieldName = parts[14].ToSnakeCase();
+                                    string fieldType = parts[13].ToLower();
+
+                                    string fieldTemplate = fieldType switch
+                                    {
+                                        "string" => stringTemplateRust,
+                                        "int" => intTemplateRust,
+                                        "bool" => boolTemplateRust,
+                                        _ => null
+                                    };
+
+                                    if (fieldTemplate != null)
+                                    {
+                                        GenerateRustField(fieldName, fieldTemplate, holonName, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                                    }
+                                }
+                            }
+
+                            // Write the holon out
+                            if (holonReached && buffer.Length > 1 && buffer.Substring(buffer.Length - 1, 1) == "}" && !buffer.Contains("get;"))
+                            {
+                                if (holonBufferRust.Length > 2)
+                                    holonBufferRust = holonBufferRust.Remove(holonBufferRust.Length - 3);
+
+                                holonBufferRust = string.Concat(Environment.NewLine, holonBufferRust, Environment.NewLine, holonTemplateRust.Substring(holonTemplateRust.Length - 1, 1), Environment.NewLine);
+
+                                int zomeIndex = libTemplate.IndexOf("#[zome]");
+                                int zomeBodyStartIndex = libTemplate.IndexOf("{", zomeIndex);
+
+                                libBuffer = libBuffer.Insert(zomeIndex - 2, holonBufferRust);
+
+                                if (nextLineToWrite == 0)
+                                    nextLineToWrite = zomeBodyStartIndex + holonBufferRust.Length;
+                                else
+                                    nextLineToWrite += holonBufferRust.Length;
+
+                                // Insert CRUD methods for each holon
+                                string holonPascal = holonName.ToPascalCase();
+                                string holonSnake = holonName.ToSnakeCase();
+                                libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, createTemplate.Replace("Holon", holonPascal).Replace("{holon}", holonSnake), Environment.NewLine));
+                                libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, readTemplate.Replace("Holon", holonPascal).Replace("{holon}", holonSnake), Environment.NewLine));
+                                libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, updateTemplate.Replace("Holon", holonPascal).Replace("{holon}", holonSnake).Replace("//#CopyFields//", holonFieldsClone), Environment.NewLine));
+                                libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, deleteTemplate.Replace("Holon", holonPascal).Replace("{holon}", holonSnake), Environment.NewLine));
+                                libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, validationTemplate.Replace("Holon", holonPascal).Replace("{holon}", holonSnake), Environment.NewLine));
+
+                                holonBufferRust = "";
+                                holonFieldsClone = "";
+                                holonReached = false;
+                                firstField = true;
+                                holonName = "";
+                            }
+
+                            if (buffer.Contains("HolonDNA"))
+                            {
+                                string[] parts = buffer.Split(' ');
+                                if (parts.Length >= 11)
+                                {
+                                    holonName = parts[10].ToSnakeCase();
+                                    holonBufferRust = holonTemplateRust.Replace("Holon", parts[10].ToPascalCase()).Replace("{holon}", holonName);
+                                    holonBufferRust = holonBufferRust.Substring(0, holonBufferRust.Length - 1);
+                                    holonReached = true;
+                                    firstField = true;
+                                }
+                            }
+                        }
+                    }
+                    nextLineToWrite = 0;
+                }
+
+                // Write the generated Rust lib.rs file
+                if (!string.IsNullOrEmpty(libBuffer))
+                {
+                    File.WriteAllText(Path.Combine(rustFolder, "lib.rs"), libBuffer);
+                    return true;
+                }
+
                 return false;
             }
+            catch (Exception ex)
+            {
+                // Log error if logging available
+                return false;
+            }
+        }
+
+        private void GenerateRustField(string fieldName, string fieldTemplate, string holonName, ref bool firstField, ref string holonFieldsClone, ref string holonBufferRust)
+        {
+            if (firstField)
+                firstField = false;
+            else
+                holonFieldsClone = string.Concat(holonFieldsClone, "\t");
+
+            holonFieldsClone = string.Concat(holonFieldsClone, holonName, ".", fieldName, "=updated_entry.", fieldName, ";", Environment.NewLine);
+            holonBufferRust = string.Concat(holonBufferRust, fieldTemplate.Replace("variableName", fieldName), ",", Environment.NewLine);
+        }
+
+        private bool GenerateRustFromCelestialBody(ICelestialBody celestialBody, string outputFolder)
+        {
+            // TODO: Implement generation from celestialBody structure directly
+            // This would parse the zomes and holons from the celestialBody object
+            // For now, return false to indicate we need the DNA folder
+            return false;
         }
 
         #endregion
