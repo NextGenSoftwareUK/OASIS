@@ -7351,7 +7351,6 @@
     </div>
 
     <!-- Removed missing file: api/auth.js -->
-    <script src="api/oasisApi.js" onerror="console.warn('Failed to load api/oasisApi.js, using fallback')"></script>
     <script>
         // Determine API base URL
         const getAPIBaseURL = () => {
@@ -7362,7 +7361,7 @@
             return 'http://api.oasisweb4.com';
         };
         
-        // Create fallback authAPI if oasisAPI didn't load
+        // Create fallback authAPI - always create it first, then replace if oasisAPI loads
         const createFallbackAuthAPI = () => {
             const baseURL = getAPIBaseURL();
             return {
@@ -7487,17 +7486,28 @@
             };
         };
         
-        // Create authAPI - use oasisAPI if loaded, otherwise use fallback
-        let authAPI;
-        if (typeof oasisAPI !== 'undefined') {
-            authAPI = oasisAPI;
-        } else {
-            console.warn('oasisAPI not loaded, using fallback authAPI');
-            authAPI = createFallbackAuthAPI();
-        }
+        // Always create authAPI immediately using fallback
+        // This ensures it's available even if the external script fails to load
+        let authAPI = createFallbackAuthAPI();
         
-        // Make authAPI globally available
+        // Make authAPI globally available immediately
         window.authAPI = authAPI;
+        
+        // Try to load oasisAPI and replace authAPI if it loads successfully
+        // Use a script tag with onload to detect when it's ready
+        const script = document.createElement('script');
+        script.src = 'api/oasisApi.js';
+        script.onload = function() {
+            if (typeof oasisAPI !== 'undefined') {
+                console.log('oasisAPI loaded successfully, using it instead of fallback');
+                authAPI = oasisAPI;
+                window.authAPI = authAPI;
+            }
+        };
+        script.onerror = function() {
+            console.warn('Failed to load api/oasisApi.js, using fallback authAPI');
+        };
+        document.head.appendChild(script);
         
         // Create authStore for centralized authentication management
         const authStore = {
