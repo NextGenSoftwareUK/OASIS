@@ -2813,6 +2813,48 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void ApplyOAPPTemplate(GenesisType genesisType, string OAPPFolder, string oAppNameSpace, string oAppName, string celestialBodyName, string zomeName, string holonName, string firstStringProperty, List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, bool root = true)
         {
+            // Generate library references and stubs if GeneratedProxies folder exists
+            string generatedProxiesPath = Path.Combine(OAPPFolder, "GeneratedProxies");
+            string libraryUsingStatements = "";
+            string libraryMethodStubs = "";
+            
+            if (Directory.Exists(generatedProxiesPath))
+            {
+                var proxyFiles = Directory.GetFiles(generatedProxiesPath, "*Proxy.cs", SearchOption.TopDirectoryOnly);
+                
+                if (proxyFiles.Length > 0)
+                {
+                    // Generate using statement
+                    libraryUsingStatements = "using GeneratedProxies;\nusing NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop;\n";
+                    
+                    // Generate method stubs for each library
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("\n        // Library Integration Methods");
+                    sb.AppendLine("        // These methods demonstrate how to use the imported libraries");
+                    
+                    foreach (var proxyFile in proxyFiles)
+                    {
+                        string proxyClassName = Path.GetFileNameWithoutExtension(proxyFile);
+                        string libraryName = proxyClassName.Replace("Proxy", "");
+                        
+                        sb.AppendLine($"        private static async Task Use{libraryName}Library()");
+                        sb.AppendLine("        {");
+                        sb.AppendLine($"            // Example: Load and use {libraryName} library");
+                        sb.AppendLine($"            // var interopManager = await LibraryInteropFactory.CreateDefaultManagerAsync();");
+                        sb.AppendLine($"            // var loadResult = await interopManager.LoadLibraryAsync(\"path/to/{libraryName}.dll\");");
+                        sb.AppendLine($"            // if (!loadResult.IsError && loadResult.Result != null)");
+                        sb.AppendLine($"            // {{");
+                        sb.AppendLine($"            //     var proxy = new {proxyClassName}(loadResult.Result.LibraryId, interopManager);");
+                        sb.AppendLine($"            //     // Use proxy methods here");
+                        sb.AppendLine($"            // }}");
+                        sb.AppendLine("        }");
+                        sb.AppendLine("");
+                    }
+                    
+                    libraryMethodStubs = sb.ToString();
+                }
+            }
+            
             foreach (DirectoryInfo dir in new DirectoryInfo(OAPPFolder).GetDirectories())
             {
                 if (dir.Name != "bin" && dir.Name != "obj")
@@ -2931,6 +2973,13 @@ namespace NextGenSoftware.OASIS.STAR
                                 line = line.Replace("{HOLON1_STRINGPROPERTY1}", firstStringProperty.ToPascalCase());
                                 //TODO: Add rest of the props, holons, zomes, etc...
                             }
+
+                            // Replace library reference tags
+                            if (!string.IsNullOrEmpty(libraryUsingStatements) && line.Contains("{LIBRARYUSINGSTATEMENTS}"))
+                                line = line.Replace("{LIBRARYUSINGSTATEMENTS}", libraryUsingStatements);
+                            
+                            if (!string.IsNullOrEmpty(libraryMethodStubs) && line.Contains("{LIBRARYMETHODSTUBS}"))
+                                line = line.Replace("{LIBRARYMETHODSTUBS}", libraryMethodStubs);
 
                             tw.WriteLine(line);
                             lineNumber++;
