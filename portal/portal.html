@@ -36,6 +36,17 @@
             gap: 1rem;
             font-size: 0.875rem;
         }
+        
+        .portal-nav-logo {
+            height: 32px;
+            width: auto;
+            margin-right: 0.5rem;
+            transition: opacity 0.2s;
+        }
+        
+        .portal-nav-logo:hover {
+            opacity: 0.8;
+        }
 
         .portal-nav-right {
             display: flex;
@@ -6576,31 +6587,25 @@
         .avatar-auth-logo-outer {
             height: 4rem;
             width: 4rem;
-            border-radius: 50%;
-            border: 1px solid rgba(196, 181, 253, 0.4);
-            background: linear-gradient(to bottom right, rgba(126, 34, 206, 1), rgba(79, 70, 229, 1), rgba(0, 0, 0, 1));
+            border-radius: 0.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: spin 4s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            background: transparent;
         }
 
         .avatar-auth-logo-inner {
-            height: 2.5rem;
-            width: 2.5rem;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            height: 100%;
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.125rem;
-            font-weight: 600;
-            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .avatar-auth-logo-inner img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
         }
 
         .avatar-auth-label {
@@ -6838,7 +6843,10 @@
     <nav class="portal-nav">
         <div class="portal-nav-content">
             <div class="portal-nav-left">
-                <a href="../oasisweb4 site/new-v2/index.html" style="color: var(--text-primary); text-decoration: none; font-weight: 500;">OASIS</a>
+                <a href="../oasisweb4 site/new-v2/index.html" style="display: flex; align-items: center; text-decoration: none;">
+                    <img src="oasis-logo.png" alt="OASIS" class="portal-nav-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                    <span style="color: var(--text-primary); font-weight: 500; display: none;">OASIS</span>
+                </a>
                 <span style="color: var(--text-tertiary);">/</span>
                 <span style="color: var(--text-secondary);">Portal</span>
             </div>
@@ -7228,7 +7236,9 @@
             <div class="avatar-auth-header">
                 <div class="avatar-auth-logo">
                     <div class="avatar-auth-logo-outer">
-                        <div class="avatar-auth-logo-inner">O</div>
+                        <div class="avatar-auth-logo-inner">
+                            <img src="oasis-logo.png" alt="OASIS" onerror="this.style.display='none'; this.parentElement.innerHTML='O';">
+                        </div>
                     </div>
                 </div>
                 <p class="avatar-auth-label">Avatar Access</p>
