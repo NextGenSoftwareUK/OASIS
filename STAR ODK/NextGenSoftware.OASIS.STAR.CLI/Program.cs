@@ -2681,10 +2681,57 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
+                    case "simulation":
+                        {
+                            if (inputArgs.Length > 2)
+                            {
+                                switch (inputArgs[2].ToLower())
+                                {
+                                    case "propose":
+                                        await STARCLI.COSMIC.SimulationProposeWizardAsync();
+                                        break;
 
+                                    case "list":
+                                        {
+                                            if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "proposals")
+                                            {
+                                                bool onlyMine = inputArgs.Length > 4 && inputArgs[4].ToLower() == "onlymine";
+                                                await STARCLI.COSMIC.SimulationListProposalsWizardAsync(onlyMine);
+                                            }
+                                            else
+                                            {
+                                                await STARCLI.COSMIC.SimulationListWizardAsync();
+                                            }
+                                        }
+                                        break;
+
+                                    default:
+                                        CLIEngine.ShowErrorMessage("Command Unknown. Available commands: propose, list, list proposals [onlymine]");
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("");
+                                CLIEngine.ShowMessage($"COSMIC SIMULATION SUBCOMMANDS:", ConsoleColor.Green);
+                                Console.WriteLine("");
+                                CLIEngine.ShowMessage("    propose              Create a proposal for The Grand Simulation", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    list                  List content of The Grand Simulation", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    list proposals        List all simulation proposals", ConsoleColor.Green, false);
+                                CLIEngine.ShowMessage("    list proposals onlymine  List only your proposals", ConsoleColor.Green, false);
+                            }
+                        }
+                        break;
+
+                    case "magicverse":
+                    case "listmagicverse":
+                        {
+                            await STARCLI.COSMIC.ListMagicVerseWizardAsync();
+                        }
+                        break;
 
                     default:
-                        CLIEngine.ShowErrorMessage("Command Unknown. Available commands: body, space, find, scenarios");
+                        CLIEngine.ShowErrorMessage("Command Unknown. Available commands: body, space, find, scenarios, simulation, magicverse");
                         break;
                 }
             }
@@ -2696,7 +2743,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    body/celestialbody    Manage celestial bodies (stars, planets, moons, etc.)", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    space/celestialspace   Manage celestial spaces (omniverse, multiverse, universe, etc.)", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    find                   Find a celestial body/space by ID or name", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    scenarios               Common use case scenarios (create with full child hierarchy)", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    scenarios              Common use case scenarios (create with full child hierarchy)", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    simulation             The Grand Simulation (proposals and content)", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    magicverse             List MagicVerse content (read-only)", ConsoleColor.Green, false);
                 Console.WriteLine("");
                 CLIEngine.ShowMessage("Examples:", ConsoleColor.Yellow);
                 CLIEngine.ShowMessage("    cosmic body create              Create a new celestial body (asks for parent and type)", ConsoleColor.Green, false);
@@ -2706,6 +2755,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    cosmic find                     Find by ID or name", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    cosmic scenarios                Show scenarios menu", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    cosmic scenarios universe       Create universe with children", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    cosmic simulation propose       Create a proposal for The Grand Simulation", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    cosmic simulation list proposals  List all simulation proposals", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    cosmic magicverse                List MagicVerse content", ConsoleColor.Green, false);
             }
         }
 
