@@ -761,17 +761,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public virtual async Task<OASISResult<IEnumerable<T>>> SearchAsync<T>(Guid avatarId, string searchTerm, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
+        public virtual async Task<OASISResult<IEnumerable<T>>> SearchAsync<T>(Guid avatarId, string searchTerm, Guid parentId = default, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
-            OASISResult<IEnumerable<T>> loadHolonsResult = await SearchHolonsAsync<T>(searchTerm, avatarId, parentId, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.SearchAsync", STARNETHolonType);
+            OASISResult<IEnumerable<T>> loadHolonsResult = await SearchHolonsAsync<T>(searchTerm, avatarId, parentId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.SearchAsync", STARNETHolonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, Guid parentId = default, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
-            OASISResult<IEnumerable<T1>> loadHolonsResult = SearchHolons<T1>(searchTerm, avatarId, parentId, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.Search", STARNETHolonType);
+            OASISResult<IEnumerable<T1>> loadHolonsResult = SearchHolons<T1>(searchTerm, avatarId, parentId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.Search", STARNETHolonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 

@@ -207,7 +207,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task UpdateAsync(string idOrName = "", object editParams = null, bool editLaunchTarget = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> loadResult = await FindAsync("update", idOrName, true, providerType: providerType);
+            OASISResult<T1> loadResult = await FindAsync("update", idOrName, default, true, providerType: providerType);
             bool changesMade = false;
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
@@ -323,7 +323,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (STARNETDNA == null)
             {
-                OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
+                OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, default, true, providerType: providerType);
 
                 if (parentResult != null && !parentResult.IsError && parentResult.Result != null)
                     STARNETDNA = parentResult.Result.STARNETDNA;
@@ -666,7 +666,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (dependencyTypeEnum == DependencyType.Library)
                 dependenciesDisplayName = "libraries";
 
-            OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
+            OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, default, true, providerType: providerType);
 
             if (parentResult != null && !parentResult.IsError && parentResult.Result != null)
             {
@@ -1065,7 +1065,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("delete", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("delete", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1331,7 +1331,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task UnpublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("unpublish", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("unpublish", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1349,7 +1349,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task RepublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("republish", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("republish", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1367,7 +1367,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task ActivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("activate", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("activate", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1390,7 +1390,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task DeactivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("deactivate", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("deactivate", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1654,7 +1654,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task UninstallAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("uninstall", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("uninstall", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1915,7 +1915,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching {STARNETManager.STARNETHolonUIName}'s...");
-            ListStarHolons(await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, searchTerm, parentId, !showForAllAvatars, showAllVersions, 0, providerType));
+            ListStarHolons(await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, searchTerm, parentId, null, MetaKeyValuePairMatchMode.All, !showForAllAvatars, showAllVersions, 0, providerType));
         }
 
         public virtual async Task ShowAsync(string idOrName = "", bool showDetailed = false, ProviderType providerType = ProviderType.Default)
@@ -1926,7 +1926,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 showDetailed = true;
             }
 
-            OASISResult<T1> result = await FindAsync("view", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("view", idOrName, default, true, providerType: providerType);
 
             //if (result != null && !result.IsError && result.Result != null)
             //    Show(result.Result, showDetailedInfo: showDetailed);
@@ -2259,7 +2259,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {STARNETHolonUIName}s...");
-                    OASISResult<IEnumerable<T1>> searchResults = await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, idOrName, parentId,showOnlyForCurrentAvatar, false, 0, providerType);
+                    OASISResult<IEnumerable<T1>> searchResults = await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, idOrName, parentId, null, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, false, 0, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -2453,7 +2453,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {STARNETManager.STARNETHolonUIName}'s...");
-                    OASISResult<IEnumerable<T1>> searchResults = STARNETManager.Search(STAR.BeamedInAvatar.Id, idOrName, showOnlyForCurrentAvatar, false, 0, providerType);
+                    OASISResult<IEnumerable<T1>> searchResults = STARNETManager.Search(STAR.BeamedInAvatar.Id, idOrName, default, null, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, false, 0, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -2595,7 +2595,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (largeProviderTypeObject != null)
                     {
                         largeFileProviderType = (ProviderType)largeProviderTypeObject;
-                        result = await FindAsync(operationName, idOrName, showOnlyForCurrentAvatar, addSpace, providerType: largeFileProviderType);
+                        result = await FindAsync(operationName, idOrName, default, showOnlyForCurrentAvatar, addSpace, providerType: largeFileProviderType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, "Error occured in FindForProviderAsync, reason: largeProviderTypeObject is null!");
@@ -2603,11 +2603,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     Console.WriteLine("");
-                    result = await FindAsync(operationName, idOrName, showOnlyForCurrentAvatar, addSpace, providerType: providerType);
+                    result = await FindAsync(operationName, idOrName, default, showOnlyForCurrentAvatar, addSpace, providerType: providerType);
                 }
             }
             else
-                result = await FindAsync(operationName, idOrName, showOnlyForCurrentAvatar, addSpace, providerType: providerType);
+                result = await FindAsync(operationName, idOrName, default, showOnlyForCurrentAvatar, addSpace, providerType: providerType);
 
             return result;
         }
@@ -2814,7 +2814,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (STARNETHolonUIName == "Default")
                 STARNETHolonUIName = STARNETManager.STARNETHolonUIName;
 
-            OASISResult<T1> findResult = await FindAsync(operationName, idOrName, showOnlyForCurrentAvatar, STARNETHolonUIName: STARNETHolonUIName, providerType: providerType);
+            OASISResult<T1> findResult = await FindAsync(operationName, idOrName, default, showOnlyForCurrentAvatar, STARNETHolonUIName: STARNETHolonUIName, providerType: providerType);
 
             if (findResult != null && findResult.Result != null && !findResult.IsError)
             {
