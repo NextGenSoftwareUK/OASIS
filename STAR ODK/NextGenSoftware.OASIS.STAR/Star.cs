@@ -2837,15 +2837,43 @@ namespace NextGenSoftware.OASIS.STAR
                         string proxyClassName = Path.GetFileNameWithoutExtension(proxyFile);
                         string libraryName = proxyClassName.Replace("Proxy", "");
                         
-                        sb.AppendLine($"        private static async Task Use{libraryName}Library()");
+                        // Example 1: Simple usage (default constructor - just works!)
+                        sb.AppendLine($"        // Example 1: Simple usage - proxy handles everything automatically");
+                        sb.AppendLine($"        private static async Task Use{libraryName}LibrarySimple()");
                         sb.AppendLine("        {");
-                        sb.AppendLine($"            // Example: Load and use {libraryName} library");
-                        sb.AppendLine($"            // var interopManager = await LibraryInteropFactory.CreateDefaultManagerAsync();");
-                        sb.AppendLine($"            // var loadResult = await interopManager.LoadLibraryAsync(\"path/to/{libraryName}.dll\");");
+                        sb.AppendLine($"            // Create proxy instance - it automatically loads the library on first use");
+                        sb.AppendLine($"            var proxy = new {proxyClassName}();");
+                        sb.AppendLine($"            ");
+                        sb.AppendLine($"            // Call library methods - library is loaded automatically if needed");
+                        sb.AppendLine($"            // var result = await proxy.SomeMethodAsync(param1, param2);");
+                        sb.AppendLine($"            // if (!result.IsError && result.Result != null)");
+                        sb.AppendLine($"            //     Console.WriteLine($\"Result: {{result.Result}}\");");
+                        sb.AppendLine("        }");
+                        sb.AppendLine("");
+                        
+                        // Example 2: Advanced usage (only needed for testing or custom setup)
+                        sb.AppendLine($"        // Example 2: Advanced usage - only needed for unit testing or custom provider setup");
+                        sb.AppendLine($"        // Note: The default constructor is usually sufficient. Only use this for:");
+                        sb.AppendLine($"        // - Unit testing with a mock interop manager");
+                        sb.AppendLine($"        // - Custom provider configuration");
+                        sb.AppendLine($"        // - Reusing a library that was already loaded elsewhere");
+                        sb.AppendLine($"        private static async Task Use{libraryName}LibraryAdvanced()");
+                        sb.AppendLine("        {");
+                        sb.AppendLine($"            // Get shared interop manager (same instance used by all proxies)");
+                        sb.AppendLine($"            var interopManager = await LibraryInteropFactory.CreateDefaultManagerAsync();");
+                        sb.AppendLine($"            if (interopManager.IsError || interopManager.Result == null)");
+                        sb.AppendLine($"            {{");
+                        sb.AppendLine($"                Console.WriteLine($\"Error: {{interopManager.Message}}\");");
+                        sb.AppendLine($"                return;");
+                        sb.AppendLine($"            }}");
+                        sb.AppendLine($"            ");
+                        sb.AppendLine($"            // If library was already loaded, you can reuse it");
+                        sb.AppendLine($"            // var loadResult = await interopManager.Result.LoadLibraryAsync(\"path/to/{libraryName}.dll\");");
                         sb.AppendLine($"            // if (!loadResult.IsError && loadResult.Result != null)");
                         sb.AppendLine($"            // {{");
-                        sb.AppendLine($"            //     var proxy = new {proxyClassName}(loadResult.Result.LibraryId, interopManager);");
-                        sb.AppendLine($"            //     // Use proxy methods here");
+                        sb.AppendLine($"            //     // Create proxy with pre-loaded library");
+                        sb.AppendLine($"            //     var proxy = new {proxyClassName}(interopManager.Result, loadResult.Result.LibraryId);");
+                        sb.AppendLine($"            //     // Use proxy methods");
                         sb.AppendLine($"            // }}");
                         sb.AppendLine("        }");
                         sb.AppendLine("");

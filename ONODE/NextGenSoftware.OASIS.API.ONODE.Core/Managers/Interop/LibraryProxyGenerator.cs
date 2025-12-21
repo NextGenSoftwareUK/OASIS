@@ -60,18 +60,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
                         }
                     }
 
-                    // Get available functions
-                    var functionsResult = await manager.GetAvailableFunctionsAsync(libraryId);
-                    if (functionsResult.IsError)
+                    // Get function signatures (preferred) or function names (fallback)
+                    var signaturesResult = await manager.GetFunctionSignaturesAsync(libraryId);
+                    List<IFunctionSignature> signatures = null;
+                    List<string> functionNames = null;
+
+                    if (!signaturesResult.IsError && signaturesResult.Result != null && signaturesResult.Result.Any())
                     {
-                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(functionsResult, result);
-                        return result;
+                        signatures = signaturesResult.Result.ToList();
+                    }
+                    else
+                    {
+                        // Fallback to function names if signatures not available
+                        var functionsResult = await manager.GetAvailableFunctionsAsync(libraryId);
+                        if (functionsResult.IsError)
+                        {
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(functionsResult, result);
+                            return result;
+                        }
+                        functionNames = functionsResult.Result?.ToList() ?? new List<string>();
                     }
 
-                    var functions = functionsResult.Result?.ToList() ?? new List<string>();
-
                     // Generate proxy class
-                    var proxyCode = GenerateProxyClassCode(libraryName, libraryId, libraryPath, providerType, functions, namespaceName);
+                    var proxyCode = GenerateProxyClassCode(libraryName, libraryId, libraryPath, providerType, signatures, functionNames, namespaceName);
                     result.Result = proxyCode;
                 }
                 else
@@ -87,15 +98,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
                         }
                     }
 
-                    var functionsResult = await _interopManager.GetAvailableFunctionsAsync(libraryId);
-                    if (functionsResult.IsError)
+                    // Get function signatures (preferred) or function names (fallback)
+                    var signaturesResult = await _interopManager.GetFunctionSignaturesAsync(libraryId);
+                    List<IFunctionSignature> signatures = null;
+                    List<string> functionNames = null;
+
+                    if (!signaturesResult.IsError && signaturesResult.Result != null && signaturesResult.Result.Any())
                     {
-                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(functionsResult, result);
-                        return result;
+                        signatures = signaturesResult.Result.ToList();
+                    }
+                    else
+                    {
+                        // Fallback to function names if signatures not available
+                        var functionsResult = await _interopManager.GetAvailableFunctionsAsync(libraryId);
+                        if (functionsResult.IsError)
+                        {
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(functionsResult, result);
+                            return result;
+                        }
+                        functionNames = functionsResult.Result?.ToList() ?? new List<string>();
                     }
 
-                    var functions = functionsResult.Result?.ToList() ?? new List<string>();
-                    var proxyCode = GenerateProxyClassCode(libraryName, libraryId, libraryPath, providerType, functions, namespaceName);
+                    var proxyCode = GenerateProxyClassCode(libraryName, libraryId, libraryPath, providerType, signatures, functionNames, namespaceName);
                     result.Result = proxyCode;
                 }
             }
@@ -115,8 +139,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
             string libraryId,
             string libraryPath,
             InteropProviderType providerType,
-            List<string> functions,
-            string namespaceName)
+            List<IFunctionSignature> signatures = null,
+            List<string> functionNames = null,
+            string namespaceName = "OASIS.LibraryProxies")
         {
             var sb = new StringBuilder();
             var className = SanitizeClassName(libraryName);
@@ -135,50 +160,94 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
             sb.AppendLine($"    /// </summary>");
             sb.AppendLine($"    public class {className}Proxy");
             sb.AppendLine("    {");
-            sb.AppendLine("        private readonly LibraryInteropManager _interopManager;");
-            sb.AppendLine($"        private readonly string _libraryId = \"{libraryId}\";");
+            sb.AppendLine("        private LibraryInteropManager _interopManager;");
+            sb.AppendLine($"        private string _libraryId = \"{libraryId}\";");
+            sb.AppendLine($"        private readonly string _libraryPath = @\"{libraryPath.Replace("\\", "\\\\")}\";");
+            sb.AppendLine($"        private readonly InteropProviderType _providerType = InteropProviderType.{providerType};");
+            sb.AppendLine("        private bool _isInitialized = false;");
             sb.AppendLine();
-            sb.AppendLine($"        public {className}Proxy(LibraryInteropManager interopManager)");
+            sb.AppendLine("        /// <summary>");
+            sb.AppendLine("        /// Default constructor - automatically loads the library");
+            sb.AppendLine("        /// </summary>");
+            sb.AppendLine($"        public {className}Proxy()");
+            sb.AppendLine("        {");
+            sb.AppendLine("            // Library will be loaded on first use (lazy initialization)");
+            sb.AppendLine("        }");
+            sb.AppendLine();
+            sb.AppendLine("        /// <summary>");
+            sb.AppendLine("        /// Advanced constructor - inject custom interop manager and library ID");
+            sb.AppendLine("        /// Only use this for: unit testing (mock manager), custom provider setup, or sharing a pre-loaded library");
+            sb.AppendLine("        /// For normal usage, use the default constructor instead");
+            sb.AppendLine("        /// </summary>");
+            sb.AppendLine($"        public {className}Proxy(LibraryInteropManager interopManager, string libraryId = null)");
             sb.AppendLine("        {");
             sb.AppendLine("            _interopManager = interopManager ?? throw new ArgumentNullException(nameof(interopManager));");
+            sb.AppendLine("            if (!string.IsNullOrEmpty(libraryId))");
+            sb.AppendLine("                _libraryId = libraryId;");
+            sb.AppendLine("            _isInitialized = true;");
+            sb.AppendLine("        }");
+            sb.AppendLine();
+            sb.AppendLine("        /// <summary>");
+            sb.AppendLine("        /// Ensures the library is loaded and interop manager is initialized");
+            sb.AppendLine("        /// </summary>");
+            sb.AppendLine("        private async Task EnsureInitializedAsync()");
+            sb.AppendLine("        {");
+            sb.AppendLine("            if (_isInitialized)");
+            sb.AppendLine("                return;");
+            sb.AppendLine();
+            sb.AppendLine("            var managerResult = await LibraryInteropFactory.CreateDefaultManagerAsync();");
+            sb.AppendLine("            if (managerResult.IsError || managerResult.Result == null)");
+            sb.AppendLine("                throw new InvalidOperationException($\"Failed to initialize interop manager: {managerResult.Message}\");");
+            sb.AppendLine();
+            sb.AppendLine("            _interopManager = managerResult.Result;");
+            sb.AppendLine();
+            // Load library if not already loaded
+            sb.AppendLine("            if (!_interopManager.IsLibraryLoaded(_libraryId))");
+            sb.AppendLine("            {");
+            sb.AppendLine("                var loadResult = await _interopManager.LoadLibraryAsync(_libraryPath, _providerType);");
+            sb.AppendLine("                if (loadResult.IsError || loadResult.Result == null)");
+            sb.AppendLine("                    throw new InvalidOperationException($\"Failed to load library {_libraryPath}: {loadResult.Message}\");");
+            sb.AppendLine();
+            sb.AppendLine("                _libraryId = loadResult.Result.LibraryId;");
+            sb.AppendLine("            }");
+            sb.AppendLine();
+            sb.AppendLine("            _isInitialized = true;");
             sb.AppendLine("        }");
             sb.AppendLine();
 
             // Generate method stubs for each function
-            foreach (var function in functions)
+            if (signatures != null && signatures.Any())
             {
-                var methodName = SanitizeMethodName(function);
-                sb.AppendLine("        /// <summary>");
-                sb.AppendLine($"        /// Invokes {function} from the library");
-                sb.AppendLine("        /// </summary>");
-                sb.AppendLine($"        public async Task<OASISResult<object>> {methodName}Async(params object[] parameters)");
-                sb.AppendLine("        {");
-                sb.AppendLine($"            return await _interopManager.InvokeAsync(_libraryId, \"{function}\", parameters);");
-                sb.AppendLine("        }");
-                sb.AppendLine();
-                sb.AppendLine("        /// <summary>");
-                sb.AppendLine($"        /// Invokes {function} from the library with typed return");
-                sb.AppendLine("        /// </summary>");
-                sb.AppendLine($"        public async Task<OASISResult<T>> {methodName}Async<T>(params object[] parameters)");
-                sb.AppendLine("        {");
-                sb.AppendLine($"            return await _interopManager.InvokeAsync<T>(_libraryId, \"{function}\", parameters);");
-                sb.AppendLine("        }");
-                sb.AppendLine();
+                // Generate strongly-typed methods from signatures
+                foreach (var signature in signatures)
+                {
+                    GenerateTypedMethod(sb, signature);
+                }
+            }
+            else if (functionNames != null && functionNames.Any())
+            {
+                // Fallback: Generate generic methods from function names
+                foreach (var function in functionNames)
+                {
+                    GenerateGenericMethod(sb, function);
+                }
             }
 
             // If no functions found, add a generic invoke method
-            if (functions.Count == 0)
+            if ((signatures == null || !signatures.Any()) && (functionNames == null || functionNames.Count == 0))
             {
                 sb.AppendLine("        /// <summary>");
                 sb.AppendLine("        /// Generic invoke method - use when function names are known");
                 sb.AppendLine("        /// </summary>");
                 sb.AppendLine("        public async Task<OASISResult<object>> InvokeAsync(string functionName, params object[] parameters)");
                 sb.AppendLine("        {");
+                sb.AppendLine("            await EnsureInitializedAsync();");
                 sb.AppendLine("            return await _interopManager.InvokeAsync(_libraryId, functionName, parameters);");
                 sb.AppendLine("        }");
                 sb.AppendLine();
                 sb.AppendLine("        public async Task<OASISResult<T>> InvokeAsync<T>(string functionName, params object[] parameters)");
                 sb.AppendLine("        {");
+                sb.AppendLine("            await EnsureInitializedAsync();");
                 sb.AppendLine("            return await _interopManager.InvokeAsync<T>(_libraryId, functionName, parameters);");
                 sb.AppendLine("        }");
             }
@@ -187,6 +256,146 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
             sb.AppendLine("}");
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Generates a strongly-typed method from a function signature
+        /// </summary>
+        private void GenerateTypedMethod(StringBuilder sb, IFunctionSignature signature)
+        {
+            var methodName = SanitizeMethodName(signature.FunctionName);
+            var returnType = signature.ReturnType ?? "object";
+            var wrappedAsyncReturnType = $"Task<OASISResult<{returnType}>>";
+
+            // Build parameter list
+            var parameters = new List<string>();
+            var parameterNames = new List<string>();
+            foreach (var param in signature.Parameters ?? new List<IParameterInfo>())
+            {
+                var paramName = SanitizeParameterName(param.Name ?? $"param{parameters.Count}");
+                var paramType = param.Type ?? "object";
+                var paramStr = $"{paramType} {paramName}";
+                
+                if (param.IsOptional && param.DefaultValue != null)
+                {
+                    var defaultValue = GetDefaultValueString(param.DefaultValue, param.Type);
+                    paramStr += $" = {defaultValue}";
+                }
+                else if (param.IsOptional)
+                {
+                    paramStr += " = null";
+                }
+                
+                parameters.Add(paramStr);
+                parameterNames.Add(paramName);
+            }
+
+            var paramList = string.Join(", ", parameters);
+            var paramInvokeList = string.Join(", ", parameterNames);
+
+            // XML documentation
+            if (!string.IsNullOrEmpty(signature.Documentation))
+            {
+                sb.AppendLine("        /// <summary>");
+                sb.AppendLine($"        /// {signature.Documentation}");
+                sb.AppendLine("        /// </summary>");
+                foreach (var param in signature.Parameters ?? new List<IParameterInfo>())
+                {
+                    if (!string.IsNullOrEmpty(param.Documentation))
+                    {
+                        sb.AppendLine($"        /// <param name=\"{SanitizeParameterName(param.Name ?? "param")}\">{param.Documentation}</param>");
+                    }
+                }
+            }
+            else
+            {
+                sb.AppendLine("        /// <summary>");
+                sb.AppendLine($"        /// Invokes {signature.FunctionName} from the library");
+                sb.AppendLine("        /// </summary>");
+            }
+
+            // Method signature
+            sb.AppendLine($"        public async {wrappedAsyncReturnType} {methodName}Async({paramList})");
+            sb.AppendLine("        {");
+            sb.AppendLine("            await EnsureInitializedAsync();");
+            
+            // Build parameter array for invocation
+            if (parameterNames.Any())
+            {
+                sb.AppendLine($"            var parameters = new object[] {{ {paramInvokeList} }};");
+                sb.AppendLine($"            return await _interopManager.InvokeAsync<{returnType}>(_libraryId, \"{signature.FunctionName}\", parameters);");
+            }
+            else
+            {
+                sb.AppendLine($"            return await _interopManager.InvokeAsync<{returnType}>(_libraryId, \"{signature.FunctionName}\");");
+            }
+            
+            sb.AppendLine("        }");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        /// Generates a generic method from a function name (fallback when signatures not available)
+        /// </summary>
+        private void GenerateGenericMethod(StringBuilder sb, string function)
+        {
+            var methodName = SanitizeMethodName(function);
+            sb.AppendLine("        /// <summary>");
+            sb.AppendLine($"        /// Invokes {function} from the library");
+            sb.AppendLine("        /// </summary>");
+            sb.AppendLine($"        public async Task<OASISResult<object>> {methodName}Async(params object[] parameters)");
+            sb.AppendLine("        {");
+            sb.AppendLine("            await EnsureInitializedAsync();");
+            sb.AppendLine($"            return await _interopManager.InvokeAsync(_libraryId, \"{function}\", parameters);");
+            sb.AppendLine("        }");
+            sb.AppendLine();
+            sb.AppendLine("        /// <summary>");
+            sb.AppendLine($"        /// Invokes {function} from the library with typed return");
+            sb.AppendLine("        /// </summary>");
+            sb.AppendLine($"        public async Task<OASISResult<T>> {methodName}Async<T>(params object[] parameters)");
+            sb.AppendLine("        {");
+            sb.AppendLine("            await EnsureInitializedAsync();");
+            sb.AppendLine($"            return await _interopManager.InvokeAsync<T>(_libraryId, \"{function}\", parameters);");
+            sb.AppendLine("        }");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        /// Gets default value string for C# code generation
+        /// </summary>
+        private string GetDefaultValueString(object defaultValue, string type)
+        {
+            if (defaultValue == null)
+                return "null";
+
+            if (type == "string" || type == "String")
+                return $"\"{defaultValue}\"";
+
+            if (type == "bool" || type == "Boolean")
+                return defaultValue.ToString().ToLowerInvariant();
+
+            if (type == "int" || type == "Int32" || type == "long" || type == "Int64" || 
+                type == "float" || type == "Single" || type == "double" || type == "Double" ||
+                type == "decimal" || type == "Decimal")
+                return defaultValue.ToString();
+
+            return defaultValue.ToString();
+        }
+
+        /// <summary>
+        /// Sanitizes a parameter name for C# code
+        /// </summary>
+        private string SanitizeParameterName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return "param";
+
+            // Remove invalid characters and ensure it starts with a letter
+            var sanitized = System.Text.RegularExpressions.Regex.Replace(name, @"[^a-zA-Z0-9_]", "");
+            if (string.IsNullOrEmpty(sanitized) || char.IsDigit(sanitized[0]))
+                sanitized = "param" + sanitized;
+
+            return sanitized;
         }
 
         /// <summary>

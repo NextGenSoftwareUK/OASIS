@@ -62,6 +62,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop
         Task<OASISResult<ILibraryMetadata>> GetLibraryMetadataAsync(string libraryId);
 
         /// <summary>
+        /// Get function signatures for a library (parameter types, return types)
+        /// Used for generating strongly-typed proxy methods
+        /// </summary>
+        Task<OASISResult<IEnumerable<IFunctionSignature>>> GetFunctionSignaturesAsync(string libraryId);
+
+        /// <summary>
         /// Dispose/cleanup resources
         /// </summary>
         Task<OASISResult<bool>> DisposeAsync();
