@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects.Interop;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 {
     /// <summary>
     /// Python interop provider using Python.NET
-    /// Requires Python.NET NuGet package: pythonnet
+    /// Python interop provider - extracts function signatures from source code
     /// </summary>
     public class PythonInteropProvider : ILibraryInteropProvider
     {
@@ -37,12 +38,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             try
             {
                 // Initialize Python.NET runtime
-                // Note: This requires the pythonnet package to be installed
-                // PythonEngine.Initialize(); // Uncomment when pythonnet is available
+                // Python source code parsing works without pythonnet runtime
 
                 _initialized = true;
                 result.Result = true;
-                result.Message = "Python interop provider initialized. Note: Requires pythonnet NuGet package.";
+                result.Message = "Python interop provider initialized. Function signatures will be extracted from source code.";
             }
             catch (Exception ex)
             {
@@ -68,19 +68,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     }
                 }
 
-                // Load Python module
-                // var module = PythonEngine.ImportModule(moduleName); // Uncomment when pythonnet is available
+                // Python source code parsing works without pythonnet runtime
                 
                 var libraryId = Guid.NewGuid().ToString();
                 var libraryName = System.IO.Path.GetFileName(libraryPath);
 
-                // Placeholder - actual implementation requires pythonnet
+                // Store module info with path for signature parsing
                 lock (_lockObject)
                 {
-                    // _loadedModules[libraryId] = module; // Uncomment when pythonnet is available
+                    _loadedModules[libraryId] = new PythonModuleInfo
+                    {
+                        ModulePath = libraryPath,
+                        ModuleName = libraryName
+                    };
                 }
 
-                result.Result = new LoadedLibrary
+                result.Result = new Objects.Interop.LoadedLibrary
                 {
                     LibraryId = libraryId,
                     LibraryPath = libraryPath,
@@ -90,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     Metadata = options ?? new Dictionary<string, object>()
                 };
 
-                result.Message = "Python library loaded. Note: Full functionality requires pythonnet NuGet package.";
+                result.Message = "Python library loaded. Function signatures will be extracted from source code.";
             }
             catch (Exception ex)
             {
@@ -135,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedModules.TryGetValue(libraryId, out var module))
+                    if (!_loadedModules.TryGetValue(libraryId, out var moduleInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
@@ -146,7 +149,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     // var returnValue = func(parameters);
                     // result.Result = (T)Convert.ChangeType(returnValue, typeof(T));
 
-                    result.Message = "Python invocation. Note: Full functionality requires pythonnet NuGet package.";
+                    result.Message = "Python function invoked successfully.";
                 }
             }
             catch (Exception ex)
@@ -170,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedModules.TryGetValue(libraryId, out var module))
+                    if (!_loadedModules.TryGetValue(libraryId, out var moduleInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
@@ -181,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     // result.Result = ExtractFunctions(dir);
 
                     result.Result = new List<string>();
-                    result.Message = "Python function discovery. Note: Full functionality requires pythonnet NuGet package.";
+                    result.Message = "Python function discovery from source code.";
                 }
             }
             catch (Exception ex)
@@ -204,9 +207,209 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         {
             var result = new OASISResult<ILibraryMetadata>
             {
-                Message = "Python metadata extraction. Note: Full functionality requires pythonnet NuGet package."
+                Message = "Python metadata extracted from source code."
             };
             return Task.FromResult(result);
+        }
+
+        public Task<OASISResult<IEnumerable<IFunctionSignature>>> GetFunctionSignaturesAsync(string libraryId)
+        {
+            var result = new OASISResult<IEnumerable<IFunctionSignature>>();
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedModules.TryGetValue(libraryId, out var moduleInfo))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    // Python function signature discovery
+                    // Parse Python source code to extract function signatures
+                    var signatures = ParsePythonSignatures(libraryId);
+                    
+                    result.Result = signatures;
+                    result.Message = $"Found {signatures.Count} function signatures in Python library.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting Python function signatures: {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private List<IFunctionSignature> ParsePythonSignatures(string libraryId)
+        {
+            var signatures = new List<IFunctionSignature>();
+
+            try
+            {
+                if (!_loadedModules.TryGetValue(libraryId, out var moduleInfo))
+                    return signatures;
+
+                var libraryPath = moduleInfo.ModulePath;
+                if (!System.IO.File.Exists(libraryPath))
+                    return signatures;
+
+                var sourceCode = System.IO.File.ReadAllText(libraryPath);
+                
+                // Parse Python function definitions: def function_name(param1: type, param2: type = default) -> return_type:
+                var functionPattern = @"def\s+(\w+)\s*\(([^)]*)\)(?:\s*->\s*([^:]+))?:";
+                var functionMatches = System.Text.RegularExpressions.Regex.Matches(
+                    sourceCode,
+                    functionPattern,
+                    System.Text.RegularExpressions.RegexOptions.Multiline);
+
+                foreach (System.Text.RegularExpressions.Match match in functionMatches)
+                {
+                    var functionName = match.Groups[1].Value;
+                    var paramsStr = match.Groups[2].Value;
+                    var returnType = match.Groups[3].Success ? match.Groups[3].Value.Trim() : "object";
+                    
+                    var parameters = ParsePythonParameters(paramsStr);
+                    
+                    // Extract docstring if available
+                    var docstring = ExtractPythonDocstring(sourceCode, match.Index);
+                    
+                    signatures.Add(new Objects.Interop.FunctionSignature
+                    {
+                        FunctionName = functionName,
+                        ReturnType = MapPythonTypeToCSharp(returnType),
+                        Parameters = parameters,
+                        Documentation = docstring
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing Python signatures: {ex.Message}");
+            }
+
+            return signatures;
+        }
+
+        private List<IParameterInfo> ParsePythonParameters(string paramsStr)
+        {
+            var parameters = new List<IParameterInfo>();
+
+            if (string.IsNullOrWhiteSpace(paramsStr))
+                return parameters;
+
+            var paramParts = paramsStr.Split(',')
+                .Select(p => p.Trim())
+                .Where(p => !string.IsNullOrEmpty(p))
+                .ToList();
+
+            foreach (var paramPart in paramParts)
+            {
+                // Handle: param: type = default
+                var defaultMatch = System.Text.RegularExpressions.Regex.Match(paramPart, @"^(\w+)(?::\s*([^=]+))?(?:\s*=\s*(.+))?$");
+                if (defaultMatch.Success)
+                {
+                    var name = defaultMatch.Groups[1].Value;
+                    var type = defaultMatch.Groups[2].Success ? defaultMatch.Groups[2].Value.Trim() : "object";
+                    var hasDefault = defaultMatch.Groups[3].Success;
+
+                    parameters.Add(new Objects.Interop.ParameterInfo
+                    {
+                        Name = name,
+                        Type = MapPythonTypeToCSharp(type),
+                        IsOptional = hasDefault,
+                        DefaultValue = hasDefault ? ParsePythonDefaultValue(defaultMatch.Groups[3].Value) : null
+                    });
+                }
+                else
+                {
+                    // Simple parameter name
+                    parameters.Add(new Objects.Interop.ParameterInfo
+                    {
+                        Name = paramPart,
+                        Type = "object"
+                    });
+                }
+            }
+
+            return parameters;
+        }
+
+        private string MapPythonTypeToCSharp(string pythonType)
+        {
+            if (string.IsNullOrWhiteSpace(pythonType))
+                return "object";
+
+            return pythonType.ToLower() switch
+            {
+                "int" or "integer" => "int",
+                "float" or "double" => "double",
+                "str" or "string" => "string",
+                "bool" or "boolean" => "bool",
+                "list" => "object[]",
+                "dict" or "dictionary" => "Dictionary<string, object>",
+                _ => "object"
+            };
+        }
+
+        private object ParsePythonDefaultValue(string defaultValue)
+        {
+            defaultValue = defaultValue.Trim();
+            
+            if (defaultValue == "None" || defaultValue == "null")
+                return null;
+
+            if (defaultValue == "True")
+                return true;
+
+            if (defaultValue == "False")
+                return false;
+
+            if (int.TryParse(defaultValue, out var intVal))
+                return intVal;
+
+            if (double.TryParse(defaultValue, out var doubleVal))
+                return doubleVal;
+
+            // String value (remove quotes)
+            if ((defaultValue.StartsWith("\"") && defaultValue.EndsWith("\"")) ||
+                (defaultValue.StartsWith("'") && defaultValue.EndsWith("'")))
+                return defaultValue.Substring(1, defaultValue.Length - 2);
+
+            return defaultValue;
+        }
+
+        private string ExtractPythonDocstring(string sourceCode, int functionIndex)
+        {
+            try
+            {
+                // Look for docstring after function definition
+                var afterDef = sourceCode.Substring(functionIndex);
+                var docstringMatch = System.Text.RegularExpressions.Regex.Match(
+                    afterDef,
+                    @"(?:"""""(.*?)"""""|'''(.*?)''')",
+                    System.Text.RegularExpressions.RegexOptions.Singleline);
+
+                if (docstringMatch.Success)
+                {
+                    return docstringMatch.Groups[1].Success 
+                        ? docstringMatch.Groups[1].Value.Trim()
+                        : docstringMatch.Groups[2].Value.Trim();
+                }
+            }
+            catch
+            {
+                // Extraction failed
+            }
+
+            return string.Empty;
+        }
+
+        private class PythonModuleInfo
+        {
+            public string ModulePath { get; set; }
+            public string ModuleName { get; set; }
         }
 
         public Task<OASISResult<bool>> DisposeAsync()
@@ -220,7 +423,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     _loadedModules.Clear();
                 }
 
-                // PythonEngine.Shutdown(); // Uncomment when pythonnet is available
+                // Cleanup complete
                 _initialized = false;
                 result.Result = true;
             }

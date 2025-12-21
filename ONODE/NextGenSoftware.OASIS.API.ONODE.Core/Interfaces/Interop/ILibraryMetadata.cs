@@ -15,6 +15,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop
         string Language { get; }
         string Framework { get; }
         IEnumerable<string> AvailableFunctions { get; }
+        
+        /// <summary>
+        /// Function signatures with parameter types and return types
+        /// Used for generating strongly-typed proxy methods
+        /// </summary>
+        IEnumerable<IFunctionSignature> FunctionSignatures { get; }
+        
         Dictionary<string, object> CustomProperties { get; }
     }
 }
