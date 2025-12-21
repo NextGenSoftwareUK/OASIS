@@ -957,7 +957,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, parentWeb4NFTId, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, default, new Dictionary<string, string>() { { "ParentWeb4NFTId", parentWeb4NFTId.ToString() } }, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -1060,7 +1060,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB3 NFT's Found:");
 
                         for (int i = 0; i < nfts.Result.Count(); i++)
-                            ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, i == nfts.Result.Count() - 1, showNumbers, i + 1, showDetailedInfo);
+                            ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, false, showNumbers, i + 1, showDetailedInfo);
+                            //ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, i == nfts.Result.Count() - 1, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No WEB3 NFT's Found.");

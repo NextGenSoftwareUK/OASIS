@@ -1160,7 +1160,7 @@ namespace NextGenSoftware.OASIS.STAR
 
             //Generate any native code for the current provider.
             //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
-            ((IOASISSuperStar)ProviderManager.Instance.CurrentStorageProvider).NativeCodeGenesis(newBody);
+            ((IOASISSuperStar)ProviderManager.Instance.CurrentStorageProvider).NativeCodeGenesis(newBody, OAPPFolder, null);
 
             switch (genesisType)
             {
