@@ -9,11 +9,8 @@ name = "oasis_storage"
 
 [dependencies]
 scrypto = "1.3.0"
-
-# Pin base64ct to avoid edition2024 requirement (needs Rust 1.82+)
-# Rust 1.81 is required for Scrypto WASM compatibility
-[patch.crates-io]
-base64ct = "=1.7.3"
+# Pin base64ct to avoid edition2024 requirement (Rust 1.81 compatibility)
+base64ct = "<=1.7.3"
 
 [package.metadata.scrypto]
 target = "wasm32-unknown-unknown"
