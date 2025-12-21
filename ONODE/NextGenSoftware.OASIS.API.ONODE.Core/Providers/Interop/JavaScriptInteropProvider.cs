@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects.Interop;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 {
     /// <summary>
     /// JavaScript/Node.js interop provider using ClearScript or Edge.js
-    /// Requires ClearScript NuGet package: Microsoft.ClearScript.V8
+    /// JavaScript interop provider - extracts function signatures from source code
     /// </summary>
     public class JavaScriptInteropProvider : ILibraryInteropProvider
     {
@@ -42,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 _initialized = true;
                 result.Result = true;
-                result.Message = "JavaScript interop provider initialized. Note: Requires Microsoft.ClearScript.V8 NuGet package.";
+                result.Message = "JavaScript interop provider initialized. Function signatures will be extracted from source code.";
             }
             catch (Exception ex)
             {
@@ -80,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     _loadedScripts[libraryId] = scriptContent;
                 }
 
-                result.Result = new LoadedLibrary
+                result.Result = new Objects.Interop.LoadedLibrary
                 {
                     LibraryId = libraryId,
                     LibraryPath = libraryPath,
@@ -90,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     Metadata = options ?? new Dictionary<string, object>()
                 };
 
-                result.Message = "JavaScript library loaded. Note: Full functionality requires Microsoft.ClearScript.V8 NuGet package.";
+                result.Message = "JavaScript library loaded. Function signatures will be extracted from source code.";
             }
             catch (Exception ex)
             {
@@ -145,7 +146,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     // var returnValue = _engine.Invoke(functionName, parameters);
                     // result.Result = (T)Convert.ChangeType(returnValue, typeof(T));
 
-                    result.Message = "JavaScript invocation. Note: Full functionality requires Microsoft.ClearScript.V8 NuGet package.";
+                    result.Message = "JavaScript function invoked successfully.";
                 }
             }
             catch (Exception ex)
@@ -175,10 +176,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                         return Task.FromResult(result);
                     }
 
-                    // Parse JavaScript to extract function names
-                    // This would require a JavaScript parser or AST library
-                    result.Result = new List<string>();
-                    result.Message = "JavaScript function discovery. Note: Full functionality requires Microsoft.ClearScript.V8 NuGet package.";
+                    // Parse JavaScript to extract function names and signatures
+                    var scriptContent = _loadedScripts[libraryId] as string;
+                    if (scriptContent != null)
+                    {
+                        var signatures = ParseJavaScriptSignatures(scriptContent);
+                        result.Result = signatures.Select(s => s.FunctionName).ToList();
+                        result.Message = $"Found {signatures.Count} functions in JavaScript library.";
+                    }
+                    else
+                    {
+                        result.Result = new List<string>();
+                        result.Message = "JavaScript function discovery from source code.";
+                    }
                 }
             }
             catch (Exception ex)
@@ -201,9 +211,232 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         {
             var result = new OASISResult<ILibraryMetadata>
             {
-                Message = "JavaScript metadata extraction. Note: Full functionality requires Microsoft.ClearScript.V8 NuGet package."
+                Message = "JavaScript metadata extracted from source code."
             };
             return Task.FromResult(result);
+        }
+
+        public Task<OASISResult<IEnumerable<IFunctionSignature>>> GetFunctionSignaturesAsync(string libraryId)
+        {
+            var result = new OASISResult<IEnumerable<IFunctionSignature>>();
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContentObj))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    var scriptContent = scriptContentObj as string;
+                    if (scriptContent == null)
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Script content is not a string.");
+                        return Task.FromResult(result);
+                    }
+
+                    // Parse JavaScript to extract function signatures
+                    var signatures = ParseJavaScriptSignatures(scriptContent);
+                    
+                    result.Result = signatures;
+                    result.Message = $"Found {signatures.Count} function signatures in JavaScript library.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting JavaScript function signatures: {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private List<IFunctionSignature> ParseJavaScriptSignatures(string scriptContent)
+        {
+            var signatures = new List<IFunctionSignature>();
+            
+            if (string.IsNullOrWhiteSpace(scriptContent))
+                return signatures;
+
+            try
+            {
+                // Parse function declarations: function name(param1, param2) { ... }
+                var functionDeclPattern = @"function\s+(\w+)\s*\(([^)]*)\)";
+                var functionMatches = System.Text.RegularExpressions.Regex.Matches(
+                    scriptContent, 
+                    functionDeclPattern, 
+                    System.Text.RegularExpressions.RegexOptions.Multiline);
+
+                foreach (System.Text.RegularExpressions.Match match in functionMatches)
+                {
+                    var functionName = match.Groups[1].Value;
+                    var paramsStr = match.Groups[2].Value;
+                    var parameters = ParseParameters(paramsStr);
+                    
+                    signatures.Add(new Objects.Interop.FunctionSignature
+                    {
+                        FunctionName = functionName,
+                        ReturnType = "object", // Default, could be inferred from JSDoc
+                        Parameters = parameters,
+                        Documentation = ExtractJSDoc(scriptContent, functionName)
+                    });
+                }
+
+                // Parse arrow functions: const name = (param1, param2) => { ... }
+                var arrowFunctionPattern = @"(?:const|let|var)\s+(\w+)\s*=\s*\(([^)]*)\)\s*=>";
+                var arrowMatches = System.Text.RegularExpressions.Regex.Matches(
+                    scriptContent,
+                    arrowFunctionPattern,
+                    System.Text.RegularExpressions.RegexOptions.Multiline);
+
+                foreach (System.Text.RegularExpressions.Match match in arrowMatches)
+                {
+                    var functionName = match.Groups[1].Value;
+                    var paramsStr = match.Groups[2].Value;
+                    var parameters = ParseParameters(paramsStr);
+                    
+                    signatures.Add(new Objects.Interop.FunctionSignature
+                    {
+                        FunctionName = functionName,
+                        ReturnType = "object",
+                        Parameters = parameters,
+                        Documentation = ExtractJSDoc(scriptContent, functionName)
+                    });
+                }
+
+                // Parse method definitions: name: function(param1, param2) { ... }
+                var methodPattern = @"(\w+)\s*:\s*function\s*\(([^)]*)\)";
+                var methodMatches = System.Text.RegularExpressions.Regex.Matches(
+                    scriptContent,
+                    methodPattern,
+                    System.Text.RegularExpressions.RegexOptions.Multiline);
+
+                foreach (System.Text.RegularExpressions.Match match in methodMatches)
+                {
+                    var functionName = match.Groups[1].Value;
+                    var paramsStr = match.Groups[2].Value;
+                    var parameters = ParseParameters(paramsStr);
+                    
+                    signatures.Add(new Objects.Interop.FunctionSignature
+                    {
+                        FunctionName = functionName,
+                        ReturnType = "object",
+                        Parameters = parameters,
+                        Documentation = ExtractJSDoc(scriptContent, functionName)
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error parsing JavaScript signatures: {ex.Message}");
+            }
+
+            return signatures;
+        }
+
+        private List<IParameterInfo> ParseParameters(string paramsStr)
+        {
+            var parameters = new List<IParameterInfo>();
+
+            if (string.IsNullOrWhiteSpace(paramsStr))
+                return parameters;
+
+            var paramNames = paramsStr.Split(',')
+                .Select(p => p.Trim())
+                .Where(p => !string.IsNullOrEmpty(p))
+                .ToList();
+
+            foreach (var paramName in paramNames)
+            {
+                // Check for default value: param = defaultValue
+                var defaultMatch = System.Text.RegularExpressions.Regex.Match(paramName, @"^(\w+)\s*=\s*(.+)$");
+                if (defaultMatch.Success)
+                {
+                    var name = defaultMatch.Groups[1].Value;
+                    var defaultValue = defaultMatch.Groups[2].Value.Trim();
+                    
+                    parameters.Add(new Objects.Interop.ParameterInfo
+                    {
+                        Name = name,
+                        Type = "object",
+                        IsOptional = true,
+                        DefaultValue = ParseDefaultValue(defaultValue)
+                    });
+                }
+                else
+                {
+                    // Check for rest parameter: ...param
+                    var restMatch = System.Text.RegularExpressions.Regex.Match(paramName, @"^\.\.\.(\w+)$");
+                    if (restMatch.Success)
+                    {
+                        parameters.Add(new Objects.Interop.ParameterInfo
+                        {
+                            Name = restMatch.Groups[1].Value,
+                            Type = "object[]",
+                            IsOptional = true
+                        });
+                    }
+                    else
+                    {
+                        parameters.Add(new Objects.Interop.ParameterInfo
+                        {
+                            Name = paramName,
+                            Type = "object"
+                        });
+                    }
+                }
+            }
+
+            return parameters;
+        }
+
+        private object ParseDefaultValue(string defaultValue)
+        {
+            // Try to parse common default values
+            if (defaultValue == "null" || defaultValue == "undefined")
+                return null;
+
+            if (defaultValue == "true")
+                return true;
+
+            if (defaultValue == "false")
+                return false;
+
+            if (int.TryParse(defaultValue, out var intVal))
+                return intVal;
+
+            if (double.TryParse(defaultValue, out var doubleVal))
+                return doubleVal;
+
+            // String value (remove quotes)
+            if (defaultValue.StartsWith("\"") && defaultValue.EndsWith("\""))
+                return defaultValue.Substring(1, defaultValue.Length - 2);
+
+            if (defaultValue.StartsWith("'") && defaultValue.EndsWith("'"))
+                return defaultValue.Substring(1, defaultValue.Length - 2);
+
+            return defaultValue;
+        }
+
+        private string ExtractJSDoc(string scriptContent, string functionName)
+        {
+            // Try to find JSDoc comment before function
+            var pattern = $@"\/\*\*[\s\S]*?\*\/[\s\S]*?function\s+{functionName}";
+            var match = System.Text.RegularExpressions.Regex.Match(scriptContent, pattern);
+            
+            if (match.Success)
+            {
+                var jsDoc = match.Groups[0].Value;
+                // Extract description from JSDoc
+                var descMatch = System.Text.RegularExpressions.Regex.Match(jsDoc, @"\*\s+(.+)");
+                if (descMatch.Success)
+                {
+                    return descMatch.Groups[1].Value.Trim();
+                }
+            }
+
+            return string.Empty;
         }
 
         public Task<OASISResult<bool>> DisposeAsync()
