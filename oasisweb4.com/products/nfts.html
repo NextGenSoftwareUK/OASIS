@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFTs & Digital Assets - OASIS</title>
+    <meta name="description" content="NFT Mint Studio, Web4 OASIS NFTs, yNFTs, and GeoNFTs. Multi-chain NFT creation with universal metadata.">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="nav" id="nav">
+        <div class="nav-container">
+            <a href="../" class="nav-logo">OASIS</a>
+            <div class="nav-menu" id="navMenu">
+                <a href="../index.html#products" class="nav-link">Products</a>
+                <a href="../index.html#solutions" class="nav-link">Solutions</a>
+                <a href="../index.html#developers" class="nav-link">Developers</a>
+                <a href="../index.html#resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-login" onclick="openLoginModal()">Log in</button>
+                <button class="btn-primary">Start building</button>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="section hero-section" id="home">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">01</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="title-line">Universal NFT</span>
+                    <span class="title-line">System</span>
+                </h1>
+                <p class="hero-tagline">
+                    /// one standard. all chains. infinite collections.
+                </p>
+                <div class="hero-description">
+                    <p>
+                        The world's first universal NFT system that unifies all Web2 and Web3 NFTs. 
+                        Mint on any chain, create cross-chain collections, and manage all your digital assets in one place.
+                    </p>
+                </div>
+                <div class="hero-actions">
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/api-reference/api_reference" class="btn-primary" target="_blank">
+                        <span>View API docs</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-text">Scroll to explore</div>
+            <div class="scroll-section">
+                <span class="scroll-label">Section</span>
+                <span class="section-number">01</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section class="section" data-section="01">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">01</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Overview</h2>
+            <div class="section-subtitle">
+                OASIS NFT system solves the multi-chain NFT fragmentation problem. Wrap multiple Web3 NFTs from 
+                different chains in one OASIS NFT, create cross-chain collections, and deploy to all chains simultaneously.
+            </div>
+            <div class="architecture-content">
+                <p class="architecture-description">
+                    Traditional NFT systems lock you into a single blockchain. OASIS NFTs work across all chains, 
+                    with shared metadata, automatic replication, and universal standard conversion. NFT Mint Studio 
+                    simplifies creation for non-technical users, while Web4 OASIS NFTs enable advanced cross-chain functionality.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="section principles-section" data-section="02">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">02</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Why OASIS NFTs?</h2>
+            <div class="principles-grid">
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ A</div>
+                    </div>
+                    <h3 class="principle-title">NFT Mint Studio</h3>
+                    <p class="principle-description">
+                        Complete NFT minting platform with multi-chain support. No authentication required - 
+                        users connect wallet, pay, and receive NFT. IPFS metadata storage and real-time status.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ B</div>
+                    </div>
+                    <h3 class="principle-title">Web4 OASIS NFTs</h3>
+                    <p class="principle-description">
+                        Wrap multiple Web3 NFTs from different chains in one OASIS NFT. Create cross-chain collections 
+                        with shared metadata. Automatic deployment to all supported chains.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ C</div>
+                    </div>
+                    <h3 class="principle-title">yNFTs & GeoNFTs</h3>
+                    <p class="principle-description">
+                        Yield-generating NFTs for RWA tokenization. Location-based NFTs for AR/VR experiences. 
+                        Place NFTs in real-world locations and enable location-based trading.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ D</div>
+                    </div>
+                    <h3 class="principle-title">Universal Standard</h3>
+                    <p class="principle-description">
+                        Convert between any NFT standard with one click. Works with ERC-721, ERC-1155, SPL Token, 
+                        and Radix Component standards. Universal compatibility.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="section products-section" data-section="03">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">03</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Use Cases</h2>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-category">MINT</div>
+                    <h3 class="product-title">Simplified NFT Creation</h3>
+                    <p class="product-description">
+                        NFT Mint Studio enables non-technical users to create NFTs on 20+ blockchains. 
+                        Connect wallet, upload image, set price, and mint. No coding required.
+                    </p>
+                </div>
+                <div class="product-card">
+                    <div class="product-category">COLLECT</div>
+                    <h3 class="product-title">Cross-Chain Collections</h3>
+                    <p class="product-description">
+                        Create collections containing NFTs from different blockchains. One collection can include 
+                        Ethereum, Solana, and Polygon NFTs, all accessible through a single interface.
+                    </p>
+                </div>
+                <div class="product-card">
+                    <div class="product-category">TOKENIZE</div>
+                    <h3 class="product-title">RWA Tokenization</h3>
+                    <p class="product-description">
+                        yNFTs enable yield-generating NFTs for real-world asset tokenization. Fractional ownership 
+                        of property, art, and commodities with automated yield distribution.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Concept Section -->
+    <section class="section code-section" data-section="04">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">04</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Core Concept</h2>
+            <div class="code-header">
+                <div class="code-intro">
+                    <h3 class="code-title">Web4 OASIS NFTs: A New NFT Primitive</h3>
+                    <p class="code-description">
+                        Wrap multiple Web3 NFTs from different chains in one OASIS NFT. Shared metadata, 
+                        cross-chain collections, and automatic replication to all supported chains.
+                    </p>
+                </div>
+            </div>
+            <div class="code-examples">
+                <div class="code-tabs">
+                    <button class="code-tab active" data-tab="mint">
+                        <span class="code-tab-label">Mint</span>
+                        <span>Create NFT</span>
+                    </button>
+                    <button class="code-tab" data-tab="wrap">
+                        <span class="code-tab-label">Wrap</span>
+                        <span>Cross-chain</span>
+                    </button>
+                    <button class="code-tab" data-tab="collection">
+                        <span class="code-tab-label">Collection</span>
+                        <span>Multi-chain</span>
+                    </button>
+                </div>
+                <div class="code-content">
+                    <div class="code-block active" data-code="mint">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Mint NFT - Multi-Chain Support</span>
+                            <span class="code-block-subtitle">Mint on any supported blockchain with one API call</span>
+                        </div>
+                        <pre><code>// Mint NFT on Solana
+POST /api/nft/mint-nft
+{
+  "avatarId": "...",
+  "onChainProvider": "SolanaOASIS",
+  "offChainProvider": "IPFSOASIS",
+  "name": "My NFT",
+  "description": "A unique NFT",
+  "imageUrl": "https://ipfs.io/...",
+  "metadata": {
+    "attributes": [...]
+  }
+}
+
+// Automatically:
+// 1. Uploads metadata to IPFS
+// 2. Mints NFT on Solana
+// 3. Creates Web4 OASIS NFT wrapper
+// 4. Replicates to other chains (optional)</code></pre>
+                    </div>
+                    <div class="code-block" data-code="wrap">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Wrap Multiple NFTs - Cross-Chain</span>
+                            <span class="code-block-subtitle">Wrap NFTs from different chains in one OASIS NFT</span>
+                        </div>
+                        <pre><code>// Wrap multiple Web3 NFTs in one OASIS NFT
+POST /api/nft/create-web4-nft
+{
+  "name": "Cross-Chain Collection",
+  "wrappedNFTs": [
+    {
+      "chain": "Ethereum",
+      "contractAddress": "0x...",
+      "tokenId": 123
+    },
+    {
+      "chain": "Solana",
+      "mintAddress": "...",
+      "tokenId": 456
+    },
+    {
+      "chain": "Polygon",
+      "contractAddress": "0x...",
+      "tokenId": 789
+    }
+  ]
+}
+
+// Result: One OASIS NFT containing all three</code></pre>
+                    </div>
+                    <div class="code-block" data-code="collection">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Create Cross-Chain Collection</span>
+                            <span class="code-block-subtitle">Collection with NFTs from different blockchains</span>
+                        </div>
+                        <pre><code>// Create collection with NFTs from multiple chains
+POST /api/nft/create-collection
+{
+  "name": "Universal Collection",
+  "description": "NFTs from all chains",
+  "nfts": [
+    {"chain": "Ethereum", "tokenId": "..."},
+    {"chain": "Solana", "tokenId": "..."},
+    {"chain": "Polygon", "tokenId": "..."}
+  ]
+}
+
+// Collection accessible from any chain
+// Shared metadata across all NFTs
+// Automatic synchronization</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Products</h4>
+                    <a href="identity">Identity & Access</a>
+                    <a href="data">Data & Storage</a>
+                    <a href="nfts">NFTs & Digital Assets</a>
+                    <a href="smart-contracts">Smart Contracts</a>
+                    <a href="bridges">Interoperability & Bridges</a>
+                    <a href="infrastructure">Infrastructure & Tools</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Developers</h4>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/api-reference/api_reference" target="_blank">Documentation</a>
+                    <a href="../index.html#developers">Code Examples</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <a href="https://www.ourworldthegame.com/blog" target="_blank">Blog</a>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/additional-resources/oasis-white-paper-nov-2024" target="_blank">Whitepaper</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">Support</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/" target="_blank">About</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">Contribute</a>
+                    <a href="../contact.html">Contact</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-links">
+                    <a href="https://x.com/oasisweb4" target="_blank">Twitter</a>
+                    <a href="https://discord.gg/oasis" target="_blank">Discord</a>
+                    <a href="https://t.me/oasisweb4" target="_blank">Telegram</a>
+                </div>
+                <div class="footer-copyright">© 2025 OASIS. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+<!-- Login Modal -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+    </body>
+</html>
+
