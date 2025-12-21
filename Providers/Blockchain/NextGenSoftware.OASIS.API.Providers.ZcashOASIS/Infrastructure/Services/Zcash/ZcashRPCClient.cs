@@ -220,6 +220,88 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services
             return result;
         }
 
+        public async Task<OASISResult<List<System.Collections.Generic.Dictionary<string, object>>>> ListTransactionsAsync(int count = 10)
+        {
+            var result = new OASISResult<List<System.Collections.Generic.Dictionary<string, object>>>();
+            try
+            {
+                var response = await SendRPCRequestAsync("listtransactions", new { count = count });
+                if (response != null && response.ContainsKey("result"))
+                {
+                    var transactions = JsonConvert.DeserializeObject<List<System.Collections.Generic.Dictionary<string, object>>>(
+                        response["result"]?.ToString() ?? "[]");
+                    result.Result = transactions ?? new List<System.Collections.Generic.Dictionary<string, object>>();
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.Message = "Failed to list transactions";
+                    result.Result = new List<System.Collections.Generic.Dictionary<string, object>>();
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = ex.Message;
+                result.Exception = ex;
+                result.Result = new List<System.Collections.Generic.Dictionary<string, object>>();
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<string>> GetNewZAddressAsync()
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                var response = await SendRPCRequestAsync("z_getnewaddress", null);
+                if (response != null && response.ContainsKey("result"))
+                {
+                    result.Result = response["result"]?.ToString();
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.Message = "Failed to get new z-address";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = ex.Message;
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<string>> GetNewTAddressAsync()
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                var response = await SendRPCRequestAsync("getnewaddress", null);
+                if (response != null && response.ContainsKey("result"))
+                {
+                    result.Result = response["result"]?.ToString();
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.Message = "Failed to get new t-address";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = ex.Message;
+                result.Exception = ex;
+            }
+            return result;
+        }
+
         private async Task<System.Collections.Generic.Dictionary<string, object>> SendRPCRequestAsync(string method, object parameters)
         {
             var request = new
