@@ -24,7 +24,7 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Cache Cargo dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -60,7 +60,7 @@ jobs:
           fi
 
       - name: Upload WASM artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: oasis-storage-wasm
           path: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/target/wasm32-unknown-unknown/release/oasis_storage.wasm
