@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interoperability & Bridges - OASIS</title>
+    <meta name="description" content="Universal Asset Bridge. Atomic swaps between 20+ blockchains with real-time exchange rates.">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="nav" id="nav">
+        <div class="nav-container">
+            <a href="../" class="nav-logo">OASIS</a>
+            <div class="nav-menu" id="navMenu">
+                <a href="../index.html#products" class="nav-link">Products</a>
+                <a href="../index.html#solutions" class="nav-link">Solutions</a>
+                <a href="../index.html#developers" class="nav-link">Developers</a>
+                <a href="../index.html#resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-login" onclick="openLoginModal()">Log in</button>
+                <button class="btn-primary">Start building</button>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="section hero-section" id="home">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">01</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="title-line">Universal Asset</span>
+                    <span class="title-line">Bridge</span>
+                </h1>
+                <p class="hero-tagline">
+                    /// one bridge. all chains. atomic swaps.
+                </p>
+                <div class="hero-description">
+                    <p>
+                        Bridge assets between 20+ blockchains with atomic swap guarantees. Real-time exchange rates, 
+                        transaction tracking, and automatic rollback on failure.
+                    </p>
+                </div>
+                <div class="hero-actions">
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/api-reference/api_reference" class="btn-primary" target="_blank">
+                        <span>View API docs</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-text">Scroll to explore</div>
+            <div class="scroll-section">
+                <span class="scroll-label">Section</span>
+                <span class="section-number">01</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section class="section" data-section="01">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">01</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Overview</h2>
+            <div class="section-subtitle">
+                OASIS Universal Asset Bridge enables atomic swaps between 20+ blockchains. Real-time exchange rates 
+                from CoinGecko, transaction status tracking, and automatic rollback protect users from failed transactions.
+            </div>
+            <div class="architecture-content">
+                <p class="architecture-description">
+                    Traditional bridges require separate implementations for each chain pair. OASIS Bridge provides a unified 
+                    interface with per-chain bridge services (SolanaBridgeService, ArbitrumBridgeService, etc.) that all 
+                    implement the IOASISBridge interface for consistent API access.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="section principles-section" data-section="02">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">02</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Why OASIS Bridge?</h2>
+            <div class="principles-grid">
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ A</div>
+                    </div>
+                    <h3 class="principle-title">Atomic Swaps</h3>
+                    <p class="principle-description">
+                        All-or-nothing transactions prevent partial transfers. If any step fails, the entire transaction 
+                        is rolled back automatically, protecting users from lost funds.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ B</div>
+                    </div>
+                    <h3 class="principle-title">Real-Time Exchange Rates</h3>
+                    <p class="principle-description">
+                        CoinGecko integration provides real-time exchange rates for 17+ tokens. Accurate pricing ensures 
+                        fair swaps across all supported chain pairs.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ C</div>
+                    </div>
+                    <h3 class="principle-title">Multi-Chain Support</h3>
+                    <p class="principle-description">
+                        Bridge between Solana, Arbitrum, Ethereum, Polygon, Base, and 15+ more chains. Unified interface 
+                        with per-chain bridge services for optimal performance.
+                    </p>
+                </div>
+                <div class="principle-item">
+                    <div class="principle-header">
+                        <div class="principle-icon"></div>
+                        <div class="principle-number">/ D</div>
+                    </div>
+                    <h3 class="principle-title">Transaction Tracking</h3>
+                    <p class="principle-description">
+                        Real-time status updates for all bridge transactions. Automatic rollback on failure. Complete 
+                        transaction history and audit trail.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="section products-section" data-section="03">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">03</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Use Cases</h2>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-category">SWAP</div>
+                    <h3 class="product-title">Cross-Chain Asset Transfers</h3>
+                    <p class="product-description">
+                        Transfer assets between any supported blockchain. Atomic swaps ensure all-or-nothing execution, 
+                        protecting users from partial transfers and lost funds.
+                    </p>
+                </div>
+                <div class="product-card">
+                    <div class="product-category">DEFI</div>
+                    <h3 class="product-title">DeFi Interoperability</h3>
+                    <p class="product-description">
+                        Enable DeFi protocols to work across multiple chains. Users can access liquidity and yield 
+                        opportunities on any supported blockchain.
+                    </p>
+                </div>
+                <div class="product-card">
+                    <div class="product-category">MANAGE</div>
+                    <h3 class="product-title">Multi-Chain Portfolio</h3>
+                    <p class="product-description">
+                        Manage assets across 20+ blockchains from a single interface. Bridge tokens between chains 
+                        to optimize for gas costs, yield, or liquidity.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Concept Section -->
+    <section class="section code-section" data-section="04">
+        <div class="section-indicator">
+            <span class="section-bracket">[</span>
+            <span class="section-number">04</span>
+            <span class="section-divider">/</span>
+            <span class="section-total">04</span>
+            <span class="section-bracket">]</span>
+        </div>
+        <div class="container">
+            <h2 class="section-title">Core Concept</h2>
+            <div class="code-header">
+                <div class="code-intro">
+                    <h3 class="code-title">Atomic Swaps: A New Bridge Primitive</h3>
+                    <p class="code-description">
+                        Bridge assets between any supported chain with atomic swap guarantees. Real-time exchange rates 
+                        and automatic rollback protect users from failed transactions.
+                    </p>
+                </div>
+            </div>
+            <div class="code-examples">
+                <div class="code-tabs">
+                    <button class="code-tab active" data-tab="bridge">
+                        <span class="code-tab-label">Bridge</span>
+                        <span>Swap assets</span>
+                    </button>
+                    <button class="code-tab" data-tab="rate">
+                        <span class="code-tab-label">Exchange Rate</span>
+                        <span>Real-time</span>
+                    </button>
+                    <button class="code-tab" data-tab="status">
+                        <span class="code-tab-label">Status</span>
+                        <span>Track transaction</span>
+                    </button>
+                </div>
+                <div class="code-content">
+                    <div class="code-block active" data-code="bridge">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Bridge Assets - Atomic Swap</span>
+                            <span class="code-block-subtitle">Bridge between any supported chain with atomic guarantees</span>
+                        </div>
+                        <pre><code>// Bridge SOL from Solana to ETH on Ethereum
+POST /api/bridge/bridge-asset
+{
+  "fromChain": "Solana",
+  "toChain": "Ethereum",
+  "fromToken": "SOL",
+  "toToken": "ETH",
+  "amount": 1.0,
+  "fromAddress": "...",
+  "toAddress": "..."
+}
+
+// Atomic swap process:
+// 1. Locks SOL on Solana
+// 2. Calculates exchange rate
+// 3. Mints equivalent ETH on Ethereum
+// 4. If any step fails, entire transaction rolls back</code></pre>
+                    </div>
+                    <div class="code-block" data-code="rate">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Get Exchange Rate - Real-Time</span>
+                            <span class="code-block-subtitle">CoinGecko integration for accurate pricing</span>
+                        </div>
+                        <pre><code>// Get exchange rate between any token pair
+GET /api/bridge/exchange-rate
+{
+  "fromToken": "SOL",
+  "toToken": "ETH"
+}
+
+// Returns:
+{
+  "fromToken": "SOL",
+  "toToken": "ETH",
+  "rate": 0.0234,
+  "timestamp": "2025-01-15T10:30:00Z",
+  "source": "CoinGecko"
+}
+
+// Supports 17+ tokens across all chains
+// Real-time updates every few seconds</code></pre>
+                    </div>
+                    <div class="code-block" data-code="status">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Track Transaction - Status Updates</span>
+                            <span class="code-block-subtitle">Real-time status and automatic rollback</span>
+                        </div>
+                        <pre><code>// Get bridge transaction status
+GET /api/bridge/transaction-status/{transactionId}
+
+// Returns:
+{
+  "transactionId": "...",
+  "status": "completed",
+  "fromChain": "Solana",
+  "toChain": "Ethereum",
+  "amount": 1.0,
+  "exchangeRate": 0.0234,
+  "steps": [
+    {"step": "lock", "status": "completed"},
+    {"step": "mint", "status": "completed"}
+  ],
+  "rollback": false
+}
+
+// Automatic rollback if any step fails</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Products</h4>
+                    <a href="identity">Identity & Access</a>
+                    <a href="data">Data & Storage</a>
+                    <a href="nfts">NFTs & Digital Assets</a>
+                    <a href="smart-contracts">Smart Contracts</a>
+                    <a href="bridges">Interoperability & Bridges</a>
+                    <a href="infrastructure">Infrastructure & Tools</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Developers</h4>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/api-reference/api_reference" target="_blank">Documentation</a>
+                    <a href="../index.html#developers">Code Examples</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">GitHub</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <a href="https://www.ourworldthegame.com/blog" target="_blank">Blog</a>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/additional-resources/oasis-white-paper-nov-2024" target="_blank">Whitepaper</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">Support</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <a href="https://oasis-web4.gitbook.io/oasis-web4-docs/" target="_blank">About</a>
+                    <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank">Contribute</a>
+                    <a href="../contact.html">Contact</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-links">
+                    <a href="https://x.com/oasisweb4" target="_blank">Twitter</a>
+                    <a href="https://discord.gg/oasis" target="_blank">Discord</a>
+                    <a href="https://t.me/oasisweb4" target="_blank">Telegram</a>
+                </div>
+                <div class="footer-copyright">© 2025 OASIS. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+<!-- Login Modal -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+    </body>
+</html>
+
