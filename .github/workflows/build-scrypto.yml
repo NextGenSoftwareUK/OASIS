@@ -59,22 +59,46 @@ jobs:
             exit 1
           fi
 
-      - name: Upload WASM artifact
+      - name: Create RPD file
+        working-directory: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts
+        run: |
+          echo "Creating RPD file from WASM..."
+          # Use scrypto package publish to create RPD file
+          scrypto package publish --output oasis_storage.rpd || {
+            echo "⚠️ scrypto package publish failed, trying alternative method..."
+            # Alternative: Check if we can create RPD manually or if WASM is sufficient
+            echo "WASM file is available at: target/wasm32-unknown-unknown/release/oasis_storage.wasm"
+          }
+
+      - name: Upload WASM and RPD artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: oasis-storage-wasm
-          path: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/target/wasm32-unknown-unknown/release/oasis_storage.wasm
+          name: oasis-storage-package
+          path: |
+            Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/target/wasm32-unknown-unknown/release/oasis_storage.wasm
+            Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/oasis_storage.rpd
           retention-days: 30
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Build summary
         run: |
           echo "## ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The WASM file has been built and uploaded as an artifact." >> $GITHUB_STEP_SUMMARY
+          if [ -f "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/oasis_storage.rpd" ]; then
+            echo "The WASM and RPD files have been built and uploaded as artifacts." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Files Available:" >> $GITHUB_STEP_SUMMARY
+            echo "- \`oasis_storage.wasm\` (WASM file)" >> $GITHUB_STEP_SUMMARY
+            echo "- \`oasis_storage.rpd\` (RPD package file) ⭐ **Use this for deployment**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "The WASM file has been built and uploaded as an artifact." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ RPD file creation failed. You can try uploading the WASM file directly." >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
           echo "1. Download the artifact from the workflow run" >> $GITHUB_STEP_SUMMARY
-          echo "2. Deploy via Radix Wallet Developer Console: https://console.radixdlt.com/deploy-package" >> $GITHUB_STEP_SUMMARY
-          echo "3. Get component address and update OASIS_DNA.json" >> $GITHUB_STEP_SUMMARY
+          echo "2. Upload the RPD file (or WASM if RPD unavailable) to: https://console.radixdlt.com/deploy-package" >> $GITHUB_STEP_SUMMARY
+          echo "3. Connect wallet and complete deployment" >> $GITHUB_STEP_SUMMARY
+          echo "4. Get component address and update OASIS_DNA.json" >> $GITHUB_STEP_SUMMARY
 
