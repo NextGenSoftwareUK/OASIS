@@ -87,6 +87,16 @@ body::before {
     color: var(--text-primary);
     text-decoration: none;
     letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.nav-logo img {
+    height: 2rem;
+    width: auto;
+    object-fit: contain;
+    max-height: 40px;
 }
 
 .nav-menu {
@@ -95,7 +105,7 @@ body::before {
 }
 
 .nav-link {
-    font-size: 0.875rem;
+    font-size: 1rem;
     color: var(--text-secondary);
     text-decoration: none;
     transition: color 0.2s;
