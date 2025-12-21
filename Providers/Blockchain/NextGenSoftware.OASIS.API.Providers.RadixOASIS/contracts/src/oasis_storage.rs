@@ -125,7 +125,8 @@ mod oasis_storage {
         /// # Returns
         /// Option containing the avatar JSON string, or None if not found
         pub fn get_avatar_by_username(&self, username: String) -> Option<String> {
-            if let Some(entity_id) = self.username_to_avatar_id.get(&username) {
+            if let Some(entity_id_ref) = self.username_to_avatar_id.get(&username) {
+                let entity_id = entity_id_ref.clone();
                 self.avatars.get(&entity_id).map(|entry| entry.clone())
             } else {
                 None
@@ -140,7 +141,8 @@ mod oasis_storage {
         /// # Returns
         /// Option containing the avatar JSON string, or None if not found
         pub fn get_avatar_by_email(&self, email: String) -> Option<String> {
-            if let Some(entity_id) = self.email_to_avatar_id.get(&email) {
+            if let Some(entity_id_ref) = self.email_to_avatar_id.get(&email) {
+                let entity_id = entity_id_ref.clone();
                 self.avatars.get(&entity_id).map(|entry| entry.clone())
             } else {
                 None
@@ -255,7 +257,8 @@ mod oasis_storage {
         /// # Returns
         /// Option containing the holon JSON string, or None if not found
         pub fn get_holon_by_provider_key(&self, provider_key: String) -> Option<String> {
-            if let Some(entity_id) = self.provider_key_to_holon_id.get(&provider_key) {
+            if let Some(entity_id_ref) = self.provider_key_to_holon_id.get(&provider_key) {
+                let entity_id = entity_id_ref.clone();
                 self.holons.get(&entity_id).map(|entry| entry.clone())
             } else {
                 None
