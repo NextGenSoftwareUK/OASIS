@@ -65,6 +65,7 @@ jobs:
           name: oasis-storage-wasm
           path: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/target/wasm32-unknown-unknown/release/oasis_storage.wasm
           retention-days: 30
+          if-no-files-found: error
 
       - name: Build summary
         run: |
