@@ -1,6 +1,6 @@
 # OASIS API Reference
 
-**Base URL:** `https://api.oasisweb4.one`  
+**Base URL:** `https://api.oasisweb4.com`  
 **Version:** 1.0  
 **Contact:** Telegram @maxgershfield
 
@@ -14,7 +14,7 @@ All API requests (except registration) require a JWT token.
 
 **1. Register:**
 ```bash
-curl -X POST "https://api.oasisweb4.one/api/avatar/register" \
+curl -X POST "https://api.oasisweb4.com/api/avatar/register" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "your_username",
@@ -27,7 +27,7 @@ curl -X POST "https://api.oasisweb4.one/api/avatar/register" \
 
 **2. Login (Future Sessions):**
 ```bash
-curl -X POST "https://api.oasisweb4.one/api/avatar/authenticate" \
+curl -X POST "https://api.oasisweb4.com/api/avatar/authenticate" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "your_username",
@@ -37,7 +37,7 @@ curl -X POST "https://api.oasisweb4.one/api/avatar/authenticate" \
 
 **3. Use Token in Requests:**
 ```bash
-curl -X GET "https://api.oasisweb4.one/api/data/load-holon/{id}" \
+curl -X GET "https://api.oasisweb4.com/api/data/load-holon/{id}" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -242,7 +242,7 @@ Authorization: Bearer YOUR_TOKEN
 
 **Example:**
 ```bash
-curl -X POST "https://api.oasisweb4.one/api/data/save-holon/SolanaOASIS/false" \
+curl -X POST "https://api.oasisweb4.com/api/data/save-holon/SolanaOASIS/false" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{ "name": "TestData", "holonType": "Test", "metadata": {} }'
@@ -308,7 +308,7 @@ All responses follow this format:
 ### JavaScript
 
 ```javascript
-const OASIS_API = 'https://api.oasisweb4.one';
+const OASIS_API = 'https://api.oasisweb4.com';
 
 class OASISClient {
   constructor(token) {
@@ -349,7 +349,7 @@ import requests
 
 class OASISClient:
     def __init__(self, token):
-        self.api = 'https://api.oasisweb4.one'
+        self.api = 'https://api.oasisweb4.com'
         self.headers = {'Authorization': f'Bearer {token}'}
     
     def save_data(self, data):
@@ -414,7 +414,7 @@ class OASISClient:
 
 **If you encounter issues:**
 
-1. Check API health: `curl https://api.oasisweb4.one/health`
+1. Check API health: `curl https://api.oasisweb4.com/health`
 2. Verify JWT token is valid (expires after 24 hours)
 3. Check response for error messages
 4. Contact: Telegram @maxgershfield
