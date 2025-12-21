@@ -10,6 +10,9 @@ name = "oasis_storage"
 [dependencies]
 scrypto = "1.3.0"
 
+[package.metadata.scrypto]
+target = "wasm32-unknown-unknown"
+
 [profile.release]
 opt-level = "z"
 overflow-checks = true
