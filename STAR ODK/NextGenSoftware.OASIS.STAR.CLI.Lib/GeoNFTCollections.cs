@@ -489,7 +489,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching WEB4 GeoNFT Collection's...");
-            ListWeb4GeoNFTCollections(await NFTCommon.NFTManager.SearchWeb4GeoNFTCollectionsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
+            ListWeb4GeoNFTCollections(await NFTCommon.NFTManager.SearchWeb4GeoNFTCollectionsAsync(searchTerm, STAR.BeamedInAvatar.Id, null, MetaKeyValuePairMatchMode.All, !showForAllAvatars, providerType));
         }
 
         private async Task<OASISResult<IWeb4GeoNFTCollection>> FindWeb4GeoNFTCollectionAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 GeoNFT Collection", ProviderType providerType = ProviderType.Default)
@@ -554,7 +554,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb4GeoNFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4GeoNFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb4GeoNFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4GeoNFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, null, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
