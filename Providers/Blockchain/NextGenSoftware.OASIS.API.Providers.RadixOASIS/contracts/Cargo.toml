@@ -9,8 +9,9 @@ name = "oasis_storage"
 
 [dependencies]
 scrypto = "1.3.0"
-# Pin base64ct to avoid edition2024 requirement (Rust 1.81 compatibility)
+# Pin dependencies to avoid Rust 1.82+ requirements (Rust 1.81 compatibility for Scrypto)
 base64ct = "<=1.7.3"
+indexmap = "<=2.11.0"
 
 [package.metadata.scrypto]
 target = "wasm32-unknown-unknown"
