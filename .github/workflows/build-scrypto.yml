@@ -38,7 +38,7 @@ jobs:
 
       - name: Install Scrypto CLI tools
         run: |
-          cargo install radix-clis --locked
+          cargo install radix-clis --locked --force
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Verify Scrypto installation
