@@ -48,7 +48,7 @@ jobs:
         working-directory: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts
         run: scrypto build
 
-      - name: Verify WASM file exists
+      - name: Verify WASM file exists and list build outputs
         working-directory: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts
         run: |
           if [ -f "target/wasm32-unknown-unknown/release/oasis_storage.wasm" ]; then
@@ -58,16 +58,26 @@ jobs:
             echo "❌ WASM file not found!"
             exit 1
           fi
+          echo ""
+          echo "Files in release directory:"
+          ls -lah target/wasm32-unknown-unknown/release/ || true
 
       - name: Create RPD file
         working-directory: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts
         run: |
-          echo "Creating RPD file from WASM..."
-          # Use scrypto package publish to create RPD file
-          scrypto package publish --output oasis_storage.rpd || {
-            echo "⚠️ scrypto package publish failed, trying alternative method..."
-            # Alternative: Check if we can create RPD manually or if WASM is sufficient
-            echo "WASM file is available at: target/wasm32-unknown-unknown/release/oasis_storage.wasm"
+          echo "Creating RPD file from package..."
+          # Use scrypto package export to create RPD file
+          scrypto package export oasis_storage.rpd || {
+            echo "⚠️ scrypto package export failed, checking for RPD in build output..."
+            # Check if RPD was created automatically in target directory
+            if [ -f "target/wasm32-unknown-unknown/release/oasis_storage.rpd" ]; then
+              echo "✅ Found RPD file in build output directory"
+              cp target/wasm32-unknown-unknown/release/oasis_storage.rpd oasis_storage.rpd
+            else
+              echo "⚠️ RPD file not found. Listing files in release directory:"
+              ls -lah target/wasm32-unknown-unknown/release/ || true
+              exit 1
+            fi
           }
 
       - name: Upload WASM and RPD artifacts
