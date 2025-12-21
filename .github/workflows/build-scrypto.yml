@@ -1,0 +1,79 @@
+name: Build Scrypto Package
+
+on:
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+  push:
+    paths:
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/**'
+  pull_request:
+    paths:
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/**'
+
+jobs:
+  build:
+    name: Build OASIS Storage Scrypto Package
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/target/
+          key: ${{ runner.os }}-scrypto-${{ hashFiles('Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-scrypto-
+
+      - name: Install Scrypto CLI tools
+        run: |
+          cargo install radix-clis --locked
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Verify Scrypto installation
+        run: scrypto --version
+
+      - name: Build Scrypto package
+        working-directory: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts
+        run: scrypto build
+
+      - name: Verify WASM file exists
+        working-directory: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts
+        run: |
+          if [ -f "target/wasm32-unknown-unknown/release/oasis_storage.wasm" ]; then
+            echo "✅ WASM file built successfully"
+            ls -lh target/wasm32-unknown-unknown/release/oasis_storage.wasm
+          else
+            echo "❌ WASM file not found!"
+            exit 1
+          fi
+
+      - name: Upload WASM artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: oasis-storage-wasm
+          path: Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/contracts/target/wasm32-unknown-unknown/release/oasis_storage.wasm
+          retention-days: 30
+
+      - name: Build summary
+        run: |
+          echo "## ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The WASM file has been built and uploaded as an artifact." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download the artifact from the workflow run" >> $GITHUB_STEP_SUMMARY
+          echo "2. Deploy via Radix Wallet Developer Console: https://console.radixdlt.com/deploy-package" >> $GITHUB_STEP_SUMMARY
+          echo "3. Get component address and update OASIS_DNA.json" >> $GITHUB_STEP_SUMMARY
+
