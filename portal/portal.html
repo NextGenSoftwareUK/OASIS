@@ -7579,6 +7579,13 @@
         // Make authAPI globally available immediately
         window.authAPI = authAPI;
         
+        // Add version marker to help debug deployment issues
+        console.log('✅ Fallback authAPI created', {
+            version: '2025-12-20-v2',
+            hasHTTPS: window.location.protocol === 'https:',
+            apiBaseURL: authAPI.baseURL || 'N/A'
+        });
+        
         // Also create a global reference for backward compatibility
         if (typeof authAPI !== 'undefined') {
             // Make it available in global scope as well
