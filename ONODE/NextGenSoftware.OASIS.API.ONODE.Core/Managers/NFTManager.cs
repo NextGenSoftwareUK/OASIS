@@ -1748,7 +1748,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         IWeb3NFT updatedWeb3NFT = UpdateWeb3NFT(web3NFT, request);
 
-                        OASISResult<IHolon> web3NftHolonResult = await Data.LoadHolonAsync(request.Id, providerType: providerType);
+                        OASISResult<IHolon> web3NftHolonResult = await Data.LoadHolonAsync(web3NFT.Id, providerType: providerType);
 
                         if (web3NftHolonResult != null && web3NftHolonResult.Result != null && !web3NftHolonResult.IsError)
                         {
