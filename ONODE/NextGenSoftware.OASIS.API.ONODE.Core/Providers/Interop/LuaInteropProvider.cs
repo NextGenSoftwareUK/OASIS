@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -16,10 +19,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     /// </summary>
     public class LuaInteropProvider : ILibraryInteropProvider
     {
-        private readonly Dictionary<string, string> _loadedScripts;
+        private readonly Dictionary<string, LuaLibraryInfo> _loadedScripts;
         private readonly object _lockObject = new object();
+        private bool _initialized = false;
+        private bool _luaAvailable = false;
+        private string _luaPath = null;
 
-        public InteropProviderType ProviderType => InteropProviderType.JavaScript; // Reuse for now
+        private class LuaLibraryInfo
+        {
+            public string ScriptPath { get; set; }
+            public string ScriptContent { get; set; }
+        }
+
+        public InteropProviderType ProviderType => InteropProviderType.Lua;
 
         public string[] SupportedExtensions => new[]
         {
@@ -33,8 +45,78 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public Task<OASISResult<bool>> InitializeAsync()
         {
-            var result = new OASISResult<bool> { Result = true };
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                _luaAvailable = TryDetectLua();
+                _initialized = true;
+                result.Result = true;
+                
+                if (_luaAvailable)
+                {
+                    result.Message = $"Lua interop provider initialized with Lua runtime ({_luaPath}). Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "Lua interop provider initialized. Function signatures will be extracted from source code. Lua runtime not found - code execution disabled. Install Lua for full support.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error initializing Lua provider: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private bool TryDetectLua()
+        {
+            var commonPaths = new[]
+            {
+                "lua",
+                "lua5.4",
+                "lua5.3",
+                @"C:\Program Files\Lua\bin\lua.exe",
+                @"/usr/bin/lua",
+                @"/usr/local/bin/lua",
+                @"/opt/homebrew/bin/lua"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "-v",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _luaPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return false;
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -55,7 +137,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 lock (_lockObject)
                 {
-                    _loadedScripts[libraryId] = scriptContent;
+                    _loadedScripts[libraryId] = new LuaLibraryInfo
+                    {
+                        ScriptPath = libraryPath,
+                        ScriptContent = scriptContent
+                    };
                 }
 
                 result.Result = new Objects.Interop.LoadedLibrary
@@ -108,8 +194,138 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         public Task<OASISResult<T>> InvokeAsync<T>(string libraryId, string functionName, params object[] parameters)
         {
             var result = new OASISResult<T>();
-            result.Message = "Lua function invocation. Requires Lua runtime for execution.";
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    if (!_luaAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "Lua runtime is not available. Cannot execute Lua code. " +
+                            "Install Lua (https://www.lua.org/) for code execution. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
+
+                    return ExecuteLuaFunctionAsync<T>(scriptInfo, functionName, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error invoking Lua function: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteLuaFunctionAsync<T>(LuaLibraryInfo scriptInfo, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var tempScript = Path.GetTempFileName() + ".lua";
+                var scriptDir = Path.GetDirectoryName(scriptInfo.ScriptPath);
+                var scriptFile = Path.GetFileName(scriptInfo.ScriptPath);
+
+                var scriptBuilder = new StringBuilder();
+                scriptBuilder.AppendLine($"dofile('{scriptFile}')");
+                scriptBuilder.AppendLine($"result = {functionName}({BuildLuaParameters(parameters)})");
+                scriptBuilder.AppendLine("print(require('json').encode(result))");
+
+                File.WriteAllText(tempScript, scriptBuilder.ToString());
+
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _luaPath,
+                        Arguments = $"\"{tempScript}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = scriptDir
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000);
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"Lua execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            result.Result = ParseLuaOutput<T>(output);
+                            result.Message = $"Lua function '{functionName}' executed successfully.";
+                        }
+                    }
+                }
+                finally
+                {
+                    try { File.Delete(tempScript); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing Lua function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string BuildLuaParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                    paramStrings.Add("nil");
+                else if (param is string)
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                else if (param is bool)
+                    paramStrings.Add((bool)param ? "true" : "false");
+                else if (param is int || param is long || param is double || param is float || param is decimal)
+                    paramStrings.Add(param.ToString());
+                else
+                    paramStrings.Add($"require('json').decode('{JsonSerializer.Serialize(param).Replace("'", "\\'")}')");
+            }
+
+            return string.Join(", ", paramStrings);
+        }
+
+        private T ParseLuaOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+                    return JsonSerializer.Deserialize<T>(trimmed);
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)

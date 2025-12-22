@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -16,10 +19,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     /// </summary>
     public class JuliaInteropProvider : ILibraryInteropProvider
     {
-        private readonly Dictionary<string, string> _loadedScripts;
+        private readonly Dictionary<string, JuliaLibraryInfo> _loadedScripts;
         private readonly object _lockObject = new object();
+        private bool _initialized = false;
+        private bool _juliaAvailable = false;
+        private string _juliaPath = null;
 
-        public InteropProviderType ProviderType => InteropProviderType.JavaScript; // Reuse for now
+        private class JuliaLibraryInfo
+        {
+            public string ScriptPath { get; set; }
+            public string ScriptContent { get; set; }
+        }
+
+        public InteropProviderType ProviderType => InteropProviderType.Julia;
 
         public string[] SupportedExtensions => new[]
         {
@@ -33,8 +45,93 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public Task<OASISResult<bool>> InitializeAsync()
         {
-            var result = new OASISResult<bool> { Result = true };
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                _juliaAvailable = TryDetectJulia();
+                _initialized = true;
+                result.Result = true;
+                
+                if (_juliaAvailable)
+                {
+                    result.Message = $"Julia interop provider initialized with Julia runtime ({_juliaPath}). Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "Julia interop provider initialized. Function signatures will be extracted from source code. Julia runtime not found - code execution disabled. Install Julia (https://julialang.org/) for full support.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error initializing Julia provider: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private bool TryDetectJulia()
+        {
+            var commonPaths = new[]
+            {
+                "julia",
+                @"C:\Users\%USERNAME%\AppData\Local\Programs\Julia\*\bin\julia.exe",
+                @"/usr/bin/julia",
+                @"/usr/local/bin/julia",
+                @"/opt/homebrew/bin/julia"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    if (path.Contains("*") || path.Contains("%"))
+                    {
+                        var expandedPath = Environment.ExpandEnvironmentVariables(path);
+                        var dir = Path.GetDirectoryName(expandedPath);
+                        var pattern = Path.GetFileName(expandedPath);
+                        if (Directory.Exists(dir))
+                        {
+                            var matches = Directory.GetFiles(dir, pattern);
+                            if (matches.Length > 0)
+                            {
+                                _juliaPath = matches[0];
+                                return true;
+                            }
+                        }
+                        continue;
+                    }
+
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "--version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _juliaPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return false;
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -55,7 +152,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 lock (_lockObject)
                 {
-                    _loadedScripts[libraryId] = scriptContent;
+                    _loadedScripts[libraryId] = new JuliaLibraryInfo
+                    {
+                        ScriptPath = libraryPath,
+                        ScriptContent = scriptContent
+                    };
                 }
 
                 result.Result = new Objects.Interop.LoadedLibrary
@@ -108,8 +209,139 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         public Task<OASISResult<T>> InvokeAsync<T>(string libraryId, string functionName, params object[] parameters)
         {
             var result = new OASISResult<T>();
-            result.Message = "Julia function invocation. Requires Julia runtime for execution.";
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    if (!_juliaAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "Julia runtime is not available. Cannot execute Julia code. " +
+                            "Install Julia (https://julialang.org/) for code execution. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
+
+                    return ExecuteJuliaFunctionAsync<T>(scriptInfo, functionName, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error invoking Julia function: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteJuliaFunctionAsync<T>(JuliaLibraryInfo scriptInfo, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var tempScript = Path.GetTempFileName() + ".jl";
+                var scriptDir = Path.GetDirectoryName(scriptInfo.ScriptPath);
+                var scriptFile = Path.GetFileName(scriptInfo.ScriptPath);
+
+                var scriptBuilder = new StringBuilder();
+                scriptBuilder.AppendLine("using JSON");
+                scriptBuilder.AppendLine($"include(\"{scriptFile}\")");
+                scriptBuilder.AppendLine($"result = {functionName}({BuildJuliaParameters(parameters)})");
+                scriptBuilder.AppendLine("println(JSON.json(result))");
+
+                File.WriteAllText(tempScript, scriptBuilder.ToString());
+
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _juliaPath,
+                        Arguments = $"\"{tempScript}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = scriptDir
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000);
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"Julia execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            result.Result = ParseJuliaOutput<T>(output);
+                            result.Message = $"Julia function '{functionName}' executed successfully.";
+                        }
+                    }
+                }
+                finally
+                {
+                    try { File.Delete(tempScript); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing Julia function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string BuildJuliaParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                    paramStrings.Add("nothing");
+                else if (param is string)
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                else if (param is bool)
+                    paramStrings.Add((bool)param ? "true" : "false");
+                else if (param is int || param is long || param is double || param is float || param is decimal)
+                    paramStrings.Add(param.ToString());
+                else
+                    paramStrings.Add($"JSON.parse(\"{JsonSerializer.Serialize(param).Replace("\"", "\\\"")}\")");
+            }
+
+            return string.Join(", ", paramStrings);
+        }
+
+        private T ParseJuliaOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+                    return JsonSerializer.Deserialize<T>(trimmed);
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)
@@ -125,13 +357,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseJuliaSignatures(scriptContent);
+                    var signatures = ParseJuliaSignatures(scriptInfo.ScriptContent);
                     var functionNames = signatures.Select(s => s.FunctionName).ToList();
 
                     result.Result = functionNames;
@@ -197,13 +429,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseJuliaSignatures(scriptContent);
+                    var signatures = ParseJuliaSignatures(scriptInfo.ScriptContent);
 
                     result.Result = signatures;
                     result.Message = signatures.Count > 0

@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -16,10 +19,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     /// </summary>
     public class ShellScriptInteropProvider : ILibraryInteropProvider
     {
-        private readonly Dictionary<string, string> _loadedScripts;
+        private readonly Dictionary<string, ShellScriptLibraryInfo> _loadedScripts;
         private readonly object _lockObject = new object();
+        private bool _initialized = false;
+        private bool _shellAvailable = false;
+        private string _shellPath = null;
 
-        public InteropProviderType ProviderType => InteropProviderType.JavaScript; // Reuse for now
+        private class ShellScriptLibraryInfo
+        {
+            public string ScriptPath { get; set; }
+            public string ScriptContent { get; set; }
+        }
+
+        public InteropProviderType ProviderType => InteropProviderType.ShellScript;
 
         public string[] SupportedExtensions => new[]
         {
@@ -33,8 +45,84 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public Task<OASISResult<bool>> InitializeAsync()
         {
-            var result = new OASISResult<bool> { Result = true };
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                _shellAvailable = TryDetectShell();
+                _initialized = true;
+                result.Result = true;
+                
+                if (_shellAvailable)
+                {
+                    result.Message = $"Shell script interop provider initialized with shell runtime ({_shellPath}). Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "Shell script interop provider initialized. Function signatures will be extracted from source code. Shell runtime not found - code execution disabled.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error initializing shell script provider: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private bool TryDetectShell()
+        {
+            var commonPaths = new[]
+            {
+                "bash",
+                "sh",
+                "/bin/bash",
+                "/bin/sh",
+                "/usr/bin/bash",
+                "/usr/bin/sh"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "--version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _shellPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            // On Windows, use cmd.exe as fallback
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                _shellPath = "cmd.exe";
+                return true;
+            }
+
+            return false;
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -55,7 +143,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 lock (_lockObject)
                 {
-                    _loadedScripts[libraryId] = scriptContent;
+                    _loadedScripts[libraryId] = new ShellScriptLibraryInfo
+                    {
+                        ScriptPath = libraryPath,
+                        ScriptContent = scriptContent
+                    };
                 }
 
                 result.Result = new Objects.Interop.LoadedLibrary
@@ -108,8 +200,142 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         public Task<OASISResult<T>> InvokeAsync<T>(string libraryId, string functionName, params object[] parameters)
         {
             var result = new OASISResult<T>();
-            result.Message = "Shell script function invocation. Requires shell runtime for execution.";
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    if (!_shellAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "Shell runtime is not available. Cannot execute shell scripts. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
+
+                    return ExecuteShellFunctionAsync<T>(scriptInfo, functionName, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error invoking shell function: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteShellFunctionAsync<T>(ShellScriptLibraryInfo scriptInfo, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var scriptDir = Path.GetDirectoryName(scriptInfo.ScriptPath);
+                var scriptFile = Path.GetFileName(scriptInfo.ScriptPath);
+                var isWindows = Environment.OSVersion.Platform == PlatformID.Win32NT;
+
+                var scriptBuilder = new StringBuilder();
+                if (isWindows)
+                {
+                    scriptBuilder.AppendLine($"call {scriptFile}");
+                    scriptBuilder.AppendLine($"call {functionName} {BuildShellParameters(parameters, isWindows)}");
+                }
+                else
+                {
+                    scriptBuilder.AppendLine($"source {scriptFile}");
+                    scriptBuilder.AppendLine($"result=$({functionName} {BuildShellParameters(parameters, isWindows)})");
+                    scriptBuilder.AppendLine("echo $result");
+                }
+
+                var tempScript = Path.GetTempFileName() + (isWindows ? ".bat" : ".sh");
+                File.WriteAllText(tempScript, scriptBuilder.ToString());
+
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = isWindows ? "cmd.exe" : _shellPath,
+                        Arguments = isWindows ? $"/c \"{tempScript}\"" : $"\"{tempScript}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = scriptDir
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000);
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"Shell execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            result.Result = ParseShellOutput<T>(output);
+                            result.Message = $"Shell function '{functionName}' executed successfully.";
+                        }
+                    }
+                }
+                finally
+                {
+                    try { File.Delete(tempScript); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing shell function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string BuildShellParameters(object[] parameters, bool isWindows)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                    paramStrings.Add("\"\"");
+                else if (param is string)
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                else
+                    paramStrings.Add(param.ToString());
+            }
+
+            return string.Join(" ", paramStrings);
+        }
+
+        private T ParseShellOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+                    return JsonSerializer.Deserialize<T>(trimmed);
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)
@@ -125,13 +351,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseShellSignatures(scriptContent);
+                    var signatures = ParseShellSignatures(scriptInfo.ScriptContent);
                     var functionNames = signatures.Select(s => s.FunctionName).ToList();
 
                     result.Result = functionNames;
@@ -197,13 +423,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseShellSignatures(scriptContent);
+                    var signatures = ParseShellSignatures(scriptInfo.ScriptContent);
 
                     result.Result = signatures;
                     result.Message = signatures.Count > 0

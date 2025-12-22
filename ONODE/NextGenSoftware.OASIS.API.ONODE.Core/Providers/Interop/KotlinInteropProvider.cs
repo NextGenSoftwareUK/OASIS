@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -17,10 +20,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     /// </summary>
     public class KotlinInteropProvider : ILibraryInteropProvider
     {
-        private readonly Dictionary<string, string> _loadedScripts;
+        private readonly Dictionary<string, KotlinLibraryInfo> _loadedScripts;
         private readonly object _lockObject = new object();
+        private bool _initialized = false;
+        private bool _kotlinAvailable = false;
+        private bool _javaAvailable = false;
+        private string _kotlinPath = null;
+        private string _javaPath = null;
 
-        public InteropProviderType ProviderType => InteropProviderType.Java; // JVM-based
+        private class KotlinLibraryInfo
+        {
+            public string ScriptPath { get; set; }
+            public string ScriptContent { get; set; }
+        }
+
+        public InteropProviderType ProviderType => InteropProviderType.Kotlin;
 
         public string[] SupportedExtensions => new[]
         {
@@ -34,8 +48,137 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public Task<OASISResult<bool>> InitializeAsync()
         {
-            var result = new OASISResult<bool> { Result = true };
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                _kotlinAvailable = TryDetectKotlin();
+                _javaAvailable = TryDetectJava();
+                _initialized = true;
+                result.Result = true;
+                
+                if (_kotlinAvailable && _javaAvailable)
+                {
+                    result.Message = $"Kotlin interop provider initialized with Kotlin compiler ({_kotlinPath}) and Java runtime ({_javaPath}). Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "Kotlin interop provider initialized. Function signatures will be extracted from source code. Kotlin compiler or Java runtime not found - code execution disabled. Install Kotlin and Java for full support.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error initializing Kotlin provider: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private bool TryDetectKotlin()
+        {
+            var commonPaths = new[]
+            {
+                "kotlinc",
+                "kotlin",
+                @"C:\Program Files\JetBrains\Kotlin\kotlinc\bin\kotlinc.bat",
+                @"/usr/bin/kotlinc",
+                @"/usr/local/bin/kotlinc"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "-version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _kotlinPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryDetectJava()
+        {
+            var commonPaths = new[]
+            {
+                "java",
+                @"C:\Program Files\Java\*\bin\java.exe"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    if (path.Contains("*"))
+                    {
+                        var dir = Path.GetDirectoryName(path);
+                        var pattern = Path.GetFileName(path);
+                        if (Directory.Exists(dir))
+                        {
+                            var matches = Directory.GetFiles(dir, pattern);
+                            if (matches.Length > 0)
+                            {
+                                _javaPath = matches[0];
+                                return true;
+                            }
+                        }
+                        continue;
+                    }
+
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "-version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _javaPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return false;
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -56,7 +199,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 lock (_lockObject)
                 {
-                    _loadedScripts[libraryId] = scriptContent;
+                    _loadedScripts[libraryId] = new KotlinLibraryInfo
+                    {
+                        ScriptPath = libraryPath,
+                        ScriptContent = scriptContent
+                    };
                 }
 
                 result.Result = new Objects.Interop.LoadedLibrary
@@ -109,8 +256,151 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         public Task<OASISResult<T>> InvokeAsync<T>(string libraryId, string functionName, params object[] parameters)
         {
             var result = new OASISResult<T>();
-            result.Message = "Kotlin function invocation. Requires Kotlin/JVM runtime for execution.";
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    if (!_kotlinAvailable || !_javaAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "Kotlin compiler or Java runtime is not available. Cannot execute Kotlin code. " +
+                            "Install Kotlin (https://kotlinlang.org/) and Java JDK for code execution. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
+
+                    return ExecuteKotlinFunctionAsync<T>(scriptInfo, functionName, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error invoking Kotlin function: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteKotlinFunctionAsync<T>(KotlinLibraryInfo scriptInfo, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var scriptDir = Path.GetDirectoryName(scriptInfo.ScriptPath);
+                var scriptFile = Path.GetFileName(scriptInfo.ScriptPath);
+                var compiledJar = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFile) + ".jar");
+
+                // Compile Kotlin to JAR
+                var compileInfo = new ProcessStartInfo
+                {
+                    FileName = _kotlinPath,
+                    Arguments = $"-include-runtime -d \"{compiledJar}\" \"{scriptInfo.ScriptPath}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = scriptDir
+                };
+
+                using (var compileProcess = Process.Start(compileInfo))
+                {
+                    if (compileProcess != null)
+                    {
+                        compileProcess.WaitForExit(30000);
+                        if (compileProcess.ExitCode != 0)
+                        {
+                            var error = compileProcess.StandardError.ReadToEnd();
+                            OASISErrorHandling.HandleError(ref result, $"Kotlin compilation error: {error}");
+                            return Task.FromResult(result);
+                        }
+                    }
+                }
+
+                // Execute compiled JAR
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = _javaPath,
+                    Arguments = $"-jar \"{compiledJar}\" {functionName} {BuildKotlinParameters(parameters)}",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = scriptDir
+                };
+
+                using (var process = Process.Start(startInfo))
+                {
+                    if (process != null)
+                    {
+                        var output = process.StandardOutput.ReadToEnd();
+                        var error = process.StandardError.ReadToEnd();
+                        process.WaitForExit(30000);
+
+                        if (process.ExitCode != 0)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Kotlin execution error: {error}");
+                            return Task.FromResult(result);
+                        }
+
+                        result.Result = ParseKotlinOutput<T>(output);
+                        result.Message = $"Kotlin function '{functionName}' executed successfully.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing Kotlin function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string BuildKotlinParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                    paramStrings.Add("null");
+                else if (param is string)
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                else if (param is bool)
+                    paramStrings.Add((bool)param ? "true" : "false");
+                else if (param is int || param is long || param is double || param is float || param is decimal)
+                    paramStrings.Add(param.ToString());
+                else
+                    paramStrings.Add(JsonSerializer.Serialize(param));
+            }
+
+            return string.Join(" ", paramStrings);
+        }
+
+        private T ParseKotlinOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+                    return JsonSerializer.Deserialize<T>(trimmed);
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)
@@ -126,13 +416,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseKotlinSignatures(scriptContent);
+                    var signatures = ParseKotlinSignatures(scriptInfo.ScriptContent);
                     var functionNames = signatures.Select(s => s.FunctionName).ToList();
 
                     result.Result = functionNames;
@@ -198,13 +488,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseKotlinSignatures(scriptContent);
+                    var signatures = ParseKotlinSignatures(scriptInfo.ScriptContent);
 
                     result.Result = signatures;
                     result.Message = signatures.Count > 0

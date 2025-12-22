@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -16,10 +19,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     /// </summary>
     public class PerlInteropProvider : ILibraryInteropProvider
     {
-        private readonly Dictionary<string, string> _loadedScripts;
+        private readonly Dictionary<string, PerlLibraryInfo> _loadedScripts;
         private readonly object _lockObject = new object();
+        private bool _initialized = false;
+        private bool _perlAvailable = false;
+        private string _perlPath = null;
 
-        public InteropProviderType ProviderType => InteropProviderType.JavaScript; // Reuse for now
+        private class PerlLibraryInfo
+        {
+            public string ScriptPath { get; set; }
+            public string ScriptContent { get; set; }
+        }
+
+        public InteropProviderType ProviderType => InteropProviderType.Perl;
 
         public string[] SupportedExtensions => new[]
         {
@@ -33,8 +45,77 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public Task<OASISResult<bool>> InitializeAsync()
         {
-            var result = new OASISResult<bool> { Result = true };
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                _perlAvailable = TryDetectPerl();
+                _initialized = true;
+                result.Result = true;
+                
+                if (_perlAvailable)
+                {
+                    result.Message = $"Perl interop provider initialized with Perl runtime ({_perlPath}). Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "Perl interop provider initialized. Function signatures will be extracted from source code. Perl runtime not found - code execution disabled. Install Perl for full support.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error initializing Perl provider: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private bool TryDetectPerl()
+        {
+            var commonPaths = new[]
+            {
+                "perl",
+                @"C:\Perl\bin\perl.exe",
+                @"C:\Strawberry\perl\bin\perl.exe",
+                @"/usr/bin/perl",
+                @"/usr/local/bin/perl",
+                @"/opt/homebrew/bin/perl"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "-v",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _perlPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return false;
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -55,7 +136,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 lock (_lockObject)
                 {
-                    _loadedScripts[libraryId] = scriptContent;
+                    _loadedScripts[libraryId] = new PerlLibraryInfo
+                    {
+                        ScriptPath = libraryPath,
+                        ScriptContent = scriptContent
+                    };
                 }
 
                 result.Result = new Objects.Interop.LoadedLibrary
@@ -108,8 +193,139 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         public Task<OASISResult<T>> InvokeAsync<T>(string libraryId, string functionName, params object[] parameters)
         {
             var result = new OASISResult<T>();
-            result.Message = "Perl function invocation. Requires Perl runtime for execution.";
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    if (!_perlAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "Perl runtime is not available. Cannot execute Perl code. " +
+                            "Install Perl (https://www.perl.org/) for code execution. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
+
+                    return ExecutePerlFunctionAsync<T>(scriptInfo, functionName, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error invoking Perl function: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecutePerlFunctionAsync<T>(PerlLibraryInfo scriptInfo, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var tempScript = Path.GetTempFileName() + ".pl";
+                var scriptDir = Path.GetDirectoryName(scriptInfo.ScriptPath);
+                var scriptFile = Path.GetFileName(scriptInfo.ScriptPath);
+
+                var scriptBuilder = new StringBuilder();
+                scriptBuilder.AppendLine("use JSON;");
+                scriptBuilder.AppendLine($"require './{scriptFile}';");
+                scriptBuilder.AppendLine($"my $result = {functionName}({BuildPerlParameters(parameters)});");
+                scriptBuilder.AppendLine("print encode_json($result);");
+
+                File.WriteAllText(tempScript, scriptBuilder.ToString());
+
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _perlPath,
+                        Arguments = $"\"{tempScript}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = scriptDir
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000);
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"Perl execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            result.Result = ParsePerlOutput<T>(output);
+                            result.Message = $"Perl function '{functionName}' executed successfully.";
+                        }
+                    }
+                }
+                finally
+                {
+                    try { File.Delete(tempScript); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing Perl function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string BuildPerlParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                    paramStrings.Add("undef");
+                else if (param is string)
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                else if (param is bool)
+                    paramStrings.Add((bool)param ? "1" : "0");
+                else if (param is int || param is long || param is double || param is float || param is decimal)
+                    paramStrings.Add(param.ToString());
+                else
+                    paramStrings.Add($"decode_json('{JsonSerializer.Serialize(param).Replace("'", "\\'")}')");
+            }
+
+            return string.Join(", ", paramStrings);
+        }
+
+        private T ParsePerlOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+                    return JsonSerializer.Deserialize<T>(trimmed);
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)

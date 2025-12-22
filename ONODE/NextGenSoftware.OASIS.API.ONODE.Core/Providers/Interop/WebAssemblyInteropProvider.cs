@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -80,7 +82,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     _loadedModules[libraryId] = new WasmModule
                     {
                         ModuleId = libraryId,
-                        Bytes = wasmBytes
+                        Bytes = wasmBytes,
+                        ModulePath = libraryPath
                     };
                 }
 
@@ -146,12 +149,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                         return Task.FromResult(result);
                     }
 
-                    // Invoke WASM function
-                    // var func = module.Instance.GetFunction(functionName);
-                    // var returnValue = func.Invoke(parameters);
-                    // result.Result = (T)Convert.ChangeType(returnValue, typeof(T));
-
-                    result.Message = "WASM function invoked successfully.";
+                    // Execute WASM function using Wasmtime (with graceful fallback)
+                    return ExecuteWasmFunctionAsync<T>(module, functionName, parameters);
                 }
             }
             catch (Exception ex)
@@ -160,6 +159,228 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             }
 
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteWasmFunctionAsync<T>(WasmModule module, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                // Try to use Wasmtime if available
+                var wasmtimeType = Type.GetType("Wasmtime.Engine, Wasmtime");
+                if (wasmtimeType != null)
+                {
+                    // Use Wasmtime for execution
+                    return ExecuteWasmWithWasmtimeAsync<T>(module, functionName, parameters);
+                }
+
+                // Fallback: Use wasmtime CLI if available
+                var wasmtimePath = TryDetectWasmtime();
+                if (!string.IsNullOrEmpty(wasmtimePath))
+                {
+                    return ExecuteWasmWithCLIAsync<T>(module, functionName, parameters, wasmtimePath);
+                }
+
+                OASISErrorHandling.HandleError(ref result, 
+                    "Wasmtime runtime is not available. Cannot execute WebAssembly code. " +
+                    "Install Wasmtime (https://wasmtime.dev/) or add Wasmtime NuGet package for code execution. " +
+                    "Signature extraction works without runtime, but code execution requires it.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing WASM function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteWasmWithWasmtimeAsync<T>(WasmModule module, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                // Use reflection to call Wasmtime methods
+                var engineType = Type.GetType("Wasmtime.Engine, Wasmtime");
+                var storeType = Type.GetType("Wasmtime.Store, Wasmtime");
+                var moduleType = Type.GetType("Wasmtime.Module, Wasmtime");
+                var linkerType = Type.GetType("Wasmtime.Linker, Wasmtime");
+
+                if (engineType != null && storeType != null && moduleType != null && linkerType != null)
+                {
+                    var engine = Activator.CreateInstance(engineType);
+                    var store = Activator.CreateInstance(storeType, engine);
+                    var wasmModule = moduleType.GetMethod("FromFile", new[] { engineType, typeof(string) })
+                        .Invoke(null, new[] { engine, module.ModulePath });
+                    var linker = Activator.CreateInstance(linkerType, engine);
+                    var instance = linkerType.GetMethod("Instantiate", new[] { storeType, moduleType })
+                        .Invoke(linker, new[] { store, wasmModule });
+
+                    var func = instance.GetType().GetProperty("GetFunction", new[] { typeof(string) })
+                        .GetValue(instance, new[] { functionName });
+
+                    if (func != null)
+                    {
+                        var invokeMethod = func.GetType().GetMethod("Invoke");
+                        var returnValue = invokeMethod.Invoke(func, parameters);
+                        result.Result = (T)Convert.ChangeType(returnValue, typeof(T));
+                        result.Message = $"WASM function '{functionName}' executed successfully.";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Function '{functionName}' not found in WASM module.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing WASM with Wasmtime: {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteWasmWithCLIAsync<T>(WasmModule module, string functionName, object[] parameters, string wasmtimePath)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                // Create a wrapper script that calls the WASM function
+                var tempScript = Path.GetTempFileName() + ".wat";
+                var scriptBuilder = new System.Text.StringBuilder();
+                scriptBuilder.AppendLine($"(module");
+                scriptBuilder.AppendLine($"  (import \"env\" \"{functionName}\" (func $import_{functionName}))");
+                scriptBuilder.AppendLine($"  (func $main");
+                scriptBuilder.AppendLine($"    call $import_{functionName}");
+                scriptBuilder.AppendLine($"  )");
+                scriptBuilder.AppendLine($"  (start $main)");
+                scriptBuilder.AppendLine($")");
+
+                File.WriteAllText(tempScript, scriptBuilder.ToString());
+
+                try
+                {
+                    var startInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = wasmtimePath,
+                        Arguments = $"run \"{module.ModulePath}\" --invoke {functionName} {BuildWasmParameters(parameters)}",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = System.Diagnostics.Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000);
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"WASM execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            result.Result = ParseWasmOutput<T>(output);
+                            result.Message = $"WASM function '{functionName}' executed successfully.";
+                        }
+                    }
+                }
+                finally
+                {
+                    try { File.Delete(tempScript); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing WASM with CLI: {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string TryDetectWasmtime()
+        {
+            var commonPaths = new[]
+            {
+                "wasmtime",
+                @"/usr/local/bin/wasmtime",
+                @"/opt/homebrew/bin/wasmtime"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    var startInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "--version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = System.Diagnostics.Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                return path;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return null;
+        }
+
+        private string BuildWasmParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param is int || param is long)
+                    paramStrings.Add($"i32 {param}");
+                else if (param is float || param is double)
+                    paramStrings.Add($"f64 {param}");
+                else
+                    paramStrings.Add(param.ToString());
+            }
+
+            return string.Join(" ", paramStrings);
+        }
+
+        private T ParseWasmOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)
@@ -502,6 +723,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         {
             public string ModuleId { get; set; }
             public byte[] Bytes { get; set; }
+            public string ModulePath { get; set; }
         }
     }
 }

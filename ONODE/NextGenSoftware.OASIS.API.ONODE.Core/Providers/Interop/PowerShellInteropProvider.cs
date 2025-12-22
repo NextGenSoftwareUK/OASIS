@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -16,10 +19,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     /// </summary>
     public class PowerShellInteropProvider : ILibraryInteropProvider
     {
-        private readonly Dictionary<string, string> _loadedScripts;
+        private readonly Dictionary<string, PowerShellLibraryInfo> _loadedScripts;
         private readonly object _lockObject = new object();
+        private bool _initialized = false;
+        private bool _powershellAvailable = false;
+        private string _powershellPath = null;
 
-        public InteropProviderType ProviderType => InteropProviderType.JavaScript; // Reuse for now
+        private class PowerShellLibraryInfo
+        {
+            public string ScriptPath { get; set; }
+            public string ScriptContent { get; set; }
+        }
+
+        public InteropProviderType ProviderType => InteropProviderType.PowerShell;
 
         public string[] SupportedExtensions => new[]
         {
@@ -33,8 +45,91 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public Task<OASISResult<bool>> InitializeAsync()
         {
-            var result = new OASISResult<bool> { Result = true };
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                _powershellAvailable = TryDetectPowerShell();
+                _initialized = true;
+                result.Result = true;
+                
+                if (_powershellAvailable)
+                {
+                    result.Message = $"PowerShell interop provider initialized with PowerShell runtime ({_powershellPath}). Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "PowerShell interop provider initialized. Function signatures will be extracted from source code. PowerShell runtime not found - code execution disabled. Install PowerShell for full support.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error initializing PowerShell provider: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private bool TryDetectPowerShell()
+        {
+            var commonPaths = new[]
+            {
+                "pwsh",
+                "powershell",
+                @"C:\Program Files\PowerShell\*\pwsh.exe",
+                @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    if (path.Contains("*"))
+                    {
+                        var dir = Path.GetDirectoryName(path);
+                        var pattern = Path.GetFileName(path);
+                        if (Directory.Exists(dir))
+                        {
+                            var matches = Directory.GetFiles(dir, pattern);
+                            if (matches.Length > 0)
+                            {
+                                _powershellPath = matches[0];
+                                return true;
+                            }
+                        }
+                        continue;
+                    }
+
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "-Command \"$PSVersionTable.PSVersion\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _powershellPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return false;
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -55,7 +150,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 lock (_lockObject)
                 {
-                    _loadedScripts[libraryId] = scriptContent;
+                    _loadedScripts[libraryId] = new PowerShellLibraryInfo
+                    {
+                        ScriptPath = libraryPath,
+                        ScriptContent = scriptContent
+                    };
                 }
 
                 result.Result = new Objects.Interop.LoadedLibrary
@@ -108,8 +207,138 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         public Task<OASISResult<T>> InvokeAsync<T>(string libraryId, string functionName, params object[] parameters)
         {
             var result = new OASISResult<T>();
-            result.Message = "PowerShell function invocation. Requires PowerShell runtime for execution.";
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    if (!_powershellAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "PowerShell runtime is not available. Cannot execute PowerShell code. " +
+                            "Install PowerShell (https://aka.ms/powershell) for code execution. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
+
+                    return ExecutePowerShellFunctionAsync<T>(scriptInfo, functionName, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error invoking PowerShell function: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecutePowerShellFunctionAsync<T>(PowerShellLibraryInfo scriptInfo, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var scriptDir = Path.GetDirectoryName(scriptInfo.ScriptPath);
+                var scriptFile = Path.GetFileName(scriptInfo.ScriptPath);
+
+                var scriptBuilder = new StringBuilder();
+                scriptBuilder.AppendLine($". \"{scriptFile}\"");
+                scriptBuilder.AppendLine($"$result = {functionName} {BuildPowerShellParameters(parameters)}");
+                scriptBuilder.AppendLine("$result | ConvertTo-Json -Depth 10");
+
+                var tempScript = Path.GetTempFileName() + ".ps1";
+                File.WriteAllText(tempScript, scriptBuilder.ToString());
+
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _powershellPath,
+                        Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{tempScript}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = scriptDir
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000);
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"PowerShell execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            result.Result = ParsePowerShellOutput<T>(output);
+                            result.Message = $"PowerShell function '{functionName}' executed successfully.";
+                        }
+                    }
+                }
+                finally
+                {
+                    try { File.Delete(tempScript); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing PowerShell function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string BuildPowerShellParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                    paramStrings.Add("$null");
+                else if (param is string)
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "`\"")}\"");
+                else if (param is bool)
+                    paramStrings.Add((bool)param ? "$true" : "$false");
+                else if (param is int || param is long || param is double || param is float || param is decimal)
+                    paramStrings.Add(param.ToString());
+                else
+                    paramStrings.Add($"('{JsonSerializer.Serialize(param).Replace("'", "''")}' | ConvertFrom-Json)");
+            }
+
+            return string.Join(", ", paramStrings);
+        }
+
+        private T ParsePowerShellOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+                    return JsonSerializer.Deserialize<T>(trimmed);
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)
@@ -125,13 +354,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParsePowerShellSignatures(scriptContent);
+                    var signatures = ParsePowerShellSignatures(scriptInfo.ScriptContent);
                     var functionNames = signatures.Select(s => s.FunctionName).ToList();
 
                     result.Result = functionNames;
@@ -197,13 +426,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParsePowerShellSignatures(scriptContent);
+                    var signatures = ParsePowerShellSignatures(scriptInfo.ScriptContent);
 
                     result.Result = signatures;
                     result.Message = signatures.Count > 0
