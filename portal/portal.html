@@ -7378,20 +7378,30 @@
                 },
                 async login(username, password) {
                     try {
-                        // Call getAPIBaseURL() dynamically to ensure we use the correct protocol
                         // Force HTTPS if page is HTTPS to prevent mixed content errors
+                        // Check protocol directly - don't rely on any functions
                         const currentProtocol = window.location.protocol;
-                        let apiBaseURL;
+                        const isHTTPS = currentProtocol === 'https:' || window.location.href.startsWith('https://');
                         
-                        if (currentProtocol === 'https:') {
-                            // Page is HTTPS - try HTTPS API first, fallback to HTTP with CORS proxy if needed
-                            apiBaseURL = 'https://api.oasisweb4.com';
-                            // If HTTPS API doesn't work, we'll need to use a CORS proxy or configure HTTPS
-                        } else {
-                            apiBaseURL = 'http://api.oasisweb4.com';
+                        // ALWAYS use HTTPS if page is HTTPS - no exceptions
+                        const apiBaseURL = isHTTPS 
+                            ? 'https://api.oasisweb4.com'
+                            : 'http://api.oasisweb4.com';
+                        
+                        console.log('🔐 Login attempt:', {
+                            apiBaseURL: apiBaseURL,
+                            pageProtocol: currentProtocol,
+                            pageURL: window.location.href,
+                            isHTTPS: isHTTPS,
+                            hostname: window.location.hostname
+                        });
+                        
+                        // Double-check: if page is HTTPS but API is HTTP, throw error immediately
+                        if (isHTTPS && apiBaseURL.startsWith('http://')) {
+                            const error = 'CRITICAL: Page is HTTPS but API URL is HTTP! This should never happen.';
+                            console.error(error);
+                            throw new Error(error);
                         }
-                        
-                        console.log('Login attempt - API baseURL:', apiBaseURL, 'Page protocol:', currentProtocol, 'Hostname:', window.location.hostname);
                         
                         let response;
                         try {
