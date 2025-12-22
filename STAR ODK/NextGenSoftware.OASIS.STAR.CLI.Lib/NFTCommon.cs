@@ -957,7 +957,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, default, new Dictionary<string, string>() { { "ParentWeb4NFTId", parentWeb4NFTId.ToString() } }, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, default, new Dictionary<string, string>() { { "NFT.ParentWeb4NFTId", parentWeb4NFTId.ToString() } }, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -1095,10 +1095,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("NFT Token Address", web3NFT.NFTTokenAddress, displayFieldLength);
             DisplayProperty("Update Authority", web3NFT.UpdateAuthority, displayFieldLength);
             
-            //CLIEngine.ShowDivider();
+            CLIEngine.ShowDivider();
                
-            if (showFooter)
-                CLIEngine.ShowDivider();
+            //if (showFooter)
+            //    CLIEngine.ShowDivider();
         }
 
         public void ShowNFTDetails(INFTBase nft, IWeb4NFT web4NFT, int displayFieldLength, bool displayTags = true, bool displayMetaData = true)
