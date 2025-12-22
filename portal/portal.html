@@ -7836,6 +7836,11 @@
                     updateAuthButton();
                 }
                 
+                // Reload portal data with authenticated user
+                if (typeof loadPortalData === 'function') {
+                    loadPortalData();
+                }
+                
                 // Dispatch custom event for other modules to listen to
                 window.dispatchEvent(new CustomEvent('oasis:auth:login', {
                     detail: { avatar: authResult.avatar }
