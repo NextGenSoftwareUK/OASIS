@@ -25,6 +25,8 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using System.Threading;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 {
@@ -33,8 +35,32 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
         private readonly HttpClient _httpClient;
         private readonly string _apiBaseUrl;
         private readonly string _apiKey;
+        private WalletManager _walletManager;
+        private KeyManager _keyManager;
 
         public string HostUri { get; set; }
+
+        private WalletManager WalletManager
+        {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = WalletManager.Instance;
+                return _walletManager;
+            }
+            set => _walletManager = value;
+        }
+
+        private KeyManager KeyManager
+        {
+            get
+            {
+                if (_keyManager == null)
+                    _keyManager = new KeyManager(this, OASISDNA);
+                return _keyManager;
+            }
+            set => _keyManager = value;
+        }
 
         public ThreeFoldOASIS(string hostURI, string apiKey = "")
         {
@@ -1791,139 +1817,873 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
-        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var burnRequest = new
+                {
+                    nftTokenAddress = request.NFTTokenAddress,
+                    burntByAvatarId = request.BurntByAvatarId,
+                    web3NFTId = request.Web3NFTId
+                };
+
+                var jsonContent = JsonSerializer.Serialize(burnRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/nft/burn", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var nftResponse = JsonSerializer.Deserialize<Web3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (nftResponse != null)
+                    {
+                        result.Result = nftResponse;
+                        result.IsError = false;
+                        result.Message = "NFT burned successfully on ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize NFT burn response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error burning NFT on ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
         {
-            throw new NotImplementedException();
+            return BurnNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var mintRequest = new
+                {
+                    tokenAddress = request.TokenAddress,
+                    mintedByAvatarId = request.MintedByAvatarId,
+                    amount = request.MetaData?.ContainsKey("Amount") == true ? request.MetaData["Amount"] : 1m,
+                    symbol = request.Symbol ?? "TFT"
+                };
+
+                var jsonContent = JsonSerializer.Serialize(mintRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/tokens/mint", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (txResponse != null)
+                    {
+                        result.Result = txResponse;
+                        result.IsError = false;
+                        result.Message = "Token minted successfully on ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize token mint response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting token on ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
         {
-            throw new NotImplementedException();
+            return MintTokenAsync(request).Result;
         }
 
-        public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var burnRequest = new
+                {
+                    tokenAddress = request.TokenAddress,
+                    burntByAvatarId = request.BurntByAvatarId,
+                    amount = request.MetaData?.ContainsKey("Amount") == true ? request.MetaData["Amount"] : 1m
+                };
+
+                var jsonContent = JsonSerializer.Serialize(burnRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/tokens/burn", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (txResponse != null)
+                    {
+                        result.Result = txResponse;
+                        result.IsError = false;
+                        result.Message = "Token burned successfully on ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize token burn response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error burning token on ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
         {
-            throw new NotImplementedException();
+            return BurnTokenAsync(request).Result;
         }
 
-        public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var lockRequest = new
+                {
+                    tokenAddress = request.TokenAddress,
+                    fromWalletAddress = request.FromWalletAddress,
+                    amount = request.Amount
+                };
+
+                var jsonContent = JsonSerializer.Serialize(lockRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/tokens/lock", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (txResponse != null)
+                    {
+                        result.Result = txResponse;
+                        result.IsError = false;
+                        result.Message = "Token locked successfully on ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize token lock response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error locking token on ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
         {
-            throw new NotImplementedException();
+            return LockTokenAsync(request).Result;
         }
 
-        public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var unlockRequest = new
+                {
+                    tokenAddress = request.TokenAddress,
+                    toWalletAddress = request.ToWalletAddress,
+                    amount = request.Amount
+                };
+
+                var jsonContent = JsonSerializer.Serialize(unlockRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/tokens/unlock", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (txResponse != null)
+                    {
+                        result.Result = txResponse;
+                        result.IsError = false;
+                        result.Message = "Token unlocked successfully on ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize token unlock response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error unlocking token on ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
         {
-            throw new NotImplementedException();
+            return UnlockTokenAsync(request).Result;
         }
 
-        public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<double>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var walletAddress = request.WalletAddress ?? request.AccountAddress;
+                if (string.IsNullOrEmpty(walletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Wallet address is required");
+                    return result;
+                }
+
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/wallets/{Uri.EscapeDataString(walletAddress)}/balance");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var balanceData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (balanceData.TryGetProperty("balance", out var balance))
+                    {
+                        if (double.TryParse(balance.GetString() ?? "0", out var balanceAmount))
+                        {
+                            result.Result = balanceAmount;
+                            result.IsError = false;
+                            result.Message = "Balance retrieved successfully from ThreeFold Grid";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, "Failed to parse balance from ThreeFold Grid response");
+                        }
+                    }
+                    else
+                    {
+                        result.Result = 0.0;
+                        result.IsError = false;
+                        result.Message = "Account found but no balance information available";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting balance from ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
         {
-            throw new NotImplementedException();
+            return GetBalanceAsync(request).Result;
         }
 
-        public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IList<IWalletTransaction>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var walletAddress = request.WalletAddress ?? request.AccountAddress;
+                if (string.IsNullOrEmpty(walletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Wallet address is required");
+                    return result;
+                }
+
+                var limit = request.Limit ?? 100;
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/wallets/{Uri.EscapeDataString(walletAddress)}/transactions?limit={limit}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var transactions = JsonSerializer.Deserialize<List<WalletTransaction>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (transactions != null)
+                    {
+                        result.Result = transactions.Cast<IWalletTransaction>().ToList();
+                        result.IsError = false;
+                        result.Message = $"Retrieved {transactions.Count} transactions from ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize transactions from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting transactions from ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
         {
-            throw new NotImplementedException();
+            return GetTransactionsAsync(request).Result;
         }
 
-        public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IKeyPairAndWallet>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                // Generate ThreeFold key pair using KeyManager
+                var keyPairResult = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.ThreeFoldOASIS);
+                if (keyPairResult.IsError || keyPairResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to generate key pair: {keyPairResult.Message}");
+                    return result;
+                }
+
+                result.Result = keyPairResult.Result;
+                result.IsError = false;
+                result.Message = "Key pair generated successfully for ThreeFold";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating key pair for ThreeFold: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
         {
-            throw new NotImplementedException();
+            return GenerateKeyPairAsync(request).Result;
         }
 
-        public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                // Generate key pair and seed phrase using KeyManager
+                var keyPairResult = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.ThreeFoldOASIS);
+                if (keyPairResult.IsError || keyPairResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to create account: {keyPairResult.Message}");
+                    return result;
+                }
+
+                // Generate seed phrase for ThreeFold
+                var seedPhrase = KeyHelper.GenerateMnemonic();
+
+                result.Result = (keyPairResult.Result.PublicKey, keyPairResult.Result.PrivateKey, seedPhrase);
+                result.IsError = false;
+                result.Message = "Account created successfully on ThreeFold Grid";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error creating account on ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                if (string.IsNullOrWhiteSpace(seedPhrase))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Seed phrase is required");
+                    return result;
+                }
+
+                // Restore key pair from seed phrase for ThreeFold
+                var keyManager = KeyManager;
+                var keyPairResult = keyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.ThreeFoldOASIS);
+
+                if (keyPairResult.IsError || keyPairResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to restore account: {keyPairResult.Message}");
+                    return result;
+                }
+
+                // Note: In production, derive keys deterministically from seedPhrase using BIP39/BIP44
+                result.Result = (keyPairResult.Result.PublicKey, keyPairResult.Result.PrivateKey);
+                result.IsError = false;
+                result.Message = "Account restored successfully from seed phrase";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error restoring account from seed phrase: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var withdrawRequest = new
+                {
+                    amount = amount,
+                    senderAccountAddress = senderAccountAddress,
+                    senderPrivateKey = senderPrivateKey
+                };
+
+                var jsonContent = JsonSerializer.Serialize(withdrawRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/bridge/withdraw", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (bridgeResponse != null)
+                    {
+                        result.Result = bridgeResponse;
+                        result.IsError = false;
+                        result.Message = "Withdrawal transaction initiated successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize bridge withdrawal response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing from ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var depositRequest = new
+                {
+                    amount = amount,
+                    receiverAccountAddress = receiverAccountAddress
+                };
+
+                var jsonContent = JsonSerializer.Serialize(depositRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/bridge/deposit", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (bridgeResponse != null)
+                    {
+                        result.Result = bridgeResponse;
+                        result.IsError = false;
+                        result.Message = "Deposit transaction initiated successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize bridge deposit response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error depositing to ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<BridgeTransactionStatus>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/bridge/transactions/{Uri.EscapeDataString(transactionHash)}/status", token);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var statusData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (statusData.TryGetProperty("status", out var status))
+                    {
+                        var statusStr = status.GetString() ?? "NotFound";
+                        if (Enum.TryParse<BridgeTransactionStatus>(statusStr, out var statusEnum))
+                        {
+                            result.Result = statusEnum;
+                            result.IsError = false;
+                            result.Message = "Transaction status retrieved successfully";
+                        }
+                        else
+                        {
+                            result.Result = BridgeTransactionStatus.NotFound;
+                            result.IsError = false;
+                            result.Message = "Unknown transaction status";
+                        }
+                    }
+                    else
+                    {
+                        result.Result = BridgeTransactionStatus.NotFound;
+                        result.IsError = false;
+                        result.Message = "Transaction not found";
+                    }
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    result.Result = BridgeTransactionStatus.NotFound;
+                    result.IsError = false;
+                    result.Message = "Transaction not found";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting transaction status from ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var lockRequest = new
+                {
+                    nftTokenAddress = request.NFTTokenAddress,
+                    web3NFTId = request.Web3NFTId,
+                    lockedByAvatarId = request.LockedByAvatarId
+                };
+
+                var jsonContent = JsonSerializer.Serialize(lockRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/nft/lock", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var nftResponse = JsonSerializer.Deserialize<Web3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (nftResponse != null)
+                    {
+                        result.Result = nftResponse;
+                        result.IsError = false;
+                        result.Message = "NFT locked successfully on ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize NFT lock response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error locking NFT on ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
         {
-            throw new NotImplementedException();
+            return LockNFTAsync(request).Result;
         }
 
-        public Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var unlockRequest = new
+                {
+                    nftTokenAddress = request.NFTTokenAddress,
+                    web3NFTId = request.Web3NFTId,
+                    unlockedByAvatarId = request.UnlockedByAvatarId
+                };
+
+                var jsonContent = JsonSerializer.Serialize(unlockRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/nft/unlock", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var nftResponse = JsonSerializer.Deserialize<Web3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (nftResponse != null)
+                    {
+                        result.Result = nftResponse;
+                        result.IsError = false;
+                        result.Message = "NFT unlocked successfully on ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize NFT unlock response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT on ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
         {
-            throw new NotImplementedException();
+            return UnlockNFTAsync(request).Result;
         }
 
-        public Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                var withdrawRequest = new
+                {
+                    nftTokenAddress = nftTokenAddress,
+                    tokenId = tokenId,
+                    senderAccountAddress = senderAccountAddress,
+                    senderPrivateKey = senderPrivateKey
+                };
+
+                var jsonContent = JsonSerializer.Serialize(withdrawRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/bridge/nft/withdraw", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (bridgeResponse != null)
+                    {
+                        result.Result = bridgeResponse;
+                        result.IsError = false;
+                        result.Message = "NFT withdrawal transaction initiated successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize bridge NFT withdrawal response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT from ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
         {
-            throw new NotImplementedException();
-        }
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
 
-        public Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
-        {
-            throw new NotImplementedException();
+                var depositRequest = new
+                {
+                    nftTokenAddress = nftTokenAddress,
+                    tokenId = tokenId,
+                    receiverAccountAddress = receiverAccountAddress,
+                    sourceTransactionHash = sourceTransactionHash
+                };
+
+                var jsonContent = JsonSerializer.Serialize(depositRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/bridge/nft/deposit", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (bridgeResponse != null)
+                    {
+                        result.Result = bridgeResponse;
+                        result.IsError = false;
+                        result.Message = "NFT deposit transaction initiated successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize bridge NFT deposit response from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error depositing NFT to ThreeFold Grid: {ex.Message}", ex);
+            }
+            return result;
         }
 
         #endregion

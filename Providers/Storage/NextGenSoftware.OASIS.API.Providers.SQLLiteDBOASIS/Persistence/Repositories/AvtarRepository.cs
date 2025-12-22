@@ -416,7 +416,53 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            OASISResult<bool> result = new();
+            string errorMessage = "Error occurred in DeleteAvatar method in AvatarRepository in SQLite Provider.";
+            var dbContextTransaction = _dbContext.Database.BeginTransaction();
+            
+            try
+            {
+                var avatar = _dbContext.Avatars.FirstOrDefault(p => p.ProviderKey == providerKey);
+                if (avatar != null)
+                {
+                    if (softDelete)
+                    {
+                        avatar.IsActive = false;
+                        avatar.DeletedDate = DateTime.UtcNow;
+                        _dbContext.Avatars.Update(avatar);
+                    }
+                    else
+                    {
+                        _dbContext.Avatars.Remove(avatar);
+                    }
+                    _dbContext.SaveChanges();
+                    
+                    result.Result = true;
+                    result.IsError = false;
+                    result.IsSaved = true;
+                    result.Message = softDelete ? "Avatar soft deleted successfully" : "Avatar deleted successfully";
+                }
+                else
+                {
+                    result.Result = false;
+                    result.IsError = true;
+                    result.Message = "Avatar not found";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"{errorMessage} {ex.Message}";
+                dbContextTransaction.Rollback();
+                return result;
+            }
+            
+            if (result.IsError)
+                dbContextTransaction.Rollback();
+            else
+                dbContextTransaction.Commit();
+            
+            return result;
         }
 
         public async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -617,7 +663,53 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            OASISResult<bool> result = new();
+            string errorMessage = "Error occurred in DeleteAvatarAsync method in AvatarRepository in SQLite Provider.";
+            var dbContextTransaction = await _dbContext.Database.BeginTransactionAsync();
+            
+            try
+            {
+                var avatar = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.ProviderKey == providerKey);
+                if (avatar != null)
+                {
+                    if (softDelete)
+                    {
+                        avatar.IsActive = false;
+                        avatar.DeletedDate = DateTime.UtcNow;
+                        _dbContext.Avatars.Update(avatar);
+                    }
+                    else
+                    {
+                        _dbContext.Avatars.Remove(avatar);
+                    }
+                    await _dbContext.SaveChangesAsync();
+                    
+                    result.Result = true;
+                    result.IsError = false;
+                    result.IsSaved = true;
+                    result.Message = softDelete ? "Avatar soft deleted successfully" : "Avatar deleted successfully";
+                }
+                else
+                {
+                    result.Result = false;
+                    result.IsError = true;
+                    result.Message = "Avatar not found";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"{errorMessage} {ex.Message}";
+                await dbContextTransaction.RollbackAsync();
+                return result;
+            }
+            
+            if (result.IsError)
+                await dbContextTransaction.RollbackAsync();
+            else
+                await dbContextTransaction.CommitAsync();
+            
+            return result;
         }
 
         public OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
@@ -1018,28 +1110,80 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            //try
-            //{
-            //    return await this.eFContext.AvatarEntities.Where(p => p.providerKey == providerKey && p.Version == version).ToListAsync();
-            //}
-            //catch (Exception)
-            //{
-            //    throw;
-            //}
-            throw new NotImplementedException();
+            try
+            {
+                var avatarEntity = await _dbContext.Avatars
+                    .FirstOrDefaultAsync(p => p.ProviderKey == providerKey && p.Version == version);
+                
+                if (avatarEntity != null)
+                {
+                    var avatar = GetAvatarFromEntity(avatarEntity);
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar loaded successfully",
+                        Result = avatar
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "Avatar not found"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString()
+                };
+            }
         }
 
         public OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            //try
-            //{
-            //    return this.eFContext.AvatarEntities.Where(p => p.providerKey == providerKey && p.Version == version).ToList();
-            //}
-            //catch (Exception)
-            //{
-            //    throw;
-            //}
-            throw new NotImplementedException();
+            try
+            {
+                var avatarEntity = _dbContext.Avatars
+                    .FirstOrDefault(p => p.ProviderKey == providerKey && p.Version == version);
+                
+                if (avatarEntity != null)
+                {
+                    var avatar = GetAvatarFromEntity(avatarEntity);
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = true,
+                        IsError = false,
+                        Message = "Avatar loaded successfully",
+                        Result = avatar
+                    };
+                }
+                else
+                {
+                    return new OASISResult<IAvatar>
+                    {
+                        IsLoaded = false,
+                        IsError = false,
+                        Message = "Avatar not found"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IAvatar>
+                {
+                    IsLoaded = false,
+                    IsError = true,
+                    Message = ex.ToString()
+                };
+            }
         }
 
         public OASISResult<IAvatar> SaveAvatar(IAvatar avatar)

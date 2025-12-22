@@ -13,6 +13,10 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public string Description { get; set; }
         public string STARNETHolonType { get; set; }
         public object STARNETCategory { get; set; }
+        /// <summary>
+        /// Sub-category for libraries (e.g., Language). Shown as "Language" in UI/wizards.
+        /// </summary>
+        public object STARNETSubCategory { get; set; }
         public STARNETDependencies Dependencies { get; set; } = new STARNETDependencies();
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
         //public Dictionary<string, (string, string)> MetaHolonTagMappings { get; set; } = new Dictionary<string, (string, string)>();

@@ -1,5 +1,7 @@
 ﻿using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.OASISBootLoader;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -341,6 +343,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (!IsSTARIgnited)
                     IgniteSTAR();
                 return new STARTests();
+            }
+        }
+
+        public static COSMIC COSMIC
+        {
+            get
+            {
+                if (!IsSTARIgnited)
+                    IgniteSTAR();
+                // Get OASISDNA from OASISBootLoader if available
+                OASISDNA oasisDNA = null;
+                try
+                {
+                    oasisDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
+                }
+                catch { }
+                return new COSMIC(STAR.BeamedInAvatar?.Id ?? Guid.Empty, oasisDNA);
             }
         }
     }

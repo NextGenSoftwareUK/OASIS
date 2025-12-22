@@ -86,7 +86,20 @@
                 "UseHoloNetwork": true,
                 "HoloNetworkURI": "https://holo.host/",
                 "LocalNodeURI": "ws://localhost:8888",
-                "HoloNETORMUseReflection": false
+                "HoloNETORMUseReflection": false,
+                "BaseSTARPath": "C:\\Source\\OASIS2\\STAR ODK\\Releases\\STAR_ODK_v3.0.0",
+                "RustDNARSMTemplateFolder": "DNATemplates\\RustDNATemplates\\RSM",
+                "RustTemplateLib": "core\\lib.rs",
+                "RustTemplateHolon": "core\\holon.rs",
+                "RustTemplateValidation": "core\\validation.rs",
+                "RustTemplateCreate": "crud\\create.rs",
+                "RustTemplateRead": "crud\\read.rs",
+                "RustTemplateUpdate": "crud\\update.rs",
+                "RustTemplateDelete": "crud\\delete.rs",
+                "RustTemplateList": "crud\\list.rs",
+                "RustTemplateInt": "types\\int.rs",
+                "RustTemplateString": "types\\string.rs",
+                "RustTemplateBool": "types\\bool.rs"
             },
             "MongoDBOASIS": {
                 "DBName": "OASISAPI_DEV",

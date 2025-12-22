@@ -2,7 +2,7 @@
     "OASISDNAPath": "", //Path to the OASIS DNA json file (if blank it will default to the built in SYSTEM OASIS DNA). Only change this if you want to work with custom providers, etc
     "BaseSTARPath": "C:\\Source\\OASIS2\\STAR ODK\\Releases\\STAR_ODK_v3.0.0", // If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
     "MetaDataDNATemplateFolder": "DNATemplates\\MetaDataDNATemplates", //MetaData DNA Templates that are used to generate the meta data for CelestialBodies, Zomes & Holons.  Can be relative to STARBasePath or absolute.
-    "RustDNARSMTemplateFolder": "DNATemplates\\RustDNATemplates\\RSM", //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above).
+    //"RustDNARSMTemplateFolder": "DNATemplates\\RustDNATemplates\\RSM", //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above). //MOVED TO HOLOOASIS SECTION IN OASISDNA
     "CSharpDNATemplateFolder": "DNATemplates\\CSharpDNATemplates", //C# DNA Templates (CelestialBodies, Zomes & Holons) that are used to generate OAPPs from (releative to STARBasePath above).
     "CSharpDNATemplateNamespace": "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates", //The default namespace for the C# DNA Templates above.
     "OAPPMetaDataDNAFolder": "OAPPMetaDataDNA", //All OAPP DNA MetaData (CelestialBodies, Zomes & Holons) is generated in this folder. It can then be optionally uploaded to STARNET for later re-use in other OAPP's and optionally shared with others. An OAPP is generated from the CelestialBodyMetaDataDNA and can contain zome and holon metadta. You can also create your own meta data here or anywhere to generate a OAPP from and point the Light Wizard to the relevant folder. The folder is relative to the BaseSTARPath above.
@@ -15,17 +15,18 @@
     //"HolonMetaDataDateTimeDNA": "DateTimeDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
     //"HolonMetaDataLongDNA": "LongDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
     //"HolonMetaDataDoubleDNA": "DoubleDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
-    "RustTemplateLib": "core\\lib.rs", //releative to RustDNARSMTemplateFolder above.
-    "RustTemplateHolon": "core\\holon.rs", //releative to RustDNARSMTemplateFolder above.
-    "RustTemplateValidation": "core\\validation.rs", //releative to RustDNARSMTemplateFolder above.     
-    "RustTemplateCreate": "crud\\create.rs", //releative to RustDNARSMTemplateFolder above.
-    "RustTemplateRead": "crud\\read.rs", //releative to RustDNARSMTemplateFolder above.
-    "RustTemplateUpdate": "crud\\update.rs", //releative to RustsDNARSMTemplateFolder above.
-    "RustTemplateDelete": "crud\\delete.rs", //releative to RustDNARSMTemplateFolder above.
-    "RustTemplateList": "crud\\list.rs", //releative to RustDNARSMTemplateFolder above.
-    "RustTemplateInt": "types\\int.rs", //releative to RustDNARSMTemplateFolder above.
-    "RustTemplateString": "types\\string.rs", //releative to RustDNARSMTemplateFolder above.
-    "RustTemplateBool": "types\\bool.rs", //releative to RustDNARSMTemplateFolder above.
+    //MOVED TO HOLOOASIS SECTION IN OASISDNA - Commented out for rollback purposes:
+    //"RustTemplateLib": "core\\lib.rs", //releative to RustDNARSMTemplateFolder above.
+    //"RustTemplateHolon": "core\\holon.rs", //releative to RustDNARSMTemplateFolder above.
+    //"RustTemplateValidation": "core\\validation.rs", //releative to RustDNARSMTemplateFolder above.     
+    //"RustTemplateCreate": "crud\\create.rs", //releative to RustDNARSMTemplateFolder above.
+    //"RustTemplateRead": "crud\\read.rs", //releative to RustDNARSMTemplateFolder above.
+    //"RustTemplateUpdate": "crud\\update.rs", //releative to RustsDNARSMTemplateFolder above.
+    //"RustTemplateDelete": "crud\\delete.rs", //releative to RustDNARSMTemplateFolder above.
+    //"RustTemplateList": "crud\\list.rs", //releative to RustDNARSMTemplateFolder above.
+    //"RustTemplateInt": "types\\int.rs", //releative to RustDNARSMTemplateFolder above.
+    //"RustTemplateString": "types\\string.rs", //releative to RustDNARSMTemplateFolder above.
+    //"RustTemplateBool": "types\\bool.rs", //releative to RustDNARSMTemplateFolder above.
     "CSharpTemplateIHolonDNA": "Interfaces\\IHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
     "CSharpTemplateHolonDNA": "HolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
     "CSharpTemplateIZomeDNA": "Interfaces\\IZomeDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
