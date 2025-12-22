@@ -7403,9 +7403,18 @@
                             throw new Error(error);
                         }
                         
+                        // Final safety check - ensure we NEVER use HTTP from HTTPS page
+                        const finalAPIURL = `${apiBaseURL}/api/avatar/authenticate`;
+                        if (window.location.protocol === 'https:' && finalAPIURL.startsWith('http://')) {
+                            console.error('🚨 BLOCKED: Attempted to use HTTP API from HTTPS page!');
+                            throw new Error('Security: Cannot use HTTP API from HTTPS page. API must support HTTPS.');
+                        }
+                        
+                        console.log('🌐 Making authenticated request to:', finalAPIURL);
+                        
                         let response;
                         try {
-                            response = await fetch(`${apiBaseURL}/api/avatar/authenticate`, {
+                            response = await fetch(finalAPIURL, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
