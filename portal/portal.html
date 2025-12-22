@@ -7393,14 +7393,24 @@
                         
                         console.log('Login attempt - API baseURL:', apiBaseURL, 'Page protocol:', currentProtocol, 'Hostname:', window.location.hostname);
                         
-                        const response = await fetch(`${apiBaseURL}/api/avatar/authenticate`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                            },
-                            body: JSON.stringify({ username, password })
-                        });
+                        let response;
+                        try {
+                            response = await fetch(`${apiBaseURL}/api/avatar/authenticate`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                },
+                                body: JSON.stringify({ username, password })
+                            });
+                        } catch (fetchError) {
+                            console.error('Fetch error:', fetchError);
+                            // If HTTPS fails, provide helpful error message
+                            if (apiBaseURL.startsWith('https://')) {
+                                throw new Error(`Failed to connect to HTTPS API. This might be a CORS or SSL certificate issue. Error: ${fetchError.message}`);
+                            }
+                            throw fetchError;
+                        }
 
                         if (!response.ok) {
                             const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
