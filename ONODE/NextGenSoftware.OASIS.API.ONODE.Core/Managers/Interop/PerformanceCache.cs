@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
 using NextGenSoftware.OASIS.Common;
+using System.Collections;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
 {
@@ -230,8 +231,67 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
 
                 foreach (var key in expiredKeys)
                 {
-                    _cache.Remove(key);
+                    RemoveCacheEntry(key);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Updates LRU order - moves key to end (most recently used)
+        /// </summary>
+        private void UpdateLRUOrder(string cacheKey)
+        {
+            // Remove from current position if exists
+            var node = _lruOrder.Find(cacheKey);
+            if (node != null)
+            {
+                _lruOrder.Remove(node);
+            }
+
+            // Add to end (most recently used)
+            _lruOrder.AddLast(cacheKey);
+        }
+
+        /// <summary>
+        /// Evicts least recently used entry
+        /// </summary>
+        private void EvictLRUEntry()
+        {
+            if (_lruOrder.Count > 0)
+            {
+                var lruKey = _lruOrder.First.Value;
+                RemoveCacheEntry(lruKey);
+            }
+        }
+
+        /// <summary>
+        /// Removes cache entry and updates LRU order
+        /// </summary>
+        private void RemoveCacheEntry(string cacheKey)
+        {
+            _cache.Remove(cacheKey);
+            var node = _lruOrder.Find(cacheKey);
+            if (node != null)
+            {
+                _lruOrder.Remove(node);
+            }
+        }
+
+        /// <summary>
+        /// Gets cache statistics
+        /// </summary>
+        public CacheStatistics GetCacheStatistics()
+        {
+            lock (_lockObject)
+            {
+                return new CacheStatistics
+                {
+                    TotalEntries = _cache.Count,
+                    MaxSize = _maxCacheSize,
+                    Strategy = _strategy,
+                    ExpiredEntries = _cache.Count(kvp => kvp.Value.ExpiresAt <= DateTime.UtcNow),
+                    MemoryUsage = _cache.Count * 100 // Rough estimate in bytes
+                };
             }
         }
 
@@ -293,6 +353,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop
                    $"Avg Duration: {AverageDuration.TotalMilliseconds:F2}ms, " +
                    $"Min: {MinDuration.TotalMilliseconds:F2}ms, " +
                    $"Max: {MaxDuration.TotalMilliseconds:F2}ms";
+        }
+    }
+
+    /// <summary>
+    /// Cache statistics
+    /// </summary>
+    public class CacheStatistics
+    {
+        public int TotalEntries { get; set; }
+        public int MaxSize { get; set; }
+        public PerformanceCache.CacheStrategy Strategy { get; set; }
+        public int ExpiredEntries { get; set; }
+        public long MemoryUsage { get; set; }
+
+        public double UtilizationPercent => MaxSize > 0 ? (double)TotalEntries / MaxSize * 100 : 0;
+
+        public override string ToString()
+        {
+            return $"Cache: {TotalEntries}/{MaxSize} entries ({UtilizationPercent:F1}% used), " +
+                   $"Strategy: {Strategy}, Expired: {ExpiredEntries}, Memory: ~{MemoryUsage} bytes";
         }
     }
 }

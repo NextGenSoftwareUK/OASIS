@@ -465,8 +465,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             sb.AppendLine();
             sb.AppendLine("## Structure");
             sb.AppendLine();
-            sb.AppendLine("- `Source/Managers/{managerClassName}.cs` - Backend manager class extending STARNETManagerBase");
+            sb.AppendLine($"- `Source/Managers/{managerClassName}.cs` - Backend manager class extending STARNETManagerBase");
             sb.AppendLine($"- `Source/CLI/{cliClassName}.cs` - CLI interface class extending STARNETUIBase");
+            sb.AppendLine("- `STARDNA_Partial.json` - Partial STARDNA configuration (copy to main STARDNA.json)");
+            sb.AppendLine("- `PluginDNA.json` - Plugin metadata and configuration");
             sb.AppendLine();
             if (cliCommands.Count > 0)
             {
@@ -478,13 +480,47 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
                 sb.AppendLine();
             }
-            sb.AppendLine("## Usage");
+            sb.AppendLine("## Development Workflow");
             sb.AppendLine();
-            sb.AppendLine("1. Customize the generated code in the Source folder");
-            sb.AppendLine("2. Add your plugin logic to the Manager class");
-            sb.AppendLine("3. Implement CLI commands in the CLI class");
-            sb.AppendLine("4. Run `plugin publish` to create the .oplugin file");
-            sb.AppendLine("5. Share or upload to STARNET for others to use");
+            sb.AppendLine("### 1. Customize Your Plugin");
+            sb.AppendLine("   - Edit the Manager class (`Source/Managers/{managerClassName}.cs`) to implement your backend logic");
+            sb.AppendLine("   - Edit the CLI class (`Source/CLI/{cliClassName}.cs`) to implement your command handlers");
+            sb.AppendLine("   - Add any additional files/resources your plugin needs");
+            sb.AppendLine();
+            sb.AppendLine("### 2. Configure STARDNA");
+            sb.AppendLine("   - Open `STARDNA_Partial.json` in this folder");
+            sb.AppendLine("   - Copy the JSON content");
+            sb.AppendLine("   - Open your main `STARDNA.json` file");
+            sb.AppendLine("   - Find or create the 'Plugins' section");
+            sb.AppendLine("   - Paste the JSON content into that section");
+            sb.AppendLine("   - Save the file");
+            sb.AppendLine();
+            sb.AppendLine("### 3. Compile Your Plugin");
+            sb.AppendLine("   - Create a .NET project file (.csproj) in the Source folder if needed");
+            sb.AppendLine("   - Add references to required OASIS/STAR libraries");
+            sb.AppendLine("   - Compile: `dotnet build`");
+            sb.AppendLine("   - The compiled DLL should be in the `bin` folder");
+            sb.AppendLine();
+            sb.AppendLine("### 4. Install Your Plugin");
+            sb.AppendLine("   - Run: `plugin install {pluginName}` from STAR CLI");
+            sb.AppendLine("   - Or manually copy the compiled files to the Installed folder");
+            sb.AppendLine();
+            sb.AppendLine("### 5. Run Your Plugin");
+            sb.AppendLine("   - Run: `plugin list installed`");
+            sb.AppendLine("   - Select your plugin when prompted");
+            sb.AppendLine("   - Your custom menu and commands will be displayed");
+            sb.AppendLine();
+            sb.AppendLine("### 6. Publish Your Plugin");
+            sb.AppendLine("   - Run: `plugin publish {pluginName}` to create the .oplugin file");
+            sb.AppendLine("   - Optionally upload to STARNET for others to download");
+            sb.AppendLine();
+            sb.AppendLine("## Runtime Loading");
+            sb.AppendLine();
+            sb.AppendLine("STAR CLI automatically scans and loads installed plugins at boot time.");
+            sb.AppendLine("Plugins are dynamically loaded using AssemblyLoadContext, allowing for:");
+            sb.AppendLine("- Hot-loading of plugins without restarting STAR CLI");
+            sb.AppendLine("- Isolation between plugins");
+            sb.AppendLine("- Memory management (plugins can be unloaded)");
             return sb.ToString();
         }
 

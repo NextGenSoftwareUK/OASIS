@@ -118,9 +118,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                         return Task.FromResult(result);
                     }
 
-                    // Go functions exported via CGO can be called via P/Invoke
-                    // For now, return placeholder - actual invocation requires compiled library
-                    result.Message = "Go function invocation. Go libraries must be compiled to native libraries for execution.";
+                    // Go functions can be executed via compiled binaries or CGO
+                    return ExecuteGoFunctionAsync<T>(library, functionName, parameters);
                 }
             }
             catch (Exception ex)
@@ -129,6 +128,238 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             }
 
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteGoFunctionAsync<T>(GoLibraryInfo library, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                // Check if there's a compiled binary
+                var binaryPath = Path.ChangeExtension(library.LibraryPath, Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : "");
+                if (File.Exists(binaryPath))
+                {
+                    return ExecuteGoBinaryAsync<T>(binaryPath, functionName, parameters);
+                }
+
+                // Try to compile and run
+                var goPath = TryDetectGo();
+                if (!string.IsNullOrEmpty(goPath))
+                {
+                    return ExecuteGoWithRuntimeAsync<T>(library, functionName, parameters, goPath);
+                }
+
+                OASISErrorHandling.HandleError(ref result, 
+                    "Go runtime is not available. Cannot execute Go code. " +
+                    "Install Go (https://go.dev/) for code execution. " +
+                    "Signature extraction works without runtime, but code execution requires it.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing Go function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteGoBinaryAsync<T>(string binaryPath, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = binaryPath,
+                    Arguments = $"{functionName} {BuildGoParameters(parameters)}",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var process = System.Diagnostics.Process.Start(startInfo))
+                {
+                    if (process != null)
+                    {
+                        var output = process.StandardOutput.ReadToEnd();
+                        var error = process.StandardError.ReadToEnd();
+                        process.WaitForExit(30000);
+
+                        if (process.ExitCode != 0)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Go execution error: {error}");
+                            return Task.FromResult(result);
+                        }
+
+                        result.Result = ParseGoOutput<T>(output);
+                        result.Message = $"Go function '{functionName}' executed successfully.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing Go binary: {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteGoWithRuntimeAsync<T>(GoLibraryInfo library, string functionName, object[] parameters, string goPath)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var scriptDir = Path.GetDirectoryName(library.LibraryPath);
+                var scriptFile = Path.GetFileName(library.LibraryPath);
+
+                var tempScript = Path.GetTempFileName() + ".go";
+                var scriptBuilder = new System.Text.StringBuilder();
+                scriptBuilder.AppendLine($"package main");
+                scriptBuilder.AppendLine($"import (");
+                scriptBuilder.AppendLine($"  \"encoding/json\"");
+                scriptBuilder.AppendLine($"  \"fmt\"");
+                scriptBuilder.AppendLine($")");
+                scriptBuilder.AppendLine($"func main() {{");
+                scriptBuilder.AppendLine($"  result := {functionName}({BuildGoParameters(parameters)})");
+                scriptBuilder.AppendLine($"  jsonBytes, _ := json.Marshal(result)");
+                scriptBuilder.AppendLine($"  fmt.Println(string(jsonBytes))");
+                scriptBuilder.AppendLine($"}}");
+
+                File.WriteAllText(tempScript, scriptBuilder.ToString());
+
+                try
+                {
+                    var startInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = goPath,
+                        Arguments = $"run \"{tempScript}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = scriptDir
+                    };
+
+                    using (var process = System.Diagnostics.Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000);
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"Go execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            result.Result = ParseGoOutput<T>(output);
+                            result.Message = $"Go function '{functionName}' executed successfully.";
+                        }
+                    }
+                }
+                finally
+                {
+                    try { File.Delete(tempScript); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing Go with runtime: {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string TryDetectGo()
+        {
+            var commonPaths = new[]
+            {
+                "go",
+                @"C:\Program Files\Go\bin\go.exe",
+                @"/usr/bin/go",
+                @"/usr/local/bin/go",
+                @"/opt/homebrew/bin/go"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    var startInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = System.Diagnostics.Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                return path;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return null;
+        }
+
+        private string BuildGoParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                    paramStrings.Add("nil");
+                else if (param is string)
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                else if (param is bool)
+                    paramStrings.Add((bool)param ? "true" : "false");
+                else if (param is int || param is long || param is double || param is float || param is decimal)
+                    paramStrings.Add(param.ToString());
+                else
+                    paramStrings.Add("interface{}{}"); // Simplified
+            }
+
+            return string.Join(", ", paramStrings);
+        }
+
+        private T ParseGoOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+                    return System.Text.Json.JsonSerializer.Deserialize<T>(trimmed);
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)

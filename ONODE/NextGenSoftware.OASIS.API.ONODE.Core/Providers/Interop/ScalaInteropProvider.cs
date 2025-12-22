@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -17,10 +20,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     /// </summary>
     public class ScalaInteropProvider : ILibraryInteropProvider
     {
-        private readonly Dictionary<string, string> _loadedScripts;
+        private readonly Dictionary<string, ScalaLibraryInfo> _loadedScripts;
         private readonly object _lockObject = new object();
+        private bool _initialized = false;
+        private bool _scalaAvailable = false;
+        private bool _javaAvailable = false;
+        private string _scalaPath = null;
+        private string _javaPath = null;
 
-        public InteropProviderType ProviderType => InteropProviderType.Java; // JVM-based
+        private class ScalaLibraryInfo
+        {
+            public string ScriptPath { get; set; }
+            public string ScriptContent { get; set; }
+        }
+
+        public InteropProviderType ProviderType => InteropProviderType.Scala;
 
         public string[] SupportedExtensions => new[]
         {
@@ -34,8 +48,136 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public Task<OASISResult<bool>> InitializeAsync()
         {
-            var result = new OASISResult<bool> { Result = true };
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                _scalaAvailable = TryDetectScala();
+                _javaAvailable = TryDetectJava();
+                _initialized = true;
+                result.Result = true;
+                
+                if (_scalaAvailable && _javaAvailable)
+                {
+                    result.Message = $"Scala interop provider initialized with Scala compiler ({_scalaPath}) and Java runtime ({_javaPath}). Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "Scala interop provider initialized. Function signatures will be extracted from source code. Scala compiler or Java runtime not found - code execution disabled. Install Scala and Java for full support.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error initializing Scala provider: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private bool TryDetectScala()
+        {
+            var commonPaths = new[]
+            {
+                "scala",
+                "scalac",
+                @"/usr/bin/scala",
+                @"/usr/local/bin/scala"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "-version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _scalaPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryDetectJava()
+        {
+            var commonPaths = new[]
+            {
+                "java",
+                @"C:\Program Files\Java\*\bin\java.exe"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    if (path.Contains("*"))
+                    {
+                        var dir = Path.GetDirectoryName(path);
+                        var pattern = Path.GetFileName(path);
+                        if (Directory.Exists(dir))
+                        {
+                            var matches = Directory.GetFiles(dir, pattern);
+                            if (matches.Length > 0)
+                            {
+                                _javaPath = matches[0];
+                                return true;
+                            }
+                        }
+                        continue;
+                    }
+
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path,
+                        Arguments = "-version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _javaPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return false;
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -56,7 +198,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 lock (_lockObject)
                 {
-                    _loadedScripts[libraryId] = scriptContent;
+                    _loadedScripts[libraryId] = new ScalaLibraryInfo
+                    {
+                        ScriptPath = libraryPath,
+                        ScriptContent = scriptContent
+                    };
                 }
 
                 result.Result = new Objects.Interop.LoadedLibrary
@@ -109,8 +255,187 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         public Task<OASISResult<T>> InvokeAsync<T>(string libraryId, string functionName, params object[] parameters)
         {
             var result = new OASISResult<T>();
-            result.Message = "Scala function invocation. Requires Scala/JVM runtime for execution.";
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    if (!_scalaAvailable || !_javaAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "Scala compiler or Java runtime is not available. Cannot execute Scala code. " +
+                            "Install Scala (https://www.scala-lang.org/) and Java JDK for code execution. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
+
+                    return ExecuteScalaFunctionAsync<T>(scriptInfo, functionName, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error invoking Scala function: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteScalaFunctionAsync<T>(ScalaLibraryInfo scriptInfo, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var scriptDir = Path.GetDirectoryName(scriptInfo.ScriptPath);
+                var scriptFile = Path.GetFileName(scriptInfo.ScriptPath);
+                var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+                Directory.CreateDirectory(tempDir);
+
+                try
+                {
+                    // Copy original script to temp directory
+                    var scriptFileName = Path.GetFileName(scriptFile);
+                    var scriptBaseName = Path.GetFileNameWithoutExtension(scriptFile);
+                    File.Copy(scriptInfo.ScriptPath, Path.Combine(tempDir, scriptFileName), true);
+
+                    // Create wrapper Scala object that calls the function
+                    var wrapperScript = Path.Combine(tempDir, "Wrapper.scala");
+                    var wrapperContent = new StringBuilder();
+                    wrapperContent.AppendLine("import scala.util.parsing.json.JSON");
+                    wrapperContent.AppendLine($"import {scriptBaseName}._");
+                    wrapperContent.AppendLine();
+                    wrapperContent.AppendLine("object Wrapper {");
+                    wrapperContent.AppendLine("  def main(args: Array[String]): Unit = {");
+                    wrapperContent.AppendLine($"    val result = {functionName}({BuildScalaParameters(parameters)})");
+                    wrapperContent.AppendLine("    println(JSON.stringify(result))");
+                    wrapperContent.AppendLine("  }");
+                    wrapperContent.AppendLine("}");
+
+                    File.WriteAllText(wrapperScript, wrapperContent.ToString());
+
+                    // Compile Scala to class files
+                    var scalacPath = _scalaPath == "scala" ? "scalac" : _scalaPath.Replace("scala", "scalac");
+                    var compileInfo = new ProcessStartInfo
+                    {
+                        FileName = scalacPath,
+                        Arguments = $"-d \"{tempDir}\" \"{wrapperScript}\" \"{Path.Combine(tempDir, scriptFile)}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = tempDir
+                    };
+
+                    using (var compileProcess = Process.Start(compileInfo))
+                    {
+                        if (compileProcess != null)
+                        {
+                            compileProcess.WaitForExit(60000);
+                            if (compileProcess.ExitCode != 0)
+                            {
+                                var error = compileProcess.StandardError.ReadToEnd();
+                                OASISErrorHandling.HandleError(ref result, $"Scala compilation error: {error}");
+                                return Task.FromResult(result);
+                            }
+                        }
+                    }
+
+                    // Execute compiled Scala class
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _javaPath,
+                        Arguments = $"-cp \"{tempDir}\" Wrapper",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = tempDir
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000);
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"Scala execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            result.Result = ParseScalaOutput<T>(output);
+                            result.Message = $"Scala function '{functionName}' executed successfully.";
+                        }
+                    }
+                }
+                finally
+                {
+                    try
+                    {
+                        if (Directory.Exists(tempDir))
+                        {
+                            Directory.Delete(tempDir, true);
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing Scala function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string BuildScalaParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                    paramStrings.Add("null");
+                else if (param is string)
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                else if (param is bool)
+                    paramStrings.Add((bool)param ? "true" : "false");
+                else if (param is int || param is long || param is double || param is float || param is decimal)
+                    paramStrings.Add(param.ToString());
+                else
+                    paramStrings.Add($"JSON.parseFull(\"{JsonSerializer.Serialize(param).Replace("\"", "\\\"")}\").get");
+            }
+
+            return string.Join(", ", paramStrings);
+        }
+
+        private T ParseScalaOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+                    return JsonSerializer.Deserialize<T>(trimmed);
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)

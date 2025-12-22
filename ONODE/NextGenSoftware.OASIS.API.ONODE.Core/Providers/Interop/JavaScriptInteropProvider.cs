@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects.Interop;
@@ -15,10 +17,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     /// </summary>
     public class JavaScriptInteropProvider : ILibraryInteropProvider
     {
-        private readonly Dictionary<string, dynamic> _loadedScripts;
+        private readonly Dictionary<string, JavaScriptLibraryInfo> _loadedScripts;
         private readonly object _lockObject = new object();
         private bool _initialized = false;
-        // private V8ScriptEngine _engine; // Uncomment when ClearScript is available
+        private bool _nodeAvailable = false;
+        private string _nodePath = null;
 
         public InteropProviderType ProviderType => InteropProviderType.JavaScript;
 
@@ -29,7 +32,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public JavaScriptInteropProvider()
         {
-            _loadedScripts = new Dictionary<string, dynamic>();
+            _loadedScripts = new Dictionary<string, JavaScriptLibraryInfo>();
+        }
+
+        private class JavaScriptLibraryInfo
+        {
+            public string ScriptPath { get; set; }
+            public string ScriptContent { get; set; }
+            public string LibraryName { get; set; }
         }
 
         public Task<OASISResult<bool>> InitializeAsync()
@@ -38,19 +48,81 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
             try
             {
-                // Initialize V8 engine
-                // _engine = new V8ScriptEngine(); // Uncomment when ClearScript is available
-
+                // Check for Node.js availability
+                _nodeAvailable = TryDetectNodeJs();
+                
                 _initialized = true;
                 result.Result = true;
-                result.Message = "JavaScript interop provider initialized. Function signatures will be extracted from source code.";
+                
+                if (_nodeAvailable)
+                {
+                    result.Message = $"JavaScript interop provider initialized with Node.js runtime ({_nodePath}). Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "JavaScript interop provider initialized. Function signatures will be extracted from source code. Node.js runtime not found - code execution disabled. Install Node.js for full support.";
+                }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error initializing JavaScript provider: {ex.Message}. Make sure ClearScript is installed.", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error initializing JavaScript provider: {ex.Message}", ex);
             }
 
             return Task.FromResult(result);
+        }
+
+        private bool TryDetectNodeJs()
+        {
+            try
+            {
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "node",
+                    Arguments = "--version",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var process = System.Diagnostics.Process.Start(startInfo))
+                {
+                    if (process != null)
+                    {
+                        process.WaitForExit(5000);
+                        if (process.ExitCode == 0)
+                        {
+                            _nodePath = "node";
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Node.js not found in PATH
+            }
+
+            // Try common Node.js installation paths
+            var commonPaths = new[]
+            {
+                @"C:\Program Files\nodejs\node.exe",
+                @"C:\Program Files (x86)\nodejs\node.exe",
+                @"/usr/bin/node",
+                @"/usr/local/bin/node",
+                @"/opt/homebrew/bin/node"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                if (System.IO.File.Exists(path))
+                {
+                    _nodePath = path;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -71,14 +143,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 // Load JavaScript file
                 var scriptContent = System.IO.File.ReadAllText(libraryPath);
-                // _engine.Execute(scriptContent); // Uncomment when ClearScript is available
-
                 var libraryId = Guid.NewGuid().ToString();
                 var libraryName = System.IO.Path.GetFileName(libraryPath);
 
                 lock (_lockObject)
                 {
-                    _loadedScripts[libraryId] = scriptContent;
+                    _loadedScripts[libraryId] = new JavaScriptLibraryInfo
+                    {
+                        ScriptPath = libraryPath,
+                        ScriptContent = scriptContent,
+                        LibraryName = libraryName
+                    };
                 }
 
                 result.Result = new Objects.Interop.LoadedLibrary
@@ -136,17 +211,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.ContainsKey(libraryId))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    // Invoke JavaScript function
-                    // var returnValue = _engine.Invoke(functionName, parameters);
-                    // result.Result = (T)Convert.ChangeType(returnValue, typeof(T));
+                    // Check if Node.js is available for execution
+                    if (!_nodeAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "Node.js runtime is not available. Cannot execute JavaScript code. " +
+                            "Install Node.js (https://nodejs.org/) for code execution. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
 
-                    result.Message = "JavaScript function invoked successfully.";
+                    // Execute JavaScript function using Node.js
+                    return ExecuteJavaScriptFunctionAsync<T>(scriptInfo, functionName, parameters);
                 }
             }
             catch (Exception ex)
@@ -155,6 +237,137 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             }
 
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteJavaScriptFunctionAsync<T>(JavaScriptLibraryInfo scriptInfo, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                // Create a temporary script that loads the library and calls the function
+                var tempScript = System.IO.Path.GetTempFileName() + ".js";
+                var scriptDir = System.IO.Path.GetDirectoryName(scriptInfo.ScriptPath);
+                var scriptFile = System.IO.Path.GetFileName(scriptInfo.ScriptPath);
+
+                var scriptBuilder = new System.Text.StringBuilder();
+                scriptBuilder.AppendLine($"process.chdir('{scriptDir.Replace("\\", "\\\\")}');");
+                scriptBuilder.AppendLine($"const lib = require('./{scriptFile}');");
+                scriptBuilder.AppendLine($"const result = lib.{functionName}({BuildJavaScriptParameters(parameters)});");
+                scriptBuilder.AppendLine("console.log(JSON.stringify(result));");
+
+                System.IO.File.WriteAllText(tempScript, scriptBuilder.ToString());
+
+                try
+                {
+                    var startInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = _nodePath,
+                        Arguments = $"\"{tempScript}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = scriptDir
+                    };
+
+                    using (var process = System.Diagnostics.Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000); // 30 second timeout
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"JavaScript execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            // Parse JSON output
+                            if (!string.IsNullOrWhiteSpace(output))
+                            {
+                                var jsonOutput = output.Trim();
+                                try
+                                {
+                                    if (jsonOutput.StartsWith("{") || jsonOutput.StartsWith("["))
+                                    {
+                                        result.Result = System.Text.Json.JsonSerializer.Deserialize<T>(jsonOutput);
+                                    }
+                                    else
+                                    {
+                                        result.Result = (T)Convert.ChangeType(jsonOutput, typeof(T));
+                                    }
+                                }
+                                catch
+                                {
+                                    // Fallback to string conversion
+                                    result.Result = (T)Convert.ChangeType(jsonOutput, typeof(T));
+                                }
+                            }
+                            else
+                            {
+                                result.Result = default(T);
+                            }
+
+                            result.Message = $"JavaScript function '{functionName}' executed successfully.";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, "Failed to start Node.js process.");
+                        }
+                    }
+                }
+                finally
+                {
+                    // Cleanup temp script
+                    try { System.IO.File.Delete(tempScript); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing JavaScript function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string BuildJavaScriptParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                {
+                    paramStrings.Add("null");
+                }
+                else if (param is string)
+                {
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                }
+                else if (param is bool || param is int || param is long || param is double || param is float || param is decimal)
+                {
+                    paramStrings.Add(param.ToString());
+                }
+                else
+                {
+                    // Serialize complex objects to JSON
+                    try
+                    {
+                        paramStrings.Add(System.Text.Json.JsonSerializer.Serialize(param));
+                    }
+                    catch
+                    {
+                        paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                    }
+                }
+            }
+
+            return string.Join(", ", paramStrings);
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)
@@ -224,21 +437,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContentObj))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var scriptContent = scriptContentObj as string;
-                    if (scriptContent == null)
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Script content is not a string.");
-                        return Task.FromResult(result);
-                    }
-
                     // Parse JavaScript to extract function signatures
-                    var signatures = ParseJavaScriptSignatures(scriptContent);
+                    var signatures = ParseJavaScriptSignatures(scriptInfo.ScriptContent);
                     
                     result.Result = signatures;
                     result.Message = $"Found {signatures.Count} function signatures in JavaScript library.";
