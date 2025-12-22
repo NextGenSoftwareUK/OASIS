@@ -5,10 +5,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.DNA;
 
@@ -92,21 +94,46 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (!File.Exists(dnaPath))
                     return null;
 
-                // Read PluginDNA.json to get plugin metadata
+                // Read and deserialize PluginDNA.json to get plugin metadata
                 string dnaContent = await File.ReadAllTextAsync(dnaPath);
-                // TODO: Deserialize to get plugin info
-                // For now, create a basic InstalledPlugin from folder name
                 
-                var plugin = new InstalledPlugin
+                try
+                {
+                    // Try to deserialize as STARNETDNA
+                    var starNetDNA = JsonConvert.DeserializeObject<STARNETDNA>(dnaContent);
+                    
+                    if (starNetDNA != null)
+                    {
+                        var plugin = new InstalledPlugin
+                        {
+                            Name = starNetDNA.Name ?? Path.GetFileName(pluginFolder),
+                            Description = starNetDNA.Description,
+                            Version = starNetDNA.Version,
+                            Id = starNetDNA.Id != Guid.Empty ? starNetDNA.Id : Guid.NewGuid(),
+                            STARNETDNA = starNetDNA
+                        };
+
+                        return plugin;
+                    }
+                }
+                catch (JsonException)
+                {
+                    // If deserialization fails, create basic plugin from folder name
+                    CLIEngine.ShowWarningMessage($"Could not fully parse PluginDNA.json for {Path.GetFileName(pluginFolder)}, using basic info");
+                }
+                
+                // Fallback: create basic InstalledPlugin from folder name
+                var basicPlugin = new InstalledPlugin
                 {
                     Name = Path.GetFileName(pluginFolder),
-                    // Add more properties from DNA file
+                    Id = Guid.NewGuid()
                 };
 
-                return plugin;
+                return basicPlugin;
             }
-            catch
+            catch (Exception ex)
             {
+                CLIEngine.ShowErrorMessage($"Error loading plugin info from {pluginFolder}: {ex.Message}");
                 return null;
             }
         }
@@ -135,38 +162,55 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     return result;
                 }
 
-                // Look for compiled DLL in Source folder
+                // Look for compiled DLL - check both Source folder and root plugin folder
                 string sourceFolder = Path.Combine(pluginFolder, "Source");
-                if (!Directory.Exists(sourceFolder))
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Plugin source folder not found: {sourceFolder}");
-                    return result;
-                }
-
-                // Find the CLI class DLL (assuming it's compiled to a DLL)
-                // For now, we'll use reflection to find and instantiate the CLI class
-                // In a real scenario, the plugin would need to be compiled first
+                List<string> searchPaths = new List<string>();
+                
+                if (Directory.Exists(sourceFolder))
+                    searchPaths.Add(sourceFolder);
+                searchPaths.Add(pluginFolder);
                 
                 // Try to load using AssemblyLoadContext
                 var context = new AssemblyLoadContext($"Plugin_{plugin.Name}", true);
                 
-                // Look for DLL files
-                var dllFiles = Directory.GetFiles(sourceFolder, "*.dll", SearchOption.AllDirectories);
-                
-                if (dllFiles.Length == 0)
+                // Look for DLL files in all search paths
+                List<string> dllFiles = new List<string>();
+                foreach (var searchPath in searchPaths)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"No compiled DLL found for plugin. Please compile the plugin first.");
+                    var foundDlls = Directory.GetFiles(searchPath, "*.dll", SearchOption.AllDirectories);
+                    dllFiles.AddRange(foundDlls);
+                }
+                
+                if (dllFiles.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"No compiled DLL found for plugin '{plugin.Name}'. Please compile the plugin first. Expected location: {pluginFolder} or {sourceFolder}");
                     return result;
                 }
 
-                // Load the main plugin assembly
+                // Load the main plugin assembly - try to find the one containing the CLI class
                 Assembly pluginAssembly = null;
                 foreach (var dllFile in dllFiles)
                 {
                     try
                     {
-                        pluginAssembly = context.LoadFromAssemblyPath(dllFile);
-                        break; // Load first DLL found (in production, you'd want to find the main one)
+                        var assembly = context.LoadFromAssemblyPath(dllFile);
+                        
+                        // Check if this assembly contains a class extending STARNETUIBase
+                        var hasCLIClass = assembly.GetTypes()
+                            .Any(t => t.IsClass && 
+                                !t.IsAbstract && 
+                                t.BaseType != null && 
+                                t.BaseType.Name.Contains("STARNETUIBase"));
+                        
+                        if (hasCLIClass)
+                        {
+                            pluginAssembly = assembly;
+                            break; // Found the main plugin assembly
+                        }
+                        
+                        // If no main assembly found yet, use the first one
+                        if (pluginAssembly == null)
+                            pluginAssembly = assembly;
                     }
                     catch (Exception ex)
                     {
@@ -269,6 +313,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
     }
 }
+
 
 
 

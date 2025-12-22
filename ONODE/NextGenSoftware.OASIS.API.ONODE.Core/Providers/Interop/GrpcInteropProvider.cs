@@ -1,6 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -17,6 +22,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     {
         private readonly Dictionary<string, GrpcLibraryInfo> _loadedLibraries;
         private readonly object _lockObject = new object();
+        private bool _initialized = false;
+        private bool _grpcAvailable = false;
+        private HttpClient _httpClient;
 
         public InteropProviderType ProviderType => InteropProviderType.Grpc;
 
@@ -28,12 +36,52 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         public GrpcInteropProvider()
         {
             _loadedLibraries = new Dictionary<string, GrpcLibraryInfo>();
+            _httpClient = new HttpClient();
         }
 
         public Task<OASISResult<bool>> InitializeAsync()
         {
-            var result = new OASISResult<bool> { Result = true };
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                // Check if gRPC libraries are available via reflection
+                _grpcAvailable = CheckGrpcAvailability();
+                _initialized = true;
+                result.Result = true;
+                
+                if (_grpcAvailable)
+                {
+                    result.Message = "gRPC interop provider initialized. Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "gRPC interop provider initialized. Function signatures will be extracted from .proto files. gRPC client libraries not found - code execution disabled. Install Grpc.Net.Client NuGet package for full support.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error initializing gRPC provider: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private bool CheckGrpcAvailability()
+        {
+            try
+            {
+                // Try to load gRPC types via reflection
+                var grpcAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name.Contains("Grpc.Net.Client") || 
+                                        a.GetName().Name.Contains("Grpc.Core"));
+                
+                return grpcAssembly != null;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -126,9 +174,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                         return Task.FromResult(result);
                     }
 
-                    // gRPC invocation requires gRPC client library
-                    // For now, return placeholder
-                    result.Message = "gRPC function invocation. Requires gRPC client library for execution.";
+                    if (!_grpcAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "gRPC client libraries are not available. Cannot execute gRPC calls. " +
+                            "Install Grpc.Net.Client NuGet package for code execution. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
+
+                    return ExecuteGrpcFunctionAsync<T>(library, functionName, parameters);
                 }
             }
             catch (Exception ex)
@@ -137,6 +192,210 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             }
 
             return Task.FromResult(result);
+        }
+
+        private async Task<OASISResult<T>> ExecuteGrpcFunctionAsync<T>(GrpcLibraryInfo library, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                // Try to use gRPC via reflection if available
+                var grpcResult = await TryInvokeGrpcViaReflection<T>(library, functionName, parameters);
+                if (!grpcResult.IsError)
+                {
+                    return grpcResult;
+                }
+
+                var fallbackResult = await TryGrpcWebFallback<T>(library, functionName, parameters);
+                if (!fallbackResult.IsError)
+                {
+                    return fallbackResult;
+                }
+
+                OASISErrorHandling.HandleError(ref result, 
+                    "gRPC execution failed. Ensure gRPC client code is generated from .proto files using Grpc.Tools, " +
+                    "or that the gRPC service supports gRPC-Web/HTTP JSON transcoding. " +
+                    "Alternatively, use the REST API provider for HTTP/JSON endpoints.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing gRPC function '{functionName}': {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<T>> TryInvokeGrpcViaReflection<T>(GrpcLibraryInfo library, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var grpcAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name.Contains("Grpc.Net.Client") || 
+                                        a.GetName().Name.Contains("Grpc.Core"));
+
+                if (grpcAssembly == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "gRPC assemblies not found.");
+                    return result;
+                }
+
+                var endpoint = library.Endpoint;
+                if (string.IsNullOrEmpty(endpoint))
+                {
+                    endpoint = "localhost:50051";
+                }
+
+                // Try to find generated client types in loaded assemblies
+                var clientTypes = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(a => a.GetTypes())
+                    .Where(t => t.Name.EndsWith("Client") && 
+                               t.GetMethods().Any(m => m.Name == functionName))
+                    .ToList();
+
+                if (clientTypes.Any())
+                {
+                    foreach (var clientType in clientTypes)
+                    {
+                        try
+                        {
+                            var method = clientType.GetMethod(functionName, 
+                                BindingFlags.Public | 
+                                BindingFlags.Instance);
+                            
+                            if (method != null)
+                            {
+                                var channelType = grpcAssembly.GetType("Grpc.Net.Client.GrpcChannel") ??
+                                                 grpcAssembly.GetType("Grpc.Core.Channel");
+                                
+                                if (channelType != null)
+                                {
+                                    var createMethod = channelType.GetMethod("ForAddress", 
+                                        new[] { typeof(string) }) ??
+                                        channelType.GetMethod("Create", 
+                                        new[] { typeof(string) });
+                                    
+                                    if (createMethod != null)
+                                    {
+                                        var channel = createMethod.Invoke(null, new object[] { endpoint });
+                                        var client = Activator.CreateInstance(clientType, channel);
+                                        
+                                        object request;
+                                        if (parameters != null && parameters.Length > 0)
+                                        {
+                                            request = parameters[0];
+                                        }
+                                        else
+                                        {
+                                            var requestType = method.GetParameters().FirstOrDefault()?.ParameterType;
+                                            if (requestType != null)
+                                            {
+                                                request = Activator.CreateInstance(requestType);
+                                            }
+                                            else
+                                            {
+                                                request = new { };
+                                            }
+                                        }
+                                        
+                                        var invokeResult = method.Invoke(client, new[] { request });
+                                        
+                                        if (invokeResult is Task taskResult)
+                                        {
+                                            await taskResult;
+                                            var resultProperty = taskResult.GetType().GetProperty("Result");
+                                            if (resultProperty != null)
+                                            {
+                                                var taskValue = resultProperty.GetValue(taskResult);
+                                                result.Result = (T)Convert.ChangeType(taskValue, typeof(T));
+                                                result.Message = $"gRPC function '{functionName}' executed successfully.";
+                                                return result;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            result.Result = (T)Convert.ChangeType(invokeResult, typeof(T));
+                                            result.Message = $"gRPC function '{functionName}' executed successfully.";
+                                            return result;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                // Fallback: Try gRPC-Web/HTTP JSON transcoding
+                var fallbackResult = await TryGrpcWebFallback<T>(library, functionName, parameters);
+                if (!fallbackResult.IsError)
+                {
+                    return fallbackResult;
+                }
+
+                OASISErrorHandling.HandleError(ref result, 
+                    "gRPC execution requires generated client code from .proto files. " +
+                    "Use Grpc.Tools to generate C# client code, or ensure the client assembly is loaded. " +
+                    "Alternatively, use the REST API provider for HTTP/JSON endpoints.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error invoking gRPC via reflection: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<T>> TryGrpcWebFallback<T>(GrpcLibraryInfo library, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var endpoint = library.Endpoint;
+                if (string.IsNullOrEmpty(endpoint))
+                {
+                    endpoint = "localhost:50051";
+                }
+
+                var baseUrl = endpoint.StartsWith("http") ? endpoint : $"https://{endpoint}";
+                var grpcWebUrl = $"{baseUrl}/{functionName}";
+
+                var requestBody = parameters != null && parameters.Length > 0
+                    ? JsonSerializer.Serialize(parameters[0])
+                    : "{}";
+
+                var httpContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
+                httpContent.Headers.Add("Content-Type", "application/grpc-web+json");
+
+                var response = await _httpClient.PostAsync(grpcWebUrl, httpContent);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var deserialized = JsonSerializer.Deserialize<T>(responseContent);
+                    result.Result = deserialized;
+                    result.Message = $"gRPC-Web function '{functionName}' executed successfully.";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, 
+                        $"gRPC-Web call failed: {response.StatusCode} - {responseContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, 
+                    $"gRPC-Web fallback failed: {ex.Message}. " +
+                    "Ensure the gRPC service supports gRPC-Web or use generated client code.");
+            }
+
+            return result;
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)

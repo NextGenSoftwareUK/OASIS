@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
@@ -16,10 +19,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
     /// </summary>
     public class TypeScriptInteropProvider : ILibraryInteropProvider
     {
-        private readonly Dictionary<string, string> _loadedScripts;
+        private readonly Dictionary<string, TypeScriptLibraryInfo> _loadedScripts;
         private readonly object _lockObject = new object();
+        private bool _initialized = false;
+        private bool _tscAvailable = false;
+        private bool _nodeAvailable = false;
+        private string _tscPath = null;
+        private string _nodePath = null;
 
-        public InteropProviderType ProviderType => InteropProviderType.JavaScript; // Reuse JavaScript type
+        private class TypeScriptLibraryInfo
+        {
+            public string ScriptPath { get; set; }
+            public string ScriptContent { get; set; }
+        }
+
+        public InteropProviderType ProviderType => InteropProviderType.TypeScript;
 
         public string[] SupportedExtensions => new[]
         {
@@ -33,8 +47,108 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public Task<OASISResult<bool>> InitializeAsync()
         {
-            var result = new OASISResult<bool> { Result = true };
+            var result = new OASISResult<bool>();
+
+            try
+            {
+                _tscAvailable = TryDetectTypeScript();
+                _nodeAvailable = TryDetectNodeJs();
+                _initialized = true;
+                result.Result = true;
+                
+                if (_tscAvailable && _nodeAvailable)
+                {
+                    result.Message = $"TypeScript interop provider initialized with TypeScript compiler ({_tscPath}) and Node.js ({_nodePath}). Both signature extraction and code execution are available.";
+                }
+                else
+                {
+                    result.Message = "TypeScript interop provider initialized. Function signatures will be extracted from source code. TypeScript compiler or Node.js not found - code execution disabled. Install TypeScript (npm install -g typescript) and Node.js for full support.";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error initializing TypeScript provider: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private bool TryDetectTypeScript()
+        {
+            var commonPaths = new[]
+            {
+                "tsc",
+                "npx tsc"
+            };
+
+            foreach (var path in commonPaths)
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = path.Contains(" ") ? path.Split(' ')[0] : path,
+                        Arguments = path.Contains(" ") ? string.Join(" ", path.Split(' ').Skip(1)) + " --version" : "--version",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            process.WaitForExit(2000);
+                            if (process.ExitCode == 0)
+                            {
+                                _tscPath = path;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryDetectNodeJs()
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "node",
+                    Arguments = "--version",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(startInfo))
+                {
+                    if (process != null)
+                    {
+                        process.WaitForExit(2000);
+                        if (process.ExitCode == 0)
+                        {
+                            _nodePath = "node";
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return false;
         }
 
         public Task<OASISResult<ILoadedLibrary>> LoadLibraryAsync(string libraryPath, Dictionary<string, object> options = null)
@@ -55,7 +169,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                 lock (_lockObject)
                 {
-                    _loadedScripts[libraryId] = scriptContent;
+                    _loadedScripts[libraryId] = new TypeScriptLibraryInfo
+                    {
+                        ScriptPath = libraryPath,
+                        ScriptContent = scriptContent
+                    };
                 }
 
                 result.Result = new Objects.Interop.LoadedLibrary
@@ -108,8 +226,165 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
         public Task<OASISResult<T>> InvokeAsync<T>(string libraryId, string functionName, params object[] parameters)
         {
             var result = new OASISResult<T>();
-            result.Message = "TypeScript function invocation. Requires TypeScript runtime for execution.";
+
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Library not loaded.");
+                        return Task.FromResult(result);
+                    }
+
+                    if (!_tscAvailable || !_nodeAvailable)
+                    {
+                        OASISErrorHandling.HandleError(ref result, 
+                            "TypeScript compiler or Node.js runtime is not available. Cannot execute TypeScript code. " +
+                            "Install TypeScript (npm install -g typescript) and Node.js for code execution. " +
+                            "Signature extraction works without runtime, but code execution requires it.");
+                        return Task.FromResult(result);
+                    }
+
+                    return ExecuteTypeScriptFunctionAsync<T>(scriptInfo, functionName, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error invoking TypeScript function: {ex.Message}", ex);
+            }
+
             return Task.FromResult(result);
+        }
+
+        private Task<OASISResult<T>> ExecuteTypeScriptFunctionAsync<T>(TypeScriptLibraryInfo scriptInfo, string functionName, object[] parameters)
+        {
+            var result = new OASISResult<T>();
+
+            try
+            {
+                var scriptDir = Path.GetDirectoryName(scriptInfo.ScriptPath);
+                var scriptFile = Path.GetFileName(scriptInfo.ScriptPath);
+                var compiledJs = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFile) + ".js");
+                var tempScript = Path.GetTempFileName() + ".js";
+
+                // Compile TypeScript to JavaScript
+                var compileInfo = new ProcessStartInfo
+                {
+                    FileName = _tscPath.Contains(" ") ? _tscPath.Split(' ')[0] : _tscPath,
+                    Arguments = $"{(_tscPath.Contains(" ") ? string.Join(" ", _tscPath.Split(' ').Skip(1)) + " " : "")}\"{scriptInfo.ScriptPath}\" --outDir \"{scriptDir}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = scriptDir
+                };
+
+                using (var compileProcess = Process.Start(compileInfo))
+                {
+                    if (compileProcess != null)
+                    {
+                        compileProcess.WaitForExit(30000);
+                        if (compileProcess.ExitCode != 0)
+                        {
+                            var error = compileProcess.StandardError.ReadToEnd();
+                            OASISErrorHandling.HandleError(ref result, $"TypeScript compilation error: {error}");
+                            return Task.FromResult(result);
+                        }
+                    }
+                }
+
+                // Execute compiled JavaScript
+                var scriptBuilder = new StringBuilder();
+                scriptBuilder.AppendLine($"const lib = require('./{Path.GetFileName(compiledJs)}');");
+                scriptBuilder.AppendLine($"const result = lib.{functionName}({BuildJavaScriptParameters(parameters)});");
+                scriptBuilder.AppendLine("console.log(JSON.stringify(result));");
+
+                File.WriteAllText(tempScript, scriptBuilder.ToString());
+
+                try
+                {
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _nodePath,
+                        Arguments = $"\"{tempScript}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = scriptDir
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process != null)
+                        {
+                            var output = process.StandardOutput.ReadToEnd();
+                            var error = process.StandardError.ReadToEnd();
+                            process.WaitForExit(30000);
+
+                            if (process.ExitCode != 0)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"TypeScript execution error: {error}");
+                                return Task.FromResult(result);
+                            }
+
+                            result.Result = ParseTypeScriptOutput<T>(output);
+                            result.Message = $"TypeScript function '{functionName}' executed successfully.";
+                        }
+                    }
+                }
+                finally
+                {
+                    try { File.Delete(tempScript); } catch { }
+                    try { File.Delete(compiledJs); } catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error executing TypeScript function '{functionName}': {ex.Message}", ex);
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private string BuildJavaScriptParameters(object[] parameters)
+        {
+            if (parameters == null || parameters.Length == 0)
+                return string.Empty;
+
+            var paramStrings = new List<string>();
+            foreach (var param in parameters)
+            {
+                if (param == null)
+                    paramStrings.Add("null");
+                else if (param is string)
+                    paramStrings.Add($"\"{param.ToString().Replace("\"", "\\\"")}\"");
+                else if (param is bool || param is int || param is long || param is double || param is float || param is decimal)
+                    paramStrings.Add(param.ToString());
+                else
+                    paramStrings.Add(JsonSerializer.Serialize(param));
+            }
+
+            return string.Join(", ", paramStrings);
+        }
+
+        private T ParseTypeScriptOutput<T>(string output)
+        {
+            if (string.IsNullOrWhiteSpace(output))
+                return default(T);
+
+            var trimmed = output.Trim();
+            try
+            {
+                if (trimmed.StartsWith("{") || trimmed.StartsWith("["))
+                    return JsonSerializer.Deserialize<T>(trimmed);
+                return (T)Convert.ChangeType(trimmed, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
         }
 
         public Task<OASISResult<object>> InvokeAsync(string libraryId, string functionName, params object[] parameters)
