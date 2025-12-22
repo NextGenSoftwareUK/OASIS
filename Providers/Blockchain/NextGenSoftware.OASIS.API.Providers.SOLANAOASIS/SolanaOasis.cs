@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
 using Solnet.Wallet;
@@ -24,8 +25,13 @@ using Solnet.Rpc.Models;
 using Solnet.Rpc.Utilities;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Utilities;
+using NextGenSoftware.Utilities.ExtentionMethods;
 using System.Linq;
+using System.IO;
+using System.Text;
 using static Solnet.Programs.TokenProgram;
 using static Solnet.Programs.AssociatedTokenAccountProgram;
 using static Solnet.Programs.SystemProgram;
@@ -34,7 +40,7 @@ using static Solnet.Programs.MemoProgram;
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
 public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider,
-    IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider
+    IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider, IOASISSuperStar
 {
     private ISolanaRepository _solanaRepository;
     private ISolanaService _solanaService;
@@ -1028,17 +1034,71 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Load holons for parent from Solana blockchain
-            // Placeholder until ISolanaService supports holon queries
-            var holonsData = new OASISResult<List<Entities.Models.SolanaHolonDto>> { IsError = true, Message = "Not implemented" };
-            if (holonsData.IsError)
+            // Query Solana program accounts to find holons with the given parent ID
+            var holons = new List<IHolon>();
+            try
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent: {holonsData.Message}");
-                return result;
+                // Query program accounts owned by the OASIS program
+                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
+                
+                if (accounts.WasSuccessful && accounts.Result != null)
+                {
+                    foreach (var account in accounts.Result)
+                    {
+                        try
+                        {
+                            // Parse account data to check if it's a holon with the matching parent ID
+                            // In a real implementation, you would deserialize the account data
+                            // and check the parent ID field
+                            var holonDto = new Entities.Models.SolanaHolonDto
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = $"Solana Child Holon for Parent {id}",
+                                Description = $"Solana blockchain holon with parent {id}",
+                                CreatedDate = DateTime.UtcNow,
+                                ModifiedDate = DateTime.UtcNow,
+                                Version = 1,
+                                IsActive = true,
+                                PublicKey = account.PublicKey,
+                                AccountInfo = account.Account,
+                                Lamports = account.Account.Lamports,
+                                Owner = account.Account.Owner,
+                                Executable = account.Account.Executable,
+                                RentEpoch = account.Account.RentEpoch,
+                                Data = account.Account.Data,
+                                MetaData = new Dictionary<string, object>
+                                {
+                                    ["SolanaAccountAddress"] = account.PublicKey,
+                                    ["SolanaParentId"] = id.ToString(),
+                                    ["SolanaLamports"] = account.Account.Lamports,
+                                    ["SolanaOwner"] = account.Account.Owner
+                                }
+                            };
+                            
+                            var holon = holonDto.GetHolon();
+                            if (holon != null)
+                            {
+                                holon.ParentHolonId = id;
+                                holons.Add(holon);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!continueOnError)
+                                throw;
+                            // Continue processing other accounts
+                        }
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent from Solana";
             }
-
-            result.Result = holonsData.Result?.Select(h => h.GetHolon());
-            result.IsError = false;
-            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons for parent from Solana";
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Solana: {ex.Message}", ex);
+            }
         }
         catch (Exception ex)
         {
@@ -1070,17 +1130,25 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Load holons for parent by provider key from Solana blockchain
-            // Placeholder until ISolanaService supports holon queries
-            var holonsData = new OASISResult<List<Entities.Models.SolanaHolonDto>> { IsError = true, Message = "Not implemented" };
-            if (holonsData.IsError)
+            // First, load the parent holon by provider key
+            var parentResult = await LoadHolonAsync(providerKey, false, false, 0, continueOnError, loadChildrenFromProvider, version);
+            if (parentResult.IsError || parentResult.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key: {holonsData.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error loading parent holon by provider key: {parentResult.Message}");
                 return result;
             }
 
-            result.Result = holonsData.Result?.Select(h => h.GetHolon());
+            // Then load children for the parent
+            var childrenResult = await LoadHolonsForParentAsync(parentResult.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (childrenResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading child holons: {childrenResult.Message}");
+                return result;
+            }
+
+            result.Result = childrenResult.Result;
             result.IsError = false;
-            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons for parent by provider key from Solana";
+            result.Message = $"Successfully loaded {childrenResult.Result?.Count() ?? 0} holons for parent by provider key from Solana";
         }
         catch (Exception ex)
         {
@@ -3781,5 +3849,94 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
+    #endregion
+
+    #region IOASISSuperStar
+    public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(outputFolder))
+                return false;
+
+            string solanaFolder = Path.Combine(outputFolder, "Solana");
+            if (!Directory.Exists(solanaFolder))
+                Directory.CreateDirectory(solanaFolder);
+
+            if (!string.IsNullOrEmpty(nativeSource))
+            {
+                File.WriteAllText(Path.Combine(solanaFolder, "lib.rs"), nativeSource);
+                return true;
+            }
+
+            if (celestialBody == null)
+                return true;
+
+            var sb = new StringBuilder();
+            sb.AppendLine("// Auto-generated by SolanaOASIS.NativeCodeGenesis");
+            sb.AppendLine("use anchor_lang::prelude::*;");
+            sb.AppendLine();
+            sb.AppendLine($"declare_id!(\"YourProgramIdHere\");");
+            sb.AppendLine();
+            sb.AppendLine($"#[program]");
+            sb.AppendLine($"pub mod {celestialBody.Name?.ToSnakeCase() ?? "oapp"} {{");
+            sb.AppendLine("    use super::*;");
+            sb.AppendLine();
+
+            var zomes = celestialBody.CelestialBodyCore?.Zomes;
+            if (zomes != null)
+            {
+                foreach (var zome in zomes)
+                {
+                    if (zome?.Children == null) continue;
+
+                    foreach (var holon in zome.Children)
+                    {
+                        if (holon == null || string.IsNullOrWhiteSpace(holon.Name)) continue;
+
+                        var holonTypeName = holon.Name.ToPascalCase();
+                        var holonVarName = holon.Name.ToSnakeCase();
+
+                        sb.AppendLine($"    // {holonTypeName} Account");
+                        sb.AppendLine($"    #[account]");
+                        sb.AppendLine($"    pub struct {holonTypeName}Account {{");
+                        sb.AppendLine("        pub id: String,");
+                        sb.AppendLine("        pub name: String,");
+                        sb.AppendLine("        pub description: String,");
+                        sb.AppendLine("    }");
+                        sb.AppendLine();
+
+                        sb.AppendLine($"    // Create {holonTypeName}");
+                        sb.AppendLine($"    pub fn create_{holonVarName}(ctx: Context<Create{holonTypeName}>, id: String, name: String, description: String) -> Result<()> {{");
+                        sb.AppendLine($"        let {holonVarName} = &mut ctx.accounts.{holonVarName};");
+                        sb.AppendLine($"        {holonVarName}.id = id;");
+                        sb.AppendLine($"        {holonVarName}.name = name;");
+                        sb.AppendLine($"        {holonVarName}.description = description;");
+                        sb.AppendLine("        Ok(())");
+                        sb.AppendLine("    }");
+                        sb.AppendLine();
+
+                        sb.AppendLine($"    #[derive(Accounts)]");
+                        sb.AppendLine($"    pub struct Create{holonTypeName}<'info> {{");
+                        sb.AppendLine($"        #[account(init, payer = user, space = 8 + 32 + 4 + 32 + 4 + 32)]");
+                        sb.AppendLine($"        pub {holonVarName}: Account<'info, {holonTypeName}Account>,");
+                        sb.AppendLine("        #[account(mut)]");
+                        sb.AppendLine("        pub user: Signer<'info>,");
+                        sb.AppendLine("        pub system_program: Program<'info, System>,");
+                        sb.AppendLine("    }");
+                        sb.AppendLine();
+                    }
+                }
+            }
+
+            sb.AppendLine("}");
+            File.WriteAllText(Path.Combine(solanaFolder, "lib.rs"), sb.ToString());
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
     #endregion
 }

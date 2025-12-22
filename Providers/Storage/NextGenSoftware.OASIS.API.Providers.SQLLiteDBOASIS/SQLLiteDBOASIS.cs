@@ -595,58 +595,49 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWallets()
         {
-            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
-            try
-            {
-                // Real SQLite implementation: Load provider wallets from database
-                var wallets = new Dictionary<ProviderType, List<IProviderWallet>>();
-                
-                // Load wallets for each provider type
-                foreach (ProviderType providerType in Enum.GetValues<ProviderType>())
-                {
-                    if (providerType != Core.Enums.ProviderType.Default)
-                    {
-                        var providerWallets = new List<IProviderWallet>();
-                        // In a real implementation, this would query the SQLite database
-                        // for wallets associated with this provider type
-                        wallets[providerType] = providerWallets;
-                    }
-                }
-                
-                result.Result = wallets;
-                result.IsError = false;
-                result.Message = "Provider wallets loaded successfully from SQLite";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading provider wallets from SQLite: {ex.Message}", ex);
-            }
-            return result;
+            return LoadProviderWalletsAsync().Result;
         }
 
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsAsync()
         {
-            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            var result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
             try
             {
-                // Real SQLite implementation: Load provider wallets from database asynchronously
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load all avatars and aggregate their provider wallets
+                var allAvatarsResult = await _avatarRepository.LoadAllAvatarsAsync();
+                if (allAvatarsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}");
+                    return result;
+                }
+
                 var wallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 
-                // Load wallets for each provider type
-                foreach (ProviderType providerType in Enum.GetValues<ProviderType>())
+                // Aggregate wallets from all avatars
+                foreach (var avatar in allAvatarsResult.Result ?? Enumerable.Empty<IAvatar>())
                 {
-                    if (providerType != Core.Enums.ProviderType.Default)
+                    if (avatar.ProviderWallets != null)
                     {
-                        var providerWallets = new List<IProviderWallet>();
-                        // In a real implementation, this would query the SQLite database
-                        // for wallets associated with this provider type
-                        wallets[providerType] = providerWallets;
+                        foreach (var kvp in avatar.ProviderWallets)
+                        {
+                            if (!wallets.ContainsKey(kvp.Key))
+                            {
+                                wallets[kvp.Key] = new List<IProviderWallet>();
+                            }
+                            wallets[kvp.Key].AddRange(kvp.Value);
+                        }
                     }
                 }
                 
                 result.Result = wallets;
                 result.IsError = false;
-                result.Message = "Provider wallets loaded successfully from SQLite";
+                result.Message = $"Successfully loaded provider wallets from {allAvatarsResult.Result?.Count() ?? 0} avatars in SQLite";
             }
             catch (Exception ex)
             {
@@ -657,19 +648,70 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public OASISResult<bool> SaveProviderWallets(Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            //TODO: Finish Implementing.
-
-            return result;
+            return SaveProviderWalletsAsync(providerWallets).Result;
         }
 
         public async Task<OASISResult<bool>> SaveProviderWalletsAsync(Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
 
-            //TODO: Finish Implementing.
+                if (providerWallets == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Provider wallets cannot be null");
+                    return result;
+                }
 
+                // Save provider wallets for all avatars that have these wallets
+                // Load all avatars and update their provider wallets
+                var allAvatarsResult = await _avatarRepository.LoadAllAvatarsAsync();
+                if (allAvatarsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}");
+                    return result;
+                }
+
+                int updatedCount = 0;
+                foreach (var avatar in allAvatarsResult.Result ?? Enumerable.Empty<IAvatar>())
+                {
+                    if (avatar.ProviderWallets != null)
+                    {
+                        // Update provider wallets for this avatar
+                        foreach (var providerType in providerWallets.Keys)
+                        {
+                            if (avatar.ProviderWallets.ContainsKey(providerType))
+                            {
+                                avatar.ProviderWallets[providerType] = providerWallets[providerType];
+                            }
+                            else
+                            {
+                                avatar.ProviderWallets.Add(providerType, providerWallets[providerType]);
+                            }
+                        }
+
+                        // Save the updated avatar
+                        var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                        if (!saveResult.IsError)
+                        {
+                            updatedCount++;
+                        }
+                    }
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Successfully saved provider wallets for {updatedCount} avatars in SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving provider wallets to SQLite: {ex.Message}", ex);
+            }
             return result;
         }
 

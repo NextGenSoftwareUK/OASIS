@@ -120,6 +120,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         InstalledZome,
         InstalledZomeMetaDataDNA,
         InstalledPlugin,
+        Proposal,
         None
         //Custom,
         //DataObject

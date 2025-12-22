@@ -31,6 +31,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.Utilities.ExtentionMethods;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using System.IO;
 using System.Threading;
 using Nethereum.Web3.Accounts;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -1416,30 +1419,175 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
     //    throw new NotImplementedException();
     //}
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
+                return result;
+            }
+
+            // Web3Core is a blockchain provider, not a storage provider
+            // Return empty result as blockchain providers don't store holons by metadata
+            result.Result = new List<IHolon>();
+            result.IsError = false;
+            result.Message = "Web3Core blockchain provider does not support metadata-based holon queries";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
+                return result;
+            }
+
+            // Web3Core is a blockchain provider, not a storage provider
+            // Return empty result as blockchain providers don't store holons by metadata
+            result.Result = new List<IHolon>();
+            result.IsError = false;
+            result.Message = "Web3Core blockchain provider does not support metadata-based holon queries";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
     {
-        // Base Web3Core provider does not generate native code from STAR metadata yet.
-        return true;
+        try
+        {
+            if (string.IsNullOrEmpty(outputFolder))
+                return false;
+
+            string solidityFolder = Path.Combine(outputFolder, "Solidity");
+            if (!Directory.Exists(solidityFolder))
+                Directory.CreateDirectory(solidityFolder);
+
+            if (!string.IsNullOrEmpty(nativeSource))
+            {
+                File.WriteAllText(Path.Combine(solidityFolder, "Contract.sol"), nativeSource);
+                return true;
+            }
+
+            if (celestialBody == null)
+                return true;
+
+            var sb = new StringBuilder();
+            sb.AppendLine("// SPDX-License-Identifier: MIT");
+            sb.AppendLine("// Auto-generated by Web3CoreOASISBaseProvider.NativeCodeGenesis");
+            sb.AppendLine("pragma solidity ^0.8.0;");
+            sb.AppendLine();
+            sb.AppendLine($"contract {celestialBody.Name?.ToPascalCase() ?? "Web3Contract"} {{");
+            sb.AppendLine("    // Holon structs");
+
+            var zomes = celestialBody.CelestialBodyCore?.Zomes;
+            if (zomes != null)
+            {
+                foreach (var zome in zomes)
+                {
+                    if (zome?.Children == null) continue;
+
+                    foreach (var holon in zome.Children)
+                    {
+                        if (holon == null || string.IsNullOrWhiteSpace(holon.Name)) continue;
+
+                        var holonTypeName = holon.Name.ToPascalCase();
+                        sb.AppendLine($"    struct {holonTypeName} {{");
+                        sb.AppendLine("        string id;");
+                        sb.AppendLine("        string name;");
+                        sb.AppendLine("        string description;");
+                        if (holon.Nodes != null)
+                        {
+                            foreach (var node in holon.Nodes)
+                            {
+                                if (node != null && !string.IsNullOrWhiteSpace(node.NodeName))
+                                {
+                                    string solidityType = "string";
+                                    switch (node.NodeType)
+                                    {
+                                        case NodeType.Int:
+                                            solidityType = "uint256";
+                                            break;
+                                        case NodeType.Bool:
+                                            solidityType = "bool";
+                                            break;
+                                    }
+                                    sb.AppendLine($"        {solidityType} {node.NodeName.ToSnakeCase()};");
+                                }
+                            }
+                        }
+                        sb.AppendLine("    }");
+                        sb.AppendLine($"    mapping(string => {holonTypeName}) private {holonTypeName.ToCamelCase()}s;");
+                        sb.AppendLine($"    string[] private {holonTypeName.ToCamelCase()}Ids;");
+                        sb.AppendLine();
+
+                        sb.AppendLine($"    function create{holonTypeName}(string memory id, string memory name, string memory description) public {{");
+                        sb.AppendLine($"        {holonTypeName.ToCamelCase()}s[id] = {holonTypeName}(id, name, description);");
+                        sb.AppendLine($"        {holonTypeName.ToCamelCase()}Ids.push(id);");
+                        sb.AppendLine($"    }}");
+                        sb.AppendLine();
+
+                        sb.AppendLine($"    function get{holonTypeName}(string memory id) public view returns (string memory, string memory, string memory) {{");
+                        sb.AppendLine($"        {holonTypeName} storage {holonTypeName.ToCamelCase()} = {holonTypeName.ToCamelCase()}s[id];");
+                        sb.AppendLine($"        return ({holonTypeName.ToCamelCase()}.id, {holonTypeName.ToCamelCase()}.name, {holonTypeName.ToCamelCase()}.description);");
+                        sb.AppendLine($"    }}");
+                        sb.AppendLine();
+
+                        sb.AppendLine($"    function update{holonTypeName}(string memory id, string memory name, string memory description) public {{");
+                        sb.AppendLine($"        {holonTypeName} storage {holonTypeName.ToCamelCase()} = {holonTypeName.ToCamelCase()}s[id];");
+                        sb.AppendLine($"        {holonTypeName.ToCamelCase()}.name = name;");
+                        sb.AppendLine($"        {holonTypeName.ToCamelCase()}.description = description;");
+                        sb.AppendLine($"    }}");
+                        sb.AppendLine();
+
+                        sb.AppendLine($"    function delete{holonTypeName}(string memory id) public {{");
+                        sb.AppendLine($"        delete {holonTypeName.ToCamelCase()}s[id];");
+                        sb.AppendLine($"        for (uint i = 0; i < {holonTypeName.ToCamelCase()}Ids.length; i++) {{");
+                        sb.AppendLine($"            if (keccak256(abi.encodePacked({holonTypeName.ToCamelCase()}Ids[i])) == keccak256(abi.encodePacked(id))) {{");
+                        sb.AppendLine($"                {holonTypeName.ToCamelCase()}Ids[i] = {holonTypeName.ToCamelCase()}Ids[{holonTypeName.ToCamelCase()}Ids.length - 1];");
+                        sb.AppendLine($"                {holonTypeName.ToCamelCase()}Ids.pop();");
+                        sb.AppendLine($"                break;");
+                        sb.AppendLine($"            }}");
+                        sb.AppendLine($"        }}");
+                        sb.AppendLine($"    }}");
+                        sb.AppendLine();
+                    }
+                }
+            }
+
+            sb.AppendLine("}");
+            File.WriteAllText(Path.Combine(solidityFolder, "Contract.sol"), sb.ToString());
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -1570,7 +1718,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        throw new NotImplementedException();
+        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
     }
 
     public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1655,12 +1803,41 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        throw new NotImplementedException();
+        return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
     }
 
-    public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ISearchResults>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
+                return result;
+            }
+
+            if (searchParams == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Search parameters cannot be null");
+                return result;
+            }
+
+            // Web3Core is a blockchain provider, not a storage provider
+            // Return empty search results as blockchain providers don't support full-text search
+            result.Result = new SearchResults
+            {
+                SearchResultAvatars = new List<IAvatar>(),
+                SearchResultHolons = new List<IHolon>()
+            };
+            result.IsError = false;
+            result.Message = "Web3Core blockchain provider does not support search. Use blockchain explorers or indexers for on-chain data queries.";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error performing search: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
@@ -1766,42 +1943,179 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
     }
 
     public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
     }
 
-    public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        throw new NotImplementedException();
+        OASISResult<ITransactionResponse> result = new();
+        string errorMessage = "Error in SendTransactionByEmailAsync method in Web3CoreOASIS sending transaction. Reason: ";
+
+        if (amount <= 0)
+        {
+            OASISErrorHandling.HandleError(
+                ref result, Web3CoreOASISBaseProviderHelper.InvalidAmountError);
+            return result;
+        }
+
+        if (_web3CoreOASIS is null)
+        {
+            OASISErrorHandling.HandleError(
+                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            return result;
+        }
+
+        // Load avatars by email to get their wallet addresses
+        var fromAvatarResult = await LoadAvatarByEmailAsync(fromAvatarEmail);
+        var toAvatarResult = await LoadAvatarByEmailAsync(toAvatarEmail);
+        
+        if (fromAvatarResult.IsError || fromAvatarResult.Result == null)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Failed to load sender avatar: {fromAvatarResult.Message}"));
+            return result;
+        }
+        
+        if (toAvatarResult.IsError || toAvatarResult.Result == null)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Failed to load receiver avatar: {toAvatarResult.Message}"));
+            return result;
+        }
+        
+        // Get wallet addresses from avatars
+        var fromWallet = fromAvatarResult.Result.ProviderWallets?.ContainsKey(this.ProviderType.Value) == true 
+            ? fromAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault() 
+            : null;
+        var toWallet = toAvatarResult.Result.ProviderWallets?.ContainsKey(this.ProviderType.Value) == true 
+            ? toAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault() 
+            : null;
+        
+        if (fromWallet == null || toWallet == null)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Wallet addresses not found for avatars"));
+            return result;
+        }
+        
+        var fromWalletAddress = fromWallet.WalletAddress ?? fromWallet.PublicKey;
+        var toWalletAddress = toWallet.WalletAddress ?? toWallet.PublicKey;
+        
+        if (string.IsNullOrWhiteSpace(fromWalletAddress) || string.IsNullOrWhiteSpace(toWalletAddress))
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Wallet addresses not found for avatars"));
+            return result;
+        }
+        
+        OASISResult<List<string>> senderAvatarPrivateKeysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarByUsername(fromAvatarResult.Result.Username, this.ProviderType.Value);
+        if (senderAvatarPrivateKeysResult.IsError || senderAvatarPrivateKeysResult.Result == null || senderAvatarPrivateKeysResult.Result.Count == 0)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get sender private key"));
+            return result;
+        }
+
+        string senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result[0];
+        result = await SendTransactionBaseAsync(senderAvatarPrivateKey, toWalletAddress, amount);
+
+        if (result.IsError)
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+        return result;
     }
 
     public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        // For token transactions, we would need to interact with the token contract
+        // This is a placeholder that returns an error indicating token transactions need contract interaction
+        OASISResult<ITransactionResponse> result = new();
+        OASISErrorHandling.HandleError(ref result, "Token transactions require contract interaction. Use SendTokenAsync methods instead.");
+        return Task.FromResult(result);
     }
 
     public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
     }
 
     public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
     }
 
-    public Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        OASISResult<ITransactionResponse> result = new();
+        string errorMessage = "Error in SendTransactionByIdAsync method in Web3CoreOASIS sending transaction. Reason: ";
+
+        if (amount <= 0)
+        {
+            OASISErrorHandling.HandleError(
+                ref result, Web3CoreOASISBaseProviderHelper.InvalidAmountError);
+            return result;
+        }
+
+        if (_web3CoreOASIS is null)
+        {
+            OASISErrorHandling.HandleError(
+                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            return result;
+        }
+
+        // Load avatars by ID to get their wallet addresses
+        var fromAvatarResult = await LoadAvatarAsync(fromAvatarId);
+        var toAvatarResult = await LoadAvatarAsync(toAvatarId);
+        
+        if (fromAvatarResult.IsError || fromAvatarResult.Result == null)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Failed to load sender avatar: {fromAvatarResult.Message}"));
+            return result;
+        }
+        
+        if (toAvatarResult.IsError || toAvatarResult.Result == null)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Failed to load receiver avatar: {toAvatarResult.Message}"));
+            return result;
+        }
+        
+        // Get wallet addresses from avatars
+        var fromWalletAddress = fromAvatarResult.Result.ProviderWallets?.ContainsKey(this.ProviderType.Value) == true 
+            ? fromAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.Address 
+            : null;
+        var toWalletAddress = toAvatarResult.Result.ProviderWallets?.ContainsKey(this.ProviderType.Value) == true 
+            ? toAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.Address 
+            : null;
+        
+        if (string.IsNullOrWhiteSpace(fromWalletAddress) || string.IsNullOrWhiteSpace(toWalletAddress))
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Wallet addresses not found for avatars"));
+            return result;
+        }
+        
+        OASISResult<List<string>> senderAvatarPrivateKeysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarByUsername(fromAvatarResult.Result.Username, this.ProviderType.Value);
+        if (senderAvatarPrivateKeysResult.IsError || senderAvatarPrivateKeysResult.Result == null || senderAvatarPrivateKeysResult.Result.Count == 0)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get sender private key"));
+            return result;
+        }
+        
+        string senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result[0];
+        result = await SendTransactionBaseAsync(senderAvatarPrivateKey, toWalletAddress, amount);
+
+        if (result.IsError)
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
+
+        return result;
     }
 
     public Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        // For token transactions, we would need to interact with the token contract
+        // This is a placeholder that returns an error indicating token transactions need contract interaction
+        OASISResult<ITransactionResponse> result = new();
+        OASISErrorHandling.HandleError(ref result, "Token transactions require contract interaction. Use SendTokenAsync methods instead.");
+        return Task.FromResult(result);
     }
 
     public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -1811,7 +2125,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
     }
 
     public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -1836,23 +2150,8 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         OASISResult<List<string>> senderAvatarPrivateKeysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarByUsername(fromAvatarUsername, this.ProviderType.Value);
         OASISResult<List<string>> receiverAvatarAddressesResult = KeyManager.Instance.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername, this.ProviderType.Value);
 
-        if (senderAvatarPrivateKeysResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderAvatarPrivateKeysResult.Message),
-                senderAvatarPrivateKeysResult.Exception);
-            return result;
-        }
-
-        if (receiverAvatarAddressesResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receiverAvatarAddressesResult.Message),
-                receiverAvatarAddressesResult.Exception);
-            return result;
-        }
-
         string senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result[0];
-        string receiverAvatarAddress = receiverAvatarAddressesResult.Result[0];
-        result = await SendTransactionBaseAsync(senderAvatarPrivateKey, receiverAvatarAddress, amount);
+        result = await SendTransactionBaseAsync(senderAvatarPrivateKey, toWalletAddress, amount);
 
         if (result.IsError)
             OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
@@ -1862,7 +2161,11 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        // For token transactions, we would need to interact with the token contract
+        // This is a placeholder that returns an error indicating token transactions need contract interaction
+        OASISResult<ITransactionResponse> result = new();
+        OASISErrorHandling.HandleError(ref result, "Token transactions require contract interaction. Use SendTokenAsync methods instead.");
+        return Task.FromResult(result);
     }
 
     private async Task<OASISResult<ITransactionResponse>> SendTransactionBaseAsync(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)

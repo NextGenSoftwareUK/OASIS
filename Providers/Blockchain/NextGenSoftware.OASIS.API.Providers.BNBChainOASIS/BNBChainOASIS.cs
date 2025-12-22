@@ -13,7 +13,11 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
@@ -4009,6 +4013,358 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                 result.Result = BridgeTransactionStatus.NotFound;
             }
             return result;
+        }
+
+        #endregion
+
+        #region Token Methods (IOASISBlockchainStorageProvider)
+
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+        {
+            return SendTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new BNBChainTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "ToWalletAddress is required");
+                    return result;
+                }
+
+                if (string.IsNullOrWhiteSpace(request.FromTokenAddress))
+                {
+                    var receipt = await _web3Client.Eth.GetEtherTransferService()
+                        .TransferEtherAndWaitForReceiptAsync(request.ToWalletAddress, (decimal)request.Amount, 2);
+                    result.Result.TransactionResult = receipt.TransactionHash;
+                    result.IsError = false;
+                    result.Message = "BNB sent successfully";
+                }
+                else
+                {
+                    var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.FromTokenAddress);
+                    var transfer = contract.GetFunction("transfer");
+                    var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                    var receipt = await transfer.SendTransactionAndWaitForReceiptAsync(_account.Address, request.ToWalletAddress, amountInWei);
+                    result.Result.TransactionResult = receipt.TransactionHash;
+                    result.IsError = false;
+                    result.Message = "Token sent successfully on BNB Chain";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+        {
+            return MintTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new BNBChainTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.MintToWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress and MintToWalletAddress are required");
+                    return result;
+                }
+
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var mint = contract.GetFunction("mint");
+                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var receipt = await mint.SendTransactionAndWaitForReceiptAsync(_account.Address, request.MintToWalletAddress, amountInWei);
+                result.Result.TransactionResult = receipt.TransactionHash;
+                result.IsError = false;
+                result.Message = "Token minted successfully on BNB Chain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+        {
+            return BurnTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new BNBChainTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.BurnFromWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress and BurnFromWalletAddress are required");
+                    return result;
+                }
+
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var burn = contract.GetFunction("burn");
+                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var receipt = await burn.SendTransactionAndWaitForReceiptAsync(_account.Address, amountInWei);
+                result.Result.TransactionResult = receipt.TransactionHash;
+                result.IsError = false;
+                result.Message = "Token burned successfully on BNB Chain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error burning token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+        {
+            return LockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new BNBChainTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.LockWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress and LockWalletAddress are required");
+                    return result;
+                }
+
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var lockFn = contract.GetFunction("lock");
+                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var receipt = await lockFn.SendTransactionAndWaitForReceiptAsync(_account.Address, request.LockWalletAddress, amountInWei);
+                result.Result.TransactionResult = receipt.TransactionHash;
+                result.IsError = false;
+                result.Message = "Token locked successfully on BNB Chain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error locking token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+        {
+            return UnlockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new BNBChainTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.UnlockWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress and UnlockWalletAddress are required");
+                    return result;
+                }
+
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var unlockFn = contract.GetFunction("unlock");
+                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var receipt = await unlockFn.SendTransactionAndWaitForReceiptAsync(_account.Address, request.UnlockWalletAddress, amountInWei);
+                result.Result.TransactionResult = receipt.TransactionHash;
+                result.IsError = false;
+                result.Message = "Token unlocked successfully on BNB Chain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error unlocking token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+        {
+            return GetBalanceAsync(request).Result;
+        }
+
+        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var result = new OASISResult<double>();
+            try
+            {
+                if (!_isActivated || _web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "WalletAddress is required");
+                    return result;
+                }
+
+                if (string.IsNullOrWhiteSpace(request.TokenAddress))
+                {
+                    var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
+                    result.Result = (double)(balance.Value / (BigInteger)1000000000000000000);
+                    result.IsError = false;
+                    result.Message = "BNB balance retrieved successfully";
+                }
+                else
+                {
+                    var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                    var balanceFn = contract.GetFunction("balanceOf");
+                    var balance = await balanceFn.CallAsync<BigInteger>(request.WalletAddress);
+                    result.Result = (double)(balance / (BigInteger)1000000000000000000);
+                    result.IsError = false;
+                    result.Message = "Token balance retrieved successfully on BNB Chain";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting balance: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
+        {
+            return GetTransactionsAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+        {
+            var result = new OASISResult<IList<IWalletTransaction>>();
+            try
+            {
+                if (!_isActivated || _web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "WalletAddress is required");
+                    return result;
+                }
+
+                var transactions = new List<IWalletTransaction>();
+                var blockNumber = await _web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+                var limit = request.Limit > 0 ? request.Limit : 10;
+
+                for (var i = 0; i < limit && blockNumber.Value > 0; i++)
+                {
+                    try
+                    {
+                        var block = await _web3Client.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(blockNumber);
+                        foreach (var tx in block.Transactions)
+                        {
+                            if (tx.From == request.WalletAddress || tx.To == request.WalletAddress)
+                            {
+                                var walletTx = new WalletTransaction
+                                {
+                                    TransactionId = Guid.NewGuid(),
+                                    FromWalletAddress = tx.From,
+                                    ToWalletAddress = tx.To ?? string.Empty,
+                                    Amount = (double)(tx.Value.Value / (BigInteger)1000000000000000000),
+                                    Description = $"BNB Chain transaction: {tx.TransactionHash}"
+                                };
+                                transactions.Add(walletTx);
+                            }
+                        }
+                        blockNumber = new HexBigInteger(blockNumber.Value - 1);
+                    }
+                    catch
+                    {
+                        break;
+                    }
+                }
+
+                result.Result = transactions;
+                result.IsError = false;
+                result.Message = $"Retrieved {transactions.Count} BNB Chain transactions";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting transactions: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        {
+            return GenerateKeyPairAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                var account = Nethereum.Web3.Accounts.Account.GenerateAccount();
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
+                {
+                    keyPair.PrivateKey = account.PrivateKey;
+                    keyPair.PublicKey = account.PublicKey;
+                    keyPair.WalletAddressLegacy = account.Address;
+                }
+
+                result.Result = keyPair;
+                result.IsError = false;
+                result.Message = "BNB Chain key pair generated successfully using Nethereum";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        private string GetERC20ABI()
+        {
+            return @"[{""constant"":true,""inputs"":[{""name"":"""",""type"":""address""}],""name"":""balanceOf"",""outputs"":[{""name"":"""",""type"":""uint256""}],""type"":""function""},{""constant"":false,""inputs"":[{""name"":""_to"",""type"":""address""},{""name"":""_value"",""type"":""uint256""}],""name"":""transfer"",""outputs"":[{""name"":"""",""type"":""bool""}],""type"":""function""},{""constant"":false,""inputs"":[{""name"":""_to"",""type"":""address""},{""name"":""_value"",""type"":""uint256""}],""name"":""mint"",""outputs"":[],""type"":""function""},{""constant"":false,""inputs"":[{""name"":""_value"",""type"":""uint256""}],""name"":""burn"",""outputs"":[],""type"":""function""}]";
         }
 
         #endregion
