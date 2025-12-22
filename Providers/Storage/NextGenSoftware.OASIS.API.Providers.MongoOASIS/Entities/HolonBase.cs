@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
@@ -10,8 +11,12 @@ using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using DataHelper = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers.DataHelper;
+using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
@@ -151,112 +156,270 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 
         public OASISResult<IHolon> AddHolon(IHolon holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            return AddHolonAsync(holon, avatarId, saveHolon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType).Result;
         }
 
         public OASISResult<T> AddHolon<T>(T holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            throw new NotImplementedException();
+            return AddHolonAsync(holon, avatarId, saveHolon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType).Result;
         }
 
-        public Task<OASISResult<IHolon>> AddHolonAsync(IHolon holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> AddHolonAsync(IHolon holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            // Convert MongoDB entity to core Holon and delegate to HolonManager
+            var thisAsHolon = this as Holon;
+            if (thisAsHolon == null)
+            {
+                var result = new OASISResult<IHolon>();
+                OASISErrorHandling.HandleError(ref result, "HolonBase cannot be converted to Holon entity");
+                return result;
+            }
+            
+            var coreHolon = DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(thisAsHolon));
+            if (coreHolon?.Result != null)
+            {
+                if (coreHolon.Result.Children == null)
+                    coreHolon.Result.Children = new List<IHolon>();
+                
+                coreHolon.Result.Children.Add(holon);
+                
+                if (saveHolon)
+                {
+                    return await HolonManager.Instance.SaveHolonAsync(coreHolon.Result, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                }
+                
+                return coreHolon;
+            }
+            
+            var errorResult = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref errorResult, "Failed to convert MongoDB entity to core Holon");
+            return errorResult;
         }
 
-        public Task<OASISResult<T>> AddHolonAsync<T>(T holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public async Task<OASISResult<T>> AddHolonAsync<T>(T holon, Guid avatarId, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            throw new NotImplementedException();
+            var addResult = await AddHolonAsync(holon as IHolon, avatarId, saveHolon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            var result = new OASISResult<T>();
+            if (!addResult.IsError && addResult.Result is T)
+            {
+                result.Result = (T)addResult.Result;
+                result.IsError = false;
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, addResult.Message ?? "Failed to add holon");
+            }
+            return result;
         }
 
         public OASISResult<IHolon> Delete(Guid avtatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            return DeleteAsync(avtatarId, softDelete, providerType).Result;
         }
 
-        public Task<OASISResult<IHolon>> DeleteAsync(Guid avtatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> DeleteAsync(Guid avtatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            // Delete holon using HolonManager
+            if (HolonId != Guid.Empty)
+            {
+                return await HolonManager.Instance.DeleteHolonAsync(HolonId, softDelete, providerType);
+            }
+            
+            var result = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref result, "HolonId is not set");
+            return result;
         }
 
         public bool HasHolonChanged(bool checkChildren = true)
         {
-            throw new NotImplementedException();
+            // MongoDB entity doesn't track changes the same way - return IsChanged property
+            return IsChanged;
         }
 
         public OASISResult<IHolon> Load(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            return LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType).Result;
         }
 
         public OASISResult<T> Load<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            throw new NotImplementedException();
+            return LoadAsync<T>(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType).Result;
         }
 
-        public Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> LoadAsync(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            // Convert MongoDB entity to core Holon and delegate to HolonManager
+            if (HolonId != Guid.Empty)
+            {
+                return await HolonManager.Instance.LoadHolonAsync(HolonId, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
+            }
+            else if (ProviderUniqueStorageKey != null && ProviderUniqueStorageKey.Count > 0)
+            {
+                var targetProviderType = providerType == ProviderType.Default ? ProviderType.MongoDBOASIS : providerType;
+                var providerKey = ProviderUniqueStorageKey.ContainsKey(targetProviderType) 
+                    ? ProviderUniqueStorageKey[targetProviderType]
+                    : ProviderUniqueStorageKey.Values.FirstOrDefault();
+                
+                if (!string.IsNullOrEmpty(providerKey))
+                {
+                    return await HolonManager.Instance.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
+                }
+            }
+            
+            var result = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref result, "Both HolonId and ProviderUniqueStorageKey are null or empty");
+            return result;
         }
 
-        public Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public async Task<OASISResult<T>> LoadAsync<T>(bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            throw new NotImplementedException();
+            var loadResult = await LoadAsync(loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType);
+            var result = new OASISResult<T>();
+            if (!loadResult.IsError && loadResult.Result is T)
+            {
+                result.Result = (T)loadResult.Result;
+                result.IsError = false;
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, loadResult.Message ?? "Failed to load holon");
+            }
+            return result;
         }
 
         public OASISResult<IEnumerable<IHolon>> LoadChildHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
         {
-            throw new NotImplementedException();
+            return LoadChildHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType, cache).Result;
         }
 
         public OASISResult<IEnumerable<T>> LoadChildHolons<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
         {
-            throw new NotImplementedException();
+            return LoadChildHolonsAsync<T>(holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType, cache).Result;
         }
 
-        public Task<OASISResult<IEnumerable<IHolon>>> LoadChildHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadChildHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true)
         {
-            throw new NotImplementedException();
+            // Load child holons for this holon
+            if (HolonId != Guid.Empty)
+            {
+                return await HolonManager.Instance.LoadHolonsForParentAsync(HolonId, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
+            }
+            
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "HolonId is not set");
+            return result;
         }
 
-        public Task<OASISResult<IEnumerable<T>>> LoadChildHolonsAsync<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
+        public async Task<OASISResult<IEnumerable<T>>> LoadChildHolonsAsync<T>(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
         {
-            throw new NotImplementedException();
+            var loadResult = await LoadChildHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, providerType, cache);
+            var result = new OASISResult<IEnumerable<T>>();
+            if (!loadResult.IsError && loadResult.Result != null)
+            {
+                result.Result = loadResult.Result.Where(h => h is T).Cast<T>();
+                result.IsError = false;
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, loadResult.Message ?? "Failed to load child holons");
+            }
+            return result;
         }
 
         public void NotifyPropertyChanged(string propertyName)
         {
-            throw new NotImplementedException();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public OASISResult<IHolon> RemoveHolon(IHolon holon, Guid avtatarId, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            return RemoveHolonAsync(holon, avtatarId, deleteHolon, softDelete, providerType).Result;
         }
 
-        public Task<OASISResult<IHolon>> RemoveHolonAsync(IHolon holon, Guid avtatarId, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> RemoveHolonAsync(IHolon holon, Guid avtatarId, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            // Remove child holon
+            if (deleteHolon)
+            {
+                return await HolonManager.Instance.DeleteHolonAsync(holon.Id, softDelete, providerType);
+            }
+            
+            // Load this holon, remove child, and save
+            var thisAsHolon = this as Holon;
+            if (thisAsHolon == null)
+            {
+                var result = new OASISResult<IHolon>();
+                OASISErrorHandling.HandleError(ref result, "HolonBase cannot be converted to Holon entity");
+                return result;
+            }
+            
+            var coreHolon = DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(thisAsHolon));
+            if (coreHolon?.Result != null && coreHolon.Result.Children != null)
+            {
+                coreHolon.Result.Children.Remove(holon);
+                
+                // Save updated holon without the removed child
+                return await HolonManager.Instance.SaveHolonAsync(coreHolon.Result, avtatarId, true, true, 10, true, false, providerType);
+            }
+            
+            var errorResult = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref errorResult, "Failed to convert MongoDB entity to core Holon");
+            return errorResult;
         }
 
         public OASISResult<IHolon> Save(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            return SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType).Result;
         }
 
         public OASISResult<T> Save<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            throw new NotImplementedException();
+            return SaveAsync<T>(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType).Result;
         }
 
-        public Task<OASISResult<IHolon>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> SaveAsync(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            throw new NotImplementedException();
+            // Convert MongoDB entity to core Holon and delegate to HolonManager
+            var thisAsHolon = this as Holon;
+            if (thisAsHolon == null)
+            {
+                var result = new OASISResult<IHolon>();
+                OASISErrorHandling.HandleError(ref result, "HolonBase cannot be converted to Holon entity");
+                return result;
+            }
+            
+            var coreHolon = DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(thisAsHolon));
+            if (coreHolon?.Result != null)
+            {
+                // Get avatar ID from CreatedByAvatarId if available
+                Guid avatarId = Guid.Empty;
+                if (!string.IsNullOrEmpty(CreatedByAvatarId) && Guid.TryParse(CreatedByAvatarId, out var parsedId))
+                {
+                    avatarId = parsedId;
+                }
+                
+                return await HolonManager.Instance.SaveHolonAsync(coreHolon.Result, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            }
+            
+            var errorResult = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref errorResult, "Failed to convert MongoDB entity to core Holon");
+            return errorResult;
         }
 
-        public Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
+        public async Task<OASISResult<T>> SaveAsync<T>(bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            throw new NotImplementedException();
+            var saveResult = await SaveAsync(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            var result = new OASISResult<T>();
+            if (!saveResult.IsError && saveResult.Result is T)
+            {
+                result.Result = (T)saveResult.Result;
+                result.IsError = false;
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, saveResult.Message ?? "Failed to save holon");
+            }
+            return result;
         }
     }
 }

@@ -17,6 +17,10 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
@@ -2487,6 +2491,381 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             }
             return result;
         }
+
+        #region Token Methods (IOASISBlockchainStorageProvider)
+
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+        {
+            return SendTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new FantomTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "ToWalletAddress is required");
+                    return result;
+                }
+
+                // Fantom token transfer via Nethereum (EVM-compatible)
+                if (string.IsNullOrWhiteSpace(request.FromTokenAddress))
+                {
+                    // Native FTM transfer
+                    var transactionReceipt = await _web3Client.Eth.GetEtherTransferService()
+                        .TransferEtherAndWaitForReceiptAsync(request.ToWalletAddress, (decimal)request.Amount, 2);
+                    result.Result.TransactionResult = transactionReceipt.TransactionHash;
+                    result.IsError = false;
+                    result.Message = "FTM sent successfully";
+                }
+                else
+                {
+                    // ERC-20 token transfer
+                    var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.FromTokenAddress);
+                    var transferFunction = contract.GetFunction("transfer");
+                    var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000)); // Convert to wei
+                    var transactionReceipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                        _account.Address, request.ToWalletAddress, amountInWei);
+                    result.Result.TransactionResult = transactionReceipt.TransactionHash;
+                    result.IsError = false;
+                    result.Message = "Token sent successfully on Fantom";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+        {
+            return MintTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new FantomTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.MintToWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress and MintToWalletAddress are required");
+                    return result;
+                }
+
+                // Fantom token minting via Nethereum (requires ERC-20 mint function)
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var mintFunction = contract.GetFunction("mint");
+                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var transactionReceipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address, request.MintToWalletAddress, amountInWei);
+                result.Result.TransactionResult = transactionReceipt.TransactionHash;
+                result.IsError = false;
+                result.Message = "Token minted successfully on Fantom";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+        {
+            return BurnTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new FantomTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.BurnFromWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress and BurnFromWalletAddress are required");
+                    return result;
+                }
+
+                // Fantom token burning via Nethereum (requires ERC-20 burn function)
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var burnFunction = contract.GetFunction("burn");
+                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var transactionReceipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address, amountInWei);
+                result.Result.TransactionResult = transactionReceipt.TransactionHash;
+                result.IsError = false;
+                result.Message = "Token burned successfully on Fantom";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error burning token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+        {
+            return LockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new FantomTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.LockWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress and LockWalletAddress are required");
+                    return result;
+                }
+
+                // Fantom token locking via Nethereum (requires custom lock function in smart contract)
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var lockFunction = contract.GetFunction("lock");
+                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var transactionReceipt = await lockFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address, request.LockWalletAddress, amountInWei);
+                result.Result.TransactionResult = transactionReceipt.TransactionHash;
+                result.IsError = false;
+                result.Message = "Token locked successfully on Fantom";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error locking token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+        {
+            return UnlockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>(new FantomTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null || _account == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.UnlockWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "TokenAddress and UnlockWalletAddress are required");
+                    return result;
+                }
+
+                // Fantom token unlocking via Nethereum (requires custom unlock function in smart contract)
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var unlockFunction = contract.GetFunction("unlock");
+                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var transactionReceipt = await unlockFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address, request.UnlockWalletAddress, amountInWei);
+                result.Result.TransactionResult = transactionReceipt.TransactionHash;
+                result.IsError = false;
+                result.Message = "Token unlocked successfully on Fantom";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error unlocking token: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+        {
+            return GetBalanceAsync(request).Result;
+        }
+
+        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var result = new OASISResult<double>();
+            try
+            {
+                if (!_isActivated || _web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "WalletAddress is required");
+                    return result;
+                }
+
+                // Get Fantom balance via Nethereum
+                if (string.IsNullOrWhiteSpace(request.TokenAddress))
+                {
+                    // Native FTM balance
+                    var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
+                    result.Result = (double)(balance.Value / (BigInteger)1000000000000000000); // Convert from wei to FTM
+                    result.IsError = false;
+                    result.Message = "Balance retrieved successfully";
+                }
+                else
+                {
+                    // ERC-20 token balance
+                    var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                    var balanceFunction = contract.GetFunction("balanceOf");
+                    var balance = await balanceFunction.CallAsync<BigInteger>(request.WalletAddress);
+                    result.Result = (double)(balance / (BigInteger)1000000000000000000);
+                    result.IsError = false;
+                    result.Message = "Token balance retrieved successfully";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting balance: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
+        {
+            return GetTransactionsAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+        {
+            var result = new OASISResult<IList<IWalletTransaction>>();
+            try
+            {
+                if (!_isActivated || _web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "WalletAddress is required");
+                    return result;
+                }
+
+                // Get Fantom transactions via Nethereum
+                var transactions = new List<IWalletTransaction>();
+                var blockNumber = await _web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+                var limit = request.Limit > 0 ? request.Limit : 10;
+                
+                for (var i = 0; i < limit && blockNumber.Value > 0; i++)
+                {
+                    try
+                    {
+                        var block = await _web3Client.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(blockNumber);
+                        foreach (var tx in block.Transactions)
+                        {
+                            if (tx.From == request.WalletAddress || tx.To == request.WalletAddress)
+                            {
+                                var walletTx = new WalletTransaction
+                                {
+                                    TransactionId = Guid.NewGuid(),
+                                    FromWalletAddress = tx.From,
+                                    ToWalletAddress = tx.To ?? string.Empty,
+                                    Amount = (double)(tx.Value.Value / (BigInteger)1000000000000000000),
+                                    Description = $"Fantom transaction: {tx.TransactionHash}"
+                                };
+                                transactions.Add(walletTx);
+                            }
+                        }
+                        blockNumber = new HexBigInteger(blockNumber.Value - 1);
+                    }
+                    catch
+                    {
+                        break;
+                    }
+                }
+
+                result.Result = transactions;
+                result.IsError = false;
+                result.Message = $"Retrieved {transactions.Count} Fantom transactions";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting transactions: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        {
+            return GenerateKeyPairAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+
+                // Generate Fantom key pair using Nethereum Account (EVM-compatible)
+                // Fantom uses Ethereum-compatible key generation (secp256k1)
+                var account = Nethereum.Web3.Accounts.Account.GenerateAccount();
+                
+                // Create KeyPairAndWallet using KeyHelper but override with Fantom-specific values from Nethereum
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
+                {
+                    keyPair.PrivateKey = account.PrivateKey;
+                    keyPair.PublicKey = account.PublicKey;
+                    keyPair.WalletAddressLegacy = account.Address; // Fantom address (EVM-compatible)
+                }
+
+                result.Result = keyPair;
+                result.IsError = false;
+                result.Message = "Fantom key pair generated successfully using Nethereum";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Gets ERC-20 token ABI for Fantom token operations
+        /// </summary>
+        private string GetERC20ABI()
+        {
+            return @"[{""constant"":true,""inputs"":[{""name"":"""",""type"":""address""}],""name"":""balanceOf"",""outputs"":[{""name"":"""",""type"":""uint256""}],""type"":""function""},{""constant"":false,""inputs"":[{""name"":""_to"",""type"":""address""},{""name"":""_value"",""type"":""uint256""}],""name"":""transfer"",""outputs"":[{""name"":"""",""type"":""bool""}],""type"":""function""},{""constant"":false,""inputs"":[{""name"":""_to"",""type"":""address""},{""name"":""_value"",""type"":""uint256""}],""name"":""mint"",""outputs"":[],""type"":""function""},{""constant"":false,""inputs"":[{""name"":""_value"",""type"":""uint256""}],""name"":""burn"",""outputs"":[],""type"":""function""}]";
+        }
+
+        #endregion
 
         #endregion
     }

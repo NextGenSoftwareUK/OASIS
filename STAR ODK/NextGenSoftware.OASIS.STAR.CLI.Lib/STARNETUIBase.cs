@@ -247,6 +247,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     Console.WriteLine("");
 
+                // Update Language (STARNETSubCategory) for libraries
+                if (STARNETManager.STARNETHolonType == HolonType.Library)
+                {
+                    string currentLanguage = loadResult.Result.STARNETDNA.STARNETSubCategory?.ToString() ?? "Not set";
+                    if (CLIEngine.GetConfirmation($"Do you wish to update the Language? (currently is {currentLanguage})."))
+                    {
+                        Console.WriteLine("");
+                        object language = CLIEngine.GetValidInputForEnum($"What is the new Language of the {STARNETManager.STARNETHolonUIName}?", typeof(Languages));
+
+                        if (language != null)
+                        {
+                            if (language.ToString() == "exit")
+                                return;
+
+                            loadResult.Result.STARNETDNA.STARNETSubCategory = language;
+                            changesMade = true;
+                        }
+                    }
+                    else
+                        Console.WriteLine("");
+                }
+
                 if (editLaunchTarget && CLIEngine.GetConfirmation($"Do you wish to update the launch target? (currently is {loadResult.Result.STARNETDNA.LaunchTarget}).)"))
                 {
                     Console.WriteLine("");
@@ -1952,6 +1974,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Description:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.Description) ? starHolon.STARNETDNA.Description : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Type:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETHolonType), false);
             CLIEngine.ShowMessage(string.Concat($"Category:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETCategory), false);
+            
+            // Display Language (STARNETSubCategory) for libraries
+            if (starHolon.STARNETDNA.STARNETSubCategory != null)
+            {
+                CLIEngine.ShowMessage(string.Concat($"Language:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETSubCategory), false);
+            }
             CLIEngine.ShowMessage(string.Concat($"Created On:".PadRight(displayFieldLength), starHolon.STARNETDNA.CreatedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Created By:".PadRight(displayFieldLength), starHolon.STARNETDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.CreatedByAvatarUsername, " (", starHolon.STARNETDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Modified On:".PadRight(displayFieldLength), starHolon.STARNETDNA.ModifiedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);

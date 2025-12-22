@@ -7,17 +7,21 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.Utilities.ExtentionMethods;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using System.Net.Http;
 using System.Text;
 using System.Linq;
+using System.IO;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 {
-    public class ScuttlebuttOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public class ScuttlebuttOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISSuperStar
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiBaseUrl;
@@ -1043,26 +1047,76 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         
         #endregion
 
-        /*
         #region IOASISSuperStar
-        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
-            var result = new OASISResult<string>();
             try
             {
-                // Real Scuttlebutt implementation: Send transaction via Scuttlebutt network
-                var transactionId = Guid.NewGuid().ToString();
-                result.Result = transactionId;
-                result.IsError = false;
-                result.Message = "Scuttlebutt transaction sent successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending Scuttlebutt transaction: {ex.Message}", ex);
-            }
-            return result;
-        }
+                if (string.IsNullOrEmpty(outputFolder))
+                    return false;
 
+                string scuttlebuttFolder = Path.Combine(outputFolder, "Scuttlebutt");
+                if (!Directory.Exists(scuttlebuttFolder))
+                    Directory.CreateDirectory(scuttlebuttFolder);
+
+                if (!string.IsNullOrEmpty(nativeSource))
+                {
+                    File.WriteAllText(Path.Combine(scuttlebuttFolder, "manifest.json"), nativeSource);
+                    return true;
+                }
+
+                if (celestialBody == null)
+                    return true;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("{");
+                sb.AppendLine("  \"@context\": \"https://www.w3.org/ns/activitystreams\",");
+                sb.AppendLine($"  \"name\": \"{celestialBody.Name ?? "OAPP"}\",");
+                sb.AppendLine($"  \"type\": \"Application\",");
+                sb.AppendLine("  \"items\": [");
+
+                var zomes = celestialBody.CelestialBodyCore?.Zomes;
+                bool firstItem = true;
+                if (zomes != null)
+                {
+                    foreach (var zome in zomes)
+                    {
+                        if (zome?.Children == null) continue;
+
+                        foreach (var holon in zome.Children)
+                        {
+                            if (holon == null || string.IsNullOrWhiteSpace(holon.Name)) continue;
+
+                            if (!firstItem) sb.AppendLine(",");
+                            firstItem = false;
+
+                            sb.AppendLine("    {");
+                            sb.AppendLine($"      \"type\": \"{holon.Name.ToPascalCase()}\",");
+                            sb.AppendLine($"      \"id\": \"{holon.Id}\",");
+                            sb.AppendLine($"      \"name\": \"{holon.Name}\"");
+                            if (!string.IsNullOrWhiteSpace(holon.Description))
+                            {
+                                sb.AppendLine(",");
+                                sb.AppendLine($"      \"summary\": \"{holon.Description}\"");
+                            }
+                            sb.AppendLine();
+                            sb.Append("    }");
+                        }
+                    }
+                }
+
+                sb.AppendLine();
+                sb.AppendLine("  ]");
+                sb.AppendLine("}");
+
+                File.WriteAllText(Path.Combine(scuttlebuttFolder, "manifest.json"), sb.ToString());
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
         #endregion
 
         #region IOASISBlockchainStorageProvider

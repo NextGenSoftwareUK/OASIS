@@ -45,7 +45,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             Init(connectionString, dbName);
         }
-
+        
+        
         public MongoDBOASIS(string connectionString, string dbName, string OASISDNAPath = "OASIS_DNA.json") : base (OASISDNAPath)
         {
             Init(connectionString, dbName);

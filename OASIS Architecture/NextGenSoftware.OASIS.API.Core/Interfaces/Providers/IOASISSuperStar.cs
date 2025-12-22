@@ -12,8 +12,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         /// </summary>
         /// <param name="celestialBody">The root celestial body for the OAPP (may be null for ZomesAndHolonsOnly).</param>
         /// <param name="outputFolder">The root folder where generated code for this OAPP is being written.</param>
-        /// <param name="nativeSource">A provider-specific source payload (for HoloOASIS this is currently the Rust lib.rs buffer).</param>
+        /// <param name="nativeParams">Optional custom params for the provider generator.</param>
         /// <returns>True if generation succeeded, otherwise false.</returns>
-        bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource);
+        //bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource);
+        bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeParams);
     }
 }
