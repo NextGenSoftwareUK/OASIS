@@ -7486,18 +7486,29 @@
                             privacyMode: registrationData.privacyMode || false
                         };
 
-                        // Call getAPIBaseURL() dynamically to ensure we use the correct protocol
                         // Force HTTPS if page is HTTPS to prevent mixed content errors
+                        // Check protocol directly - don't rely on any functions
                         const currentProtocol = window.location.protocol;
-                        const apiBaseURL = currentProtocol === 'https:' 
-                            ? 'https://api.oasisweb4.com' 
+                        const isHTTPS = currentProtocol === 'https:' || window.location.href.startsWith('https://');
+                        
+                        // ALWAYS use HTTPS if page is HTTPS - no exceptions
+                        const apiBaseURL = isHTTPS 
+                            ? 'https://api.oasisweb4.com'
                             : 'http://api.oasisweb4.com';
                         
-                        console.log('Register attempt - API baseURL:', apiBaseURL, 'Page protocol:', currentProtocol, 'Hostname:', window.location.hostname);
+                        console.log('🔐 Register attempt:', {
+                            apiBaseURL: apiBaseURL,
+                            pageProtocol: currentProtocol,
+                            pageURL: window.location.href,
+                            isHTTPS: isHTTPS,
+                            hostname: window.location.hostname
+                        });
                         
-                        if (currentProtocol === 'https:' && apiBaseURL.startsWith('http://')) {
-                            console.error('MIXED CONTENT ERROR PREVENTED: Page is HTTPS but API is HTTP!');
-                            throw new Error('Cannot use HTTP API from HTTPS page. Please configure HTTPS for the API.');
+                        // Double-check: if page is HTTPS but API is HTTP, throw error immediately
+                        if (isHTTPS && apiBaseURL.startsWith('http://')) {
+                            const error = 'CRITICAL: Page is HTTPS but API URL is HTTP! This should never happen.';
+                            console.error(error);
+                            throw new Error(error);
                         }
                         
                         const response = await fetch(`${apiBaseURL}/api/avatar/register`, {
