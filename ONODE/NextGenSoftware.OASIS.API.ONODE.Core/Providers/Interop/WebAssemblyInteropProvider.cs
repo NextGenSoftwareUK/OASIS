@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects.Interop;
@@ -499,7 +500,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                             for (int i = 0; i < exportCount; i++)
                             {
-                                var nameLength = ReadLEB128(reader);
+                                var nameLength = (int)ReadLEB128(reader);
                                 var nameBytes = reader.ReadBytes(nameLength);
                                 var exportName = System.Text.Encoding.UTF8.GetString(nameBytes);
                                 
@@ -507,14 +508,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                                 
                                 if (exportKind == 0) // Function export
                                 {
-                                    var funcIndex = ReadLEB128(reader);
+                                    var funcIndex = (int)ReadLEB128(reader);
                                     
                                     // Try to find function signature from type section
                                     var signature = GetFunctionSignature(wasmBytes, funcIndex);
                                     if (signature != null)
                                     {
-                                        signature.FunctionName = exportName;
-                                        signatures.Add(signature);
+                                        // Create new signature with the export name since FunctionName is read-only
+                                        signatures.Add(new Objects.Interop.FunctionSignature
+                                        {
+                                            FunctionName = exportName,
+                                            ReturnType = signature.ReturnType,
+                                            Parameters = signature.Parameters,
+                                            IsAsync = signature.IsAsync,
+                                            Documentation = signature.Documentation
+                                        });
                                     }
                                     else
                                     {
@@ -624,11 +632,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                         }
                         else if (sectionId == 3) // Function section
                         {
-                            var funcCount = ReadLEB128(reader);
+                            var funcCount = (int)ReadLEB128(reader);
                             for (int i = 0; i < funcCount; i++)
                             {
-                                var typeIndex = ReadLEB128(reader);
-                                functionTypes[i] = typeIndex;
+                                var funcTypeIndex = (int)ReadLEB128(reader);
+                                functionTypes[i] = funcTypeIndex;
                             }
                         }
 
@@ -636,14 +644,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     }
 
                     // Get function type
-                    if (functionTypes.TryGetValue(functionIndex, out var typeIndex) &&
-                        typeInfos.TryGetValue(typeIndex, out var typeInfo))
+                    if (functionTypes.TryGetValue(functionIndex, out var funcTypeIdx) &&
+                        typeInfos.TryGetValue(funcTypeIdx, out var typeInfo))
                     {
                         var parameters = typeInfo.ParamTypes.Select((t, i) => new Objects.Interop.ParameterInfo
                         {
                             Name = $"param{i}",
                             Type = MapWasmTypeToCSharp(t)
-                        }).ToList();
+                        }).Cast<IParameterInfo>().ToList();
 
                         return new Objects.Interop.FunctionSignature
                         {
