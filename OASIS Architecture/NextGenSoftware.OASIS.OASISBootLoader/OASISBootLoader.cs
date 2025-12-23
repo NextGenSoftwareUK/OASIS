@@ -10,16 +10,17 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
-//using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-//using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
+using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
-//using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
-//using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
+using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
+using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
@@ -821,37 +822,41 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        //case ProviderType.EOSIOOASIS:
-                        //    {
-                        //        EOSIOOASIS EOSIOOASIS = new EOSIOOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
-                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
-                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
-                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
-                        //        EOSIOOASIS.OnStorageProviderError += EOSIOOASIS_StorageProviderError;
-                        //        result.Result = EOSIOOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.EOSIOOASIS:
+                            {
+                                var eosioProvider = new EOSIOOASIS(
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
+                                eosioProvider.OnStorageProviderError += EOSIOOASIS_StorageProviderError;
+                                result.Result = eosioProvider;
+                            }
+                            break;
 
-                        //case ProviderType.TelosOASIS:
-                        //    {
-                        //        TelosOASIS TelosOASIS = new TelosOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
-                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
-                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
-                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
-                        //        TelosOASIS.OnStorageProviderError += TelosOASIS_StorageProviderError;
-                        //        result.Result = TelosOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.TelosOASIS:
+                            {
+                                var telosProvider = new TelosOASIS(
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
+                                telosProvider.OnStorageProviderError += TelosOASIS_StorageProviderError;
+                                result.Result = telosProvider;
+                            }
+                            break;
 
-                        //case ProviderType.SEEDSOASIS:
-                        //    {
-                        //        SEEDSOASIS SEEDSOASIS = new SEEDSOASIS(new EOSIOOASIS(OASISDNA.OASIS.StorageProviders.SEEDSOASIS.ConnectionString));
-                        //        ProviderManager.Instance.RegisterProvider(SEEDSOASIS);
-                        //        registeredProvider = SEEDSOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.SEEDSOASIS:
+                            {
+                                var seedsProvider = new SEEDSOASIS(new TelosOASIS(
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey));
+                                seedsProvider.OnStorageProviderError += SEEDSOASIS_StorageProviderError;
+                                result.Result = seedsProvider;
+                            }
+                            break;
 
                         case ProviderType.Neo4jOASIS:
                             {
@@ -903,17 +908,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        //case ProviderType.EthereumOASIS:
-                        //    {
-                        //        EthereumOASIS EthereumOASIS = new(
-                        //            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString,
-                        //            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainPrivateKey,
-                        //            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainId,
-                        //            OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress);
-                        //        EthereumOASIS.OnStorageProviderError += EthereumOASIS_StorageProviderError;
-                        //        result.Result = EthereumOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.EthereumOASIS:
+                            {
+                                var ethereumProvider = new EthereumOASIS(
+                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString,
+                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainId,
+                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress);
+                                ethereumProvider.OnStorageProviderError += EthereumOASIS_StorageProviderError;
+                                result.Result = ethereumProvider;
+                            }
+                            break;
 
                         case ProviderType.ArbitrumOASIS:
                             {
@@ -947,15 +952,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        //case ProviderType.ThreeFoldOASIS:
-                        //    {
-                        //        ThreeFoldOASIS ThreeFoldOASIS = new ThreeFoldOASIS(overrideConnectionString == null
-                        //            ? OASISDNA.OASIS.StorageProviders.ThreeFoldOASIS.ConnectionString
-                        //            : overrideConnectionString);
-                        //        ThreeFoldOASIS.OnStorageProviderError += ThreeFoldOASIS_StorageProviderError;
-                        //        result.Result = ThreeFoldOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.ThreeFoldOASIS:
+                            {
+                                var threeFoldProvider = new ThreeFoldOASIS(overrideConnectionString == null
+                                    ? OASISDNA.OASIS.StorageProviders.ThreeFoldOASIS.ConnectionString
+                                    : overrideConnectionString);
+                                threeFoldProvider.OnStorageProviderError += ThreeFoldOASIS_StorageProviderError;
+                                result.Result = threeFoldProvider;
+                            }
+                            break;
 
                         case ProviderType.LocalFileOASIS:
                             {
@@ -1422,6 +1427,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void TelosOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("TelosOASIS", e);
+        }
+
+        private static void SEEDSOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("SEEDSOASIS", e);
         }
 
         private static void ArbitrumOASIS_OnStorageProviderError(object sender, OASISErrorEventArgs e)
