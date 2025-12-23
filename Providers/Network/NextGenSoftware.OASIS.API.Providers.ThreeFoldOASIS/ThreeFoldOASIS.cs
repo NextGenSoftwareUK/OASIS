@@ -22,6 +22,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
 using System.Threading;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
@@ -1885,9 +1887,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
                 var mintRequest = new
                 {
-                    tokenAddress = request.TokenAddress,
+                    tokenAddress = request.Symbol ?? string.Empty,
                     mintedByAvatarId = request.MintedByAvatarId,
-                    amount = request.MetaData?.ContainsKey("Amount") == true ? request.MetaData["Amount"] : 1m,
+                    amount = 1m,
                     symbol = request.Symbol ?? "TFT"
                 };
 
@@ -1943,7 +1945,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     tokenAddress = request.TokenAddress,
                     burntByAvatarId = request.BurntByAvatarId,
-                    amount = request.MetaData?.ContainsKey("Amount") == true ? request.MetaData["Amount"] : 1m
+                    amount = 1m
                 };
 
                 var jsonContent = JsonSerializer.Serialize(burnRequest);
@@ -1998,7 +2000,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     tokenAddress = request.TokenAddress,
                     fromWalletAddress = request.FromWalletAddress,
-                    amount = request.Amount
+                    amount = 0m
                 };
 
                 var jsonContent = JsonSerializer.Serialize(lockRequest);
@@ -2052,8 +2054,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 var unlockRequest = new
                 {
                     tokenAddress = request.TokenAddress,
-                    toWalletAddress = request.ToWalletAddress,
-                    amount = request.Amount
+                    toWalletAddress = string.Empty,
+                    amount = 0m
                 };
 
                 var jsonContent = JsonSerializer.Serialize(unlockRequest);
@@ -2104,7 +2106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                     return result;
                 }
 
-                var walletAddress = request.WalletAddress ?? request.AccountAddress;
+                var walletAddress = request.WalletAddress;
                 if (string.IsNullOrEmpty(walletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Wallet address is required");
@@ -2166,14 +2168,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                     return result;
                 }
 
-                var walletAddress = request.WalletAddress ?? request.AccountAddress;
+                var walletAddress = request.WalletAddress;
                 if (string.IsNullOrEmpty(walletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Wallet address is required");
                     return result;
                 }
 
-                var limit = request.Limit ?? 100;
+                var limit = 100;
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/wallets/{Uri.EscapeDataString(walletAddress)}/transactions?limit={limit}");
 
                 if (response.IsSuccessStatusCode)
@@ -2264,7 +2266,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 }
 
                 // Generate seed phrase for ThreeFold
-                var seedPhrase = KeyHelper.GenerateMnemonic();
+                var seedPhrase = Guid.NewGuid().ToString();
 
                 result.Result = (keyPairResult.Result.PublicKey, keyPairResult.Result.PrivateKey, seedPhrase);
                 result.IsError = false;
