@@ -222,7 +222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
             // Delete holon using HolonManager
             if (HolonId != Guid.Empty)
             {
-                return await HolonManager.Instance.DeleteHolonAsync(HolonId, softDelete, providerType);
+                return await HolonManager.Instance.DeleteHolonAsync(HolonId, avtatarId, softDelete, providerType);
             }
             
             var result = new OASISResult<IHolon>();
@@ -302,7 +302,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
             // Load child holons for this holon
             if (HolonId != Guid.Empty)
             {
-                return await HolonManager.Instance.LoadHolonsForParentAsync(HolonId, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, HolonType.All, version, providerType);
+                return await HolonManager.Instance.LoadHolonsForParentAsync(HolonId, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, providerType);
             }
             
             var result = new OASISResult<IEnumerable<IHolon>>();
@@ -341,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
             // Remove child holon
             if (deleteHolon)
             {
-                return await HolonManager.Instance.DeleteHolonAsync(holon.Id, softDelete, providerType);
+                return await HolonManager.Instance.DeleteHolonAsync(holon.Id, Guid.Empty, softDelete, providerType);
             }
             
             // Load this holon, remove child, and save

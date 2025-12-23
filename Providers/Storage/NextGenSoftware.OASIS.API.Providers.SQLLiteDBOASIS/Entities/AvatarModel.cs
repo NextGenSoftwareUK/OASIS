@@ -66,6 +66,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
         public List<RefreshTokenModel> RefreshTokens { get; set;}
         public List<MetaDataModel> MetaData { get; set;}
+        public List<ProviderKeyModel> ProviderKey { get; set; } = new List<ProviderKeyModel>();
 
         public AvatarModel(){}
         public AvatarModel(IAvatar source){

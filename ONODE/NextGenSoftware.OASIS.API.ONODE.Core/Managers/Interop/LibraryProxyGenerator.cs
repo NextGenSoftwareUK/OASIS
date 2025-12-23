@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Interop;
 using NextGenSoftware.OASIS.Common;

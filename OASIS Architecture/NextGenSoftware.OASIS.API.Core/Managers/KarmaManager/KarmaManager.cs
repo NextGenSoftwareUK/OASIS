@@ -10,8 +10,9 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+// TODO: ONODE.Core references removed to avoid circular dependency - these methods need to be moved to ONODE project
+// using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+// using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -525,7 +526,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         #region Karma Weighting Voting (using Proposal holon)
-
+        // TODO: This region is commented out because it requires ONODE.Core which creates a circular dependency
+        // These methods should be moved to the ONODE project
+        /*
         /// <summary>
         /// Votes for a positive karma weighting using the Proposal holon system
         /// </summary>
@@ -816,7 +819,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
-
+        */
         #endregion
 
         #endregion

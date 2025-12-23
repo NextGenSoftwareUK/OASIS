@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop
 {
