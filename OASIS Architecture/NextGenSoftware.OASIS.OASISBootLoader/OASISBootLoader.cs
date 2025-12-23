@@ -19,7 +19,7 @@ using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 //using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
-using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
+//using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
@@ -947,15 +947,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        case ProviderType.ThreeFoldOASIS:
-                            {
-                                ThreeFoldOASIS ThreeFoldOASIS = new ThreeFoldOASIS(overrideConnectionString == null
-                                    ? OASISDNA.OASIS.StorageProviders.ThreeFoldOASIS.ConnectionString
-                                    : overrideConnectionString);
-                                ThreeFoldOASIS.OnStorageProviderError += ThreeFoldOASIS_StorageProviderError;
-                                result.Result = ThreeFoldOASIS;
-                            }
-                            break;
+                        //case ProviderType.ThreeFoldOASIS:
+                        //    {
+                        //        ThreeFoldOASIS ThreeFoldOASIS = new ThreeFoldOASIS(overrideConnectionString == null
+                        //            ? OASISDNA.OASIS.StorageProviders.ThreeFoldOASIS.ConnectionString
+                        //            : overrideConnectionString);
+                        //        ThreeFoldOASIS.OnStorageProviderError += ThreeFoldOASIS_StorageProviderError;
+                        //        result.Result = ThreeFoldOASIS;
+                        //    }
+                        //    break;
 
                         case ProviderType.LocalFileOASIS:
                             {
