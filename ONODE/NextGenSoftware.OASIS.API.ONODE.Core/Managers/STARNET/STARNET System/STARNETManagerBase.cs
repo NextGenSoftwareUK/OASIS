@@ -215,7 +215,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         var subCategory = createOptions.CustomCreateParams["STARNETSubCategory"];
                         if (subCategory != null)
                         {
-                            STARNETDNA.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
+                            // Use dynamic to access STARNETSubCategory since it may not be in ISTARNETDNA interface
+                            dynamic dna = STARNETDNA;
+                            dna.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
                         }
                     }
                     
@@ -374,7 +376,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         var subCategory = dependency["STARNETSubCategory"];
                         if (subCategory != null)
                         {
-                            STARNETDNA.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
+                            // Use dynamic to access STARNETSubCategory since it may not be in ISTARNETDNA interface
+                            dynamic dna = STARNETDNA;
+                            dna.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
                         }
                     }
                     

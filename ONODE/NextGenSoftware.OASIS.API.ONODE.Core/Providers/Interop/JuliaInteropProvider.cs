@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public JuliaInteropProvider()
         {
-            _loadedScripts = new Dictionary<string, string>();
+            _loadedScripts = new Dictionary<string, JuliaLibraryInfo>();
         }
 
         public Task<OASISResult<bool>> InitializeAsync()
