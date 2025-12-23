@@ -917,7 +917,7 @@ namespace NextGenSoftware.OASIS.STAR
                         if (buffer.Contains("ZomeDNA"))
                         {
                             string[] parts = buffer.Split(' ');
-                            libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
+                            //libBuffer = libTemplate.Replace("zome_name", parts[6].ToSnakeCase());
 
                             zomeName = parts[6].ToPascalCase();
                             zomeBufferCsharp = zomeBufferCsharp.Replace("ZomeDNATemplate", zomeName);

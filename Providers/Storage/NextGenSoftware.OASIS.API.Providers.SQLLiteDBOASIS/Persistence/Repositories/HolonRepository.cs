@@ -518,7 +518,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntity = _dbContext.Holons
-                    .FirstOrDefault(p => p.ProviderKey == providerKey);
+                    .FirstOrDefault(p => p.ProviderKey.Any(pk => pk.Value == providerKey));
                 
                 if (holonEntity != null)
                 {
@@ -567,7 +567,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntity = await _dbContext.Holons
-                    .FirstOrDefaultAsync(p => p.ProviderKey == providerKey);
+                    .FirstOrDefaultAsync(p => p.ProviderKey.Any(pk => pk.Value == providerKey));
                 
                 if (holonEntity != null)
                 {
@@ -616,7 +616,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntities = _dbContext.Holons
-                    .Where(p => p.HolonType == Type.ToString())
+                    .Where(p => p.HolonType == Type)
                     .ToList()
                     .Select(GetHolonFromEntity)
                     .ToList();
