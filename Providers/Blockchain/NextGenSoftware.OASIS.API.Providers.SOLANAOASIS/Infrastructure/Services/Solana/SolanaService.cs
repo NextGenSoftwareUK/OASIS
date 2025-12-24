@@ -132,7 +132,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         return response;
     }
 
-    public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
+    public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest, Account signerAccount = null)
     {
         var response = new OASISResult<SendTransactionResult>();
         try
@@ -151,11 +151,18 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             RequestResult<ResponseValue<LatestBlockHash>> blockHash =
                 await rpcClient.GetLatestBlockHashAsync();
 
+            // Use provided signer account, or fall back to oasisAccount (backward compatible)
+            Account accountToUse = signerAccount ?? oasisAccount;
+
+            // CRITICAL: Use the signer account's PublicKey for fee payer to ensure it matches the signer
+            // This matches the reference implementation pattern and ensures signature verification succeeds
+            PublicKey feePayerPublicKey = accountToUse.PublicKey;
+            
             byte[] tx = new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash)
-                .SetFeePayer(fromAccount)
-                .AddInstruction(MemoProgram.NewMemo(fromAccount, sendTransactionRequest.MemoText))
-                .AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, sendTransactionRequest.Lampposts))
-                .Build(oasisAccount);
+                .SetFeePayer(feePayerPublicKey)
+                .AddInstruction(MemoProgram.NewMemo(feePayerPublicKey, sendTransactionRequest.MemoText))
+                .AddInstruction(SystemProgram.Transfer(feePayerPublicKey, toAccount, sendTransactionRequest.Lampposts))
+                .Build(accountToUse);
 
             RequestResult<string> sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
