@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -19,8 +20,12 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
-using NextGenSoftware.OASIS.API.Providers.TelegramOASIS;
+// TelegramOASIS provider not included in Docker build
+//using NextGenSoftware.OASIS.API.Providers.TelegramOASIS;
 using NextGenSoftware.OASIS.Common;
+using Solnet.Rpc;
+using Solnet.Wallet;
+using Solnet.Wallet.Bip39;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin;
 using NextGenSoftware.OASIS.API.Core.Managers.Stablecoin.Services;
@@ -96,6 +101,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             
             // Register Email Service
             services.AddScoped<IEmailService, EmailService>();
+
+            // Configure forwarded headers for AWS ALB/proxy scenarios
+            // This allows the app to recognize HTTPS requests forwarded from load balancer
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+                // Trust all proxies (for AWS ALB)
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
 
             services.AddSwaggerGen(c =>
             {
@@ -316,7 +331,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             System.Net.ServicePointManager.ServerCertificateValidationCallback = 
                 (sender, certificate, chain, sslPolicyErrors) => true;
             
-            // Register Telegram services
+            // Register Telegram services - DISABLED: TelegramOASIS provider not included in Docker build
+            /*
             services.AddSingleton<TelegramOASIS>(sp =>
             {
                 // Load from OASIS_DNA.json TelegramOASIS config - TIMORIDES BOT - LOCAL POLLING
@@ -340,6 +356,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 
                 return provider;
             });
+            */
             
             services.AddSingleton<NFTService>(sp =>
             {
@@ -362,6 +379,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 );
             });
 
+            // TelegramBotService - DISABLED: TelegramOASIS provider not included in Docker build
+            /*
             services.AddSingleton<TelegramBotService>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
@@ -394,6 +413,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     mapsService,
                     timoOptions);
             });
+            */
 
             // Register Universal Asset Bridge Service
             services.AddSingleton<BridgeService>(sp =>
@@ -403,7 +423,32 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 return new BridgeService(logger, configuration);
             });
 
+            // Register Solana Service for SolanaController
+            services.AddScoped<ISolanaService>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                
+                // Get Solana RPC URL from configuration or use devnet default
+                var solanaRpcUrl = configuration["SolanaOASIS:RpcUrl"] 
+                    ?? configuration["SolanaBridgeOptions:RpcUrl"] 
+                    ?? "https://api.devnet.solana.com";
+                
+                // Create RPC client using ClientFactory (same pattern as BridgeService)
+                var rpcClient = ClientFactory.GetClient(solanaRpcUrl);
+                
+                // Create OASIS account for Solana operations
+                // In production, this should be loaded from secure configuration
+                // For now, generate a temporary account (regenerated each startup)
+                var mnemonic = new Mnemonic(WordList.English, WordCount.Twelve);
+                var wallet = new Wallet(mnemonic);
+                var oasisAccount = wallet.Account;
+                
+                return new SolanaService(oasisAccount, rpcClient);
+            });
+
             // Register Stablecoin Services
+            // Disabled - requires Zcash provider which is causing build errors
+            /*
             services.AddSingleton<IZecPriceOracle, CoinGeckoZecPriceOracle>(sp =>
             {
                 var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
@@ -423,10 +468,24 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 var viewingKeyService = sp.GetRequiredService<IViewingKeyService>();
                 return new StablecoinManager(repository, priceOracle, zcashService, aztecService, viewingKeyService);
             });
+            */
 
             // Shipex Pro runs as a separate API service - see Shipex/ShipexPro.API/
 
             services.AddHttpContextAccessor();
+
+            // Add CORS services - required for CORS middleware to work
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder
+                        .SetIsOriginAllowed(origin => true)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+                });
+            });
 
             //services.AddCors(options =>
             //{
@@ -479,7 +538,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 LoggingManager.Log($"❌ Error registering LocalFileOASIS provider at startup: {ex.Message}", LogType.Error);
             }
             
-            // Activate TelegramOASIS provider and start bot
+            // Activate TelegramOASIS provider and start bot - DISABLED: TelegramOASIS provider not included in Docker build
+            /*
             try
             {
                 var telegramProvider = app.ApplicationServices.GetService<TelegramOASIS>();
@@ -511,6 +571,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             {
                 LoggingManager.Log($"❌ Exception activating TelegramOASIS or starting bot: {ex.Message}", LogType.Error);
             }
+            */
 
             // migrate database changes on startup (includes initial db creation)
             //context.Database.Migrate();
@@ -536,16 +597,31 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             });
 
 
+            // Use forwarded headers middleware (must be first to process X-Forwarded-* headers)
+            // This allows the app to recognize HTTPS requests coming through AWS ALB
+            app.UseForwardedHeaders();
+
             app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            app.UseHttpsRedirection();
+            // HTTPS redirection configuration
+            // In development: Skip to allow HTTP for local development and CORS preflight
+            // In production: Enable HTTPS redirection, but forwarded headers middleware will handle ALB scenarios
+            if (env.EnvironmentName != "Development")
+            {
+                app.UseHttpsRedirection();
+            }
+            else
+            {
+                LoggingManager.Log($"⚠️ HTTPS redirection DISABLED for development (Environment: {env.EnvironmentName}) - allowing HTTP for CORS", LogType.Warning);
+            }
 
             app.UseRouting();
             //app.UseSession();
 
-            // global cors policy
+            // global cors policy - must be after UseRouting but before UseAuthorization
+            // This handles CORS preflight (OPTIONS) requests automatically
             app.UseCors(x => x
                 .SetIsOriginAllowed(origin => true)
                 .AllowAnyMethod()
