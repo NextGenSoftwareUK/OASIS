@@ -1,0 +1,27 @@
+# MNEE Hackathon Submission - Python Dependencies
+
+# Core dependencies
+requests>=2.31.0
+flask>=3.0.0
+python-dotenv>=1.0.0
+
+# A2A Protocol SDK
+a2a-sdk>=0.1.0
+
+# Web3 for Ethereum/MNEE integration
+web3>=6.11.0
+eth-account>=0.9.0
+
+# Utilities
+python-dateutil>=2.8.2
+uuid>=1.30
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+
+# Development
+black>=23.11.0
+flake8>=6.1.0
+
