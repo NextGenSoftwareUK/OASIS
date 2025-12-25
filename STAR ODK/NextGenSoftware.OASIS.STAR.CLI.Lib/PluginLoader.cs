@@ -108,7 +108,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             Name = starNetDNA.Name ?? Path.GetFileName(pluginFolder),
                             Description = starNetDNA.Description,
-                            Version = starNetDNA.Version,
+                            Version = int.TryParse(starNetDNA.Version, out var version) ? version : 0,
                             Id = starNetDNA.Id != Guid.Empty ? starNetDNA.Id : Guid.NewGuid(),
                             STARNETDNA = starNetDNA
                         };

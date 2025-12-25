@@ -34,6 +34,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Nethereum.Web3" Version="4.19.0" />
+	  <PackageReference Include="Nethereum.HdWallet" Version="4.19.0" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
 	  <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
 	</ItemGroup>

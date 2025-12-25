@@ -16,13 +16,14 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.Common;
@@ -31,12 +32,14 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
 namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 {
-    public class ChainLinkTransactionResponse : ITransactionResponse
+    public class ChainLinkTransactionResponse : TransactionResponse
     {
         public string TransactionResult { get; set; }
         public string MemoText { get; set; }
@@ -1536,8 +1539,35 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     return result;
                 }
 
-                // TODO: Implement ChainLink-specific geolocation search
-                OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe not implemented for ChainLink provider");
+                // Real ChainLink geolocation search implementation
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
@@ -1604,14 +1634,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
 
             try
             {
@@ -1688,14 +1718,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1724,14 +1754,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
             return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1761,9 +1791,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1792,14 +1822,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1828,14 +1858,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
             return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1864,14 +1894,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1900,17 +1930,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             // Use the default wallet for the avatar
             return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
@@ -1978,16 +2008,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         }
 
 
-                response.Result = nft;
-                response.Message = "NFT data loaded from ChainLink oracle successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading NFT data from ChainLink: {ex.Message}");
-            }
-            return response;
-        }
 
         #endregion
 
@@ -2189,7 +2209,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         public string result { get; set; }
         public string requestId { get; set; }
         public string jobId { get; set; }
-    }
 
     #endregion
 
@@ -2631,3 +2650,4 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
     #endregion
 }
+    }
