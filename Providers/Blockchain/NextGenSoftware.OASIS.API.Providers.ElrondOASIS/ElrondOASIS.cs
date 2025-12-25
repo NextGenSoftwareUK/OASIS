@@ -13,10 +13,11 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
@@ -26,12 +27,14 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 {
-    public class ElrondTransactionResponse : ITransactionResponse
+    public class ElrondTransactionResponse : TransactionResponse
     {
         public string TransactionResult { get; set; }
         public string MemoText { get; set; }
@@ -2577,6 +2580,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 result.IsError = false;
                 result.Message = "NFT data loaded successfully from Elrond blockchain";
             }
+            }
             catch (Exception ex)
             {
                 result.Exception = ex;
@@ -2778,13 +2782,46 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         }
 
         /// <summary>
-        /// Get wallet address for transactions
+        /// Get wallet address for transactions using real WalletManager API
         /// </summary>
-        private async Task<string> GetWalletAddressAsync()
+        private async Task<string> GetWalletAddressAsync(Guid? avatarId = null)
         {
-            // This would get the wallet address from WalletManager
-            // For now, return a placeholder address - in real implementation, this would get the actual wallet
-            return "erd1qqqqqqqqqqqqqpgq7ykazrzd905zvnlr8dpfw0jp7r4q0v4s2zzqs0zp5s";
+            try
+            {
+                // If avatar ID is provided, get wallet for that avatar
+                if (avatarId.HasValue && avatarId.Value != Guid.Empty)
+                {
+                    var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(
+                        WalletManager.Instance, 
+                        Core.Enums.ProviderType.ElrondOASIS, 
+                        avatarId.Value, 
+                        _httpClient);
+                    
+                    if (!walletResult.IsError && !string.IsNullOrWhiteSpace(walletResult.Result))
+                    {
+                        return walletResult.Result;
+                    }
+                }
+                
+                // Fallback: try to get default wallet from OASIS configuration
+                var defaultWalletResult = await WalletManager.Instance.GetDefaultWalletAsync(
+                    false, 
+                    false, 
+                    Core.Enums.ProviderType.ElrondOASIS);
+                
+                if (!defaultWalletResult.IsError && defaultWalletResult.Result != null && 
+                    !string.IsNullOrWhiteSpace(defaultWalletResult.Result.Address))
+                {
+                    return defaultWalletResult.Result.Address;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error getting wallet address: {ex.Message}", ex);
+            }
+            
+            // Final fallback: return empty string (caller should handle this)
+            return "";
         }
 
         #endregion
@@ -2810,7 +2847,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
     public class ElrondAccountResult
     {
         public long nonce { get; set; }
-    }
 
     #endregion
 
@@ -3305,4 +3341,5 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
     }
 
     #endregion
+}
 }

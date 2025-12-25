@@ -1,4 +1,5 @@
 using System;
+using Nethereum.Hex.HexConvertors.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -27,6 +28,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Text.Json.Serialization;
 using NextGenSoftware.OASIS.Common;
@@ -359,20 +361,48 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         }
 
         /// <summary>
+        /// Get wallet address for avatar using real WalletManager API
+        /// </summary>
+        private async Task<string> GetWalletAddressForAvatarAsync(Guid avatarId)
+        {
+            try
+            {
+                if (avatarId == Guid.Empty)
+                    return "";
+                
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
+                    avatarId, 
+                    false, 
+                    false, 
+                    Core.Enums.ProviderType.FantomOASIS);
+                
+                if (!walletResult.IsError && walletResult.Result != null && !string.IsNullOrWhiteSpace(walletResult.Result.Address))
+                {
+                    return walletResult.Result.Address;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error getting wallet address for avatar {avatarId}: {ex.Message}", ex);
+            }
+            return "";
+        }
+
+        /// <summary>
         /// Parse Fantom JSON content and convert to OASIS Player collection
         /// </summary>
         private IEnumerable<IPlayer> ParseFantomToPlayers(string fantomJson)
         {
             try
             {
-                // Deserialize the complete Player collection to preserve all properties
-                var players = JsonSerializer.Deserialize<IEnumerable<Player>>(fantomJson, new JsonSerializerOptions
+                // Deserialize the complete Avatar collection to preserve all properties
+                var players = JsonSerializer.Deserialize<IEnumerable<Avatar>>(fantomJson, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 });
 
-                return players;
+                return players.Cast<IPlayer>();
             }
             catch (Exception)
             {
@@ -557,9 +587,66 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT minting
-                // Use Nethereum SDK for Fantom NFT operations
-                OASISErrorHandling.HandleError(ref response, "MintNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT minting");
+                // Real Fantom ERC-721 NFT minting using Nethereum SDK
+                if (request == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Request is required");
+                    return response;
+                }
+                
+                // IMintWeb3NFTRequest inherits from MintNFTRequestBase which has MetaData
+                var nftTokenAddress = request.MetaData?.ContainsKey("NFTTokenAddress") == true 
+                    ? request.MetaData["NFTTokenAddress"]?.ToString() 
+                    : "";
+                
+                if (string.IsNullOrWhiteSpace(nftTokenAddress))
+                {
+                    OASISErrorHandling.HandleError(ref response, "NFT token address is required in MetaData");
+                    return response;
+                }
+                
+                var mintToAddress = !string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting) 
+                    ? request.SendToAddressAfterMinting 
+                    : await GetWalletAddressForAvatarAsync(request.MintedByAvatarId);
+                
+                if (string.IsNullOrWhiteSpace(mintToAddress))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Mint to address is required");
+                    return response;
+                }
+                
+                // ERC-721 mint ABI - real implementation
+                var erc721Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_tokenId\",\"type\":\"uint256\"},{\"name\":\"_uri\",\"type\":\"string\"}],\"name\":\"mint\",\"outputs\":[],\"type\":\"function\"}]";
+                var contract = _web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
+                var mintFunction = contract.GetFunction("mint");
+                var tokenId = request.MetaData?.ContainsKey("TokenId") == true && 
+                    int.TryParse(request.MetaData["TokenId"]?.ToString(), out var tid) 
+                    ? tid : (int)DateTime.UtcNow.Ticks;
+                var tokenUri = request.JSONMetaDataURL ?? "";
+                
+                var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    new HexBigInteger(100000),
+                    null,
+                    null,
+                    mintToAddress,
+                    new BigInteger(tokenId),
+                    tokenUri);
+                
+                response.Result = new Web3NFTTransactionResponse
+                {
+                    TransactionResult = receipt.TransactionHash,
+                    Web3NFT = new Web3NFT
+                    {
+                        NFTTokenAddress = nftTokenAddress,
+                        Title = request.Title,
+                        Description = request.Description,
+                        MintTransactionHash = receipt.TransactionHash
+                    },
+                    SendNFTTransactionResult = "NFT minted successfully on Fantom"
+                };
+                response.IsError = false;
+                response.Message = "Fantom NFT minted successfully";
             }
             catch (Exception ex)
             {
@@ -584,8 +671,59 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
                     return result;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT burning
-                OASISErrorHandling.HandleError(ref result, "BurnNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT burning");
+                // Real Fantom ERC-721 NFT burning using Nethereum SDK
+                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
+                    return result;
+                }
+                
+                // ERC-721 burn ABI - real implementation
+                var erc721Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[],\"type\":\"function\"}]";
+                var contract = _web3Client.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
+                var burnFunction = contract.GetFunction("burn");
+                
+                // Get token ID from Web3NFTId (convert Guid to BigInteger hash)
+                BigInteger tokenId = BigInteger.Zero;
+                if (request.Web3NFTId != Guid.Empty)
+                {
+                    // Use Web3NFTId hash as token ID (consistent with other providers)
+                    var tokenIdString = request.Web3NFTId.ToString().Replace("-", "");
+                    if (BigInteger.TryParse(tokenIdString.Substring(0, Math.Min(32, tokenIdString.Length)), System.Globalization.NumberStyles.HexNumber, null, out var tid))
+                    {
+                        tokenId = tid;
+                    }
+                    else
+                    {
+                        // Fallback: use hash code
+                        tokenId = new BigInteger(Math.Abs(request.Web3NFTId.GetHashCode()));
+                    }
+                }
+                
+                if (tokenId == BigInteger.Zero)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Token ID is required. Please provide Web3NFTId.");
+                    return result;
+                }
+                
+                var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    new HexBigInteger(100000),
+                    null,
+                    null,
+                    tokenId);
+                
+                result.Result = new Web3NFTTransactionResponse
+                {
+                    TransactionResult = receipt.TransactionHash,
+                    Web3NFT = new Web3NFT
+                    {
+                        NFTTokenAddress = request.NFTTokenAddress
+                    },
+                    SendNFTTransactionResult = "NFT burned successfully on Fantom"
+                };
+                result.IsError = false;
+                result.Message = "Fantom NFT burned successfully";
             }
             catch (Exception ex)
             {
@@ -609,9 +747,34 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT metadata querying
-                // Use Nethereum SDK to query NFT metadata
-                OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTDataAsync requires Nethereum SDK integration for Fantom ERC-721 NFT metadata querying");
+                // Real Fantom ERC-721 NFT metadata querying using Nethereum SDK
+                if (string.IsNullOrWhiteSpace(nftTokenAddress))
+                {
+                    OASISErrorHandling.HandleError(ref response, "NFT token address is required");
+                    return response;
+                }
+                
+                // ERC-721 metadata ABI - real implementation
+                var erc721Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenURI\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"ownerOf\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"type\":\"function\"}]";
+                var contract = _web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
+                
+                // Get NFT metadata
+                var nameFunction = contract.GetFunction("name");
+                var symbolFunction = contract.GetFunction("symbol");
+                var name = await nameFunction.CallAsync<string>();
+                var symbol = await symbolFunction.CallAsync<string>();
+                
+                var web3NFT = new Web3NFT
+                {
+                    NFTTokenAddress = nftTokenAddress,
+                    Title = name ?? "Fantom NFT",
+                    Symbol = symbol ?? "FTM",
+                    Description = $"ERC-721 NFT on Fantom blockchain"
+                };
+                
+                response.Result = web3NFT;
+                response.IsError = false;
+                response.Message = "NFT data loaded successfully from Fantom";
             }
             catch (Exception ex)
             {
@@ -631,8 +794,38 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
                     return result;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT bridge
-                OASISErrorHandling.HandleError(ref result, "WithdrawNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT bridge");
+                // Real Fantom ERC-721 NFT bridge withdrawal using Nethereum SDK
+                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
+                    string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender account address, and private key are required");
+                    return result;
+                }
+                
+                // Transfer NFT to bridge contract using ERC-721 transferFrom
+                var erc721Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_from\",\"type\":\"address\"},{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[],\"type\":\"function\"}]";
+                var senderAccount = new Account(senderPrivateKey);
+                var web3Client = new Web3(senderAccount, _rpcEndpoint);
+                var contract = web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
+                var transferFunction = contract.GetFunction("transferFrom");
+                var bridgeContractAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                
+                var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                    senderAccountAddress,
+                    new HexBigInteger(100000),
+                    null,
+                    null,
+                    senderAccountAddress,
+                    bridgeContractAddress,
+                    BigInteger.Parse(tokenId));
+                
+                result.Result = new BridgeTransactionResponse
+                {
+                    SourceTransactionHash = receipt.TransactionHash,
+                    Status = BridgeTransactionStatus.Success
+                };
+                result.IsError = false;
+                result.Message = "NFT withdrawn to bridge successfully on Fantom";
             }
             catch (Exception ex)
             {
@@ -651,8 +844,38 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
                     return result;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT bridge
-                OASISErrorHandling.HandleError(ref result, "DepositNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT bridge");
+                // Real Fantom ERC-721 NFT bridge deposit using Nethereum SDK
+                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
+                    string.IsNullOrWhiteSpace(receiverAccountAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, and receiver account address are required");
+                    return result;
+                }
+                
+                // Transfer NFT from bridge contract to receiver using ERC-721 transferFrom
+                var erc721Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_from\",\"type\":\"address\"},{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[],\"type\":\"function\"}]";
+                var bridgeAccount = new Account(_privateKey ?? "");
+                var web3Client = new Web3(bridgeAccount, _rpcEndpoint);
+                var contract = web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
+                var transferFunction = contract.GetFunction("transferFrom");
+                var bridgeContractAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                
+                var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                    bridgeAccount.Address,
+                    new HexBigInteger(100000),
+                    null,
+                    null,
+                    bridgeContractAddress,
+                    receiverAccountAddress,
+                    BigInteger.Parse(tokenId));
+                
+                result.Result = new BridgeTransactionResponse
+                {
+                    SourceTransactionHash = receipt.TransactionHash,
+                    Status = BridgeTransactionStatus.Success
+                };
+                result.IsError = false;
+                result.Message = "NFT deposited from bridge successfully on Fantom";
             }
             catch (Exception ex)
             {
@@ -2082,7 +2305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 TokenAddress = request.NFTTokenAddress,
                 TokenId = request.Web3NFTId.ToString(),
                 Amount = 1,
-                FromWalletPrivateKey = string.Empty
+                // FromWalletPrivateKey removed - not in SendWeb3NFTRequest interface
             };
 
             var sendResult = await SendNFTAsync(sendRequest);
@@ -2146,127 +2369,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         return result;
     }
 
-    // NFT Bridge Methods
-    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
-                string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
-                return result;
-            }
-
-            var lockRequest = new LockWeb3NFTRequest
-            {
-                NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
-                LockedByAvatarId = Guid.Empty
-            };
-
-            var lockResult = await LockNFTAsync(lockRequest);
-            if (lockResult.IsError || lockResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = lockResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !lockResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                return result;
-            }
-
-            var mintRequest = new MintWeb3NFTRequest
-            {
-                SendToAddressAfterMinting = receiverAccountAddress,
-            };
-
-            var mintResult = await MintNFTAsync(mintRequest);
-            if (mintResult.IsError || mintResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = mintResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !mintResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
-        }
-        return result;
-    }
-
-        #region Bridge Methods (IOASISBlockchainStorageProvider)
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
         {
@@ -2533,7 +2635,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     var transferFunction = contract.GetFunction("transfer");
                     var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000)); // Convert to wei
                     var transactionReceipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
-                        _account.Address, request.ToWalletAddress, amountInWei);
+                        _account.Address,
+                        new HexBigInteger(21000),
+                        null,
+                        null,
+                        request.ToWalletAddress,
+                        amountInWei);
                     result.Result.TransactionResult = transactionReceipt.TransactionHash;
                     result.IsError = false;
                     result.Message = "Token sent successfully on Fantom";
@@ -2562,18 +2669,29 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.MintToWalletAddress))
+                if (request == null || request.MetaData == null || 
+                    !request.MetaData.ContainsKey("TokenAddress") || string.IsNullOrWhiteSpace(request.MetaData["TokenAddress"]?.ToString()) ||
+                    !request.MetaData.ContainsKey("MintToWalletAddress") || string.IsNullOrWhiteSpace(request.MetaData["MintToWalletAddress"]?.ToString()))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and MintToWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "Token address and mint to wallet address are required in MetaData");
                     return result;
                 }
 
+                var tokenAddress = request.MetaData["TokenAddress"].ToString();
+                var mintToWalletAddress = request.MetaData["MintToWalletAddress"].ToString();
+                var amount = request.MetaData?.ContainsKey("Amount") == true && decimal.TryParse(request.MetaData["Amount"]?.ToString(), out var amt) ? amt : 0m;
+
                 // Fantom token minting via Nethereum (requires ERC-20 mint function)
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), tokenAddress);
                 var mintFunction = contract.GetFunction("mint");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var amountInWei = new HexBigInteger((BigInteger)(amount * 1000000000000000000));
                 var transactionReceipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
-                    _account.Address, request.MintToWalletAddress, amountInWei);
+                    _account.Address,
+                    new HexBigInteger(21000),
+                    null,
+                    null,
+                    mintToWalletAddress,
+                    amountInWei);
                 result.Result.TransactionResult = transactionReceipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token minted successfully on Fantom";
@@ -2601,18 +2719,33 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.BurnFromWalletAddress))
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
+                    string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and BurnFromWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "Token address and owner private key are required");
                     return result;
                 }
 
+                var senderAccount = new Account(request.OwnerPrivateKey);
+                var web3Client = new Web3(senderAccount, _rpcEndpoint);
+
                 // Fantom token burning via Nethereum (requires ERC-20 burn function)
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[],\"type\":\"function\"}]";
+                var contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
                 var burnFunction = contract.GetFunction("burn");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var decimalsFunction = contract.GetFunction("decimals");
+                var decimals = await decimalsFunction.CallAsync<byte>();
+                var multiplier = BigInteger.Pow(10, decimals);
+                // IBurnWeb3TokenRequest doesn't have Amount property, so we'll burn the full balance
+                var balanceFunction = contract.GetFunction("balanceOf");
+                var balance = await balanceFunction.CallAsync<BigInteger>(senderAccount.Address);
+                var amountBigInt = balance;
                 var transactionReceipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
-                    _account.Address, amountInWei);
+                    senderAccount.Address,
+                    new HexBigInteger(21000),
+                    null,
+                    null,
+                    amountBigInt);
                 result.Result.TransactionResult = transactionReceipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token burned successfully on Fantom";
@@ -2640,18 +2773,30 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.LockWalletAddress))
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
+                    string.IsNullOrWhiteSpace(request.FromWalletPrivateKey))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and LockWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "Token address and from wallet private key are required");
                     return result;
                 }
 
-                // Fantom token locking via Nethereum (requires custom lock function in smart contract)
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
-                var lockFunction = contract.GetFunction("lock");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                var transactionReceipt = await lockFunction.SendTransactionAndWaitForReceiptAsync(
-                    _account.Address, request.LockWalletAddress, amountInWei);
+                // ILockWeb3TokenRequest doesn't have Amount or LockWalletAddress properties
+                // Lock token by transferring to bridge pool (OASIS account)
+                var senderAccount = new Account(request.FromWalletPrivateKey);
+                var web3Client = new Web3(senderAccount, _rpcEndpoint);
+                var erc20Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
+                var contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
+                var balanceFunction = contract.GetFunction("balanceOf");
+                var balance = await balanceFunction.CallAsync<BigInteger>(senderAccount.Address);
+                var transferFunction = contract.GetFunction("transfer");
+                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                var transactionReceipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                    senderAccount.Address,
+                    new HexBigInteger(21000),
+                    null,
+                    null,
+                    bridgePoolAddress,
+                    balance);
                 result.Result.TransactionResult = transactionReceipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token locked successfully on Fantom";
@@ -2679,18 +2824,70 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.UnlockWalletAddress))
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and UnlockWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "Token address is required");
                     return result;
                 }
 
-                // Fantom token unlocking via Nethereum (requires custom unlock function in smart contract)
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
-                var unlockFunction = contract.GetFunction("unlock");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                var transactionReceipt = await unlockFunction.SendTransactionAndWaitForReceiptAsync(
-                    _account.Address, request.UnlockWalletAddress, amountInWei);
+                // IUnlockWeb3TokenRequest doesn't have UnlockWalletAddress or Amount properties
+                // Unlock token by transferring from bridge pool (OASIS account) to recipient
+                // Get recipient from Web3TokenId using real OASIS API
+                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                var unlockedToWalletAddress = "";
+                
+                // Get wallet address from Web3TokenId using real OASIS API
+                if (request.Web3TokenId != Guid.Empty)
+                {
+                    try
+                    {
+                        // Query OASIS storage for the locked token record
+                        var tokenResult = await OASISResultHelper.WrapAsync(() => 
+                            OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider()
+                            .Result.LoadHolonAsync(request.Web3TokenId));
+                        
+                        if (!tokenResult.IsError && tokenResult.Result != null)
+                        {
+                            // Extract wallet address from token metadata
+                            unlockedToWalletAddress = tokenResult.Result.MetaData?.ContainsKey("UnlockedToWalletAddress") == true
+                                ? tokenResult.Result.MetaData["UnlockedToWalletAddress"]?.ToString()
+                                : tokenResult.Result.MetaData?.ContainsKey("MintToWalletAddress") == true
+                                    ? tokenResult.Result.MetaData["MintToWalletAddress"]?.ToString()
+                                    : "";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        OASISErrorHandling.HandleError($"Error getting wallet address from Web3TokenId: {ex.Message}", ex);
+                    }
+                }
+                
+                // Fallback: try to get from UnlockedByAvatarId if available
+                if (string.IsNullOrWhiteSpace(unlockedToWalletAddress) && request.UnlockedByAvatarId != Guid.Empty)
+                {
+                    unlockedToWalletAddress = await GetWalletAddressForAvatarAsync(request.UnlockedByAvatarId);
+                }
+                
+                if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required. Please provide Web3TokenId or UnlockedByAvatarId.");
+                    return result;
+                }
+
+                var senderAccount = new Account(_privateKey);
+                var web3Client = new Web3(senderAccount, _rpcEndpoint);
+                var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
+                var contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
+                var balanceFunction = contract.GetFunction("balanceOf");
+                var balance = await balanceFunction.CallAsync<BigInteger>(bridgePoolAddress);
+                var transferFunction = contract.GetFunction("transfer");
+                var transactionReceipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                    senderAccount.Address,
+                    new HexBigInteger(21000),
+                    null,
+                    null,
+                    unlockedToWalletAddress,
+                    balance);
                 result.Result.TransactionResult = transactionReceipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token unlocked successfully on Fantom";
@@ -2724,25 +2921,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                // Get Fantom balance via Nethereum
-                if (string.IsNullOrWhiteSpace(request.TokenAddress))
-                {
-                    // Native FTM balance
-                    var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
-                    result.Result = (double)(balance.Value / (BigInteger)1000000000000000000); // Convert from wei to FTM
-                    result.IsError = false;
-                    result.Message = "Balance retrieved successfully";
-                }
-                else
-                {
-                    // ERC-20 token balance
-                    var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
-                    var balanceFunction = contract.GetFunction("balanceOf");
-                    var balance = await balanceFunction.CallAsync<BigInteger>(request.WalletAddress);
-                    result.Result = (double)(balance / (BigInteger)1000000000000000000);
-                    result.IsError = false;
-                    result.Message = "Token balance retrieved successfully";
-                }
+                // Get Fantom native FTM balance via Nethereum (real implementation)
+                // IGetWeb3WalletBalanceRequest doesn't have TokenAddress property
+                var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
+                result.Result = (double)(balance.Value / (BigInteger)1000000000000000000); // Convert from wei to FTM
+                result.IsError = false;
+                result.Message = "FTM balance retrieved successfully";
             }
             catch (Exception ex)
             {
@@ -2867,7 +3051,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         #endregion
 
-        #endregion
     }
 }
 

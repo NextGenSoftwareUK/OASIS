@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.Logging;
@@ -26,7 +27,7 @@ using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
-//using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
+using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 //using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
 //using NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 //using NextGenSoftware.OASIS.API.Providers.BNBChainOASIS;
@@ -34,16 +35,16 @@ using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 //using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
-//using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
-//using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
-//using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
-//using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
-//using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
-//using NextGenSoftware.OASIS.API.Providers.NEAROASIS;
-//using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
-//using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
-//using NextGenSoftware.OASIS.API.Providers.MoralisOASIS;
-//using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
+using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
+using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
+using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
+using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
+using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
+using NextGenSoftware.OASIS.API.Providers.NEAROASIS;
+using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
+using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
+using NextGenSoftware.OASIS.API.Providers.MoralisOASIS;
+using NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Utilities;
@@ -983,14 +984,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        //case ProviderType.BitcoinOASIS:
-                        //    {
-                        //        BitcoinOASIS bitcoinOASIS = new BitcoinOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.BitcoinOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.BitcoinOASIS.Network);
-                        //        result.Result = bitcoinOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.BitcoinOASIS:
+                        {
+                            var bitcoinProvider = new BitcoinOASIS(
+                                OASISDNA.OASIS.StorageProviders.BitcoinOASIS.RpcEndpoint ?? "https://blockstream.info/api",
+                                OASISDNA.OASIS.StorageProviders.BitcoinOASIS.Network ?? "mainnet");
+                            bitcoinProvider.OnStorageProviderError += BitcoinOASIS_StorageProviderError;
+                            result.Result = bitcoinProvider;
+                        }
+                        break;
 
                         //case ProviderType.CardanoOASIS:
                         //    {
@@ -1060,96 +1062,116 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        //case ProviderType.AptosOASIS:
-                        //    {
-                        //        AptosOASIS aptosOASIS = new AptosOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.AptosOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.AptosOASIS.Network,
-                        //            OASISDNA.OASIS.StorageProviders.AptosOASIS.ChainId);
-                        //        result.Result = aptosOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.AptosOASIS:
+                        {
+                            var aptosProvider = new AptosOASIS(
+                                OASISDNA.OASIS.StorageProviders.AptosOASIS.RpcEndpoint ?? "https://api.mainnet.aptoslabs.com/v1",
+                                OASISDNA.OASIS.StorageProviders.AptosOASIS.Network ?? "mainnet",
+                                OASISDNA.OASIS.StorageProviders.AptosOASIS.PrivateKey,
+                                OASISDNA.OASIS.StorageProviders.AptosOASIS.ContractAddress ?? "0x1");
+                            aptosProvider.OnStorageProviderError += AptosOASIS_StorageProviderError;
+                            result.Result = aptosProvider;
+                        }
+                        break;
 
-                        //case ProviderType.TRONOASIS:
-                        //    {
-                        //        TRONOASIS tronOASIS = new TRONOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.TRONOASIS.Network,
-                        //            OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId);
-                        //        result.Result = tronOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.TRONOASIS:
+                        {
+                            var tronProvider = new TRONOASIS(
+                                OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint ?? "https://api.trongrid.io",
+                                OASISDNA.OASIS.StorageProviders.TRONOASIS.Network ?? "mainnet",
+                                OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428");
+                            tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
+                            result.Result = tronProvider;
+                        }
+                        break;
 
-                        //case ProviderType.HashgraphOASIS:
-                        //    {
-                        //        HashgraphOASIS hashgraphOASIS = new HashgraphOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.HashgraphOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.HashgraphOASIS.Network,
-                        //            OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId);
-                        //        result.Result = hashgraphOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.HashgraphOASIS:
+                        {
+                            var hashgraphProvider = new HashgraphOASIS(
+                                OASISDNA.OASIS.StorageProviders.HashgraphOASIS.RpcEndpoint ?? "https://mainnet-public.mirrornode.hedera.com",
+                                OASISDNA.OASIS.StorageProviders.HashgraphOASIS.Network ?? "mainnet",
+                                OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId ?? "295");
+                            hashgraphProvider.OnStorageProviderError += HashgraphOASIS_StorageProviderError;
+                            result.Result = hashgraphProvider;
+                        }
+                        break;
 
-                        //case ProviderType.AvalancheOASIS:
-                        //    {
-                        //        AvalancheOASIS avalancheOASIS = new AvalancheOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainPrivateKey,
-                        //            OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainId,
-                        //            OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ContractAddress);
-                        //        result.Result = avalancheOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.AvalancheOASIS:
+                        {
+                            var chainIdHex = OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainId ?? "0x0";
+                            var chainId = chainIdHex.StartsWith("0x") 
+                                ? BigInteger.Parse(chainIdHex.Substring(2), System.Globalization.NumberStyles.HexNumber)
+                                : BigInteger.Parse(chainIdHex);
+                            var avalancheProvider = new AvalancheOASIS(
+                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint ?? "https://api.avax.network/ext/bc/C/rpc",
+                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainPrivateKey ?? "",
+                                chainId,
+                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ContractAddress ?? "");
+                            avalancheProvider.OnStorageProviderError += AvalancheOASIS_StorageProviderError;
+                            result.Result = avalancheProvider;
+                        }
+                        break;
 
-                        //case ProviderType.CosmosBlockChainOASIS:
-                        //    {
-                        //        CosmosBlockChainOASIS cosmosOASIS = new CosmosBlockChainOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.Network,
-                        //            OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId);
-                        //        result.Result = cosmosOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.CosmosBlockChainOASIS:
+                        {
+                            var cosmosProvider = new CosmosBlockChainOASIS(
+                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint ?? "https://cosmos-rpc.polkachu.com",
+                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.Network ?? "cosmos",
+                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId ?? "cosmoshub-4");
+                            cosmosProvider.OnStorageProviderError += CosmosBlockChainOASIS_StorageProviderError;
+                            result.Result = cosmosProvider;
+                        }
+                        break;
 
-                        //case ProviderType.NEAROASIS:
-                        //    {
-                        //        NEAROASIS nearOASIS = new NEAROASIS(
-                        //            OASISDNA.OASIS.StorageProviders.NEAROASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.NEAROASIS.Network,
-                        //            OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId);
-                        //        result.Result = nearOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.NEAROASIS:
+                        {
+                            var nearProvider = new NEAROASIS(
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.RpcEndpoint ?? "https://rpc.mainnet.near.org",
+                        //        OASISDNA.OASIS.StorageProviders.NEAROASIS.Network ?? "mainnet",
+                        //        OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId ?? "mainnet");
+                        //    nearProvider.OnStorageProviderError += NEAROASIS_StorageProviderError;
+                        //    result.Result = nearProvider;
+                        //}
+                        //break;
 
-                        //case ProviderType.BaseOASIS:
-                        //    {
-                        //        BaseOASIS baseOASIS = new BaseOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.BaseOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.BaseOASIS.NetworkId,
-                        //            OASISDNA.OASIS.StorageProviders.BaseOASIS.ChainId);
-                        //        result.Result = baseOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.BaseOASIS:
+                        {
+                            var chainIdHex = OASISDNA.OASIS.StorageProviders.BaseOASIS.ChainId ?? "0x2105";
+                            var chainId = chainIdHex.StartsWith("0x") 
+                                ? BigInteger.Parse(chainIdHex.Substring(2), System.Globalization.NumberStyles.HexNumber)
+                                : BigInteger.Parse(chainIdHex);
+                            var baseProvider = new BaseOASIS(
+                                OASISDNA.OASIS.StorageProviders.BaseOASIS.RpcEndpoint ?? "https://mainnet.base.org",
+                                OASISDNA.OASIS.StorageProviders.BaseOASIS.ChainPrivateKey ?? "",
+                                chainId,
+                                OASISDNA.OASIS.StorageProviders.BaseOASIS.ContractAddress ?? "");
+                            baseProvider.OnStorageProviderError += BaseOASIS_StorageProviderError;
+                            result.Result = baseProvider;
+                        }
+                        break;
 
-                        //case ProviderType.SuiOASIS:
-                        //    {
-                        //        SuiOASIS suiOASIS = new SuiOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.SuiOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.SuiOASIS.Network,
-                        //            OASISDNA.OASIS.StorageProviders.SuiOASIS.ChainId);
-                        //        result.Result = suiOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.SuiOASIS:
+                        {
+                            var suiProvider = new SuiOASIS(
+                                OASISDNA.OASIS.StorageProviders.SuiOASIS.RpcEndpoint ?? "https://fullnode.mainnet.sui.io:443",
+                                OASISDNA.OASIS.StorageProviders.SuiOASIS.Network ?? "mainnet",
+                                OASISDNA.OASIS.StorageProviders.SuiOASIS.ChainId ?? "",
+                                OASISDNA.OASIS.StorageProviders.SuiOASIS.ContractAddress ?? "");
+                            suiProvider.OnStorageProviderError += SuiOASIS_StorageProviderError;
+                            result.Result = suiProvider;
+                        }
+                        break;
 
-                        //case ProviderType.MoralisOASIS:
-                        //    {
-                        //        MoralisOASIS moralisOASIS = new MoralisOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.MoralisOASIS.ApiKey,
-                        //            OASISDNA.OASIS.StorageProviders.MoralisOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.MoralisOASIS.Network);
-                        //        result.Result = moralisOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.MoralisOASIS:
+                        {
+                            var moralisProvider = new MoralisOASIS(
+                                OASISDNA.OASIS.StorageProviders.MoralisOASIS.ApiKey ?? "",
+                                OASISDNA.OASIS.StorageProviders.MoralisOASIS.RpcEndpoint ?? "https://speedy-nodes-nyc.moralis.io",
+                                OASISDNA.OASIS.StorageProviders.MoralisOASIS.Network ?? "mainnet");
+                            moralisProvider.OnStorageProviderError += MoralisOASIS_StorageProviderError;
+                            result.Result = moralisProvider;
+                        }
+                        break;
 
                         //case ProviderType.TelosOASIS:
                         //    {
@@ -1162,16 +1184,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        //case ProviderType.ActivityPubOASIS:
-                        //    {
-                        //        AcitvityPubOASIS activityPubOASIS = new AcitvityPubOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.BaseUrl,
-                        //            OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.UserAgent,
-                        //            OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.AcceptHeader,
-                        //            OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.TimeoutSeconds);
-                        //        result.Result = activityPubOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.ActivityPubOASIS:
+                            {
+                                var baseUrl = OASISDNA.OASIS.StorageProviders.ActivityPubOASIS?.BaseUrl ?? "https://mastodon.social";
+                                // Remove /api/v1 if present since ActivityPubOASIS constructor expects instance URL
+                                if (baseUrl.EndsWith("/api/v1"))
+                                    baseUrl = baseUrl.Replace("/api/v1", "");
+                                var activityPubProvider = new ActivityPubOASIS(baseUrl, "");
+                                activityPubProvider.OnStorageProviderError += ActivityPubOASIS_StorageProviderError;
+                                result.Result = activityPubProvider;
+                            }
+                            break;
 
                         case ProviderType.GoogleCloudOASIS:
                             {
@@ -1399,6 +1422,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("LocalFileOASIS", e);
         }
 
+        private static void ActivityPubOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("ActivityPubOASIS", e);
+        }
+
         private static void ThreeFoldOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("ThreeFoldOASI", e);
@@ -1422,6 +1450,56 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void RootstockOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("RootstockOASIS", e);
+        }
+
+        private static void BaseOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("BaseOASIS", e);
+        }
+
+        private static void AvalancheOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("AvalancheOASIS", e);
+        }
+
+        private static void AptosOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("AptosOASIS", e);
+        }
+
+        private static void SuiOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("SuiOASIS", e);
+        }
+
+        private static void TRONOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("TRONOASIS", e);
+        }
+
+        private static void HashgraphOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("HashgraphOASIS", e);
+        }
+
+        private static void CosmosBlockChainOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("CosmosBlockChainOASIS", e);
+        }
+
+        private static void BitcoinOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("BitcoinOASIS", e);
+        }
+
+        private static void NEAROASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("NEAROASIS", e);
+        }
+
+        private static void MoralisOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("MoralisOASIS", e);
         }
 
         private static void TelosOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)

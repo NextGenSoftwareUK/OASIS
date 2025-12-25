@@ -865,6 +865,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://api.mainnet.aptoslabs.com/v1";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "1";
+        public string PrivateKey { get; set; } = "";
+        public string ContractAddress { get; set; } = "0x1";
     }
 
     public class TRONOASISProviderSettings : ProviderSettingsBase
@@ -886,6 +888,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://api.avax.network/ext/bc/C/rpc";
         public string NetworkId { get; set; } = "43114";
         public string ChainId { get; set; } = "0xa86a";
+        public string ChainPrivateKey { get; set; } = "";
+        public string ContractAddress { get; set; } = "";
     }
 
     public class CosmosBlockChainOASISProviderSettings : ProviderSettingsBase
@@ -907,6 +911,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://mainnet.base.org";
         public string NetworkId { get; set; } = "8453";
         public string ChainId { get; set; } = "0x2105";
+        public string ChainPrivateKey { get; set; } = "";
+        public string ContractAddress { get; set; } = "";
     }
 
     public class SuiOASISProviderSettings : ProviderSettingsBase
@@ -914,6 +920,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://fullnode.mainnet.sui.io:443";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "mainnet";
+        public string ContractAddress { get; set; } = "";
     }
 
     public class MoralisOASISProviderSettings : ProviderSettingsBase
