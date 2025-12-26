@@ -556,6 +556,100 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ListWeb4NFTs(await NFTCommon.NFTManager.SearchWeb4NFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, searchOnlyForCurrentAvatar: !showForAllAvatars, providerType: providerType));
         }
 
+        // Web3 NFT Methods
+        public virtual async Task<OASISResult<IEnumerable<IWeb3NFT>>> ListAllWeb3NFTsAsync(ProviderType providerType = ProviderType.Default)
+        {
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB3 NFT's...");
+            return NFTCommon.ListWeb3NFTs(await NFTCommon.NFTManager.LoadAllWeb3NFTsAsync(providerType: providerType));
+        }
+
+        public virtual async Task<OASISResult<IEnumerable<IWeb3NFT>>> ListAllWeb3NFTForAvatarsAsync(ProviderType providerType = ProviderType.Default)
+        {
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB3 NFT's...");
+            return NFTCommon.ListWeb3NFTs(await NFTCommon.NFTManager.LoadAllWeb3NFTsForAvatarAsync(STAR.BeamedInAvatar.Id, providerType: providerType));
+        }
+
+        public virtual async Task<OASISResult<IWeb3NFT>> ShowWeb3NFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IWeb3NFT> result = new OASISResult<IWeb3NFT>();
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB3 NFT's...");
+
+            result = await NFTCommon.FindWeb3NFTAsync("view", default, idOrName, true, providerType: providerType);
+
+            return result;
+        }
+
+        public virtual async Task SearchWeb3NFTAsync(string searchTerm = "", bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        {
+            if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
+                searchTerm = CLIEngine.GetValidInput($"What is the name of the WEB3 NFT you wish to search for?");
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Searching WEB3 NFT's...");
+            NFTCommon.ListWeb3NFTs(await NFTCommon.NFTManager.SearchWeb3NFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, default, !showForAllAvatars, providerType: providerType));
+        }
+
+        public virtual async Task<OASISResult<IWeb3NFT>> UpdateWeb3NFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IWeb3NFT> result = new OASISResult<IWeb3NFT>();
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB3 NFT's...");
+
+            OASISResult<IWeb3NFT> nftResult = await NFTCommon.FindWeb3NFTAsync("update", default, idOrName, true, providerType: providerType);
+
+            if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+            {
+                // Note: Web3 NFTs are typically updated through their parent Web4 NFT
+                // This is a placeholder for future implementation if direct Web3 NFT updates are needed
+                CLIEngine.ShowWarningMessage("Web3 NFT updates are typically done through their parent Web4 NFT. Use 'nft update {id/name}' to update the parent Web4 NFT.");
+                result = nftResult;
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No WEB3 NFT Found For That Id or Name!");
+            }
+
+            return result;
+        }
+
+        public virtual async Task<OASISResult<bool>> DeleteWeb3NFTAsync(string idOrName, bool softDelete = true, bool burnWeb3NFT = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB3 NFT's...");
+
+            OASISResult<IWeb3NFT> nft = await NFTCommon.FindWeb3NFTAsync("delete", default, idOrName, true, providerType: providerType);
+
+            if (nft != null && nft.Result != null && !nft.IsError)
+            {
+                OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb3NFTAsync(STAR.BeamedInAvatar.Id, nft.Result.Id, softDelete, burnWeb3NFT, providerType: providerType);
+
+                if (deleteResult != null && !deleteResult.IsError && deleteResult.Result)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = deleteResult.Message;
+                    CLIEngine.ShowSuccessMessage(deleteResult.Message);
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB3 NFT. Reason: {deleteResult?.Message}");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No WEB3 NFT Found For That Id or Name!");
+            }
+
+            return result;
+        }
+
         public async Task<OASISResult<IWeb4NFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 NFT", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
