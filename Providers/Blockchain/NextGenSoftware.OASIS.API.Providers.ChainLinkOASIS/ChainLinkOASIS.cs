@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
@@ -1633,6 +1634,33 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         #endregion
 
         #region IOASISBlockchainStorageProvider
+
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+        {
+            return SendTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.FromWalletAddress) || 
+                    string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "FromWalletAddress and ToWalletAddress are required");
+                    return result;
+                }
+
+                // Use the existing SendTransactionAsync implementation
+                return await SendTransactionAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, request.MemoText);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token: {ex.Message}", ex);
+                return result;
+            }
+        }
 
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {

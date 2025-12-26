@@ -2787,7 +2787,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         private async Task<string> GetWalletAddressAsync(Guid? avatarId = null)
         {
             try
-            {
+        {
                 // If avatar ID is provided, get wallet for that avatar
                 if (avatarId.HasValue && avatarId.Value != Guid.Empty)
                 {
