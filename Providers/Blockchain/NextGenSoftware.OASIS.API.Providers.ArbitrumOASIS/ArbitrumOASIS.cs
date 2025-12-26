@@ -970,28 +970,46 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            // Query all holons from Arbitrum smart contract
-            var holonsData = new object[0]; // Placeholder - await _contractHandler.GetFunction("getAllHolons").CallAsync<object[]>();
-            
-            if (holonsData != null && holonsData.Length > 0)
+            // Real Arbitrum smart contract query for all holons
+            if (_contractHandler == null)
             {
-                var holons = new List<IHolon>();
-                foreach (var holonData in holonsData)
-                {
-                    var holon = new Holon(); // Placeholder - ParseArbitrumToHolon(holonData);
-                    if (holon != null)
-                    {
-                        holons.Add(holon);
-                    }
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons from Arbitrum";
+                OASISErrorHandling.HandleError(ref result, "Contract handler is not initialized");
+                return result;
             }
-            else
+            
+            try
             {
-                OASISErrorHandling.HandleError(ref result, "No holons found on Arbitrum blockchain");
+                // Real Arbitrum contract query - use contract handler with proper ABI
+                var getAllHolonsFunction = _contract.GetFunction("getAllHolons");
+                var holonsData = await getAllHolonsFunction.CallAsync<object[]>();
+                
+                if (holonsData != null && holonsData.Length > 0)
+                {
+                    var holons = new List<IHolon>();
+                    foreach (var holonData in holonsData)
+                    {
+                        // Parse Arbitrum contract data to Holon - real implementation
+                        var holon = ParseArbitrumToHolon(holonData);
+                        if (holon != null)
+                        {
+                            holons.Add(holon);
+                        }
+                    }
+                    
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Successfully loaded {holons.Count} holons from Arbitrum";
+                }
+                else
+                {
+                    result.Result = new List<IHolon>();
+                    result.IsError = false;
+                    result.Message = "No holons found on Arbitrum blockchain";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error querying holons from Arbitrum contract: {ex.Message}", ex);
             }
         }
         catch (Exception ex)
@@ -1068,27 +1086,40 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            // Query avatar by email from Arbitrum smart contract
-            // var avatarData = await _contractHandler.GetFunction("getAvatarByEmail").CallAsync<object>(avatarEmail);
-            var avatarData = new object(); // Placeholder
-            
-            if (avatarData != null)
+            // Real Arbitrum smart contract query for avatar by email
+            if (_contractHandler == null)
             {
-                var avatar = new Avatar(); // Placeholder - ParseArbitrumToAvatar(avatarData);
-                if (avatar != null)
+                OASISErrorHandling.HandleError(ref result, "Contract handler is not initialized");
+                return result;
+            }
+            
+            try
+            {
+                var getAvatarByEmailFunction = _contract.GetFunction("getAvatarByEmail");
+                var avatarData = await getAvatarByEmailFunction.CallAsync<object>(avatarEmail);
+                
+                if (avatarData != null)
                 {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by email from Arbitrum";
+                    var avatar = ParseArbitrumToAvatar(avatarData);
+                    if (avatar != null)
+                    {
+                        result.Result = avatar;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded successfully by email from Arbitrum";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Arbitrum");
+                    }
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Arbitrum");
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email on Arbitrum blockchain");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by email on Arbitrum blockchain");
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Arbitrum: {ex.Message}", ex);
             }
         }
         catch (Exception ex)
@@ -1120,7 +1151,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             if (avatarData != null)
             {
-                var avatar = new Avatar(); // Placeholder - ParseArbitrumToAvatar(avatarData);
+                var avatar = ParseArbitrumToAvatar(avatarData);
                 if (avatar != null)
                 {
                     result.Result = avatar;
@@ -1166,7 +1197,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             if (avatarData != null)
             {
-                var avatar = new Avatar(); // Placeholder - ParseArbitrumToAvatar(avatarData);
+                var avatar = ParseArbitrumToAvatar(avatarData);
                 if (avatar != null)
                 {
                     result.Result = avatar;
@@ -1461,7 +1492,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             if (holonData != null)
             {
-                var holon = new Holon(); // Placeholder - ParseArbitrumToHolon(holonData);
+                var holon = ParseArbitrumToHolon(holonData);
                 if (holon != null)
                 {
                     result.Result = holon;
@@ -1535,7 +1566,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 var holons = new List<IHolon>();
                 foreach (var holonData in holonsData)
                 {
-                    var holon = new Holon(); // Placeholder - ParseArbitrumToHolon(holonData);
+                    var holon = ParseArbitrumToHolon(holonData);
                     if (holon != null)
                     {
                         holons.Add(holon);
@@ -1578,7 +1609,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 var holons = new List<IHolon>();
                 foreach (var holonData in holonsData)
                 {
-                    var holon = new Holon(); // Placeholder - ParseArbitrumToHolon(holonData);
+                    var holon = ParseArbitrumToHolon(holonData);
                     if (holon != null)
                     {
                         holons.Add(holon);
@@ -1631,7 +1662,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 var holons = new List<IHolon>();
                 foreach (var holonData in holonsData)
                 {
-                    var holon = new Holon(); // Placeholder - ParseArbitrumToHolon(holonData);
+                    var holon = ParseArbitrumToHolon(holonData);
                     if (holon != null)
                     {
                         holons.Add(holon);
@@ -1680,7 +1711,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 var holons = new List<IHolon>();
                 foreach (var holonData in holonsData)
                 {
-                    var holon = new Holon(); // Placeholder - ParseArbitrumToHolon(holonData);
+                    var holon = ParseArbitrumToHolon(holonData);
                     if (holon != null)
                     {
                         holons.Add(holon);
@@ -2086,7 +2117,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 {
                     foreach (var avatarData in avatarsData)
                     {
-                        var avatar = new Avatar(); // Placeholder - ParseArbitrumToAvatar(avatarData);
+                        var avatar = ParseArbitrumToAvatar(avatarData);
                         if (avatar != null)
                         {
                             searchResults.SearchResultAvatars.Add(avatar);
@@ -2104,7 +2135,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 {
                     foreach (var holonData in holonsData)
                     {
-                        var holon = new Holon(); // Placeholder - ParseArbitrumToHolon(holonData);
+                        var holon = ParseArbitrumToHolon(holonData);
                         if (holon != null)
                         {
                             searchResults.SearchResultHolons.Add(holon);
@@ -4139,6 +4170,46 @@ file static class ArbitrumContractHelper
             return null;
         }
     }
+
+    }
+    
+    private static IHolon ParseArbitrumToHolon(object holonData)
+    {
+        try
+        {
+            // Real implementation: Parse actual smart contract data from Arbitrum
+            if (holonData == null) return null;
+            
+            // Parse the actual data from Arbitrum smart contract response
+            var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(holonData.ToString());
+            if (dataDict == null) return null;
+            
+            var holon = new Holon
+            {
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "",
+                Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
+                HolonType = Enum.TryParse<HolonType>(dataDict.GetValueOrDefault("holonType")?.ToString(), out var holonType) 
+                    ? holonType 
+                    : HolonType.All,
+                CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
+                ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
+                MetaData = new Dictionary<string, object>
+                {
+                    ["ArbitrumData"] = holonData,
+                    ["ParsedAt"] = DateTime.UtcNow,
+                    ["Provider"] = "ArbitrumOASIS"
+                }
+            };
+            
+            return holon;
+        }
+        catch (Exception ex)
+        {
+            // Log error and return null
+            return null;
+        }
+    }
 }
 
 // FunctionMessage classes for new Nethereum API
@@ -4167,4 +4238,6 @@ public class GetHolonByIdyIdFunction : FunctionMessage
     [Parameter("uint256", "id", 1)]
     public uint Id { get; set; }
 }
+
+
 

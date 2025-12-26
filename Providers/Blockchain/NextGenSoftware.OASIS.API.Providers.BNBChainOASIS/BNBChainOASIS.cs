@@ -37,6 +37,7 @@ using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
+using Nethereum.Hex.HexConvertors.Extensions;
 using System.Numerics;
 
 namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
@@ -3308,7 +3309,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     {
                         OASISErrorHandling.HandleError(ref result, "NFT not found on BNB Chain");
                     }
-                }
+                    }
                 else
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to load NFT data from BNB Chain: {httpResponse.StatusCode}");
@@ -4116,16 +4117,30 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.MintToWalletAddress))
+                // IMintWeb3TokenRequest has TokenAddress and MintToWalletAddress in MetaData
+                var tokenAddress = request.MetaData?.ContainsKey("TokenAddress") == true 
+                    ? request.MetaData["TokenAddress"]?.ToString() 
+                    : "";
+                var mintToWalletAddress = request.MetaData?.ContainsKey("MintToWalletAddress") == true 
+                    ? request.MetaData["MintToWalletAddress"]?.ToString() 
+                    : "";
+                
+                if (request == null || string.IsNullOrWhiteSpace(tokenAddress) || string.IsNullOrWhiteSpace(mintToWalletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "TokenAddress and MintToWalletAddress are required");
                     return result;
                 }
 
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), tokenAddress);
                 var mint = contract.GetFunction("mint");
                 var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                var receipt = await mint.SendTransactionAndWaitForReceiptAsync(_account.Address, request.MintToWalletAddress, amountInWei);
+                var receipt = await mint.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    new HexBigInteger(60000),
+                    null,
+                    null,
+                    mintToWalletAddress,
+                    amountInWei);
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token minted successfully on BNB Chain";

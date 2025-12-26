@@ -3295,18 +3295,18 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 // Real Ed25519 signing implementation using ChaCha20Poly1305 for key derivation and BouncyCastle-compatible signing
                 var transactionBytes = Encoding.UTF8.GetBytes(transactionJson);
-                
-                // Parse private key (NEAR uses base64 encoded Ed25519 private key)
+
+                    // Parse private key (NEAR uses base64 encoded Ed25519 private key)
                 var privateKeyBase64 = privateKey.Replace("ed25519:", "").Trim();
                 var privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
-                
+                    
                 // NEAR Ed25519 private key is 32 bytes, but may be provided as 64 bytes (private + public)
                 var keyBytes = privateKeyBytes.Length >= 32 ? privateKeyBytes.Take(32).ToArray() : privateKeyBytes;
-                
+                        
                 // Use SHA-256 hash-based signing as fallback (real cryptographic operation)
                 // In production, use a proper Ed25519 library like NSec or BouncyCastle
-                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                {
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
                     // Create deterministic signature using transaction hash + private key
                     var signingData = transactionBytes.Concat(keyBytes).ToArray();
                     var hash = sha256.ComputeHash(signingData);
@@ -3513,16 +3513,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
 
                 // Use hash-based derivation (real cryptographic operation)
                 // In production, use a proper Ed25519 library to derive public key from private key
-                var keyBytes = Convert.FromBase64String(privateKey.Replace("ed25519:", ""));
+                    var keyBytes = Convert.FromBase64String(privateKey.Replace("ed25519:", ""));
                 
                 // NEAR private keys may be 64 bytes (private + public), extract first 32 bytes
                 var privateKeyBytes = keyBytes.Length >= 32 ? keyBytes.Take(32).ToArray() : keyBytes;
                 
                 // Use SHA-256 hash of private key as deterministic public key derivation
-                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                {
+                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                    {
                     var hash = sha256.ComputeHash(privateKeyBytes);
-                    return "ed25519:" + Convert.ToBase64String(hash);
+                        return "ed25519:" + Convert.ToBase64String(hash);
                 }
             }
             catch (Exception ex)
@@ -3541,24 +3541,24 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 // Generate new Ed25519 key pair using cryptographic random number generator
                 // Real implementation using secure random key generation
-                var privateKeyBytes = new byte[32];
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(privateKeyBytes);
-                }
-                
+                    var privateKeyBytes = new byte[32];
+                    using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+                    {
+                        rng.GetBytes(privateKeyBytes);
+                    }
+                    
                 // Derive public key from private key using SHA-256 hash (real cryptographic operation)
                 byte[] publicKeyBytes;
                 using (var sha256 = System.Security.Cryptography.SHA256.Create())
                 {
                     publicKeyBytes = sha256.ComputeHash(privateKeyBytes);
                 }
-                
-                return new NEARKeyPair
-                {
-                    PrivateKey = "ed25519:" + Convert.ToBase64String(privateKeyBytes),
-                    PublicKey = "ed25519:" + Convert.ToBase64String(publicKeyBytes)
-                };
+                    
+                    return new NEARKeyPair
+                    {
+                        PrivateKey = "ed25519:" + Convert.ToBase64String(privateKeyBytes),
+                        PublicKey = "ed25519:" + Convert.ToBase64String(publicKeyBytes)
+                    };
             }
             catch (Exception ex)
             {
@@ -3908,7 +3908,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     OASISErrorHandling.HandleError(ref result, "Request is required");
                     return result;
                 }
-                
+
                 // IMintWeb3TokenRequest inherits from IMintTokenRequestBase which has MetaData
                 // Get token address and recipient from MetaData
                 var tokenAddress = request.MetaData?.ContainsKey("TokenAddress") == true 

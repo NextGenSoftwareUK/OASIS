@@ -371,14 +371,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return "";
                 
                 var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
-                    avatarId, 
-                    false, 
-                    false, 
+                    avatarId,
                     Core.Enums.ProviderType.FantomOASIS);
                 
-                if (!walletResult.IsError && walletResult.Result != null && !string.IsNullOrWhiteSpace(walletResult.Result.Address))
+                if (!walletResult.IsError && walletResult.Result != null && !string.IsNullOrWhiteSpace(walletResult.Result.WalletAddress))
                 {
-                    return walletResult.Result.Address;
+                    return walletResult.Result.WalletAddress;
                 }
             }
             catch (Exception ex)
@@ -819,11 +817,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     bridgeContractAddress,
                     BigInteger.Parse(tokenId));
                 
-                result.Result = new BridgeTransactionResponse
-                {
-                    SourceTransactionHash = receipt.TransactionHash,
-                    Status = BridgeTransactionStatus.Success
-                };
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = receipt.TransactionHash,
+                        Status = BridgeTransactionStatus.Completed,
+                        IsSuccessful = true
+                    };
                 result.IsError = false;
                 result.Message = "NFT withdrawn to bridge successfully on Fantom";
             }
@@ -869,11 +868,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     receiverAccountAddress,
                     BigInteger.Parse(tokenId));
                 
-                result.Result = new BridgeTransactionResponse
-                {
-                    SourceTransactionHash = receipt.TransactionHash,
-                    Status = BridgeTransactionStatus.Success
-                };
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = receipt.TransactionHash,
+                        Status = BridgeTransactionStatus.Completed,
+                        IsSuccessful = true
+                    };
                 result.IsError = false;
                 result.Message = "NFT deposited from bridge successfully on Fantom";
             }
@@ -2923,9 +2923,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
                 // Get Fantom native FTM balance via Nethereum (real implementation)
                 // IGetWeb3WalletBalanceRequest doesn't have TokenAddress property
-                var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
-                result.Result = (double)(balance.Value / (BigInteger)1000000000000000000); // Convert from wei to FTM
-                result.IsError = false;
+                    var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
+                    result.Result = (double)(balance.Value / (BigInteger)1000000000000000000); // Convert from wei to FTM
+                    result.IsError = false;
                 result.Message = "FTM balance retrieved successfully";
             }
             catch (Exception ex)

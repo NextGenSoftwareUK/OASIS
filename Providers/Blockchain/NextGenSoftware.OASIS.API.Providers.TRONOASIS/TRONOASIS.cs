@@ -4092,7 +4092,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         private readonly string _apiUrl;
 
         public TRONClient(string apiUrl = "https://api.trongrid.io")
-        {
+            {
             _apiUrl = apiUrl;
         }
     }

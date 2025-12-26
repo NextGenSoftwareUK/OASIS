@@ -566,3 +566,4 @@ The platform's ability to seamlessly bridge traditional and decentralized techno
 
 *Note: This document summarizes OASIS technology based on the codebase and documentation. For specific details from the Zoom meeting summaries, please provide access to those documents or share the key points discussed.*
 
+
