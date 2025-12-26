@@ -271,7 +271,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Reposito
                         Id = Guid.NewGuid(),
                         Name = $"deletion_marker_{id}",
                         Description = "Holon deletion marker",
-                        HolonType = Core.Enums.HolonType.Index,
+                        // TODO: Fix HolonType.Index - commented out due to build errors
+                        // HolonType = Core.Enums.HolonType.Index,
+                        HolonType = Core.Enums.HolonType.All, // Temporary workaround
                         ParentHolonId = id,
                         MetaData = new Dictionary<string, object>
                         {
@@ -292,7 +294,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Reposito
                         Id = Guid.NewGuid(),
                         Name = $"hard_deletion_marker_{id}",
                         Description = "Holon hard deletion marker",
-                        HolonType = Core.Enums.HolonType.Index,
+                        // TODO: Fix HolonType.Index - commented out due to build errors
+                        // HolonType = Core.Enums.HolonType.Index,
+                        HolonType = Core.Enums.HolonType.All, // Temporary workaround
                         ParentHolonId = id,
                         MetaData = new Dictionary<string, object>
                         {
@@ -406,7 +410,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Reposito
                 Id = Guid.NewGuid(),
                 Name = $"avatar_index_{indexType}_{indexValue}",
                 Description = $"Avatar index for {indexType}: {indexValue}",
-                HolonType = Core.Enums.HolonType.Index,
+                // TODO: Fix HolonType.Index - commented out due to build errors
+                // HolonType = Core.Enums.HolonType.Index,
+                HolonType = Core.Enums.HolonType.All, // Temporary workaround
                 MetaData = new Dictionary<string, object>
                 {
                     { "index_type", indexType },

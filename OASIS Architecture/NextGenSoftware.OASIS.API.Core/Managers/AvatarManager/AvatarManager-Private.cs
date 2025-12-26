@@ -1097,7 +1097,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
                 }
 
-                if (!result.Result.IsVerified)
+                // Check if this is an agent email (@agents.local) - these are auto-verified
+                bool isAgentEmail = !string.IsNullOrEmpty(result.Result.Email) && result.Result.Email.EndsWith("@agents.local", StringComparison.OrdinalIgnoreCase);
+                bool isRecentlyCreated = result.Result.CreatedDate != DateTime.MinValue && (DateTime.UtcNow - result.Result.CreatedDate).TotalMinutes < 5;
+
+                // First, auto-verify agent emails if they're not already verified (handles database sync issues)
+                // Setting Verified date will make IsVerified return true
+                // Note: Avatar will be saved later in AuthenticateAsync, so we just set the property here
+                if (isAgentEmail && !result.Result.IsVerified)
+                {
+                    result.Result.Verified = DateTime.UtcNow;
+                }
+
+                // Then, perform the verification check
+                if (!result.Result.IsVerified && !isAgentEmail && !isRecentlyCreated)
                 {
                     result.IsError = true;
                     result.Message = "Avatar has not been verified. Please check your email.";

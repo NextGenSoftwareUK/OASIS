@@ -9,6 +9,10 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using System.IO;
+using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -31,5 +35,108 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultLibsDownloadedPath, "DefaultLibsDownloadedPath",
             STAR.STARDNA.DefaultLibsInstalledPath, "DefaultLibsInstalledPath")
         { }
+
+        /// <summary>
+        /// Override CreateAsync to add Language property prompt
+        /// </summary>
+        public override async Task<OASISResult<Library>> CreateAsync(ISTARNETCreateOptions<Library, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Library> result = new OASISResult<Library>();
+
+            if (showHeaderAndInro)
+                ShowHeader();
+
+            string holonName = CLIEngine.GetValidInput($"What is the name of the {STARNETManager.STARNETHolonUIName}?");
+
+            if (holonName == "exit")
+            {
+                result.Message = "User Exited";
+                return result;
+            }
+
+            string holonDesc = CLIEngine.GetValidInput($"What is the description of the {STARNETManager.STARNETHolonUIName}?");
+
+            if (holonDesc == "exit")
+            {
+                result.Message = "User Exited";
+                return result;
+            }
+
+            // Prompt for Library Type
+            if (holonSubType == null)
+                holonSubType = CLIEngine.GetValidInputForEnum($"What type of {STARNETManager.STARNETHolonUIName} do you wish to create?", STARNETManager.STARNETCategory);
+
+            if (holonSubType != null)
+            {
+                if (holonSubType.ToString() == "exit")
+                {
+                    result.Message = "User Exited";
+                    return result;
+                }
+
+                // Prompt for Language (STARNETSubCategory)
+                object language = CLIEngine.GetValidInputForEnum("What Language is this library written in?", typeof(Languages));
+                
+                if (language != null && language.ToString() != "exit")
+                {
+                    // Create or update createOptions with Language
+                    if (createOptions == null)
+                    {
+                        createOptions = new STARNETCreateOptions<Library, STARNETDNA>
+                        {
+                            CustomCreateParams = new Dictionary<string, object>()
+                        };
+                    }
+                    else if (createOptions.CustomCreateParams == null)
+                    {
+                        createOptions.CustomCreateParams = new Dictionary<string, object>();
+                    }
+
+                    createOptions.CustomCreateParams["STARNETSubCategory"] = language;
+                }
+                else if (language != null && language.ToString() == "exit")
+                {
+                    result.Message = "User Exited";
+                    return result;
+                }
+
+                string holonPath = "";
+
+                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                    holonPath = SourcePath;
+                else
+                    holonPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, SourcePath);
+
+                (result, holonPath) = GetValidFolder(result, holonPath, STARNETManager.STARNETHolonUIName, SourceSTARDNAKey, true, holonName);
+
+                if (result.IsError)
+                    return result;
+
+                Console.WriteLine("");
+                CLIEngine.ShowWorkingMessage($"Generating {STARNETManager.STARNETHolonUIName}...");
+                result = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, holonSubType, holonPath, createOptions: createOptions, providerType: providerType);
+
+                if (result != null)
+                {
+                    if (!result.IsError && result.Result != null)
+                    {
+                        CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Generated.");
+                        await ShowAsync(result.Result);
+                        Console.WriteLine("");
+
+                        if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETHolonUIName} folder now?"))
+                            Process.Start("explorer.exe", holonPath);
+
+                        Console.WriteLine("");
+                    }
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Unknown Error Occured.");
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, "holonSubType is null!");
+
+            return result;
+        }
     }
 }

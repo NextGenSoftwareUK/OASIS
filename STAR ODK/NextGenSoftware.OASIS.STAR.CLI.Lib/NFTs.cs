@@ -6,10 +6,12 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
@@ -170,23 +172,57 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IWeb4NFT>> RemintNFTAsync(object mintParams = null)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
+            string errorMessage = "Error occured reminting WEB4 OASIS NFT in RemintNFTAsync method. Reason: ";
             result = await FindWeb4NFTAsync("remint");
-            
-            if (result != null && result.Result != null && !result.IsError)
+
+            try
             {
-                Console.WriteLine("");
-                List<IMintWeb3NFTRequest> web3Requests = await NFTCommon.GenerateWeb3NFTRequestsAsync(result.Result);
-
-                CLIEngine.ShowWorkingMessage("Reminting WEB4 OASIS NFT & WEB3 NFT's...");
-                result = await STAR.OASISAPI.NFTs.RemintNftAsync(result.Result, web3Requests);
-
                 if (result != null && result.Result != null && !result.IsError)
-                    CLIEngine.ShowSuccessMessage(result.Message);
-                else
                 {
-                    string msg = result != null ? result.Message : "";
-                    CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
+                    IRemintWeb4NFTRequest remintRequest = await NFTCommon.GenerateWeb4NFTRemintRequestAsync(result.Result);
+
+                    CLIEngine.ShowWorkingMessage("Reminting WEB4 OASIS NFT & WEB3 NFT's...");
+                    result = await STAR.OASISAPI.NFTs.RemintNftAsync(remintRequest);
+
+                    if (result != null && result.Result != null && !result.IsError)
+                    {
+                        if (result.Result.MetaData != null && result.Result.MetaData.ContainsKey("Web5STARNFTId"))
+                        {
+                            OASISResult<STARNFT> web5NFT = await STAR.STARAPI.NFTs.LoadAsync(STAR.BeamedInAvatar.Id, new Guid(result.Result.MetaData["Web5STARNFTId"].ToString()));
+
+                            if (web5NFT != null && web5NFT.Result != null && !web5NFT.IsError)
+                            {
+                                web5NFT.Result.STARNETDNA.MetaData["WEB4 NFT"] = result.Result;
+                                OASISResult<STARNFT> saveWeb5NFT = await STAR.STARAPI.NFTs.UpdateAsync(STAR.BeamedInAvatar.Id, web5NFT.Result, true);
+
+                                if (saveWeb5NFT != null && saveWeb5NFT.Result != null && !saveWeb5NFT.IsError)
+                                {
+                                    File.WriteAllText(Path.Combine(web5NFT.Result.STARNETDNA.SourcePath, $"OASISNFT_{result.Result.Id}.json"), JsonConvert.SerializeObject(result.Result));
+
+                                    if (!string.IsNullOrEmpty(result.Result.JSONMetaData))
+                                        File.WriteAllText(Path.Combine(web5NFT.Result.STARNETDNA.SourcePath, $"JSONMetaData_{result.Result.Id}.json"), result.Result.JSONMetaData);
+
+                                    CLIEngine.ShowSuccessMessage(result.Message);
+                                }
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed updating WEB5 STAR NFT after reminting WEB4 NFT. Reason: {saveWeb5NFT.Message}");
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed loading WEB5 STAR NFT to update after reminting WEB4 NFT. Reason: {web5NFT.Message}");
+                        }
+                        else
+                            CLIEngine.ShowSuccessMessage(result.Message);
+                    }
+                    else
+                    {
+                        string msg = result != null ? result.Message : "";
+                        CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}", e);
             }
 
             return result;
@@ -203,7 +239,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             CLIEngine.ShowWorkingMessage("Sending NFT...");
 
-            OASISResult<IWeb3NFTTransactionResponse> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new SendWeb4NFTRequest()
+            OASISResult<ISendWeb4NFTResponse> response = await STAR.OASISAPI.NFTs.SendNFTAsync(STAR.BeamedInAvatar.Id, new SendWeb4NFTRequest()
             {
                 FromWalletAddress = fromWalletAddress,
                 ToWalletAddress = toWalletAddress,
@@ -395,6 +431,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     request = (UpdateWeb4NFTRequest)updateResult.Result;
 
+                    Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage("Saving WEB4 NFT...");
                     result = await NFTCommon.NFTManager.UpdateWeb4NFTAsync(request, providerType);
 
@@ -516,7 +553,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching WEB4 NFT's...");
-            ListWeb4NFTs(await NFTCommon.NFTManager.SearchWeb4NFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
+            ListWeb4NFTs(await NFTCommon.NFTManager.SearchWeb4NFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, searchOnlyForCurrentAvatar: !showForAllAvatars, providerType: providerType));
         }
 
         public async Task<OASISResult<IWeb4NFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 NFT", ProviderType providerType = ProviderType.Default)
@@ -581,7 +618,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb4NFT>> searchResults = await NFTCommon.NFTManager.SearchWeb4NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb4NFT>> searchResults = await NFTCommon.NFTManager.SearchWeb4NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, searchOnlyForCurrentAvatar: showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -715,7 +752,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (web4NFT.Web3NFTs.Count > 0)
             {
-                Console.WriteLine("");
+                //Console.WriteLine("");
                 DisplayProperty("WEB3 NFT's", "", displayFieldLength);
                 Console.WriteLine("");
 

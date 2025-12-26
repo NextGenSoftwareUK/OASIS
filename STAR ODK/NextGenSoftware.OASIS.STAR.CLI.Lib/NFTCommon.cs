@@ -3,6 +3,8 @@ using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
@@ -133,7 +135,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             request.MetaData = MetaDataHelper.ManageMetaData(request.MetaData, "NFT");
             Console.WriteLine("");
             request.NumberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
+            request = (MintWeb4NFTRequest)GetSendAndAdvancedOptions(request);
+            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
+            return request;
+        }
 
+        public IMintWeb4NFTRequest GetSendAndAdvancedOptions(IMintWeb4NFTRequest request)
+        {
             if (CLIEngine.GetConfirmation("Do you wish to send the NFT to yourself after it is minted?"))
             {
                 request.SendToAvatarAfterMintingId = STAR.BeamedInAvatar.Id;
@@ -192,107 +200,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 Console.WriteLine("");
 
-
-            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
-
-            //if (request.NumberToMint > 0 && !CLIEngine.GetConfirmation("Do all of the WEB3 NFT's share the same parent WEB4 NFT MetaData? (Select 'N' if you wish to create WEB3 NFT varients that share some or none of their parent WEB4 NFT MetaData)."))
-            //{
-            //    if (request.Web3NFTs == null)
-            //        request.Web3NFTs = new List<IMintWeb3NFTRequest>();
-
-            //    Console.WriteLine("");
-
-            //    for (int i = 0; i < request.NumberToMint; i++)
-            //    {
-            //        CLIEngine.ShowDivider();
-            //        CLIEngine.ShowMessage($"WEB3 OASIS NFT {i + 1}/{request.NumberToMint}");
-            //        CLIEngine.ShowDivider();
-            //        MintWeb3NFTRequest web3Request = (MintWeb3NFTRequest)await GenerateWeb3NFTRequestAsync(request);
-            //        request.Web3NFTs.Add(web3Request);
-            //        Console.WriteLine("");
-            //        CLIEngine.ShowSuccessMessage($"WEB3 NFT Varient {i+1} Request Created.");
-
-            //        if (i < request.NumberToMint && CLIEngine.GetConfirmation("Would you like the rest of the WEB3 NFT Varients to share the same propetites/metadata? If you select 'N' then you will need to continue inputting the values you want for each WEB3 NFT Varient."))
-            //        {
-            //            for (int j = i + 1; j < request.NumberToMint; j++)
-            //            {
-            //                MintWeb3NFTRequest web3RequestInternal = new MintWeb3NFTRequest();
-            //                // Copy retry/wait settings
-            //                web3RequestInternal.AttemptToMintEveryXSeconds = web3Request.AttemptToMintEveryXSeconds;
-            //                web3RequestInternal.AttemptToSendEveryXSeconds = web3Request.AttemptToSendEveryXSeconds;
-
-            //                // Basic fields
-            //                web3RequestInternal.Title = web3Request.Title;
-            //                web3RequestInternal.Description = web3Request.Description;
-            //                web3RequestInternal.MemoText = web3Request.MemoText;
-
-            //                // Pricing
-            //                web3RequestInternal.Price = web3Request.Price;
-            //                web3RequestInternal.Discount = web3Request.Discount;
-            //                web3RequestInternal.RoyaltyPercentage = web3Request.RoyaltyPercentage;
-
-            //                // Mint counts
-            //                web3RequestInternal.NumberToMint = web3Request.NumberToMint ?? 1;
-
-            //                // Sale info
-            //                web3RequestInternal.IsForSale = web3Request.IsForSale;
-            //                web3RequestInternal.SaleStartDate = web3Request.SaleStartDate;
-            //                web3RequestInternal.SaleEndDate = web3Request.SaleEndDate;
-
-            //                // Providers / standards
-            //                web3RequestInternal.OnChainProvider = web3Request.OnChainProvider;
-            //                web3RequestInternal.OffChainProvider = web3Request.OffChainProvider;
-            //                web3RequestInternal.StoreNFTMetaDataOnChain = web3Request.StoreNFTMetaDataOnChain;
-            //                if (web3Request.NFTOffChainMetaType.HasValue)
-            //                    web3RequestInternal.NFTOffChainMetaType = web3Request.NFTOffChainMetaType.Value;
-            //                if (web3Request.NFTStandardType.HasValue)
-            //                    web3RequestInternal.NFTStandardType = web3Request.NFTStandardType.Value;
-
-            //                // Images
-            //                web3RequestInternal.Image = web3Request.Image;
-            //                web3RequestInternal.ImageUrl = web3Request.ImageUrl;
-            //                web3RequestInternal.Thumbnail = web3Request.Thumbnail;
-            //                web3RequestInternal.ThumbnailUrl = web3Request.ThumbnailUrl;
-
-            //                // JSON metadata
-            //                web3RequestInternal.JSONMetaDataURL = web3Request.JSONMetaDataURL;
-            //                web3RequestInternal.JSONMetaData = web3Request.JSONMetaData;
-
-            //                // Tags
-            //                if (web3Request.Tags != null)
-            //                    web3RequestInternal.Tags = new List<string>(web3Request.Tags);
-
-            //                // MetaData
-            //                if (web3Request.MetaData != null)
-            //                    web3RequestInternal.MetaData = new Dictionary<string, object>(web3Request.MetaData);
-
-            //                // Merge strategies
-            //                web3RequestInternal.NFTTagsMergeStrategy = web3Request.NFTTagsMergeStrategy;
-            //                web3RequestInternal.NFTMetaDataMergeStrategy = web3Request.NFTMetaDataMergeStrategy;
-
-            //                // Send options
-            //                web3RequestInternal.SendToAddressAfterMinting = web3Request.SendToAddressAfterMinting;
-            //                web3RequestInternal.SendToAvatarAfterMintingId = web3Request.SendToAvatarAfterMintingId;
-            //                web3RequestInternal.SendToAvatarAfterMintingUsername = web3Request.SendToAvatarAfterMintingUsername;
-            //                web3RequestInternal.SendToAvatarAfterMintingEmail = web3Request.SendToAvatarAfterMintingEmail;
-
-            //                // Wait/send advanced options
-            //                web3RequestInternal.WaitTillNFTMinted = web3Request.WaitTillNFTMinted;
-            //                web3RequestInternal.WaitForNFTToMintInSeconds = web3Request.WaitForNFTToMintInSeconds;
-            //                web3RequestInternal.WaitTillNFTSent = web3Request.WaitTillNFTSent;
-            //                web3RequestInternal.WaitForNFTToSendInSeconds = web3Request.WaitForNFTToSendInSeconds;
-
-            //                Console.WriteLine("");
-            //                CLIEngine.ShowSuccessMessage($"WEB3 NFT Varient {j + 1} Request Created.");
-
-            //                request.Web3NFTs.Add(web3RequestInternal);
-            //            }
-
-            //            break;
-            //        }
-            //    }
-            //}
-
             return request;
         }
 
@@ -318,7 +225,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     Console.WriteLine("");
                     CLIEngine.ShowSuccessMessage($"WEB3 NFT Varient {i + 1} Request Created.");
 
-                    if (i < request.NumberToMint && CLIEngine.GetConfirmation("Would you like the rest of the WEB3 NFT Varients to share the same propetites/metadata? If you select 'N' then you will need to continue inputting the values you want for each WEB3 NFT Varient."))
+                    if (i < request.NumberToMint - 1 && CLIEngine.GetConfirmation("Would you like the rest of the WEB3 NFT Varients to share the same propetites/metadata? If you select 'N' then you will need to continue inputting the values you want for each WEB3 NFT Varient."))
                     {
                         for (int j = i + 1; j < request.NumberToMint; j++)
                         {
@@ -349,8 +256,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             web3RequestInternal.OnChainProvider = web3Request.OnChainProvider;
                             web3RequestInternal.OffChainProvider = web3Request.OffChainProvider;
                             web3RequestInternal.StoreNFTMetaDataOnChain = web3Request.StoreNFTMetaDataOnChain;
+
                             if (web3Request.NFTOffChainMetaType.HasValue)
                                 web3RequestInternal.NFTOffChainMetaType = web3Request.NFTOffChainMetaType.Value;
+
                             if (web3Request.NFTStandardType.HasValue)
                                 web3RequestInternal.NFTStandardType = web3Request.NFTStandardType.Value;
 
@@ -399,7 +308,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
             }
-
+            else
+                Console.WriteLine("");
 
             return mintRequests;
         }
@@ -452,7 +362,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation($"Do you wish to edit the on-chain provider for this WEB3 Request? (It currently inherits '{request.OnChainProvider.Name}' from its parent WEB4 NFT.)"))
             {
-                object onChainProviderObj = CLIEngine.GetValidInputForEnum("What on-chain provider do you wish to mint on?", typeof(ProviderType));
+                object onChainProviderObj = CLIEngine.GetValidInputForEnum("What on-chain provider do you wish to mint on?", typeof(ProviderType), addLineBefore: true);
                 web3Request.OnChainProvider = (ProviderType)onChainProviderObj;
             }
             else
@@ -460,7 +370,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation($"Do you wish to edit whether the NFT metadata is stored on-chain or off-chain? (It currently inherits '{request.StoreNFTMetaDataOnChain}' from its parent WEB4 NFT. True is store on-chain, False is off-chain.)"))
             {
-                web3Request.StoreNFTMetaDataOnChain = CLIEngine.GetConfirmation("Do you wish to store the NFT metadata on-chain or off-chain? (Press Y for on-chain or N for off-chain)");
+                web3Request.StoreNFTMetaDataOnChain = CLIEngine.GetConfirmation("Do you wish to store the NFT metadata on-chain or off-chain? (Press Y for on-chain or N for off-chain)", addLineBefore: true);
                 Console.WriteLine("");
             }
             else
@@ -473,7 +383,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the offchain metadata type for this WEB3 Request? (It currently inherits '{request.NFTOffChainMetaType.Name}' from its parent WEB4 NFT.)"))
                 {
-                    object offChainMetaDataTypeObj = CLIEngine.GetValidInputForEnum("How do you wish to store the offchain meta data/image? OASIS, IPFS, Pinata or External JSON URI (for the last option you will need to generate the meta data yourself and host somewhere like Pinata and then enter the URI, for the first three options the metadata will be generated automatically)? If you choose OASIS, it will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive. If you choose OASIS and then IPFSOASIS for the next question for the OASIS Provider it will store it on IPFS via The OASIS and then benefit from the OASIS HyperDrive feature to provide more reliable service and up-time etc. If you choose IPFS or Pinata for this question then it will store it directly on IPFS/Pinata without any additional benefits of The OASIS.", typeof(NFTOffChainMetaType));
+                    object offChainMetaDataTypeObj = CLIEngine.GetValidInputForEnum("How do you wish to store the offchain meta data/image? OASIS, IPFS, Pinata or External JSON URI (for the last option you will need to generate the meta data yourself and host somewhere like Pinata and then enter the URI, for the first three options the metadata will be generated automatically)? If you choose OASIS, it will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive. If you choose OASIS and then IPFSOASIS for the next question for the OASIS Provider it will store it on IPFS via The OASIS and then benefit from the OASIS HyperDrive feature to provide more reliable service and up-time etc. If you choose IPFS or Pinata for this question then it will store it directly on IPFS/Pinata without any additional benefits of The OASIS.", typeof(NFTOffChainMetaType), addLineBefore: true);
                     web3Request.NFTOffChainMetaType = (NFTOffChainMetaType)offChainMetaDataTypeObj;
                 }
                 else
@@ -484,15 +394,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the off-chain provider for this WEB3 Request? (It currently inherits '{request.OffChainProvider.Name}' from its parent WEB4 NFT.)"))
                 {
-                    object offChainProviderObj = CLIEngine.GetValidInputForEnum("What off-chain provider do you wish to mint on?", typeof(ProviderType));
+                    object offChainProviderObj = CLIEngine.GetValidInputForEnum("What off-chain provider do you wish to mint on?", typeof(ProviderType), addLineBefore: true);
                     web3Request.OffChainProvider = (ProviderType)offChainProviderObj;
                 }
-                else
-                    Console.WriteLine("");
+                //else
+                //    Console.WriteLine("");
 
                 if (web3Request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJSONURL && CLIEngine.GetConfirmation($"Do you wish to edit the JSON metadata URI for this WEB3 Request? (It currently inherits '{request.JSONMetaDataURL}' from its parent WEB4 NFT.)"))
                 {
-                    Uri uriResult = await CLIEngine.GetValidURIAsync("What is the URI to the JSON meta data you have created for this NFT?");
+                    Uri uriResult = await CLIEngine.GetValidURIAsync("What is the URI to the JSON meta data you have created for this NFT?", addLineBefore: true);
                     web3Request.JSONMetaDataURL = uriResult.AbsoluteUri;
                 }
                 else
@@ -502,7 +412,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             // NFT standard
             if (CLIEngine.GetConfirmation($"Do you wish to edit the NFT standard for this WEB3 Request? (It currently inherits '{request.NFTStandardType?.Name}')"))
             {
-                object nftStandardObj = CLIEngine.GetValidInputForEnum("What NFT standard do you wish to use? ERC721, ERC1155 or SPL?", typeof(NFTStandardType));
+                object nftStandardObj = CLIEngine.GetValidInputForEnum("What NFT standard do you wish to use? ERC721, ERC1155 or SPL?", typeof(NFTStandardType), addLineBefore: true);
                 web3Request.NFTStandardType = (NFTStandardType)nftStandardObj;
             }
             else
@@ -534,7 +444,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             // Tags
             if (CLIEngine.GetConfirmation($"Do you wish to edit the Tags for this WEB3 Request? (It currently inherits '{(request.Tags != null ? string.Join(", ", request.Tags) : "none")}')"))
             {
-                web3Request.Tags = request.Tags;
+                web3Request.Tags = request.Tags != null ? new List<string>(request.Tags) : new List<string>();
                 web3Request.Tags = TagHelper.ManageTags(web3Request.Tags);
             }
             else
@@ -543,7 +453,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             // MetaData
             if (CLIEngine.GetConfirmation($"Do you wish to edit the MetaData for this WEB3 Request? (It currently inherits from the parent WEB4 NFT)"))
             {
-                web3Request.MetaData = request.MetaData;
+                web3Request.MetaData = request.MetaData != null ? new Dictionary<string, object>(request.MetaData) : new Dictionary<string, object>();
                 web3Request.MetaData = MetaDataHelper.ManageMetaData(web3Request.MetaData, "WEB3 NFT");
             }
             else
@@ -551,7 +461,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             // Number to mint for this web3 request
             if (CLIEngine.GetConfirmation($"Do you wish to change the number of tokens to mint for this WEB3 Request? Defaults to 1."))
-                web3Request.NumberToMint = CLIEngine.GetValidInputForInt("How many of this WEB3 NFT should be minted?", true, 1, int.MaxValue);
+                web3Request.NumberToMint = CLIEngine.GetValidInputForInt("How many of this WEB3 NFT should be minted?", true, 1, int.MaxValue, addLineBefore: true);
             else
             {
                 Console.WriteLine("");
@@ -591,7 +501,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (CLIEngine.GetConfirmation("Do you wish to set how WEB3 tags should merge with parent WEB4 tags? If the tag already exists in the parent WEB4 OASIS NFT tags then select 'Merge' to keep the existing tag and do not overwrite it with the tag from the WEB3 NFT tags (default), select 'Replace' to completely replace the parent WEB4 OASIS NFT tags with the WEB3 NFT tags."))
             {
                 Console.WriteLine("");
-                object tagMergeObj = CLIEngine.GetValidInputForEnum("Select tag merge strategy:", typeof(NFTTagsMergeStrategy));
+                object tagMergeObj = CLIEngine.GetValidInputForEnum("Select tag merge strategy:", typeof(NFTTagsMergeStrategy), addLineBefore: true);
                 web3Request.NFTTagsMergeStrategy = (NFTTagsMergeStrategy)tagMergeObj;
             }
             else
@@ -600,7 +510,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (CLIEngine.GetConfirmation("Do you wish to set how WEB3 meta-data should merge with parent WEB4 meta-data? If the key already exists in the parent WEB4 OASIS NFT meta data then select 'Merge' to keep the existing value and do not overwrite it with the value from the WEB3 NFT meta data (default), select 'MergeAndOverwrite' to overwrite it with the value from the WEB3 NFT meta data and select 'Replace' to completely replace the parent WEB4 OASIS NFT meta data with the WEB3 NFT meta data."))
             {
                 Console.WriteLine("");
-                object metaMergeObj = CLIEngine.GetValidInputForEnum("Select meta-data merge strategy:", typeof(NFTMetaDataMergeStrategy));
+                object metaMergeObj = CLIEngine.GetValidInputForEnum("Select meta-data merge strategy:", typeof(NFTMetaDataMergeStrategy), addLineBefore: true);
                 web3Request.NFTMetaDataMergeStrategy = (NFTMetaDataMergeStrategy)metaMergeObj;
             }
             else
@@ -633,7 +543,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             web3Request.SendToAvatarAfterMintingUsername = CLIEngine.GetValidInput("What is the Username of the Avatar you want to send the NFT after it is minted?");
                             break;
 
-                        case 4:
+                         case 4:
                             web3Request.SendToAvatarAfterMintingEmail = CLIEngine.GetValidInputForEmail("What is the Email of the Avatar you want to send the NFT after it is minted?");
                             break;
                     }
@@ -643,18 +553,116 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return web3Request;
         }
 
-        public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IWeb4NFT web4NFT)
+        public async Task<IRemintWeb4NFTRequest> GenerateWeb4NFTRemintRequestAsync(IWeb4NFT web4NFT)
         {
-            return await GenerateWeb3NFTRequestsAsync(new MintWeb4NFTRequest()
-            {
-                 MintedByAvatarId = web4NFT.MintedByAvatarId,
-                 Description = web4NFT.Description,
-                 Discount = web4NFT.Discount,
-                 Image = web4NFT.Image,
+            int numberToMint = CLIEngine.GetValidInputForInt("How many additional WEB3 NFT's do you wish to mint for this WEB4 OASIS NFT? ");
 
-                 //TODO: Finish mapping rest of props...
-            });
+            MintWeb4NFTRequest request = new MintWeb4NFTRequest()
+            {
+                MintedByAvatarId = web4NFT.MintedByAvatarId,
+                Title = web4NFT.Title,
+                Description = web4NFT.Description,
+                MemoText = web4NFT.MemoText,
+                Price = web4NFT.Price,
+                Discount = web4NFT.Discount,
+                RoyaltyPercentage = web4NFT.RoyaltyPercentage,
+                IsForSale = web4NFT.IsForSale,
+                SaleStartDate = web4NFT.SaleStartDate,
+                SaleEndDate = web4NFT.SaleEndDate,
+                OnChainProvider = web4NFT.OnChainProvider,
+                OffChainProvider = web4NFT.OffChainProvider,
+                StoreNFTMetaDataOnChain = web4NFT.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = web4NFT.NFTOffChainMetaType,
+                NFTStandardType = web4NFT.NFTStandardType,
+                Image = web4NFT.Image,
+                ImageUrl = web4NFT.ImageUrl,
+                Thumbnail = web4NFT.Thumbnail,
+                ThumbnailUrl = web4NFT.ThumbnailUrl,
+                MetaData = web4NFT.MetaData,
+                Tags = web4NFT.Tags,
+                JSONMetaData = web4NFT.JSONMetaData,
+                JSONMetaDataURL = web4NFT.JSONMetaDataURL,
+                Symbol = web4NFT.Symbol,
+                NumberToMint = numberToMint
+            };
+
+            request = GetSendAndAdvancedOptions(request) as MintWeb4NFTRequest;
+            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
+
+            return new RemintWeb4NFTRequest()
+            {
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                Web3NFTs = request.Web3NFTs,
+                Web4NFT = web4NFT
+            };
         }
+
+        public async Task<IRemintWeb4GeoNFTRequest> GenerateWeb4GeoNFTRemintRequestAsync(IWeb4GeoSpatialNFT web4GeoNFT)
+        {
+            int numberToMint = CLIEngine.GetValidInputForInt("How many additional WEB3 NFT's do you wish to mint for this WEB4 OASIS Geo-NFT? ");
+
+            MintWeb4NFTRequest request = new MintWeb4NFTRequest()
+            {
+                MintedByAvatarId = web4GeoNFT.MintedByAvatarId,
+                Title = web4GeoNFT.Title,
+                Description = web4GeoNFT.Description,
+                MemoText = web4GeoNFT.MemoText,
+                Price = web4GeoNFT.Price,
+                Discount = web4GeoNFT.Discount,
+                RoyaltyPercentage = web4GeoNFT.RoyaltyPercentage,
+                IsForSale = web4GeoNFT.IsForSale,
+                SaleStartDate = web4GeoNFT.SaleStartDate,
+                SaleEndDate = web4GeoNFT.SaleEndDate,
+                OnChainProvider = web4GeoNFT.OnChainProvider,
+                OffChainProvider = web4GeoNFT.OffChainProvider,
+                StoreNFTMetaDataOnChain = web4GeoNFT.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = web4GeoNFT.NFTOffChainMetaType,
+                NFTStandardType = web4GeoNFT.NFTStandardType,
+                Image = web4GeoNFT.Image,
+                ImageUrl = web4GeoNFT.ImageUrl,
+                Thumbnail = web4GeoNFT.Thumbnail,
+                ThumbnailUrl = web4GeoNFT.ThumbnailUrl,
+                MetaData = web4GeoNFT.MetaData,
+                Tags = web4GeoNFT.Tags,
+                JSONMetaData = web4GeoNFT.JSONMetaData,
+                JSONMetaDataURL = web4GeoNFT.JSONMetaDataURL,
+                Symbol = web4GeoNFT.Symbol,
+                NumberToMint = numberToMint
+            };
+
+            request = GetSendAndAdvancedOptions(request) as MintWeb4NFTRequest;
+            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
+
+            return new RemintWeb4GeoNFTRequest()
+            {
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                Web3NFTs = request.Web3NFTs,
+                Web4GeoNFT = web4GeoNFT
+            };
+        }
+
+        //public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IMintWeb4NFTRequest request, int numberToMint = 1)
+        //{
+        //    return await GenerateWeb3NFTRequestsAsync(request);
+        //}
 
         public async Task<IImportWeb3NFTRequest> GenerateImportNFTRequestAsync()
         {
@@ -844,6 +852,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation($"Do you wish to change the sale status (Is For Sale)? (currently is: {nft.IsForSale})"))
             {
+                Console.WriteLine("");
                 SalesInfo salesInfo = UpdateSalesInfo(new SalesInfo() { IsForSale = nft.IsForSale, SaleStartDate = nft.SaleStartDate, SaleEndDate = nft.SaleEndDate });
                 
                 request.IsForSale = salesInfo.IsForSale;
@@ -860,18 +869,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (updateMetaData)
                 request.MetaData = MetaDataHelper.ManageMetaData(nft.MetaData, displayName);
 
-            request.UpdateAllChildWeb3NFTs = CLIEngine.GetConfirmation("Do you wish to apply these edits to all child WEB3 NFT's contained inside this WEB4 OASIS NFT?");
+            request.UpdateAllChildWeb3NFTs = CLIEngine.GetConfirmation("Do you wish to apply these edits to all child WEB3 NFT's contained inside this WEB4 OASIS NFT? NOTE: This will override any varients you created!");
 
             if (!request.UpdateAllChildWeb3NFTs)
             {
                 if (request.UpdateChildWebNFTIds == null)
                     request.UpdateChildWebNFTIds = new List<string>();
 
-                if (CLIEngine.GetConfirmation("Do you wish to apply these edits to a selection of child WEB3 NFT's contained inside this WEB4 OASIS NFT?"))
+                Console.WriteLine("");
+                if (CLIEngine.GetConfirmation("Do you wish to apply these edits to a selection of child WEB3 NFT's contained inside this WEB4 OASIS NFT? NOTE: This will override any varients you created!"))
                 {
                     do
                     {
-                        OASISResult<IWeb3NFT> web3NFTResult = await FindWeb3NFTAsync("edit");
+                        Console.WriteLine("");
+                        OASISResult<IWeb3NFT> web3NFTResult = await FindWeb3NFTAsync("edit", request.Id);
 
                         if (web3NFTResult != null && web3NFTResult.Result != null && !web3NFTResult.IsError)
                             request.UpdateChildWebNFTIds.Add(web3NFTResult.Result.Id.ToString());
@@ -946,7 +957,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, default, new Dictionary<string, string>() { { "NFT.ParentWeb4NFTId", parentWeb4NFTId.ToString() } }, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -1049,7 +1060,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB3 NFT's Found:");
 
                         for (int i = 0; i < nfts.Result.Count(); i++)
-                            ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
+                            ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, false, showNumbers, i + 1, showDetailedInfo);
+                            //ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, i == nfts.Result.Count() - 1, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No WEB3 NFT's Found.");
@@ -1085,8 +1097,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             
             CLIEngine.ShowDivider();
                
-            if (showFooter)
-                CLIEngine.ShowDivider();
+            //if (showFooter)
+            //    CLIEngine.ShowDivider();
         }
 
         public void ShowNFTDetails(INFTBase nft, IWeb4NFT web4NFT, int displayFieldLength, bool displayTags = true, bool displayMetaData = true)
@@ -1169,7 +1181,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 TagHelper.ShowTags(nft.Tags, displayFieldLength);
 
             if ((web4NFT != null && displayMetaData && MetaDataHelper.GetMetaData(nft.MetaData) != MetaDataHelper.GetMetaData(web4NFT.MetaData)) || web4NFT == null)
+            {
                 MetaDataHelper.ShowMetaData(nft.MetaData, displayFieldLength);
+                Console.WriteLine("");
+            }
 
             //CLIEngine.ShowDivider();
         }
