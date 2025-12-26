@@ -2088,22 +2088,48 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                providerTypeToLoadFrom = ProviderType.LocalFileOASIS; //TODO: Temp!
+                // Use MongoDBOASIS as default since that's where avatars are stored
+                // Only use LocalFileOASIS if explicitly requested
+                if (providerTypeToLoadFrom == ProviderType.Default)
+                {
+                    providerTypeToLoadFrom = ProviderType.MongoDBOASIS;
+                }
 
                 OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerTypeToLoadFrom);
                 errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    //if (providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocal || providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
-                    result = ((IOASISLocalStorageProvider)providerResult.Result).LoadProviderWalletsForAvatarById(id);
-                    //else
-                    //    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
+                    // Try to load wallets using IOASISLocalStorageProvider interface first
+                    if (providerResult.Result is IOASISLocalStorageProvider localProvider)
+                    {
+                        result = localProvider.LoadProviderWalletsForAvatarById(id);
+                    }
+                    // For database providers like MongoDB, load the avatar and extract wallets
+                    else
+                    {
+                        OASISResult<IAvatar> avatarResult = await providerResult.Result.LoadAvatarAsync(id);
+                        if (!avatarResult.IsError && avatarResult.Result != null && avatarResult.Result.ProviderWallets != null)
+                        {
+                            result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
+                            foreach (var kvp in avatarResult.Result.ProviderWallets)
+                            {
+                                result.Result[kvp.Key] = new List<IProviderWallet>(kvp.Value);
+                            }
+                            result.IsError = false;
+                            result.IsLoaded = true;
+                            result.Message = $"Successfully loaded {avatarResult.Result.ProviderWallets.Count} provider wallet types for avatar {id}";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading avatar to extract wallets. Reason: ", avatarResult.Message), avatarResult.DetailedMessage);
+                        }
+                    }
 
                     if (result != null && result.Result != null && !result.IsError)
                         result.Result = FilterWallets(result.Result, showOnlyDefault, decryptPrivateKeys, providerTypeToShowWalletsFor);
-                    else
-                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading wallets calling LoadProviderWalletsForAvatarById. Reason: "), result.Message);
+                    else if (result == null || result.IsError)
+                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading wallets. Reason: "), result?.Message);
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured setting the provider. Reason: ", providerResult.Message), providerResult.Message);
@@ -2124,22 +2150,48 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                providerTypeToLoadFrom = ProviderType.LocalFileOASIS; //TODO: Temp!
+                // Use MongoDBOASIS as default since that's where avatars are stored
+                // Only use LocalFileOASIS if explicitly requested
+                if (providerTypeToLoadFrom == ProviderType.Default)
+                {
+                    providerTypeToLoadFrom = ProviderType.MongoDBOASIS;
+                }
 
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerTypeToLoadFrom);
                 errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
-                    //if (providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocal || providerResult.Result.ProviderCategory.Value == ProviderCategory.StorageLocalAndNetwork)
-                    result = ((IOASISLocalStorageProvider)providerResult.Result).LoadProviderWalletsForAvatarById(id);
-                    //else
-                    //    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}The providerType ProviderCategory must be either StorageLocal or StorageLocalAndNetwork.");
+                    // Try to load wallets using IOASISLocalStorageProvider interface first
+                    if (providerResult.Result is IOASISLocalStorageProvider localProvider)
+                    {
+                        result = localProvider.LoadProviderWalletsForAvatarById(id);
+                    }
+                    // For database providers like MongoDB, load the avatar and extract wallets
+                    else
+                    {
+                        OASISResult<IAvatar> avatarResult = providerResult.Result.LoadAvatar(id);
+                        if (!avatarResult.IsError && avatarResult.Result != null && avatarResult.Result.ProviderWallets != null)
+                        {
+                            result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
+                            foreach (var kvp in avatarResult.Result.ProviderWallets)
+                            {
+                                result.Result[kvp.Key] = new List<IProviderWallet>(kvp.Value);
+                            }
+                            result.IsError = false;
+                            result.IsLoaded = true;
+                            result.Message = $"Successfully loaded {avatarResult.Result.ProviderWallets.Count} provider wallet types for avatar {id}";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading avatar to extract wallets. Reason: ", avatarResult.Message), avatarResult.DetailedMessage);
+                        }
+                    }
 
                     if (result != null && result.Result != null && !result.IsError)
                         result.Result = FilterWallets(result.Result, showOnlyDefault, decryptPrivateKeys, providerTypeToShowWalletsFor);
-                    else
-                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading wallets calling LoadProviderWalletsForAvatarById. Reason: "), result.Message);
+                    else if (result == null || result.IsError)
+                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured loading wallets. Reason: "), result?.Message);
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Error occured setting the provider. Reason: ", providerResult.Message), providerResult.Message);

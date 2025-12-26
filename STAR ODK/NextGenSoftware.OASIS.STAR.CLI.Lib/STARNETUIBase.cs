@@ -207,7 +207,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task UpdateAsync(string idOrName = "", object editParams = null, bool editLaunchTarget = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> loadResult = await FindAsync("update", idOrName, true, providerType: providerType);
+            OASISResult<T1> loadResult = await FindAsync("update", idOrName, default, true, providerType: providerType);
             bool changesMade = false;
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
@@ -246,6 +246,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
                 else
                     Console.WriteLine("");
+
+                // Update Language (STARNETSubCategory) for libraries
+                if (STARNETManager.STARNETHolonType == HolonType.Library)
+                {
+                    string currentLanguage = loadResult.Result.STARNETDNA.STARNETSubCategory?.ToString() ?? "Not set";
+                    if (CLIEngine.GetConfirmation($"Do you wish to update the Language? (currently is {currentLanguage})."))
+                    {
+                        Console.WriteLine("");
+                        object language = CLIEngine.GetValidInputForEnum($"What is the new Language of the {STARNETManager.STARNETHolonUIName}?", typeof(Languages));
+
+                        if (language != null)
+                        {
+                            if (language.ToString() == "exit")
+                                return;
+
+                            loadResult.Result.STARNETDNA.STARNETSubCategory = language;
+                            changesMade = true;
+                        }
+                    }
+                    else
+                        Console.WriteLine("");
+                }
 
                 if (editLaunchTarget && CLIEngine.GetConfirmation($"Do you wish to update the launch target? (currently is {loadResult.Result.STARNETDNA.LaunchTarget}).)"))
                 {
@@ -323,7 +345,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (STARNETDNA == null)
             {
-                OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
+                OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, default, true, providerType: providerType);
 
                 if (parentResult != null && !parentResult.IsError && parentResult.Result != null)
                     STARNETDNA = parentResult.Result.STARNETDNA;
@@ -666,7 +688,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (dependencyTypeEnum == DependencyType.Library)
                 dependenciesDisplayName = "libraries";
 
-            OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
+            OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, default, true, providerType: providerType);
 
             if (parentResult != null && !parentResult.IsError && parentResult.Result != null)
             {
@@ -1065,7 +1087,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("delete", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("delete", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1331,7 +1353,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task UnpublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("unpublish", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("unpublish", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1349,7 +1371,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task RepublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("republish", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("republish", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1367,7 +1389,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task ActivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("activate", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("activate", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1390,7 +1412,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task DeactivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("deactivate", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("deactivate", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1654,7 +1676,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public virtual async Task UninstallAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<T1> result = await FindAsync("uninstall", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("uninstall", idOrName, default, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -1905,7 +1927,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public virtual async Task SearchAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task SearchAsync(string searchTerm = "", Guid parentId = default, bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
         {
             if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
             {
@@ -1915,7 +1937,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching {STARNETManager.STARNETHolonUIName}'s...");
-            ListStarHolons(await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, searchTerm, !showForAllAvatars, showAllVersions, 0, providerType));
+            ListStarHolons(await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, searchTerm, parentId, null, MetaKeyValuePairMatchMode.All, !showForAllAvatars, showAllVersions, 0, providerType));
         }
 
         public virtual async Task ShowAsync(string idOrName = "", bool showDetailed = false, ProviderType providerType = ProviderType.Default)
@@ -1926,7 +1948,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 showDetailed = true;
             }
 
-            OASISResult<T1> result = await FindAsync("view", idOrName, true, providerType: providerType);
+            OASISResult<T1> result = await FindAsync("view", idOrName, default, true, providerType: providerType);
 
             //if (result != null && !result.IsError && result.Result != null)
             //    Show(result.Result, showDetailedInfo: showDetailed);
@@ -1952,6 +1974,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Description:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.Description) ? starHolon.STARNETDNA.Description : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Type:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETHolonType), false);
             CLIEngine.ShowMessage(string.Concat($"Category:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETCategory), false);
+            
+            // Display Language (STARNETSubCategory) for libraries
+            if (starHolon.STARNETDNA.STARNETSubCategory != null)
+            {
+                CLIEngine.ShowMessage(string.Concat($"Language:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETSubCategory), false);
+            }
             CLIEngine.ShowMessage(string.Concat($"Created On:".PadRight(displayFieldLength), starHolon.STARNETDNA.CreatedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Created By:".PadRight(displayFieldLength), starHolon.STARNETDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.CreatedByAvatarUsername, " (", starHolon.STARNETDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Modified On:".PadRight(displayFieldLength), starHolon.STARNETDNA.ModifiedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);
@@ -2193,7 +2221,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 DisplayProperty("Meta Tag Mappings", string.Concat(metaTagMappings != null && metaTagMappings.Count > 0 ? metaTagMappings.Count.ToString() : "None", metaTagMappings != null && metaTagMappings.Count > 0 ? " (use show/list detailed to view)" : ""), displayFieldLength);
         }
 
-        public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", Guid parentId = default, bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             Guid id = Guid.Empty;
@@ -2216,6 +2244,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage($"Loading {STARNETHolonUIName}'s...");
 
+                        //TODO: Add parentId to load functions below... 
                         if (showOnlyForCurrentAvatar)
                             starHolonsResult = await STARNETManager.LoadAllForAvatarAsync(STAR.BeamedInAvatar.AvatarId);
                         else
@@ -2258,7 +2287,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {STARNETHolonUIName}s...");
-                    OASISResult<IEnumerable<T1>> searchResults = await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, idOrName, showOnlyForCurrentAvatar, false, 0, providerType);
+                    OASISResult<IEnumerable<T1>> searchResults = await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, idOrName, parentId, null, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, false, 0, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -2452,7 +2481,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {STARNETManager.STARNETHolonUIName}'s...");
-                    OASISResult<IEnumerable<T1>> searchResults = STARNETManager.Search(STAR.BeamedInAvatar.Id, idOrName, showOnlyForCurrentAvatar, false, 0, providerType);
+                    OASISResult<IEnumerable<T1>> searchResults = STARNETManager.Search(STAR.BeamedInAvatar.Id, idOrName, default, null, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, false, 0, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -2594,7 +2623,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (largeProviderTypeObject != null)
                     {
                         largeFileProviderType = (ProviderType)largeProviderTypeObject;
-                        result = await FindAsync(operationName, idOrName, showOnlyForCurrentAvatar, addSpace, providerType: largeFileProviderType);
+                        result = await FindAsync(operationName, idOrName, default, showOnlyForCurrentAvatar, addSpace, providerType: largeFileProviderType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, "Error occured in FindForProviderAsync, reason: largeProviderTypeObject is null!");
@@ -2602,11 +2631,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     Console.WriteLine("");
-                    result = await FindAsync(operationName, idOrName, showOnlyForCurrentAvatar, addSpace, providerType: providerType);
+                    result = await FindAsync(operationName, idOrName, default, showOnlyForCurrentAvatar, addSpace, providerType: providerType);
                 }
             }
             else
-                result = await FindAsync(operationName, idOrName, showOnlyForCurrentAvatar, addSpace, providerType: providerType);
+                result = await FindAsync(operationName, idOrName, default, showOnlyForCurrentAvatar, addSpace, providerType: providerType);
 
             return result;
         }
@@ -2813,7 +2842,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (STARNETHolonUIName == "Default")
                 STARNETHolonUIName = STARNETManager.STARNETHolonUIName;
 
-            OASISResult<T1> findResult = await FindAsync(operationName, idOrName, showOnlyForCurrentAvatar, STARNETHolonUIName: STARNETHolonUIName, providerType: providerType);
+            OASISResult<T1> findResult = await FindAsync(operationName, idOrName, default, showOnlyForCurrentAvatar, STARNETHolonUIName: STARNETHolonUIName, providerType: providerType);
 
             if (findResult != null && findResult.Result != null && !findResult.IsError)
             {
@@ -3033,91 +3062,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    //CLIEngine.ShowDivider();
         //}
 
-        protected void ShowNFTDetails(INFTBase nft, IWeb4OASISNFT web4NFT, int displayFieldLength, bool displayTags = true, bool displayMetaData = true)
-        {
-            DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
-
-            if ((web4NFT != null && nft.Title != web4NFT.Title) || web4NFT == null)
-                DisplayProperty("Title", nft.Title, displayFieldLength);
-
-            if ((web4NFT != null && nft.Description != web4NFT.Description) || web4NFT == null)
-                DisplayProperty("Description", nft.Description, displayFieldLength);
-
-            if ((web4NFT != null && nft.Price != web4NFT.Price) || web4NFT == null)
-                DisplayProperty("Price", nft.Price.ToString(), displayFieldLength);
-
-            if ((web4NFT != null && nft.Discount != web4NFT.Discount) || web4NFT == null)
-                DisplayProperty("Discount", nft.Discount.ToString(), displayFieldLength);
-
-            if ((web4NFT != null && nft.RoyaltyPercentage != web4NFT.RoyaltyPercentage) || web4NFT == null)
-                DisplayProperty("Royalty Percentage", nft.RoyaltyPercentage.ToString(), displayFieldLength);
-
-            if ((web4NFT != null && nft.IsForSale != web4NFT.IsForSale) || web4NFT == null)
-                DisplayProperty("For Sale", nft.IsForSale ? string.Concat("Yes (StartDate: ", nft.SaleStartDate.HasValue ? nft.SaleStartDate.Value.ToShortDateString() : "Not Set", nft.SaleEndDate.HasValue ? nft.SaleEndDate.Value.ToShortDateString() : "Not Set") : "No", displayFieldLength);
-
-            if ((web4NFT != null && nft.MintedByAvatarId != web4NFT.MintedByAvatarId) || web4NFT == null)
-                DisplayProperty("Minted By Avatar Id", nft.MintedByAvatarId.ToString(), displayFieldLength);
-
-            if ((web4NFT != null && nft.MintedOn != web4NFT.MintedOn) || web4NFT == null)
-                DisplayProperty("Minted On", nft.MintedOn.ToString(), displayFieldLength);
-
-            if ((web4NFT != null && nft.OnChainProvider.Name != web4NFT.OnChainProvider.Name) || web4NFT == null)
-                DisplayProperty("OnChain Provider", nft.OnChainProvider.Name, displayFieldLength);
-
-            if ((web4NFT != null && nft.OffChainProvider.Name != web4NFT.OffChainProvider.Name) || web4NFT == null)
-                DisplayProperty("OffChain Provider", nft.OffChainProvider.Name, displayFieldLength);
-
-            if ((web4NFT != null && nft.StoreNFTMetaDataOnChain != web4NFT.StoreNFTMetaDataOnChain) || web4NFT == null)
-                DisplayProperty("Store NFT Meta Data OnChain", nft.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
-
-            if ((web4NFT != null && nft.NFTOffChainMetaType.Name != web4NFT.NFTOffChainMetaType.Name) || web4NFT == null)
-                DisplayProperty("NFT OffChain Meta Type", nft.NFTOffChainMetaType.Name, displayFieldLength);
-
-            if ((web4NFT != null && nft.NFTStandardType.Name != web4NFT.NFTStandardType.Name) || web4NFT == null)
-                DisplayProperty("NFT Standard Type", nft.NFTStandardType.Name, displayFieldLength);
-
-            if ((web4NFT != null && nft.Symbol != web4NFT.Symbol) || web4NFT == null)
-                DisplayProperty("Symbol", nft.Symbol, displayFieldLength);
-
-            if ((web4NFT != null && nft.Image != web4NFT.Image) || web4NFT == null)
-                DisplayProperty("Image", nft.Image != null ? "Yes" : "None", displayFieldLength);
-
-            if ((web4NFT != null && nft.ImageUrl != web4NFT.ImageUrl) || web4NFT == null)
-                DisplayProperty("Image Url", nft.ImageUrl, displayFieldLength);
-
-            if ((web4NFT != null && nft.Thumbnail != web4NFT.Thumbnail) || web4NFT == null)
-                DisplayProperty("Thumbnail", nft.Thumbnail != null ? "Yes" : "None", displayFieldLength);
-
-            if ((web4NFT != null && nft.ThumbnailUrl != web4NFT.ThumbnailUrl) || web4NFT == null)
-                DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None", displayFieldLength);
-
-            if ((web4NFT != null && nft.JSONMetaDataURL != web4NFT.JSONMetaDataURL) || web4NFT == null)
-                DisplayProperty("JSON MetaData URL", nft.JSONMetaDataURL, displayFieldLength);
-
-            if ((web4NFT != null && nft.JSONMetaDataURLHolonId != web4NFT.JSONMetaDataURLHolonId) || web4NFT == null)
-                DisplayProperty("JSON MetaData URL Holon Id", nft.JSONMetaDataURLHolonId != Guid.Empty ? nft.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
-
-            if ((web4NFT != null && nft.SellerFeeBasisPoints != web4NFT.SellerFeeBasisPoints) || web4NFT == null)
-                DisplayProperty("Seller Fee Basis Points", nft.SellerFeeBasisPoints.ToString(), displayFieldLength);
-
-            if ((web4NFT != null && nft.SendToAddressAfterMinting != web4NFT.SendToAddressAfterMinting) || web4NFT == null)
-                DisplayProperty("Send To Address After Minting", nft.SendToAddressAfterMinting, displayFieldLength);
-
-            if ((web4NFT != null && nft.SendToAvatarAfterMintingId != web4NFT.SendToAvatarAfterMintingId) || web4NFT == null)
-                DisplayProperty("Send To Avatar After Minting Id", nft.SendToAvatarAfterMintingId != Guid.Empty ? nft.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
-
-            if ((web4NFT != null && nft.SendToAvatarAfterMintingUsername != web4NFT.SendToAvatarAfterMintingUsername) || web4NFT == null)
-                DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(nft.SendToAvatarAfterMintingUsername) ? nft.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
-
-            if ((web4NFT != null && displayTags && TagHelper.GetTags(nft.Tags) != TagHelper.GetTags(web4NFT.Tags)) || web4NFT == null)
-                TagHelper.ShowTags(nft.Tags, displayFieldLength);
-
-            if ((web4NFT != null && displayMetaData && MetaDataHelper.GetMetaData(nft.MetaData) != MetaDataHelper.GetMetaData(web4NFT.MetaData)) || web4NFT == null)
-                MetaDataHelper.ShowMetaData(nft.MetaData, displayFieldLength);
-
-            CLIEngine.ShowDivider();
-        }
-
 
         protected async Task<OASISResult<ImageObjectResult>> ProcessImageOrObjectAsync(string holonType)
         {
@@ -3260,7 +3204,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage($"Uninstalling {STARNETManager.STARNETHolonUIName}...");
-                        OASISResult<T3> uninstallResult = await STARNETManager.UninstallAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, providerType);
+                        OASISResult<T3> uninstallResult = await STARNETManager.UninstallAsync(STAR.BeamedInAvatar.Id, holon.STARNETDNA.Id, holon.STARNETDNA.Version, providerType);
 
                         if (uninstallResult != null && uninstallResult.Result != null && !uninstallResult.IsError)
                         {

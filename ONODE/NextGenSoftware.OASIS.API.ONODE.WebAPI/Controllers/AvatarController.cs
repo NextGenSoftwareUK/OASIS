@@ -1509,16 +1509,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
         /// </summary>
         /// <param name="id">The id of the avatar.</param>
+        /// <param name="softDelete">Set to true for soft delete (can be restored) or false for permanent deletion (cannot be recovered). Defaults to true.</param>
         /// <returns></returns>
         [Authorize]
         [HttpDelete("{id:Guid}")]
-        public async Task<OASISHttpResponseMessage<bool>> Delete(Guid id)
+        public async Task<OASISHttpResponseMessage<bool>> Delete(Guid id, bool softDelete = true)
         {
             // users can delete their own account and admins can delete any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.DeleteAvatarAsync(id));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.DeleteAvatarAsync(id, softDelete));
         }
 
         /// <summary>
@@ -1542,17 +1543,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Delete the given avatar using their username.
         ///     Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
         /// </summary>
-        /// <param name="username">The id of the avatar.</param>
+        /// <param name="username">The username of the avatar.</param>
+        /// <param name="softDelete">Set to true for soft delete (can be restored) or false for permanent deletion (cannot be recovered). Defaults to true.</param>
         /// <returns></returns>
         [Authorize]
         [HttpDelete("delete-by-username/{username}")]
-        public async Task<OASISHttpResponseMessage<bool>> DeleteByUsername(string username)
+        public async Task<OASISHttpResponseMessage<bool>> DeleteByUsername(string username, bool softDelete = true)
         {
             // users can delete their own account and admins can delete any account
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.DeleteAvatarByUsernameAsync(username));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.DeleteAvatarByUsernameAsync(username, softDelete));
         }
 
         /// <summary>
