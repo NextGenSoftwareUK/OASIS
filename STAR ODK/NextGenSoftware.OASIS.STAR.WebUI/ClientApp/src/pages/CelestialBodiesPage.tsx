@@ -23,8 +23,6 @@ import {
   Badge,
   Fab,
   Tooltip,
-  ToggleButtonGroup,
-  ToggleButton,
 } from '@mui/material';
 import {
   Add,
@@ -37,16 +35,12 @@ import {
   Refresh,
   FilterList,
   Info,
-  ViewInAr,
-  GridView,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { celestialBodyService } from '../services';
 import { useNavigate } from 'react-router-dom';
-import { CelestialBody3DScene } from '../components/visualization/CelestialBody3DScene';
-import type { CelestialBody3D } from '../components/visualization/CelestialBodyNode';
 
 interface CelestialBody {
   id: string;
@@ -75,9 +69,6 @@ const CelestialBodiesPage: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
   const [viewScope, setViewScope] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'grid' | '3d'>('3d');
-  const [showLabels3D, setShowLabels3D] = useState(true);
-  const [autoRotate3D, setAutoRotate3D] = useState(true);
   const [newBody, setNewBody] = useState<Partial<CelestialBody>>({
     name: '',
     type: 'Planet',
@@ -304,34 +295,6 @@ const CelestialBodiesPage: React.FC = () => {
     }
   };
 
-  // Convert celestial bodies to 3D positions
-  const convertTo3DPositions = (bodies: CelestialBody[]): CelestialBody3D[] => {
-    return bodies.map((body, index) => {
-      // Arrange in orbital pattern based on distance and type
-      const angle = (index / bodies.length) * Math.PI * 2;
-      const distanceMultiplier = body.type === 'Star' ? 0 : 
-                                  body.type === 'Planet' ? 15 : 
-                                  body.type === 'Moon' ? 10 : 
-                                  body.type === 'Asteroid' ? 20 : 8;
-      
-      const x = Math.cos(angle) * distanceMultiplier;
-      const z = Math.sin(angle) * distanceMultiplier;
-      const y = (Math.random() - 0.5) * 3; // Slight vertical variation
-      
-      return {
-        id: body.id,
-        name: body.name,
-        type: body.type,
-        position: [x, y, z],
-        radius: body.radius,
-        mass: body.mass,
-        temperature: body.temperature,
-        isInhabited: body.isInhabited,
-        orbitalPeriod: body.orbitalPeriod,
-      };
-    });
-  };
-
   // Filter by view scope first, then by type
   const getFilteredBodies = () => {
     let filtered = bodiesData?.result || [];
@@ -353,7 +316,6 @@ const CelestialBodiesPage: React.FC = () => {
   };
   
   const filteredBodies = getFilteredBodies();
-  const bodies3D = convertTo3DPositions(filteredBodies);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -393,33 +355,7 @@ const CelestialBodiesPage: React.FC = () => {
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <ToggleButtonGroup
-              value={viewMode}
-              exclusive
-              onChange={(e, newMode) => newMode && setViewMode(newMode)}
-              size="small"
-              sx={{ 
-                bgcolor: 'rgba(6, 11, 26, 0.7)',
-                '& .MuiToggleButton-root': {
-                  color: 'var(--muted)',
-                  borderColor: 'var(--card-border)',
-                  '&.Mui-selected': {
-                    bgcolor: 'var(--accent-soft)',
-                    color: 'var(--accent)',
-                    borderColor: 'var(--accent)',
-                  }
-                }
-              }}
-            >
-              <ToggleButton value="3d">
-                <ViewInAr sx={{ mr: 0.5 }} /> 3D View
-              </ToggleButton>
-              <ToggleButton value="grid">
-                <GridView sx={{ mr: 0.5 }} /> Grid View
-              </ToggleButton>
-            </ToggleButtonGroup>
-            
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 140 }}>
               <InputLabel>View</InputLabel>
               <Select
@@ -471,87 +407,7 @@ const CelestialBodiesPage: React.FC = () => {
             <CircularProgress size={60} />
           </Box>
         ) : (
-          <>
-            {/* 3D Visualization */}
-            {viewMode === '3d' && (
-              <Card 
-                sx={{ 
-                  mb: 3,
-                  background: 'rgba(6, 11, 26, 0.7)',
-                  backdropFilter: 'blur(12px)',
-                  border: '1px solid var(--card-border)',
-                  boxShadow: '0 15px 30px rgba(15,118,110,0.18)',
-                }}
-              >
-                <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6" sx={{ color: 'var(--foreground)' }}>
-                      3D Celestial System Visualization
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button 
-                        size="small" 
-                        variant={showLabels3D ? "contained" : "outlined"}
-                        onClick={() => setShowLabels3D(!showLabels3D)}
-                        sx={{
-                          bgcolor: showLabels3D ? 'var(--accent)' : 'transparent',
-                          color: showLabels3D ? '#041321' : 'var(--accent)',
-                          borderColor: 'var(--accent)',
-                          '&:hover': {
-                            bgcolor: showLabels3D ? 'var(--accent-strong)' : 'var(--accent-soft)',
-                          }
-                        }}
-                      >
-                        {showLabels3D ? 'Labels On' : 'Labels Off'}
-                      </Button>
-                      <Button 
-                        size="small" 
-                        variant={autoRotate3D ? "contained" : "outlined"}
-                        onClick={() => setAutoRotate3D(!autoRotate3D)}
-                        sx={{
-                          bgcolor: autoRotate3D ? 'var(--accent)' : 'transparent',
-                          color: autoRotate3D ? '#041321' : 'var(--accent)',
-                          borderColor: 'var(--accent)',
-                          '&:hover': {
-                            bgcolor: autoRotate3D ? 'var(--accent-strong)' : 'var(--accent-soft)',
-                          }
-                        }}
-                      >
-                        {autoRotate3D ? 'Auto-Rotate On' : 'Auto-Rotate Off'}
-                      </Button>
-                    </Box>
-                  </Box>
-                  <Box sx={{ 
-                    bgcolor: '#050510',
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    border: '1px solid var(--card-border)',
-                  }}>
-                    <CelestialBody3DScene
-                      bodies={bodies3D}
-                      showLabels={showLabels3D}
-                      autoRotate={autoRotate3D}
-                      onBodyClick={(body) => navigate(`/celestial-bodies/${body.id}`)}
-                    />
-                  </Box>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      display: 'block', 
-                      mt: 2, 
-                      textAlign: 'center',
-                      color: 'var(--muted)' 
-                    }}
-                  >
-                    🖱️ Click and drag to rotate • Scroll to zoom • Click on bodies for details
-                  </Typography>
-                </CardContent>
-              </Card>
-            )}
-            
-            {/* Grid View */}
-            {viewMode === 'grid' && (
-              <Grid container spacing={3}>
+          <Grid container spacing={3}>
             {filteredBodies.map((body: CelestialBody, index: number) => (
               <Grid item xs={12} sm={6} md={4} key={body.id}>
                 <motion.div
@@ -676,9 +532,7 @@ const CelestialBodiesPage: React.FC = () => {
                 </motion.div>
               </Grid>
             ))}
-              </Grid>
-            )}
-          </>
+          </Grid>
         )}
 
         {/* Create Body Dialog */}

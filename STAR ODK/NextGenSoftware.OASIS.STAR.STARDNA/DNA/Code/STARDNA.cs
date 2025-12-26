@@ -6,9 +6,9 @@ namespace NextGenSoftware.OASIS.STAR.DNA
     {
         // Default values that are used to generate a new STARDNA.json file if it is not found.
         public string OASISDNAPath { get; set; } //Path to the OASIS DNA json file (if blank it will default to the built in SYSTEM OASIS DNA). Only change this if you want to work with custom providers, etc
-        public string BaseSTARPath { get; set; } = @"C:\Source\OASIS\STAR ODK\Release\STAR_ODK_v3.0.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
+        public string BaseSTARPath { get; set; } = @"C:\Source\OASIS2\STAR ODK\Releases\STAR_ODK_v3.0.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
         public string MetaDataDNATemplateFolder { get; set; } = "DNATemplates\\MetaDataDNATemplates"; //MetaData DNA Templates that are used to generate the meta data for CelestialBodies, Zomes & Holons. Can be relative to STARBasePath or absolute.
-        public string RustDNARSMTemplateFolder { get; set; } = @"DNATemplates\RustDNATemplates\RSM";  //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above).
+        //public string RustDNARSMTemplateFolder { get; set; } = @"DNATemplates\RustDNATemplates\RSM";  //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above). //MOVED TO HOLOOASIS SECTION IN OASISDNA
         public string CSharpDNATemplateFolder { get; set; } = @"DNATemplates\CSharpDNATemplates";  //C# DNA Templates (CelestialBodies, Zomes & Holons) that are used to generate OAPPs from (releative to STARBasePath above).
         public string CSharpDNATemplateNamespace { get; set; } = "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates"; //The default namespace for the C# DNA Templates above.
         public string OAPPMetaDataDNAFolder { get; set; } = "OAPPMetaDataDNA"; //All OAPP DNA MetaData (CelestialBodies, Zomes & Holons) is generated in this folder. It can then be optionally uploaded to STARNET for later re-use in other OAPP's and optionally shared with others. An OAPP is generated from the CelestialBodyMetaDataDNA and can contain zome and holon metadta. You can also create your own meta data here or anywhere to generate a OAPP from and point the Light Wizard to the relevant folder. The folder is relative to the BaseSTARPath above.
@@ -21,17 +21,18 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         //public string HolonMetaDataDateTimeDNA { get; set; } = "Types\\DateTimeDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
         //public string HolonMetaDataLongDNA { get; set; } = "Types\\LongDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
         //public string HolonMetaDataDoubleDNA { get; set; } = "Types\\DoubleDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
-        public string RustTemplateLib { get; set; } = @"core\lib.rs"; //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateHolon { get; set; } = @"core\holon.rs"; //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateValidation { get; set; } = @"core\validation.rs"; //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateCreate { get; set; } = @"crud\create.rs"; //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateRead { get; set; } = @"crud\read.rs";  //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateUpdate { get; set; } = @"crud\update.rs"; //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateDelete { get; set; } = @"crud\delete.rs"; //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateList { get; set; } = @"crud\list.rs"; //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateInt { get; set; } = @"types\int.rs"; //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateString { get; set; } = @"types\string.rs"; //releative to RustDNARSMTemplateFolder above.
-        public string RustTemplateBool { get; set; } = @"types\bool.rs"; //releative to RustDNARSMTemplateFolder above.
+        //MOVED TO HOLOOASIS SECTION IN OASISDNA - Commented out for rollback purposes:
+        //public string RustTemplateLib { get; set; } = @"core\lib.rs"; //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateHolon { get; set; } = @"core\holon.rs"; //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateValidation { get; set; } = @"core\validation.rs"; //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateCreate { get; set; } = @"crud\create.rs"; //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateRead { get; set; } = @"crud\read.rs";  //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateUpdate { get; set; } = @"crud\update.rs"; //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateDelete { get; set; } = @"crud\delete.rs"; //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateList { get; set; } = @"crud\list.rs"; //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateInt { get; set; } = @"types\int.rs"; //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateString { get; set; } = @"types\string.rs"; //releative to RustDNARSMTemplateFolder above.
+        //public string RustTemplateBool { get; set; } = @"types\bool.rs"; //releative to RustDNARSMTemplateFolder above.
         public string CSharpTemplateIHolonDNA { get; set; } = @"Interfaces\IHolonDNATemplate.cs"; //releative to CSharpDNATemplateFolder above.
         public string CSharpTemplateHolonDNA { get; set; } = "HolonDNATemplate.cs"; //releative to CSharpDNATemplateFolder above.
         public string CSharpTemplateIZomeDNA { get; set; } = @"Interfaces\IZomeDNATemplate.cs"; //releative to CSharpDNATemplateFolder above.
@@ -54,7 +55,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultPlanetId { get; set; } //The default Planet ID (Our World) to use when creating new OAPPs and using COSMIC.
 
         //If this is left blank then all STARNET paths below will be absolute otherwise they will be relative (NOTE: This is NOT STARBasePath above to allow the user data to be stored in a different location if needed).
-        public string BaseSTARNETPath { get; set; } = @"C:\Source\OASIS\STAR ODK\Release\STAR_ODK_v3.0.0\STARNET";
+        public string BaseSTARNETPath { get; set; } = @"C:\Source\OASIS2\STAR ODK\Releases\STAR_ODK_v3.0.0\STARNET";
 
         //All paths below for STARNET can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
         //OAPP's are composed of Celestial Bodies, Zomes and Holons (which are all types of DNA) and can be used to create OAPPs (Omniverse/OASIS/Our World Applications) which are like Apps in the Omniverse/OASIS/Our World. OAPPs can be published, searched, downloaded, installed on the user's machine or downloaded from the OASIS/STARNET. They can also be published to the OASIS/STARNET for others to use and can be updated with new versions. The same applies for everything below here for STARNET.
