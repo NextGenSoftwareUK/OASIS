@@ -42,24 +42,22 @@ using System.IO;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
-    public class TRONTransactionResponse
-    {
-        public string TxID { get; set; }
-        public string RawData { get; set; }
-        public string[] Signature { get; set; }
-    }
+//        public string TxID { get; set; }
+//        public string RawData { get; set; }
+//        public string[] Signature { get; set; }
+//    }
 
-    public class TRONNFTResponse
-    {
-        public string TokenId { get; set; }
-        public string ContractAddress { get; set; }
-        public string OwnerAddress { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public double Altitude { get; set; }
-    }
+//    public class TRONNFTResponse
+//    {
+//        public string TokenId { get; set; }
+//        public string ContractAddress { get; set; }
+//        public string OwnerAddress { get; set; }
+//        public DateTime CreatedDate { get; set; }
+//        public DateTime ModifiedDate { get; set; }
+//        public double Latitude { get; set; }
+//        public double Longitude { get; set; }
+//        public double Altitude { get; set; }
+//    }
 
     public class TRONOASIS : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
@@ -83,11 +81,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public TRONOASIS(string rpcEndpoint = "https://api.trongrid.io", string network = "mainnet", string chainId = "0x2b6653dc", string contractAddress = "", WalletManager walletManager = null)
         {
             _walletManager = walletManager;
-            _contractAddress = contractAddress;
+            _contractAddress = contractAddress ?? "";
             this.ProviderName = "TRONOASIS";
             this.ProviderDescription = "TRON Provider";
-            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderType = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.StorageAndNetwork);
 
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(rpcEndpoint);
@@ -1380,7 +1378,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
+                    var tronResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
 
                     response.Result = new TransactionResponse
                     {
@@ -1452,7 +1450,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                     if (transactionData.TryGetProperty("txID", out var txId))
                     {
-                        var transactionResponse = new TRONTransactionResponse
+                        var transactionResponse = new TransactionResponse
                         {
                             TxID = txId.GetString()
                         };
@@ -1503,8 +1501,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 var tronClient = new TRONClient();
 
                 // Get wallet addresses for both avatars
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, fromAvatarId);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, toAvatarId);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, fromAvatarId);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, toAvatarId);
                 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1522,7 +1520,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Send TRC20 token transaction using TRON Grid API
-                var tokenAddress = _contractAddress ?? "";
+                var tokenAddress = _contractAddress ?? "" ?? "";
                 if (string.IsNullOrEmpty(tokenAddress))
                 {
                     OASISErrorHandling.HandleError(ref response, "Token address is required");
@@ -1552,7 +1550,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         ? txidProp.GetString() 
                         : "unknown";
 
-                    var tronResponse = new TRONTransactionResponse
+                    var tronResponse = new TransactionResponse
                     {
                         TxID = txid,
                         RawData = responseContent,
@@ -1594,8 +1592,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 var tronClient = new TRONClient();
 
                 // Get wallet addresses for both avatars by username
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, fromAvatarUsername);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, toAvatarUsername);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, fromAvatarUsername);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, toAvatarUsername);
                 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1635,7 +1633,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         ? txidProp.GetString() 
                         : "unknown";
                     
-                    var tronResponse = new TRONTransactionResponse
+                    var tronResponse = new TransactionResponse
                     {
                         TxID = txid,
                         RawData = responseContent,
@@ -1644,7 +1642,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                 if (transactionResult != null)
                 {
-                    var tronResponse = new TRONTransactionResponse
+                    var tronResponse = new TransactionResponse
                     {
                         TxID = transactionResult.TxID,
                         RawData = transactionResult.RawData,
@@ -1659,6 +1657,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 {
                     OASISErrorHandling.HandleError(ref response, "Failed to send TRX transaction on TRON blockchain");
                 }
+        }
             }
             catch (Exception ex)
             {
@@ -1737,7 +1736,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // TRON TRC20 token transfer using TRON API
-                var tokenAddress = string.IsNullOrEmpty(request.FromTokenAddress) ? _contractAddress : request.FromTokenAddress;
+                var tokenAddress = string.IsNullOrEmpty(request.FromTokenAddress) ? _contractAddress ?? "" : request.FromTokenAddress;
                 if (string.IsNullOrEmpty(tokenAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Token address is required");
@@ -1801,7 +1800,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // TRON TRC20 token minting (requires admin permissions)
-                var tokenAddress = _contractAddress ?? request.MintedByAvatarId.ToString();
+                var tokenAddress = _contractAddress ?? "" ?? request.MintedByAvatarId.ToString();
                 
                 var mintPayload = new
                 {
@@ -1927,7 +1926,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Lock token by transferring to bridge pool
-                var bridgePoolAddress = _contractAddress ?? "T..."; // Bridge pool address
+                var bridgePoolAddress = _contractAddress ?? "" ?? "T..."; // Bridge pool address
                 var senderAddress = bridgePoolAddress; // Would derive from private key in production
                 
                 var transferPayload = new
@@ -1992,7 +1991,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Unlock token by transferring from bridge pool to recipient
-                var bridgePoolAddress = _contractAddress ?? "T..."; // Bridge pool address
+                var bridgePoolAddress = _contractAddress ?? "" ?? "T..."; // Bridge pool address
                 var recipientAddress = bridgePoolAddress; // Would get from UnlockedByAvatarId in production
                 
                 var transferPayload = new
@@ -2446,7 +2445,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Bridge pool address
-                var bridgePoolAddress = _contractAddress ?? "TXYZabcdefghijklmnopqrstuvwxyz123456";
+                var bridgePoolAddress = _contractAddress ?? "" ?? "TXYZabcdefghijklmnopqrstuvwxyz123456";
                 
                 // Convert amount to sun (smallest unit, 1 TRX = 1,000,000 sun)
                 var amountInSun = (long)(amount * 1_000_000m);
@@ -2466,7 +2465,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
+                    var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
 
                     // Sign and broadcast transaction
                     var signedTx = await SignTRONTransaction(txResponse, senderPrivateKey);
@@ -2546,7 +2545,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Bridge pool address (sender)
-                var bridgePoolAddress = _contractAddress ?? "TXYZabcdefghijklmnopqrstuvwxyz123456";
+                var bridgePoolAddress = _contractAddress ?? "" ?? "TXYZabcdefghijklmnopqrstuvwxyz123456";
                 
                 // Convert amount to sun (smallest unit)
                 var amountInSun = (long)(amount * 1_000_000m);
@@ -2566,7 +2565,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
+                    var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
 
                     // Sign and broadcast transaction (would use bridge pool's private key in production)
                     var signedTx = await SignTRONTransaction(txResponse, ""); // Would get from config
@@ -2752,7 +2751,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
+                    var tronResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
 
                     response.Result = new Web3NFTTransactionResponse
                     {
@@ -2814,7 +2813,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
+                    var tronResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
 
                     result.Result = new Web3NFTTransactionResponse
                     {
@@ -2869,7 +2868,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
+                    var tronResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
 
                     response.Result = new Web3NFTTransactionResponse
                     {
@@ -3028,7 +3027,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         //        }
 
         //        // Get avatar's TRON address
-        //        var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, avatarId);
+        //        var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, avatarId);
         //        if (walletResult.IsError)
         //        {
         //            OASISErrorHandling.HandleError(ref result, $"Error getting wallet address for avatar: {walletResult.Message}");
@@ -3140,7 +3139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         //                    Lat = 0,
         //                    Long = 0,
         //                    OASISMintWalletAddress = mintWalletAddress,
-        //                    GeoNFTMetaDataProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
+        //                    GeoNFTMetaDataProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
         //                };
         //                geoNFTs.Add(geoNFT);
         //            }
@@ -3181,7 +3180,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Get wallet address for the avatar
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, avatarId);
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, avatarId);
                 if (walletResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
@@ -3217,7 +3216,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                                 ImageUrl = nft["imageUrl"]?.ToString() ?? string.Empty,
                                 NFTTokenAddress = nft["tokenId"]?.ToString() ?? string.Empty,
                                 OASISMintWalletAddress = walletResult.Result?.ToString(),
-                                OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
+                                OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
                             };
                             nfts.Add(oasisNFT);
                         }
@@ -3282,7 +3281,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                                 ImageUrl = nft["imageUrl"]?.ToString() ?? string.Empty,
                                 NFTTokenAddress = nft["tokenId"]?.ToString() ?? string.Empty,
                                 OASISMintWalletAddress = mintWalletAddress,
-                                OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
+                                OnChainProvider = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS)
                             };
                             nfts.Add(oasisNFT);
                         }
@@ -3423,7 +3422,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return result;
                 }
 
-                var bridgePoolAddress = _contractAddress ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
+                var bridgePoolAddress = _contractAddress ?? "" ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
                 var sendRequest = new SendWeb3NFTRequest
                 {
                     FromNFTTokenAddress = request.NFTTokenAddress,
@@ -3467,7 +3466,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return result;
                 }
 
-                var bridgePoolAddress = _contractAddress ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
+                var bridgePoolAddress = _contractAddress ?? "" ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
                 var sendRequest = new SendWeb3NFTRequest
                 {
                     FromNFTTokenAddress = request.NFTTokenAddress,
@@ -3625,7 +3624,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         private string GetOASISContractAddress()
         {
             // Return the contract address if set, otherwise use a default TRON contract address
-            return _contractAddress ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
+            return _contractAddress ?? "" ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
         }
 
         /// <summary>
@@ -3947,7 +3946,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         {
             return await WalletHelper.GetWalletAddressForAvatarAsync(
                 WalletManager,
-                Core.Enums.ProviderType.TRONOASIS,
+                NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS,
                 avatarId,
                 _httpClient);
         }
@@ -3999,10 +3998,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                 if (accountInfo != null)
                 {
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.TRONOASIS].Add("tron_address", accountInfo.Address ?? "");
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.TRONOASIS].Add("tron_balance", accountInfo.Balance?.ToString() ?? "0");
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.TRONOASIS].Add("tron_energy", accountInfo.Energy?.ToString() ?? "0");
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.TRONOASIS].Add("tron_bandwidth", accountInfo.Bandwidth?.ToString() ?? "0");
+                    avatar.ProviderMetaData[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS].Add("tron_address", accountInfo.Address ?? "");
+                    avatar.ProviderMetaData[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS].Add("tron_balance", accountInfo.Balance?.ToString() ?? "0");
+                    avatar.ProviderMetaData[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS].Add("tron_energy", accountInfo.Energy?.ToString() ?? "0");
+                    avatar.ProviderMetaData[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS].Add("tron_bandwidth", accountInfo.Bandwidth?.ToString() ?? "0");
                 }
 
                 return avatar;
@@ -4011,86 +4010,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 return null;
             }
-        }
-
-        #endregion
-    }
-
-    public class TRONClient
-    {
-        private readonly string _apiUrl;
-
-        public TRONClient(string apiUrl = "https://api.trongrid.io")
-        {
-            _apiUrl = apiUrl;
-        }
-
-        public async Task<TRONAccountInfo> GetAccountInfoAsync(string accountId)
-        {
-            try
-            {
-                using (var httpClient = new System.Net.Http.HttpClient())
-                {
-                    var response = await httpClient.GetAsync($"{_apiUrl}/wallet/getaccount?address={accountId}");
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        var accountData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
-
-                        return new TRONAccountInfo
-                        {
-                            Address = accountData.TryGetProperty("address", out var address) ? address.GetString() : accountId,
-                            Balance = accountData.TryGetProperty("balance", out var balance) && balance.ValueKind == JsonValueKind.Number ? balance.GetInt64() : 0,
-                            Energy = accountData.TryGetProperty("energy", out var energy) && energy.ValueKind == JsonValueKind.Number ? energy.GetInt64() : 0,
-                            Bandwidth = accountData.TryGetProperty("bandwidth", out var bandwidth) && bandwidth.ValueKind == JsonValueKind.Number ? bandwidth.GetInt64() : 0
-                        };
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-            return null;
-        }
-
-        public async Task<TRONAccountInfo> GetAccountInfoByEmailAsync(string email)
-        {
-            try
-            {
-                using (var httpClient = new System.Net.Http.HttpClient())
-                {
-                    var response = await httpClient.GetAsync($"{_apiUrl}/wallet/getaccount?email={email}");
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        var accountData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
-
-                        return new TRONAccountInfo
-                        {
-                            Address = accountData.TryGetProperty("address", out var address) ? address.GetString() : "",
-                            Balance = accountData.TryGetProperty("balance", out var balance) && balance.ValueKind == JsonValueKind.Number ? balance.GetInt64() : 0,
-                            Energy = accountData.TryGetProperty("energy", out var energy) && energy.ValueKind == JsonValueKind.Number ? energy.GetInt64() : 0,
-                            Bandwidth = accountData.TryGetProperty("bandwidth", out var bandwidth) && bandwidth.ValueKind == JsonValueKind.Number ? bandwidth.GetInt64() : 0
-                        };
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-            return null;
-        }
-
-        private async Task<string> GetWalletAddressForAvatarAsync(Guid avatarId)
-        {
-            await Task.Delay(1);
-            return "placeholder_wallet_address";
-        }
-
-        private async Task<string> GetWalletAddressForAvatarByUsernameAsync(string username)
-        {
-            await Task.Delay(1);
-            return "placeholder_wallet_address";
         }
 
         /// <summary>
@@ -4147,64 +4066,34 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     {
                         result.Result = resultProp.GetRawText();
                         result.IsError = false;
-                        result.Message = "Smart contract called successfully";
-                    }
-                    else if (txResponse.TryGetProperty("txID", out var txid))
-                    {
-                        result.Result = txid.GetString();
-                        result.IsError = false;
-                        result.Message = "Smart contract transaction created successfully";
                     }
                     else
                     {
-                        result.Result = responseContent;
-                        result.IsError = false;
-                        result.Message = "Smart contract call completed";
+                        OASISErrorHandling.HandleError(ref result, "Contract call failed: no result in response");
                     }
                 }
                 else
                 {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref result, $"Failed to call smart contract: {httpResponse.StatusCode} - {errorContent}");
+                    OASISErrorHandling.HandleError(ref result, $"Contract call failed: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error calling smart contract: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error calling contract: {ex.Message}", ex);
             }
             return result;
         }
 
-        /// <summary>
-        /// Sign TRON transaction with private key
-        /// </summary>
-        private async Task<TRONTransactionResponse> SignTRONTransaction(TRONTransactionResponse transaction, string privateKey)
-        {
-            try
+        #endregion
+    }
+
+    public class TRONClient
+    {
+        private readonly string _apiUrl;
+
+        public TRONClient(string apiUrl = "https://api.trongrid.io")
             {
-                if (string.IsNullOrWhiteSpace(privateKey))
-                {
-                    return transaction; // Return unsigned if no private key
-                }
-
-                // TRON uses secp256k1 signing (same as Ethereum)
-                // Sign the raw transaction data
-                var rawDataBytes = Encoding.UTF8.GetBytes(transaction.RawData ?? "");
-                var privateKeyBytes = Convert.FromHexString(privateKey.Replace("0x", ""));
-
-                // Use Nethereum signer for secp256k1 signing (TRON compatible)
-                var signer = new MessageSigner();
-                var signature = signer.HashAndSign(rawDataBytes, privateKeyBytes);
-
-                transaction.Signature = new[] { signature };
-                return transaction;
-            }
-            catch (Exception ex)
-            {
-                // Return transaction with empty signature if signing fails
-                transaction.Signature = new[] { "" };
-                return transaction;
-            }
+            _apiUrl = apiUrl;
         }
     }
 
@@ -4216,3 +4105,4 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public long? Bandwidth { get; set; }
     }
 }
+

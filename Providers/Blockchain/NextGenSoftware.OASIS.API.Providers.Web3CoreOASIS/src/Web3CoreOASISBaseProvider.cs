@@ -2081,10 +2081,10 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         
         // Get wallet addresses from avatars
         var fromWalletAddress = fromAvatarResult.Result.ProviderWallets?.ContainsKey(this.ProviderType.Value) == true 
-            ? fromAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.Address 
+            ? fromAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.PublicKey 
             : null;
         var toWalletAddress = toAvatarResult.Result.ProviderWallets?.ContainsKey(this.ProviderType.Value) == true 
-            ? toAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.Address 
+            ? toAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.PublicKey 
             : null;
         
         if (string.IsNullOrWhiteSpace(fromWalletAddress) || string.IsNullOrWhiteSpace(toWalletAddress))
@@ -2151,7 +2151,8 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         OASISResult<List<string>> receiverAvatarAddressesResult = KeyManager.Instance.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername, this.ProviderType.Value);
 
         string senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result[0];
-        result = await SendTransactionBaseAsync(senderAvatarPrivateKey, toWalletAddress, amount);
+        string receiverWalletAddress = receiverAvatarAddressesResult.Result[0];
+        result = await SendTransactionBaseAsync(senderAvatarPrivateKey, receiverWalletAddress, amount);
 
         if (result.IsError)
             OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);

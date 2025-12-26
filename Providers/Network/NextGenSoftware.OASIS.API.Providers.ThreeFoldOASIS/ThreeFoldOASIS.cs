@@ -22,6 +22,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
 using System.Threading;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
@@ -69,11 +71,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.ThreeFoldOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.HostUri = hostURI;
-            
+
             _apiBaseUrl = hostURI ?? "https://grid.tf/api/v1";
             _apiKey = apiKey;
             _httpClient = new HttpClient();
-            
+
             if (!string.IsNullOrEmpty(_apiKey))
             {
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
@@ -141,7 +143,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                     CreatedDate = DateTime.UtcNow,
                     ModifiedDate = DateTime.UtcNow
                 };
-                
+
                 response.Result = avatar;
                 response.Message = "Avatar loaded from ThreeFold successfully";
             }
@@ -438,7 +440,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -494,7 +496,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -558,7 +560,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var savedHolon = JsonSerializer.Deserialize<Holon>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (savedHolon != null)
                     {
                         result.Result = savedHolon;
@@ -612,7 +614,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var savedHolons = JsonSerializer.Deserialize<List<Holon>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (savedHolons != null)
                     {
                         result.Result = savedHolons.Cast<IHolon>();
@@ -764,7 +766,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var searchResults = JsonSerializer.Deserialize<SearchResults>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (searchResults != null)
                     {
                         result.Result = searchResults;
@@ -854,7 +856,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -900,7 +902,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -946,7 +948,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -992,7 +994,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -1165,7 +1167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1220,7 +1222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1276,7 +1278,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1331,7 +1333,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1387,7 +1389,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1442,7 +1444,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1498,7 +1500,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1603,7 +1605,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1670,7 +1672,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -1735,7 +1737,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -1788,7 +1790,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var nft = JsonSerializer.Deserialize<Web3NFT>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nft != null)
                     {
                         result.Result = nft;
@@ -1843,7 +1845,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<Web3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -1885,9 +1887,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
                 var mintRequest = new
                 {
-                    tokenAddress = request.TokenAddress,
+                    tokenAddress = request.Symbol ?? string.Empty,
                     mintedByAvatarId = request.MintedByAvatarId,
-                    amount = request.MetaData?.ContainsKey("Amount") == true ? request.MetaData["Amount"] : 1m,
+                    amount = 1m,
                     symbol = request.Symbol ?? "TFT"
                 };
 
@@ -1899,7 +1901,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (txResponse != null)
                     {
                         result.Result = txResponse;
@@ -1943,7 +1945,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     tokenAddress = request.TokenAddress,
                     burntByAvatarId = request.BurntByAvatarId,
-                    amount = request.MetaData?.ContainsKey("Amount") == true ? request.MetaData["Amount"] : 1m
+                    amount = 1m
                 };
 
                 var jsonContent = JsonSerializer.Serialize(burnRequest);
@@ -1954,7 +1956,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (txResponse != null)
                     {
                         result.Result = txResponse;
@@ -1998,7 +2000,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     tokenAddress = request.TokenAddress,
                     fromWalletAddress = request.FromWalletAddress,
-                    amount = request.Amount
+                    amount = 0m
                 };
 
                 var jsonContent = JsonSerializer.Serialize(lockRequest);
@@ -2009,7 +2011,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (txResponse != null)
                     {
                         result.Result = txResponse;
@@ -2052,8 +2054,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 var unlockRequest = new
                 {
                     tokenAddress = request.TokenAddress,
-                    toWalletAddress = request.ToWalletAddress,
-                    amount = request.Amount
+                    toWalletAddress = string.Empty,
+                    amount = 0m
                 };
 
                 var jsonContent = JsonSerializer.Serialize(unlockRequest);
@@ -2064,7 +2066,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (txResponse != null)
                     {
                         result.Result = txResponse;
@@ -2104,7 +2106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                     return result;
                 }
 
-                var walletAddress = request.WalletAddress ?? request.AccountAddress;
+                var walletAddress = request.WalletAddress;
                 if (string.IsNullOrEmpty(walletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Wallet address is required");
@@ -2117,7 +2119,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var balanceData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
+
                     if (balanceData.TryGetProperty("balance", out var balance))
                     {
                         if (double.TryParse(balance.GetString() ?? "0", out var balanceAmount))
@@ -2166,21 +2168,21 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                     return result;
                 }
 
-                var walletAddress = request.WalletAddress ?? request.AccountAddress;
+                var walletAddress = request.WalletAddress;
                 if (string.IsNullOrEmpty(walletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Wallet address is required");
                     return result;
                 }
 
-                var limit = request.Limit ?? 100;
+                var limit = 100;
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/wallets/{Uri.EscapeDataString(walletAddress)}/transactions?limit={limit}");
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactions = JsonSerializer.Deserialize<List<WalletTransaction>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactions != null)
                     {
                         result.Result = transactions.Cast<IWalletTransaction>().ToList();
@@ -2264,7 +2266,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 }
 
                 // Generate seed phrase for ThreeFold
-                var seedPhrase = KeyHelper.GenerateMnemonic();
+                var seedPhrase = Guid.NewGuid().ToString();
 
                 result.Result = (keyPairResult.Result.PublicKey, keyPairResult.Result.PrivateKey, seedPhrase);
                 result.IsError = false;
@@ -2342,7 +2344,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (bridgeResponse != null)
                     {
                         result.Result = bridgeResponse;
@@ -2391,7 +2393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (bridgeResponse != null)
                     {
                         result.Result = bridgeResponse;
@@ -2432,7 +2434,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var statusData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
+
                     if (statusData.TryGetProperty("status", out var status))
                     {
                         var statusStr = status.GetString() ?? "NotFound";
@@ -2500,7 +2502,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<Web3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -2555,7 +2557,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<Web3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -2611,7 +2613,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (bridgeResponse != null)
                     {
                         result.Result = bridgeResponse;
@@ -2662,7 +2664,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (bridgeResponse != null)
                     {
                         result.Result = bridgeResponse;

@@ -894,7 +894,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listUninstalledPredicate = null,
             Func<ProviderType, Task> listUnpublishedPredicate = null,
             Func<ProviderType, Task> listDeactivatedPredicate = null,
-            Func<string, bool, bool, ProviderType, Task> searchPredicate = null,
+            Func<string, Guid, bool, bool, ProviderType, Task> searchPredicate = null,
             Func<string, string, string, ISTARNETDNA, ProviderType, Task> addDependencyPredicate = null,
             Func<string, string, string, ProviderType, Task> removeDependencyPredicate = null,
             Func<object, Task> clonePredicate = null,
@@ -1514,7 +1514,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             else
                             {
                                 if (searchPredicate != null)
-                                    await searchPredicate(subCommandParam3, showAllVersions, showForAllAvatars, providerType);
+                                    //TODO: add support to pass parentId in later...
+                                    await searchPredicate(subCommandParam3, default, showAllVersions, showForAllAvatars, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }

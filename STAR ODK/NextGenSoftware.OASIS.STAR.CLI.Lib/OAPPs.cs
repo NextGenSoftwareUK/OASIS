@@ -395,6 +395,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                         }
                                         NodeType holonPropType = (NodeType)propType;
 
+                                        if (holon.Nodes == null)
+                                            holon.Nodes = new List<INode>();
+
                                         holon.Nodes.Add(new Node
                                         {
                                             NodeName = propName,
@@ -1733,6 +1736,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 break;
                         } while (mapTags);
                     }
+                    else
+                        Console.WriteLine("");
                 }
             }
             catch (Exception e)
