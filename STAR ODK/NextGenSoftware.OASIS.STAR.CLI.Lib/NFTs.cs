@@ -590,7 +590,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching WEB3 NFT's...");
-            NFTCommon.ListWeb3NFTs(await NFTCommon.NFTManager.SearchWeb3NFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, default, !showForAllAvatars, providerType: providerType));
+            NFTCommon.ListWeb3NFTs(await NFTCommon.NFTManager.SearchWeb3NFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, default, null, MetaKeyValuePairMatchMode.All, !showForAllAvatars, providerType: providerType));
         }
 
         public virtual async Task<OASISResult<IWeb3NFT>> UpdateWeb3NFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
