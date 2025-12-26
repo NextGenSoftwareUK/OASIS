@@ -36,14 +36,14 @@ using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
 using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
-using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
+//using NextGenSoftware.OASIS.API.Providers.TRONOASIS; // TODO: Fix TRONOASIS build errors
 using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
 using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
-using NextGenSoftware.OASIS.API.Providers.NEAROASIS;
+//using NextGenSoftware.OASIS.API.Providers.NEAROASIS; // TODO: Fix NEAROASIS build errors
 using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
-using NextGenSoftware.OASIS.API.Providers.MoralisOASIS;
+//using NextGenSoftware.OASIS.API.Providers.MoralisOASIS; // TODO: Fix MoralisOASIS build errors
 using NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 using NextGenSoftware.CLI.Engine;
@@ -1076,14 +1076,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.TRONOASIS:
                         {
-                            var tronProvider = new TRONOASIS(
-                                OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint ?? "https://api.trongrid.io",
-                                OASISDNA.OASIS.StorageProviders.TRONOASIS.Network ?? "mainnet",
-                                OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428");
-                            tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
-                            result.Result = tronProvider;
+                            // TODO: Fix TRONOASIS build errors
+                            // var tronProvider = new TRONOASIS(
+                            //     OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint ?? "https://api.trongrid.io",
+                            //     OASISDNA.OASIS.StorageProviders.TRONOASIS.Network ?? "mainnet",
+                            //     OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428");
+                            // tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
+                            // result.Result = tronProvider;
+                            break;
                         }
-                        break;
 
                         case ProviderType.HashgraphOASIS:
                         {
@@ -1125,13 +1126,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.NEAROASIS:
                         {
-                            var nearProvider = new NEAROASIS(
-                                OASISDNA.OASIS.StorageProviders.NEAROASIS.RpcEndpoint ?? "https://rpc.mainnet.near.org",
-                        //        OASISDNA.OASIS.StorageProviders.NEAROASIS.Network ?? "mainnet",
-                        //        OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId ?? "mainnet");
-                        //    nearProvider.OnStorageProviderError += NEAROASIS_StorageProviderError;
-                        //    result.Result = nearProvider;
-                        //}
+                            // TODO: Implement NEAROASIS provider initialization
+                            // var nearProvider = new NEAROASIS(
+                            //     OASISDNA.OASIS.StorageProviders.NEAROASIS.RpcEndpoint ?? "https://rpc.mainnet.near.org",
+                            //     OASISDNA.OASIS.StorageProviders.NEAROASIS.Network ?? "mainnet",
+                            //     OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId ?? "mainnet");
+                            // nearProvider.OnStorageProviderError += NEAROASIS_StorageProviderError;
+                            // result.Result = nearProvider;
+                            break;
+                        }
                         //break;
 
                         case ProviderType.BaseOASIS:
@@ -1164,14 +1167,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.MoralisOASIS:
                         {
-                            var moralisProvider = new MoralisOASIS(
-                                OASISDNA.OASIS.StorageProviders.MoralisOASIS.ApiKey ?? "",
-                                OASISDNA.OASIS.StorageProviders.MoralisOASIS.RpcEndpoint ?? "https://speedy-nodes-nyc.moralis.io",
-                                OASISDNA.OASIS.StorageProviders.MoralisOASIS.Network ?? "mainnet");
-                            moralisProvider.OnStorageProviderError += MoralisOASIS_StorageProviderError;
-                            result.Result = moralisProvider;
+                            // TODO: Fix MoralisOASIS build errors
+                            // var moralisProvider = new MoralisOASIS(
+                            //     OASISDNA.OASIS.StorageProviders.MoralisOASIS.ApiKey ?? "",
+                            //     OASISDNA.OASIS.StorageProviders.MoralisOASIS.RpcEndpoint ?? "https://speedy-nodes-nyc.moralis.io",
+                            //     OASISDNA.OASIS.StorageProviders.MoralisOASIS.Network ?? "mainnet");
+                            // moralisProvider.OnStorageProviderError += MoralisOASIS_StorageProviderError;
+                            // result.Result = moralisProvider;
+                            break;
                         }
-                        break;
 
                         //case ProviderType.TelosOASIS:
                         //    {

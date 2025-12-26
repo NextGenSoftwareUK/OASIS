@@ -1044,7 +1044,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private OASISResult<IEnumerable<IWeb3NFT>> ListWeb3NFTs(OASISResult<IEnumerable<IWeb3NFT>> nfts, bool showNumbers = false, bool showDetailedInfo = false)
+        public OASISResult<IEnumerable<IWeb3NFT>> ListWeb3NFTs(OASISResult<IEnumerable<IWeb3NFT>> nfts, bool showNumbers = false, bool showDetailedInfo = false)
         {
             if (nfts != null)
             {

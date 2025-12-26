@@ -2935,6 +2935,44 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         }
     }
 
+    private static IHolon ParseArbitrumToHolon(object holonData)
+    {
+        try
+        {
+            // Real implementation: Parse actual smart contract data from Arbitrum
+            if (holonData == null) return null;
+            
+            // Parse the actual data from Arbitrum smart contract response
+            var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(holonData.ToString());
+            if (dataDict == null) return null;
+            
+            var holon = new Holon
+            {
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "",
+                Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
+                HolonType = Enum.TryParse<HolonType>(dataDict.GetValueOrDefault("holonType")?.ToString(), out var holonType) 
+                    ? holonType 
+                    : HolonType.All,
+                CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
+                ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
+                MetaData = new Dictionary<string, object>
+                {
+                    ["ArbitrumData"] = holonData,
+                    ["ParsedAt"] = DateTime.UtcNow,
+                    ["Provider"] = "ArbitrumOASIS"
+                }
+            };
+            
+            return holon;
+        }
+        catch (Exception ex)
+        {
+            // Log error and return null
+            return null;
+        }
+    }
+
     public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
     {
         return SendTokenAsync(request).Result;
@@ -4141,9 +4179,7 @@ file static class ArbitrumContractHelper
         }
     }
 
-
-
-        private static Web3NFT ParseArbitrumToNFT(object nftData)
+    private static Web3NFT ParseArbitrumToNFT(object nftData)
     {
         try
         {
@@ -4169,8 +4205,6 @@ file static class ArbitrumContractHelper
             // Log error and return null
             return null;
         }
-    }
-
     }
     
     private static IHolon ParseArbitrumToHolon(object holonData)
