@@ -1,0 +1,15 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /app
+COPY backend/src/db-migrator/db-migrator.csproj ./backend/src/db-migrator/
+RUN dotnet restore backend/src/db-migrator/db-migrator.csproj
+COPY . ./
+RUN dotnet format backend/src/db-migrator/db-migrator.csproj --verify-no-changes && \
+    dotnet publish backend/src/db-migrator/db-migrator.csproj -c Release -o /out --no-restore --nologo
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libicu-dev libssl-dev libkrb5-dev zlib1g && \
+    rm -rf /var/lib/apt/lists/*
+COPY --from=build /out ./
+ENTRYPOINT ["dotnet", "db-migrator.dll"]

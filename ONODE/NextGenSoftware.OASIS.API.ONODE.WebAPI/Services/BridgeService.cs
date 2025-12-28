@@ -32,7 +32,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 public class BridgeService
 {
     private readonly ICrossChainBridgeManager _bridgeManager;
-    private readonly StarknetAtomicSwapManager _atomicSwapManager;
+    // TODO: StarknetAtomicSwapManager not available in this commit - temporarily commented out
+    // private readonly StarknetAtomicSwapManager _atomicSwapManager;
     private readonly ILogger<BridgeService> _logger;
 
     public BridgeService(ILogger<BridgeService> logger, IConfiguration configuration)
@@ -124,7 +125,8 @@ public class BridgeService
                 mpcExecutionService: new MpcExecutionService());
             
             // Initialize atomic swap manager
-            _atomicSwapManager = new StarknetAtomicSwapManager(_bridgeManager);
+            // TODO: StarknetAtomicSwapManager not available in this commit - temporarily commented out
+            // _atomicSwapManager = new StarknetAtomicSwapManager(_bridgeManager);
             
             _logger.LogInformation("Bridge service initialized successfully");
         }
@@ -209,7 +211,12 @@ public class BridgeService
     {
         try
         {
-            return await _atomicSwapManager.CreateAtomicSwapAsync(request, cancellationToken);
+            // TODO: StarknetAtomicSwapManager not available in this commit - temporarily returning error
+            // return await _atomicSwapManager.CreateAtomicSwapAsync(request, cancellationToken);
+            var result = new OASISResult<AtomicSwapStatusResponse>();
+            result.IsError = true;
+            result.Message = "Atomic swap functionality not available in this build";
+            return result;
         }
         catch (Exception ex)
         {
@@ -230,7 +237,12 @@ public class BridgeService
     {
         try
         {
-            return await _atomicSwapManager.GetSwapStatusAsync(bridgeId, cancellationToken);
+            // TODO: StarknetAtomicSwapManager not available in this commit - temporarily returning error
+            // return await _atomicSwapManager.GetSwapStatusAsync(bridgeId, cancellationToken);
+            var result = new OASISResult<AtomicSwapStatusResponse>();
+            result.IsError = true;
+            result.Message = "Atomic swap functionality not available in this build";
+            return result;
         }
         catch (Exception ex)
         {
@@ -251,7 +263,12 @@ public class BridgeService
     {
         try
         {
-            return await _atomicSwapManager.GetSwapHistoryAsync(userId, cancellationToken);
+            // TODO: StarknetAtomicSwapManager not available in this commit - temporarily returning error
+            // return await _atomicSwapManager.GetSwapHistoryAsync(userId, cancellationToken);
+            var result = new OASISResult<AtomicSwapHistoryResponse>();
+            result.IsError = true;
+            result.Message = "Atomic swap functionality not available in this build";
+            return result;
         }
         catch (Exception ex)
         {

@@ -1,0 +1,24 @@
+---
+import ContactDetailsCard from "../molecules/ContactDetailsCard.astro"
+import { Phone, Mail, MapPin, Clock } from "@lucide/astro";
+---
+
+<section id="contact" class="relative flex flex-col w-screen h-full overflow-hidden bg-gradient-to-b from-slate-900 via-blue-900 to-teal-900 py-20" style="margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
+
+    <div class="flex flex-col justify-center items-center max-w-4xl mx-auto text-center mb-12 px-4 relative z-10">
+        <h2 class="text-4xl md:text-5xl font-bold text-white drop-shadow-lg mb-4">
+            Get In Touch
+        </h2>
+        <p class="text-lg md:text-xl text-white/90 max-w-2xl">
+            Have any questions? Contact us today and experience the difference.
+        </p>
+    </div>
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-6 md:px-10 relative z-10">
+        <ContactDetailsCard Icon={Phone} label="WhatsApp" text="+27 69 779 8934" link="https://wa.me/27697798934"/>
+        <ContactDetailsCard Icon={Mail} label="Email" text="info@timorides.com" link="mailto:info@timorides.com"/>
+        <ContactDetailsCard Icon={MapPin} label="Address" text="South Africa "/>
+        <ContactDetailsCard Icon={Clock} label="Hours" text="Customer Support: Mon-Fri 8AM-6PM"/>
+    </div>
+
+</section>

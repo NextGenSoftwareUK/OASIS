@@ -1,0 +1,116 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - internal_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - internal_network
+
+  db-migrator:
+    image: nazarovqurbonali/quantum-db-migrator:v8
+    container_name: quantum-db-migrator
+    platform: linux/arm64
+    depends_on:
+      - postgres
+    networks:
+      - internal_network
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=localhost;Port=5432;Database=oasis_bridge_db;User Id=postgres;Password=123456;
+    restart: "no"
+
+  quantum-exchange:
+    image: nazarovqurbonali/quantum-exchange:v28
+    container_name: quantum-exchange
+    restart: always
+    platform: linux/arm64
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:80/api/v1/ping"]
+      interval: 40s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+    ports:
+      - "3000:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=localhost;Port=5432;Database=oasis_bridge_db;User Id=postgres;Password=123456;
+    depends_on:
+      - postgres
+      - db-migrator
+    networks:
+      - internal_network
+  
+  health-watcher:
+    image: docker:cli
+    container_name: health-watcher
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: >
+      sh -c '
+      while true; do
+        HEALTH_STATUS=$$(docker inspect --format="{{.State.Health.Status}}" quantum-exchange 2>/dev/null)
+        if [ "$$HEALTH_STATUS" = "unhealthy" ]; then
+          echo "quantum-exchange is unhealthy, restarting..."
+          docker restart quantum-exchange
+        fi
+        sleep 60
+      done
+      '
+    depends_on:
+      - quantum-exchange
+    networks:
+      - internal_network
+
+  quantum-exchange-frontend:
+    image: nazarovqurbonali/quantum-exchange-frontend:v21
+    container_name: quantum-exchange-frontend
+    restart: always
+    platform: linux/arm64
+    ports:
+      - "80:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://31.222.229.159:3000/api/v1
+      - NEXT_PUBLIC_SOLANA_NET=https://api.devnet.solana.com
+    depends_on:
+      - quantum-exchange
+    networks:
+      - internal_network
+
+  sol-shift:
+    image: nazarovqurbonali/sol-shift:v4
+    container_name: sol-shift
+    restart: always
+    environment:
+      - SOLANA_NETWORK=https://api.devnet.solana.com
+    ports:
+      - "3001:3001"
+    networks:
+      - internal_network
+
+volumes:
+  pgdata:
+
+networks:
+  internal_network:

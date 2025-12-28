@@ -1,0 +1,30 @@
+---
+import { QuoteIcon, Star } from "@lucide/astro";
+const {label, name, review} = Astro.props;
+---
+
+<div class="flex flex-col justify-between bg-[#3d59c3] shadow rounded-xl p-4">
+    
+    <div class="flex flex-col gap-3">
+        <div>
+            <QuoteIcon size={30} class="text-accent"/>
+        </div>
+        <div class="flex items-center">
+            {[...Array(5)].map(() => (
+                <Star size={20} class="fill-accent text-accent" />
+            ))}
+        </div>
+        <div>
+            <span class="text-white text-sm">
+                {review}
+            </span>
+        </div>
+    </div> 
+
+    <div class="mt-4">
+        <h3 class="text-lg font-bold text-white">{name}</h3>
+        <p class="text-accent text-sm">{label}</p>
+    </div>
+
+  
+</div>
