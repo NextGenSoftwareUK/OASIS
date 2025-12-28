@@ -1,0 +1,8 @@
+mkdocs-material
+mkdocs-redirects
+a2a-sdk[all]
+mike
+mkdocs-macros-plugin
+sphinx
+furo
+myst-parser

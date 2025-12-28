@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Email;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;

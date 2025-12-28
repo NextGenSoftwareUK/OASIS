@@ -1,0 +1,36 @@
+---
+const pathPulseLink = "https://play.google.com/store/apps/details?id=com.nxved.pulsescout.nativeapp&referrer=utm_source%3Dreferral%26utm_content%3D072";
+---
+
+<section id="leaderboard" class="relative flex flex-col w-full h-full py-20 overflow-hidden bg-gradient-to-b from-teal-900 via-blue-900 to-slate-900" style="margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);">
+    <div class="max-w-6xl mx-auto px-4 relative z-10">
+        <!-- Headline -->
+        <div class="flex flex-col justify-center items-center text-center mb-12">
+            <h2 class="text-4xl md:text-5xl font-bold text-white drop-shadow-lg mb-4">
+                Track Your Ranking
+            </h2>
+            <p class="text-lg md:text-xl text-white/90 max-w-2xl">
+                Watch your position on the leaderboard in real-time as you drive. The top performers are updated live in the PathPulse app!
+            </p>
+        </div>
+
+        <!-- Leaderboard Image -->
+        <div class="flex justify-center items-center mb-8">
+            <div class="bg-black/70 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/10 shadow-2xl max-w-5xl">
+                <img
+                    src="/images/Leaderboard.jpg"
+                    alt="Timo Scout Leaderboard showing driver rankings"
+                    class="w-full h-auto rounded-lg"
+                />
+            </div>
+        </div>
+
+        <!-- Call to action text -->
+        <div class="text-center">
+            <p class="text-white text-lg md:text-xl font-semibold">
+                Ready to climb the leaderboard? <a href={pathPulseLink} target="_blank" rel="noopener noreferrer" class="text-accent hover:underline">Download PathPulse now</a> and start competing!
+            </p>
+        </div>
+    </div>
+</section>
+

@@ -305,3 +305,6 @@ contract-generator/api/**/obj/
 contract-generator/api/**/test-ledger/
 contract-generator/ui/.next/
 contract-generator/ui/node_modules/
+SmartContractGenerator/src/SmartContractGen/ScGen.API/test-ledger/
+RWA/frontend/.next/
+*.sst

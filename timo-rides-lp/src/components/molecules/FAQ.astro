@@ -1,0 +1,23 @@
+---
+// File: components/FaqItem.astro
+import { ChevronDown, ChevronUp } from "@lucide/astro";
+const { question, answer } = Astro.props;
+---
+
+<div class="bg-black/70 backdrop-blur-md rounded-xl p-6 border border-white/10 shadow-xl mb-4">
+  <button 
+    class="w-full flex justify-between items-center text-left font-bold text-white cursor-pointer hover:text-accent transition-colors"
+    onclick="const answer = this.parentElement.querySelector('.answer'); answer.style.maxHeight = answer.style.maxHeight ? '' : answer.scrollHeight + 'px'; answer.classList.toggle('expanded'); this.querySelector('.down').classList.toggle('hidden'); this.querySelector('.up').classList.toggle('hidden')"
+  >
+    <span class="flex-1 pr-4 text-lg md:text-xl">{question}</span>
+    <span class="flex-shrink-0 text-accent">
+      <ChevronDown size={20} class="down" />
+      <ChevronUp size={20} class="up hidden" />
+    </span>
+  </button>
+  <div class="answer mt-4 text-white/90 text-base md:text-lg overflow-hidden transition-all duration-300 max-h-0">
+    <div class="pb-2">
+      {answer}
+    </div>
+  </div>
+</div>
