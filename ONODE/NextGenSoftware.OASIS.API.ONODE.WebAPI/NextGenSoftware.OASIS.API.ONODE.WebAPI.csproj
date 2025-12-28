@@ -6,7 +6,7 @@
   </PropertyGroup>
     
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <RootNamespace>NextGenSoftware.OASIS.API.ONODE.WebAPI</RootNamespace>
     <AssemblyName>NextGenSoftware.OASIS.API.ONODE.WebAPI</AssemblyName>

@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.Logging;
-using NextGenSoftware.Logging.NLogger;
+// TODO: NLog reference not resolving - temporarily commented out
+// // TODO: NLog reference not resolving - temporarily commented out
+// using NextGenSoftware.Logging.NLogger;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -192,7 +194,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             break;
 
                         case LoggingFramework.NLog:
-                            LoggingManager.Init(new NLogProvider(), OASISDNA.OASIS.Logging.AlsoUseDefaultLogProvider);
+                            // TODO: NLog reference not resolving - temporarily using default logger
+                            // LoggingManager.Init(new NLogProvider(), OASISDNA.OASIS.Logging.AlsoUseDefaultLogProvider);
+                            LoggingManager.Init(OASISDNA.OASIS.Logging.LogToConsole, OASISDNA.OASIS.Logging.LogToFile, OASISDNA.OASIS.Logging.LogPath, OASISDNA.OASIS.Logging.LogFileName, OASISDNA.OASIS.Logging.MaxLogFileSize, OASISDNA.OASIS.Logging.FileLoggingMode, OASISDNA.OASIS.Logging.ConsoleLoggingMode, null, OASISDNA.OASIS.Logging.InsertExtraNewLineAfterLogMessage, OASISDNA.OASIS.Logging.IndentLogMessagesBy, OASISDNA.OASIS.Logging.ShowColouredLogs, OASISDNA.OASIS.Logging.DebugColour, OASISDNA.OASIS.Logging.InfoColour, OASISDNA.OASIS.Logging.WarningColour, OASISDNA.OASIS.Logging.ErrorColour);
                             break;
                     }
 

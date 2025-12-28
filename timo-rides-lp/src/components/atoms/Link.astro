@@ -1,0 +1,17 @@
+---
+interface Props {
+    href: string;
+    label: string,
+    classes?: string;
+    iconPosition?: string; 
+    [key: string]: any;
+}
+
+const {href, label, classes, iconPosition = 'right', ...rest} = Astro.props
+---
+
+<a href={href} class={`${classes} transition duration-150 aria-[current=page]:text-accent`} {...rest}>
+    {iconPosition === 'left' && <slot name="icon"/>}
+    {label}
+    {iconPosition === 'right' && <slot name="icon"/>}
+</a>

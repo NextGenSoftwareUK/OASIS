@@ -1,0 +1,415 @@
+/* Portal Design System Styles for Smart Contract Generator UI */
+/* These styles match the portal's design system */
+
+/* Portal Card */
+.portal-card {
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  background-color: var(--bg-secondary);
+}
+
+.portal-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.portal-card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.portal-card-link {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.portal-card-link:hover {
+  color: var(--text-primary);
+}
+
+/* Portal Section */
+.portal-section {
+  margin-bottom: 4rem;
+}
+
+.portal-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.portal-section-title {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.portal-section-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+/* Portal Grid */
+.portal-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.portal-grid-2 {
+  grid-template-columns: 2fr 1fr;
+}
+
+.portal-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Portal Buttons - match portal/styles.css */
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-family: inherit;
+  border-radius: 0;
+}
+
+.btn-primary:hover {
+  background-color: var(--text-secondary);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-text {
+  padding: 0.75rem 1rem;
+  background: none;
+  color: var(--text-primary);
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-family: inherit;
+}
+
+.btn-text:hover {
+  color: var(--text-secondary);
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.btn-secondary:hover {
+  background-color: var(--hover-bg);
+  border-color: var(--text-secondary);
+}
+
+/* Portal Container */
+.portal-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+/* Portal Navigation - match portal styles */
+.portal-nav {
+  background: rgba(0, 0, 0, 0.95);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.portal-nav-content {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.portal-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.portal-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.portal-content {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+/* Portal Input/Textarea */
+.portal-input,
+.portal-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-family: 'Courier New', monospace;
+  transition: border-color 0.2s;
+}
+
+.portal-input:focus,
+.portal-textarea:focus {
+  outline: none;
+  border-color: var(--text-primary);
+}
+
+.portal-textarea {
+  resize: vertical;
+  min-height: 200px;
+}
+
+/* Portal Labels */
+.portal-label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  font-weight: 400;
+}
+
+/* Portal Text Styles */
+.portal-text-primary {
+  color: var(--text-primary);
+}
+
+.portal-text-secondary {
+  color: var(--text-secondary);
+}
+
+.portal-text-tertiary {
+  color: var(--text-tertiary);
+}
+
+/* Portal Status Colors */
+.portal-success {
+  color: rgba(34, 197, 94, 0.85);
+}
+
+.portal-error {
+  color: rgba(239, 68, 68, 0.8);
+}
+
+.portal-warning {
+  color: rgba(250, 204, 21, 0.85);
+}
+
+/* Portal Code Block */
+.portal-code {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  padding: 1.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  overflow-x: auto;
+}
+
+/* Portal Status/Alert boxes */
+.portal-alert {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  background-color: var(--bg-secondary);
+}
+
+.portal-alert-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: rgba(34, 197, 94, 0.85);
+}
+
+.portal-alert-warning {
+  background-color: rgba(250, 204, 21, 0.1);
+  border-color: rgba(250, 204, 21, 0.3);
+  color: rgba(250, 204, 21, 0.85);
+}
+
+.portal-alert-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgba(239, 68, 68, 0.8);
+}
+
+.portal-alert-info {
+  background-color: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: rgba(56, 189, 248, 0.85);
+}
+
+/* Utility classes for common Tailwind patterns */
+.text-foreground,
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-muted,
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.border-default {
+  border-color: var(--border-color);
+}
+
+/* Override Tailwind rounded corners - portal uses sharp corners */
+.rounded-xl,
+.rounded-lg,
+.rounded-2xl {
+  border-radius: 0;
+}
+
+/* Ensure all text uses portal color variables by default */
+body {
+  color: var(--text-primary);
+}
+
+a {
+  color: var(--text-primary);
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--text-secondary);
+}
+
+/* Portal Scrollbar */
+.portal-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.portal-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.portal-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.portal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Remove gradients and fancy effects - match portal simplicity */
+.gradient-ring {
+  display: none;
+}
+
+.glass-card {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Utility classes for common Tailwind patterns */
+.text-foreground,
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-muted,
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.border-default {
+  border-color: var(--border-color);
+}
+
+/* Override Tailwind rounded corners - portal uses sharp corners */
+.rounded-xl,
+.rounded-lg,
+.rounded-2xl {
+  border-radius: 0;
+}
+
+/* Ensure all text uses portal color variables by default */
+body {
+  color: var(--text-primary);
+}
+
+a {
+  color: var(--text-primary);
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--text-secondary);
+}
+
