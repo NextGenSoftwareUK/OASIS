@@ -10,6 +10,10 @@ import { UserSyncService } from './services/user-sync.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthController } from './controllers/auth.controller';
 import { UserController } from './controllers/user.controller';
+import { BetterAuthService } from './services/better-auth.service';
+import { BetterAuthController } from './controllers/better-auth.controller';
+import { OasisLinkService } from './services/oasis-link.service';
+import { OasisModule } from '../services/oasis.module';
 
 @Module({
   imports: [
@@ -25,10 +29,24 @@ import { UserController } from './controllers/user.controller';
         signOptions: { expiresIn: '7d' },
       }),
     }),
+    OasisModule, // For OASIS wallet services
   ],
-  controllers: [AuthController, UserController],
-  providers: [AuthService, OasisAuthService, UserSyncService, JwtStrategy],
-  exports: [AuthService, JwtStrategy, PassportModule],
+  controllers: [AuthController, UserController, BetterAuthController],
+  providers: [
+    AuthService,
+    OasisAuthService,
+    UserSyncService,
+    JwtStrategy,
+    BetterAuthService,
+    OasisLinkService,
+  ],
+  exports: [
+    AuthService,
+    JwtStrategy,
+    PassportModule,
+    BetterAuthService,
+    OasisLinkService,
+  ],
 })
 export class AuthModule {}
 
