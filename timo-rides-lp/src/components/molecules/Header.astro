@@ -1,0 +1,137 @@
+---
+import { navItems } from '../../constant/'
+import Link from "../atoms/Link.astro";
+import Logo from "../../assets/images/Logo.svg"
+import { Image } from 'astro:assets';
+import { Menu, X } from "@lucide/astro"
+
+const whatsAppLink = "https://wa.me/27697798934";
+
+---
+
+<header id="navbar" class="fixed top-0 left-0 w-full z-50 transition duration-300">
+    <div class="max-w-7xl mx-auto flex justify-between items-center pl-0 pr-4 lg:pr-2 py-3 animate-fadeIn overflow-visible relative">
+
+        <a href="#" class="absolute left-4 md:left-0 md:-ml-4 top-1/2 -translate-y-1/2 md:top-1/2">
+          <Image 
+          src={Logo} 
+          alt="Logo"
+          class="w-20 h-20 md:w-32 md:h-32"
+          />
+        </a>
+        
+        <div class="flex-1"></div>
+
+        <div class="flex justify-center items-center gap-2">
+
+          <nav class="flex justify-center items-center gap-10 text-sm max-md:hidden">
+
+            {
+                navItems.map(item => (
+                    <Link href={item.href} label={item.label} classes="font-medium text-white hover:text-accent" data-navLink/>
+                ))
+            }
+            </nav>
+
+            <div class="flex justify-end items-center gap-2 max-md:hidden">
+              <Link href='#' label='Login' classes='px-5 py-2 font-bold text-bg rounded-full text-sm hover:text-accent transition duration-300'/>
+              <Link href={whatsAppLink} label='Register' classes='bg-primary px-5 py-2 font-bold text-bg rounded-full text-sm hover:bg-accent hover:text-primary transition duration-300' target="_blank" rel="noopener noreferrer"/>
+            </div>
+
+        </div>
+        
+          
+
+        
+
+        
+
+        <div class="md:hidden relative">
+            <button id="menu-btn" class="text-white ">
+              <Menu id="menu-icon" />
+              <X id="close-icon" class="hidden"/>
+            </button>
+
+           <nav id="mobile-menu" class="hidden absolute top-full right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-2 z-50">
+              <ul class="flex flex-col gap-2 px-4">
+                {navItems.map(item => (
+                  <li>
+                    <a href={item.href} class="block px-3 py-2 hover:bg-gray-200 rounded">
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+                <li>
+                  <a href="#" class="block px-3 py-2 bg-primary text-bg rounded">
+                    Login
+                  </a>
+                </li>
+                <li>
+                  <a href={whatsAppLink} target="_blank" rel="noopener noreferrer" class="block px-3 py-2 bg-accent text-primary rounded">
+                    Register
+                  </a>
+                </li>
+              </ul>
+            </nav>
+        </div>
+    </div>
+
+    <div class="hidden">
+
+    </div>
+</header>
+
+<script is:inline>
+  const navbar = document.getElementById("navbar")
+
+  window.addEventListener("scroll", () => {
+    if(window.scrollY > 20){
+      navbar.classList.add("bg-black/30", "backdrop-blur-sm")
+    } else {
+      navbar.classList.remove("bg-black/30", "backdrop-blur-sm");
+    }
+  })
+
+  const menuBtn = document.getElementById("menu-btn");
+  const mobileMenu = document.querySelector("#mobile-menu");
+  const menuIcon = document.getElementById("menu-icon");
+  const closeIcon = document.getElementById("close-icon");
+
+  function toggleMenu(show) {
+    if (show) {
+      mobileMenu.classList.remove("hidden");
+      menuIcon.classList.add("hidden");
+      closeIcon.classList.remove("hidden");
+    } else {
+      mobileMenu.classList.add("hidden");
+      menuIcon.classList.remove("hidden");
+      closeIcon.classList.add("hidden");
+    }
+  }
+
+  menuBtn.addEventListener("click", () => {
+    const isHidden = mobileMenu.classList.contains("hidden");
+    toggleMenu(isHidden);
+  });
+
+  document.querySelectorAll("#mobile-menu a").forEach(link => {
+    link.addEventListener("click", () => {
+      toggleMenu(false);
+    });
+  });
+
+
+  function highlightNav() {
+    const currentHash = window.location.hash || '#';
+    document.querySelectorAll('[data-navLink]').forEach(link => {
+      if (link.getAttribute('href') === currentHash) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  window.addEventListener('load', highlightNav);
+  window.addEventListener('hashchange', highlightNav);
+</script>

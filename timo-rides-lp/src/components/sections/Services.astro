@@ -1,0 +1,22 @@
+---
+import ServiceCard from "../molecules/ServiceCard.astro"
+import Service1 from "../../assets/images/Service1-new.webp"
+import Service2 from "../../assets/images/Service2-new.webp"
+import Service3 from "../../assets/images/Service3-new.webp"
+---
+
+<section id="competition" class="flex flex-col max-w-7xl mx-auto h-full mt-20 md:my-20">
+     <div class="flex flex-col justify-center items-center max-w-4xl mx-auto text-center">
+        <h2 class="text-4xl font-bold text-primary">
+            The R17,300.00 Leaderboard Competition
+        </h2>
+        <p class="text-lg mt-2 text-slate-500 px-2">
+            Compete over 15 days for cash prizes. Multiple payout stages keep the race competitive from start to finish.
+        </p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10 my-10 p-6 md:px-10">
+            <ServiceCard label="Competition Dates" image={Service1} text="December 5–20, 2024. 15 days of competition. Start before December 5 to ensure your app is set up correctly and you're ready to compete from day one."/>
+            <ServiceCard label="Prize Structure" image={Service2} text="R17,300.00 total prize pool. Top 20 drivers receive rewards, Top 15 drivers earn bonuses, and Top 10 drivers win the largest share. Prizes distributed at each stage."/>
+            <ServiceCard label="How to Win" image={Service3} text="Ranking based on app activity, data collection time, and quality of route data captured. The leaderboard updates in real-time inside the PathPulse app."/>
+        </div>
+</section>
