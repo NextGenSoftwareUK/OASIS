@@ -1,0 +1,24 @@
+---
+import ReviewCard from "../molecules/ReviewCard.astro"
+---
+
+<section id="testimonials" class="bg-primary">
+    <div class="max-w-7xl mx-auto flex flex-col mt-20 md:my-20">
+        <div class="text-white flex flex-col text-center max-w-4xl mx-auto  max-sm:px-3">
+            <h2 class="text-4xl font-bold">
+                What Our Customers Say
+            </h2>
+            <p class="text-lg mt-2 px-2">
+                Don't just take our word for it - hear from our satisfied customers across South Africa.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 my-10 p-6 md:px-10">
+            <ReviewCard label="Business Consultant from Nairobi" name="Nadia M." review="I booked Timo Rides for my airport transfer in Cape Town and it was flawless! The driver was early, professional, and the car was spotless. Loved the cashless system — so convenient." />
+            <ReviewCard label="Tourist from the UK" name="James B." review="As a solo traveler, I felt completely safe with Timo. I booked all my city rides ahead of time, and everything ran smoothly. This is the kind of service Africa needs!"/>
+            <ReviewCard label="Guest Relations Manager, Durban" name="Thabo D." review="Our hotel guests constantly ask for reliable transport options. Since partnering with Timo, our customer experience has improved drastically. Drivers are polite and punctual."/>
+            <ReviewCard label="Events Coordinator, Johannesburgl" name="Mandla K." review="We used Timo for a corporate event and were seriously impressed. They handled multiple pickups and drop-offs effortlessly. Very professional team — will definitely book again."/>
+           
+        </div>
+    </div>
+</section>

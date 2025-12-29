@@ -1,0 +1,26 @@
+# Railway ignore file (similar to .gitignore)
+# Files that shouldn't be deployed
+
+node_modules/
+dist/
+coverage/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.git/
+.github/
+
+
+
+
+
+
+
+
