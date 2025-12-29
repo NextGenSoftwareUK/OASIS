@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="..\Domain\Domain.csproj" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        
+        <ProjectReference Include="..\..\bridge-sdk\Radix\RadixBridge\RadixBridge.csproj" />
+        <ProjectReference Include="..\..\bridge-sdk\Solana\SolanaBridge\SolanaBridge.csproj" />
+        <ProjectReference Include="..\..\bridge-sdk\FileStorage\FileStorage.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+    </ItemGroup>
+
+</Project>

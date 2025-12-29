@@ -1,0 +1,1 @@
+Note: Zcash logo needs to be added. Please add zcash.png or zcash.svg to this directory.

@@ -1255,11 +1255,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 }
 
                 // Delete holon (soft delete by default)
+                // Use repository DeleteHolonAsync method
                 var deleted = await _zcashRepository.DeleteHolonAsync(id, softDelete: true);
                 if (deleted)
                 {
                     result.Result = holon.Result;
                     result.IsError = false;
+                    result.Message = "Holon deleted successfully";
                 }
                 else
                 {

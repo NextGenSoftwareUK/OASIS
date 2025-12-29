@@ -166,7 +166,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
-                result = await Data.SearchHolonsAsync<T>(searchTerm, avatarId, parentId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType);
+                result = await Data.SearchHolonsAsync<T>(searchTerm, avatarId, searchOnlyForCurrentAvatar, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType, true);
             }
             catch (Exception ex)
             {
@@ -183,7 +183,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
-                result = Data.SearchHolons<T>(searchTerm, avatarId, parentId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType);
+                result = Data.SearchHolons<T>(searchTerm, avatarId, searchOnlyForCurrentAvatar, holonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, childHolonType, version, providerType, true);
             }
             catch (Exception ex)
             {

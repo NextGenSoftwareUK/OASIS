@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+@theme{
+    --font-base: 'Montserrat', sans-serif;
+    --color-bg: #F9FAFB;
+    --color-primary: #2847BC;
+    --color-accent: #FED902;
+}
+
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+body{
+    background-color: #0f172a; /* slate-900 to match section backgrounds */
+    font-family: var(--font-base);
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Hero video responsive fixes */
+@media (max-width: 768px) {
+  #home {
+    position: relative;
+    overflow: visible;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  /* Hide desktop video on mobile */
+  #home .desktop-hero-video {
+    display: none !important;
+  }
+  
+  /* Only show mobile inline video */
+  #home .max-w-7xl video {
+    object-fit: contain;
+    object-position: center center;
+    width: 100%;
+    height: auto;
+    position: relative;
+    z-index: 1;
+    margin: 0 auto;
+    display: block;
+  }
+  
+  #home .max-w-7xl {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  
+  /* Ensure overlay doesn't cover content on mobile */
+  #home .absolute.inset-0.bg-black {
+    display: none;
+  }
+}

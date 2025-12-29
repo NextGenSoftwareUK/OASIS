@@ -1,0 +1,10 @@
+node_modules
+.git
+.vscode
+*.log
+.env
+.env.local
+
+
+
+

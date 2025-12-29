@@ -1,0 +1,21 @@
+{
+  "name": "lp",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@iconify-json/mdi": "^1.2.3",
+    "@lucide/astro": "^0.525.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "astro": "^5.11.1",
+    "tailwindcss": "^4.1.11"
+  },
+  "devDependencies": {
+    "astro-icon": "^1.1.5"
+  }
+}

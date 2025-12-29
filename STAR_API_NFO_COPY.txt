@@ -1,0 +1,58 @@
+— RELEASE INFORMATION —
+
+..OASIS Productions(tm) Proudly Presents..
+
+File Name:    [ star-api-v1.0.zip ]
+Title:        [ STAR API - Omniverse Interoperable Metaverse SDK ]
+Released:     [ January 2024 ]
+Total Bytes:  [ 15,847,392 ]
+Author(s):    [ NextGen Software UK ]
+Packaged By:  [ OASIS Development Team ]
+
+Description:
+You waited and waited and waited, and now...
+OASIS's revolutionary STAR API release!
+Peruse this sizzling collection of metaverse tools
+and see if you don't break a sweat!
+You don't gotta thank US, we do this because
+we're the guys who really know how!
+We like doing this!
+
+The STAR API (Omniverse Interoperable Metaverse Low Code Generator)
+unifies all metaverses, games, apps, sites, and platforms into one
+powerful OASIS Omniverse platform. Build entire virtual worlds with
+drag-and-drop OAPP builder, manage celestial bodies, create NFTs and
+GeoNFTs, design missions and quests, and publish to STARNET - all
+through a single, revolutionary API.
+
+Features:
+- 25+ Controllers: Celestial Bodies, Spaces, Zomes, Holons, NFTs,
+  GeoNFTs, Missions, Quests, OAPPs, Templates, Libraries, Runtimes,
+  Plugins, Inventory, Chapters, Parks, Competitions, and more!
+- Low-Code Metaverse Development: Visual drag-and-drop OAPP builder
+- STARNET Integration: Publish, download, and version control
+- Holonic Architecture: Infinite nesting and composability
+- Provider-Neutral: Works across Web2/Web3 providers
+- DNA Management: Advanced metadata system
+- Our World Backend: Geo-location AR game support
+- Universal Platform Unification: One API to rule them all!
+
+Notes: [ Requires OASIS Platform v2.0+ ]
+
+Graphics Support:
+[ ] EGA
+[ ] MCGA
+[■] SUGA
+[ ] None
+
+Additional releases can be located via OASIS's Website --- www.oasisplatform.world
+
+Copyright OASIS Productions TM 2020-2024
+
+
+
+
+
+
+
+
