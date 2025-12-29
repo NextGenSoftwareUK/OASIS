@@ -16,6 +16,7 @@ using System.Text;
 using System.Linq;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -93,42 +94,61 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private void SendVerificationEmail(IAvatar avatar)
         {
-            var verifyUrl = $"{OASISWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
-            string message = $@"<p>Please click the below link to verify your email address:</p>
-                             <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
-
-            //if (!string.IsNullOrEmpty(OASISDNA.OASIS.Email.VerificationWebSiteURL))
-            //{
-            //    var verifyUrl = $"{OASISDNA.OASIS.Email.VerificationWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
-            //    message = $@"<p>Please click the below link to verify your email address:</p>
-            //                 <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
-            //}
-            //else
-            //{
-            //    message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
-            //                 <p><code>{avatar.VerificationToken}</code></p>";
-            //}
+            string message;
+            
+            // If OASISWebSiteURL is localhost, include the token directly in the email
+            if (OASISWebSiteURL.Contains("localhost") || OASISWebSiteURL.Contains("127.0.0.1"))
+            {
+                message = $@"<p>Please use the below token to verify your email address:</p>
+                             <p><strong>Verification Token:</strong> <code>{avatar.VerificationToken}</code></p>
+                             <p>You can verify your email by using the STAR CLI command or the OASIS API endpoint <code>/avatar/verify-email?token={avatar.VerificationToken}</code></p>";
+            }
+            else
+            {
+                var verifyUrl = $"{OASISWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
+                message = $@"<p>Please click the below link to verify your email address:</p>
+                             <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>
+                             <p>Or use this verification token: <code>{avatar.VerificationToken}</code></p>";
+            }
 
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
 
-            EmailManager.Send(
-                to: avatar.Email,
-                subject: "OASIS Sign-up Verification - Verify Email",
-                //html: $@"<h4>Verify Email</h4>
-                html: $@"<h4>Verify Email</h4>
-                         <p>Thanks for registering!</p>
-                         <p>Welcome to the OASIS!</p>
-                         <p>Ready Player One?</p>
-                         {message}"
-            );
+            try
+            {
+                EmailManager.Send(
+                    to: avatar.Email,
+                    subject: "OASIS Sign-up Verification - Verify Email",
+                    html: $@"<h4>Verify Email</h4>
+                             <p>Thanks for registering!</p>
+                             <p>Welcome to the OASIS!</p>
+                             <p>Ready Player One?</p>
+                             {message}"
+                );
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log(string.Concat("ERROR in SendVerificationEmail for avatar ", avatar.Username, " (", avatar.Email, "). Exception: ", ex.Message), LogType.Error);
+            }
         }
 
         private async Task<OASISResult<IAvatar>> PrepareToRegisterAvatarAsync(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
-            if (!ValidationHelper.IsValidEmail(email))
+            // Validate email
+            bool emailValid = false;
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                emailValid = addr.Address == email;
+            }
+            catch
+            {
+                emailValid = false;
+            }
+
+            if (!emailValid)
             {
                 result.IsError = true;
                 result.Message = "The email is not valid.";

@@ -370,7 +370,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount for the WEB4 Geo-NFT: ");
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the Royalty Percentage?"))
-                    request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false);
+                    request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ");
 
                 if (CLIEngine.GetConfirmation("Do you wish to change the sale status (Is For Sale)?"))
                     request.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.");

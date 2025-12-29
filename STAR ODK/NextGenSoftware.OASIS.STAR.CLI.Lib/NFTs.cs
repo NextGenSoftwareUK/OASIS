@@ -347,12 +347,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 request.ModifiedByAvatarId = STAR.BeamedInAvatar.Id;
 
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the Title? (currently is: {collectionResult.Result.Title})"))
-                    request.Title = CLIEngine.GetValidInput("Please enter the new title: ", addLineBefore: true);
+                    request.Title = CLIEngine.GetValidInput("Please enter the new title: ");
                 else
                     Console.WriteLine("");
 
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the Description? (currently is: {collectionResult.Result.Description})"))
-                    request.Description = CLIEngine.GetValidInput("Please enter the new description: ", addLineBefore: true);
+                    request.Description = CLIEngine.GetValidInput("Please enter the new description: ");
                 else
                     Console.WriteLine("");
 
@@ -381,7 +381,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the Price? (currently is: {collectionResult.Result.Price})"))
                 {
                     Console.WriteLine("");
-                    request.Price = CLIEngine.GetValidInputForDecimal("Please enter the new Price: ", addLineBefore: false);
+                    request.Price = CLIEngine.GetValidInputForDecimal("Please enter the new Price: ");
                 }
                 else
                     Console.WriteLine("");
@@ -389,14 +389,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the Discount? (currently is: {collectionResult.Result.Discount}.)"))
                 {
                     Console.WriteLine("");
-                    request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount: ", addLineBefore: false);
+                    request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount: ");
                 }
                 else
                     Console.WriteLine("");
 
                 // Allow editing additional NFT-specific fields
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the Royalty Percentage? (currently is: {collectionResult.Result.RoyaltyPercentage})"))
-                    request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false, addLineBefore: true);
+                    request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ");
                 else
                     Console.WriteLine("");
                 //if (CLIEngine.GetConfirmation("Do you wish to edit the Previous Owner Avatar Id?"))
@@ -406,14 +406,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 //    request.CurrentOwnerAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Current Owner Avatar Id (GUID): ");
 
                 if (CLIEngine.GetConfirmation($"Do you wish to change the sale status (Is For Sale)? (currently is: {collectionResult.Result.IsForSale})"))
-                    request.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.", addLineBefore: true);
+                    request.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.");
                 //else
                 //    Console.WriteLine("");
 
                 string existingSaleStartDate = collectionResult.Result.SaleStartDate.HasValue ? collectionResult.Result.SaleStartDate.Value == DateTime.MinValue ? "None" : collectionResult.Result.SaleStartDate.Value.ToShortDateString() : "None";
-                if (CLIEngine.GetConfirmation($"Do you wish to edit the Sale Start Date? (currently is: {existingSaleStartDate})", addLineBefore: true))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the Sale Start Date? (currently is: {existingSaleStartDate})"))
                 {
-                    request.SaleStartDate = CLIEngine.GetValidInputForDate("Please enter the Sale Start Date (YYYY-MM-DD) or 'none' to clear:", addLineBefore: true);
+                    string dateInput = CLIEngine.GetValidInput("Please enter the Sale Start Date (YYYY-MM-DD) or 'none' to clear: ");
+                    if (!string.IsNullOrEmpty(dateInput) && dateInput.ToLower() != "none" && DateTime.TryParse(dateInput, out DateTime startDate))
+                        request.SaleStartDate = startDate;
+                    else
+                        request.SaleStartDate = null;
 
                     //string input = CLIEngine.GetValidInput("Please enter the Sale Start Date (YYYY-MM-DD) or 'none' to clear:", addLineBefore: true);
                     //if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime startDate))
@@ -427,7 +431,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string existingSaleEndDate = collectionResult.Result.SaleEndDate.HasValue ? collectionResult.Result.SaleEndDate.Value == DateTime.MinValue ? "None" : collectionResult.Result.SaleEndDate.Value.ToShortDateString() : "None";
                 if (CLIEngine.GetConfirmation($"Do you wish to edit Sale End Date? (currently is: {existingSaleEndDate})"))
                 {
-                    request.SaleEndDate = CLIEngine.GetValidInputForDate("Please enter the Sale End Date (YYYY-MM-DD) or 'none' to clear:", addLineBefore: true);
+                    string dateInput = CLIEngine.GetValidInput("Please enter the Sale End Date (YYYY-MM-DD) or 'none' to clear: ");
+                    if (!string.IsNullOrEmpty(dateInput) && dateInput.ToLower() != "none" && DateTime.TryParse(dateInput, out DateTime endDate))
+                        request.SaleEndDate = endDate;
+                    else
+                        request.SaleEndDate = null;
 
                     //string input = CLIEngine.GetValidInput("Please enter the Sale End Date (YYYY-MM-DD) or 'none' to clear:");
                     //if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime endDate))

@@ -144,7 +144,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
             {
                 Console.WriteLine("");
-                int selection = CLIEngine.GetValidInputForInt("Do you wish to send the NFT using the users (1) Wallet Address, (2) Avatar Id, (3) Username or (4) Email? (Please enter 1, 2, 3 or 4)", true, 1, 4);
+                // Get selection with range validation (1-4)
+                int selection;
+                while (true)
+                {
+                    selection = CLIEngine.GetValidInputForInt("Do you wish to send the NFT using the users (1) Wallet Address, (2) Avatar Id, (3) Username or (4) Email? (Please enter 1, 2, 3 or 4)");
+                    if (selection >= 1 && selection <= 4)
+                        break;
+                    CLIEngine.ShowErrorMessage("Please enter a number between 1 and 4.");
+                }
 
                 switch (selection)
                 {
@@ -165,7 +173,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case 4:
                         //Console.WriteLine("");
-                        request.SendToAvatarAfterMintingEmail = CLIEngine.GetValidInputForEmail("What is the Email of the Avatar you want to send the NFT after it is minted?");
+                        string email = "";
+                        bool emailValid = false;
+                        while (!emailValid)
+                        {
+                            email = CLIEngine.GetValidInput("What is the Email of the Avatar you want to send the NFT after it is minted?");
+                            try
+                            {
+                                var addr = new System.Net.Mail.MailAddress(email);
+                                emailValid = addr.Address == email;
+                            }
+                            catch
+                            {
+                                CLIEngine.ShowErrorMessage("That email is not valid. Please try again.");
+                            }
+                        }
+                        request.SendToAvatarAfterMintingEmail = email;
                         break;
                 }
             }
