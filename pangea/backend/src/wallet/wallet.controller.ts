@@ -15,15 +15,17 @@ import { BalanceSyncService } from '../services/balance-sync.service';
 import { ConnectWalletDto } from './dto/connect-wallet.dto';
 import { VerifyWalletDto } from './dto/verify-wallet.dto';
 import { GenerateWalletDto } from './dto/generate-wallet.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { BetterAuthGuard } from '../auth/guards/better-auth.guard';
+import { OasisLinkService } from '../auth/services/oasis-link.service';
 
 @Controller('wallet')
-@UseGuards(JwtAuthGuard)
+@UseGuards(BetterAuthGuard)
 export class WalletController {
   constructor(
     private readonly walletConnectionService: WalletConnectionService,
     private readonly oasisWalletService: OasisWalletService,
     private readonly balanceSyncService: BalanceSyncService,
+    private readonly oasisLinkService: OasisLinkService,
   ) {}
 
   /**
@@ -32,15 +34,18 @@ export class WalletController {
    */
   @Get('balance')
   async getBalances(@Request() req: any) {
-    // TODO: Extract userId and avatarId from JWT token (after Task 03)
-    const userId = req.user?.id || req.user?.userId;
-    const avatarId = req.user?.avatarId || req.user?.id;
+    const userId = req.user?.id;
+    const email = req.user?.email;
+    const name = req.user?.name;
 
-    if (!avatarId) {
+    if (!userId || !email) {
       throw new HttpException('User not authenticated', HttpStatus.UNAUTHORIZED);
     }
 
     try {
+      // Ensure OASIS avatar exists (lazy creation)
+      const avatarId = await this.oasisLinkService.ensureOasisAvatar(userId, email, name);
+
       // Get all wallets from OASIS
       const wallets = await this.oasisWalletService.getWallets(avatarId);
       
@@ -109,12 +114,16 @@ export class WalletController {
    */
   @Get('balance/:assetId')
   async getAssetBalance(@Request() req: any, @Param('assetId') assetId: string) {
-    const userId = req.user?.id || req.user?.userId;
-    const avatarId = req.user?.avatarId || req.user?.id;
+    const userId = req.user?.id;
+    const email = req.user?.email;
+    const name = req.user?.name;
 
-    if (!avatarId) {
+    if (!userId || !email) {
       throw new HttpException('User not authenticated', HttpStatus.UNAUTHORIZED);
     }
+
+    // Ensure OASIS avatar exists (lazy creation)
+    const avatarId = await this.oasisLinkService.ensureOasisAvatar(userId, email, name);
 
     try {
       // Determine provider type from assetId or use default
@@ -154,14 +163,18 @@ export class WalletController {
    */
   @Post('generate')
   async generateWallet(@Request() req: any, @Body() dto: GenerateWalletDto) {
-    const userId = req.user?.id || req.user?.userId;
-    const avatarId = req.user?.avatarId || req.user?.id;
+    const userId = req.user?.id;
+    const email = req.user?.email;
+    const name = req.user?.name;
 
-    if (!avatarId) {
-      throw new HttpException('User not authenticated. Avatar ID is required.', HttpStatus.UNAUTHORIZED);
+    if (!userId || !email) {
+      throw new HttpException('User not authenticated', HttpStatus.UNAUTHORIZED);
     }
 
     try {
+      // Ensure OASIS avatar exists (lazy creation)
+      const avatarId = await this.oasisLinkService.ensureOasisAvatar(userId, email, name);
+
       const wallet = await this.oasisWalletService.generateWallet(
         avatarId,
         dto.providerType,
@@ -197,7 +210,7 @@ export class WalletController {
    */
   @Post('connect')
   async connectWallet(@Request() req: any, @Body() dto: ConnectWalletDto) {
-    const userId = req.user?.id || req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       throw new HttpException('User not authenticated', HttpStatus.UNAUTHORIZED);
@@ -251,7 +264,7 @@ export class WalletController {
    */
   @Post('verify')
   async verifyWallet(@Request() req: any, @Body() dto: VerifyWalletDto) {
-    const userId = req.user?.id || req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       throw new HttpException('User not authenticated', HttpStatus.UNAUTHORIZED);
@@ -287,14 +300,18 @@ export class WalletController {
    */
   @Post('sync')
   async syncBalances(@Request() req: any) {
-    const userId = req.user?.id || req.user?.userId;
-    const avatarId = req.user?.avatarId || req.user?.id;
+    const userId = req.user?.id;
+    const email = req.user?.email;
+    const name = req.user?.name;
 
-    if (!avatarId) {
+    if (!userId || !email) {
       throw new HttpException('User not authenticated', HttpStatus.UNAUTHORIZED);
     }
 
     try {
+      // Ensure OASIS avatar exists (lazy creation)
+      const avatarId = await this.oasisLinkService.ensureOasisAvatar(userId, email, name);
+
       const balances = await this.balanceSyncService.syncUserBalances(userId, avatarId);
 
       return {
@@ -316,7 +333,7 @@ export class WalletController {
    */
   @Get('verification-message')
   async getVerificationMessage(@Request() req: any, @Body() body: { walletAddress: string; blockchain: string }) {
-    const userId = req.user?.id || req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       throw new HttpException('User not authenticated', HttpStatus.UNAUTHORIZED);
@@ -340,13 +357,18 @@ export class WalletController {
    */
   @Get('transactions/:walletId')
   async getTransactions(@Request() req: any, @Param('walletId') walletId: string) {
-    const avatarId = req.user?.avatarId || req.user?.id;
+    const userId = req.user?.id;
+    const email = req.user?.email;
+    const name = req.user?.name;
 
-    if (!avatarId) {
+    if (!userId || !email) {
       throw new HttpException('User not authenticated', HttpStatus.UNAUTHORIZED);
     }
 
     try {
+      // Ensure OASIS avatar exists (lazy creation)
+      const avatarId = await this.oasisLinkService.ensureOasisAvatar(userId, email, name);
+
       // Verify wallet belongs to user
       const wallets = await this.oasisWalletService.getWallets(avatarId);
       const wallet = wallets.find((w) => w.walletId === walletId);
