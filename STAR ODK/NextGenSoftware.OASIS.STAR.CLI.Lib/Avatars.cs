@@ -23,7 +23,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowMessage(string.Concat("", message), true, true);
                 email = Console.ReadLine();
 
-                if (!ValidationHelper.IsValidEmail(email))
+                // Validate email inline
+                bool emailValidCheck = false;
+                try
+                {
+                    var addr = new System.Net.Mail.MailAddress(email);
+                    emailValidCheck = addr.Address == email;
+                }
+                catch
+                {
+                    emailValidCheck = false;
+                }
+
+                if (!emailValidCheck)
                     CLIEngine.ShowErrorMessage("That email is not valid. Please try again.");
 
                 else if (checkIfEmailAlreadyInUse)
@@ -68,7 +80,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowMessage(string.Concat("", message), true, true);
                 email = Console.ReadLine();
 
-                if (!ValidationHelper.IsValidEmail(email))
+                // Validate email inline
+                bool emailValidCheck = false;
+                try
+                {
+                    var addr = new System.Net.Mail.MailAddress(email);
+                    emailValidCheck = addr.Address == email;
+                }
+                catch
+                {
+                    emailValidCheck = false;
+                }
+
+                if (!emailValidCheck)
                     CLIEngine.ShowErrorMessage("That email is not valid. Please try again.");
 
 

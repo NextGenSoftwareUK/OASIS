@@ -139,7 +139,12 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                             break;
                         }
 
-                        int editIndex = CLIEngine.GetValidInputForInt("Enter the number of the metadata entry to edit:", true, 1, metaData.Count);
+                        int editIndex = CLIEngine.GetValidInputForInt($"Enter the number of the metadata entry to edit (1-{metaData.Count}):");
+                        if (editIndex < 1 || editIndex > metaData.Count)
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid index.");
+                            break;
+                        }
                         string editKey = metaData.Keys.ElementAt(editIndex - 1);
                         object currentValue = metaData[editKey];
 
@@ -152,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                             }
                             else
                             {
-                                string newValue = CLIEngine.GetValidInput("Enter the new text value (or type 'clear' to remove):", addLineBefore: true);
+                                string newValue = CLIEngine.GetValidInput("Enter the new text value (or type 'clear' to remove):");
                                 if (newValue.ToLower() == "clear")
                                     metaData.Remove(editKey);
                                 else
@@ -185,13 +190,18 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                             break;
                         }
 
-                        int delIndex = CLIEngine.GetValidInputForInt("Enter the number of the metadata entry to delete:", true, 1, metaData.Count);
+                        int delIndex = CLIEngine.GetValidInputForInt($"Enter the number of the metadata entry to delete (1-{metaData.Count}):");
+                        if (delIndex < 1 || delIndex > metaData.Count)
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid index.");
+                            break;
+                        }
                         string delKey = metaData.Keys.ElementAt(delIndex - 1);
 
                         if (CLIEngine.GetConfirmation($"Are you sure you want to delete metadata '{delKey}'?"))
                         {
                             metaData.Remove(delKey);
-                            CLIEngine.ShowSuccessMessage($"Metadata '{delKey}' deleted.", addLineBefore: true);
+                            CLIEngine.ShowSuccessMessage($"Metadata '{delKey}' deleted.", lineSpace: true);
                         }
                         else
                             Console.WriteLine("");

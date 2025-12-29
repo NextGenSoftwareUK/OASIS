@@ -216,6 +216,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private void ConfigureEnhancedFeatures()
         {
+            // TODO: These enhanced features are not yet implemented in IHoloNETDNA interface
+            // These properties don't exist in the current HoloNET DNA interface
+            // Uncomment when these features are added to IHoloNETDNA
+            /*
             _holoNETClient.HoloNETDNA.EnableKitsune2Networking = true;
             _holoNETClient.HoloNETDNA.EnableQUICProtocol = true;
             _holoNETClient.HoloNETDNA.EnableIntegratedKeystore = true;
@@ -228,6 +232,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             _holoNETClient.HoloNETDNA.KeystoreConfig.AutoGenerateKeys = true;
             _holoNETClient.HoloNETDNA.CacheConfig.DefaultCacheDurationMinutes = 30;
             _holoNETClient.HoloNETDNA.WASMConfig.EnableJITCompilation = true;
+            */
         }
 
         private async Task<double> CalculateAverageLatencyAsync()
