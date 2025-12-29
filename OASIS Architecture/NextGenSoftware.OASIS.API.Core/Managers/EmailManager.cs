@@ -1,4 +1,5 @@
-﻿using MailKit.Net.Smtp;
+﻿using System;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
@@ -68,10 +69,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             try
             {
                 client.Send(message);
+                LoggingManager.Log(string.Concat("Email sent successfully to: ", to), LogType.Info);
             }
             catch (SmtpException ex)
             {
-                LoggingManager.Log(string.Concat("ERROR Sending Email. Exception: ", ex.ToString()), LogType.Error);
+                LoggingManager.Log(string.Concat("ERROR Sending Email to ", to, ". SMTP Exception: ", ex.Message, ". StatusCode: ", ex.StatusCode.ToString()), LogType.Error);
+                LoggingManager.Log(string.Concat("Full SMTP Exception: ", ex.ToString()), LogType.Error);
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log(string.Concat("ERROR Sending Email to ", to, ". Unexpected Exception: ", ex.Message), LogType.Error);
+                LoggingManager.Log(string.Concat("Full Exception: ", ex.ToString()), LogType.Error);
             }
         }
     }

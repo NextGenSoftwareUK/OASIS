@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Reflection;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -36,8 +38,8 @@ namespace NextGenSoftware.OASIS.STAR
 {
     public static class STAR
     {
-        const string STAR_DNA_DEFAULT_PATH = "DNA\\STAR_DNA.json";
-        const string OASIS_DNA_DEFAULT_PATH = "DNA\\OASIS_DNA.json";
+        const string STAR_DNA_DEFAULT_PATH = "DNA/STAR_DNA.json";
+        const string OASIS_DNA_DEFAULT_PATH = "DNA/OASIS_DNA.json";
 
         private static StarStatus _status;
         private static Guid _starId = Guid.Empty;
@@ -325,6 +327,11 @@ namespace NextGenSoftware.OASIS.STAR
             }
 
             ValidateSTARDNA(STARDNA);
+            
+            // Use OASISDNAPath from STAR_DNA.json if it's set, otherwise use the parameter
+            if (!string.IsNullOrEmpty(STARDNA.OASISDNAPath))
+                OASISDNAPath = STARDNA.OASISDNAPath;
+            
             Status = StarStatus.BootingOASIS;
             OASISResult<bool> oasisResult = await BootOASISAsync(userName, password, OASISDNAPath);
 
@@ -402,6 +409,10 @@ namespace NextGenSoftware.OASIS.STAR
 
             IsDetailedCOSMICOutputsEnabled = STARDNA.DetailedCOSMICOutputEnabled;
             IsDetailedStatusUpdatesEnabled = STARDNA.DetailedSTARStatusOutputEnabled;
+
+            // Use OASISDNAPath from STAR_DNA.json if it's set, otherwise use the parameter
+            if (!string.IsNullOrEmpty(STARDNA.OASISDNAPath))
+                OASISDNAPath = STARDNA.OASISDNAPath;
 
             Status = StarStatus.BootingOASIS;
             OASISResult<bool> oasisResult = BootOASIS(userName, password, OASISDNAPath);
@@ -1905,11 +1916,11 @@ namespace NextGenSoftware.OASIS.STAR
         {
             if (starDNA != null)
             {
-                ValidateFolder("", starDNA.BaseSTARPath, "STARDNA.BaseSTARPath");
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPMetaDataDNAFolder, "STARDNA.OAPPMetaDataDNAFolder");
+                ValidateFolder("", starDNA.BaseSTARPath, "STARDNA.BaseSTARPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPMetaDataDNAFolder, "STARDNA.OAPPMetaDataDNAFolder", false, true);
                 //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
                 //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder", false, true);
                 ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateHolonDNA, "STARDNA.CSharpTemplateHolonDNA");
                 ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateZomeDNA, "STARDNA.CSharpTemplateZomeDNA");
                 ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateCelestialBodyDNA, "STARDNA.CSharpTemplateCelestialBodyDNA");
@@ -2023,10 +2034,14 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void ValidateFolder(string basePath, string folder, string folderParam, bool checkIfContainsFilesOrFolder = false, bool createIfDoesNotExist = false)
         {
-            string path = string.IsNullOrEmpty(basePath) ? folder : $"{basePath}\\{folder}";
+            // Normalize path separators (convert Windows \ to OS-specific separator)
+            string normalizedFolder = folder?.Replace('\\', Path.DirectorySeparatorChar) ?? folder;
+            string normalizedBasePath = basePath?.Replace('\\', Path.DirectorySeparatorChar) ?? basePath;
+            
+            string path = string.IsNullOrEmpty(normalizedBasePath) ? normalizedFolder : Path.Combine(normalizedBasePath, normalizedFolder);
 
-            if (Path.IsPathRooted(folder))
-                path = folder; //If the folder is rooted, use it as is.
+            if (Path.IsPathRooted(normalizedFolder))
+                path = normalizedFolder; //If the folder is rooted, use it as is.
 
             if (string.IsNullOrEmpty(folder))
                 throw new ArgumentNullException(folderParam, string.Concat("The ", folderParam, " param in the STARDNA is null, please double check and try again."));
@@ -2045,13 +2060,19 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void ValidateFile(string basePath, string folder, string file, string fileParam)
         {
-            string path = $"{basePath}\\{folder}";
+            // Normalize path separators (convert Windows \ to OS-specific separator)
+            string normalizedFolder = folder?.Replace('\\', Path.DirectorySeparatorChar) ?? folder;
+            string normalizedBasePath = basePath?.Replace('\\', Path.DirectorySeparatorChar) ?? basePath;
+            string normalizedFile = file?.Replace('\\', Path.DirectorySeparatorChar) ?? file;
+            
+            string path = string.IsNullOrEmpty(normalizedBasePath) ? normalizedFolder : Path.Combine(normalizedBasePath, normalizedFolder);
 
-            if (string.IsNullOrEmpty(file))
+            if (string.IsNullOrEmpty(normalizedFile))
                 throw new ArgumentNullException(fileParam, string.Concat("The ", fileParam, " param in the STARDNA is null, please double check and try again."));
 
-            if (!File.Exists(string.Concat(path, "\\", file)))
-                throw new FileNotFoundException(string.Concat("The ", fileParam, " file is not valid, the file does not exist, please double check and try again."), string.Concat(path, "\\", file));
+            string filePath = Path.Combine(path, normalizedFile);
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException(string.Concat("The ", fileParam, " file is not valid, the file does not exist, please double check and try again."), filePath);
         }
 
         //private static STARDNA LoadDNA()
@@ -2145,22 +2166,79 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static OASISResult<bool> BootOASIS(string userName = "", string password = "", string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
-            STAR.OASISDNAPath = OASISDNAPath;
+            // Normalize path separators for cross-platform compatibility
+            string normalizedPath = OASISDNAPath?.Replace('\\', Path.DirectorySeparatorChar) ?? OASIS_DNA_DEFAULT_PATH;
+            
+            // If the path doesn't exist, try to find OASIS_DNA.json in common locations
+            if (!File.Exists(normalizedPath))
+            {
+                // Get potential base directories to search from
+                List<string> baseDirs = new List<string>
+                {
+                    Directory.GetCurrentDirectory(), // Current working directory
+                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", // Assembly location
+                };
+                
+                // Try to find codebase root by looking for common directories
+                foreach (string baseDir in baseDirs.ToArray())
+                {
+                    string current = baseDir;
+                    for (int i = 0; i < 5 && !string.IsNullOrEmpty(current); i++)
+                    {
+                        if (Directory.Exists(Path.Combine(current, "OASIS Architecture")) || 
+                            Directory.Exists(Path.Combine(current, "STAR ODK")))
+                        {
+                            baseDirs.Add(current);
+                            break;
+                        }
+                        current = Path.GetDirectoryName(current);
+                    }
+                }
+                
+                // Try common locations relative to each base directory
+                string[] relativePaths = new string[]
+                {
+                    Path.Combine("OASIS Architecture", "NextGenSoftware.OASIS.API.DNA", "OASIS_DNA.json"),
+                    Path.Combine("ONODE", "NextGenSoftware.OASIS.API.ONODE.WebAPI", "OASIS_DNA.json"),
+                    Path.Combine("Native EndPoint", "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness", "OASIS_DNA.json"),
+                    "OASIS_DNA.json"
+                };
+                
+                foreach (string baseDir in baseDirs)
+                {
+                    if (string.IsNullOrEmpty(baseDir)) continue;
+                    
+                    foreach (string relPath in relativePaths)
+                    {
+                        string fullPath = Path.Combine(baseDir, relPath);
+                        if (File.Exists(fullPath))
+                        {
+                            normalizedPath = fullPath;
+                            goto found;
+                        }
+                    }
+                }
+                found:;
+            }
+            
+            STAR.OASISDNAPath = normalizedPath;
 
             if (!OASISAPI.IsOASISBooted)
                 //return OASISAPI.BootOASIS(userName, password, STAR.OASISDNAPath);
-                return STARAPI.BootOASISAPI(userName, password, STAR.OASISDNAPath);
+                return STARAPI.BootOASISAPI(userName, password, normalizedPath);
             else
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }
 
         private static async Task<OASISResult<bool>> BootOASISAsync(string userName = "", string password = "", string OASISDNAPath = OASIS_DNA_DEFAULT_PATH)
         {
-            STAR.OASISDNAPath = OASISDNAPath;
+            // Normalize path separators for cross-platform compatibility
+            string normalizedPath = OASISDNAPath?.Replace('\\', Path.DirectorySeparatorChar) ?? OASIS_DNA_DEFAULT_PATH;
+            STAR.OASISDNAPath = normalizedPath;
 
             if (!OASISAPI.IsOASISBooted)
                 //return await OASISAPI.BootOASISAsync(userName, password, STAR.OASISDNAPath);
-                return await STARAPI.BootOASISAsync(userName, password, STAR.OASISDNAPath);
+                return await STARAPI.BootOASISAsync(userName, password, normalizedPath);
             else
                 return new OASISResult<bool>() { Message = "OASIS Already Booted" };
         }

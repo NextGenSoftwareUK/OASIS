@@ -202,7 +202,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Username == avatarUsername));
+            // Use case-insensitive matching for username
+            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Username.ToLower() == avatarUsername.ToLower()));
         }
 
         //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, int version = 0)
@@ -212,7 +213,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Username == avatarUsername));
+            // Use case-insensitive matching for username
+            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Username.ToLower() == avatarUsername.ToLower()));
         }
 
         //public override OASISResult<IAvatar> LoadAvatar(string username, int version = 0)

@@ -51,7 +51,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         try
         {
             _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
-            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
+            // TODO: SolanaService implementation missing - commented out for now
+            // _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
 
             result.Result = true;
             IsProviderActivated = true;
@@ -72,7 +73,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         try
         {
             _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
-            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
+            // TODO: SolanaService implementation missing - commented out for now
+            // _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
 
             result.Result = true;
             IsProviderActivated = true;
