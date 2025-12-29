@@ -36,6 +36,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging.NLog\NextGenSoftware.Logging.NLog.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\NextGenSoftware.OASIS.API.Providers.CardanoOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\NextGenSoftware.OASIS.API.Providers.ElrondOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.FantomOASIS\NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.OptimismOASIS\NextGenSoftware.OASIS.API.Providers.OptimismOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AWSOASIS\NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Network\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj" />

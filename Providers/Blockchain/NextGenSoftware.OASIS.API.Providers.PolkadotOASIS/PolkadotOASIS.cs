@@ -3032,47 +3032,48 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
         {
+            //TODO: Implement ASAP.
             var result = new OASISResult<(string PublicKey, string PrivateKey)>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
+            //try
+            //{
+            //    if (!_isActivated)
+            //    {
+            //        OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
+            //        return result;
+            //    }
 
-                // Polkadot uses seed phrases - derive key pair from seed phrase
-                // For now, treat seedPhrase as private key
-                // Real Polkadot key derivation from seed phrase using Substrate key derivation
-                // Polkadot uses SR25519 key derivation - real implementation
-                var publicKey = "";
-                try
-                {
-                    // Use Substrate key derivation (SR25519) - real implementation
-                    // In production, use Substrate.NET or similar library
-                    var seedBytes = Encoding.UTF8.GetBytes(seedPhrase);
-                    using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                    {
-                        var hash = sha256.ComputeHash(seedBytes);
-                        publicKey = Convert.ToBase64String(hash);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError($"Error deriving public key from seed phrase: {ex.Message}", ex);
-                    publicKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(seedPhrase));
-                }
+            //    // Polkadot uses seed phrases - derive key pair from seed phrase
+            //    // For now, treat seedPhrase as private key
+            //    // Real Polkadot key derivation from seed phrase using Substrate key derivation
+            //    // Polkadot uses SR25519 key derivation - real implementation
+            //    var publicKey = "";
+            //    try
+            //    {
+            //        // Use Substrate key derivation (SR25519) - real implementation
+            //        // In production, use Substrate.NET or similar library
+            //        var seedBytes = Encoding.UTF8.GetBytes(seedPhrase);
+            //        using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            //        {
+            //            var hash = sha256.ComputeHash(seedBytes);
+            //            publicKey = Convert.ToBase64String(hash);
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        OASISErrorHandling.HandleError($"Error deriving public key from seed phrase: {ex.Message}", ex);
+            //        publicKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(seedPhrase));
+            //    }
                 
-                // Note: privateKey variable is not available in this scope - using _privateKey if needed
+            //    // Note: privateKey variable is not available in this scope - using _privateKey if needed
 
-                result.Result = (publicKey, privateKey);
-                result.IsError = false;
-                result.Message = "Polkadot account restored successfully.";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error restoring Polkadot account: {ex.Message}", ex);
-            }
+            //    result.Result = (publicKey, privateKey);
+            //    result.IsError = false;
+            //    result.Message = "Polkadot account restored successfully.";
+            //}
+            //catch (Exception ex)
+            //{
+            //    OASISErrorHandling.HandleError(ref result, $"Error restoring Polkadot account: {ex.Message}", ex);
+            //}
             return result;
         }
 

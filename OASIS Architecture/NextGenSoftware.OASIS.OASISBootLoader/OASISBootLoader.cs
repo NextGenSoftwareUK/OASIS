@@ -28,28 +28,24 @@ using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
+using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
+using NextGenSoftware.OASIS.API.Providers.TRONOASIS; // TODO: Fix TRONOASIS build errors
+using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
+using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
+using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
+using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
+using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
+using NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
+using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
+using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.Utilities;
 //using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
-//using NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 //using NextGenSoftware.OASIS.API.Providers.BNBChainOASIS;
 //using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
 //using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
-using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
-//using NextGenSoftware.OASIS.API.Providers.TRONOASIS; // TODO: Fix TRONOASIS build errors
-using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
-using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
-using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
-//using NextGenSoftware.OASIS.API.Providers.NEAROASIS; // TODO: Fix NEAROASIS build errors
-using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
-using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
-//using NextGenSoftware.OASIS.API.Providers.MoralisOASIS; // TODO: Fix MoralisOASIS build errors
-using NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
-using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
-using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.Utilities;
-using System.Runtime.InteropServices;
-//using System.Reflection;
+//using NextGenSoftware.OASIS.API.Providers.PolkaDotOASIS;
 
 namespace NextGenSoftware.OASIS.OASISBootLoader
 {
@@ -1076,14 +1072,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.TRONOASIS:
                         {
-                            // TODO: Fix TRONOASIS build errors
-                            // var tronProvider = new TRONOASIS(
-                            //     OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint ?? "https://api.trongrid.io",
-                            //     OASISDNA.OASIS.StorageProviders.TRONOASIS.Network ?? "mainnet",
-                            //     OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428");
-                            // tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
-                            // result.Result = tronProvider;
-                            break;
+                            //TODO: Fix TRONOASIS build errors
+                             var tronProvider = new TRONOASIS(
+                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint ?? "https://api.trongrid.io",
+                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.Network ?? "mainnet",
+                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428");
+                                tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
+                                result.Result = tronProvider;
+                                break;
                         }
 
                         case ProviderType.HashgraphOASIS:
