@@ -538,7 +538,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar detail to TRON: {contractResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar detail to TRON: {transactionResult.ErrorMessage}");
                 }
             }
             catch (Exception ex)
@@ -1378,11 +1378,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
+                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    response.Result = new TransactionResponse
+                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
+                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
+                               tronResponse.TryGetProperty("transaction_id", out var txIdProp) ? txIdProp.GetString() : 
+                               "Transaction created successfully";
+
+                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                     {
-                        TransactionResult = tronResponse?.TxID ?? "Transaction created successfully"
+                        TransactionResult = txId
                     };
                     response.IsError = false;
                     response.Message = "TRON transaction sent successfully";
@@ -1450,14 +1455,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                     if (transactionData.TryGetProperty("txID", out var txId))
                     {
-                        var transactionResponse = new TransactionResponse
+                        response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                         {
-                            TxID = txId.GetString()
-                        };
-
-                        response.Result = new TransactionResponse
-                        {
-                            TransactionResult = transactionResponse.TxID ?? "Transaction created successfully"
+                            TransactionResult = txId.GetString()
                         };
                         response.IsError = false;
                         response.Message = "Transaction sent to TRON blockchain successfully";
@@ -1550,14 +1550,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         ? txidProp.GetString() 
                         : "unknown";
 
-                    var tronResponse = new TransactionResponse
+                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                     {
-                        TxID = txid,
-                        RawData = responseContent,
-                        Signature = new[] { "" }
+                        TransactionResult = txid
                     };
-
-                    response.Result = (ITransactionResponse)tronResponse;
                     response.IsError = false;
                     response.Message = "TRC20 token transaction sent successfully on TRON blockchain";
                 }
@@ -1633,23 +1629,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         ? txidProp.GetString() 
                         : "unknown";
                     
-                    var tronResponse = new TransactionResponse
+                    // TRON response data stored in TransactionResult
+                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                     {
-                        TxID = txid,
-                        RawData = responseContent,
-                        Signature = new[] { "" }
+                        TransactionResult = txid
                     };
-
-                if (transactionResult != null)
-                {
-                    var tronResponse = new TransactionResponse
-                    {
-                        TxID = transactionResult.TxID,
-                        RawData = transactionResult.RawData,
-                        Signature = transactionResult.Signature
-                    };
-
-                    response.Result = (ITransactionResponse)tronResponse;
                     response.IsError = false;
                     response.Message = "TRX transaction sent successfully on TRON blockchain";
                 }
@@ -1657,7 +1641,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 {
                     OASISErrorHandling.HandleError(ref response, "Failed to send TRX transaction on TRON blockchain");
                 }
-        }
             }
             catch (Exception ex)
             {
@@ -1720,7 +1703,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
             try
             {
                 if (!IsProviderActivated)
@@ -1766,7 +1749,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         ? txidProp.GetString() 
                         : "unknown";
 
-                    result.Result = new TransactionResponse { TransactionResult = txid };
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
                     result.IsError = false;
                     result.Message = "Token sent successfully on TRON blockchain";
                 }
@@ -1790,7 +1773,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
             try
             {
                 if (!IsProviderActivated)
@@ -1824,7 +1807,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         ? txidProp.GetString() 
                         : "unknown";
 
-                    result.Result = new TransactionResponse { TransactionResult = txid };
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
                     result.IsError = false;
                     result.Message = "Token minted successfully on TRON blockchain";
                 }
@@ -1848,7 +1831,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
             try
             {
                 if (!IsProviderActivated)
@@ -1886,7 +1869,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         ? txidProp.GetString() 
                         : "unknown";
 
-                    result.Result = new TransactionResponse { TransactionResult = txid };
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
                     result.IsError = false;
                     result.Message = "Token burned successfully on TRON blockchain";
                 }
@@ -1910,7 +1893,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
             try
             {
                 if (!IsProviderActivated)
@@ -1951,7 +1934,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         ? txidProp.GetString() 
                         : "unknown";
 
-                    result.Result = new TransactionResponse { TransactionResult = txid };
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
                     result.IsError = false;
                     result.Message = "Token locked successfully on TRON blockchain";
                 }
@@ -1975,7 +1958,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
             try
             {
                 if (!IsProviderActivated)
@@ -2016,7 +1999,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         ? txidProp.GetString() 
                         : "unknown";
 
-                    result.Result = new TransactionResponse { TransactionResult = txid };
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = txid };
                     result.IsError = false;
                     result.Message = "Token unlocked successfully on TRON blockchain";
                 }
@@ -2256,6 +2239,48 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         }
 
         /// <summary>
+        /// Generates a TRON seed phrase (BIP39 mnemonic)
+        /// </summary>
+        private string GenerateTRONSeedPhrase()
+        {
+            // Generate 12-word BIP39 mnemonic
+            // In production, use a proper BIP39 library
+            var words = new[] { "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd", "abuse", "access", "accident" };
+            var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            var indices = new int[12];
+            for (int i = 0; i < 12; i++)
+            {
+                var bytes = new byte[4];
+                rng.GetBytes(bytes);
+                indices[i] = Math.Abs(BitConverter.ToInt32(bytes, 0)) % words.Length;
+            }
+            return string.Join(" ", indices.Select(i => words[i]));
+        }
+
+        /// <summary>
+        /// Derives seed from BIP39 mnemonic
+        /// </summary>
+        private byte[] DeriveSeedFromMnemonic(string mnemonic)
+        {
+            // In production, use proper BIP39 derivation
+            // For now, use SHA256 of mnemonic as seed
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                return sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(mnemonic));
+            }
+        }
+
+        /// <summary>
+        /// Signs a TRON transaction
+        /// </summary>
+        private async Task<JsonElement> SignTRONTransaction(JsonElement transaction, string privateKey)
+        {
+            // In production, use TRON SDK for proper transaction signing
+            // For now, return the transaction as-is (would need proper signing implementation)
+            return transaction;
+        }
+
+        /// <summary>
         /// Derives TRON address from public key
         /// </summary>
         private string DeriveTRONAddress(string publicKey)
@@ -2465,7 +2490,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
+                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                     // Sign and broadcast transaction
                     var signedTx = await SignTRONTransaction(txResponse, senderPrivateKey);
@@ -2475,8 +2500,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                     if (broadcastResponse.IsSuccessStatusCode)
                     {
-                        var broadcastContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        var broadcastData = JsonSerializer.Deserialize<JsonElement>(broadcastContent);
+                        var broadcastResponseContent = await broadcastResponse.Content.ReadAsStringAsync();
+                        var broadcastData = JsonSerializer.Deserialize<JsonElement>(broadcastResponseContent);
                         var txHash = broadcastData.TryGetProperty("txid", out var txid) ? txid.GetString() : "";
 
                         result.Result = new BridgeTransactionResponse
@@ -2565,7 +2590,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
+                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                     // Sign and broadcast transaction (would use bridge pool's private key in production)
                     var signedTx = await SignTRONTransaction(txResponse, ""); // Would get from config
@@ -2575,8 +2600,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                     if (broadcastResponse.IsSuccessStatusCode)
                     {
-                        var broadcastContent = await broadcastResponse.Content.ReadAsStringAsync();
-                        var broadcastData = JsonSerializer.Deserialize<JsonElement>(broadcastContent);
+                        var broadcastResponseContent = await broadcastResponse.Content.ReadAsStringAsync();
+                        var broadcastData = JsonSerializer.Deserialize<JsonElement>(broadcastResponseContent);
                         var txHash = broadcastData.TryGetProperty("txid", out var txid) ? txid.GetString() : "";
 
                         result.Result = new BridgeTransactionResponse
@@ -2751,11 +2776,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
+                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
+                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
+                               "NFT transfer created successfully";
 
-                    response.Result = new Web3NFTTransactionResponse
+                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                     {
-                        TransactionResult = tronResponse.TxID ?? "NFT transfer created successfully"
+                        TransactionResult = txId
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT transfer sent successfully";
@@ -2813,11 +2841,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
+                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
+                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
+                               "NFT burn transaction created";
 
-                    result.Result = new Web3NFTTransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                     {
-                        TransactionResult = tronResponse?.TxID ?? "NFT burn transaction created"
+                        TransactionResult = txId
                     };
                     result.IsError = false;
                     result.Message = "TRON NFT burned successfully";
@@ -2868,11 +2899,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var tronResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent);
+                    var tronResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    var txId = tronResponse.TryGetProperty("txID", out var txID) ? txID.GetString() : 
+                               tronResponse.TryGetProperty("txid", out var txid) ? txid.GetString() : 
+                               "NFT minted successfully";
 
-                    response.Result = new Web3NFTTransactionResponse
+                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                     {
-                        TransactionResult = tronResponse.TxID ?? "NFT minted successfully"
+                        TransactionResult = txId
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT minted successfully";
@@ -4092,8 +4126,44 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         private readonly string _apiUrl;
 
         public TRONClient(string apiUrl = "https://api.trongrid.io")
-            {
+        {
             _apiUrl = apiUrl;
+        }
+
+        public async Task<TRONAccountInfo> GetAccountInfoAsync(string accountAddress)
+        {
+            try
+            {
+                using (var httpClient = new System.Net.Http.HttpClient())
+                {
+                    var response = await httpClient.GetAsync($"{_apiUrl}/v1/accounts/{accountAddress}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        var accountData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
+                        
+                        return new TRONAccountInfo
+                        {
+                            Address = accountAddress,
+                            Balance = accountData.TryGetProperty("balance", out var balance) ? balance.GetInt64() : 0,
+                            Energy = accountData.TryGetProperty("energy", out var energy) ? energy.GetInt64() : 0,
+                            Bandwidth = accountData.TryGetProperty("bandwidth", out var bandwidth) ? bandwidth.GetInt64() : 0
+                        };
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Return null if query fails
+            }
+            return null;
+        }
+
+        public async Task<TRONAccountInfo> GetAccountInfoByEmailAsync(string email)
+        {
+            // TRON doesn't have email-based account lookup, so return null
+            // This would need to be implemented via a mapping service
+            return null;
         }
     }
 
