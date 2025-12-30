@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultInventoryItemsInstalledPath, "DefaultInventoryItemsInstalledPath")
         { }
 
-        public override async Task<OASISResult<InventoryItem>> CreateAsync(ISTARNETCreateOptions<InventoryItem, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<InventoryItem>> CreateAsync(ISTARNETCreateOptions<InventoryItem, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<InventoryItem> result = new OASISResult<InventoryItem>();
 
@@ -51,16 +51,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return result;
             }
 
-            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
+            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType: providerType);
 
-            if (result != null)
-            {
-                if (result.Result != null && result.Result != null && !result.IsError)
-                {
-                    //CLIEngine.ShowMessage("Add any dependencies to the InventoryItem below. If for example you want items to be rewarded when it is triggered then add a InventoryItem dependency, if you want it to unlock a new quest then add a Quest dependency and so on. If however this GeoHotSpot belongs to another Quest then you will need to add it as a dependency to that Quest (or use the quest create/edit sub-command).", ConsoleColor.Yellow);
-                    await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
-                }
-            }
+            //if (result != null)
+            //{
+            //    if (result.Result != null && result.Result != null && !result.IsError)
+            //    {
+            //        //CLIEngine.ShowMessage("Add any dependencies to the InventoryItem below. If for example you want items to be rewarded when it is triggered then add a InventoryItem dependency, if you want it to unlock a new quest then add a Quest dependency and so on. If however this GeoHotSpot belongs to another Quest then you will need to add it as a dependency to that Quest (or use the quest create/edit sub-command).", ConsoleColor.Yellow);
+            //        await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
+            //    }
+            //}
 
             return result;
         }

@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultPluginsInstalledPath, "DefaultPluginsInstalledPath")
         { }
 
-        public override async Task<OASISResult<Plugin>> CreateAsync(ISTARNETCreateOptions<Plugin, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Plugin>> CreateAsync(ISTARNETCreateOptions<Plugin, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Plugin> result = new OASISResult<Plugin>();
             

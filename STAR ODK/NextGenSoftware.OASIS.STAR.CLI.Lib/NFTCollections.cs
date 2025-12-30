@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //        CLIEngine.ShowErrorMessage("No NFT Found For That Id!");
         //}
 
-        public override async Task<OASISResult<STARNFTCollection>> CreateAsync(ISTARNETCreateOptions<STARNFTCollection, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARNFTCollection>> CreateAsync(ISTARNETCreateOptions<STARNFTCollection, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARNFTCollection> result = new OASISResult<STARNFTCollection>();
             OASISResult<IWeb4NFTCollection> collectionResult = null;
@@ -105,7 +105,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             NFTCollectionId = collection.Id
                         }
-                    }, holonSubType, showHeaderAndInro, providerType);
+                    }, holonSubType, showHeaderAndInro, providerType: providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
                     {

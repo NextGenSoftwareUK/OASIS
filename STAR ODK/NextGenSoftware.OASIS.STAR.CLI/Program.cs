@@ -876,7 +876,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static async Task ShowSubCommandAsync<T>(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<ISTARNETCreateOptions<T, STARNETDNA>, object, bool, ProviderType, Task> createPredicate = null,  //WEB5 Commands
+            Func<ISTARNETCreateOptions<T, STARNETDNA>, object, bool, bool, ProviderType, Task> createPredicate = null,  //WEB5 Commands
             Func<string, object, bool, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
@@ -1003,7 +1003,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 else
                                 {
                                     if (createPredicate != null)
-                                        await createPredicate(null, null, true, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                        await createPredicate(null, null, true, true, providerType); //TODO: Pass in params in a object or dynamic obj.
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }
@@ -1594,8 +1594,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowMessage(string.Concat("    place".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Create a OASIS Geo-NFT from an existing OASIS NFT for the given {id} or {name} and place within Our World."), ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage(string.Concat("    clone".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Clones a OASIS ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    adddependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Adds a runtime to the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    removedependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Removes a runtime from the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    adddependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Adds a dependency to the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    removedependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Removes a dependency from the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    download".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Install/download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);

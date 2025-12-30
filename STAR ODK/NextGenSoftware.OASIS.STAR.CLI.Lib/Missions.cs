@@ -30,11 +30,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultMissionsInstalledPath, "DefaultMissionsInstalledPath")
         { }
 
-        public override async Task<OASISResult<Mission>> CreateAsync(ISTARNETCreateOptions<Mission, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Mission>> CreateAsync(ISTARNETCreateOptions<Mission, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Mission> result = new OASISResult<Mission>();
 
-            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
+            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, false, providerType);
 
             if (result != null)
             {
