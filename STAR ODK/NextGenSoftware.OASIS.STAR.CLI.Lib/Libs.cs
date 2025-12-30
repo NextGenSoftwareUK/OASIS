@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         /// <summary>
         /// Override CreateAsync to add Language property prompt
         /// </summary>
-        public override async Task<OASISResult<Library>> CreateAsync(ISTARNETCreateOptions<Library, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Library>> CreateAsync(ISTARNETCreateOptions<Library, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Library> result = new OASISResult<Library>();
 
