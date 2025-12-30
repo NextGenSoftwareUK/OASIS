@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultQuestsInstalledPath, "DefaultQuestsInstalledPath")
         { }
 
-        public override async Task<OASISResult<Quest>> CreateAsync(ISTARNETCreateOptions<Quest, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Quest>> CreateAsync(ISTARNETCreateOptions<Quest, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Quest> result = new OASISResult<Quest>();
             Mission parentMission = null;
@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             createOptions.STARNETHolon.Order = order;
 
-            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
+            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, false, providerType: providerType);
 
             if (result != null)
             {
@@ -113,12 +113,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
                                     geoHotSpotId = geoHotSpotResult.Result.Id;
                             }
+                            //else
+                            //{
+                            //    geoHotSpotId = CLIEngine.GetValidInputForGuid("What is the ")
+                            //}
 
                             Console.WriteLine("");
                             OASISResult<Quest> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "GeoHotSpot", idOrNameOfDependency: geoHotSpotId.ToString(), providerType: providerType);
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another GeoHotSpot?"));  
                     }
+                    else
+                        Console.WriteLine("");
 
                     Console.WriteLine("");
                     if (CLIEngine.GetConfirmation("Do you want to add any GeoNFT's to this Quest now?"))
@@ -141,6 +147,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another GeoNFT?"));
                     }
+                    else
+                        Console.WriteLine("");
 
                     if (CLIEngine.GetConfirmation("Do you want to add any sub-quest's to this Quest now?"))
                     {
@@ -162,6 +170,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another sub-quest?"));
                     }
+                    else
+                        Console.WriteLine("");
 
                     await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
                 }

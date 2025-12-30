@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultGeoNFTCollectionsInstalledPath, "DefaultGeoNFTCollectionsInstalledPath", DEFAULT_FIELD_LENGTH)
         { }
 
-        public override async Task<OASISResult<STARGeoNFTCollection>> CreateAsync(ISTARNETCreateOptions<STARGeoNFTCollection, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARGeoNFTCollection>> CreateAsync(ISTARNETCreateOptions<STARGeoNFTCollection, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARGeoNFTCollection> result = new OASISResult<STARGeoNFTCollection>();
             OASISResult<IWeb4GeoNFTCollection> geoNFTCollectionResult = null;
@@ -95,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             GeoNFTCollectionId = geoNFTCollection.Id
                         }
-                    }, holonSubType, showHeaderAndInro, providerType);
+                    }, holonSubType, showHeaderAndInro, providerType: providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
                     {

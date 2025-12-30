@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultGeoHotSpotsInstalledPath, "DefaultGeoHotSpotsInstalledPath")
         { }
 
-        public override async Task<OASISResult<GeoHotSpot>> CreateAsync(ISTARNETCreateOptions<GeoHotSpot, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<GeoHotSpot>> CreateAsync(ISTARNETCreateOptions<GeoHotSpot, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<GeoHotSpot> result = new OASISResult<GeoHotSpot>();
 
@@ -46,6 +46,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //            parentQuest = loadResult.Result;
             //    }
             //}
+
+            ShowHeader();
 
             if (createOptions == null)
                 createOptions = new STARNETCreateOptions<GeoHotSpot, STARNETDNA>() { STARNETHolon = new GeoHotSpot() };
@@ -88,7 +90,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return result;
             }
 
-            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
+            result = await base.CreateAsync(createOptions, holonSubType, false, false, providerType);
 
             if (result != null)
             {

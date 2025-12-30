@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing.Text;
 using System.Linq;
+using ADRaffy.ENSNormalize;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -16,6 +18,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.CelestialSpace;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
 using Org.BouncyCastle.Utilities;
@@ -77,7 +80,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         //public virtual async Task<OASISResult<T1>> CreateAsync(object createParams, T1 newHolon = default, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, T4 STARNETDNA = default, ProviderType providerType = ProviderType.Default)
         //public virtual async Task<OASISResult<T1>> CreateAsync(object createParams, T1 newHolon = default, T4 STARNETDNA = default, object holonSubType = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        public virtual async Task<OASISResult<T1>> CreateAsync(ISTARNETCreateOptions<T1, T4> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> CreateAsync(ISTARNETCreateOptions<T1, T4> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
 
@@ -164,6 +167,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETHolonUIName} folder now?"))
                             Process.Start("explorer.exe", holonPath);
+
+                        if (addDependencies)
+                            await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
 
                         Console.WriteLine("");
                     }
@@ -542,7 +548,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             dependencyInstallMode = DependencyInstallMode.Nested;
                         }
 
-                        bool installNow = CLIEngine.GetConfirmation($"Do you wish to install the {dependencyDisplayName} now? (Selecting 'No' will just add it as a dependency in the STARNETDNA and you can install it later)");
+                        bool installNow = CLIEngine.GetConfirmation($"Do you wish to install the {dependencyDisplayName} now? (recommended) (Selecting 'No' will just add it as a dependency in the STARNETDNA and you can install it later)");
 
                         if (!installNow)
                         {
@@ -963,10 +969,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<ISTARNETDNA> result = new OASISResult<ISTARNETDNA>();
             DependencyType dependencyTypeEnum = DependencyType.OAPP;
 
-            if (CLIEngine.GetConfirmation("Do you wish to add any dependencies? (you do not need to add the OASIS or STAR runtimes, they are added automatically)"))
+            Console.WriteLine("");
+
+            if (CLIEngine.GetConfirmation($"Do you wish to add any dependencies to the {STARNETDNA.STARNETHolonType} with name '{STARNETDNA.Name}'? (you do not need to add the OASIS or STAR runtimes, they are added automatically)"))
             {
                 do
                 {
+                    Console.WriteLine("");
                     object depType = CLIEngine.GetValidInputForEnum("What type of dependency do you wish to add?", typeof(DependencyType));
                     if (depType != null)
                     {
@@ -979,109 +988,194 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
 
 
-                    Guid questId = Guid.Empty;
-                    Console.WriteLine("");
+                    Guid dependencyId = Guid.Empty;
+                    //Console.WriteLine("");
                     if (!CLIEngine.GetConfirmation($"Does the {Enum.GetName(typeof(DependencyType), dependencyTypeEnum)} already exist?"))
                     {
+                        Console.WriteLine("");
+
                         switch (dependencyTypeEnum)
                         {
                             case DependencyType.OAPP:
-                                await STARCLI.OAPPs.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<OAPP> createResult = await STARCLI.OAPPs.CreateAsync(null, providerType: providerType);
+
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.Template:
-                                await STARCLI.OAPPTemplates.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<OAPPTemplate> createResult = await STARCLI.OAPPTemplates.CreateAsync(null, providerType: providerType);
+
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.Zome:
-                                await STARCLI.Zomes.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<STARZome> createResult = await STARCLI.Zomes.CreateAsync(null, providerType: providerType);
+
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
+                            //TODO: Implement same pattern above to the other dependency types below.
                             case DependencyType.NFT:
-                                await STARCLI.NFTs.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<STARNFT> createResult = await STARCLI.NFTs.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.GeoNFT:
-                                await STARCLI.GeoNFTs.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<STARGeoNFT> createResult = await STARCLI.GeoNFTs.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.NFTCollection:
-                                await STARCLI.NFTCollections.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<STARNFTCollection> createResult = await STARCLI.NFTCollections.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.GeoNFTCollection:
-                                await STARCLI.GeoNFTCollections.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<STARGeoNFTCollection> createResult = await STARCLI.GeoNFTCollections.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.Chapter:
-                                await STARCLI.Chapters.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<Chapter> createResult = await STARCLI.Chapters.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.CelestialBody:
-                                await STARCLI.CelestialBodies.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<STARCelestialBody> createResult = await STARCLI.CelestialBodies.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.CelestialBodyMetaDataDNA:
-                                await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<CelestialBodyMetaDataDNA> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.CelestialSpace:
-                                await STARCLI.CelestialSpaces.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<STARCelestialSpace> createResult = await STARCLI.CelestialSpaces.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.Holon:
-                                await STARCLI.Holons.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<STARHolon> createResult = await STARCLI.Holons.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.HolonMetaDataDNA:
-                                await STARCLI.HolonsMetaDataDNA.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<HolonMetaDataDNA> createResult = await STARCLI.HolonsMetaDataDNA.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.InventoryItem:
-                                await STARCLI.InventoryItems.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<InventoryItem> createResult = await STARCLI.InventoryItems.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.Library:
-                                await STARCLI.Libs.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<Library> createResult = await STARCLI.Libs.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.Mission:
-                                await STARCLI.Missions.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<Mission> createResult = await STARCLI.Missions.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.Quest:
-                                await STARCLI.Quests.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<Quest> createResult = await STARCLI.Quests.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.Runtime:
-                                await STARCLI.Runtimes.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<Runtime> createResult = await STARCLI.Runtimes.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
 
                             case DependencyType.ZomeMetaDataDNA:
-                                await STARCLI.ZomesMetaDataDNA.CreateAsync(null, providerType: providerType);
+                                {
+                                    OASISResult<ZomeMetaDataDNA> createResult = await STARCLI.ZomesMetaDataDNA.CreateAsync(null, providerType: providerType);
+                                    if (createResult != null && createResult.Result != null && !createResult.IsError)
+                                        dependencyId = createResult.Result.Id;
+                                }
                                 break;
                         }
                     }
-                   
-                    Console.WriteLine("");
-                    OASISResult<T1> addResult = await AddDependencyAsync(STARNETDNA: STARNETDNA, providerType: providerType);
+                    //else
+                    //{
+                        Console.WriteLine("");
+                        OASISResult<T1> addResult = await AddDependencyAsync(idOrNameOfDependency: dependencyId.ToString(), STARNETDNA: STARNETDNA, providerType: providerType);
 
-                    if (addResult != null && addResult.Result != null && !addResult.IsError)
-                    {
-                        result.Result = STARNETDNA;
-                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(addResult, result);
-                    }
-                    else
-                    {
-                        result.IsError = true;
-                        result.Message = addResult.Message;
-                        //return result;
-                    }
+                        if (addResult != null && addResult.Result != null && !addResult.IsError)
+                        {
+                            result.Result = STARNETDNA;
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(addResult, result);
+                        }
+                        else
+                        {
+                            result.IsError = true;
+                            result.Message = addResult.Message;
+                            //return result;
+                        }
+                    //} 
                 }
-                while (CLIEngine.GetConfirmation("Do you wish to add another dependency?"));
+                while (CLIEngine.GetConfirmation($"Do you wish to add another dependency to the {STARNETDNA.STARNETHolonType} with name '{STARNETDNA.Name}'?"));
             }
 
             Console.WriteLine("");
+            CLIEngine.ShowDivider();
             return result;
         }
 
@@ -1117,7 +1211,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public virtual async Task<OASISResult<T1>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, bool askToInstallAtEnd = true, ProviderType providerType = ProviderType.Default)
+        //public virtual async Task<OASISResult<T1>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, bool askToInstallAtEnd = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.None, bool askToInstallAtEnd = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> publishResult = new OASISResult<T1>();
             bool generateOAPP = true;
@@ -1161,7 +1256,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return publishResult;
         }
 
-        protected async Task<OASISResult<BeginPublishResult>> BeginPublishingAsync(string sourcePath, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, ProviderType providerType = ProviderType.Default)
+        //protected async Task<OASISResult<BeginPublishResult>> BeginPublishingAsync(string sourcePath, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, ProviderType providerType = ProviderType.Default)
+        protected async Task<OASISResult<BeginPublishResult>> BeginPublishingAsync(string sourcePath, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.None, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<BeginPublishResult> result = new OASISResult<BeginPublishResult>(new BeginPublishResult());
             bool generateOAPP = true;
