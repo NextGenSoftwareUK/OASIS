@@ -1,0 +1,175 @@
+# Git
+.git
+.gitignore
+.gitmodules
+
+# Documentation
+*.md
+Docs/
+Images/
+Logos/
+AI Context/
+ReformUK_Policy/
+openserv token launch/
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+**/publish/
+obj/
+bin/
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test files
+**/TestHarness/
+**/UnitTests/
+**/IntegrationTests/
+**/TestResults/
+**/*.TestHarness/
+**/*.UnitTests/
+**/*.IntegrationTests/
+
+# Logs
+*.log
+build.log
+build_errors.txt
+
+# Archives
+*.zip
+*.rar
+*.7z
+
+# Node modules
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Large unrelated projects/directories
+meta-bricks-main/
+TimoRides/
+UniversalAssetBridge/
+zcash-devtool/
+nft-mint-frontend/
+plato-music-frontend/
+Kleros/
+oasis-react-ui-library/
+oasis-wallet-ui/
+oasisweb4 site/
+metabricks-backend-only/
+temp-oasis-repo/
+AssetRail/
+contract_verification_package/
+Archived/
+A2A/
+BillionsHealed/
+Demos/
+Quantum Street/
+ReformUK_Policy/
+STAR WEB UI/
+Shipex/
+SmartContractGenerator/
+Telegcrm/
+UAT/
+Uphold/
+automation/
+aztec-bridge-contract/
+aztec-bridge-service/
+contract-generator/
+cv-template/
+external-libs/
+lumina-j5-bootstrap/
+nft-onepager/
+oasis-oracle-frontend/
+oasisweb4.com/
+pathpulse_landingpage/
+railway-deploy/
+scripts/
+task-briefs/
+temp-deploy/
+test-ledger/
+timo-rides-lp/
+timo-telegram-bot/
+x402/
+x402-hackathon/
+zashi/
+zypherpunk/
+zypherpunk-wallet-ui/
+
+# Test harnesses and test projects (not needed for build)
+NextGenSoftware.OASIS.API.ONODE.Core.TestHarness/
+NextGenSoftware.OASIS.API.ONODE.WebAPI2/
+NextGenSoftware.OASIS.API.Core.TestHarness/
+NextGenSoftware.OASIS.API.Core.UnitTests/
+NextGenSoftware.OASIS.API.DNA.UnitTests/
+NextGenSoftware.OASIS.API.Contracts/
+NextGenSoftware.OASIS.OASISBootLoader.UnitTests/
+NextGenSoftware.OASIS.Common.UnitTests/
+NextGenSoftware.OASIS.API.Bridge.TestHarness/
+OASIS Architecture/NextGenSoftware.OASIS.API.Core.TestHarness/
+OASIS Architecture/NextGenSoftware.OASIS.API.DNA.UnitTests/
+OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/
+OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/
+OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/
+OASIS Architecture/NextGenSoftware.OASIS.Common.UnitTests/
+
+# Other projects not needed for ONODE WebAPI
+NextGenSoftware.OASIS.API.FrontEnd/
+NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/
+NextGenSoftware.OASIS.API.Core.ARC.Membrane/
+NextGenSoftware.OASIS.API.Core.Apollo.Client/
+NextGenSoftware.OASIS.API.Core.Apollo.Server/
+NextGenSoftware.EntityFrameworkCore.OASISAPI/
+NextGenSoftware.NodeManager/
+ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL/
+STAR ODK/
+Runtimes/
+Native EndPoint/
+
+# Deployment/config files (not needed in image)
+deploy*.sh
+update-*.sh
+*.sh
+oasis-api-task-definition*.json
+*-dns-record.json
+DOCKER_*.md
+BUILD_*.md
+PROVIDERS_*.md
+WHY_*.md
+COMPLETE_*.md
+PROVIDERS_ACTIVATED.md
+
+# Package files
+*.nupkg
+*.snupkg
+
+# Coverage reports
+coverage/
+*.coverage
+*.coveragexml
+
+# Keep these (needed for build):
+# - The OASIS.sln
+# - ONODE/ (contains WebAPI and Core projects)
+# - OASIS Architecture/ (Core, DNA, BootLoader, Common)
+# - Providers/ (all provider projects)
+# - external-libs/ (for dependencies like IpfsHttpClient, Spectre.Console)
+# - NextGenSoftware-Libraries/ (utilities, logging, etc.)
+
+# Exclude holochain-client-csharp (not needed for ONODE WebAPI)
+holochain-client-csharp/
+
