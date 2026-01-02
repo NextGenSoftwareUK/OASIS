@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using Org.BouncyCastle.Asn1.X509;
 using Rijndael256;
+using Solnet.Wallet;
 using BC = BCrypt.Net.BCrypt;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
@@ -87,6 +88,71 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         //TODO: Implement later (Cache Disabled).
         //public bool IsCacheEnabled { get; set; } = true;
+
+        public OASISResult<NextGenSoftware.Utilities.IKeyPairAndWallet> GenerateKeyPairWithWalletAddress(ProviderType providerType)
+        {
+            OASISResult<NextGenSoftware.Utilities.IKeyPairAndWallet> result = new OASISResult<NextGenSoftware.Utilities.IKeyPairAndWallet>();
+            
+            // Solana-specific key generation using Solnet
+            if (providerType == ProviderType.SolanaOASIS)
+            {
+                try
+                {
+                    // Ensure the provider is activated
+                    var provider = ProviderManager.Instance.GetStorageProvider(providerType);
+                    if (provider != null)
+                    {
+                        // Activate provider if not already activated
+                        if (!provider.IsProviderActivated)
+                        {
+                            var activateResult = provider.ActivateProvider();
+                            if (activateResult.IsError)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"Failed to activate {providerType} provider: {activateResult.Message}");
+                                return result;
+                            }
+                        }
+                    }
+
+                    // Generate Solana keypair using Solnet.Wallet
+                    // Solana uses Ed25519 keypairs (not secp256k1 like Bitcoin/Ethereum)
+                    // Create a new Account which generates a random Ed25519 keypair
+                    var account = new Account();
+                    
+                    // Solana private keys are base58 encoded (64 bytes = 32 byte seed + 32 byte public key)
+                    // The Account.PrivateKey contains the full keypair bytes encoded in base58
+                    string privateKeyBase58 = account.PrivateKey.Key;
+                    
+                    // Solana public key/address is base58 encoded (32 bytes)
+                    // The public key is the wallet address in Solana
+                    string publicKeyBase58 = account.PublicKey.Key;
+                    
+                    // Create KeyPairAndWallet with Solana-specific format
+                    var solanaKeyPair = new KeyPairAndWallet
+                    {
+                        PrivateKey = privateKeyBase58,  // Base58 encoded Ed25519 private key
+                        PublicKey = publicKeyBase58,     // Base58 encoded Ed25519 public key
+                        WalletAddress = publicKeyBase58, // Solana address is the public key in base58
+                        WalletAddressLegacy = string.Empty,  // Not applicable for Solana
+                        WalletAddressSegwitP2SH = string.Empty  // Not applicable for Solana
+                    };
+                    result.Result = solanaKeyPair;
+                    
+                    result.IsError = false;
+                    result.Message = "Solana keypair generated successfully using Solnet";
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error generating Solana keypair: {ex.Message}", ex);
+                    // Fall through to default key generation as fallback
+                }
+            }
+            
+            // Use existing key generation logic for other providers (Bitcoin, Ethereum, etc.)
+            result.Result = NextGenSoftware.Utilities.KeyHelper.GenerateKeyValuePairAndWalletAddress();
+            return result;
+        }
 
         public OASISResult<KeyPair> GenerateKeyPair(ProviderType providerType)
         {
