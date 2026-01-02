@@ -192,6 +192,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
             CLIEngine.ShowMessage("", false);
             CLIEngine.WriteAsciMessage(" READY PLAYER ONE?", Color.Green);
+
+            CLIEngine.ShowMessage("Please help support us by making a donation here: https://opencollective.com/oasis-web4 or consider buying some virtual land NFT's (OLAND) here: https://www.panxpan.com/projects/guardians-of-infinite-reality or buying one of our meta brick NFT's here: https://metabricks.xyz, thank you! :)");
+            
             //CLIEngine.ShowMessage("", false);
 
             //TODO: TEMP - REMOVE AFTER TESTING! :)
