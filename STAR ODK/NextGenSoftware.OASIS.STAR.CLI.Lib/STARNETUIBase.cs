@@ -1156,7 +1156,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //else
                     //{
                         Console.WriteLine("");
-                        OASISResult<T1> addResult = await AddDependencyAsync(idOrNameOfDependency: dependencyId.ToString(), STARNETDNA: STARNETDNA, providerType: providerType);
+                        OASISResult<T1> addResult = await AddDependencyAsync(idOrNameOfDependency: dependencyId.ToString(), dependencyType: Enum.GetName(typeof(DependencyType), dependencyTypeEnum), STARNETDNA: STARNETDNA, providerType: providerType);
 
                         if (addResult != null && addResult.Result != null && !addResult.IsError)
                         {
