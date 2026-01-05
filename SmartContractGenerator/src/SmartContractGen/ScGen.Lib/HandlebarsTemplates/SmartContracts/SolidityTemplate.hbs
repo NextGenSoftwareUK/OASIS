@@ -1,0 +1,482 @@
+// SPDX-License-Identifier: {{{license}}}
+pragma solidity {{{pragmaVersion}}};
+
+{{#if imports}}
+    {{#each imports}}
+        import "{{{this}}}";
+    {{/each}}
+{{/if}}
+
+{{!-- Interface --}}
+{{#if (eq contractType "Interface")}}
+    /// @title {{{name}}}
+    /// @dev {{#if description}}{{description}}{{else}}Interface for interacting with the {{{name}}} contract{{/if}}
+    interface {{{name}}} {{#if inherits}}is {{#each inherits}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}} {
+    {{#if functions}}
+        {{#each functions}}
+            {{#if description}}/// @notice {{{description}}}{{/if}}
+            {{#if params}}
+                {{#each params}}
+                    /// @param {{name}} {{description}}
+                {{/each}}
+            {{/if}}
+            {{#if returnsDescription}}/// @return {{returnsDescription}}{{/if}}
+            function {{{name}}}(
+            {{#if params}}
+                {{#each params}}
+                    {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                {{/each}}
+            {{/if}}
+            ) {{visibility}}{{#if isPayable}} payable{{/if}}{{#if isView}} view{{/if}}{{#if isPure}} pure{{/if}}{{#if returns}} returns ({{{returns}}}){{/if}};
+        {{/each}}
+    {{/if}}
+    }
+{{else}}
+
+{{!-- Library --}}
+    {{#if (eq contractType "Library")}}
+        /// @title {{{name}}}
+        /// @dev {{#if description}}{{description}}{{else}}Library for common operations in {{{name}}} contract{{/if}}
+        library {{{name}}} {
+        {{#if structs}}
+            // ================ Structs ================
+            {{#each structs}}
+                {{#if description}}/// @dev {{{description}}}{{/if}}
+                struct {{{name}}} {
+                {{#each fields}}
+                    {{#if description}}/// @dev {{{description}}}{{/if}}
+                    {{{type}}} {{{name}}};
+                {{/each}}
+                }
+            {{/each}}
+        {{/if}}
+
+        {{#if enums}}
+            // ================ Enums ================
+            {{#each enums}}
+                {{#if description}}/// @dev {{{description}}}{{/if}}
+                enum {{{name}}} {
+                {{#each values}}
+                    {{{this}}}{{#unless @last}}, {{/unless}}
+                {{/each}}
+                }
+            {{/each}}
+        {{/if}}
+
+        {{#if functions}}
+            // ================ Functions ================
+            {{#each functions}}
+                {{#if description}}/// @notice {{{description}}}{{/if}}
+                {{#if params}}
+                    {{#each params}}
+                        /// @param {{name}} {{description}}
+                    {{/each}}
+                {{/if}}
+                {{#if returnsDescription}}/// @return {{returnsDescription}}{{/if}}
+                function {{{name}}}(
+                {{#if params}}
+                    {{#each params}}
+                        {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                    {{/each}}
+                {{/if}}
+                ) internal{{#if isView}} view{{/if}}{{#if isPure}} pure{{/if}}{{#if returns}} returns ({{{returns}}}){{/if}} {
+                {{#each body}}
+                    {{{this}}}
+                {{/each}}
+                }
+            {{/each}}
+        {{/if}}
+        }
+    {{else}}
+
+    {{!-- Abstract --}}
+        {{#if (eq contractType "Abstract")}}
+            /// @title {{{name}}}
+            /// @dev {{#if description}}{{description}}{{else}}Abstract contract for {{{name}}} implementation{{/if}}
+            abstract contract {{{name}}} {{#if inherits}}is {{#each inherits}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}} {
+            {{#if structs}}
+                // ================ Structs ================
+                {{#each structs}}
+                    {{#if description}}/// @dev {{{description}}}{{/if}}
+                    struct {{{name}}} {
+                    {{#each fields}}
+                        {{#if description}}/// @dev {{{description}}}{{/if}}
+                        {{{type}}} {{{name}}};
+                    {{/each}}
+                    }
+                {{/each}}
+            {{/if}}
+
+            {{#if enums}}
+                // ================ Enums ================
+                {{#each enums}}
+                    {{#if description}}/// @dev {{{description}}}{{/if}}
+                    enum {{{name}}} {
+                    {{#each values}}
+                        {{{this}}}{{#unless @last}}, {{/unless}}
+                    {{/each}}
+                    }
+                {{/each}}
+            {{/if}}
+
+            {{#if state}}
+                // ================ State Variables ================
+                {{#each state}}
+                    {{#if description}}/// @dev {{{description}}}{{/if}}
+                    {{#if isConstant}}constant {{/if}}{{#if isImmutable}}immutable {{/if}}{{{type}}} {{{visibility}}} {{{name}}};
+                {{/each}}
+            {{/if}}
+
+            {{#if events}}
+                // ================ Events ================
+                {{#each events}}
+                    {{#if description}}/// @dev {{{description}}}{{/if}}
+                    event {{{name}}}(
+                    {{#each params}}
+                        {{{type}}}{{#if indexed}} indexed{{/if}} {{{name}}}{{#unless @last}}, {{/unless}}
+                    {{/each}}
+                    );
+                {{/each}}
+            {{/if}}
+
+            {{#if modifiers}}
+                // ================ Modifiers ================
+                {{#each modifiers}}
+                    {{#if description}}/// @dev {{{description}}}{{/if}}
+                    modifier {{{name}}}(
+                    {{#if params}}
+                        {{#each params}}
+                            {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                        {{/each}}
+                    {{/if}}
+                    ) {
+                    {{#each body}}
+                        {{{this}}}
+                    {{/each}}
+                    }
+                {{/each}}
+            {{/if}}
+
+            {{#if functions}}
+                // ================ Abstract Functions ================
+                {{#each functions}}
+                    {{#if description}}/// @dev {{{description}}}{{/if}}
+                    function {{{name}}}(
+                    {{#if params}}
+                        {{#each params}}
+                            {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                        {{/each}}
+                    {{/if}}
+                    ) {{visibility}}{{#if isPayable}} payable{{/if}}{{#if isView}} view{{/if}}{{#if isPure}} pure{{/if}}{{#if modifiers}} {{#each modifiers}}{{this}}{{#unless @last}} {{/unless}}{{/each}}{{/if}}{{#if returns}} returns ({{{returns}}}){{/if}};
+                {{/each}}
+            {{/if}}
+            }
+        {{else}}
+
+        {{!-- Proxy handling (Transparent / UUPS / Beacon) --}}
+            {{#if proxy}}
+                {{#if (eq proxy.proxyType "Transparent")}}
+                    /// @title {{{name}}} (Transparent Proxy)
+                    /// @dev {{#if description}}{{description}}{{else}}Transparent Upgradeable Proxy for {{{name}}} implementation{{/if}}
+                    contract {{{name}}} is TransparentUpgradeableProxy {
+                    /// @dev Constructor for Transparent Upgradeable Proxy
+                    /// @param _logic Address of the implementation contract
+                    /// @param admin_ Address of the proxy admin
+                    /// @param _data Data to pass to the implementation contract
+                    constructor(address _logic, address admin_, bytes memory _data)
+                    TransparentUpgradeableProxy(_logic, admin_, _data)
+                    {}
+                    }
+                {{else}}
+                    {{#if (eq proxy.proxyType "UUPS")}}
+                        /// @title {{{name}}} (UUPS Upgradeable)
+                        /// @dev {{#if description}}{{description}}{{else}}UUPS Upgradeable Contract for {{{name}}} implementation{{/if}}
+                        abstract contract {{{name}}} is UUPSUpgradeable {
+                        {{#if structs}}
+                            // ================ Structs ================
+                            {{#each structs}}
+                                {{#if description}}/// @dev {{{description}}}{{/if}}
+                                struct {{{name}}} {
+                                {{#each fields}}
+                                    {{#if description}}/// @dev {{{description}}}{{/if}}
+                                    {{{type}}} {{{name}}};
+                                {{/each}}
+                                }
+                            {{/each}}
+                        {{/if}}
+
+                        {{#if enums}}
+                            // ================ Enums ================
+                            {{#each enums}}
+                                {{#if description}}/// @dev {{{description}}}{{/if}}
+                                enum {{{name}}} {
+                                {{#each values}}
+                                    {{{this}}}{{#unless @last}}, {{/unless}}
+                                {{/each}}
+                                }
+                            {{/each}}
+                        {{/if}}
+
+                        {{#if state}}
+                            // ================ State Variables ================
+                            {{#each state}}
+                                {{#if description}}/// @dev {{{description}}}{{/if}}
+                                {{#if isConstant}}constant {{/if}}{{#if isImmutable}}immutable {{/if}}{{{type}}} {{{visibility}}} {{{name}}};
+                            {{/each}}
+                        {{/if}}
+
+                        {{#if events}}
+                            // ================ Events ================
+                            {{#each events}}
+                                {{#if description}}/// @dev {{{description}}}{{/if}}
+                                event {{{name}}}(
+                                {{#each params}}
+                                    {{{type}}}{{#if indexed}} indexed{{/if}} {{{name}}}{{#unless @last}}, {{/unless}}
+                                {{/each}}
+                                );
+                            {{/each}}
+                        {{/if}}
+
+                        {{#if modifiers}}
+                            // ================ Modifiers ================
+                            {{#each modifiers}}
+                                {{#if description}}/// @dev {{{description}}}{{/if}}
+                                modifier {{{name}}}(
+                                {{#if params}}
+                                    {{#each params}}
+                                        {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                                    {{/each}}
+                                {{/if}}
+                                ) {
+                                {{#each body}}
+                                    {{{this}}}
+                                {{/each}}
+                                }
+                            {{/each}}
+                        {{/if}}
+
+                        {{#if constructor}}
+                            // ================ Constructor ================
+                            {{#if constructor.description}}/// @dev {{{constructor.description}}}{{/if}}
+                            constructor(
+                            {{#if constructor.params}}
+                                {{#each constructor.params}}
+                                    {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                                {{/each}}
+                            {{/if}}
+                            ) initializer {
+                            {{#each constructor.body}}
+                                {{{this}}}
+                            {{/each}}
+                            }
+                        {{/if}}
+
+                        {{#if functions}}
+                            // ================ Functions ================
+                            {{#each functions}}
+                                {{#if description}}/// @dev {{{description}}}{{/if}}
+                                {{#if params}}
+                                    {{#each params}}
+                                        /// @param {{name}} {{description}}
+                                    {{/each}}
+                                {{/if}}
+                                {{#if returnsDescription}}/// @return {{returnsDescription}}{{/if}}
+                                function {{{name}}}(
+                                {{#if params}}
+                                    {{#each params}}
+                                        {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                                    {{/each}}
+                                {{/if}}
+                                ) {{visibility}}{{#if isPayable}} payable{{/if}}{{#if isView}} view{{/if}}{{#if isPure}} pure{{/if}}{{#if modifiers}} {{#each modifiers}}{{this}}{{#unless @last}} {{/unless}}{{/each}}{{/if}}{{#if returns}} returns ({{{returns}}}){{/if}} {
+                                {{!-- Keep Checks-Effects-Interactions comment but print body lines in order (no unknown helper usage) --}}
+                                {{#if (and (not isView) (not isPure) (not isPayable))}}
+                                    // Checks-Effects-Interactions pattern implementation
+                                    {{#each body}}
+                                        {{{this}}}
+                                    {{/each}}
+                                {{else}}
+                                    {{#each body}}
+                                        {{{this}}}
+                                    {{/each}}
+                                {{/if}}
+                                }
+                            {{/each}}
+                        {{/if}}
+
+                        /// @dev Authorizes upgrade only for owner
+                        function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+                        }
+                    {{else}}
+                        {{#if (eq proxy.proxyType "Beacon")}}
+                            /// @title {{{name}}} (Beacon Proxy)
+                            /// @dev {{#if description}}{{description}}{{else}}Beacon Proxy for {{{name}}} implementation{{/if}}
+                            contract {{{name}}} is BeaconProxy {
+                            /// @dev Constructor for Beacon Proxy
+                            /// @param beacon Address of the beacon contract
+                            /// @param data Data to pass to the implementation contract
+                            constructor(address beacon, bytes memory data)
+                            BeaconProxy(beacon, data)
+                            {}
+                            }
+                        {{/if}}
+                    {{/if}}
+                {{/if}}
+            {{else}}
+
+            {{!-- Default (regular) contract --}}
+                /// @title {{{name}}}
+                /// @dev {{#if description}}{{description}}{{else}}Main contract implementation{{/if}}
+                contract {{{name}}} {{#if inherits}}is {{#each inherits}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}{{/if}} {
+                {{#if customErrors}}
+                    // ================ Custom Errors ================
+                    {{#each customErrors}}
+                        {{#if description}}/// @dev {{{description}}}{{/if}}
+                        error {{{name}}}({{#each params}}{{type}} {{name}}{{#unless @last}}, {{/unless}}{{/each}});
+                    {{/each}}
+                {{/if}}
+
+                {{#if structs}}
+                    // ================ Structs ================
+                    {{#each structs}}
+                        {{#if description}}/// @dev {{{description}}}{{/if}}
+                        struct {{{name}}} {
+                        {{#each fields}}
+                            {{#if description}}/// @dev {{{description}}}{{/if}}
+                            {{{type}}} {{{name}}};
+                        {{/each}}
+                        }
+                    {{/each}}
+                {{/if}}
+
+                {{#if enums}}
+                    // ================ Enums ================
+                    {{#each enums}}
+                        {{#if description}}/// @dev {{{description}}}{{/if}}
+                        enum {{{name}}} {
+                        {{#each values}}
+                            {{{this}}}{{#unless @last}}, {{/unless}}
+                        {{/each}}
+                        }
+                    {{/each}}
+                {{/if}}
+
+                {{#if state}}
+                    // ================ State Variables ================
+                    {{#each state}}
+                        {{#if description}}/// @dev {{{description}}}{{/if}}
+                        {{#if isConstant}}constant {{/if}}{{#if isImmutable}}immutable {{/if}}{{{type}}} {{{visibility}}} {{{name}}};
+                    {{/each}}
+                {{/if}}
+
+                {{#if events}}
+                    // ================ Events ================
+                    {{#each events}}
+                        {{#if description}}/// @dev {{{description}}}{{/if}}
+                        event {{{name}}}(
+                        {{#each params}}
+                            {{{type}}}{{#if indexed}} indexed{{/if}} {{{name}}}{{#unless @last}}, {{/unless}}
+                        {{/each}}
+                        );
+                    {{/each}}
+                {{/if}}
+
+                {{#if modifiers}}
+                    // ================ Modifiers ================
+                    {{#each modifiers}}
+                        {{#if description}}/// @dev {{{description}}}{{/if}}
+                        modifier {{{name}}}(
+                        {{#if params}}
+                            {{#each params}}
+                                {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                            {{/each}}
+                        {{/if}}
+                        ) {
+                        {{#each body}}
+                            {{{this}}}
+                        {{/each}}
+                        }
+                    {{/each}}
+                {{/if}}
+
+                {{#if constructor}}
+                    // ================ Constructor ================
+                    {{#if constructor.description}}/// @dev {{{constructor.description}}}{{/if}}
+                    constructor(
+                    {{#if constructor.params}}
+                        {{#each constructor.params}}
+                            {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                        {{/each}}
+                    {{/if}}
+                    ) {
+                    {{#each constructor.body}}
+                        {{{this}}}
+                    {{/each}}
+                    }
+                {{/if}}
+
+                {{#if functions}}
+                    // ================ Functions ================
+                    {{#each functions}}
+                        {{#if description}}/// @dev {{{description}}}{{/if}}
+                        {{#if params}}
+                            {{#each params}}
+                                /// @param {{name}} {{description}}
+                            {{/each}}
+                        {{/if}}
+                        {{#if returnsDescription}}/// @return {{returnsDescription}}{{/if}}
+                        function {{{name}}}(
+                        {{#if params}}
+                            {{#each params}}
+                                {{{type}}} {{{name}}}{{#unless @last}}, {{/unless}}
+                            {{/each}}
+                        {{/if}}
+                        ) {{visibility}}{{#if isPayable}} payable{{/if}}{{#if isView}} view{{/if}}{{#if isPure}} pure{{/if}}{{#if modifiers}} {{#each modifiers}}{{this}}{{#unless @last}} {{/unless}}{{/each}}{{/if}}{{#if returns}} returns ({{{returns}}}){{/if}} {
+                        {{#if (and (not isView) (not isPure) (not isPayable))}}
+                            // Checks-Effects-Interactions pattern implementation
+                            {{#each body}}
+                                {{{this}}}
+                            {{/each}}
+                        {{else}}
+                            {{#each body}}
+                                {{{this}}}
+                            {{/each}}
+                        {{/if}}
+                        }
+                    {{/each}}
+                {{/if}}
+
+                {{#if receive}}
+                    // ================ Receive Function ================
+                    {{#if receive.description}}/// @dev {{{receive.description}}}{{/if}}
+                    receive() external{{#if receive.payable}} payable{{/if}} {
+                    {{#each receive.body}}
+                        {{{this}}}
+                    {{/each}}
+                    }
+                {{/if}}
+
+                {{#if fallback}}
+                    // ================ Fallback Function ================
+                    {{#if fallback.description}}/// @dev {{{fallback.description}}}{{/if}}
+                    fallback() external{{#if fallback.payable}} payable{{/if}} {
+                    {{#each fallback.body}}
+                        {{{this}}}
+                    {{/each}}
+                    }
+                {{/if}}
+                }
+            {{/if}} {{!-- end proxy else (default contract) --}}
+        {{/if}} {{!-- end proxy conditional --}}
+    {{/if}} {{!-- end Abstract else --}}
+{{/if}} {{!-- end Library else --}}
+
+{{!-- UUPS Implementation contract (optional helper-generated block) --}}
+{{#if (and proxy (eq proxy.proxyType "UUPS"))}}
+    /// @title {{{name}}}Implementation
+    /// @dev Implementation contract for UUPS upgradeable {{{name}}} contract
+    contract {{{name}}}Implementation is {{{name}}}, UUPSUpgradeable {
+    /// @dev Authorizes upgrade only for owner
+    /// @param newImplementation Address of the new implementation contract
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    }
+{{/if}}

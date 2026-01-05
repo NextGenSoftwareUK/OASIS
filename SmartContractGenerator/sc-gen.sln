@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BADAA2ED-CCA3-47B0-B9E4-7D081637D392}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SmartContractGen", "SmartContractGen", "{A2958BF6-357A-46FC-BB5B-7FE04F48D0EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScGen.API", "src\SmartContractGen\ScGen.API\ScGen.API.csproj", "{E2E54919-85CC-47B2-96CB-D78DEE1A04E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScGen.Lib", "src\SmartContractGen\ScGen.Lib\ScGen.Lib.csproj", "{DC450E32-F4E3-4352-9D60-E5A9488BDDCE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deployments", "deployments", "{27765B9E-CD88-4D21-A7F9-B6AC75308796}"
+	ProjectSection(SolutionItems) = preProject
+		deployments\Readme.md = deployments\Readme.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{AE1FE82E-6FBA-4807-8232-D1207648634A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingBlocks", "src\common\BuildingBlocks\BuildingBlocks.csproj", "{D9E9A65C-F1F7-48E7-90D9-283D731F3ECE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0750EC5D-FFBB-4AB1-8CC6-A5CE60474A28}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Readme.md = tests\Readme.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E2E54919-85CC-47B2-96CB-D78DEE1A04E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2E54919-85CC-47B2-96CB-D78DEE1A04E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2E54919-85CC-47B2-96CB-D78DEE1A04E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2E54919-85CC-47B2-96CB-D78DEE1A04E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC450E32-F4E3-4352-9D60-E5A9488BDDCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC450E32-F4E3-4352-9D60-E5A9488BDDCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC450E32-F4E3-4352-9D60-E5A9488BDDCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC450E32-F4E3-4352-9D60-E5A9488BDDCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9E9A65C-F1F7-48E7-90D9-283D731F3ECE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9E9A65C-F1F7-48E7-90D9-283D731F3ECE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9E9A65C-F1F7-48E7-90D9-283D731F3ECE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9E9A65C-F1F7-48E7-90D9-283D731F3ECE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A2958BF6-357A-46FC-BB5B-7FE04F48D0EC} = {BADAA2ED-CCA3-47B0-B9E4-7D081637D392}
+		{E2E54919-85CC-47B2-96CB-D78DEE1A04E6} = {A2958BF6-357A-46FC-BB5B-7FE04F48D0EC}
+		{DC450E32-F4E3-4352-9D60-E5A9488BDDCE} = {A2958BF6-357A-46FC-BB5B-7FE04F48D0EC}
+		{AE1FE82E-6FBA-4807-8232-D1207648634A} = {BADAA2ED-CCA3-47B0-B9E4-7D081637D392}
+		{D9E9A65C-F1F7-48E7-90D9-283D731F3ECE} = {AE1FE82E-6FBA-4807-8232-D1207648634A}
+	EndGlobalSection
+EndGlobal
