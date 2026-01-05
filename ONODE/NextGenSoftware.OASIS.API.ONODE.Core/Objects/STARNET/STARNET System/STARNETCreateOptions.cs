@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
     {
         public T1 STARNETHolon { get; set; }
         public T2 STARNETDNA { get; set; }
+        //public string DefaultSTARNETCategory { get; set; }
         public MetaTagMappings MetaTagMappings { get; set; }
         public bool CheckIfSourcePathExists { get; set; }
         public Dictionary<string, object> CustomCreateParams { get; set; }
