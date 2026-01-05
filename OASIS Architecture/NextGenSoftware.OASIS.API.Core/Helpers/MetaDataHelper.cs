@@ -15,7 +15,10 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 CLIEngine.ShowMessage($"MetaData:", false);
 
                 foreach (string key in metaData.Keys)
-                    CLIEngine.ShowMessage(string.Concat("".PadRight(displayFieldLength), key, " = ", GetMetaValue(metaData[key])), false);
+                {
+                    if (key != "WEB5STARNFTId" && key != "{{{newnft}}}")
+                        CLIEngine.ShowMessage(string.Concat("".PadRight(displayFieldLength), key, " = ", GetMetaValue(metaData[key])), false);
+                }
                     //CLIEngine.ShowMessage(string.Concat("          ", key, " = ", GetMetaValue(metaData[key])), false);
             }
             else
@@ -29,7 +32,10 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             if (metaData != null && metaData.Keys.Count > 0)
             {
                 foreach (string key in metaData.Keys)
-                    metaDataString = string.Concat(metaDataString, key, " = ", GetMetaValue(metaData[key]), ",");
+                {
+                    if (key != "WEB5STARNFTId" && key != "{{{newnft}}}")
+                        metaDataString = string.Concat(metaDataString, key, " = ", GetMetaValue(metaData[key]), ",");
+                }
 
                 if (metaDataString.Length > 2)
                     metaDataString = metaDataString.Substring(0, metaDataString.Length - 2);
@@ -134,8 +140,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                     int i = 1;
                     foreach (var kv in metaData)
                     {
-                        CLIEngine.ShowMessage($"  {i}. {kv.Key} = {GetMetaValue(kv.Value)}");
-                        i++;
+                        if (kv.Key != "WEB5STARNFTId" && kv.Key != "{{{newnft}}}")
+                        {
+                            CLIEngine.ShowMessage($"  {i}. {kv.Key} = {GetMetaValue(kv.Value)}");
+                            i++;
+                        }
                     }
                 }
 
