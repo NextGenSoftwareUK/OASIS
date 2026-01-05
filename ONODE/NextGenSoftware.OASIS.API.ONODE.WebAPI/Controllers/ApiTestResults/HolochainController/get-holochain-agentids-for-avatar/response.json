@@ -1,0 +1,16 @@
+{
+  "resultsCount": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "savedCount": 0,
+  "loadedCount": 0,
+  "deletedCount": 0,
+  "hasAnyHolonsChanged": false,
+  "isError": true,
+  "isWarning": false,
+  "isSaved": false,
+  "isLoaded": false,
+  "isDeleted": false,
+  "message": "Unauthorized. Try Logging In First With api/avatar/authenticate REST API Route.",
+  "result": false
+}

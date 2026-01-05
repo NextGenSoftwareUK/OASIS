@@ -1,0 +1,11 @@
+{
+    "Title": "Mr",
+    "FirstName": "Test",
+    "LastName": "User",
+    "Email": "testuser@oasisplatform.world",
+    "Username": "test_user",
+    "Password": "password",
+    "ConfirmPassword": "password",
+    "AvatarType": "User",
+    "AcceptTerms": true
+}

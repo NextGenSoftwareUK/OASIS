@@ -1,0 +1,4 @@
+Timestamp: 2026-01-03 16:47:42
+Error: HTTP 404
+URL: http://localhost:5002/api/wallet/create-wallet/avatar/00000000-0000-0000-0000-000000000000/create-wallet
+Response: 

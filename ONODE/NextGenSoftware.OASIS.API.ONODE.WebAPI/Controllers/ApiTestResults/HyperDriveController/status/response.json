@@ -1,0 +1,37 @@
+{
+  "resultsCount": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "savedCount": 0,
+  "loadedCount": 0,
+  "deletedCount": 0,
+  "hasAnyHolonsChanged": false,
+  "isError": false,
+  "isWarning": false,
+  "isSaved": false,
+  "isLoaded": false,
+  "isDeleted": false,
+  "message": "HyperDrive status retrieved successfully.",
+  "result": {
+    "isEnabled": true,
+    "autoFailoverEnabled": true,
+    "autoReplicationEnabled": true,
+    "autoLoadBalancingEnabled": true,
+    "defaultStrategy": 0,
+    "enabledProviders": [
+      42,
+      44,
+      7,
+      39
+    ],
+    "loadBalancingProviders": [
+      42,
+      44,
+      7,
+      39
+    ],
+    "totalProviders": 4,
+    "activeProviders": 4,
+    "lastHealthCheck": "2026-01-05T05:12:57.3955961Z"
+  }
+}

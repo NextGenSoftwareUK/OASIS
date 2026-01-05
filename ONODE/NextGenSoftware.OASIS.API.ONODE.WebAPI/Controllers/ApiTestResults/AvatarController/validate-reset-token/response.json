@@ -1,0 +1,33 @@
+{
+  "showDetailedSettings": false,
+  "result": {
+    "resultsCount": 0,
+    "errorCount": 0,
+    "warningCount": 0,
+    "savedCount": 0,
+    "loadedCount": 0,
+    "deletedCount": 0,
+    "hasAnyHolonsChanged": false,
+    "isError": true,
+    "isWarning": false,
+    "isSaved": false,
+    "isLoaded": false,
+    "isDeleted": false,
+    "message": "",
+    "result": "Invalid token"
+  },
+  "oasisVersion": "4.4.4",
+  "autoLoadBalanceEnabled": true,
+  "autoFailOverEnabled": true,
+  "autoReplicationEnabled": false,
+  "currentOASISProvider": "MongoDBOASIS",
+  "version": "1.1",
+  "content": {
+    "headers": []
+  },
+  "statusCode": 200,
+  "reasonPhrase": "OK",
+  "headers": [],
+  "trailingHeaders": [],
+  "isSuccessStatusCode": true
+}

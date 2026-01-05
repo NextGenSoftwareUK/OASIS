@@ -1,0 +1,4 @@
+Timestamp: 2026-01-03 16:46:22
+Error: HTTP 400
+URL: http://localhost:5002/api/avatar/reset-password
+Response: {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"ConfirmNewPassword":["The ConfirmNewPassword field is required.","'ConfirmNewPassword' and 'NewPassword' do not match."]},"traceId":"00-25a5a83126649164efea2bd3087a245c-38964110914f6004-00"}

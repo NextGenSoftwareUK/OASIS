@@ -1,0 +1,8 @@
+{
+    "holon": {
+        "name": "Test Holon",
+        "description": "Created by Automated Test",
+        "holonType": "Park"
+    },
+    "saveChildren": false
+}

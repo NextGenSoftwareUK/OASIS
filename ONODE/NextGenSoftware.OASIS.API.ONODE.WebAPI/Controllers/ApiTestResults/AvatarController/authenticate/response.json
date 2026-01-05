@@ -1,0 +1,92 @@
+{
+  "showDetailedSettings": true,
+  "result": {
+    "resultsCount": 0,
+    "errorCount": 0,
+    "warningCount": 0,
+    "savedCount": 0,
+    "loadedCount": 0,
+    "deletedCount": 0,
+    "hasAnyHolonsChanged": false,
+    "isError": false,
+    "isWarning": false,
+    "isSaved": true,
+    "isLoaded": true,
+    "isDeleted": false,
+    "message": "Avatar Successfully Authenticated.",
+    "result": {
+      "providerWallets": {},
+      "providerUsername": {},
+      "avatarId": "d8526418-9a99-434b-8023-7445aed579cf",
+      "title": "Admin",
+      "firstName": "Super",
+      "lastName": "Admin",
+      "fullName": "Super Admin",
+      "fullNameWithTitle": "Admin Super Admin",
+      "username": "super_admin",
+      "email": "superadmin@oasisplatform.world",
+      "password": "$2a$11$veatK8kJSfni.2rMQdnbf.pEn82fCdk8Rmk6oOnzhOINmJkXqOruG",
+      "avatarType": {
+        "value": 3,
+        "name": "Admin"
+      },
+      "acceptTerms": false,
+      "isVerified": true,
+      "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ4NTI2NDE4LTlhOTktNDM0Yi04MDIzLTc0NDVhZWQ1NzljZiIsIm5iZiI6MTc2NzU4OTg2NCwiZXhwIjoxNzY3NTkwNzY0LCJpYXQiOjE3Njc1ODk4NjR9.XM68mq7SXZ-wPQwsoIzJ7vk9U8kM2USret9ehV9eU24",
+      "refreshToken": "5A7178AA31FA9614C37B1C206E4556994A397E5147E2D286A568A597BCC0F0426F31DEA03D8EB954",
+      "verified": "2026-01-05T04:44:15.05Z",
+      "lastBeamedIn": "2026-01-05T05:11:04.1691099+00:00",
+      "isBeamedIn": true,
+      "parentHolonId": "00000000-0000-0000-0000-000000000000",
+      "children": [],
+      "allChildren": [],
+      "id": "d8526418-9a99-434b-8023-7445aed579cf",
+      "name": "Super Admin",
+      "holonType": 3,
+      "isActive": true,
+      "metaData": {},
+      "createdOASISType": {
+        "value": 0,
+        "name": "OASISBootLoader"
+      },
+      "createdProviderType": {
+        "value": 42,
+        "name": "MongoDBOASIS"
+      },
+      "isChanged": false,
+      "isNewHolon": false,
+      "isSaving": false,
+      "previousVersionId": "00000000-0000-0000-0000-000000000000",
+      "previousVersionProviderUniqueStorageKey": {},
+      "providerMetaData": {},
+      "providerUniqueStorageKey": {
+        "MongoDBOASIS": "695b419f3c0824a648c0d7ae"
+      },
+      "createdByAvatarId": "d8526418-9a99-434b-8023-7445aed579cf",
+      "createdDate": "2026-01-05T04:44:14.839Z",
+      "modifiedByAvatarId": "d8526418-9a99-434b-8023-7445aed579cf",
+      "modifiedDate": "2026-01-05T05:11:04.1691137+00:00",
+      "deletedByAvatarId": "00000000-0000-0000-0000-000000000000",
+      "deletedDate": "0001-01-01T00:00:00Z",
+      "version": 0,
+      "versionId": "00000000-0000-0000-0000-000000000000"
+    }
+  },
+  "oasisVersion": "4.4.4",
+  "autoLoadBalanceEnabled": true,
+  "autoFailOverEnabled": true,
+  "autoReplicationEnabled": false,
+  "autoLoadBalanceProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS & ThreeFoldOASIS",
+  "autoFailOverProviders": "MongoDBOASIS, ArbitrumOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS & ThreeFoldOASIS",
+  "autoReplicationProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS & ThreeFoldOASIS",
+  "currentOASISProvider": "MongoDBOASIS",
+  "version": "1.1",
+  "content": {
+    "headers": []
+  },
+  "statusCode": 200,
+  "reasonPhrase": "OK",
+  "headers": [],
+  "trailingHeaders": [],
+  "isSuccessStatusCode": true
+}

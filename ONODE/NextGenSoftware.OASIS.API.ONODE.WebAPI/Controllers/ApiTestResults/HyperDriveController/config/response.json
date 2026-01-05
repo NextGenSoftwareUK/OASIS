@@ -1,0 +1,249 @@
+{
+  "resultsCount": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "savedCount": 0,
+  "loadedCount": 0,
+  "deletedCount": 0,
+  "hasAnyHolonsChanged": false,
+  "isError": false,
+  "isWarning": false,
+  "isSaved": false,
+  "isLoaded": false,
+  "isDeleted": false,
+  "message": "HyperDrive configuration retrieved successfully.",
+  "result": {
+    "isEnabled": true,
+    "defaultStrategy": "Auto",
+    "autoFailoverEnabled": true,
+    "autoReplicationEnabled": true,
+    "autoLoadBalancingEnabled": true,
+    "maxRetryAttempts": 3,
+    "requestTimeoutMs": 5000,
+    "healthCheckIntervalMs": 30000,
+    "maxConcurrentRequests": 100,
+    "performanceWeight": 0.4,
+    "costWeight": 0.3,
+    "geographicWeight": 0.2,
+    "availabilityWeight": 0.1,
+    "latencyWeight": 0.5,
+    "throughputWeight": 0.3,
+    "reliabilityWeight": 0.2,
+    "maxLatencyThresholdMs": 200,
+    "maxErrorRateThreshold": 0.05,
+    "minUptimeThreshold": 99,
+    "enabledProviders": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "EthereumOASIS",
+      "IPFSOASIS"
+    ],
+    "autoFailoverProviders": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS"
+    ],
+    "autoReplicationProviders": [
+      "EthereumOASIS",
+      "IPFSOASIS"
+    ],
+    "loadBalancingProviders": [
+      "MongoDBOASIS",
+      "SQLLiteDBOASIS",
+      "EthereumOASIS",
+      "IPFSOASIS"
+    ],
+    "providerConfigs": {
+      "MongoDBOASIS": {
+        "providerType": "MongoDBOASIS",
+        "isEnabled": true,
+        "weight": 80,
+        "timeoutMs": 5000,
+        "maxConnections": 100,
+        "errorThreshold": 0.05,
+        "minUptime": 99,
+        "maxLatencyMs": 200,
+        "customSettings": {}
+      },
+      "SQLLiteDBOASIS": {
+        "providerType": "SQLLiteDBOASIS",
+        "isEnabled": true,
+        "weight": 90,
+        "timeoutMs": 3000,
+        "maxConnections": 50,
+        "errorThreshold": 0.02,
+        "minUptime": 99.5,
+        "maxLatencyMs": 100,
+        "customSettings": {}
+      },
+      "EthereumOASIS": {
+        "providerType": "EthereumOASIS",
+        "isEnabled": true,
+        "weight": 70,
+        "timeoutMs": 10000,
+        "maxConnections": 20,
+        "errorThreshold": 0.1,
+        "minUptime": 95,
+        "maxLatencyMs": 1000,
+        "customSettings": {}
+      },
+      "IPFSOASIS": {
+        "providerType": "IPFSOASIS",
+        "isEnabled": true,
+        "weight": 75,
+        "timeoutMs": 8000,
+        "maxConnections": 30,
+        "errorThreshold": 0.08,
+        "minUptime": 97,
+        "maxLatencyMs": 500,
+        "customSettings": {}
+      }
+    },
+    "geographicConfig": {
+      "isEnabled": true,
+      "defaultRegion": "Global",
+      "userLocation": "Unknown",
+      "maxDistanceKm": 500,
+      "maxNetworkHops": 10,
+      "maxLatencyMs": 200,
+      "regions": {
+        "US-East": {
+          "name": "US-East",
+          "country": "United States",
+          "city": "New York",
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "EST",
+          "maxLatencyMs": 100,
+          "maxNetworkHops": 5
+        },
+        "US-West": {
+          "name": "US-West",
+          "country": "United States",
+          "city": "San Francisco",
+          "latitude": 37.7749,
+          "longitude": -122.4194,
+          "timeZone": "PST",
+          "maxLatencyMs": 100,
+          "maxNetworkHops": 5
+        },
+        "Europe": {
+          "name": "Europe",
+          "country": "United Kingdom",
+          "city": "London",
+          "latitude": 51.5074,
+          "longitude": -0.1278,
+          "timeZone": "GMT",
+          "maxLatencyMs": 150,
+          "maxNetworkHops": 7
+        },
+        "Asia": {
+          "name": "Asia",
+          "country": "Japan",
+          "city": "Tokyo",
+          "latitude": 35.6762,
+          "longitude": 139.6503,
+          "timeZone": "JST",
+          "maxLatencyMs": 200,
+          "maxNetworkHops": 10
+        }
+      }
+    },
+    "costConfig": {
+      "isEnabled": true,
+      "currency": "USD",
+      "maxCostPerOperation": 1,
+      "maxStorageCostPerGB": 0.1,
+      "maxComputeCostPerHour": 0.5,
+      "maxNetworkCostPerGB": 0.05,
+      "providerCosts": {
+        "MongoDBOASIS": {
+          "providerType": "MongoDBOASIS",
+          "storageCostPerGB": 0.05,
+          "computeCostPerHour": 0.1,
+          "networkCostPerGB": 0.02,
+          "transactionCost": 0.001,
+          "apiCallCost": 0.0001,
+          "totalCost": 0.15,
+          "currency": "USD",
+          "lastUpdated": "2026-01-05T05:01:20.2269039Z",
+          "costEfficiencyScore": 85
+        },
+        "SQLLiteDBOASIS": {
+          "providerType": "SQLLiteDBOASIS",
+          "storageCostPerGB": 0.01,
+          "computeCostPerHour": 0.05,
+          "networkCostPerGB": 0,
+          "transactionCost": 0.0001,
+          "apiCallCost": 1e-05,
+          "totalCost": 0.06,
+          "currency": "USD",
+          "lastUpdated": "2026-01-05T05:01:20.2269449Z",
+          "costEfficiencyScore": 95
+        },
+        "EthereumOASIS": {
+          "providerType": "EthereumOASIS",
+          "storageCostPerGB": 0.2,
+          "computeCostPerHour": 0.5,
+          "networkCostPerGB": 0.1,
+          "transactionCost": 0.01,
+          "apiCallCost": 0.001,
+          "totalCost": 0.81,
+          "currency": "USD",
+          "lastUpdated": "2026-01-05T05:01:20.2269452Z",
+          "costEfficiencyScore": 60
+        },
+        "IPFSOASIS": {
+          "providerType": "IPFSOASIS",
+          "storageCostPerGB": 0.03,
+          "computeCostPerHour": 0.15,
+          "networkCostPerGB": 0.01,
+          "transactionCost": 0.0005,
+          "apiCallCost": 0.0001,
+          "totalCost": 0.19,
+          "currency": "USD",
+          "lastUpdated": "2026-01-05T05:01:20.2269454Z",
+          "costEfficiencyScore": 80
+        }
+      }
+    },
+    "performanceConfig": {
+      "isEnabled": true,
+      "maxResponseTimeMs": 1000,
+      "maxErrorRate": 0.05,
+      "minUptime": 99,
+      "minThroughputMbps": 10,
+      "maxConcurrentConnections": 100,
+      "queueDepthThreshold": 50,
+      "maxCpuUsage": 80,
+      "maxMemoryUsage": 80
+    },
+    "securityConfig": {
+      "isEnabled": true,
+      "requireEncryption": true,
+      "requireAuthentication": true,
+      "requireAuthorization": true,
+      "maxRetryAttempts": 3,
+      "sessionTimeoutMs": 300000,
+      "maxConcurrentSessions": 10,
+      "allowedIPs": [],
+      "blockedIPs": [],
+      "securityHeaders": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block"
+      }
+    },
+    "monitoringConfig": {
+      "isEnabled": true,
+      "metricsCollectionIntervalMs": 30000,
+      "maxMetricsHistory": 100,
+      "alertThreshold": 5,
+      "enableRealTimeMonitoring": true,
+      "enablePerformanceProfiling": true,
+      "enableCostTracking": true,
+      "enableGeographicTracking": true,
+      "monitoringEndpoints": [],
+      "customMetrics": {}
+    }
+  }
+}

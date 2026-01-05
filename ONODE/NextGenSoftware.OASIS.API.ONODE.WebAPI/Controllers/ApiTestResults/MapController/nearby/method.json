@@ -1,0 +1,4 @@
+{
+    "method": "GET",
+    "url_suffix": "?latitude=0&longitude=0&radiusKm=10"
+}

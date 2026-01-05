@@ -1,0 +1,4 @@
+Timestamp: 2026-01-03 16:47:46
+Error: HTTP 404
+URL: http://localhost:5002/api/wallet/wallet-analytics/avatar/00000000-0000-0000-0000-000000000000/wallet/00000000-0000-0000-0000-000000000000/analytics
+Response: 
