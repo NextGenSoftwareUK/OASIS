@@ -1,0 +1,7 @@
+{
+    "FromWalletAddress": "0x000000",
+    "ToWalletAddress": "0x000000",
+    "FromProvider": "Solana",
+    "ToProvider": "Solana",
+    "Amount": 1
+}

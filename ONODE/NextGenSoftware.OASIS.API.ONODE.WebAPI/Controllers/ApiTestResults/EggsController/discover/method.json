@@ -1,0 +1,4 @@
+{
+    "method": "POST",
+    "url_suffix": "?eggType=Golden&name=MyFirstEgg&locationId=00000000-0000-0000-0000-000000000000&locationName=TestLoc&discoveryMethod=Exploration"
+}

@@ -291,7 +291,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            app.UseHttpsRedirection();
+            if (Configuration.GetValue<bool>("UseHttpsRedirection"))
+                app.UseHttpsRedirection();
 
             app.UseRouting();
             //app.UseSession();

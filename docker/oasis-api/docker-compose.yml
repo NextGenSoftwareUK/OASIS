@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  oasis-api:
+    image: oasis-api:latest
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - UseHttpsRedirection=false
+      - OASIS_DNA__Storage__MongoDBOASIS__ConnectionString=mongodb://oasis:oasis123@mongodb:27017/OASISAPI_DEV
+      - OASIS_DNA__OASIS__Security__SecretKey=98765432-ABCD-EF01-2345-678901234567-SECRET-KEY
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  oasis-network:
+    external: true

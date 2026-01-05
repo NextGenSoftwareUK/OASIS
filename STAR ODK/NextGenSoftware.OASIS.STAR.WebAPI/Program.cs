@@ -152,7 +152,8 @@ app.UseSwaggerUI(c =>
     };
 });
 
-app.UseHttpsRedirection();
+if (builder.Configuration.GetValue<bool>("UseHttpsRedirection"))
+    app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
