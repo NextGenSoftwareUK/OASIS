@@ -1,0 +1,4 @@
+Timestamp: 2026-01-03 16:46:34
+Error: HTTP 404
+URL: http://localhost:5002/api/chat/history/history/{{SessionId}}
+Response: 

@@ -1,0 +1,28 @@
+{
+  "resultsCount": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "savedCount": 0,
+  "loadedCount": 0,
+  "deletedCount": 0,
+  "hasAnyHolonsChanged": false,
+  "isError": false,
+  "isWarning": false,
+  "isSaved": false,
+  "isLoaded": false,
+  "isDeleted": false,
+  "message": "System configuration retrieved successfully.",
+  "result": {
+    "version": "4.4.4",
+    "environment": "Development",
+    "timestamp": "2026-01-05T05:14:02.7269455Z",
+    "features": {
+      "karmaSystem": true,
+      "giftSystem": true,
+      "chatSystem": true,
+      "questSystem": true,
+      "achievementSystem": true,
+      "leaderboardSystem": true
+    }
+  }
+}

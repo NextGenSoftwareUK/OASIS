@@ -1,0 +1,4 @@
+{
+    "method": "DELETE",
+    "url_suffix": "/{{FileId}}"
+}

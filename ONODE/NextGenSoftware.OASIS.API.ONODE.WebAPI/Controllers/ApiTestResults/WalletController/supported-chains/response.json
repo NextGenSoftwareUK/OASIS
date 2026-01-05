@@ -1,0 +1,87 @@
+{
+  "resultsCount": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "savedCount": 0,
+  "loadedCount": 0,
+  "deletedCount": 0,
+  "hasAnyHolonsChanged": false,
+  "isError": false,
+  "isWarning": false,
+  "isSaved": false,
+  "isLoaded": true,
+  "isDeleted": false,
+  "message": "Supported chains retrieved successfully",
+  "result": [
+    {
+      "id": "ethereum",
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "icon": "ethereum.png",
+      "isActive": true
+    },
+    {
+      "id": "bitcoin",
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "icon": "bitcoin.png",
+      "isActive": true
+    },
+    {
+      "id": "solana",
+      "name": "Solana",
+      "symbol": "SOL",
+      "icon": "solana.png",
+      "isActive": true
+    },
+    {
+      "id": "polygon",
+      "name": "Polygon",
+      "symbol": "MATIC",
+      "icon": "polygon.png",
+      "isActive": true
+    },
+    {
+      "id": "arbitrum",
+      "name": "Arbitrum",
+      "symbol": "ARB",
+      "icon": "arbitrum.png",
+      "isActive": true
+    },
+    {
+      "id": "optimism",
+      "name": "Optimism",
+      "symbol": "OP",
+      "icon": "optimism.png",
+      "isActive": true
+    },
+    {
+      "id": "base",
+      "name": "Base",
+      "symbol": "BASE",
+      "icon": "base.png",
+      "isActive": true
+    },
+    {
+      "id": "avalanche",
+      "name": "Avalanche",
+      "symbol": "AVAX",
+      "icon": "avalanche.png",
+      "isActive": true
+    },
+    {
+      "id": "bnb",
+      "name": "BNB Chain",
+      "symbol": "BNB",
+      "icon": "bnb.png",
+      "isActive": true
+    },
+    {
+      "id": "fantom",
+      "name": "Fantom",
+      "symbol": "FTM",
+      "icon": "fantom.png",
+      "isActive": true
+    }
+  ]
+}

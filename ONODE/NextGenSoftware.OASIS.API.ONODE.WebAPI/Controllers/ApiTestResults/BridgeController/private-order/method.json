@@ -1,0 +1,4 @@
+{
+    "method": "POST",
+    "route_override": "v1/bridge/orders/private"
+}

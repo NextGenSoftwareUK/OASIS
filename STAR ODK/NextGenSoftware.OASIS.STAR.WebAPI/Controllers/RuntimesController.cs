@@ -466,7 +466,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Runtimes.SearchAsync<Runtime>(AvatarId, request.SearchTerm, true, false, 0);
+                var result = await _starAPI.Runtimes.SearchAsync<Runtime>(avatarId: AvatarId, searchTerm: request.SearchTerm, searchOnlyForCurrentAvatar: true, showAllVersions: false, version: 0);
                 return Ok(result);
             }
             catch (Exception ex)

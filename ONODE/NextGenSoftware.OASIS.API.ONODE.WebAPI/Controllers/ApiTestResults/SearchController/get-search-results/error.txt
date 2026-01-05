@@ -1,0 +1,4 @@
+Timestamp: 2026-01-03 16:47:31
+Error: HTTP 400
+URL: http://localhost:5002/api/search/get-search-results?query=test
+Response: {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"":["A non-empty request body is required."]},"traceId":"00-c1c96d6a9c1ba449c9ee22c910072a49-d6a0f8c3241ffc06-00"}
