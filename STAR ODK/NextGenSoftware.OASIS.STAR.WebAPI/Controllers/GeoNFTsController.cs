@@ -684,7 +684,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public HolonType HolonSubType { get; set; } = HolonType.GeoNFT;
+        public HolonType HolonSubType { get; set; } = HolonType.Default;
         public string SourceFolderPath { get; set; } = "";
         public ISTARNETCreateOptions<STARGeoNFT, STARNETDNA> CreateOptions { get; set; } = null;
     }

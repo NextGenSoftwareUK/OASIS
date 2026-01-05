@@ -1,0 +1,6 @@
+{
+    "FromWalletId": "00000000-0000-0000-0000-000000000000",
+    "ToWalletAddress": "0x123...",
+    "Token": "ETH",
+    "Amount": 0.1
+}

@@ -235,7 +235,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.CelestialBodiesMetaDataDNA.SearchAsync<CelestialBodyMetaDataDNA>(AvatarId, searchTerm, true, showAllVersions, version);
+                var result = await _starAPI.CelestialBodiesMetaDataDNA.SearchAsync<CelestialBodyMetaDataDNA>(avatarId: AvatarId, searchTerm: searchTerm, searchOnlyForCurrentAvatar: true, showAllVersions: showAllVersions, version: version);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -402,7 +402,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.CelestialBodiesMetaDataDNA.SearchAsync<CelestialBodyMetaDataDNA>(AvatarId, request.SearchTerm, true);
+                var result = await _starAPI.CelestialBodiesMetaDataDNA.SearchAsync<CelestialBodyMetaDataDNA>(avatarId: AvatarId, searchTerm: request.SearchTerm, searchOnlyForCurrentAvatar: true);
                 return Ok(result);
             }
             catch (Exception ex)

@@ -1,0 +1,6 @@
+{
+    "FromToken": "SOL",
+    "ToToken": "ETH",
+    "Amount": 10.5,
+    "DestinationAddress": "0x123..."
+}

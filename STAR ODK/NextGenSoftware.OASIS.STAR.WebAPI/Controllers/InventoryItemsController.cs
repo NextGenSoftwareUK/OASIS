@@ -594,7 +594,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.InventoryItems.SearchAsync<InventoryItem>(AvatarId, request.SearchTerm, true, false, 0);
+                var result = await _starAPI.InventoryItems.SearchAsync<InventoryItem>(avatarId: AvatarId, searchTerm: request.SearchTerm, searchOnlyForCurrentAvatar: true, showAllVersions: false, version: 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -613,7 +613,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public HolonType HolonSubType { get; set; } = HolonType.InventoryItem;
+        public HolonType HolonSubType { get; set; } = HolonType.Default;
         public string SourceFolderPath { get; set; } = "";
         public ISTARNETCreateOptions<InventoryItem, STARNETDNA> CreateOptions { get; set; } = null;
     }

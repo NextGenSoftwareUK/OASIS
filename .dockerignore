@@ -15,43 +15,18 @@ Logos/
 **/publish/
 
 # IDE files
-.vs/
-.vscode/
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
+**/.vs/
+**/.vscode/
 
-# Test files
-**/TestHarness/
-**/UnitTests/
-**/IntegrationTests/
-**/TestResults/
-
-# Logs
-*.log
-build.log
-build_errors.txt
-
-# Archives
-*.zip
-*.rar
-*.7z
-
-# Node modules (if any)
-node_modules/
-npm-debug.log*
-
-# Temporary files
-*.tmp
-*.temp
-.DS_Store
-Thumbs.db
+# Node modules
+**/node_modules/
+**/npm-debug.log*
 
 # Large directories that aren't needed for build
 Archived/
-External Libs/
+# External Libs/ # Needed for build now
 lumina-j5-bootstrap/
+_CLEANUP_ARCHIVE/
 
 # Package files
 *.nupkg

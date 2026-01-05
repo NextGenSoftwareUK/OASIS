@@ -1,0 +1,4 @@
+Timestamp: 2026-01-03 16:46:32
+Error: HTTP 400
+URL: http://localhost:5002/api/v1/bridge/viewing-keys/audit
+Response: {"error":"Bridge manager not initialized","isError":true}

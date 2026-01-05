@@ -696,7 +696,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IEnumerable<IWeb4NFT>>> SearchWeb4NFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            return await NFTManager.SearchWeb4NFTsAsync(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType);
+            return await NFTManager.SearchWeb4NFTsAsync(searchTerm, avatarId, null, MetaKeyValuePairMatchMode.All, searchOnlyForCurrentAvatar, providerType);
         }
 
         /// <summary>
@@ -714,7 +714,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> SearchWeb4GeoNFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            return await NFTManager.SearchWeb4GeoNFTsAsync(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType);
+            return await NFTManager.SearchWeb4GeoNFTsAsync(searchTerm, avatarId, null, MetaKeyValuePairMatchMode.All, searchOnlyForCurrentAvatar, providerType);
         }
 
         /// <summary>
@@ -732,7 +732,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> SearchWeb4NFTCollectionsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            return await NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType);
+            return await NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, avatarId, null, MetaKeyValuePairMatchMode.All, searchOnlyForCurrentAvatar, providerType);
         }
     }
 }

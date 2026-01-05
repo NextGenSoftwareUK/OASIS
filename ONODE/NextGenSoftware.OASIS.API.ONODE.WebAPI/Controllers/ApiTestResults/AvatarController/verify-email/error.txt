@@ -1,0 +1,4 @@
+Timestamp: 2026-01-03 16:46:26
+Error: HTTP 404
+URL: http://localhost:5002/api/avatar/verify-email/dummy_token
+Response: 

@@ -1,0 +1,4 @@
+{
+    "method": "POST",
+    "url_suffix": "/{{EggId}}"
+}

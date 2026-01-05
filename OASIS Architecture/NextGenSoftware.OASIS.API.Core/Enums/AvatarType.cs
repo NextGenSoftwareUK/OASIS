@@ -4,6 +4,7 @@
     {
         Wizard, 
         User,
-        System
+        System,
+        Admin
     }
 }

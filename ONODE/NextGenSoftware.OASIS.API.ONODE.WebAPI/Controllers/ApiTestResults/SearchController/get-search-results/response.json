@@ -1,0 +1,16 @@
+{
+  "resultsCount": 0,
+  "errorCount": 1,
+  "warningCount": 13,
+  "savedCount": 0,
+  "loadedCount": 0,
+  "deletedCount": 0,
+  "hasAnyHolonsChanged": false,
+  "isError": true,
+  "isWarning": true,
+  "isSaved": false,
+  "isLoaded": false,
+  "isDeleted": false,
+  "message": "All registered OASIS Providers in the AutoFailOverList failed to search. ErrorCount: 0. WarningCount: 13. Please view the logs or DetailedMessage property for more information. Providers in the list are: MongoDBOASIS, ArbitrumOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS & ThreeFoldOASIS",
+  "detailedMessage": "Error Details: Error in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\nError in SearchProviderAsync method in SearchManager for provider MongoDBOASIS. Reason: One or more errors occurred. (Object reference not set to an instance of an object.)\n\n"
+}

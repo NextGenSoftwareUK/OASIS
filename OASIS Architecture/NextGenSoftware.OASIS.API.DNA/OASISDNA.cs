@@ -11,6 +11,15 @@ namespace NextGenSoftware.OASIS.API.DNA
         public OASIS OASIS { get; set; }
     }
 
+    public class AdminConfig
+    {
+        public string AdminEmail { get; set; }
+        public string AdminUsername { get; set; }
+        public string AdminPassword { get; set; }
+        public string AdminFirstName { get; set; }
+        public string AdminLastName { get; set; }
+    }
+
     public class OASIS
     {
         //public string CurrentLiveVersion { get; set; }
@@ -41,6 +50,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         // Stats caching controls
         public bool StatsCacheEnabled { get; set; } = false;
         public int StatsCacheTtlSeconds { get; set; } = 45;
+
+        public List<AdminConfig> Admins { get; set; } = new List<AdminConfig>();
     }
 
     public class SecuritySettings

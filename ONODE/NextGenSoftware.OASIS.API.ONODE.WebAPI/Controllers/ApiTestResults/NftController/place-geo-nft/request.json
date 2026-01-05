@@ -1,0 +1,6 @@
+{
+    "OriginalOASISNFTOffChainProvider": "MongoDBOASIS",
+    "GeoNFTMetaDataProvider": "MongoDBOASIS",
+    "Lat": 0,
+    "Long": 0
+}

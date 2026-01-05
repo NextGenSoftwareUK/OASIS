@@ -1,0 +1,33 @@
+{
+  "showDetailedSettings": false,
+  "result": {
+    "resultsCount": 0,
+    "errorCount": 0,
+    "warningCount": 0,
+    "savedCount": 0,
+    "loadedCount": 0,
+    "deletedCount": 0,
+    "hasAnyHolonsChanged": false,
+    "isError": false,
+    "isWarning": false,
+    "isSaved": true,
+    "isLoaded": false,
+    "isDeleted": false,
+    "message": "Verification successful, you can now login",
+    "result": true
+  },
+  "oasisVersion": "4.4.4",
+  "autoLoadBalanceEnabled": true,
+  "autoFailOverEnabled": true,
+  "autoReplicationEnabled": false,
+  "currentOASISProvider": "MongoDBOASIS",
+  "version": "1.1",
+  "content": {
+    "headers": []
+  },
+  "statusCode": 200,
+  "reasonPhrase": "OK",
+  "headers": [],
+  "trailingHeaders": [],
+  "isSuccessStatusCode": true
+}

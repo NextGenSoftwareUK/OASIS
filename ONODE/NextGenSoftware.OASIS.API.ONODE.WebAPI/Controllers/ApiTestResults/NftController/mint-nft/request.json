@@ -1,0 +1,8 @@
+{
+    "Title": "Test NFT",
+    "Description": "Automated Test NFT",
+    "OnChainProvider": "None",
+    "OffChainProvider": "None",
+    "NFTOffChainMetaType": "OASIS",
+    "NFTStandardType": "ERC1155"
+}

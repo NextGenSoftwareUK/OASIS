@@ -1,0 +1,4 @@
+{
+    "method": "GET",
+    "route_override": "v1/bridge/orders/00000000-0000-0000-0000-000000000000/check-balance"
+}

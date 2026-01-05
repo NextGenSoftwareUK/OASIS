@@ -46,32 +46,49 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
         }
 
-        /// <summary>
-        /// Register a new avatar with the OASIS system.
-        /// </summary>
-        /// <param name="model">Registration details including username, email, password, and optional provider preferences.</param>
-        /// <returns>OASIS result containing the newly created avatar or error details.</returns>
-        /// <response code="200">Avatar successfully registered</response>
-        /// <response code="400">Invalid registration data or user already exists</response>
-        [HttpPost("register")]
-        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model)
-        {
-            // Call AvatarManager directly
-            var result = await AvatarManager.RegisterAsync(
-                model.Title,
-                model.FirstName,
-                model.LastName,
-                model.Email,
-                model.Password,
-                model.Username,
-                model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
-                OASISType.OASISAPIREST
-            );
+        // /// <summary>
+        // /// Register a new avatar with the OASIS system.
+        // /// </summary>
+        // /// <param name="model">Registration details including username, email, password, and optional provider preferences.</param>
+        // /// <returns>OASIS result containing the newly created avatar or error details.</returns>
+        // /// <response code="200">Avatar successfully registered</response>
+        // /// <response code="400">Invalid registration data or user already exists</response>
+        // [HttpPost("register")]
+        // [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        // [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        // public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model)
+        // {
+        //     AvatarType avatarType = model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User;
+
+        //     if (avatarType == AvatarType.Wizard || avatarType == AvatarType.Admin)
+        //     {
+        //          var adminResult = await AvatarManager.RegisterAdminAsync(
+        //             model.FirstName,
+        //             model.LastName,
+        //             model.Email,
+        //             model.Username,
+        //             model.Password,
+        //             OASISType.OASISAPIREST,
+        //             avatarTitle: model.Title,
+        //             avatarType: avatarType
+        //         );
+        //          return HttpResponseHelper.FormatResponse(adminResult);
+        //     }
+
+        //     // Call AvatarManager directly
+        //     var result = await AvatarManager.RegisterAsync(
+        //         model.Title,
+        //         model.FirstName,
+        //         model.LastName,
+        //         model.Email,
+        //         model.Password,
+        //         model.Username,
+        //         avatarType,
+        //         OASISType.OASISAPIREST
+        //     );
             
-            return HttpResponseHelper.FormatResponse(result);
-        }
+        //     return HttpResponseHelper.FormatResponse(result);
+        // }
 
         /// <summary>
         ///     Register a new avatar. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to

@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017" # Exposed to host for tools/debugging
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=oasis
+      - MONGO_INITDB_ROOT_PASSWORD=oasis123
+      - MONGO_INITDB_DATABASE=OASISAPI_DEV
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - oasis-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # Mongo Express (Web UI)
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: oasis
+      ME_CONFIG_MONGODB_ADMINPASSWORD: oasis123
+      ME_CONFIG_MONGODB_URL: mongodb://oasis:oasis123@mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
+    networks:
+      - oasis-network
+    depends_on:
+      - mongodb
+
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: oasis
+      POSTGRES_USER: oasis
+      POSTGRES_PASSWORD: oasis123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - oasis-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - oasis-network
+
+networks:
+  oasis-network:
+    external: true # Expects network to exist (script must create it)
+
+volumes:
+  postgres_data:
+  mongodb_data:

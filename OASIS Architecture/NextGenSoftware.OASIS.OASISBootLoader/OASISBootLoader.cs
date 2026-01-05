@@ -296,22 +296,49 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             LoggingManager.EndLogAction($"DONE", LogType.Info);
                             LoggingManager.BeginLogAction($"OASIS System Account Not Found So Generating For Email {SYSTEM_EMAIL} Now...", LogType.Info);
 
-                            //TODO: Need to make this more secure in future to prevent others creating similar accounts (but none will ever have AvatarType of System, this is the only place that can be created but we need to make sure a normal user accout is not hacked or changed to a system one. But currently it cannot do any harm because this system account is currently not used for anything, it simply creates the default OASIS Omniverse when STAR CLI first boots up on a running ONODE (before a avatar is created or logged in).
+                            //TODO: Need to make this more secure in future to prevent others creating similar accounts 
+                            // (but none will ever have AvatarType of System, this is the only place that can be created but we need to make sure a normal user accout is not hacked or changed to a system one. 
+                            // But currently it cannot do any harm because this system account is currently not used for anything, it simply creates the default 
+                            // OASIS Omniverse when STAR CLI first boots up on a running ONODE (before a avatar is created or logged in).
                             CLIEngine.SupressConsoleLogging = true;
                             //OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", OASISDNA.OASIS.Email.SmtpUser, "", "root", AvatarType.System, OASISType.OASISBootLoader);
-                            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", SYSTEM_EMAIL, "", "root", AvatarType.System, OASISType.OASISBootLoader);
+                            //OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", SYSTEM_EMAIL, "", "root", AvatarType.System, OASISType.OASISBootLoader);
+                            //OASISDNA.OASIS.OASISSystemAccountId = avatarResult.Result.Id.ToString();
+
+                            // Create Admins
+                            if (OASISDNA.OASIS.Admins != null && OASISDNA.OASIS.Admins.Count > 0)
+                            {
+                                int adminsCreated = 0;
+                                LoggingManager.BeginLogAction($"Creating {OASISDNA.OASIS.Admins.Count} Admin Accounts...", LogType.Info);
+
+                                foreach (AdminConfig adminConfig in OASISDNA.OASIS.Admins)
+                                {
+                                    LoggingManager.BeginLogAction($"Creating {adminConfig.AdminUsername} Admin Account...", LogType.Info);
+                                    OASISResult<IAvatar> adminAvatarResult = await AvatarManager.Instance.RegisterAdminAsync(adminConfig.AdminFirstName, adminConfig.AdminLastName, adminConfig.AdminEmail, adminConfig.AdminUsername, adminConfig.AdminPassword, OASISType.OASISBootLoader);
+
+                                    if (adminAvatarResult != null && !adminAvatarResult.IsError && adminAvatarResult.IsSaved)
+                                    {
+                                        adminsCreated++;
+                                        LoggingManager.EndLogAction($"DONE", LogType.Info);
+                                    }
+                                    else
+                                        LoggingManager.EndLogAction($"Error Creating Admin Account {adminConfig.AdminUsername}. Reason: {adminAvatarResult.Message}", LogType.Error);
+                                }
+
+                                LoggingManager.EndLogAction($"DONE. {adminsCreated} Admin Accounts Created.", LogType.Info);
+                            }
                             CLIEngine.SupressConsoleLogging = false;
 
-                            if (avatarResult != null && !avatarResult.IsError)
-                            {
-                                OASISDNA.OASIS.OASISSystemAccountId = avatarResult.Result.Id.ToString();
-                                await OASISDNAManager.SaveDNAAsync(OASISDNAPath, OASISDNA);
+                            // if (avatarResult != null && !avatarResult.IsError)
+                            // {
+                            //     OASISDNA.OASIS.OASISSystemAccountId = avatarResult.Result.Id.ToString();
+                            //     await OASISDNAManager.SaveDNAAsync(OASISDNAPath, OASISDNA);
 
-                                LoggingManager.EndLogAction($"DONE", LogType.Info);
-                                LoggingManager.Log($"OASIS System Account Generated: Id: {avatarResult.Result.Id}, Name: {avatarResult.Result.Name}, Email: {avatarResult.Result.Email}, Username: {avatarResult.Result.Username}, Type: {avatarResult.Result.AvatarType.Name}.", LogType.Info);
-                            }
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISBootLoader.BootOASISAsync Calling AvatarManager.Instance.RegisterAsync Attempting To Create The OASISSystem Account. Reason: {avatarResult.Message}");
+                            //     LoggingManager.EndLogAction($"DONE", LogType.Info);
+                            //     LoggingManager.Log($"OASIS System Account Generated: Id: {avatarResult.Result.Id}, Name: {avatarResult.Result.Name}, Email: {avatarResult.Result.Email}, Username: {avatarResult.Result.Username}, Type: {avatarResult.Result.AvatarType.Name}.", LogType.Info);
+                            // }
+                            // else
+                            //     OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISBootLoader.BootOASISAsync Calling AvatarManager.Instance.RegisterAsync Attempting To Create The OASISSystem Account. Reason: {avatarResult.Message}");
                         }
 
                         IsOASISBooted = true;

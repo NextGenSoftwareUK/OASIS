@@ -366,6 +366,81 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IAvatar>> RegisterAdminAsync(string adminFirstName, string adminLastName, string adminEmail, string adminUsername, string adminPassword, OASISType createdOASISType = OASISType.OASISBootLoader, ConsoleColor cliColour = ConsoleColor.Red, ConsoleColor favColour = ConsoleColor.Red, string avatarTitle = "Admin", AvatarType avatarType = AvatarType.Admin)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+
+            try
+            {
+                // First try by username...
+                result = await LoadAvatarAsync(adminUsername, false, false);
+
+                if (result.Result == null)
+                {
+                    // Now try by email...
+                    result = await LoadAvatarByEmailAsync(adminEmail, false, false);
+                }
+
+                if (result.Result != null)
+                {
+                    result.Message = "Avatar already exists.";
+                    result.IsError = false;
+                    return result;
+                }
+
+                result = await PrepareToRegisterAvatarAsync(avatarTitle, adminFirstName, adminLastName, adminEmail, adminPassword, adminUsername, avatarType, createdOASISType);
+
+                if (result != null && !result.IsError && result.Result != null)
+                {
+                    // Manually verify and activate the admin account immediately
+                    result.Result.Verified = DateTime.Now;
+                    result.Result.IsActive = true;
+                    result.Result.VerificationToken = null; // Clear token as it's already verified
+
+                    // AvatarDetail needs to have the same unique ID as Avatar so the records match (they will have unique/different provider keys per each provider)
+                    OASISResult<IAvatarDetail> avatarDetailResult = PrepareToRegisterAvatarDetail(result.Result.Id, result.Result.Username, result.Result.Email, createdOASISType, cliColour, favColour);
+
+                    if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
+                    {
+                        OASISResult<IAvatar> saveAvatarResult = await SaveAvatarAsync(result.Result);
+
+                        if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+                        {
+                            result.Result = saveAvatarResult.Result;
+                            OASISResult<IAvatarDetail> saveAvatarDetailResult = await SaveAvatarDetailAsync(avatarDetailResult.Result);
+
+                            if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
+                            {
+                                // result = AvatarRegistered(result); // Don't call this as it sends verification email!
+                                result.Result = HideAuthDetails(result.Result);
+                                result.IsSaved = true;
+                                result.Message = "Admin Account Created Successfully.";
+                            }
+                            else
+                            {
+                                result.Message = saveAvatarDetailResult.Message;
+                                result.IsError = saveAvatarDetailResult.IsError;
+                                result.IsSaved = saveAvatarDetailResult.IsSaved;
+                            }
+                        }
+                        else
+                        {
+                            result.Message = saveAvatarResult.Message;
+                            result.IsError = saveAvatarResult.IsError;
+                            result.IsSaved = saveAvatarResult.IsSaved;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured in RegisterAdminAsync method in AvatarManager. Error Message: ", ex.Message), ex);
+                result.Result = null;
+            }
+
+            return result;
+        }
+
         public OASISResult<IAvatar> BeamOut(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();

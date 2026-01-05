@@ -140,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize]
         [HttpPost("upload-file")]
-        public async Task<OASISResult<StoredFile>> UploadFile(string fileName, byte[] fileData, string contentType, Dictionary<string, object> metadata = null)
+        public async Task<OASISResult<StoredFile>> UploadFile([FromQuery] string fileName, [FromBody] byte[] fileData, [FromQuery] string contentType, [FromQuery] Dictionary<string, object> metadata = null)
         {
             return await FilesManager.Instance.UploadFileAsync(AvatarId, fileName, fileData, contentType, metadata);
         }
