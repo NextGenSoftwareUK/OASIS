@@ -549,7 +549,8 @@ The revolutionary linking system allows any STARNETHolon to be connected to any 
 
 ### OASIS Torus Architecture
 
-https://github.com/NextGenSoftwareUK/OASIS/blob/master/Docs/OASIS%20Torus.gif
+<img src="https://github.com/NextGenSoftwareUK/OASIS/blob/master/Docs/OASIS%20Torus.gif" alt="OASIS Torus"/> 
+
             
 ### OASIS HyperDrive Architecture
 
