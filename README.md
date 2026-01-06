@@ -294,12 +294,13 @@ Web4 NFTs wrap multiple Web3 NFTs sharing the same metadata across different cha
   - Ignition and shutdown
   - Beam-in operations
 
-## 🏆 Grants & Case Studies (from existing oasisweb4.com)
+## 🏆 Grants & Case Studies
 
 - Radix DLT: Native bridge work between Radix and Solana tokens
 - Arbitrum (Grant Ships): Endangered Tokens NFTs integrated into AR World treasure hunt
 - Arbitrum (Thrive): HoloNET API connected to Stellar Gate (browser-based, Arbitrum-enabled space game)
 - Solana Superteam UK: AR World Phygital mobile game with geo-cached Solana NFTs
+- OpenServ: Connecting the OASIS API to their AI Orchestration System using Agent2Agent protocols. 
 
 
 Once the Subscription API is implemented, the Plans page will redirect to a hosted checkout (e.g., Stripe) via the backend’s response URL.
