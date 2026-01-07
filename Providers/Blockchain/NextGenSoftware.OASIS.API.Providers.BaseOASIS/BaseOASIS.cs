@@ -3426,12 +3426,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
     {
-        return GenerateKeyPairAsync(request).Result;
+        return GenerateKeyPairAsync().Result;
     }
 
-    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
     {
         var result = new OASISResult<IKeyPairAndWallet>();
         try
@@ -3448,6 +3448,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var publicKey = ecKey.GetPubKey();
             var address = ecKey.GetPublicAddress();
 
+            //TODO: Replace KeyHelper with Base specific implementation.
             var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
             if (keyPair != null)
             {

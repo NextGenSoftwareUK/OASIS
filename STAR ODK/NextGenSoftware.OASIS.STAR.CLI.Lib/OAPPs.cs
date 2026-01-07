@@ -384,6 +384,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 do
                                 {
                                     string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
+                                    
+                                    CLIEngine.ShowMessage("NodeType KEY: String (Text) = 0, Int (Small Number) = 1, Bool (Yes/No) = 2, DateTime = 3, Long (Big Number) = 4, Double (Big Decimal Number) = 5, ByteArray (Data) = 6, Float (Small Decimal Number) = 7, Object = 8 (Generic Data/Object), Unknown = 9");
                                     object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(NodeType)); //typeof(HolonPropType));
 
                                     if (propType != null)

@@ -36,6 +36,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using Solnet.Wallet;
 using Solnet.Wallet.Bip39;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 {
@@ -2521,12 +2523,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -2547,15 +2549,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var aptosAddress = "0x" + BitConverter.ToString(account.PublicKey.KeyBytes).Replace("-", "").ToLowerInvariant();
                 
                 // Create key pair structure
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes);
-                    keyPair.PublicKey = account.PublicKey.Key;
-                    keyPair.WalletAddressLegacy = aptosAddress;
-                }
+                //var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                //if (keyPair != null)
+                //{
+                //    keyPair.PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes);
+                //    keyPair.PublicKey = account.PublicKey.Key;
+                //    keyPair.WalletAddressLegacy = aptosAddress;
+                //}
 
-                result.Result = keyPair;
+                //result.Result = keyPair;
+                result.Result = new KeyPairAndWallet
+                {
+                    PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
+                    PublicKey = account.PublicKey.Key,
+                    WalletAddressLegacy = aptosAddress
+                };
+
                 result.IsError = false;
                 result.Message = "Aptos key pair generated successfully using Ed25519 (Solnet.Wallet SDK).";
             }

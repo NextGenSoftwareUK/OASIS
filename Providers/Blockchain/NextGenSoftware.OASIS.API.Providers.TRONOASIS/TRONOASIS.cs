@@ -39,6 +39,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using Nethereum.Signer;
 using Nethereum.Hex.HexConvertors.Extensions;
 using System.IO;
+using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
@@ -2166,12 +2167,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -2194,15 +2195,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 var tronAddress = "T" + publicKey.Substring(2); // TRON addresses start with 'T'
                 
                 // Create key pair structure
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = privateKey;
-                    keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = tronAddress;
-                }
+                //var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                //if (keyPair != null)
+                //{
+                //    keyPair.PrivateKey = privateKey;
+                //    keyPair.PublicKey = publicKey;
+                //    keyPair.WalletAddressLegacy = tronAddress;
+                //}
 
-                result.Result = keyPair;
+                result.Result = new KeyPairAndWallet()
+                {                     
+                    PrivateKey = privateKey,
+                    PublicKey = publicKey,
+                    WalletAddressLegacy = tronAddress,
+                    WalletAddressSegwitP2SH = tronAddress // TRON does not have Segwit, so use same address
+                };
+
                 result.IsError = false;
                 result.Message = "TRON key pair generated successfully using Nethereum SDK (secp256k1).";
             }

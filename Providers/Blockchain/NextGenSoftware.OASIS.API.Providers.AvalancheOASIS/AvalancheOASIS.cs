@@ -3527,12 +3527,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
     {
-        return GenerateKeyPairAsync(request).Result;
+        return GenerateKeyPairAsync().Result;
     }
 
-    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
     {
         var result = new OASISResult<IKeyPairAndWallet>();
         try
@@ -3548,6 +3548,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
             var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
             var publicKey = ecKey.GetPublicAddress();
 
+            //TODO: Replace KeyHelper with Avalanche specific implementation.
             // Use KeyHelper to generate key pair structure
             var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
             if (keyPair != null)
