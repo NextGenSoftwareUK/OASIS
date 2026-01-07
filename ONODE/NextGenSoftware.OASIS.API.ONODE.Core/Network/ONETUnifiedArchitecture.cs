@@ -228,6 +228,76 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         }
 
         /// <summary>
+        /// Register a new unified service dynamically (for A2A agents, etc.)
+        /// </summary>
+        public async Task<OASISResult<bool>> RegisterUnifiedServiceAsync(UnifiedService service)
+        {
+            var result = new OASISResult<bool>();
+            
+            try
+            {
+                if (service == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Service cannot be null");
+                    return result;
+                }
+
+                // Use ServiceId as key if provided, otherwise use Name
+                var key = !string.IsNullOrEmpty(service.ServiceId) 
+                    ? service.ServiceId.ToLower() 
+                    : (!string.IsNullOrEmpty(service.Name) 
+                        ? service.Name.ToLower().Replace(" ", "_") 
+                        : Guid.NewGuid().ToString());
+
+                // Ensure Name is set if ServiceName is provided
+                if (string.IsNullOrEmpty(service.Name) && !string.IsNullOrEmpty(service.ServiceName))
+                {
+                    service.Name = service.ServiceName;
+                }
+
+                // Ensure Endpoints list includes the main Endpoint if provided
+                if (!string.IsNullOrEmpty(service.Endpoint) && !service.Endpoints.Contains(service.Endpoint))
+                {
+                    service.Endpoints.Insert(0, service.Endpoint);
+                }
+
+                // Add to unified services dictionary
+                _unifiedServices[key] = service;
+
+                // Create unified endpoint entries
+                await CreateUnifiedAPIEndpointsForServiceAsync(service);
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Service '{service.Name}' registered successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error registering unified service: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        private async Task CreateUnifiedAPIEndpointsForServiceAsync(UnifiedService service)
+        {
+            foreach (var endpoint in service.Endpoints)
+            {
+                var unifiedEndpoint = new UnifiedEndpoint
+                {
+                    Id = $"{service.Name.ToLower().Replace(" ", "_")}_{endpoint.Replace("/", "_").Replace("{", "").Replace("}", "")}",
+                    ServiceName = service.Name,
+                    Endpoint = endpoint,
+                    IntegrationLayers = service.IntegrationLayers,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _unifiedEndpoints[unifiedEndpoint.Id] = unifiedEndpoint;
+            }
+        }
+
+        /// <summary>
         /// Optimize the entire unified architecture
         /// </summary>
         public async Task<OASISResult<UnifiedOptimization>> OptimizeUnifiedArchitectureAsync()
@@ -779,6 +849,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public List<string> IntegrationLayers { get; set; } = new List<string>();
         public List<string> Endpoints { get; set; } = new List<string>();
         public bool IsActive { get; set; }
+        
+        // Extended properties for A2A/SERV integration
+        public string ServiceId { get; set; } = string.Empty;
+        public string ServiceName { get; set; } = string.Empty;
+        public string ServiceType { get; set; } = string.Empty;
+        public List<string> Capabilities { get; set; } = new List<string>();
+        public string Endpoint { get; set; } = string.Empty;
+        public string Protocol { get; set; } = string.Empty;
+        public Dictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
     }
 
     public class UnifiedEndpoint

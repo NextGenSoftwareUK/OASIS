@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
@@ -42,12 +44,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="searchParams">Search parameters including query, location bounds, and filters</param>
         /// <returns>Search results containing matching locations and features</returns>
-        [HttpPost("search")]
-        public async Task<OASISResult<ISearchResults>> Search([FromBody] ISearchParams searchParams)
-        {
-            // Use MapManager for business logic
-            return await MapManager.SearchAsync(searchParams);
-        }
+        /// <remarks>Temporarily disabled - MapManager.SearchAsync not implemented</remarks>
+        //[HttpPost("search")]
+        //public async Task<OASISResult<ISearchResults>> Search([FromBody] ISearchParams searchParams)
+        //{
+        //    // Use MapManager for business logic
+        //    // TODO: Implement SearchAsync in MapManager or use SearchLocationsAsync
+        //    // return await MapManager.SearchAsync(searchParams);
+        //    throw new NotImplementedException("MapManager.SearchAsync not yet implemented. Use SearchLocationsAsync instead.");
+        //}
 
         ///// <summary>
         ///// Search the map.
