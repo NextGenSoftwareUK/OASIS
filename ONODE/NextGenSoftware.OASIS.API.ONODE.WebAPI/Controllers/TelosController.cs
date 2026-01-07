@@ -1,8 +1,10 @@
-﻿using System;
+﻿#if false
+// TelosController temporarily disabled - missing TelosOASIS provider
+using System;
 using Microsoft.AspNetCore.Mvc;
 using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+// using NextGenSoftware.OASIS.API.Providers.TelosOASIS; // Missing provider
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -172,3 +174,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
     }
 }
+#endif
