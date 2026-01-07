@@ -1,3 +1,5 @@
+#if false
+// AIController temporarily disabled - missing OpenAI.Chat namespace
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.AI;
 using System.Text.Json;
-using OpenAI.Chat;
+// using OpenAI.Chat; // Missing package
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -261,4 +263,4 @@ Rules:
         }
     }
 }
-
+#endif

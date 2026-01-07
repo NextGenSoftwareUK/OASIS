@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if false
+// EggsController temporarily disabled - missing EggDiscoveryMethod type
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -106,3 +108,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
     }
 }
+#endif
