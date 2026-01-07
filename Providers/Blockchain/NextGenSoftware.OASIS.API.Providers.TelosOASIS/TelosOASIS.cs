@@ -2306,7 +2306,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return GetTransactionsAsync(request).Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -2318,14 +2318,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                 }
 
                 // Generate Telos key pair using KeyManager
-                var keyPairResult = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.TelosOASIS);
-                if (keyPairResult.IsError || keyPairResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to generate key pair: {keyPairResult.Message}");
-                    return result;
-                }
+                //var keyPairResult = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.TelosOASIS);
+                //if (keyPairResult.IsError || keyPairResult.Result == null)
+                //{
+                //    OASISErrorHandling.HandleError(ref result, $"Failed to generate key pair: {keyPairResult.Message}");
+                //    return result;
+                //}
 
-                result.Result = keyPairResult.Result;
+                result.Result = EOSIOOASIS.GenerateKeyPair().Result;
                 result.IsError = false;
                 result.Message = "Key pair generated successfully for Telos";
             }
@@ -2336,9 +2336,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
         public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)

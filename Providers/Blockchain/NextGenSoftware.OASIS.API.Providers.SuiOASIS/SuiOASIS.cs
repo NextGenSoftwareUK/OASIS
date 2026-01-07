@@ -32,6 +32,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using System.Text.Json.Serialization;
+using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 {
@@ -1977,12 +1978,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -2015,15 +2016,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                 var address = "0x" + Convert.ToHexString(privateKeyBytes).Substring(0, Math.Min(40, privateKeyBytes.Length * 2)); // Placeholder address
 
                 // Create KeyPairAndWallet using KeyHelper but override with Sui-specific values
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = privateKey;
-                    keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = address; // Sui address
-                }
+                //var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                //if (keyPair != null)
+                //{
+                //    keyPair.PrivateKey = privateKey;
+                //    keyPair.PublicKey = publicKey;
+                //    keyPair.WalletAddressLegacy = address; // Sui address
+                //}
 
-                result.Result = keyPair;
+                result.Result = new KeyPairAndWallet()
+                {
+                    PrivateKey = privateKey,
+                    PublicKey = publicKey,
+                    WalletAddressLegacy = address
+                };
                 result.IsError = false;
                 result.Message = "Sui Ed25519 key pair generated successfully (placeholder implementation)";
             }

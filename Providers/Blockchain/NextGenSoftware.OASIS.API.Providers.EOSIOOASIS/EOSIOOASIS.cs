@@ -3901,12 +3901,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             string errorMessage = "Error in GenerateKeyPairAsync method in EOSIOOASIS. Reason: ";
@@ -3930,6 +3930,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 // In production, use EosSharp SDK's key conversion utilities
                 var eosPublicKey = $"EOS{publicKey.Substring(2)}"; // EOS format prefix
 
+                //TODO: Replace KeyHelper with EOSIO specific implementation.
                 // Create key pair structure
                 var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
                 if (keyPair != null)

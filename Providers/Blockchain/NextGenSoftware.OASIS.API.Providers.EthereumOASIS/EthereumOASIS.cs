@@ -3266,12 +3266,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -3293,7 +3293,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 {
                     keyPair.PrivateKey = privateKey;
                     keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = publicKey;
+                    keyPair.WalletAddressLegacy = publicKey; //TODO: Replace with Eth wallet address.
                 }
 
                 result.Result = keyPair;
