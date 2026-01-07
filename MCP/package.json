@@ -1,0 +1,26 @@
+{
+  "name": "oasis-unified-mcp-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Unified MCP server for OASIS, OpenSERV, and STAR",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "watch": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@solana/web3.js": "^1.95.4",
+    "axios": "^1.6.5",
+    "bs58": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "form-data": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
