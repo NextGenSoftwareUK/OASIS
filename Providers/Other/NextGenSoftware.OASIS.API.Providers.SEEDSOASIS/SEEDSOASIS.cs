@@ -421,7 +421,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             //EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("transfer", fromTelosAccountName, "active", "seed.seeds", args);
             EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("transfer", fromTelosAccountName, "active", "token.seeds", args);
 
-            var keypair = KeyManager.GenerateKeyPair(Core.Enums.ProviderType.SEEDSOASIS).Result; //TODO: Handle OASISResult properly.
+            var keypair = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.SEEDSOASIS).Result; //TODO: Handle OASISResult properly.
             //List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey }; //TODO: Set Private Key
             List<string> privateKeysInWIF = new List<string> { fromTelosAccountPrivateKey };
 
@@ -451,7 +451,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
             string randomHex = GetRandomHexNumber(64); //16
             string inviteHash = GetSHA256Hash(randomHex);
-            var keypair = KeyManager.GenerateKeyPair(Core.Enums.ProviderType.SEEDSOASIS).Result; //TODO: Handle OASISResult properly.
+            var keypair = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.SEEDSOASIS).Result; //TODO: Handle OASISResult properly.
             //List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey }; //TODO: Set Private Key
             List<string> privateKeysInWIF = new List<string> { sponsorTelosAccountNamePrivateKey };
 
@@ -467,7 +467,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             //inviteSecret = inviteHash
 
             //TODO: Handle OASISResult properly.
-            var keypair = KeyManager.GenerateKeyPair(Core.Enums.ProviderType.SEEDSOASIS).Result;
+            var keypair = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.SEEDSOASIS).Result;
             List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
 
             EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("accept", telosAccountName, "active", "join.seeds", new Accept() { account = telosAccountName, invite_secret = inviteSecret, publicKey = keypair.PublicKey });
@@ -1058,7 +1058,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 TransferArgs args = new TransferArgs() { from = avatar.Username, to = avatar.Username, quantity = "0.0000 SEEDS", memo = "SaveAvatar" };
                 EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("saveavatar", SEEDS_EOSIO_ACCOUNT_TEST, "active", SEEDS_EOSIO_ACCOUNT_TEST, args);
 
-                var keypair = KeyManager.GenerateKeyPair(Core.Enums.ProviderType.SEEDSOASIS).Result; // TODO: handle result properly
+                var keypair = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.SEEDSOASIS).Result; // TODO: handle result properly
                 List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
 
                 var transactionResult = TelosOASIS.EOSIOOASIS.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
@@ -1130,7 +1130,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                     is_active = avatarDetail.IsActive
                 });
 
-                var keypair = KeyManager.GenerateKeyPair(Core.Enums.ProviderType.SEEDSOASIS).Result; //TODO: Handle OASISResult properly.
+                var keypair = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.SEEDSOASIS).Result; //TODO: Handle OASISResult properly.
                 List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
 
                 var transactionResult = TelosOASIS.EOSIOOASIS.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);

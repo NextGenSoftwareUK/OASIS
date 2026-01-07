@@ -45,6 +45,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
@@ -2893,12 +2894,12 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
     {
-        return GenerateKeyPairAsync(request).Result;
+        return GenerateKeyPairAsync().Result;
     }
 
-    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
     {
         var result = new OASISResult<IKeyPairAndWallet>();
         string errorMessage = "Error in GenerateKeyPairAsync method in Web3CoreOASIS. Reason: ";
@@ -2915,17 +2916,12 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
             var publicKey = ecKey.GetPublicAddress();
 
-            // Use KeyHelper to generate key pair with wallet address
-            var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-            if (keyPair != null)
+            result.Result = new KeyPairAndWallet
             {
-                // Override with Ethereum-specific values
-                keyPair.PrivateKey = privateKey;
-                keyPair.PublicKey = publicKey;
-                keyPair.WalletAddressLegacy = publicKey;
-            }
-
-            result.Result = keyPair;
+                PrivateKey = privateKey,
+                PublicKey = publicKey,
+                WalletAddressLegacy = publicKey //TODO: Generate proper ethereum address format if needed
+            };
             result.IsError = false;
             result.Message = "Key pair generated successfully.";
         }
