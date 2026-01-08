@@ -20,10 +20,12 @@ export class OASISClient {
           Authorization: `Bearer ${config.oasisApiKey}`,
         }),
       },
-      timeout: 60000, // Increased timeout
+      timeout: 120000, // Increased timeout to 2 minutes for large responses
       httpsAgent: httpsAgent,
       maxRedirects: 0, // Don't follow redirects - use HTTPS directly
       validateStatus: (status) => status < 500, // Accept all status codes < 500
+      maxContentLength: Infinity, // Allow unlimited response size
+      maxBodyLength: Infinity, // Allow unlimited request body size
     });
 
     // Use request interceptor to ensure token is always included
@@ -182,13 +184,39 @@ export class OASISClient {
 
   /**
    * Authenticate avatar (login)
+   * Uses the minimal endpoint to avoid large response size issues with nested objects.
    */
-  async authenticateAvatar(username: string, password: string) {
-    const response = await this.client.post('/api/avatar/authenticate', {
-      username,
-      password,
-    });
-    return response.data;
+  async authenticateAvatar(username: string, password: string, providerType?: string) {
+    try {
+      // Use the minimal endpoint to avoid large response size issues
+      // The minimal endpoint returns only essential fields (jwtToken, refreshToken, avatarId, username, email, isVerified, etc.)
+      // This prevents "stream has been aborted" errors caused by deeply nested createdByAvatar objects
+      const response = await this.client.post(
+        '/api/avatar/authenticate-minimal',
+        {
+          username,
+          password,
+        },
+        {
+          timeout: 30000, // 30 second timeout (should be sufficient for minimal response)
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      // If authentication fails, try to extract error details
+      if (error.response?.data) {
+        try {
+          const parsed = typeof error.response.data === 'string' 
+            ? JSON.parse(error.response.data) 
+            : error.response.data;
+          return parsed;
+        } catch {
+          // If we can't parse, throw original error
+          throw error;
+        }
+      }
+      throw error;
+    }
   }
 
   /**

@@ -200,6 +200,79 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Authenticate and log in using avatar credentials (minimal response).
+        /// Returns only essential authentication fields to reduce response size and prevent serialization issues.
+        /// Recommended for MCP clients and other scenarios where a minimal response is preferred.
+        /// </summary>
+        /// <param name="request">Authentication request containing username/email and password.</param>
+        /// <returns>OASIS result containing minimal authentication response with JWT token or error details.</returns>
+        /// <response code="200">Authentication successful</response>
+        /// <response code="401">Invalid credentials</response>
+        /// <response code="400">Invalid request data</response>
+        [HttpPost("authenticate-minimal")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<MinimalAuthenticateResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<MinimalAuthenticateResponse>> AuthenticateMinimal(AuthenticateRequest request)
+        {
+            OASISConfigResult<IAvatar> configResult = await ConfigureOASISEngineAsync<IAvatar>(request);
+
+            if (configResult.IsError && configResult.Response != null)
+            {
+                // Convert error response to MinimalAuthenticateResponse format
+                var errorResponse = new OASISHttpResponseMessage<MinimalAuthenticateResponse>(
+                    new OASISResult<MinimalAuthenticateResponse>
+                    {
+                        IsError = true,
+                        Message = configResult.Response.Result?.Message ?? "Configuration error"
+                    },
+                    configResult.Response.StatusCode,
+                    request.ShowDetailedSettings
+                );
+                return errorResponse;
+            }
+
+            var result = await Program.AvatarManager.AuthenticateAsync(request.Username, request.Password, ipAddress(), configResult.AutoReplicationMode, configResult.AutoFailOverMode, configResult.AutoLoadBalanceMode, request.WaitForAutoReplicationResult);
+            ResetOASISSettings(request, configResult);
+
+            if (!result.IsError && result.Result != null)
+            {
+                setTokenCookie(result.Result.RefreshToken);
+                
+                // Create minimal response with only essential fields
+                var minimalResponse = new MinimalAuthenticateResponse
+                {
+                    JwtToken = result.Result.JwtToken,
+                    RefreshToken = result.Result.RefreshToken,
+                    AvatarId = result.Result.AvatarId,
+                    Username = result.Result.Username,
+                    Email = result.Result.Email,
+                    IsVerified = result.Result.IsVerified,
+                    IsBeamedIn = result.Result.IsBeamedIn,
+                    LastBeamedIn = result.Result.LastBeamedIn
+                };
+
+                var minimalResult = new OASISResult<MinimalAuthenticateResponse>
+                {
+                    Result = minimalResponse,
+                    IsError = false,
+                    Message = result.Message
+                };
+
+                return HttpResponseHelper.FormatResponse(minimalResult, HttpStatusCode.OK, request.ShowDetailedSettings);
+            }
+            else
+            {
+                var errorResult = new OASISResult<MinimalAuthenticateResponse>
+                {
+                    IsError = true,
+                    Message = result.Message ?? "Authentication failed"
+                };
+                return HttpResponseHelper.FormatResponse(errorResult, HttpStatusCode.Unauthorized, request.ShowDetailedSettings);
+            }
+        }
+
+        /// <summary>
         /// Authenticate and log in using the given avatar credentials. 
         /// Pass in the provider you wish to use.
         /// Set the autoFailOverMode to 'ON' if you wish this call to work through the the providers in the auto-failover list until it succeeds. Set it to OFF if you do not or to 'DEFAULT' to default to the global OASISDNA setting.
