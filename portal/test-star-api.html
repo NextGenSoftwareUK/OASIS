@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAR API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .output {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>STAR API Tester</h1>
+    <p>Use this page to test STAR API endpoints and understand their expected formats.</p>
+
+    <div class="test-section">
+        <h2>1. Get All GeoNFTs (GET)</h2>
+        <button onclick="testGetAllGeoNFTs()">Test GET /api/GeoNFTs</button>
+        <div id="output-get-all" class="output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Get GeoNFTs for Avatar (GET)</h2>
+        <label>Avatar ID:</label>
+        <input type="text" id="avatar-id" placeholder="Enter Avatar ID (or leave empty to use logged-in avatar)">
+        <button onclick="testGetGeoNFTsForAvatar()">Test GET /api/GeoNFTs/load-all-for-avatar</button>
+        <div id="output-get-avatar" class="output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Create GeoNFT (POST) - Simple</h2>
+        <label>Name:</label>
+        <input type="text" id="geonft-name" value="Test GeoNFT">
+        <label>Description:</label>
+        <textarea id="geonft-desc" rows="3">Test description</textarea>
+        <button onclick="testCreateGeoNFTSimple()">Test POST /api/GeoNFTs (Simple)</button>
+        <div id="output-create-simple" class="output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Create GeoNFT (POST) - With STARNETDNA</h2>
+        <label>Name:</label>
+        <input type="text" id="geonft-name-full" value="Test GeoNFT Full">
+        <label>Description:</label>
+        <textarea id="geonft-desc-full" rows="3">Test description with STARNETDNA</textarea>
+        <label>Latitude (decimal):</label>
+        <input type="number" id="geonft-lat" value="51.5074" step="0.000001">
+        <label>Longitude (decimal):</label>
+        <input type="number" id="geonft-lng" value="-0.1278" step="0.000001">
+        <button onclick="testCreateGeoNFTFull()">Test POST /api/GeoNFTs (Full STARNETDNA)</button>
+        <div id="output-create-full" class="output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Check Authentication</h2>
+        <button onclick="checkAuth()">Check Current Auth Token</button>
+        <div id="output-auth" class="output"></div>
+    </div>
+
+    <script>
+        const STAR_API_BASE = 'http://localhost:50564';
+
+        function getAuthToken() {
+            try {
+                const authData = localStorage.getItem('oasis_auth');
+                if (authData) {
+                    const auth = JSON.parse(authData);
+                    return auth.token || null;
+                }
+            } catch (e) {
+                console.error('Error parsing auth data:', e);
+            }
+            return null;
+        }
+
+        function getAvatarId() {
+            try {
+                const authData = localStorage.getItem('oasis_auth');
+                if (authData) {
+                    const auth = JSON.parse(authData);
+                    return auth.avatarId || auth.avatar?.id || auth.avatar?.avatarId || null;
+                }
+            } catch (e) {
+                console.error('Error parsing auth data:', e);
+            }
+            return null;
+        }
+
+        async function makeRequest(method, endpoint, body = null) {
+            const token = getAuthToken();
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const options = {
+                method: method,
+                headers: headers
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(`${STAR_API_BASE}${endpoint}`, options);
+                const text = await response.text();
+                let data;
+                try {
+                    data = text ? JSON.parse(text) : {};
+                } catch (e) {
+                    data = { rawText: text };
+                }
+
+                return {
+                    ok: response.ok,
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+            } catch (error) {
+                return {
+                    ok: false,
+                    error: error.message
+                };
+            }
+        }
+
+        function displayOutput(elementId, result) {
+            const output = document.getElementById(elementId);
+            output.textContent = JSON.stringify(result, null, 2);
+        }
+
+        async function testGetAllGeoNFTs() {
+            const result = await makeRequest('GET', '/api/GeoNFTs');
+            displayOutput('output-get-all', result);
+        }
+
+        async function testGetGeoNFTsForAvatar() {
+            const avatarId = document.getElementById('avatar-id').value || getAvatarId();
+            const endpoint = avatarId 
+                ? `/api/GeoNFTs/load-all-for-avatar?showAllVersions=false&version=0`
+                : '/api/GeoNFTs/load-all-for-avatar?showAllVersions=false&version=0';
+            const result = await makeRequest('GET', endpoint);
+            displayOutput('output-get-avatar', result);
+        }
+
+        async function testCreateGeoNFTSimple() {
+            const name = document.getElementById('geonft-name').value;
+            const description = document.getElementById('geonft-desc').value;
+            
+            const payload = {
+                name: name,
+                description: description
+            };
+
+            const result = await makeRequest('POST', '/api/GeoNFTs', payload);
+            displayOutput('output-create-simple', result);
+        }
+
+        async function testCreateGeoNFTFull() {
+            const name = document.getElementById('geonft-name-full').value;
+            const description = document.getElementById('geonft-desc-full').value;
+            const lat = parseFloat(document.getElementById('geonft-lat').value);
+            const lng = parseFloat(document.getElementById('geonft-lng').value);
+            const avatarId = getAvatarId();
+
+            // Build STARNETDNA structure
+            const now = new Date().toISOString();
+            const starnetDNA = {
+                Id: '00000000-0000-0000-0000-000000000000',
+                Name: name,
+                Description: description || '',
+                STARNETHolonType: 'STARGeoNFT',
+                STARNETCategory: 'Image',
+                Dependencies: {},
+                MetaData: {
+                    lat: Math.round(lat * 1000000),
+                    long: Math.round(lng * 1000000)
+                },
+                MetaTagMappings: {},
+                CreatedByAvatarId: avatarId || '00000000-0000-0000-0000-000000000000',
+                CreatedByAvatarUsername: '',
+                CreatedOn: now,
+                SourcePath: '',
+                PublishedPath: '',
+                PublishedByAvatarId: '00000000-0000-0000-0000-000000000000',
+                PublishedByAvatarUsername: '',
+                PublishedOn: '0001-01-01T00:00:00',
+                LaunchTarget: '',
+                ModifiedByAvatarId: avatarId || '00000000-0000-0000-0000-000000000000',
+                ModifiedByAvatarUsername: '',
+                ModifiedOn: now,
+                PublishedOnSTARNET: false,
+                PublishedToCloud: false,
+                PublishedToPinata: false,
+                PinataIPFSHash: '',
+                PublishedProviderType: '',
+                FileSize: 0,
+                Version: '1.0.0',
+                OASISRuntimeVersion: '',
+                OASISAPIVersion: '',
+                COSMICVersion: '',
+                STARRuntimeVersion: '',
+                STARODKVersion: '',
+                STARAPIVersion: '',
+                STARNETVersion: '',
+                DotNetVersion: '',
+                VersionSequence: 1,
+                Downloads: 0,
+                Installs: 0,
+                TotalDownloads: 0,
+                TotalInstalls: 0,
+                NumberOfVersions: 1
+            };
+
+            const payload = {
+                name: name,
+                description: description || '',
+                MetaData: {
+                    STARGeoNFTDNAJSON: JSON.stringify(starnetDNA)
+                },
+                NFTType: 'Image',
+                GeoNFTId: '00000000-0000-0000-0000-000000000000'
+            };
+
+            const result = await makeRequest('POST', '/api/GeoNFTs', payload);
+            displayOutput('output-create-full', result);
+        }
+
+        async function checkAuth() {
+            const token = getAuthToken();
+            const avatarId = getAvatarId();
+            displayOutput('output-auth', {
+                hasToken: !!token,
+                tokenLength: token ? token.length : 0,
+                tokenPreview: token ? token.substring(0, 20) + '...' : null,
+                avatarId: avatarId,
+                authData: localStorage.getItem('oasis_auth') ? JSON.parse(localStorage.getItem('oasis_auth')) : null
+            });
+        }
+
+        // Auto-check auth on load
+        window.addEventListener('load', () => {
+            checkAuth();
+        });
+    </script>
+</body>
+</html>
