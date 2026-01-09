@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static string[] _args = null;
         private static bool _exiting = false;
         private static bool _inMainMenu = false;
+        private static Dictionary<string, Process> _webApiProcesses = new Dictionary<string, Process>();
 
         static async Task Main(string[] args)
         {
@@ -192,6 +193,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
             CLIEngine.ShowMessage("", false);
             CLIEngine.WriteAsciMessage(" READY PLAYER ONE?", Color.Green);
+
+            CLIEngine.ShowMessage("Please help support us by making a donation here: https://opencollective.com/oasis-web4 or consider buying some virtual land NFT's (OLAND) here: https://www.panxpan.com/projects/guardians-of-infinite-reality or buying one of our meta brick NFT's here: https://metabricks.xyz, thank you! :)");
+            
             //CLIEngine.ShowMessage("", false);
 
             //TODO: TEMP - REMOVE AFTER TESTING! :)
@@ -876,7 +880,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static async Task ShowSubCommandAsync<T>(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<ISTARNETCreateOptions<T, STARNETDNA>, object, bool, ProviderType, Task> createPredicate = null,  //WEB5 Commands
+            Func<ISTARNETCreateOptions<T, STARNETDNA>, object, bool, bool, ProviderType, Task> createPredicate = null,  //WEB5 Commands
             Func<string, object, bool, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
@@ -894,7 +898,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listUninstalledPredicate = null,
             Func<ProviderType, Task> listUnpublishedPredicate = null,
             Func<ProviderType, Task> listDeactivatedPredicate = null,
-            Func<string, bool, bool, ProviderType, Task> searchPredicate = null,
+            Func<string, Guid, bool, bool, ProviderType, Task> searchPredicate = null,
             Func<string, string, string, ISTARNETDNA, ProviderType, Task> addDependencyPredicate = null,
             Func<string, string, string, ProviderType, Task> removeDependencyPredicate = null,
             Func<object, Task> clonePredicate = null,
@@ -913,7 +917,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listWeb4ForBeamedInAvatarPredicate = null,
             Func<string, string, ProviderType, Task> addWeb4NFTToCollectionPredicate = null,
             Func<string, string, ProviderType, Task> removeWeb4NFTFromCollectionPredicate = null,
-            Func<string, ProviderType, Task> updateWeb3Predicate = null,
+            Func<string, ProviderType, Task> updateWeb3Predicate = null, //WEB3 Commands
             Func<string, bool, bool, ProviderType, Task<OASISResult<bool>>> deleteWeb3Predicate = null,
             Func<ProviderType, Task> listAllWeb3Predicate = null,
             Func<ProviderType, Task> listWeb3ForBeamedInAvatarPredicate = null,
@@ -1003,7 +1007,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 else
                                 {
                                     if (createPredicate != null)
-                                        await createPredicate(null, null, true, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                        await createPredicate(null, null, true, true, providerType); //TODO: Pass in params in a object or dynamic obj.
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }
@@ -1514,7 +1518,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             else
                             {
                                 if (searchPredicate != null)
-                                    await searchPredicate(subCommandParam3, showAllVersions, showForAllAvatars, providerType);
+                                    //TODO: add support to pass parentId in later...
+                                    await searchPredicate(subCommandParam3, default, showAllVersions, showForAllAvatars, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -1537,12 +1542,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
 
                 int commandSpace = 22;
-                int paramSpace = 22;
+                int paramSpace = 23;
                 string paramDivider = "  ";
                 string web4Param = "";
 
-                if (subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT" || subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT")
-                    web4Param = "[web4]";
+                if (subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT")
+                    web4Param = "[web3] [web4]";
 
                 if (showCreate)
                 {
@@ -1593,8 +1598,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowMessage(string.Concat("    place".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Create a OASIS Geo-NFT from an existing OASIS NFT for the given {id} or {name} and place within Our World."), ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage(string.Concat("    clone".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Clones a OASIS ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    adddependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Adds a runtime to the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    removedependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Removes a runtime from the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    adddependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Adds a dependency to the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    removedependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Removes a dependency from the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    download".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Install/download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
@@ -2202,7 +2207,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    import secretPhase [secretPhase]              Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    import json        [jsonFile]                 Imports a wallet using the jsonFile.", ConsoleColor.Green, false);
                 //CLIEngine.ShowMessage("    add                                           Adds a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    create                                        Creates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    update                                        Updates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+
                 CLIEngine.ShowMessage("    list               [default]                  Lists the wallets for the currently beamed in avatar. If [default] param is included it will only list the default wallets.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    balance                                       Gets the total balance for all wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    balance            [walletId] [providerType]  Gets the balance for the given wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
@@ -2950,13 +2957,51 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     case "start":
                         {
-                            await StartONODEAsync();
+                            if (inputArgs.Length > 2)
+                            {
+                                switch (inputArgs[2].ToLower())
+                                {
+                                    case "web4":
+                                        await StartWeb4APIAsync();
+                                        break;
+
+                                    case "web5":
+                                        await StartWeb5APIAsync();
+                                        break;
+
+                                    default:
+                                        await StartONODEAsync();
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                await StartONODEAsync();
+                            }
                         }
                         break;
 
                     case "stop":
                         {
-                            await StopONODEAsync();
+                            if (inputArgs.Length > 2)
+                            {
+                                switch (inputArgs[2].ToLower())
+                                {
+                                    case "web4":
+                                        await StopWeb4APIAsync();
+                                        break;
+                                    case "web5":
+                                        await StopWeb5APIAsync();
+                                        break;
+                                    default:
+                                        await StopONODEAsync();
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                await StopONODEAsync();
+                            }
                         }
                         break;
 
@@ -3006,13 +3051,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"ONODE SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    start                          Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop                           Stops a OASIS Node (ONODE).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    start          [web4] [web5]   Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    stop           [web4] [web5]   Stops a OASIS Node (ONODE).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    status                         Shows stats for this ONODE.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    config                         Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    providers                      Shows what OASIS Providers are running for this ONODE.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    startprovider  {ProviderName}  Starts a given provider.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    stopprovider   {ProviderName}  Stops a given provider.", ConsoleColor.Green, false);
+
+                CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
+                CLIEngine.ShowMessage("For the start and stop sub-commands, if you specify [web4] it will start/stop a local WEB4 OASIS API ONODE (HTTP REST Service), if you specify [web5] it will start/stop a local WEB5 STAR API ONODE (HTTP REST Service). Otherwise by default it will start the expirmental (beta) OASIS P2P ONET Service and then register the new ONODE on it. For now it is recommended you use the REST HTTP Services.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -3171,12 +3219,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"ONET SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    start       Starts the ONET network.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    start web4  Starts WEB4 OASIS API REST WebAPI in a new window.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    start web5  Starts WEB5 STAR API REST WebAPI in a new window.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop        Stops the ONET network.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop web4   Stops WEB4 OASIS API REST WebAPI and closes the window.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop web5   Stops WEB5 STAR API REST WebAPI and closes the window.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    start       Starts the ONET network.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    start web4  Starts WEB4 OASIS API REST WebAPI in a new window.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    start web5  Starts WEB5 STAR API REST WebAPI in a new window.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    stop        Stops the ONET network.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    stop web4   Stops WEB4 OASIS API REST WebAPI and closes the window.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    stop web5   Stops WEB5 STAR API REST WebAPI and closes the window.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    status      Shows stats for the OASIS Network (ONET).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    providers   Shows what OASIS Providers are running across the ONET and on what ONODE's.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    discover    Discovers available ONET nodes in the network.", ConsoleColor.Green, false);
@@ -3529,7 +3577,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("        When invoking any sub-commands that have an optional [detailed] argument/flag, if it is included it will show detailed information for that item (such as show and list).");
                 Console.WriteLine("        If you invoke the update, delete, list, show or search sub-command with [web4] param it will update/delete/list/show/search WEB4 OASIS Geo-NFT's/NFT's otherwise it will update/delete/list/show/search WEB5 STAR Geo-NFT's/NFT's.");
                 Console.WriteLine("        If you invoke the create, update, delete, list, show or search sub-command with [web4] param it will create/update/delete/list/show/search WEB4 OASIS Geo-NFT/NFT Collection's otherwise it will create/update/delete/list/show/search WEB5 STAR Geo-NFT/NFT Collection's.");
-                Console.WriteLine("        If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
+                Console.WriteLine("        If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to launch any wizards to help guide you.");
             }
             else
             {
@@ -3854,8 +3902,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         {
             string web4Param = "";
 
-            if (holonType == "nft collection" || holonType == "geonft collection")
-                web4Param = " [web4]";
+            if (holonType == "nft collection" || holonType == "geonft collection" || holonType == "nft" || holonType == "geonft")
+                web4Param = " [web3] [web4]";
 
             DisplayCommand(string.Concat(holonType, " create"), !string.IsNullOrEmpty(createParams) ? createParams : web4Param, !string.IsNullOrEmpty(createDesc) ? createDesc : $"Create a new {holonType}.");
             DisplayCommand(string.Concat(holonType, " update"), !string.IsNullOrEmpty(updateParams) ? updateParams : string.Concat("{id/name}", web4Param), !string.IsNullOrEmpty(updateDesc) ? updateDesc : string.Concat("Updates an existing ", holonType, " for the given {id} or {name}."));
@@ -3973,8 +4021,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
-        private static Dictionary<string, Process> _webApiProcesses = new Dictionary<string, Process>();
-
         private static async Task StartWeb4APIAsync()
         {
             try
@@ -3987,7 +4033,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                 CLIEngine.ShowWorkingMessage("Starting WEB4 OASIS API REST WebAPI...");
                 
-                string web4ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "ONODE", "NextGenSoftware.OASIS.API.ONODE.WebAPI"));
+                string web4ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "..", "ONODE", "NextGenSoftware.OASIS.API.ONODE.WebAPI"));
                 string csprojPath = Path.Combine(web4ApiPath, "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj");
                 
                 if (!File.Exists(csprojPath))
@@ -4036,7 +4082,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                 CLIEngine.ShowWorkingMessage("Starting WEB5 STAR API REST WebAPI...");
                 
-                string web5ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "NextGenSoftware.OASIS.STAR.WebAPI"));
+                string web5ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "NextGenSoftware.OASIS.STAR.WebAPI"));
                 string csprojPath = Path.Combine(web5ApiPath, "NextGenSoftware.OASIS.STAR.WebAPI.csproj");
                 
                 if (!File.Exists(csprojPath))
@@ -4245,489 +4291,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowWorkingMessage($"Starting provider: {providerName}...");
 
             // Provider management not implemented in ONETManager
-            CLIEngine.ShowErrorMessage($"Provider management not implemented for {providerName}");
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error starting provider {providerName}: {ex.Message}");
-            }
-        }
-
-        private static async Task StopONODEProviderAsync(string providerName)
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage($"Stopping provider: {providerName}...");
-
-            // Provider management not implemented in ONETManager
-            CLIEngine.ShowErrorMessage($"Provider management not implemented for {providerName}");
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error stopping provider {providerName}: {ex.Message}");
-            }
-        }
-
-        #endregion
-
-        #region ONET Commands
-
-        private static async Task ShowONETStatusAsync()
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Getting ONET network status...");
-
-                var statusResult = await _onetManager!.GetNetworkStatusAsync();
-                if (statusResult.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to get ONET status: {statusResult.Message}");
-                    return;
-                }
-
-                var status = statusResult.Result;
-                Console.WriteLine();
-                CLIEngine.ShowMessage("=== ONET NETWORK STATUS ===", ConsoleColor.Green);
-                CLIEngine.ShowMessage($"Is Running: {status.IsRunning}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Connected Nodes: {status.ConnectedNodes}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Network Health: {status.NetworkHealth:P1}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Network ID: {status.NetworkId}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Last Activity: {status.LastActivity}", ConsoleColor.White);
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error getting ONET status: {ex.Message}");
-            }
-        }
-
-        private static async Task ShowONETProvidersAsync()
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Getting ONET network providers...");
-
-                // Get network stats instead of providers (providers method doesn't exist)
-                var statsResult = await _onetManager!.GetNetworkStatsAsync();
-                if (statsResult.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to get ONET stats: {statsResult.Message}");
-                    return;
-                }
-
-                var stats = statsResult.Result;
-                Console.WriteLine();
-                CLIEngine.ShowMessage("=== ONET NETWORK STATS ===", ConsoleColor.Green);
-                
-                foreach (var stat in stats)
-                {
-                    CLIEngine.ShowMessage($"• {stat.Key}: {stat.Value}", ConsoleColor.White);
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error getting ONET providers: {ex.Message}");
-            }
-        }
-
-        private static async Task DiscoverONETNodesAsync()
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Discovering ONET nodes...");
-
-                var discoveryResult = await _onetDiscovery!.DiscoverAvailableNodesAsync();
-                if (discoveryResult.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to discover nodes: {discoveryResult.Message}");
-                    return;
-                }
-
-                var nodes = discoveryResult.Result;
-                Console.WriteLine();
-                CLIEngine.ShowMessage("=== DISCOVERED ONET NODES ===", ConsoleColor.Green);
-                
-                if (nodes.Any())
-                {
-                    foreach (var node in nodes)
-                    {
-                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address}", ConsoleColor.White);
-                        CLIEngine.ShowMessage($"  Status: {node.Status} | Latency: {node.Latency}ms | Reliability: {node.Reliability}%", ConsoleColor.Gray);
-                        CLIEngine.ShowMessage($"  Capabilities: {string.Join(", ", node.Capabilities)}", ConsoleColor.Gray);
-                    }
-                }
-                else
-                {
-                    CLIEngine.ShowMessage("No ONET nodes discovered", ConsoleColor.Yellow);
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error discovering ONET nodes: {ex.Message}");
-            }
-        }
-
-        private static async Task ConnectToONETNodeAsync(string nodeAddress)
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage($"Connecting to ONET node: {nodeAddress}...");
-
-                var result = await _onetManager!.ConnectToNodeAsync(nodeAddress, nodeAddress);
-                if (result.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to connect to node {nodeAddress}: {result.Message}");
-                }
-                else
-                {
-                    CLIEngine.ShowSuccessMessage($"Successfully connected to ONET node: {nodeAddress}");
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error connecting to ONET node {nodeAddress}: {ex.Message}");
-            }
-        }
-
-        private static async Task DisconnectFromONETNodeAsync(string nodeAddress)
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage($"Disconnecting from ONET node: {nodeAddress}...");
-
-                var result = await _onetManager!.DisconnectFromNodeAsync(nodeAddress);
-                if (result.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to disconnect from node {nodeAddress}: {result.Message}");
-                }
-                else
-                {
-                    CLIEngine.ShowSuccessMessage($"Successfully disconnected from ONET node: {nodeAddress}");
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error disconnecting from ONET node {nodeAddress}: {ex.Message}");
-            }
-        }
-
-        private static async Task ShowONETTopologyAsync()
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Getting ONET network topology...");
-
-                var topologyResult = await _onetManager!.GetNetworkTopologyAsync();
-                if (topologyResult.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to get network topology: {topologyResult.Message}");
-                    return;
-                }
-
-                var topology = topologyResult.Result;
-                Console.WriteLine();
-                CLIEngine.ShowMessage("=== ONET NETWORK TOPOLOGY ===", ConsoleColor.Green);
-                CLIEngine.ShowMessage($"Total Nodes: {topology.Nodes.Count}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Connections: {topology.Connections.Count}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Last Updated: {topology.LastUpdated}", ConsoleColor.White);
-                
-                if (topology.Nodes.Any())
-                {
-                    CLIEngine.ShowMessage("\nNodes:", ConsoleColor.Yellow);
-                    foreach (var node in topology.Nodes)
-                    {
-                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address} (Status: {node.Status})", ConsoleColor.Gray);
-                    }
-                }
-                
-                if (topology.Connections.Any())
-                {
-                    CLIEngine.ShowMessage("\nConnections:", ConsoleColor.Yellow);
-                    foreach (var connection in topology.Connections)
-                    {
-                        CLIEngine.ShowMessage($"• {connection.FromNodeId} ↔ {connection.ToNodeId} (Latency: {connection.Latency}ms)", ConsoleColor.Gray);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error getting ONET topology: {ex.Message}");
-            }
-        }
-
-        #endregion
-
-        #endregion
-    }
-}
-
-            CLIEngine.ShowErrorMessage($"Provider management not implemented for {providerName}");
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error starting provider {providerName}: {ex.Message}");
-            }
-        }
-
-        private static async Task StopONODEProviderAsync(string providerName)
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage($"Stopping provider: {providerName}...");
-
-            // Provider management not implemented in ONETManager
-            CLIEngine.ShowErrorMessage($"Provider management not implemented for {providerName}");
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error stopping provider {providerName}: {ex.Message}");
-            }
-        }
-
-        #endregion
-
-        #region ONET Commands
-
-        private static async Task ShowONETStatusAsync()
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Getting ONET network status...");
-
-                var statusResult = await _onetManager!.GetNetworkStatusAsync();
-                if (statusResult.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to get ONET status: {statusResult.Message}");
-                    return;
-                }
-
-                var status = statusResult.Result;
-                Console.WriteLine();
-                CLIEngine.ShowMessage("=== ONET NETWORK STATUS ===", ConsoleColor.Green);
-                CLIEngine.ShowMessage($"Is Running: {status.IsRunning}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Connected Nodes: {status.ConnectedNodes}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Network Health: {status.NetworkHealth:P1}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Network ID: {status.NetworkId}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Last Activity: {status.LastActivity}", ConsoleColor.White);
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error getting ONET status: {ex.Message}");
-            }
-        }
-
-        private static async Task ShowONETProvidersAsync()
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Getting ONET network providers...");
-
-                // Get network stats instead of providers (providers method doesn't exist)
-                var statsResult = await _onetManager!.GetNetworkStatsAsync();
-                if (statsResult.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to get ONET stats: {statsResult.Message}");
-                    return;
-                }
-
-                var stats = statsResult.Result;
-                Console.WriteLine();
-                CLIEngine.ShowMessage("=== ONET NETWORK STATS ===", ConsoleColor.Green);
-                
-                foreach (var stat in stats)
-                {
-                    CLIEngine.ShowMessage($"• {stat.Key}: {stat.Value}", ConsoleColor.White);
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error getting ONET providers: {ex.Message}");
-            }
-        }
-
-        private static async Task DiscoverONETNodesAsync()
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Discovering ONET nodes...");
-
-                var discoveryResult = await _onetDiscovery!.DiscoverAvailableNodesAsync();
-                if (discoveryResult.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to discover nodes: {discoveryResult.Message}");
-                    return;
-                }
-
-                var nodes = discoveryResult.Result;
-                Console.WriteLine();
-                CLIEngine.ShowMessage("=== DISCOVERED ONET NODES ===", ConsoleColor.Green);
-                
-                if (nodes.Any())
-                {
-                    foreach (var node in nodes)
-                    {
-                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address}", ConsoleColor.White);
-                        CLIEngine.ShowMessage($"  Status: {node.Status} | Latency: {node.Latency}ms | Reliability: {node.Reliability}%", ConsoleColor.Gray);
-                        CLIEngine.ShowMessage($"  Capabilities: {string.Join(", ", node.Capabilities)}", ConsoleColor.Gray);
-                    }
-                }
-                else
-                {
-                    CLIEngine.ShowMessage("No ONET nodes discovered", ConsoleColor.Yellow);
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error discovering ONET nodes: {ex.Message}");
-            }
-        }
-
-        private static async Task ConnectToONETNodeAsync(string nodeAddress)
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage($"Connecting to ONET node: {nodeAddress}...");
-
-                var result = await _onetManager!.ConnectToNodeAsync(nodeAddress, nodeAddress);
-                if (result.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to connect to node {nodeAddress}: {result.Message}");
-                }
-                else
-                {
-                    CLIEngine.ShowSuccessMessage($"Successfully connected to ONET node: {nodeAddress}");
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error connecting to ONET node {nodeAddress}: {ex.Message}");
-            }
-        }
-
-        private static async Task DisconnectFromONETNodeAsync(string nodeAddress)
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage($"Disconnecting from ONET node: {nodeAddress}...");
-
-                var result = await _onetManager!.DisconnectFromNodeAsync(nodeAddress);
-                if (result.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to disconnect from node {nodeAddress}: {result.Message}");
-                }
-                else
-                {
-                    CLIEngine.ShowSuccessMessage($"Successfully disconnected from ONET node: {nodeAddress}");
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error disconnecting from ONET node {nodeAddress}: {ex.Message}");
-            }
-        }
-
-        private static async Task ShowONETTopologyAsync()
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Getting ONET network topology...");
-
-                var topologyResult = await _onetManager!.GetNetworkTopologyAsync();
-                if (topologyResult.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to get network topology: {topologyResult.Message}");
-                    return;
-                }
-
-                var topology = topologyResult.Result;
-                Console.WriteLine();
-                CLIEngine.ShowMessage("=== ONET NETWORK TOPOLOGY ===", ConsoleColor.Green);
-                CLIEngine.ShowMessage($"Total Nodes: {topology.Nodes.Count}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Connections: {topology.Connections.Count}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Last Updated: {topology.LastUpdated}", ConsoleColor.White);
-                
-                if (topology.Nodes.Any())
-                {
-                    CLIEngine.ShowMessage("\nNodes:", ConsoleColor.Yellow);
-                    foreach (var node in topology.Nodes)
-                    {
-                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address} (Status: {node.Status})", ConsoleColor.Gray);
-                    }
-                }
-                
-                if (topology.Connections.Any())
-                {
-                    CLIEngine.ShowMessage("\nConnections:", ConsoleColor.Yellow);
-                    foreach (var connection in topology.Connections)
-                    {
-                        CLIEngine.ShowMessage($"• {connection.FromNodeId} ↔ {connection.ToNodeId} (Latency: {connection.Latency}ms)", ConsoleColor.Gray);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error getting ONET topology: {ex.Message}");
-            }
-        }
-
-        #endregion
-
-        #endregion
-    }
-}
-
-                }
-
-                var topology = topologyResult.Result;
-                Console.WriteLine();
-                CLIEngine.ShowMessage("=== ONET NETWORK TOPOLOGY ===", ConsoleColor.Green);
-                CLIEngine.ShowMessage($"Total Nodes: {topology.Nodes.Count}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Connections: {topology.Connections.Count}", ConsoleColor.White);
-                CLIEngine.ShowMessage($"Last Updated: {topology.LastUpdated}", ConsoleColor.White);
-                
-                if (topology.Nodes.Any())
-                {
-                    CLIEngine.ShowMessage("\nNodes:", ConsoleColor.Yellow);
-                    foreach (var node in topology.Nodes)
-                    {
-                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address} (Status: {node.Status})", ConsoleColor.Gray);
-                    }
-                }
-                
-                if (topology.Connections.Any())
-                {
-                    CLIEngine.ShowMessage("\nConnections:", ConsoleColor.Yellow);
-                    foreach (var connection in topology.Connections)
-                    {
-                        CLIEngine.ShowMessage($"• {connection.FromNodeId} ↔ {connection.ToNodeId} (Latency: {connection.Latency}ms)", ConsoleColor.Gray);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error getting ONET topology: {ex.Message}");
-            }
-        }
-
-        #endregion
-
-        #endregion
-    }
-}
-
             CLIEngine.ShowErrorMessage($"Provider management not implemented for {providerName}");
             }
             catch (Exception ex)

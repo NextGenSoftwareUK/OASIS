@@ -22,7 +22,6 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Rijndael256;
-using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -62,7 +61,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (providerWallets != null && providerWallets.Result != null && !providerWallets.IsError)
                     {
-                        if (providerWallets.Result[walletProviderType] == null)
+                        if (!providerWallets.Result.ContainsKey(walletProviderType))
+                            providerWallets.Result[walletProviderType] = new List<IProviderWallet>();
+                        
+                        else if (providerWallets.Result[walletProviderType] == null)
                             providerWallets.Result[walletProviderType] = new List<IProviderWallet>();
 
                         if (isDefaultWallet)
@@ -4514,13 +4516,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (generateKeyPair)
             {
-                IKeyPairAndWallet keyPair = GenerateKeyValuePairAndWalletAddress();
+                OASISResult<IKeyPairAndWallet> keyPair = KeyManager.Instance.GenerateKeyPairWithWalletAddress(walletProviderType);
 
-                if (keyPair != null)
+                if (keyPair != null && keyPair.Result != null && !keyPair.IsError)
                 {
-                    newWallet.PrivateKey = keyPair.PrivateKey;
-                    newWallet.PublicKey = keyPair.PublicKey;
-                    newWallet.WalletAddress = keyPair.WalletAddressLegacy;
+                    newWallet.PrivateKey = keyPair.Result.PrivateKey;
+                    newWallet.PublicKey = keyPair.Result.PublicKey;
+                    newWallet.WalletAddress = keyPair.Result.WalletAddressLegacy;
                 }
             }
 
