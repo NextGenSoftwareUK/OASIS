@@ -2916,7 +2916,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
             var publicKey = ecKey.GetPublicAddress();
 
-            result.Result = new KeyPairAndWallet
+            result.Result = new NextGenSoftware.OASIS.API.Core.Objects.KeyPairAndWallet
             {
                 PrivateKey = privateKey,
                 PublicKey = publicKey,

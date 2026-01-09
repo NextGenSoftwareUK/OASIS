@@ -2558,7 +2558,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 //}
 
                 //result.Result = keyPair;
-                result.Result = new KeyPairAndWallet
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.KeyPairAndWallet
                 {
                     PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
                     PublicKey = account.PublicKey.Key,
