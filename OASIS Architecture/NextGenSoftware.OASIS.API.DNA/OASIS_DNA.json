@@ -44,7 +44,7 @@
             "OASISProviderPrivateKeys": {
                 "BCryptEncryptionEnabled": true,
                 "Rijndael256EncryptionEnabled": true,
-                "Rijndael256Key": "",
+                "Rijndael256Key": "TEST_KEY_FOR_DEVELOPMENT_ONLY_DO_NOT_USE_IN_PRODUCTION_256BIT",
                 "QuantumEncryptionEnabled": true
             }
         },
