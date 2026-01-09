@@ -22,10 +22,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
-            string name = CLIEngine.GetValidInput($"Please enter the new wallet name:", addLineBefore: true);
-            string desc = CLIEngine.GetValidInput($"Please enter the new wallet description:", addLineBefore: true);
+            string name = CLIEngine.GetValidInput($"Please enter the new wallet name:", addLineBefore: false);
+            string desc = CLIEngine.GetValidInput($"Please enter the new wallet description:", addLineBefore: false);
 
-            object objProviderType = CLIEngine.GetValidInputForEnum($"Please enter the new wallet provider type:", typeof(ProviderType), addLineBefore: true);
+            object objProviderType = CLIEngine.GetValidInputForEnum($"Please enter the new wallet provider type:", typeof(ProviderType), addLineBefore: false);
 
             if (objProviderType != null)
             {
@@ -37,9 +37,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 ProviderType walletProviderType = (ProviderType)objProviderType;
 
-                bool isDefault = CLIEngine.GetConfirmation($"Will this be the new default wallet?", addLineBefore: true);
+                bool isDefault = CLIEngine.GetConfirmation($"Will this be the new default wallet?", addLineBefore: false);
 
-                CLIEngine.ShowWorkingMessage("Creating Wallet...");
+                CLIEngine.ShowWorkingMessage("Creating Wallet...", addLineBefore: true);
                 result = await STAR.OASISAPI.Wallets.CreateWalletForAvatarByIdAsync(STAR.BeamedInAvatar.Id, name, desc, walletProviderType, true, isDefault);
 
                 if (result != null && result.Result != null && !result.IsError)

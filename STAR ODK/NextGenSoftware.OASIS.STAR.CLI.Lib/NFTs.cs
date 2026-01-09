@@ -1,23 +1,18 @@
 ﻿using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
 using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
@@ -140,6 +135,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 //    OASISErrorHandling.HandleError(ref result, $"Error occured minting NFT in MintNFTAsync method. Reason: {NFTResult.Message}");
                 //else
                     OASISErrorHandling.HandleError(ref result, $"Error occured loading NFT in LoadNftAsync method. Reason: {NFTResult.Message}");
+            }
+
+            return result;
+        }
+
+        public override async Task<OASISResult<STARNFT>> DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<STARNFT> result = await base.DeleteAsync(idOrName, softDelete, providerType);
+
+            if (result != null && result.Result != null && !result.IsError && result.IsDeleted)
+            {
+                if (result.Result.STARNETDNA != null && result.Result.STARNETDNA.MetaData != null && result.Result.STARNETDNA.MetaData.ContainsKey("WEB4 NFT") && result.Result.STARNETDNA.MetaData["WEB4 NFT"] != null)
+                {
+                    IWeb4NFT nft = result.Result.STARNETDNA.MetaData["WEB4 NFT"] as IWeb4NFT;
+
+                    if (nft == null)
+                        nft = JsonConvert.DeserializeObject<Web4NFT>(result.Result.STARNETDNA.MetaData["WEB4 NFT"].ToString());
+
+                    if (nft != null)
+                    {
+                        if (CLIEngine.GetConfirmation($"Do you wish to also delete the child WEB4 NFT ({nft.Title}) and optionally it's child WEB3 NFT's?"))
+                            await DeleteWeb4NFTAsync(nft.Id.ToString());
+                    }
+                }
             }
 
             return result;
@@ -461,7 +480,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IWeb4NFT>> DeleteWeb4NFTAsync(string idOrName, bool? softDelete = true, bool? deleteChildWeb3NFTs = false, bool? burnChildWebNFTs = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFT>> DeleteWeb4NFTAsync(string idOrName, ProviderType providerType = ProviderType.Default)
+        {
+            return await DeleteWeb4NFTAsync(idOrName, null, null, null, providerType);
+        }
+
+        public async Task<OASISResult<IWeb4NFT>> DeleteWeb4NFTAsync(string idOrName, bool? softDelete, bool? deleteChildWeb3NFTs, bool? burnChildWeb3NFTs, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4NFT> nft = await FindWeb4NFTAsync("delete", idOrName, true);
 
@@ -475,13 +499,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 softDelete = CLIEngine.GetConfirmation("Do you wish to permanently delete the Web4 NFT? (defaults to false)");
             
             if (!deleteChildWeb3NFTs.HasValue)
-                deleteChildWeb3NFTs = CLIEngine.GetConfirmation("Do you wish to also delete the child Web3 NFTs? (the OASIS holon/metadata)(recommeneded/default)");
+                deleteChildWeb3NFTs = CLIEngine.GetConfirmation("Do you wish to also delete the child Web3 NFTs? (the OASIS holon/metadata)(recommeneded/default)", addLineBefore: true);
             
-            if (!burnChildWebNFTs.HasValue)
-                burnChildWebNFTs = CLIEngine.GetConfirmation("Do you wish to also burn the child Web3 NFTs? (permanently destroy the Web3 NFTs on-chain) (recommeneded/default)");
+            if (!burnChildWeb3NFTs.HasValue)
+                burnChildWeb3NFTs = CLIEngine.GetConfirmation("Do you wish to also burn the child Web3 NFTs? (permanently destroy the Web3 NFTs on-chain) (recommeneded/default)", addLineBefore: true);
 
-            CLIEngine.ShowWorkingMessage("Deleting WEB4 NFT...");
-            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb4NFTAsync(STAR.BeamedInAvatar.Id, nft.Result.Id, softDelete.Value, deleteChildWeb3NFTs.Value, burnChildWebNFTs.Value, providerType: providerType);
+            CLIEngine.ShowWorkingMessage("Deleting WEB4 NFT...", addLineBefore: true);
+            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb4NFTAsync(STAR.BeamedInAvatar.Id, nft.Result.Id, softDelete.Value, deleteChildWeb3NFTs.Value, burnChildWeb3NFTs.Value, providerType: providerType);
 
             if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
             {
@@ -847,7 +871,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (web4NFT.Web3NFTs.Count > 0)
             {
                 //Console.WriteLine("");
-                DisplayProperty("WEB3 NFT's", "", displayFieldLength);
+                DisplayProperty($"WEB3 NFT's ({web4NFT.Web3NFTs.Count})", "", displayFieldLength);
                 Console.WriteLine("");
 
                 foreach (Web3NFT web3NFT in web4NFT.Web3NFTs)

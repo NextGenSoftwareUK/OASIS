@@ -1179,7 +1179,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public virtual async Task DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = await FindAsync("delete", idOrName, default, true, providerType: providerType);
 
@@ -1194,21 +1194,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     bool deleteInstall = CLIEngine.GetConfirmation($"Do you wish to also delete the correponding installed {STARNETManager.STARNETHolonUIName}? (if there is any). This is different to uninstalling because uninstalled {STARNETManager.STARNETHolonUIName}s are still visible with the 'list uninstalled' sub-command and have the option to re-install. Whereas once it is deleted it is gone forever!");
 
                     Console.WriteLine("");
-                    if (CLIEngine.GetConfirmation("ARE YOU SURE YOU WITH TO PERMANENTLY DELETE THE OAPP TEMPLATE? IT WILL NOT BE POSSIBLE TO RECOVER AFTRWARDS!", ConsoleColor.Red))
+                    if (CLIEngine.GetConfirmation($"ARE YOU SURE YOU WITH TO PERMANENTLY DELETE THE {STARNETManager.STARNETHolonUIName}? IT WILL NOT BE POSSIBLE TO RECOVER AFTRWARDS!", ConsoleColor.Red))
                     {
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage($"Deleting {STARNETManager.STARNETHolonUIName}...");
                         result = await STARNETManager.DeleteAsync(STAR.BeamedInAvatar.Id, result.Result, result.Result.STARNETDNA.VersionSequence, true, deleteDownload, deleteInstall, providerType);
 
                         if (result != null && !result.IsError && result.Result != null)
+                        {
+                            result.IsDeleted = true;
                             CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Deleted.");
+                        }
                         else
-                            CLIEngine.ShowErrorMessage($"An error occured deleting the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"An error occured deleting the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
                     }
                 }
             }
             else
-                CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
+
+            return result;
         }
 
         //public virtual async Task<OASISResult<T1>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, bool askToInstallAtEnd = true, ProviderType providerType = ProviderType.Default)
@@ -3245,13 +3250,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             ShowAsync(starHolons.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
-                        CLIEngine.ShowWarningMessage($"No {STARNETManager.STARNETHolonUIName}s Found.");
+                        CLIEngine.ShowWarningMessage($"No {STARNETManager.STARNETHolonUIName}'s Found.");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error occured loading {STARNETManager.STARNETHolonUIName}s. Reason: {starHolons.Message}");
+                    CLIEngine.ShowErrorMessage($"Error occured loading {STARNETManager.STARNETHolonUIName}'s. Reason: {starHolons.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Unknown error occured loading {STARNETManager.STARNETHolonUIName}s.");
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading {STARNETManager.STARNETHolonUIName}'s.");
 
             return starHolons;
         }
