@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
@@ -3402,7 +3402,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             //    keyPair.WalletAddressLegacy = account.PublicKey.Key;
             //}
 
-            result.Result = new KeyPairAndWallet()
+            result.Result = new NextGenSoftware.OASIS.API.Core.Objects.KeyPairAndWallet()
             {
                 PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
                 PublicKey = account.PublicKey.Key,

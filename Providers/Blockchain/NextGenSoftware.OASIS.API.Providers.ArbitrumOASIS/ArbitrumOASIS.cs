@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Generic;
 using System.IO;
@@ -3459,7 +3459,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             //    keyPair.WalletAddressLegacy = publicKey;
             //}
 
-            result.Result = new KeyPairAndWallet()
+            result.Result = new NextGenSoftware.OASIS.API.Core.Objects.KeyPairAndWallet()
             {
                 PrivateKey = privateKey,
                 PublicKey = publicKey,
