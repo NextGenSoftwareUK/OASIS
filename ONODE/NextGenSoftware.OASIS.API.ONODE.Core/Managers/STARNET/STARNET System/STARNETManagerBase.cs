@@ -4489,8 +4489,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
-            if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
+            //if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
+            if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError)
+            {
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedSTARNETHolonsResult, result);
                 result.Result = installedSTARNETHolonsResult.Result;
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedSTARNETHolonsResult.Message}");
 

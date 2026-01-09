@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static string[] _args = null;
         private static bool _exiting = false;
         private static bool _inMainMenu = false;
+        private static Dictionary<string, Process> _webApiProcesses = new Dictionary<string, Process>();
 
         static async Task Main(string[] args)
         {
@@ -916,7 +917,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listWeb4ForBeamedInAvatarPredicate = null,
             Func<string, string, ProviderType, Task> addWeb4NFTToCollectionPredicate = null,
             Func<string, string, ProviderType, Task> removeWeb4NFTFromCollectionPredicate = null,
-            Func<string, ProviderType, Task> updateWeb3Predicate = null,
+            Func<string, ProviderType, Task> updateWeb3Predicate = null, //WEB3 Commands
             Func<string, bool, bool, ProviderType, Task<OASISResult<bool>>> deleteWeb3Predicate = null,
             Func<ProviderType, Task> listAllWeb3Predicate = null,
             Func<ProviderType, Task> listWeb3ForBeamedInAvatarPredicate = null,
@@ -1541,12 +1542,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
 
                 int commandSpace = 22;
-                int paramSpace = 22;
+                int paramSpace = 23;
                 string paramDivider = "  ";
                 string web4Param = "";
 
-                if (subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT" || subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT")
-                    web4Param = "[web4]";
+                if (subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT")
+                    web4Param = "[web3] [web4]";
 
                 if (showCreate)
                 {
@@ -2206,7 +2207,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    import secretPhase [secretPhase]              Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    import json        [jsonFile]                 Imports a wallet using the jsonFile.", ConsoleColor.Green, false);
                 //CLIEngine.ShowMessage("    add                                           Adds a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    create                                        Creates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    update                                        Updates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+
                 CLIEngine.ShowMessage("    list               [default]                  Lists the wallets for the currently beamed in avatar. If [default] param is included it will only list the default wallets.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    balance                                       Gets the total balance for all wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    balance            [walletId] [providerType]  Gets the balance for the given wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
@@ -2954,13 +2957,51 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     case "start":
                         {
-                            await StartONODEAsync();
+                            if (inputArgs.Length > 2)
+                            {
+                                switch (inputArgs[2].ToLower())
+                                {
+                                    case "web4":
+                                        await StartWeb4APIAsync();
+                                        break;
+
+                                    case "web5":
+                                        await StartWeb5APIAsync();
+                                        break;
+
+                                    default:
+                                        await StartONODEAsync();
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                await StartONODEAsync();
+                            }
                         }
                         break;
 
                     case "stop":
                         {
-                            await StopONODEAsync();
+                            if (inputArgs.Length > 2)
+                            {
+                                switch (inputArgs[2].ToLower())
+                                {
+                                    case "web4":
+                                        await StopWeb4APIAsync();
+                                        break;
+                                    case "web5":
+                                        await StopWeb5APIAsync();
+                                        break;
+                                    default:
+                                        await StopONODEAsync();
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                await StopONODEAsync();
+                            }
                         }
                         break;
 
@@ -3010,13 +3051,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"ONODE SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    start                          Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop                           Stops a OASIS Node (ONODE).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    start          [web4] [web5]   Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    stop           [web4] [web5]   Stops a OASIS Node (ONODE).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    status                         Shows stats for this ONODE.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    config                         Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    providers                      Shows what OASIS Providers are running for this ONODE.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    startprovider  {ProviderName}  Starts a given provider.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    stopprovider   {ProviderName}  Stops a given provider.", ConsoleColor.Green, false);
+
+                CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
+                CLIEngine.ShowMessage("For the start and stop sub-commands, if you specify [web4] it will start/stop a local WEB4 OASIS API ONODE (HTTP REST Service), if you specify [web5] it will start/stop a local WEB5 STAR API ONODE (HTTP REST Service). Otherwise by default it will start the expirmental (beta) OASIS P2P ONET Service and then register the new ONODE on it. For now it is recommended you use the REST HTTP Services.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -3175,12 +3219,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"ONET SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    start       Starts the ONET network.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    start web4  Starts WEB4 OASIS API REST WebAPI in a new window.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    start web5  Starts WEB5 STAR API REST WebAPI in a new window.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop        Stops the ONET network.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop web4   Stops WEB4 OASIS API REST WebAPI and closes the window.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop web5   Stops WEB5 STAR API REST WebAPI and closes the window.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    start       Starts the ONET network.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    start web4  Starts WEB4 OASIS API REST WebAPI in a new window.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    start web5  Starts WEB5 STAR API REST WebAPI in a new window.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    stop        Stops the ONET network.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    stop web4   Stops WEB4 OASIS API REST WebAPI and closes the window.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    stop web5   Stops WEB5 STAR API REST WebAPI and closes the window.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    status      Shows stats for the OASIS Network (ONET).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    providers   Shows what OASIS Providers are running across the ONET and on what ONODE's.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    discover    Discovers available ONET nodes in the network.", ConsoleColor.Green, false);
@@ -3533,7 +3577,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("        When invoking any sub-commands that have an optional [detailed] argument/flag, if it is included it will show detailed information for that item (such as show and list).");
                 Console.WriteLine("        If you invoke the update, delete, list, show or search sub-command with [web4] param it will update/delete/list/show/search WEB4 OASIS Geo-NFT's/NFT's otherwise it will update/delete/list/show/search WEB5 STAR Geo-NFT's/NFT's.");
                 Console.WriteLine("        If you invoke the create, update, delete, list, show or search sub-command with [web4] param it will create/update/delete/list/show/search WEB4 OASIS Geo-NFT/NFT Collection's otherwise it will create/update/delete/list/show/search WEB5 STAR Geo-NFT/NFT Collection's.");
-                Console.WriteLine("        If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
+                Console.WriteLine("        If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to launch any wizards to help guide you.");
             }
             else
             {
@@ -3858,8 +3902,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         {
             string web4Param = "";
 
-            if (holonType == "nft collection" || holonType == "geonft collection")
-                web4Param = " [web4]";
+            if (holonType == "nft collection" || holonType == "geonft collection" || holonType == "nft" || holonType == "geonft")
+                web4Param = " [web3] [web4]";
 
             DisplayCommand(string.Concat(holonType, " create"), !string.IsNullOrEmpty(createParams) ? createParams : web4Param, !string.IsNullOrEmpty(createDesc) ? createDesc : $"Create a new {holonType}.");
             DisplayCommand(string.Concat(holonType, " update"), !string.IsNullOrEmpty(updateParams) ? updateParams : string.Concat("{id/name}", web4Param), !string.IsNullOrEmpty(updateDesc) ? updateDesc : string.Concat("Updates an existing ", holonType, " for the given {id} or {name}."));
@@ -3977,8 +4021,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
-        private static Dictionary<string, Process> _webApiProcesses = new Dictionary<string, Process>();
-
         private static async Task StartWeb4APIAsync()
         {
             try
@@ -3991,7 +4033,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                 CLIEngine.ShowWorkingMessage("Starting WEB4 OASIS API REST WebAPI...");
                 
-                string web4ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "ONODE", "NextGenSoftware.OASIS.API.ONODE.WebAPI"));
+                string web4ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "..", "ONODE", "NextGenSoftware.OASIS.API.ONODE.WebAPI"));
                 string csprojPath = Path.Combine(web4ApiPath, "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj");
                 
                 if (!File.Exists(csprojPath))
@@ -4040,7 +4082,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                 CLIEngine.ShowWorkingMessage("Starting WEB5 STAR API REST WebAPI...");
                 
-                string web5ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "NextGenSoftware.OASIS.STAR.WebAPI"));
+                string web5ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "NextGenSoftware.OASIS.STAR.WebAPI"));
                 string csprojPath = Path.Combine(web5ApiPath, "NextGenSoftware.OASIS.STAR.WebAPI.csproj");
                 
                 if (!File.Exists(csprojPath))
