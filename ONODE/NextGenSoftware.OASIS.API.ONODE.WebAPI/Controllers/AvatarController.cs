@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -59,6 +59,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model)
         {
             // Call AvatarManager directly
+            var avatarType = model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User;
+            
+            // Parse ownerAvatarId if provided (for Agent-type avatars)
+            Guid? ownerId = null;
+            if (avatarType == AvatarType.Agent && !string.IsNullOrEmpty(model.OwnerAvatarId))
+            {
+                if (Guid.TryParse(model.OwnerAvatarId, out var parsedOwnerId))
+                {
+                    ownerId = parsedOwnerId;
+                }
+            }
+            
             var result = await AvatarManager.RegisterAsync(
                 model.Title,
                 model.FirstName,
@@ -66,8 +78,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 model.Email,
                 model.Password,
                 model.Username,
-                model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
-                OASISType.OASISAPIREST
+                avatarType,
+                OASISType.OASISAPIREST,
+                ConsoleColor.Green,
+                ConsoleColor.Green,
+                ownerId
             );
             
             return HttpResponseHelper.FormatResponse(result);

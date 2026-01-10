@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Agent;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.A2A;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Newtonsoft.Json;
@@ -556,6 +557,234 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 }
 
                 return Ok(new { success = true, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Link an agent to a user avatar (owner)
+        /// </summary>
+        /// <remarks>
+        /// Links an A2A agent to a user avatar. The user avatar becomes the owner of the agent.
+        /// If the user avatar is verified, the agent will be auto-verified (up to the agent limit per user).
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Agent Type Required:** The authenticated avatar must be of type `Agent`
+        /// 
+        /// **Owner Type Required:** The owner avatar must be of type `User`
+        /// 
+        /// **Agent Limit:** Default is 10 agents per user (configurable)
+        /// 
+        /// **Example Request:**
+        /// ```json
+        /// {
+        ///   "ownerAvatarId": "123e4567-e89b-12d3-a456-426614174000"
+        /// }
+        /// ```
+        /// 
+        /// **Example Response:**
+        /// ```json
+        /// {
+        ///   "success": true,
+        ///   "message": "Agent linked to user successfully"
+        /// }
+        /// ```
+        /// </remarks>
+        /// <param name="request">Link request containing ownerAvatarId</param>
+        /// <returns>Success response</returns>
+        /// <response code="200">Success - Agent linked to user</response>
+        /// <response code="400">Bad Request - Invalid request or limit reached</response>
+        /// <response code="401">Unauthorized - Authentication required</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost("agent/link-to-user")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> LinkAgentToUser([FromBody] LinkAgentToUserRequest request)
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                if (Avatar.AvatarType.Value != AvatarType.Agent)
+                {
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+                }
+
+                if (string.IsNullOrEmpty(request?.OwnerAvatarId) || !Guid.TryParse(request.OwnerAvatarId, out var ownerId))
+                {
+                    return BadRequest(new { error = "Valid ownerAvatarId is required" });
+                }
+
+                var result = await AgentManager.Instance.LinkAgentToUserAsync(Avatar.Id, ownerId);
+
+                if (result.IsError)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+
+                return Ok(new { success = true, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Unlink an agent from its owner
+        /// </summary>
+        /// <remarks>
+        /// Unlinks an A2A agent from its owner user avatar.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Agent Type Required:** The authenticated avatar must be of type `Agent`
+        /// </remarks>
+        /// <returns>Success response</returns>
+        /// <response code="200">Success - Agent unlinked from owner</response>
+        /// <response code="400">Bad Request - Agent not linked</response>
+        /// <response code="401">Unauthorized - Authentication required</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost("agent/unlink-from-user")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> UnlinkAgentFromUser()
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                if (Avatar.AvatarType.Value != AvatarType.Agent)
+                {
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+                }
+
+                var result = await AgentManager.Instance.UnlinkAgentFromUserAsync(Avatar.Id);
+
+                if (result.IsError)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+
+                return Ok(new { success = true, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Get all agents owned by a user
+        /// </summary>
+        /// <remarks>
+        /// Retrieves all A2A agents owned by the specified user avatar.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Note:** Users can only query their own agents unless they are a Wizard
+        /// </remarks>
+        /// <param name="ownerAvatarId">The owner avatar ID (optional - defaults to authenticated user)</param>
+        /// <returns>List of agent IDs</returns>
+        /// <response code="200">Success - Returns list of agent IDs</response>
+        /// <response code="401">Unauthorized - Authentication required</response>
+        /// <response code="403">Forbidden - Cannot query other users' agents</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpGet("agents/by-owner/{ownerAvatarId?}")]
+        [Authorize]
+        [ProducesResponseType(typeof(List<Guid>), 200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> GetAgentsByOwner(Guid? ownerAvatarId = null)
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                // Default to authenticated user if not specified
+                var queryOwnerId = ownerAvatarId ?? Avatar.Id;
+
+                // Check permissions: users can only query their own agents unless they are a Wizard
+                if (queryOwnerId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                {
+                    return StatusCode(403, new { error = "You can only query your own agents" });
+                }
+
+                var result = await AgentManager.Instance.GetAgentsByOwnerAsync(queryOwnerId);
+
+                if (result.IsError)
+                {
+                    return StatusCode(500, new { error = result.Message });
+                }
+
+                return Ok(result.Result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Get the owner of an agent
+        /// </summary>
+        /// <remarks>
+        /// Retrieves the owner (user avatar) of the specified agent.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// </remarks>
+        /// <param name="agentId">The agent avatar ID (optional - defaults to authenticated agent)</param>
+        /// <returns>Owner avatar ID</returns>
+        /// <response code="200">Success - Returns owner avatar ID</response>
+        /// <response code="400">Bad Request - Agent not found or not an Agent type</response>
+        /// <response code="401">Unauthorized - Authentication required</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpGet("agent/{agentId?}/owner")]
+        [Authorize]
+        [ProducesResponseType(typeof(Guid?), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> GetAgentOwner(Guid? agentId = null)
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                // Default to authenticated avatar if not specified
+                var queryAgentId = agentId ?? Avatar.Id;
+
+                var result = await AgentManager.Instance.GetAgentOwnerAsync(queryAgentId);
+
+                if (result.IsError)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+
+                return Ok(new { ownerAvatarId = result.Result, message = result.Message });
             }
             catch (Exception ex)
             {

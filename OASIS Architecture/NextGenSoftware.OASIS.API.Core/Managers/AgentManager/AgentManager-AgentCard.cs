@@ -81,6 +81,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (avatarResult.Result.Email != null)
                     agentCard.Metadata["email"] = avatarResult.Result.Email;
 
+                // Get owner information from avatar metadata
+                if (avatarResult.Result.MetaData != null && avatarResult.Result.MetaData.ContainsKey("OwnerAvatarId"))
+                {
+                    var ownerId = avatarResult.Result.MetaData["OwnerAvatarId"];
+                    if (ownerId != null)
+                    {
+                        agentCard.OwnerAvatarId = ownerId.ToString();
+                        agentCard.Metadata["owner_avatar_id"] = ownerId;
+                    }
+                }
+
                 result.Result = agentCard;
                 result.Message = "Agent Card retrieved successfully";
             }
@@ -173,6 +184,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public AgentCapabilitiesInfo Capabilities { get; set; }
         public AgentConnectionInfo Connection { get; set; }
         public Dictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
+        public string OwnerAvatarId { get; set; }
     }
 }
 
