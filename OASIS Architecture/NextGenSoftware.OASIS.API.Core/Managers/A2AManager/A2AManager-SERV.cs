@@ -4,7 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Agent;
 // TODO: ONETUnifiedArchitecture is in ONODE.Core which creates a circular dependency with API.Core
-// This file should be moved to ONODE.Core or use dependency injection
+// SERV methods are implemented as extension methods in ONODE.Core
+// See: ONODE.Core/Managers/A2AManager/A2AManagerExtensions-SERV.cs
 // using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
@@ -26,4 +27,3 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         // Methods: RegisterAgentAsServiceAsync, DiscoverAgentsViaSERVAsync
     }
 }
-
