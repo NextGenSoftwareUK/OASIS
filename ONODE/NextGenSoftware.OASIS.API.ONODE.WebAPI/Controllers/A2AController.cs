@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Agent;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Newtonsoft.Json;
