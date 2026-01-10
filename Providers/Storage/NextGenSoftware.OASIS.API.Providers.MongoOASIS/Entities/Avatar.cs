@@ -10,6 +10,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
+    [BsonIgnoreExtraElements]
     public class Avatar : HolonBase
     {
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]

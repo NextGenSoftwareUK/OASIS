@@ -31,9 +31,9 @@
             "WarningHandlingBehaviour": 1
         },
         "Security": {
-            "HideVerificationToken": true,
+            "HideVerificationToken": false,
             "HideRefreshTokens": true,
-            "SecretKey": "",
+            "SecretKey": "cdb3ead62cf54923bf24a2b20208cd884d32c983450344cab4d4410bac7232b1",
             "RemoveOldRefreshTokensAfterXDays": 0,
             "AvatarPassword": {
                 "BCryptEncryptionEnabled": true,
@@ -49,14 +49,14 @@
             }
         },
         "Email": {
-            "EmailFrom": "",
-            "SmtpHost": "",
-            "SmtpPort": 25,
-            "SmtpUser": "",
-            "SmtpPass": "",
-            "DisableAllEmails": true,
+            "EmailFrom": "oasisweb4@gmail.com",
+            "SmtpHost": "smtp.gmail.com",
+            "SmtpPort": 587,
+            "SmtpUser": "oasisweb4@gmail.com",
+            "SmtpPass": "wera jvdk xoom sose",
+            "DisableAllEmails": false,
             "SendVerificationEmail": true,
-            "OASISWebSiteURL": "https://oasisweb4.one/#"
+            "OASISWebSiteURL": "https://localhost:5004"
         },
         "StorageProviders": {
             "ProviderMethodCallTimeOutSeconds": 99,
@@ -103,7 +103,7 @@
             },
             "MongoDBOASIS": {
                 "DBName": "OASISAPI_DEV",
-                "ConnectionString": "mongodb://localhost:27017"
+                "ConnectionString": "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4"
             },
             "EOSIOOASIS": {
                 "AccountName": "oasis",
@@ -111,9 +111,17 @@
                 "ChainId": "",
                 "ConnectionString": "http://localhost:8888"
             },
-            "TelosOASIS": { "ConnectionString": "https://node.hypha.earth" },
-            "SEEDSOASIS": { "ConnectionString": "https://node.hypha.earth" },
-            "ThreeFoldOASIS": { "ConnectionString": "" },
+            "TelosOASIS": {
+                "RpcEndpoint": "https://api.telos.net",
+                "Network": "mainnet",
+                "ChainId": "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11"
+            },
+            "SEEDSOASIS": {
+                "ConnectionString": "https://node.hypha.earth"
+            },
+            "ThreeFoldOASIS": {
+                "ConnectionString": ""
+            },
             "EthereumOASIS": {
                 "ChainPrivateKey": "",
                 "ChainId": 0,
@@ -138,7 +146,9 @@
                 "Abi": null,
                 "ConnectionString": "https://rpc-amoy.polygon.technology/"
             },
-            "SQLLiteDBOASIS": { "ConnectionString": "Data Source=OASISSQLLiteDB.db" },
+            "SQLLiteDBOASIS": {
+                "ConnectionString": "Data Source=OASISSQLLiteDB.db"
+            },
             "IPFSOASIS": {
                 "LookUpIPFSAddress": "QmV7AwEXdAG8r7CTjXRYpDk55aaSbWuNR9kpyycLkjLFE9",
                 "ConnectionString": "http://localhost:5001"
@@ -160,8 +170,10 @@
                 "HostUrl": "",
                 "ConnectionString": ""
             },
-            "LocalFileOASIS": { "FilePath": "wallets.json" },
-            "PinataOASIS": { 
+            "LocalFileOASIS": {
+                "FilePath": "wallets.json"
+            },
+            "PinataOASIS": {
                 "ConnectionString": "https://api.pinata.cloud?apiKey=YOUR_API_KEY&secretKey=YOUR_SECRET_KEY&jwt=YOUR_JWT&gateway=https://gateway.pinata.cloud"
             },
             "BitcoinOASIS": {
@@ -246,11 +258,6 @@
                 "ApiKey": "YOUR_MORALIS_API_KEY",
                 "RpcEndpoint": "https://speedy-nodes-nyc.moralis.io/YOUR_API_KEY/eth/mainnet",
                 "Network": "mainnet"
-            },
-            "TelosOASIS": {
-                "RpcEndpoint": "https://api.telos.net",
-                "Network": "mainnet",
-                "ChainId": "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11"
             },
             "ActivityPubOASIS": {
                 "BaseUrl": "https://mastodon.social",
