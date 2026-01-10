@@ -38,6 +38,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.Agent
         /// Additional metadata (pricing, status, description, etc.)
         /// </summary>
         Dictionary<string, object> Metadata { get; set; }
+        
+        /// <summary>
+        /// Owner Avatar ID - The User avatar that owns this agent
+        /// </summary>
+        string OwnerAvatarId { get; set; }
     }
     
     /// <summary>

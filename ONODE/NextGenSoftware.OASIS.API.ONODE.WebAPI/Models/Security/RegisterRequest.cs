@@ -27,5 +27,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 
         [Range(typeof(bool), "true", "true")]
         public bool AcceptTerms { get; set; }
+        
+        /// <summary>
+        /// Optional: Owner Avatar ID for Agent-type avatars. If provided and owner is verified, agent will be auto-verified.
+        /// </summary>
+        public string OwnerAvatarId { get; set; }
     }
 }
