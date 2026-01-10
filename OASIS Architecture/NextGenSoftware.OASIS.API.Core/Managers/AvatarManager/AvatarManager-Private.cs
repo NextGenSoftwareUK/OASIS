@@ -124,7 +124,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             );
         }
 
-        private async Task<OASISResult<IAvatar>> PrepareToRegisterAvatarAsync(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType)
+        private async Task<OASISResult<IAvatar>> PrepareToRegisterAvatarAsync(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType, Guid? ownerAvatarId = null)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
@@ -154,6 +154,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 CreatedOASISType = new EnumValue<OASISType>(createdOASISType),
                 CreatedDate = DateTime.Now
             };
+            
+            // Set owner metadata for Agent-type avatars
+            if (avatarType == AvatarType.Agent && ownerAvatarId.HasValue)
+            {
+                if (result.Result.MetaData == null)
+                    result.Result.MetaData = new Dictionary<string, object>();
+                
+                result.Result.MetaData["OwnerAvatarId"] = ownerAvatarId.Value.ToString();
+                result.Result.MetaData["OwnerLinkedDate"] = DateTime.UtcNow.ToString("O");
+            }
             //result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
 
             result.Result.ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
@@ -281,12 +291,51 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result)
         {
-            if (OASISDNA.OASIS.Email.SendVerificationEmail)
+            // Check if this is an Agent avatar with an owner
+            bool shouldAutoVerify = false;
+            if (result.Result != null && result.Result.AvatarType.Value == AvatarType.Agent)
+            {
+                // Check if agent has an owner in metadata
+                if (result.Result.MetaData != null && result.Result.MetaData.ContainsKey("OwnerAvatarId"))
+                {
+                    var ownerIdStr = result.Result.MetaData["OwnerAvatarId"]?.ToString();
+                    if (Guid.TryParse(ownerIdStr, out var ownerId))
+                    {
+                        // Check if owner is verified
+                        var ownerResult = LoadAvatarAsync(ownerId, false, true).Result;
+                        if (!ownerResult.IsError && ownerResult.Result != null && ownerResult.Result.IsVerified)
+                        {
+                            // Check agent limit (default: 10 agents per verified user)
+                            var maxAgentsPerUser = 10; // TODO: Make configurable via OASIS_DNA
+                            var userAgentsResult = AgentManager.Instance.GetAgentsByOwnerAsync(ownerId).Result;
+                            if (!userAgentsResult.IsError && userAgentsResult.Result != null && userAgentsResult.Result.Count < maxAgentsPerUser)
+                            {
+                                shouldAutoVerify = true;
+                                // Auto-verify the agent
+                                result.Result.Verified = DateTime.UtcNow;
+                                result.Result.VerificationToken = null;
+                                
+                                // Save the verified agent
+                                var saveResult = SaveAvatarAsync(result.Result).Result;
+                                if (!saveResult.IsError)
+                                {
+                                    result.Message = "Agent avatar created and auto-verified (owner is verified). You can now log in.";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Only send verification email if not auto-verified
+            if (!shouldAutoVerify && OASISDNA.OASIS.Email.SendVerificationEmail)
                 SendVerificationEmail(result.Result);
 
             result.Result = HideAuthDetails(result.Result);
             result.IsSaved = true;
-            result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
+            
+            if (!shouldAutoVerify)
+                result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
 
             return result;
         }
