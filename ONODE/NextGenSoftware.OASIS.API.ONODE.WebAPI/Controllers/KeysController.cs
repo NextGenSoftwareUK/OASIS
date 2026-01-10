@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -205,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
 
             if (isValid)
-                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
+                return KeyManager.Instance.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo, true, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -227,7 +227,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
 
             if (isValid)
-                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByUsername(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarUsername, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
+                return KeyManager.Instance.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByUsername(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarUsername, providerTypeToLinkTo, true, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -249,7 +249,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
 
             if (isValid)
-                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByEmail(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarEmail, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
+                return KeyManager.Instance.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByEmail(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarEmail, providerTypeToLinkTo, true, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -709,7 +709,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("generate_keypair_for_provider/{providerType}")]
         public OASISResult<KeyPair> GenerateKeyPairForProvider(ProviderType providerType)
         {
-            return KeyManager.GenerateKeyPair(providerType);
+            var result = KeyManager.Instance.GenerateKeyPairWithWalletAddress(providerType);
+            if (!result.IsError && result.Result != null)
+            {
+                return new OASISResult<KeyPair>(new KeyPair
+                {
+                    PrivateKey = result.Result.PrivateKey,
+                    PublicKey = result.Result.PublicKey
+                });
+            }
+            return new OASISResult<KeyPair> { IsError = true, Message = result.Message };
         }
 
         /// <summary>
@@ -721,7 +730,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("generate_keypair/{keyPrefix}")]
         public OASISResult<KeyPair> GenerateKeyPair(string keyPrefix)
         {
-            return KeyManager.GenerateKeyPair(keyPrefix);
+            return new OASISResult<KeyPair> { IsError = true, Message = "GenerateKeyPair with keyPrefix is not currently implemented. Please use GenerateKeyPairForProvider instead." };
         }
 
         /// <summary>
