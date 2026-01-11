@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -41,12 +42,37 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "An error occured in AvatarManager.SaveDataAsync. Reason: ";
 
-            OASISResult<IAvatar> avatarLoadResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
+            // Load WITHOUT hideAuthDetails to preserve metadata
+            OASISResult<IAvatar> avatarLoadResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, false, providerType);
 
             if (avatarLoadResult != null && avatarLoadResult.Result != null && !avatarLoadResult.IsError)
             {
-                avatarLoadResult.Result.MetaData[key] = value;
-                OASISResult<IAvatar> avatarSaveResult = await avatarLoadResult.Result.SaveAsync(autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
+                var avatar = avatarLoadResult.Result;
+                
+                // Ensure MetaData dictionary exists
+                if (avatar.MetaData == null)
+                    avatar.MetaData = new Dictionary<string, object>();
+                
+                // Set the metadata value
+                avatar.MetaData[key] = value;
+                
+                // Use SaveAvatarAsync directly instead of avatar.SaveAsync() to avoid password reload issue
+                // SaveAvatarAsync will reload if password is empty, but we'll preserve metadata by ensuring password is set
+                if (string.IsNullOrEmpty(avatar.Password))
+                {
+                    // Reload to get password, but preserve our metadata changes
+                    var reloadResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, false, providerType);
+                    if (!reloadResult.IsError && reloadResult.Result != null)
+                    {
+                        avatar.Password = reloadResult.Result.Password;
+                        // Re-apply metadata after password reload
+                        if (avatar.MetaData == null)
+                            avatar.MetaData = new Dictionary<string, object>();
+                        avatar.MetaData[key] = value;
+                    }
+                }
+                
+                OASISResult<IAvatar> avatarSaveResult = await AvatarManager.Instance.SaveAvatarAsync(avatar, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
 
                 if (avatarSaveResult != null && avatarSaveResult.Result != null && !avatarSaveResult.IsError)
                 {

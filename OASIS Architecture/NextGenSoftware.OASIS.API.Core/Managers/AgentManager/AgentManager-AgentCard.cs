@@ -21,8 +21,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<IAgentCard>();
             try
             {
-                // Load avatar
-                var avatarResult = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, true);
+                // Load avatar WITHOUT hideAuthDetails to preserve metadata
+                var avatarResult = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, false);
                 if (avatarResult.IsError || avatarResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Agent {agentId} not found");

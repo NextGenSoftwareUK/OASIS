@@ -60,19 +60,53 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Store owner relationship in agent's metadata
+                // Load avatar WITHOUT hideAuthDetails to preserve metadata
                 var agent = agentResult.Result;
+                
+                // Set metadata FIRST before any password operations
                 if (agent.MetaData == null)
                     agent.MetaData = new Dictionary<string, object>();
 
                 agent.MetaData["OwnerAvatarId"] = ownerAvatarId.ToString();
                 agent.MetaData["OwnerLinkedDate"] = DateTime.UtcNow.ToString("O");
 
-                // Save agent with updated metadata
+                // Ensure password is set to avoid reload in SaveAvatarAsync
+                // IMPORTANT: Only copy the password, don't replace the entire avatar object
+                if (string.IsNullOrEmpty(agent.Password))
+                {
+                    var passwordReload = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, false);
+                    if (!passwordReload.IsError && passwordReload.Result != null)
+                    {
+                        // Only copy the password, keep our metadata-modified avatar object
+                        agent.Password = passwordReload.Result.Password;
+                        // Metadata is already set above, no need to re-apply
+                    }
+                }
+
+                // Verify metadata is still set before saving
+                if (agent.MetaData == null || !agent.MetaData.ContainsKey("OwnerAvatarId"))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Metadata was lost before save operation");
+                    return result;
+                }
+
+                // Save directly with SaveAvatarAsync - password is set so it won't reload
                 var saveResult = await AvatarManager.Instance.SaveAvatarAsync(agent);
                 if (saveResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to save agent ownership: {saveResult.Message}");
                     return result;
+                }
+                
+                // Verify the save worked by immediately reloading and checking metadata
+                var verifyResult = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, false);
+                if (!verifyResult.IsError && verifyResult.Result != null)
+                {
+                    if (verifyResult.Result.MetaData == null || !verifyResult.Result.MetaData.ContainsKey("OwnerAvatarId"))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Metadata was not persisted after save operation");
+                        return result;
+                    }
                 }
 
                 result.Result = true;
@@ -138,8 +172,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<List<Guid>>();
             try
             {
-                // Load all avatars and filter for Agent type with matching owner
-                var allAvatarsResult = await AvatarManager.Instance.LoadAllAvatarsAsync();
+                // Load all avatars WITHOUT hideAuthDetails to preserve metadata
+                var allAvatarsResult = await AvatarManager.Instance.LoadAllAvatarsAsync(false, false);
                 if (allAvatarsResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to load avatars: {allAvatarsResult.Message}");
@@ -182,7 +216,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Guid?>();
             try
             {
-                var agentResult = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, true);
+                // Load avatar WITHOUT hideAuthDetails to preserve metadata
+                var agentResult = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, false);
                 if (agentResult.IsError || agentResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Agent {agentId} not found");
