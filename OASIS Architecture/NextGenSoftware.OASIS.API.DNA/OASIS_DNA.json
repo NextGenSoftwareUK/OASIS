@@ -56,6 +56,8 @@
             "SmtpPass": "wera jvdk xoom sose",
             "DisableAllEmails": false,
             "SendVerificationEmail": true,
+            "AutoVerifyAgents": true,
+            "SkipEmailVerificationForAgents": true,
             "OASISWebSiteURL": "https://localhost:5004"
         },
         "StorageProviders": {
