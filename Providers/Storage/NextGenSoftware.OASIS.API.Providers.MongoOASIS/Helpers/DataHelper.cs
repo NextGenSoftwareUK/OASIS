@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -122,6 +122,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.PreviousVersionId = avatarResult.Result.PreviousVersionId;
             result.Result.PreviousVersionProviderUniqueStorageKey = avatarResult.Result.PreviousVersionProviderUniqueStorageKey;
             result.Result.ProviderMetaData = avatarResult.Result.ProviderMetaData;
+            result.Result.MetaData = avatarResult.Result.MetaData ?? new Dictionary<string, object>();
             result.Result.Description = avatarResult.Result.Description;
             result.Result.Title = avatarResult.Result.Title;
             result.Result.FirstName = avatarResult.Result.FirstName;
