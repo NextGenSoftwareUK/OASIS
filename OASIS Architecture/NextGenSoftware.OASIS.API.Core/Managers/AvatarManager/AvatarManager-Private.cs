@@ -163,6 +163,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 
                 result.Result.MetaData["OwnerAvatarId"] = ownerAvatarId.Value.ToString();
                 result.Result.MetaData["OwnerLinkedDate"] = DateTime.UtcNow.ToString("O");
+                
+                // Pre-set IsActive = true and Verified for agents with owners
+                // These will be confirmed in AvatarRegistered if owner is verified,
+                // but setting them here ensures they're included in the first save
+                result.Result.IsActive = true;
+                // Note: Verified will be set in AvatarRegistered after checking owner is verified
             }
             //result.Result.Username = result.Result.Email; //Default the username to their email (they can change this later in Avatar Profile screen).
 
@@ -289,53 +295,184 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result)
+        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, EnumValue<AvatarType> originalAvatarType = null, AvatarType? registrationAvatarType = null)
         {
-            // Check if this is an Agent avatar with an owner
-            bool shouldAutoVerify = false;
-            if (result.Result != null && result.Result.AvatarType.Value == AvatarType.Agent)
+            // SIMPLE APPROACH: Auto-verify and activate ALL Agent-type avatars
+            // Agents don't have email access, so email verification doesn't make sense
+            // Check AvatarType - use registration parameter FIRST (most reliable), then fallback methods
+            // Also check OASIS_DNA configuration for agent auto-verification setting
+            bool isAgent = false;
+            bool autoVerifyAgents = OASISDNA.OASIS?.Email?.AutoVerifyAgents ?? true; // Default to true if not set
+            
+            
+            // CRITICAL: Check registration parameter FIRST - this is the most reliable source
+            // It comes directly from the API call via RegisterAsync parameter
+            // This parameter is passed as: AvatarRegistered(result, originalAvatarType, avatarType)
+            // where avatarType is the AvatarType enum from RegisterAsync method parameter
+            // Try checking with both HasValue and direct null check to ensure we catch it
+            if (registrationAvatarType != null && registrationAvatarType.HasValue)
             {
-                // Check if agent has an owner in metadata
-                if (result.Result.MetaData != null && result.Result.MetaData.ContainsKey("OwnerAvatarId"))
+                AvatarType regType = registrationAvatarType.Value;
+                // Primary check: Direct enum comparison
+                if (regType == AvatarType.Agent)
                 {
-                    var ownerIdStr = result.Result.MetaData["OwnerAvatarId"]?.ToString();
-                    if (Guid.TryParse(ownerIdStr, out var ownerId))
+                    isAgent = true;
+                }
+                // Fallback 1: Integer comparison (Agent enum value = 3)
+                // Enum definition: Wizard=0, User=1, System=2, Agent=3
+                else if ((int)regType == 3)
+                {
+                    isAgent = true;
+                }
+                // Fallback 2: String comparison
+                else if (regType.ToString().Equals("Agent", StringComparison.OrdinalIgnoreCase))
+                {
+                    isAgent = true;
+                }
+            }
+            // If registrationAvatarType is null or HasValue is false, continue to fallback methods below
+            
+            // Method 1: Check metadata first (most reliable - stored before save)
+            if (result.Result != null && result.Result.MetaData != null)
+            {
+                if (result.Result.MetaData.ContainsKey("_OriginalAvatarType"))
+                {
+                    var metaAvatarType = result.Result.MetaData["_OriginalAvatarType"]?.ToString();
+                    if (metaAvatarType == "Agent" || metaAvatarType == AvatarType.Agent.ToString())
+                        isAgent = true;
+                }
+            }
+            
+            // Method 2: Check the originalAvatarType parameter (passed before save)
+            // AvatarType.Agent = 3 (Wizard=0, User=1, System=2, Agent=3)
+            if (!isAgent && originalAvatarType != null)
+            {
+                // Direct enum comparison
+                if (originalAvatarType.Value == AvatarType.Agent)
+                    isAgent = true;
+                // Check by enum integer value (3) - Agent is the 4th enum (0-indexed = 3)
+                else if ((int)originalAvatarType.Value == 3)
+                    isAgent = true;
+                // Check by name
+                else if (originalAvatarType.Name == "Agent" || originalAvatarType.Name == AvatarType.Agent.ToString())
+                    isAgent = true;
+            }
+            
+            // Method 3: Check AvatarType on the result (after save) - This should work since we see it in the API response
+            // The registration response shows: avatarType: { value: 3, name: "Agent" }
+            // So this check should definitely work if AvatarType is preserved through the save
+            // CRITICAL: This is the most reliable check since we can see AvatarType in the API response
+            if (!isAgent && result.Result != null)
+            {
+                // Check if AvatarType exists and is Agent
+                // This is the check that should work since we see avatarType: { value: 3, name: "Agent" } in the response
+                if (result.Result.AvatarType != null)
+                {
+                    // Try multiple comparison methods - prioritize integer check since response shows value: 3
+                    // Check 1: Integer comparison (3) - response shows value: 3, so this should match
+                    if ((int)result.Result.AvatarType.Value == 3)
                     {
-                        // Check if owner is verified
-                        var ownerResult = LoadAvatarAsync(ownerId, false, true).Result;
-                        if (!ownerResult.IsError && ownerResult.Result != null && ownerResult.Result.IsVerified)
+                        isAgent = true;
+                    }
+                    // Check 2: Direct enum comparison
+                    else if (result.Result.AvatarType.Value == AvatarType.Agent)
+                    {
+                        isAgent = true;
+                    }
+                    // Check 3: Name comparison - response shows name: "Agent"
+                    else if (!string.IsNullOrEmpty(result.Result.AvatarType.Name))
+                    {
+                        if (result.Result.AvatarType.Name.Equals("Agent", StringComparison.OrdinalIgnoreCase) || 
+                            result.Result.AvatarType.Name.Equals(AvatarType.Agent.ToString(), StringComparison.OrdinalIgnoreCase))
                         {
-                            // Check agent limit (default: 10 agents per verified user)
-                            var maxAgentsPerUser = 10; // TODO: Make configurable via OASIS_DNA
-                            var userAgentsResult = AgentManager.Instance.GetAgentsByOwnerAsync(ownerId).Result;
-                            if (!userAgentsResult.IsError && userAgentsResult.Result != null && userAgentsResult.Result.Count < maxAgentsPerUser)
-                            {
-                                shouldAutoVerify = true;
-                                // Auto-verify the agent
-                                result.Result.Verified = DateTime.UtcNow;
-                                result.Result.VerificationToken = null;
-                                
-                                // Save the verified agent
-                                var saveResult = SaveAvatarAsync(result.Result).Result;
-                                if (!saveResult.IsError)
-                                {
-                                    result.Message = "Agent avatar created and auto-verified (owner is verified). You can now log in.";
-                                }
-                            }
+                            isAgent = true;
                         }
                     }
                 }
+                // Fallback: Check metadata for stored AvatarType
+                else if (result.Result.MetaData != null)
+                {
+                    if (result.Result.MetaData.ContainsKey("_OriginalAvatarType"))
+                    {
+                        var metaAvatarType = result.Result.MetaData["_OriginalAvatarType"]?.ToString();
+                        if (metaAvatarType == "Agent" || metaAvatarType == AvatarType.Agent.ToString())
+                            isAgent = true;
+                    }
+                    // Also check regular AvatarType key
+                    else if (result.Result.MetaData.ContainsKey("AvatarType"))
+                    {
+                        var metaAvatarType = result.Result.MetaData["AvatarType"]?.ToString();
+                        if (metaAvatarType == "Agent" || metaAvatarType == AvatarType.Agent.ToString())
+                            isAgent = true;
+                    }
+                }
             }
-
-            // Only send verification email if not auto-verified
-            if (!shouldAutoVerify && OASISDNA.OASIS.Email.SendVerificationEmail)
-                SendVerificationEmail(result.Result);
+            
+            
+            // Only auto-verify if agent is detected AND auto-verification is enabled in OASIS_DNA
+            if (isAgent && autoVerifyAgents)
+            {
+                // CRITICAL: Ensure password and email are preserved before second save
+                // The avatar was already saved once, but result.Result might have password cleared
+                // If password is empty, SaveAvatarAsync will reload from DB, which could overwrite our changes
+                // So we need to reload the password if it's missing
+                if (string.IsNullOrEmpty(result.Result.Password))
+                {
+                    // Reload avatar to get password, but preserve our verification changes
+                    var reloadResult = LoadAvatarAsync(result.Result.Id, false, false).Result;
+                    if (!reloadResult.IsError && reloadResult.Result != null)
+                    {
+                        // Preserve the password and email from the reloaded avatar
+                        result.Result.Password = reloadResult.Result.Password;
+                        if (string.IsNullOrEmpty(result.Result.Email) && !string.IsNullOrEmpty(reloadResult.Result.Email))
+                        {
+                            result.Result.Email = reloadResult.Result.Email;
+                        }
+                    }
+                }
+                
+                // Auto-verify and activate the agent immediately
+                result.Result.IsActive = true;
+                result.Result.Verified = DateTime.UtcNow;
+                result.Result.VerificationToken = null;
+                
+                // Ensure IsNewHolon is false since avatar was already saved during registration
+                // This ensures UpdateAsync is used which will replace the entire document
+                result.Result.IsNewHolon = false;
+                
+                // Save the verified agent (now with password preserved)
+                var saveResult = SaveAvatarAsync(result.Result).Result;
+                if (!saveResult.IsError && saveResult.Result != null)
+                {
+                    result.Result = saveResult.Result;
+                    result.Message = "Agent avatar created and activated. You can now log in.";
+                }
+                else
+                {
+                    result.Message = "Agent avatar created. Activation may be pending.";
+                }
+            }
+            else
+            {
+                // Regular users: send verification email (unless it's an agent and we're skipping emails for agents)
+                bool skipEmailForAgent = isAgent && (OASISDNA.OASIS?.Email?.SkipEmailVerificationForAgents ?? true);
+                
+                if (!skipEmailForAgent && OASISDNA.OASIS?.Email?.SendVerificationEmail == true)
+                    SendVerificationEmail(result.Result);
+                
+                if (isAgent && !autoVerifyAgents)
+                {
+                    // Agent detected but auto-verification disabled in config
+                    result.Message = "Agent avatar created. Please check your email for verification.";
+                }
+                else
+                {
+                    result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
+                }
+            }
 
             result.Result = HideAuthDetails(result.Result);
             result.IsSaved = true;
-            
-            if (!shouldAutoVerify)
-                result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
 
             return result;
         }
@@ -1055,7 +1192,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             else
             {
-                avatar.IsActive = true;
+                // Only set IsActive = true for new holons if it's not already set
+                // This preserves IsActive = true for auto-verified agents
+                if (!avatar.IsActive)
+                    avatar.IsActive = true;
                 avatar.CreatedDate = DateTime.Now;
 
                 if (LoggedInAvatar != null)
@@ -1134,6 +1274,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             if (result.Result != null)
             {
+                
                 if (result.Result.DeletedDate != DateTime.MinValue)
                 {
                     result.IsError = true;
@@ -1146,10 +1287,71 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     result.Message = "This avatar is no longer active. Please contact support or create a new avatar.";
                 }
 
+                // Skip email verification check for Agent-type avatars
+                // Agents are auto-verified on creation and don't have email access
+                // CRITICAL: Check this BEFORE any other verification checks
+                bool isAgent = false;
+                bool skipEmailVerificationForAgents = OASISDNA.OASIS?.Email?.SkipEmailVerificationForAgents ?? true;
+                
+                // Check 1: AvatarType property (most reliable) - check integer value first since response shows value: 3
+                if (result.Result.AvatarType != null)
+                {
+                    // Check integer value first (Agent = 3) - this should match since registration shows value: 3
+                    if ((int)result.Result.AvatarType.Value == 3)
+                    {
+                        isAgent = true;
+                    }
+                    // Check enum value
+                    else if (result.Result.AvatarType.Value == AvatarType.Agent)
+                    {
+                        isAgent = true;
+                    }
+                    // Check name
+                    else if (!string.IsNullOrEmpty(result.Result.AvatarType.Name))
+                    {
+                        if (result.Result.AvatarType.Name.Equals("Agent", StringComparison.OrdinalIgnoreCase) ||
+                            result.Result.AvatarType.Name.Equals(AvatarType.Agent.ToString(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            isAgent = true;
+                        }
+                    }
+                }
+                
+                // Check 2: Metadata fallback (in case AvatarType is null or not set correctly)
+                if (!isAgent && result.Result.MetaData != null)
+                {
+                    if (result.Result.MetaData.ContainsKey("_OriginalAvatarType"))
+                    {
+                        var metaType = result.Result.MetaData["_OriginalAvatarType"]?.ToString();
+                        if (metaType == "Agent" || metaType == AvatarType.Agent.ToString())
+                            isAgent = true;
+                    }
+                    // Also check regular AvatarType key
+                    if (!isAgent && result.Result.MetaData.ContainsKey("AvatarType"))
+                    {
+                        var metaType = result.Result.MetaData["AvatarType"]?.ToString();
+                        if (metaType == "Agent" || metaType == AvatarType.Agent.ToString())
+                            isAgent = true;
+                    }
+                }
+                
+                // Skip verification check for agents if configured
+                // This allows agents to authenticate even if they haven't been verified via email
                 if (!result.Result.IsVerified)
                 {
-                    result.IsError = true;
-                    result.Message = "Avatar has not been verified. Please check your email.";
+                    // Check if this is an agent and bypass is enabled
+                    if (isAgent && skipEmailVerificationForAgents)
+                    {
+                        // Agent detected and bypass enabled - allow authentication
+                        // Don't set error, just continue to password check
+                    }
+                    else
+                    {
+                        // Not an agent OR bypass disabled - require verification
+                        result.IsError = true;
+                        result.Message = "Avatar has not been verified. Please check your email.";
+                        return result; // Exit early to prevent password check
+                    }
                 }
 
                 if (result.Result.Password != null)

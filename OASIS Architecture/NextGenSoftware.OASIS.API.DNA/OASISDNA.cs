@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.ErrorHandling;
 using NextGenSoftware.Logging;
@@ -293,6 +293,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string SmtpPass { get; set; }
         public bool DisableAllEmails { get; set; } //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
         public bool SendVerificationEmail { get; set; }
+        public bool AutoVerifyAgents { get; set; } = true; // NEW: Auto-verify Agent-type avatars (skip email verification)
+        public bool SkipEmailVerificationForAgents { get; set; } = true; // NEW: Skip sending verification emails for agents
         public string OASISWebSiteURL { get; set; }
     }
 

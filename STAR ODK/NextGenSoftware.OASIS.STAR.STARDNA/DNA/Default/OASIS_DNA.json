@@ -56,6 +56,8 @@
             "SmtpPass": "",
             "DisableAllEmails": true,
             "SendVerificationEmail": true,
+            "AutoVerifyAgents": true,
+            "SkipEmailVerificationForAgents": true,
             "OASISWebSiteURL": "https://oasisweb4.one/#"
         },
         "StorageProviders": {
