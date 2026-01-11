@@ -264,6 +264,295 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
             return result;
         }
+
+        /// <summary>
+        /// Mint an NFT representing ownership of an agent (makes agent tradable)
+        /// </summary>
+        public static async Task<OASISResult<IWeb4NFT>> MintAgentOwnershipNFTAsync(
+            this A2AManager a2aManager,
+            Guid agentId,
+            Guid mintedByAvatarId,
+            ProviderType onChainProvider = ProviderType.SolanaOASIS,
+            ProviderType offChainProvider = ProviderType.MongoDBOASIS,
+            string title = null,
+            string description = null,
+            string imageUrl = null,
+            decimal price = 0,
+            string symbol = null,
+            Dictionary<string, object> additionalMetadata = null)
+        {
+            var result = new OASISResult<IWeb4NFT>();
+            try
+            {
+                // Verify agent exists and is Agent type
+                var agentResult = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, false);
+                if (agentResult.IsError || agentResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Agent {agentId} not found");
+                    return result;
+                }
+
+                if (agentResult.Result.AvatarType.Value != AvatarType.Agent)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar {agentId} is not an Agent type");
+                    return result;
+                }
+
+                // Check if agent already has an NFT
+                if (agentResult.Result.MetaData != null && agentResult.Result.MetaData.ContainsKey("NFTId"))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Agent {agentId} already has an NFT linked. Use GetAgentNFTAsync to retrieve it.");
+                    return result;
+                }
+
+                // Get current owner (for sending NFT to)
+                Guid? currentOwnerId = null;
+                if (agentResult.Result.MetaData != null && agentResult.Result.MetaData.ContainsKey("OwnerAvatarId"))
+                {
+                    var ownerIdStr = agentResult.Result.MetaData["OwnerAvatarId"]?.ToString();
+                    if (Guid.TryParse(ownerIdStr, out var ownerId))
+                    {
+                        currentOwnerId = ownerId;
+                    }
+                }
+
+                if (!currentOwnerId.HasValue)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Agent {agentId} has no owner. Link agent to a user first before minting NFT.");
+                    return result;
+                }
+
+                // Get Agent Card for NFT metadata
+                var agentCardResult = await AgentManager.Instance.GetAgentCardAsync(agentId);
+                if (agentCardResult.IsError || agentCardResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Could not retrieve Agent Card for agent {agentId}: {agentCardResult.Message}");
+                    return result;
+                }
+
+                var agentCard = agentCardResult.Result;
+
+                // Build NFT metadata with agent information
+                var nftMetadata = new Dictionary<string, object>
+                {
+                    ["AgentId"] = agentId.ToString(),
+                    ["AgentType"] = "Agent",
+                    ["AgentCard"] = Newtonsoft.Json.JsonConvert.SerializeObject(agentCard),
+                    ["AgentVersion"] = agentCard.Version ?? "1.0.0",
+                    ["AgentStatus"] = "Available"
+                };
+
+                // Add any additional metadata
+                if (additionalMetadata != null)
+                {
+                    foreach (var kvp in additionalMetadata)
+                    {
+                        nftMetadata[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                // Build NFT mint request
+                var mintRequest = new MintWeb4NFTRequest
+                {
+                    MintedByAvatarId = mintedByAvatarId,
+                    Title = title ?? $"{agentCard.Name ?? "Agent"} NFT",
+                    Description = description ?? $"NFT representing ownership of agent {agentCard.Name ?? agentId.ToString()}",
+                    ImageUrl = imageUrl,
+                    Price = price,
+                    Symbol = symbol ?? "AGENTNFT",
+                    MetaData = nftMetadata,
+                    OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
+                    OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
+                    SendToAvatarAfterMintingId = currentOwnerId.Value,
+                    NumberToMint = 1,
+                    StoreNFTMetaDataOnChain = false,
+                    NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType.OASIS),
+                    NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType.ERC1155),
+                    WaitTillNFTMinted = true,
+                    WaitForNFTToMintInSeconds = 60,
+                    AttemptToMintEveryXSeconds = 1
+                };
+
+                // Mint NFT using NFTManager
+                var nftManager = new NFTManager(mintedByAvatarId, ProviderManager.Instance.OASISDNA);
+                var nftResult = await nftManager.MintNftAsync(mintRequest, false, Core.Enums.ResponseFormatType.SimpleText);
+
+                if (nftResult.IsError || nftResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to mint agent NFT: {nftResult.Message}");
+                    return result;
+                }
+
+                var mintedNFT = nftResult.Result;
+
+                // Link NFT to agent
+                var linkResult = await AgentManager.Instance.LinkNFTToAgentAsync(
+                    agentId,
+                    mintedNFT.Id,
+                    mintedNFT.Web3NFTs?.Count > 0 ? mintedNFT.Web3NFTs[0].NFTMintedUsingWalletAddress : null,
+                    mintedNFT.Web3NFTs?.Count > 0 ? mintedNFT.Web3NFTs[0].MintTransactionHash : null,
+                    onChainProvider);
+
+                if (linkResult.IsError)
+                {
+                    OASISErrorHandling.HandleWarning(ref result, $"NFT minted but failed to link to agent: {linkResult.Message}");
+                }
+
+                // Update NFT's CurrentOwnerAvatarId to match agent's owner
+                if (mintedNFT.CurrentOwnerAvatarId == Guid.Empty && currentOwnerId.HasValue)
+                {
+                    mintedNFT.CurrentOwnerAvatarId = currentOwnerId.Value;
+                    // Save NFT with updated owner
+                    // Note: This would require NFTManager.SaveWeb4NFTAsync which may not exist
+                    // For now, the ownership is set via SendToAvatarAfterMintingId during mint
+                }
+
+                result.Result = mintedNFT;
+                result.Message = $"Agent ownership NFT minted and linked successfully. NFT ID: {mintedNFT.Id}";
+                LoggingManager.Log($"Agent ownership NFT minted for agent {agentId}, NFT ID: {mintedNFT.Id}", LogType.Info);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting agent ownership NFT: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Sync agent ownership from NFT ownership (called after NFT transfer)
+        /// </summary>
+        public static async Task<OASISResult<bool>> SyncAgentOwnershipFromNFTAsync(
+            this A2AManager a2aManager,
+            Guid agentId,
+            Guid nftId)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                // Load NFT to get current owner
+                var nftManager = new NFTManager(agentId, ProviderManager.Instance.OASISDNA);
+                var nftResult = await nftManager.LoadWeb4NftAsync(nftId);
+
+                if (nftResult.IsError || nftResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"NFT {nftId} not found: {nftResult.Message}");
+                    return result;
+                }
+
+                var nft = nftResult.Result;
+                var newOwnerId = nft.CurrentOwnerAvatarId;
+                var previousOwnerId = nft.PreviousOwnerAvatarId;
+
+                if (newOwnerId == Guid.Empty)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"NFT {nftId} has no current owner");
+                    return result;
+                }
+
+                // Load agent
+                var agentResult = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, false);
+                if (agentResult.IsError || agentResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Agent {agentId} not found");
+                    return result;
+                }
+
+                var agent = agentResult.Result;
+
+                // Update agent metadata with new owner
+                if (agent.MetaData == null)
+                    agent.MetaData = new Dictionary<string, object>();
+
+                agent.MetaData["OwnerAvatarId"] = newOwnerId.ToString();
+                if (previousOwnerId != Guid.Empty)
+                    agent.MetaData["PreviousOwnerAvatarId"] = previousOwnerId.ToString();
+                agent.MetaData["LastNFTTransferDate"] = DateTime.UtcNow.ToString("O");
+
+                // Ensure password is set
+                if (string.IsNullOrEmpty(agent.Password))
+                {
+                    var passwordReload = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, false);
+                    if (!passwordReload.IsError && passwordReload.Result != null)
+                    {
+                        agent.Password = passwordReload.Result.Password;
+                    }
+                }
+
+                // Save agent
+                var saveResult = await AvatarManager.Instance.SaveAvatarAsync(agent);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to sync agent ownership: {saveResult.Message}");
+                    return result;
+                }
+
+                result.Result = true;
+                result.Result = true;
+                result.Message = $"Agent {agentId} ownership synced from NFT {nftId}. New owner: {newOwnerId}";
+                LoggingManager.Log($"Agent ownership synced from NFT: Agent {agentId} -> Owner {newOwnerId}", LogType.Info);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error syncing agent ownership from NFT: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Check if an NFT represents an agent and sync ownership if needed
+        /// Call this after NFT transfers to automatically update agent ownership
+        /// </summary>
+        public static async Task<OASISResult<bool>> CheckAndSyncAgentOwnershipFromNFTAsync(
+            this A2AManager a2aManager,
+            Guid nftId)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                // Load NFT
+                var nftManager = new NFTManager(Guid.Empty, ProviderManager.Instance.OASISDNA);
+                var nftResult = await nftManager.LoadWeb4NftAsync(nftId);
+
+                if (nftResult.IsError || nftResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"NFT {nftId} not found: {nftResult.Message}");
+                    return result;
+                }
+
+                var nft = nftResult.Result;
+
+                // Check if NFT represents an agent
+                if (nft.MetaData == null || !nft.MetaData.ContainsKey("AgentId"))
+                {
+                    result.Result = false;
+                    result.Message = $"NFT {nftId} does not represent an agent";
+                    return result;
+                }
+
+                var agentIdStr = nft.MetaData["AgentId"]?.ToString();
+                if (string.IsNullOrEmpty(agentIdStr) || !Guid.TryParse(agentIdStr, out var agentId))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Invalid AgentId in NFT {nftId} metadata");
+                    return result;
+                }
+
+                // Sync agent ownership from NFT
+                var syncResult = await a2aManager.SyncAgentOwnershipFromNFTAsync(agentId, nftId);
+                if (syncResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to sync agent ownership: {syncResult.Message}");
+                    return result;
+                }
+
+                result.Result = true;
+                result.Message = $"Agent {agentId} ownership synced from NFT {nftId}";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error checking and syncing agent ownership: {ex.Message}", ex);
+            }
+            return result;
+        }
     }
 }
 

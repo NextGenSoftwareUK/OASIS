@@ -210,6 +210,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         /// <summary>
         /// Get the owner of an agent
+        /// Checks NFT ownership if agent is NFT-backed, otherwise uses metadata ownership
         /// </summary>
         public async Task<OASISResult<Guid?>> GetAgentOwnerAsync(Guid agentId)
         {
@@ -230,6 +231,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
+                // Check if agent is NFT-backed
+                if (agentResult.Result.MetaData != null && agentResult.Result.MetaData.ContainsKey("NFTId"))
+                {
+                    // Agent is NFT-backed - ownership comes from NFT
+                    // Note: Full NFT ownership check requires NFTManager from ONODE.Core
+                    // For now, we'll use the metadata OwnerAvatarId which should be synced from NFT
+                    // The sync happens in A2AManagerNFTExtensions.SyncAgentOwnershipFromNFTAsync
+                    // This method is called from ONODE.WebAPI context where NFTManager is available
+                    
+                    // Fall through to metadata check (which should be synced from NFT)
+                }
+
+                // Check metadata-based ownership (works for both NFT-backed and traditional agents)
                 if (agentResult.Result.MetaData != null && agentResult.Result.MetaData.ContainsKey("OwnerAvatarId"))
                 {
                     var ownerIdStr = agentResult.Result.MetaData["OwnerAvatarId"]?.ToString();

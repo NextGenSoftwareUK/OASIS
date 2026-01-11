@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Agent;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.A2A;
@@ -1153,6 +1154,135 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         // ============================================
+        // Agent Ownership NFT Endpoints
+        // ============================================
+
+        /// <summary>
+        /// Mint an NFT representing ownership of an agent (makes agent tradable)
+        /// </summary>
+        /// <remarks>
+        /// Creates an NFT that represents ownership of an agent. When you own the NFT, you own the agent.
+        /// Transferring the NFT transfers agent ownership.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Owner Required:** The authenticated avatar must own the agent
+        /// </remarks>
+        /// <param name="agentId">The agent ID to mint NFT for</param>
+        /// <param name="request">NFT minting request (optional - uses defaults if not provided)</param>
+        /// <returns>Minted NFT details</returns>
+        /// <response code="200">Success - NFT minted and linked to agent</response>
+        /// <response code="400">Bad Request - Agent not found, already has NFT, or not owned by caller</response>
+        /// <response code="401">Unauthorized - Authentication required</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost("agent/{agentId}/mint-nft")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> MintAgentNFT(Guid agentId, [FromBody] MintAgentNFTRequest request = null)
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                // Verify caller owns the agent
+                var ownerResult = await AgentManager.Instance.GetAgentOwnerAsync(agentId);
+                if (ownerResult.IsError || !ownerResult.Result.HasValue || ownerResult.Result.Value != Avatar.Id)
+                {
+                    return BadRequest(new { error = "You do not own this agent" });
+                }
+
+                // Use request parameters or defaults
+                var onChainProvider = request?.OnChainProvider ?? ProviderType.SolanaOASIS;
+                var offChainProvider = request?.OffChainProvider ?? ProviderType.MongoDBOASIS;
+                var title = request?.Title;
+                var description = request?.Description;
+                var imageUrl = request?.ImageUrl;
+                var price = request?.Price ?? 0;
+                var symbol = request?.Symbol;
+                var additionalMetadata = request?.AdditionalMetadata;
+
+                var result = await A2AManager.Instance.MintAgentOwnershipNFTAsync(
+                    agentId,
+                    Avatar.Id,
+                    onChainProvider,
+                    offChainProvider,
+                    title,
+                    description,
+                    imageUrl,
+                    price,
+                    symbol,
+                    additionalMetadata);
+
+                if (result.IsError)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+
+                return Ok(new { success = true, nft = result.Result, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Get NFT information for an agent
+        /// </summary>
+        /// <remarks>
+        /// Retrieves the NFT that represents ownership of an agent, if one exists.
+        /// 
+        /// **Authentication Required:** No (Public endpoint)
+        /// </remarks>
+        /// <param name="agentId">The agent ID</param>
+        /// <returns>NFT information or null if agent has no NFT</returns>
+        /// <response code="200">Success - Returns NFT information or null</response>
+        /// <response code="404">Not Found - Agent not found</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpGet("agent/{agentId}/nft")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> GetAgentNFT(Guid agentId)
+        {
+            try
+            {
+                // Get NFT ID from agent metadata
+                var nftIdResult = await AgentManager.Instance.GetAgentNFTIdAsync(agentId);
+                if (nftIdResult.IsError)
+                {
+                    return NotFound(new { error = nftIdResult.Message });
+                }
+
+                if (!nftIdResult.Result.HasValue)
+                {
+                    return Ok(new { nft = (object)null, message = "Agent has no NFT linked" });
+                }
+
+                // Load NFT details
+                var nftManager = new NFTManager(agentId, ProviderManager.Instance.OASISDNA);
+                var nftResult = await nftManager.LoadWeb4NftAsync(nftIdResult.Result.Value);
+
+                if (nftResult.IsError || nftResult.Result == null)
+                {
+                    return NotFound(new { error = $"NFT {nftIdResult.Result.Value} not found: {nftResult.Message}" });
+                }
+
+                return Ok(new { nft = nftResult.Result, message = "NFT retrieved successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        // ============================================
         // Karma Integration Endpoints
         // ============================================
 
@@ -1608,6 +1738,52 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Optional completion notes
         /// </summary>
         public string CompletionNotes { get; set; }
+    }
+
+    /// <summary>
+    /// Request model for minting an agent ownership NFT
+    /// </summary>
+    public class MintAgentNFTRequest
+    {
+        /// <summary>
+        /// On-chain provider (e.g., SolanaOASIS, EthereumOASIS)
+        /// </summary>
+        public ProviderType? OnChainProvider { get; set; }
+
+        /// <summary>
+        /// Off-chain provider for metadata storage (e.g., MongoDBOASIS, IPFSOASIS)
+        /// </summary>
+        public ProviderType? OffChainProvider { get; set; }
+
+        /// <summary>
+        /// NFT title (defaults to "{AgentName} NFT")
+        /// </summary>
+        public string Title { get; set; }
+
+        /// <summary>
+        /// NFT description (defaults to agent description)
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Image URL for the NFT
+        /// </summary>
+        public string ImageUrl { get; set; }
+
+        /// <summary>
+        /// NFT price (default: 0)
+        /// </summary>
+        public decimal? Price { get; set; }
+
+        /// <summary>
+        /// NFT symbol/ticker (default: "AGENTNFT")
+        /// </summary>
+        public string Symbol { get; set; }
+
+        /// <summary>
+        /// Additional metadata to include in NFT
+        /// </summary>
+        public Dictionary<string, object> AdditionalMetadata { get; set; }
     }
 }
 
