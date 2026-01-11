@@ -283,15 +283,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
                     {
+                        // Store AvatarType before save (in case it's lost during save)
+                        var originalAvatarType = result.Result.AvatarType;
+                        // Also store in metadata as backup
+                        if (result.Result.MetaData == null)
+                            result.Result.MetaData = new Dictionary<string, object>();
+                        if (originalAvatarType != null)
+                            result.Result.MetaData["_OriginalAvatarType"] = originalAvatarType.Value.ToString();
+                        
                         OASISResult<IAvatar> saveAvatarResult = SaveAvatar(result.Result);
 
                         if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
                         {
                             result.Result = saveAvatarResult.Result;
+                            // Ensure AvatarType is preserved after save
+                            if (result.Result.AvatarType == null && originalAvatarType != null)
+                                result.Result.AvatarType = originalAvatarType;
+                            
                             OASISResult<IAvatarDetail> saveAvatarDetailResult = SaveAvatarDetail(avatarDetailResult.Result);
 
                             if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
-                                result = AvatarRegistered(result);
+                                // Pass both the originalAvatarType AND the registration parameter avatarType
+                                // The registration parameter is the most reliable source
+                                result = AvatarRegistered(result, originalAvatarType, avatarType);
                             else
                             {
                                 result.Message = saveAvatarDetailResult.Message;
@@ -332,15 +346,35 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
                     {
+                        // Store AvatarType before save (in case it's lost during save)
+                        var originalAvatarType = result.Result.AvatarType;
+                        // Also store in metadata as backup
+                        if (result.Result.MetaData == null)
+                            result.Result.MetaData = new Dictionary<string, object>();
+                        if (originalAvatarType != null)
+                            result.Result.MetaData["_OriginalAvatarType"] = originalAvatarType.Value.ToString();
+                        
                         OASISResult<IAvatar> saveAvatarResult = await SaveAvatarAsync(result.Result);
 
                         if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
                         {
                             result.Result = saveAvatarResult.Result;
+                            // Ensure AvatarType is preserved after save
+                            if (result.Result.AvatarType == null && originalAvatarType != null)
+                                result.Result.AvatarType = originalAvatarType;
+                            
+                            // Ensure metadata is preserved (including _OriginalAvatarType)
+                            if (result.Result.MetaData == null)
+                                result.Result.MetaData = new Dictionary<string, object>();
+                            if (originalAvatarType != null && !result.Result.MetaData.ContainsKey("_OriginalAvatarType"))
+                                result.Result.MetaData["_OriginalAvatarType"] = originalAvatarType.Value.ToString();
+                            
                             OASISResult<IAvatarDetail> saveAvatarDetailResult = await SaveAvatarDetailAsync(avatarDetailResult.Result);
 
                             if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
-                                result = AvatarRegistered(result);
+                                // Pass both the originalAvatarType AND the registration parameter avatarType
+                                // The registration parameter is the most reliable source
+                                result = AvatarRegistered(result, originalAvatarType, avatarType);
                             else
                             {
                                 result.Message = saveAvatarDetailResult.Message;
