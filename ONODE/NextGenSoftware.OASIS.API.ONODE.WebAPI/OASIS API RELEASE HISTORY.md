@@ -1037,7 +1037,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Removed MongoDB.Bson ref from NextGenSoftware.OASIS.API.Providers.MongoDBOASIS project file which was causing a version conflict in the other projects.
 
 ----------------------------------------------------------------------------------------------------------------------------
-## 3.3.3 (17/04/25)
+## 3.3.1 (17/04/25)
 
 Way too many changes to list here, there were numerous internal releases between v3.0.0 and v3.3.3, some of these changes are listed below:
 
@@ -1051,6 +1051,46 @@ Way too many changes to list here, there were numerous internal releases between
 - Upgraded to .NET 8 which comes with various improvements, performance enhacements and other fixes etc.
 - Numerous bug fixes.
 - Misc improvements.
+
+Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime-v3.2.2...OASIS-Runtime-v3.3.1
+
+Going forward we are likely to keep the changelog more brief and will summarise the changes rather than list the full changelog! ;-)
+
+----------------------------------------------------------------------------------------------------------------------------
+## 4.4.4 (21/12/25)
+
+Way too many changes to list here, there were numerous internal releases between v3.3.3 and v4.4.4, some of these changes are listed below:
+
+- Over 50+ providers for web2 and web3 now completed including Optimism, BNBChain, Bitcoin, Avalanche, Cardano, Bitcoin, Blockstack, Cosmos,  Elrond, EOSIO, Ethereum,  Fantom, Hashgrapth, Moralis,  Near, Polygon,  Rootstock, Solana, Telos, Sui, Tron, AWS,  Azure, GoogleCloud, GO, Mapbox, WRLD3D, ActivityPub, SOLID, IPFS, Pinata, Scuttlebug, Threefold, ONION, Orion, SEEDS, Neo4j,  SQLite,  MongoDB & more!
+- New OASIS HyperDrive v2 which now includes auto load balancing,  AI Predictive Failover, Analytics, AI powered Smart Mode & more!
+- New bespoke P2P ONET which merges all of web2, web3, OASIS HyperDrive,  HoloNET (Holochain) and also networking protocols such as http, tcp, websockets, QUIC, gRPC & more into a fully unified API and network of networks, an abstraction layer over everything. 
+- Data API upgrade/overhaul.
+- NFT API has been completely rewritten making it truly web4 now wrapping multiple web3 nfts that share the parent web4 nft and optionally overwriting any web4 Meta data meaning your nft appears across multiple chains sharing the same Meta data and allowing variants per chain.  Very powerful system,  truly web4 now, before it was more web3.5. It's now NFT API v2
+- GeoNFT API upgraded.
+- Added collections to the NFT API & the GeoNFT API.
+- WEB4 NFT/GeoNFT's now wrap multiple WEB3 NFT's which share metadata with their parent WEB4 NFT/GeoNFT.
+- NFT batching, improved error handling/retry logic etc.
+- Cross-chain minting/sending & lots more! 
+- Added new API's such as video, bridging, chat, competition, eggs, files, gifts, health, HyperDrive v2.0, messaging, ONET, ONODE, settings, share, social, stats, subscription & video!
+- Major Data API overhaul — more flexible, higher-performance data endpoints and richer request options per-call (auto-replication, auto-load-balance, auto-failover, provider lists, etc.).
+- NFT & GeoNFT rewrites and feature additions — richer NFT model, collections support, cross-chain minting, batching, improved retry/error logic and new GeoNFT capabilities.
+- Keys / Wallets API: new unified wallet model, provider wallets, wallet transactions, local encrypted storage (LocalFileOASIS), and improved key management (AES256 encryption, wallet IDs, new wallet manager/API).
+- Provider APIs and interfaces modernized.
+- Many provider interfaces gained async variants (ActivateProviderAsync, DeActivateProviderAsync, SendNFT/Mint changes, Search/Import/Export methods, etc.).
+- Blockchain provider methods return richer TransactionRespone objects instead of simple bools.
+- OASIS Runtime & Native endpoint upgrades.
+- New OASIS Runtimes and a Native Integrated EndPoint package (embed OASIS runtime directly into apps, offline-capable).
+- Setup projects for runtime installation (GAC) and runtime packaging improvements.
+- Authentication / Avatar model changes:
+- Username uniqueness introduced; Avatar / AvatarDetail restructuring; new auth behaviours, UMA JSON handling and improved JWT handling.
+- Performance, stability, and cross-cutting improvements:
+- Upgrades to .NET (moved up toward .NET 8), numerous bug fixes, refactors, and improved error handling/reporting across the stack.
+- Various performance improvements.
+- Numerous bug fixes.
+- Misc improvements.
+- Plus lots more! ;-)
+
+Full Changelog: https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime-v3.3.1...OASIS-Runtime-v4.4.4
 
 Going forward we are likely to keep the changelog more brief and will summarise the changes rather than list the full changelog! ;-)
 
