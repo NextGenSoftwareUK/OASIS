@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
@@ -42,6 +42,7 @@ using Nethereum.Contracts;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using System.IO;
 using System.Text;
+using NextGenSoftware.OASIS.API.Providers.EthereumOASIS.Services;
 // using Nethereum.StandardTokenEIP20; // Commented out - type doesn't exist
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
@@ -80,6 +81,20 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     //_walletManager = new WalletManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.EthereumOASIS));
 
                 return _walletManager;
+            }
+        }
+
+        private MNEEService _mneeService;
+        private MNEEService MNEEService
+        {
+            get
+            {
+                if (_mneeService == null && !string.IsNullOrWhiteSpace(HostURI))
+                {
+                    // Default to MNEE contract address for backward compatibility
+                    _mneeService = new MNEEService(HostURI, MNEEService.MNEE_CONTRACT_ADDRESS);
+                }
+                return _mneeService;
             }
         }
 
@@ -4364,6 +4379,207 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             return result;
+        }
+
+        #endregion
+
+        #region MNEE Stablecoin Methods
+
+        /// <summary>
+        /// Get MNEE balance for an Ethereum address
+        /// </summary>
+        public async Task<OASISResult<decimal>> GetMNEEBalanceAsync(string address)
+        {
+            var result = new OASISResult<decimal>();
+            try
+            {
+                if (!IsProviderActivated || MNEEService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated or RPC URL not configured");
+                    return result;
+                }
+
+                return await MNEEService.GetBalanceAsync(address);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting MNEE balance: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Get MNEE balance for an avatar
+        /// </summary>
+        public async Task<OASISResult<decimal>> GetMNEEBalanceForAvatarAsync(Guid avatarId)
+        {
+            var result = new OASISResult<decimal>();
+            try
+            {
+                if (!IsProviderActivated || MNEEService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated or RPC URL not configured");
+                    return result;
+                }
+
+                // Get avatar's Ethereum wallet
+                var walletsResult = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, Core.Enums.ProviderType.EthereumOASIS, Core.Enums.ProviderType.Default);
+                if (walletsResult.IsError || walletsResult.Result == null || !walletsResult.Result.ContainsKey(Core.Enums.ProviderType.EthereumOASIS) || walletsResult.Result[Core.Enums.ProviderType.EthereumOASIS].Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "No Ethereum wallet found for avatar");
+                    return result;
+                }
+
+                var walletAddress = walletsResult.Result[Core.Enums.ProviderType.EthereumOASIS][0].WalletAddress;
+                return await MNEEService.GetBalanceAsync(walletAddress);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting MNEE balance for avatar: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Transfer MNEE from one address to another
+        /// </summary>
+        public async Task<OASISResult<string>> TransferMNEEAsync(
+            string fromPrivateKey,
+            string toAddress,
+            decimal amount)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated || MNEEService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated or RPC URL not configured");
+                    return result;
+                }
+
+                return await MNEEService.TransferAsync(fromPrivateKey, toAddress, amount);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error transferring MNEE: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Transfer MNEE between avatars
+        /// </summary>
+        public async Task<OASISResult<string>> TransferMNEEBetweenAvatarsAsync(
+            Guid fromAvatarId,
+            Guid toAvatarId,
+            decimal amount)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated || MNEEService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated or RPC URL not configured");
+                    return result;
+                }
+
+                // Get sender's private key
+                var senderPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarById(fromAvatarId, Core.Enums.ProviderType.EthereumOASIS);
+                if (senderPrivateKeysResult.IsError || senderPrivateKeysResult.Result == null || senderPrivateKeysResult.Result.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "No private key found for sender");
+                    return result;
+                }
+
+                // Get recipient's wallet address
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EthereumOASIS, toAvatarId);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, "No Ethereum wallet found for recipient");
+                    return result;
+                }
+
+                return await MNEEService.TransferAsync(senderPrivateKeysResult.Result[0], toWalletResult.Result, amount);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error transferring MNEE between avatars: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Approve MNEE spending for a spender address
+        /// </summary>
+        public async Task<OASISResult<string>> ApproveMNEEAsync(
+            string ownerPrivateKey,
+            string spenderAddress,
+            decimal amount)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated || MNEEService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated or RPC URL not configured");
+                    return result;
+                }
+
+                return await MNEEService.ApproveAsync(ownerPrivateKey, spenderAddress, amount);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error approving MNEE: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Get MNEE allowance for a spender
+        /// </summary>
+        public async Task<OASISResult<decimal>> GetMNEEAllowanceAsync(
+            string ownerAddress,
+            string spenderAddress)
+        {
+            var result = new OASISResult<decimal>();
+            try
+            {
+                if (!IsProviderActivated || MNEEService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated or RPC URL not configured");
+                    return result;
+                }
+
+                return await MNEEService.GetAllowanceAsync(ownerAddress, spenderAddress);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting MNEE allowance: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Get MNEE token information
+        /// </summary>
+        public async Task<OASISResult<MNEETokenInfo>> GetMNEETokenInfoAsync()
+        {
+            var result = new OASISResult<MNEETokenInfo>();
+            try
+            {
+                if (!IsProviderActivated || MNEEService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated or RPC URL not configured");
+                    return result;
+                }
+
+                return await MNEEService.GetTokenInfoAsync();
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting MNEE token info: {ex.Message}", ex);
+                return result;
+            }
         }
 
         #endregion

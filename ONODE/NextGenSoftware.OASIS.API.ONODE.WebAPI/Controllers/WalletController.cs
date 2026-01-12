@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -9,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Providers.EthereumOASIS.Services;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -151,6 +153,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Load all provider wallets for an avatar by email.
         /// </summary>
         /// <param name="email">The avatar email.</param>
+        /// <param name="showOnlyDefault">Whether to show only the default wallet.</param>
+        /// <param name="decryptPrivateKeys">Whether to decrypt private keys.</param>
         /// <param name="providerType">The provider type to load wallets from.</param>
         /// <returns>OASIS result containing the provider wallets or error details.</returns>
         /// <response code="200">Wallets loaded successfully</response>
@@ -790,6 +794,364 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             return await WalletManager.UpdateWalletForAvatarByEmailAsync(email, walletId, request.Name, request.Description, request.WalletProviderType, providerTypeToLoadSave);
         }
+
+        #region Generic Token Operations (ERC-20 compatible)
+
+        /// <summary>
+        /// Get token balance for an avatar
+        /// Generic endpoint that works with any ERC-20 compatible token on any supported blockchain
+        /// </summary>
+        /// <param name="avatarId">Avatar ID (optional, defaults to authenticated avatar)</param>
+        /// <param name="tokenContractAddress">Token contract address</param>
+        /// <param name="providerType">Provider type (e.g., EthereumOASIS, BaseOASIS, ArbitrumOASIS)</param>
+        /// <returns>Token balance in decimal format</returns>
+        [Authorize]
+        [HttpGet("token/balance")]
+        [ProducesResponseType(typeof(OASISResult<decimal>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<decimal>> GetTokenBalance([FromQuery] Guid? avatarId = null, [FromQuery] string tokenContractAddress = null, [FromQuery] ProviderType providerType = ProviderType.EthereumOASIS)
+        {
+            var targetAvatarId = avatarId ?? AvatarId;
+            if (targetAvatarId == Guid.Empty)
+            {
+                var result = new OASISResult<decimal>();
+                OASISErrorHandling.HandleError(ref result, "Avatar ID is required");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(tokenContractAddress))
+            {
+                var result = new OASISResult<decimal>();
+                OASISErrorHandling.HandleError(ref result, "Token contract address is required");
+                return result;
+            }
+
+            // Use provider-specific token balance method via reflection
+            var providerResult = ProviderManager.Instance.GetProvider(providerType);
+            if (providerResult == null)
+            {
+                var result = new OASISResult<decimal>();
+                OASISErrorHandling.HandleError(ref result, $"Provider {providerType} is not available");
+                return result;
+            }
+
+            // For Ethereum-based providers, use the generic token service
+            if (providerType == ProviderType.EthereumOASIS)
+            {
+                try
+                {
+                    // Get avatar's wallet address
+                    var walletsResult = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(targetAvatarId, false, false, providerType, ProviderType.Default);
+                    if (walletsResult.IsError || walletsResult.Result == null || !walletsResult.Result.ContainsKey(providerType) || walletsResult.Result[providerType].Count == 0)
+                    {
+                        var result = new OASISResult<decimal>();
+                        OASISErrorHandling.HandleError(ref result, $"No {providerType} wallet found for avatar");
+                        return result;
+                    }
+
+                    var walletAddress = walletsResult.Result[providerType][0].WalletAddress;
+                    
+                    // Use reflection to call GetTokenBalanceAsync if it exists, otherwise use MNEEService pattern
+                    var method = providerResult.GetType().GetMethod("GetTokenBalanceAsync");
+                    if (method != null)
+                    {
+                        var balanceTask = (Task<OASISResult<decimal>>)method.Invoke(providerResult, new object[] { walletAddress, tokenContractAddress });
+                        return await balanceTask;
+                    }
+                    
+                    // Fallback: Use MNEEService pattern (works for any ERC-20)
+                    var serviceType = Type.GetType("NextGenSoftware.OASIS.API.Providers.EthereumOASIS.Services.MNEEService, NextGenSoftware.OASIS.API.Providers.EthereumOASIS");
+                    if (serviceType != null)
+                    {
+                        var hostUri = providerResult.GetType().GetProperty("HostURI")?.GetValue(providerResult)?.ToString();
+                        if (!string.IsNullOrWhiteSpace(hostUri))
+                        {
+                            var service = Activator.CreateInstance(serviceType, hostUri, tokenContractAddress);
+                            var getBalanceMethod = serviceType.GetMethod("GetBalanceAsync");
+                            if (getBalanceMethod != null)
+                            {
+                                var balanceTask = (Task<OASISResult<decimal>>)getBalanceMethod.Invoke(service, new object[] { walletAddress, tokenContractAddress });
+                                return await balanceTask;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var result = new OASISResult<decimal>();
+                    OASISErrorHandling.HandleError(ref result, $"Error getting token balance: {ex.Message}", ex);
+                    return result;
+                }
+            }
+
+            var errorResult = new OASISResult<decimal>();
+            OASISErrorHandling.HandleError(ref errorResult, $"Token balance operation not yet implemented for provider {providerType}");
+            return errorResult;
+        }
+
+        /// <summary>
+        /// Approve token spending for a spender address
+        /// Generic endpoint that works with any ERC-20 compatible token
+        /// </summary>
+        /// <param name="request">Approval request with token contract address, spender, and amount</param>
+        /// <returns>Transaction hash</returns>
+        [Authorize]
+        [HttpPost("token/approve")]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<string>> ApproveToken([FromBody] TokenApprovalRequest request)
+        {
+            var result = new OASISResult<string>();
+
+            if (request == null || string.IsNullOrWhiteSpace(request.TokenContractAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Token contract address is required");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.SpenderAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Spender address is required");
+                return result;
+            }
+
+            var avatarId = request.AvatarId != Guid.Empty ? request.AvatarId : AvatarId;
+            if (avatarId == Guid.Empty)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar ID is required");
+                return result;
+            }
+
+            // Use provider-specific token approval method
+            var providerResult = ProviderManager.Instance.GetProvider(request.ProviderType);
+            if (providerResult == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Provider {request.ProviderType} is not available");
+                return result;
+            }
+
+            // For Ethereum-based providers, use the generic token service
+            if (request.ProviderType == ProviderType.EthereumOASIS)
+            {
+                try
+                {
+                    var keyManager = new KeyManager(ProviderManager.Instance.CurrentStorageProvider);
+                    var privateKeysResult = keyManager.GetProviderPrivateKeysForAvatarById(avatarId, request.ProviderType);
+                    if (privateKeysResult.IsError || privateKeysResult.Result == null || privateKeysResult.Result.Count == 0)
+                    {
+                        OASISErrorHandling.HandleError(ref result, "No private key found for avatar");
+                        return result;
+                    }
+
+                    // Use MNEEService pattern (works for any ERC-20)
+                    var serviceType = Type.GetType("NextGenSoftware.OASIS.API.Providers.EthereumOASIS.Services.MNEEService, NextGenSoftware.OASIS.API.Providers.EthereumOASIS");
+                    if (serviceType != null)
+                    {
+                        var hostUri = providerResult.GetType().GetProperty("HostURI")?.GetValue(providerResult)?.ToString();
+                        if (!string.IsNullOrWhiteSpace(hostUri))
+                        {
+                            var service = Activator.CreateInstance(serviceType, hostUri, request.TokenContractAddress);
+                            var approveMethod = serviceType.GetMethod("ApproveAsync");
+                            if (approveMethod != null)
+                            {
+                                var approveTask = (Task<OASISResult<string>>)approveMethod.Invoke(service, new object[] { 
+                                    privateKeysResult.Result[0],
+                                    request.SpenderAddress,
+                                    request.Amount,
+                                    request.TokenContractAddress
+                                });
+                                return await approveTask;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error approving token: {ex.Message}", ex);
+                    return result;
+                }
+            }
+
+            OASISErrorHandling.HandleError(ref result, $"Token approval operation not yet implemented for provider {request.ProviderType}");
+            return result;
+        }
+
+        /// <summary>
+        /// Get token allowance for a spender
+        /// Generic endpoint that works with any ERC-20 compatible token
+        /// </summary>
+        /// <param name="avatarId">Avatar ID (optional, defaults to authenticated avatar)</param>
+        /// <param name="tokenContractAddress">Token contract address</param>
+        /// <param name="spenderAddress">Spender address</param>
+        /// <param name="providerType">Provider type</param>
+        /// <returns>Allowance amount</returns>
+        [Authorize]
+        [HttpGet("token/allowance")]
+        [ProducesResponseType(typeof(OASISResult<decimal>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<decimal>> GetTokenAllowance([FromQuery] Guid? avatarId = null, [FromQuery] string tokenContractAddress = null, [FromQuery] string spenderAddress = null, [FromQuery] ProviderType providerType = ProviderType.EthereumOASIS)
+        {
+            var result = new OASISResult<decimal>();
+
+            var targetAvatarId = avatarId ?? AvatarId;
+            if (targetAvatarId == Guid.Empty)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar ID is required");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(tokenContractAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Token contract address is required");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(spenderAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Spender address is required");
+                return result;
+            }
+
+            // Use provider-specific token allowance method
+            var providerResult = ProviderManager.Instance.GetProvider(providerType);
+            if (providerResult == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Provider {providerType} is not available");
+                return result;
+            }
+
+            // For Ethereum-based providers, use the generic token service
+            if (providerType == ProviderType.EthereumOASIS)
+            {
+                try
+                {
+                    // Get avatar's wallet address
+                    var walletsResult = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(targetAvatarId, false, false, providerType, ProviderType.Default);
+                    if (walletsResult.IsError || walletsResult.Result == null || !walletsResult.Result.ContainsKey(providerType) || walletsResult.Result[providerType].Count == 0)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"No {providerType} wallet found for avatar");
+                        return result;
+                    }
+
+                    var ownerAddress = walletsResult.Result[providerType][0].WalletAddress;
+                    
+                    // Use MNEEService pattern (works for any ERC-20)
+                    var serviceType = Type.GetType("NextGenSoftware.OASIS.API.Providers.EthereumOASIS.Services.MNEEService, NextGenSoftware.OASIS.API.Providers.EthereumOASIS");
+                    if (serviceType != null)
+                    {
+                        var hostUri = providerResult.GetType().GetProperty("HostURI")?.GetValue(providerResult)?.ToString();
+                        if (!string.IsNullOrWhiteSpace(hostUri))
+                        {
+                            var service = Activator.CreateInstance(serviceType, hostUri, tokenContractAddress);
+                            var getAllowanceMethod = serviceType.GetMethod("GetAllowanceAsync");
+                            if (getAllowanceMethod != null)
+                            {
+                                var allowanceTask = (Task<OASISResult<decimal>>)getAllowanceMethod.Invoke(service, new object[] { 
+                                    ownerAddress,
+                                    spenderAddress,
+                                    tokenContractAddress
+                                });
+                                return await allowanceTask;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting token allowance: {ex.Message}", ex);
+                    return result;
+                }
+            }
+
+            OASISErrorHandling.HandleError(ref result, $"Token allowance operation not yet implemented for provider {providerType}");
+            return result;
+        }
+
+        /// <summary>
+        /// Get token information (name, symbol, decimals, total supply)
+        /// Generic endpoint that works with any ERC-20 compatible token
+        /// </summary>
+        /// <param name="tokenContractAddress">Token contract address</param>
+        /// <param name="providerType">Provider type</param>
+        /// <returns>Token information</returns>
+        [Authorize]
+        [HttpGet("token/info")]
+        [ProducesResponseType(typeof(OASISResult<TokenInfo>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<TokenInfo>> GetTokenInfo([FromQuery] string tokenContractAddress = null, [FromQuery] ProviderType providerType = ProviderType.EthereumOASIS)
+        {
+            var result = new OASISResult<TokenInfo>();
+
+            if (string.IsNullOrWhiteSpace(tokenContractAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Token contract address is required");
+                return result;
+            }
+
+            // Use provider-specific token info method
+            var providerResult = ProviderManager.Instance.GetProvider(providerType);
+            if (providerResult == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Provider {providerType} is not available");
+                return result;
+            }
+
+            // For Ethereum-based providers, use the generic token service
+            if (providerType == ProviderType.EthereumOASIS)
+            {
+                try
+                {
+                    // Use MNEEService pattern (works for any ERC-20)
+                    var serviceType = Type.GetType("NextGenSoftware.OASIS.API.Providers.EthereumOASIS.Services.MNEEService, NextGenSoftware.OASIS.API.Providers.EthereumOASIS");
+                    if (serviceType != null)
+                    {
+                        var hostUri = providerResult.GetType().GetProperty("HostURI")?.GetValue(providerResult)?.ToString();
+                        if (!string.IsNullOrWhiteSpace(hostUri))
+                        {
+                            var service = Activator.CreateInstance(serviceType, hostUri, tokenContractAddress);
+                            var getTokenInfoMethod = serviceType.GetMethod("GetTokenInfoAsync");
+                            if (getTokenInfoMethod != null)
+                            {
+                                var tokenInfoTask = (Task<OASISResult<MNEETokenInfo>>)getTokenInfoMethod.Invoke(service, new object[] { tokenContractAddress });
+                                var tokenInfoResult = await tokenInfoTask;
+                                
+                                if (!tokenInfoResult.IsError && tokenInfoResult.Result != null)
+                                {
+                                    var genericResult = new OASISResult<TokenInfo>
+                                    {
+                                        Result = new TokenInfo
+                                        {
+                                            Name = tokenInfoResult.Result.Name,
+                                            Symbol = tokenInfoResult.Result.Symbol,
+                                            Decimals = tokenInfoResult.Result.Decimals,
+                                            TotalSupply = tokenInfoResult.Result.TotalSupply,
+                                            ContractAddress = tokenInfoResult.Result.ContractAddress
+                                        },
+                                        IsError = false,
+                                        Message = tokenInfoResult.Message
+                                    };
+                                    return genericResult;
+                                }
+                                
+                                var errorResult = new OASISResult<TokenInfo>();
+                                OASISErrorHandling.HandleError(ref errorResult, tokenInfoResult.Message);
+                                return errorResult;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting token info: {ex.Message}", ex);
+                    return result;
+                }
+            }
+
+            OASISErrorHandling.HandleError(ref result, $"Token info operation not yet implemented for provider {providerType}");
+            return result;
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -812,5 +1174,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public string Name { get; set; }
         public string Description { get; set; }
         public ProviderType WalletProviderType { get; set; }
+    }
+
+    /// <summary>
+    /// Token approval request model
+    /// </summary>
+    public class TokenApprovalRequest
+    {
+        public Guid AvatarId { get; set; }
+        public string TokenContractAddress { get; set; }
+        public string SpenderAddress { get; set; }
+        public decimal Amount { get; set; }
+        public ProviderType ProviderType { get; set; } = ProviderType.EthereumOASIS;
+    }
+
+    /// <summary>
+    /// Token information model
+    /// </summary>
+    public class TokenInfo
+    {
+        public string Name { get; set; }
+        public string Symbol { get; set; }
+        public byte Decimals { get; set; }
+        public decimal TotalSupply { get; set; }
+        public string ContractAddress { get; set; }
     }
 }
