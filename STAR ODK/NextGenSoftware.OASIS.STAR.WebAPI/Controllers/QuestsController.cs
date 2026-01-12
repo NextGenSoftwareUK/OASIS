@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -277,7 +278,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (result.IsError)
                     return BadRequest(result);
 
-                var filteredQuests = result.Result?.Where(q => q.Status?.ToString() == status);
+                var filteredQuests = result.Result?.Where(q => q.Status.ToString() == status);
                 return Ok(new OASISResult<IEnumerable<Quest>>
                 {
                     Result = filteredQuests,
