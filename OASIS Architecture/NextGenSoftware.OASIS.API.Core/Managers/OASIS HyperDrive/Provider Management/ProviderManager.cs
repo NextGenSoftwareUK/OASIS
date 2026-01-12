@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -95,14 +95,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         //TODO: In future the registered providers will be dynamically loaded from MEF by watching a hot folder for compiled provider dlls (and other ways in future...)
         public bool RegisterProvider(IOASISProvider provider)
         {
-            if (!_registeredProviders.Any(x => x.ProviderType == provider.ProviderType))
+            if (provider == null)
             {
-                _registeredProviders.Add(provider);
-                _registeredProviderTypes.Add(provider.ProviderType);
-                return true;
+                LoggingManager.Log("DEBUG RegisterProvider: provider is NULL!", Logging.LogType.Error);
+                return false;
             }
 
-            return false;
+            LoggingManager.Log($"DEBUG RegisterProvider: Checking for existing provider. ProviderType.Value = {provider.ProviderType?.Value}, ProviderName = {provider.ProviderName}, _registeredProviders.Count = {_registeredProviders.Count}", Logging.LogType.Info);
+            
+            var existingProvider = _registeredProviders.FirstOrDefault(x => x.ProviderType == provider.ProviderType);
+            if (existingProvider != null)
+            {
+                LoggingManager.Log($"DEBUG RegisterProvider: Provider already exists! Existing: {existingProvider.ProviderName}, New: {provider.ProviderName}. Using reference equality: {existingProvider.ProviderType == provider.ProviderType}, Using value equality: {existingProvider.ProviderType?.Value == provider.ProviderType?.Value}", Logging.LogType.Warning);
+                return false;
+            }
+
+            _registeredProviders.Add(provider);
+            _registeredProviderTypes.Add(provider.ProviderType);
+            LoggingManager.Log($"DEBUG RegisterProvider: Provider registered successfully! _registeredProviders.Count = {_registeredProviders.Count}", Logging.LogType.Info);
+            return true;
         }
 
         public bool RegisterProviders(List<IOASISProvider> providers)
@@ -553,10 +564,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> ActivateProvider(IOASISProvider provider)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = $"Error Occured Activating Provider {provider.ProviderType.Name} In ProviderManager ActivateProvider. Reason: ";
 
             if (provider != null)
             {
+                string errorMessage = $"Error Occured Activating Provider {provider.ProviderType.Name} In ProviderManager ActivateProvider. Reason: ";
+
                 try
                 {
                     if (!SupressConsoleLoggingWhenSwitchingProviders)
@@ -574,7 +586,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Provider passed in is null!");
+                OASISErrorHandling.HandleError(ref result, "Error Occured Activating Provider In ProviderManager ActivateProvider. Reason: Provider passed in is null!");
 
             return result;
         }

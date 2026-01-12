@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
@@ -206,7 +206,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("register-provider-type/{providerType}")]
         public OASISResult<bool> RegisterProviderType(ProviderType providerType)
         {
-            return new(OASISBootLoader.OASISBootLoader.RegisterProvider(providerType) != null);
+            var registerResult = OASISBootLoader.OASISBootLoader.RegisterProvider(providerType);
+            var result = new OASISResult<bool>(registerResult != null && registerResult.Result != null);
+            
+            // For BaseOASIS, include diagnostic message
+            if (providerType == ProviderType.BaseOASIS && registerResult != null)
+            {
+                result.Message = registerResult.Message ?? "No diagnostic message available";
+                bool isRegistered = ProviderManager.Instance.IsProviderRegistered(providerType);
+                result.Message += $"; IsProviderRegistered check: {isRegistered}";
+            }
+            
+            return result;
         }
 
         /// <summary>

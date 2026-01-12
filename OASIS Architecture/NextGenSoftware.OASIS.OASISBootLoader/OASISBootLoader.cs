@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -614,6 +614,20 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
 
+                // Add diagnostic info for BaseOASIS (RegisterProviderInternal already calls RegisterProvider, so just check status)
+                if (providerType == ProviderType.BaseOASIS)
+                {
+                    bool isNowRegistered = ProviderManager.Instance.IsProviderRegistered(providerType);
+                    string debugMsg = result.Result != null 
+                        ? $"BaseOASIS Registration: result.Result is NOT null, IsProviderRegistered = {isNowRegistered}, ProviderType.Value = {result.Result.ProviderType?.Value}"
+                        : "BaseOASIS Registration: result.Result IS NULL - provider creation failed!";
+                    if (!string.IsNullOrEmpty(result.Message))
+                        result.Message = $"{result.Message}; {debugMsg}";
+                    else
+                        result.Message = debugMsg;
+                    LoggingManager.Log(debugMsg, LogType.Info);
+                }
+
                 if (ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot && activateProviderIfOASISProviderBootTypeIsHot)
                     ProviderManager.Instance.ActivateProvider(result.Result);
             }
@@ -1135,17 +1149,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.BaseOASIS:
                         {
-                            var chainIdHex = OASISDNA.OASIS.StorageProviders.BaseOASIS.ChainId ?? "0x2105";
-                            var chainId = chainIdHex.StartsWith("0x") 
-                                ? BigInteger.Parse(chainIdHex.Substring(2), System.Globalization.NumberStyles.HexNumber)
-                                : BigInteger.Parse(chainIdHex);
-                            var baseProvider = new BaseOASIS(
-                                OASISDNA.OASIS.StorageProviders.BaseOASIS.RpcEndpoint ?? "https://mainnet.base.org",
-                                OASISDNA.OASIS.StorageProviders.BaseOASIS.ChainPrivateKey ?? "",
-                                chainId,
-                                OASISDNA.OASIS.StorageProviders.BaseOASIS.ContractAddress ?? "");
+                            LoggingManager.Log("DEBUG: Creating BaseOASIS provider instance...", LogType.Info);
+                            
+                            // Null-safe access to BaseOASIS config
+                            string rpcEndpoint = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.RpcEndpoint ?? "https://mainnet.base.org";
+                            string chainPrivateKey = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.ChainPrivateKey ?? "";
+                            string contractAddress = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.ContractAddress ?? "";
+                            
+                            LoggingManager.Log($"DEBUG: BaseOASIS config - RpcEndpoint: {rpcEndpoint}, ChainPrivateKey: {(string.IsNullOrEmpty(chainPrivateKey) ? "empty" : "set")}, ContractAddress: {(string.IsNullOrEmpty(contractAddress) ? "empty" : "set")}", LogType.Info);
+                            
+                            var baseProvider = new BaseOASIS(rpcEndpoint, chainPrivateKey, contractAddress);
                             baseProvider.OnStorageProviderError += BaseOASIS_StorageProviderError;
                             result.Result = baseProvider;
+                            LoggingManager.Log($"DEBUG: BaseOASIS created. ProviderType.Value = {baseProvider.ProviderType?.Value}, ProviderType.Name = {baseProvider.ProviderType?.Name}, result.Result is null = {result.Result == null}", LogType.Info);
                         }
                         break;
 
@@ -1213,7 +1229,26 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
 
                     if (result.Result != null)
-                        ProviderManager.Instance.RegisterProvider(result.Result);
+                    {
+                        LoggingManager.Log($"DEBUG: About to register provider. ProviderType = {result.Result.ProviderType?.Value}, ProviderName = {result.Result.ProviderName}", LogType.Info);
+                        bool registered = ProviderManager.Instance.RegisterProvider(result.Result);
+                        bool isRegistered = ProviderManager.Instance.IsProviderRegistered(providerType);
+                        LoggingManager.Log($"DEBUG: RegisterProvider returned: {registered}. IsProviderRegistered check: {isRegistered}", LogType.Info);
+                        
+                        // For BaseOASIS, add diagnostic info to result message
+                        if (providerType == ProviderType.BaseOASIS)
+                        {
+                            result.Message = $"RegisterProvider returned: {registered}, IsProviderRegistered: {isRegistered}, ProviderType.Value: {result.Result.ProviderType?.Value}";
+                        }
+                    }
+                    else
+                    {
+                        LoggingManager.Log($"DEBUG: result.Result is NULL for providerType {providerType}!", LogType.Error);
+                        if (providerType == ProviderType.BaseOASIS)
+                        {
+                            result.Message = "ERROR: result.Result is NULL - provider creation failed!";
+                        }
+                    }
                 }
                 else
                     result.Result = (IOASISStorageProvider)ProviderManager.Instance.GetProvider(providerType);
