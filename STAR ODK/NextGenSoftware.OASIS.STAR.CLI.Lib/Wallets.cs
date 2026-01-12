@@ -36,14 +36,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 ProviderType walletProviderType = (ProviderType)objProviderType;
-
                 bool isDefault = CLIEngine.GetConfirmation($"Will this be the new default wallet?", addLineBefore: false);
+                bool showSecretPhase = CLIEngine.GetConfirmation($"Do you wish to show the secret recovery phase after the wallet has been created?", addLineBefore: true);
+                bool showPrivateKey = CLIEngine.GetConfirmation($"Do you wish to show the private key after the wallet has been created?", addLineBefore: true);
 
                 CLIEngine.ShowWorkingMessage("Creating Wallet...", addLineBefore: true);
-                result = await STAR.OASISAPI.Wallets.CreateWalletForAvatarByIdAsync(STAR.BeamedInAvatar.Id, name, desc, walletProviderType, true, isDefault);
+                result = await STAR.OASISAPI.Wallets.CreateWalletForAvatarByIdAsync(STAR.BeamedInAvatar.Id, name, desc, walletProviderType, true, isDefault, showSecretPhase, showPrivateKey, providerTypeToLoadSave);
 
                 if (result != null && result.Result != null && !result.IsError)
+                {
                     CLIEngine.ShowSuccessMessage("Wallet Successfully Created", addLineBefore: true);
+
+                    Console.WriteLine("");
+                    ShowWallet(result.Result);
+                }
                 else
                     CLIEngine.ShowErrorMessage($"Error Occured Creating Wallet. Reason: {result.Message}", addLineBefore: true);
             }

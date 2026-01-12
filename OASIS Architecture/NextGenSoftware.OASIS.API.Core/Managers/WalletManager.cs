@@ -22,6 +22,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Rijndael256;
+using NextGenSoftware.CLI.Engine;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -46,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         }
 
-        public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByIdAsync(Guid avatarId, string name, string description, ProviderType walletProviderType, bool generateKeyPair = true, bool isDefaultWallet = false, ProviderType providerTypeToLoadSave = ProviderType.Default)
+        public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByIdAsync(Guid avatarId, string name, string description, ProviderType walletProviderType, bool generateKeyPair = true, bool isDefaultWallet = false, bool showSecretRecoveryPhase = false, bool showPrivateKey = false, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             string errorMessage = "Error occured in WalletManager.CreateWalletForAvatarByIdAsync. Reason: ";
@@ -81,6 +82,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         {
                             result.Result = createResult.Result;
                             result.Message = "Wallet Created Successfully";
+
+                            if (showSecretRecoveryPhase)
+                                result.Result.SecretRecoveryPhrase = Rijndael.Decrypt(result.Result.SecretRecoveryPhrase, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+
+                            if (!showPrivateKey)
+                                result.Result.PrivateKey = "";
                         }
                         else
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving wallets calling SaveProviderWalletsForAvatarByIdAsync. Reason: {saveResult.Message}");
@@ -2277,7 +2284,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 providerTypeToLoadFrom = ProviderType.LocalFileOASIS; //TODO: Temp!
 
+                CLIEngine.SupressConsoleLogging = true;
                 OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerTypeToLoadFrom);
+                CLIEngine.SupressConsoleLogging = false;
+
                 errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)
@@ -2732,7 +2742,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 providerType = ProviderType.LocalFileOASIS; //TODO:Temp!
 
+                CLIEngine.SupressConsoleLogging = true;
                 OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+                CLIEngine.SupressConsoleLogging = false;
+
                 errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
                 if (!providerResult.IsError && providerResult.Result != null)

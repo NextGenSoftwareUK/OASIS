@@ -3382,11 +3382,11 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         try
         {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
+            //if (!IsProviderActivated)
+            //{
+            //    OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+            //    return result;
+            //}
 
             // Generate a new Solana wallet using Solnet.Wallet SDK (production-ready)
             var mnemonic = new Solnet.Wallet.Bip39.Mnemonic(Solnet.Wallet.Bip39.WordList.English, Solnet.Wallet.Bip39.WordCount.Twelve);
