@@ -85,14 +85,25 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
-            if (_hostURI is { Length: > 0 } &&
-                _chainPrivateKey is { Length: > 0 })
+            // Require hostURI for activation (needed for RPC calls)
+            // chainPrivateKey is optional - only needed for transactions, not for key generation
+            if (_hostURI is { Length: > 0 })
             {
-                _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi);
-                // Initialize Web3 client for bridge operations
-                var account = new Account(_chainPrivateKey);
-                _web3Client = new Nethereum.Web3.Web3(account, _hostURI);
+                // Only initialize Web3CoreOASIS and Web3 client if we have a private key
+                // Otherwise, just mark as activated for read-only operations (like key generation)
+                if (_chainPrivateKey is { Length: > 0 })
+                {
+                    _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi);
+                    // Initialize Web3 client for bridge operations
+                    var account = new Account(_chainPrivateKey);
+                    _web3Client = new Nethereum.Web3.Web3(account, _hostURI);
+                }
+                // Even without private key, we can activate for key generation and read operations
                 this.IsProviderActivated = true;
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProvider in {this.ProviderName} -> Web3CoreOASIS Provider. Reason: HostURI is required for activation.");
             }
         }
         catch (Exception ex)
@@ -2920,7 +2931,8 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             {
                 PrivateKey = privateKey,
                 PublicKey = publicKey,
-                WalletAddressLegacy = publicKey //TODO: Generate proper ethereum address format if needed
+                WalletAddress = publicKey, // Ethereum/Base address (0x format)
+                WalletAddressLegacy = publicKey // Also set for compatibility
             };
             result.IsError = false;
             result.Message = "Key pair generated successfully.";
