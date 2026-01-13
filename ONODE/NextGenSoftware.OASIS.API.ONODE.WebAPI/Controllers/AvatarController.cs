@@ -1197,7 +1197,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             // users can update their own account and admins can update any account
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
+            {
+                // Check if the avatar being updated is an agent and if the current user owns it
+                var checkAvatarResult = await Program.AvatarManager.LoadAvatarAsync(id);
+                if (!checkAvatarResult.IsError && checkAvatarResult.Result != null)
+                {
+                    var checkAvatar = checkAvatarResult.Result;
+                    
+                    // If it's an agent, check ownership
+                    if (checkAvatar.AvatarType.Value == AvatarType.Agent)
+                    {
+                        var ownerResult = await AgentManager.Instance.GetAgentOwnerAsync(id);
+                        if (!ownerResult.IsError && ownerResult.Result.HasValue && ownerResult.Result.Value == Avatar.Id)
+                        {
+                            // User owns this agent, allow the update
+                            // Continue with the update below
+                        }
+                        else
+                        {
+                            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized: You do not own this agent" }, HttpStatusCode.Unauthorized);
+                        }
+                    }
+                    else
+                    {
+                        // Not an agent and not the user's own avatar, deny
+                        return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
+                    }
+                }
+                else
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
+                }
+            }
 
             // Load existing avatar and update with new data
             var existingAvatarResult = await Program.AvatarManager.LoadAvatarAsync(id);
