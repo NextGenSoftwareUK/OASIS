@@ -509,7 +509,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]
-        public async Task<IActionResult> RegisterAgentAsService()
+        public async Task<IActionResult> RegisterAgentAsService([FromQuery] string agentId = null)
         {
             try
             {
@@ -518,14 +518,65 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return Unauthorized(new { error = "Authentication required" });
                 }
 
-                if (Avatar.AvatarType.Value != AvatarType.Agent)
+                Guid targetAgentId;
+                Guid? parsedAgentId = null;
+                
+                // Try to get agentId from query string (fallback if parameter binding fails)
+                if (string.IsNullOrEmpty(agentId))
                 {
-                    return BadRequest(new { error = "Avatar must be of type Agent" });
+                    var queryAgentId = Request.Query["agentId"].ToString();
+                    if (!string.IsNullOrEmpty(queryAgentId))
+                    {
+                        agentId = queryAgentId;
+                    }
+                }
+                
+                // Try to parse agentId if provided
+                if (!string.IsNullOrEmpty(agentId) && Guid.TryParse(agentId, out var parsedId))
+                {
+                    parsedAgentId = parsedId;
+                }
+                
+                // Determine which agent to register
+                // Check if agentId was provided in query string
+                if (parsedAgentId.HasValue)
+                {
+                    // Owner is registering their agent - skip Agent type check for authenticated user
+                    targetAgentId = parsedAgentId.Value;
+                    
+                    // Verify the authenticated user owns this agent
+                    var ownerResult = await AgentManager.Instance.GetAgentOwnerAsync(targetAgentId);
+                    if (ownerResult.IsError || !ownerResult.Result.HasValue || ownerResult.Result.Value != Avatar.Id)
+                    {
+                        // Also check if user is a Wizard (admin)
+                        if (Avatar.AvatarType.Value != AvatarType.Wizard)
+                        {
+                            return BadRequest(new { error = "You do not own this agent" });
+                        }
+                    }
+                    
+                    // Verify the target is an agent
+                    var agentCheck = await AvatarManager.Instance.LoadAvatarAsync(targetAgentId);
+                    if (agentCheck.IsError || agentCheck.Result == null || agentCheck.Result.AvatarType.Value != AvatarType.Agent)
+                    {
+                        return BadRequest(new { error = "Target avatar is not an Agent type" });
+                    }
+                }
+                else
+                {
+                    // No agentId provided - check if authenticated user is an agent registering itself
+                    // OR if they're trying to register but forgot the agentId parameter
+                    // For better UX, if user is not an agent, give a helpful error
+                    if (Avatar.AvatarType.Value != AvatarType.Agent)
+                    {
+                        return BadRequest(new { error = "Avatar must be of type Agent. If you are the owner, please use the agentId query parameter." });
+                    }
+                    targetAgentId = Avatar.Id;
                 }
 
                 // Get agent card to retrieve capabilities
                 var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
-                var agentCardResult = await AgentManager.Instance.GetAgentCardAsync(Avatar.Id, baseUrl);
+                var agentCardResult = await AgentManager.Instance.GetAgentCardAsync(targetAgentId, baseUrl);
 
                 if (agentCardResult.IsError || agentCardResult.Result == null)
                 {
@@ -550,7 +601,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 };
 
                 // Register agent as SERV service
-                var result = await A2AManager.Instance.RegisterAgentAsServiceAsync(Avatar.Id, capabilities);
+                var result = await A2AManager.Instance.RegisterAgentAsServiceAsync(targetAgentId, capabilities);
 
                 if (result.IsError)
                 {
@@ -794,18 +845,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Discover agents via SERV infrastructure
+        /// Discover agents via ONET Service Registry (with optional OpenSERV platform integration)
         /// </summary>
         /// <remarks>
-        /// Discovers agents via SERV infrastructure (ONET Unified Architecture), enriched with A2A Agent Cards.
-        /// This endpoint queries the SERV service registry for A2A agents and returns their Agent Cards.
+        /// Discovers agents via ONET Service Registry (OASIS's internal service discovery), enriched with A2A Agent Cards.
+        /// Optionally includes agents from OpenSERV platform for bidirectional discovery.
         /// 
-        /// **Authentication Required:** No (Public endpoint)
+        /// **Authentication Required:** No (Public endpoint for ONET Service Registry, but OpenSERV discovery requires API key)
         /// 
         /// **Query Parameters:**
         /// - `service` (optional): Filter agents by service name (e.g., "data-analysis", "payment-processing")
+        /// - `includeOpenServ` (optional): Include agents from OpenSERV platform (default: false)
+        /// - `openServApiKey` (optional): OpenSERV API key (required if includeOpenServ=true)
         /// 
-        /// **Example:** `/api/a2a/agents/discover-serv?service=data-analysis`
+        /// **Example:** `/api/a2a/agents/discover-onet?service=data-analysis&includeOpenServ=true&openServApiKey=sk-...`
         /// 
         /// **Example Response:**
         /// ```json
@@ -824,17 +877,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// ```
         /// </remarks>
         /// <param name="service">Optional service name to filter agents</param>
-        /// <returns>List of Agent Cards discovered via SERV</returns>
+        /// <param name="includeOpenServ">Include agents from OpenSERV platform</param>
+        /// <param name="openServApiKey">OpenSERV API key (required if includeOpenServ=true)</param>
+        /// <returns>List of Agent Cards discovered via ONET Service Registry (and optionally OpenSERV)</returns>
         /// <response code="200">Success - Returns list of Agent Cards</response>
+        /// <response code="400">Bad Request - OpenSERV API key required if includeOpenServ=true</response>
         /// <response code="500">Internal Server Error</response>
-        [HttpGet("agents/discover-serv")]
+        [HttpGet("agents/discover-onet")]
         [ProducesResponseType(typeof(List<IAgentCard>), 200)]
+        [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        public async Task<IActionResult> DiscoverAgentsViaSERV([FromQuery] string service = null)
+        public async Task<IActionResult> DiscoverAgentsViaONETServiceRegistry(
+            [FromQuery] string service = null,
+            [FromQuery] bool includeOpenServ = false,
+            [FromQuery] string openServApiKey = null)
         {
             try
             {
-                var result = await A2AManager.Instance.DiscoverAgentsViaSERVAsync(service);
+                if (includeOpenServ && string.IsNullOrEmpty(openServApiKey))
+                {
+                    return BadRequest(new { error = "OpenSERV API key is required when includeOpenServ=true" });
+                }
+
+                var result = await A2AManager.Instance.DiscoverAgentsViaONETServiceRegistryAsync(
+                    service, 
+                    includeOpenServ, 
+                    openServApiKey);
 
                 if (result.IsError)
                 {
@@ -847,6 +915,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
             }
+        }
+
+        /// <summary>
+        /// Discover agents via SERV infrastructure (legacy endpoint - redirects to discover-onet)
+        /// </summary>
+        /// <remarks>
+        /// **Deprecated:** This endpoint is maintained for backward compatibility.
+        /// Use `/api/a2a/agents/discover-onet` instead.
+        /// </remarks>
+        [HttpGet("agents/discover-serv")]
+        [Obsolete("Use /api/a2a/agents/discover-onet instead. SERV terminology has been replaced with ONET Service Registry.")]
+        [ProducesResponseType(typeof(List<IAgentCard>), 200)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> DiscoverAgentsViaSERV([FromQuery] string service = null)
+        {
+            // Redirect to new endpoint
+            return await DiscoverAgentsViaONETServiceRegistry(service, false, null);
         }
 
         /// <summary>
@@ -1023,6 +1108,408 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 }
 
                 return Ok(new { success = true, result = result.Result, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Register OASIS A2A agent with OpenSERV platform (bidirectional discovery)
+        /// </summary>
+        /// <remarks>
+        /// Registers an OASIS A2A agent with the OpenSERV platform, making it discoverable on OpenSERV.
+        /// This enables bidirectional discovery - OASIS agents can be found on OpenSERV platform.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Agent Type Required:** The authenticated avatar must be of type `Agent`
+        /// </remarks>
+        [HttpPost("openserv/register-oasis-agent")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> RegisterOasisAgentWithOpenServ([FromBody] RegisterOasisAgentWithOpenServRequest request)
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                if (Avatar.AvatarType.Value != AvatarType.Agent)
+                {
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+                }
+
+                if (request == null || string.IsNullOrEmpty(request.OpenServApiKey))
+                {
+                    return BadRequest(new { error = "OpenServApiKey is required" });
+                }
+
+                var result = await A2AManager.Instance.RegisterOasisAgentWithOpenServAsync(
+                    Avatar.Id,
+                    request.OpenServApiKey,
+                    request.OasisAgentEndpoint);
+
+                if (result.IsError)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+
+                return Ok(new { 
+                    success = true, 
+                    openServAgentId = result.Result,
+                    message = result.Message 
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Discover agents from OpenSERV platform (bidirectional discovery)
+        /// </summary>
+        /// <remarks>
+        /// Discovers agents directly from OpenSERV platform registry.
+        /// This enables finding OpenSERV agents and OASIS agents registered with OpenSERV.
+        /// 
+        /// **Authentication Required:** No (but requires OpenSERV API key)
+        /// </remarks>
+        [HttpGet("openserv/discover")]
+        [ProducesResponseType(typeof(List<IAgentCard>), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> DiscoverAgentsFromOpenServ(
+            [FromQuery] string openServApiKey,
+            [FromQuery] string capability = null)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(openServApiKey))
+                {
+                    return BadRequest(new { error = "OpenServApiKey is required" });
+                }
+
+                var result = await A2AManager.Instance.DiscoverAgentsFromOpenServAsync(openServApiKey, capability);
+
+                if (result.IsError)
+                {
+                    return StatusCode(500, new { error = result.Message });
+                }
+
+                return Ok(result.Result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        // ============================================
+        // MNEE Payment Integration Endpoints
+        // ============================================
+
+        /// <summary>
+        /// Send MNEE payment request between agents
+        /// </summary>
+        /// <remarks>
+        /// Sends a MNEE payment request from one agent to another and optionally executes the payment automatically.
+        /// This enables autonomous agent-to-agent payments using MNEE stablecoin.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Agent Type Required:** The authenticated avatar must be of type `Agent`
+        /// 
+        /// **Example Request:**
+        /// ```json
+        /// {
+        ///   "toAgentId": "123e4567-e89b-12d3-a456-426614174000",
+        ///   "amount": 10.5,
+        ///   "description": "Payment for data analysis service",
+        ///   "autoExecute": true
+        /// }
+        /// ```
+        /// 
+        /// **Example Response:**
+        /// ```json
+        /// {
+        ///   "result": {
+        ///     "messageId": "...",
+        ///     "transactionHash": "0x...",
+        ///     "payload": {
+        ///       "amount": 10.5,
+        ///       "currency": "MNEE",
+        ///       "paymentStatus": "completed"
+        ///     }
+        ///   },
+        ///   "isError": false,
+        ///   "message": "MNEE payment request sent successfully"
+        /// }
+        /// ```
+        /// </remarks>
+        /// <param name="request">MNEE payment request</param>
+        /// <returns>Payment result with transaction hash</returns>
+        /// <response code="200">Success - Payment sent</response>
+        /// <response code="400">Bad Request - Invalid request or agent not found</response>
+        /// <response code="401">Unauthorized - Authentication required</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost("mnee/payment")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISResult<IA2AMessage>), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> SendMNEEPayment([FromBody] SendMNEEPaymentRequest request)
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                if (Avatar.AvatarType.Value != AvatarType.Agent)
+                {
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+                }
+
+                if (request == null)
+                {
+                    return BadRequest(new { error = "Request body is required" });
+                }
+
+                if (request.ToAgentId == Guid.Empty)
+                {
+                    return BadRequest(new { error = "ToAgentId is required" });
+                }
+
+                if (request.Amount <= 0)
+                {
+                    return BadRequest(new { error = "Amount must be greater than zero" });
+                }
+
+                var result = await A2AManager.Instance.SendMNEEPaymentRequestAsync(
+                    Avatar.Id,
+                    request.ToAgentId,
+                    request.Amount,
+                    request.Description,
+                    request.AutoExecute
+                );
+
+                if (result.IsError)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Get MNEE balance for an agent
+        /// </summary>
+        /// <remarks>
+        /// Gets the MNEE stablecoin balance for the authenticated agent.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Agent Type Required:** The authenticated avatar must be of type `Agent`
+        /// </remarks>
+        /// <returns>MNEE balance</returns>
+        /// <response code="200">Success - Returns balance</response>
+        /// <response code="401">Unauthorized - Authentication required</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpGet("mnee/balance")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISResult<decimal>), 200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> GetAgentMNEEBalance()
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                if (Avatar.AvatarType.Value != AvatarType.Agent)
+                {
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+                }
+
+                var result = await A2AManager.Instance.GetAgentMNEEBalanceAsync(Avatar.Id);
+
+                if (result.IsError)
+                {
+                    return StatusCode(500, new { error = result.Message });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        // ============================================
+        // SERV Payment Integration Endpoints
+        // ============================================
+
+        /// <summary>
+        /// Send SERV payment request between agents
+        /// </summary>
+        /// <remarks>
+        /// Sends a SERV payment request from one agent to another and optionally executes the payment automatically.
+        /// This enables autonomous agent-to-agent payments using SERV token on Base blockchain.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Agent Type Required:** The authenticated avatar must be of type `Agent`
+        /// 
+        /// **Example Request:**
+        /// ```json
+        /// {
+        ///   "toAgentId": "123e4567-e89b-12d3-a456-426614174000",
+        ///   "amount": 10.5,
+        ///   "description": "Payment for data analysis service",
+        ///   "autoExecute": true
+        /// }
+        /// ```
+        /// 
+        /// **Example Response:**
+        /// ```json
+        /// {
+        ///   "result": {
+        ///     "messageId": "...",
+        ///     "transactionHash": "0x...",
+        ///     "payload": {
+        ///       "amount": 10.5,
+        ///       "currency": "SERV",
+        ///       "blockchain": "Base",
+        ///       "paymentStatus": "completed"
+        ///     }
+        ///   },
+        ///   "isError": false,
+        ///   "message": "SERV payment request sent successfully"
+        /// }
+        /// ```
+        /// </remarks>
+        /// <param name="request">SERV payment request</param>
+        /// <returns>Payment result with transaction hash</returns>
+        /// <response code="200">Success - Payment sent</response>
+        /// <response code="400">Bad Request - Invalid request or agent not found</response>
+        /// <response code="401">Unauthorized - Authentication required</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost("serv/payment")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISResult<IA2AMessage>), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> SendSERVPayment([FromBody] SendSERVPaymentRequest request)
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                if (Avatar.AvatarType.Value != AvatarType.Agent)
+                {
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+                }
+
+                if (request == null)
+                {
+                    return BadRequest(new { error = "Request body is required" });
+                }
+
+                if (request.ToAgentId == Guid.Empty)
+                {
+                    return BadRequest(new { error = "ToAgentId is required" });
+                }
+
+                if (request.Amount <= 0)
+                {
+                    return BadRequest(new { error = "Amount must be greater than zero" });
+                }
+
+                var result = await A2AManager.Instance.SendSERVPaymentRequestAsync(
+                    Avatar.Id,
+                    request.ToAgentId,
+                    request.Amount,
+                    request.Description,
+                    request.AutoExecute
+                );
+
+                if (result.IsError)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Get SERV balance for an agent
+        /// </summary>
+        /// <remarks>
+        /// Gets the SERV token balance for the authenticated agent on Base blockchain.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Agent Type Required:** The authenticated avatar must be of type `Agent`
+        /// </remarks>
+        /// <returns>SERV balance</returns>
+        /// <response code="200">Success - Returns balance</response>
+        /// <response code="401">Unauthorized - Authentication required</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpGet("serv/balance")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISResult<decimal>), 200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> GetAgentSERVBalance()
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                if (Avatar.AvatarType.Value != AvatarType.Agent)
+                {
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+                }
+
+                var result = await A2AManager.Instance.GetAgentSERVBalanceAsync(Avatar.Id);
+
+                if (result.IsError)
+                {
+                    return StatusCode(500, new { error = result.Message });
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -1577,6 +2064,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     /// <summary>
     /// Request model for registering OpenSERV agent
     /// </summary>
+    public class RegisterOasisAgentWithOpenServRequest
+    {
+        /// <summary>
+        /// OpenSERV API key for registration
+        /// </summary>
+        public string OpenServApiKey { get; set; }
+
+        /// <summary>
+        /// OASIS agent endpoint (optional, defaults to OASIS API endpoint)
+        /// </summary>
+        public string OasisAgentEndpoint { get; set; }
+    }
+
     public class RegisterOpenServAgentRequest
     {
         /// <summary>
@@ -1784,6 +2284,58 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Additional metadata to include in NFT
         /// </summary>
         public Dictionary<string, object> AdditionalMetadata { get; set; }
+    }
+
+    /// <summary>
+    /// Request model for sending MNEE payment between agents
+    /// </summary>
+    public class SendMNEEPaymentRequest
+    {
+        /// <summary>
+        /// Target agent ID to send payment to
+        /// </summary>
+        public Guid ToAgentId { get; set; }
+
+        /// <summary>
+        /// Payment amount in MNEE
+        /// </summary>
+        public decimal Amount { get; set; }
+
+        /// <summary>
+        /// Payment description (optional)
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Whether to automatically execute the payment (default: true)
+        /// </summary>
+        public bool AutoExecute { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Request DTO for sending SERV payment between agents
+    /// </summary>
+    public class SendSERVPaymentRequest
+    {
+        /// <summary>
+        /// Target agent ID to send payment to
+        /// </summary>
+        public Guid ToAgentId { get; set; }
+
+        /// <summary>
+        /// Payment amount in SERV tokens
+        /// </summary>
+        public decimal Amount { get; set; }
+
+        /// <summary>
+        /// Payment description (optional)
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Whether to automatically execute the payment (default: true)
+        /// </summary>
+        public bool AutoExecute { get; set; } = true;
     }
 }
 
