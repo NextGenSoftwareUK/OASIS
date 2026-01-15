@@ -163,9 +163,30 @@
 
     <div id="controls">
         <h3 style="color: #00ffff; margin-bottom: 10px; font-size: 16px;">Controls</h3>
+        
+        <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #00ffff;">
+            <h4 style="color: #00ff88; margin-bottom: 8px; font-size: 12px;">API Mode</h4>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                <input type="radio" name="api-mode" id="api-mode-star" value="star" checked style="cursor: pointer;">
+                <span>STAR (WEB5)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; margin-top: 5px;">
+                <input type="radio" name="api-mode" id="api-mode-oasis" value="oasis" style="cursor: pointer;">
+                <span>OASIS (WEB4)</span>
+            </label>
+            <div id="api-mode-label" style="margin-top: 5px; font-size: 11px; color: #00ff88;">API: STAR</div>
+        </div>
+        
         <button id="btn-reset-camera">Reset Camera</button>
         <button id="btn-toggle-orbits">Toggle Orbits</button>
         <button id="btn-toggle-labels">Toggle Labels</button>
+        
+        <div style="margin: 15px 0; padding-top: 15px; border-top: 1px solid #00ffff;">
+            <h4 style="color: #00ff88; margin-bottom: 10px; font-size: 14px;">Load from API</h4>
+            <button id="btn-load-api" style="background: rgba(0, 255, 0, 0.2); border-color: #00ff00; color: #00ff00;">Load from API</button>
+            <button id="btn-load-my-holons" style="margin-top: 5px; background: rgba(0, 255, 255, 0.2); border-color: #00ffff; color: #00ffff;">Load My Holons</button>
+            <button id="btn-seed-oasis" style="margin-top: 5px; background: rgba(255, 165, 0, 0.2); border-color: #ffa500; color: #ffa500;">Seed Sample Data</button>
+        </div>
         
         <div style="margin: 15px 0; padding-top: 15px; border-top: 1px solid #00ffff;">
             <h4 style="color: #00ff88; margin-bottom: 10px; font-size: 14px;">Generate Mock Data</h4>

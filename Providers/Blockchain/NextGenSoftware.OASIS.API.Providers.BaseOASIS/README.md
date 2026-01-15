@@ -43,7 +43,6 @@ using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 var baseProvider = new BaseOASIS(
     hostUri: "https://mainnet.base.org",
     chainPrivateKey: "YOUR_PRIVATE_KEY",
-    chainId: 8453,
     contractAddress: "YOUR_CONTRACT_ADDRESS"
 );
 
@@ -51,7 +50,6 @@ var baseProvider = new BaseOASIS(
 var baseProviderTestnet = new BaseOASIS(
     hostUri: "https://sepolia.base.org",
     chainPrivateKey: "YOUR_PRIVATE_KEY",
-    chainId: 84532,
     contractAddress: "YOUR_CONTRACT_ADDRESS"
 );
 

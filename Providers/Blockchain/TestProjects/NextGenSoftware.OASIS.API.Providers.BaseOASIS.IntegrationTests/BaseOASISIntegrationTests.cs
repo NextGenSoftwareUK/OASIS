@@ -1,6 +1,5 @@
 using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using System.Numerics;
 
 namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS.IntegrationTests;
 
@@ -13,7 +12,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS.IntegrationTests;
 public class BaseOASISIntegrationTests : IDisposable
 {
     private const string TestHostUri = "https://sepolia.base.org"; // Base Sepolia Testnet
-    private const BigInteger TestChainId = 84532; // Base Sepolia Chain ID
     private readonly string _testPrivateKey;
     private readonly string _testContractAddress;
     private readonly BaseOASIS _provider;
@@ -26,7 +24,7 @@ public class BaseOASISIntegrationTests : IDisposable
         _testContractAddress = Environment.GetEnvironmentVariable("BASE_TEST_CONTRACT_ADDRESS") 
                                ?? "0x0000000000000000000000000000000000000000";
 
-        _provider = new BaseOASIS(TestHostUri, _testPrivateKey, TestChainId, _testContractAddress);
+        _provider = new BaseOASIS(TestHostUri, _testPrivateKey, _testContractAddress);
     }
 
     [Fact(Skip = "Integration test - requires live Base Sepolia testnet connection")]

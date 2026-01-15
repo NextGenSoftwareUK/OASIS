@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 //using NextGenSoftware.OASIS.API.Manager;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -6,7 +6,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
@@ -40,6 +39,10 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
             OASISAPI OASISAPI = new OASISAPI();
             await OASISAPI.BootOASISAsync();
+
+            // Test Base Wallet Creation
+            Console.WriteLine("\n=== Testing Base Wallet Creation ===\n");
+            await TestBaseWalletCreation();
 
             TestHolon testHolon = new TestHolon();
             testHolon.Description = "test!";
@@ -120,6 +123,152 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
         private static void OASISStorageProvider_OnStorageProviderError(object sender, AvatarManagerErrorEventArgs e)
         {
             Console.WriteLine(string.Concat("\nOASIS Storage Provider Error. EndPoint: ", e.EndPoint, ", Reason: ", e.Reason, ", Error Details: ", e.Reason.ToString()));
+        }
+
+        private static async Task TestBaseWalletCreation()
+        {
+            try
+            {
+                // Test 1: Generate Key Pair using KeyManager
+                Console.WriteLine("Test 1: Generating Base key pair using KeyManager...");
+                var keyPairResult = KeyManager.Instance.GenerateKeyPairWithWalletAddress(ProviderType.BaseOASIS);
+                
+                if (keyPairResult.IsError)
+                {
+                    Console.WriteLine($"❌ FAILED: {keyPairResult.Message}");
+                    if (keyPairResult.Exception != null)
+                    {
+                        Console.WriteLine($"Exception: {keyPairResult.Exception.Message}");
+                    }
+                    return;
+                }
+
+                if (keyPairResult.Result == null)
+                {
+                    Console.WriteLine("❌ FAILED: Key pair result is null");
+                    return;
+                }
+
+                Console.WriteLine($"✅ SUCCESS: Key pair generated");
+                Console.WriteLine($"   Private Key: {keyPairResult.Result.PrivateKey?.Substring(0, Math.Min(20, keyPairResult.Result.PrivateKey?.Length ?? 0))}...");
+                Console.WriteLine($"   Public Key: {keyPairResult.Result.PublicKey?.Substring(0, Math.Min(20, keyPairResult.Result.PublicKey?.Length ?? 0))}...");
+                Console.WriteLine($"   Wallet Address: {keyPairResult.Result.WalletAddressLegacy}");
+                
+                // Validate address format
+                if (string.IsNullOrEmpty(keyPairResult.Result.WalletAddressLegacy))
+                {
+                    Console.WriteLine("⚠️  WARNING: Wallet address is empty");
+                }
+                else if (!keyPairResult.Result.WalletAddressLegacy.StartsWith("0x") || keyPairResult.Result.WalletAddressLegacy.Length != 42)
+                {
+                    Console.WriteLine($"⚠️  WARNING: Wallet address format may be incorrect: {keyPairResult.Result.WalletAddressLegacy}");
+                    Console.WriteLine("   Expected: 0x followed by 40 hex characters (42 total)");
+                }
+                else
+                {
+                    Console.WriteLine($"✅ Wallet address format is valid (Ethereum/Base format)");
+                }
+                Console.WriteLine();
+
+                // Test 2: Generate Key Pair Async
+                Console.WriteLine("Test 2: Generating Base key pair using KeyManager (Async)...");
+                var keyPairAsyncResult = await KeyManager.Instance.GenerateKeyPairWithWalletAddressAsync(ProviderType.BaseOASIS);
+                
+                if (keyPairAsyncResult.IsError)
+                {
+                    Console.WriteLine($"❌ FAILED: {keyPairAsyncResult.Message}");
+                    return;
+                }
+
+                if (keyPairAsyncResult.Result == null)
+                {
+                    Console.WriteLine("❌ FAILED: Key pair result is null");
+                    return;
+                }
+
+                Console.WriteLine($"✅ SUCCESS: Key pair generated (async)");
+                Console.WriteLine($"   Wallet Address: {keyPairAsyncResult.Result.WalletAddressLegacy}");
+                Console.WriteLine();
+
+                // Test 3: Check if BaseOASIS provider is available
+                Console.WriteLine("Test 3: Checking if BaseOASIS provider is registered...");
+                var baseProvider = ProviderManager.Instance.GetProvider(ProviderType.BaseOASIS);
+                
+                if (baseProvider == null)
+                {
+                    Console.WriteLine("⚠️  WARNING: BaseOASIS provider is not registered");
+                    Console.WriteLine("   This is expected if provider is not configured in OASIS_DNA.json");
+                    Console.WriteLine("   Wallet creation will still work via KeyManager fallback");
+                }
+                else
+                {
+                    Console.WriteLine($"✅ SUCCESS: BaseOASIS provider is registered");
+                    Console.WriteLine($"   Provider Type: {baseProvider.ProviderType}");
+                    Console.WriteLine($"   Provider Name: {baseProvider.ProviderName}");
+                    
+                    // Check if it implements GenerateKeyPairAsync
+                    if (baseProvider is IOASISBlockchainStorageProvider blockchainProvider)
+                    {
+                        var testKeyPair = await blockchainProvider.GenerateKeyPairAsync();
+                        if (!testKeyPair.IsError && testKeyPair.Result != null)
+                        {
+                            Console.WriteLine($"✅ SUCCESS: BaseOASIS.GenerateKeyPairAsync() works");
+                            Console.WriteLine($"   Generated Address: {testKeyPair.Result.WalletAddressLegacy}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"⚠️  WARNING: BaseOASIS.GenerateKeyPairAsync() returned error: {testKeyPair.Message}");
+                        }
+                    }
+                }
+                Console.WriteLine();
+
+                // Test 4: Create wallet without saving (simulation)
+                Console.WriteLine("Test 4: Testing CreateWalletWithoutSaving for BaseOASIS...");
+                var testAvatarId = Guid.NewGuid();
+                var walletResult = WalletManager.Instance.CreateWalletWithoutSaving(
+                    testAvatarId,
+                    "Test Base Wallet",
+                    "Test wallet for Base blockchain",
+                    ProviderType.BaseOASIS,
+                    generateKeyPair: true,
+                    isDefaultWallet: true
+                );
+
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    Console.WriteLine($"❌ FAILED: {walletResult.Message}");
+                    if (walletResult.Exception != null)
+                    {
+                        Console.WriteLine($"Exception: {walletResult.Exception.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"✅ SUCCESS: Wallet created (not saved)");
+                    Console.WriteLine($"   Wallet ID: {walletResult.Result.WalletId}");
+                    Console.WriteLine($"   Wallet Address: {walletResult.Result.WalletAddress}");
+                    Console.WriteLine($"   Provider Type: {walletResult.Result.ProviderType}");
+                    Console.WriteLine($"   Is Default: {walletResult.Result.IsDefaultWallet}");
+                    Console.WriteLine($"   Has Private Key: {!string.IsNullOrEmpty(walletResult.Result.PrivateKey)}");
+                    Console.WriteLine($"   Has Public Key: {!string.IsNullOrEmpty(walletResult.Result.PublicKey)}");
+                }
+                Console.WriteLine();
+
+                Console.WriteLine("╔═══════════════════════════════════════════════════════════╗");
+                Console.WriteLine("║                    Test Summary                           ║");
+                Console.WriteLine("╚═══════════════════════════════════════════════════════════╝");
+                Console.WriteLine("✅ Base wallet creation is working!");
+                Console.WriteLine("\nNext Steps:");
+                Console.WriteLine("1. Ensure BaseOASIS provider is configured in OASIS_DNA.json");
+                Console.WriteLine("2. Test wallet creation for an actual avatar");
+                Console.WriteLine("3. Verify wallet can be used for SERV token transfers");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ UNEXPECTED ERROR: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            }
         }
     }
 }

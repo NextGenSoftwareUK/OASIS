@@ -1,10 +1,11 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.OASISBootLoader;
 
 namespace NextGenSoftware.OASIS.API.Native.EndPoint
 {
@@ -553,12 +554,24 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
         public OASISResult<bool> BootOASISAPI(string userName, string password, string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
         {
-            return OASISAPI.BootOASIS(userName, password, OASISDNAPath, startApolloServer);
+            var result = OASISAPI.BootOASIS(userName, password, OASISDNAPath, startApolloServer);
+            if (!result.IsError && result.Result)
+            {
+                IsOASISBooted = OASISBootLoader.OASISBootLoader.IsOASISBooted;
+                OASISDNA = OASISAPI.OASISDNA;
+            }
+            return result;
         }
 
         public async Task<OASISResult<bool>> BootOASISAsync(string userName, string password, string OASISDNAPath = "OASIS_DNA.json", bool startApolloServer = true)
         {
-            return await OASISAPI.BootOASISAsync(userName, password, OASISDNAPath, startApolloServer);
+            var result = await OASISAPI.BootOASISAsync(userName, password, OASISDNAPath, startApolloServer);
+            if (!result.IsError && result.Result)
+            {
+                IsOASISBooted = OASISBootLoader.OASISBootLoader.IsOASISBooted;
+                OASISDNA = OASISAPI.OASISDNA;
+            }
+            return result;
         }
 
         public static OASISResult<bool> ShutdownOASIS()

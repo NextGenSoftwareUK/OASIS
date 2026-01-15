@@ -606,9 +606,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 return result;
             }
 
-            if ((NFTStandardType == NFTStandardType.ERC721 || NFTStandardType == NFTStandardType.ERC1155) && (onChainProvider == ProviderType.ArbitrumOASIS || onChainProvider == ProviderType.EthereumOASIS || onChainProvider == ProviderType.PolygonOASIS))
+            if ((NFTStandardType == NFTStandardType.ERC721 || NFTStandardType == NFTStandardType.ERC1155) && !(onChainProvider == ProviderType.ArbitrumOASIS || onChainProvider == ProviderType.EthereumOASIS || onChainProvider == ProviderType.PolygonOASIS || onChainProvider == ProviderType.RootstockOASIS))
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} When selecting NFTStandardType ERC721 or ERC1155 then the OnChainProvider needs to be set to a supported EVM chain such as ArbitrumOASIS, EthereumOASIS or PolygonOASIS.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} When selecting NFTStandardType ERC721 or ERC1155 then the OnChainProvider needs to be set to a supported EVM chain such as ArbitrumOASIS, EthereumOASIS, PolygonOASIS or RootstockOASIS.");
                 return result;
             }
 
@@ -3571,7 +3571,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         }
                         catch (Exception e)
                         {
-                            mintErrorMessage = $"{errorMessage} Unknown error occured minting the OASISNFT: Reason: {e.Message}";
+                            string detailedError = $"{errorMessage} Unknown error occured minting the OASISNFT: Reason: {e.Message}";
+                            if (e.InnerException != null)
+                                detailedError += $" Inner: {e.InnerException.Message}";
+                            if (e.StackTrace != null)
+                                detailedError += $" StackTrace: {e.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.None)[0]}";
+                            mintErrorMessage = detailedError;
                         }
 
                         if (!string.IsNullOrEmpty(mintErrorMessage))

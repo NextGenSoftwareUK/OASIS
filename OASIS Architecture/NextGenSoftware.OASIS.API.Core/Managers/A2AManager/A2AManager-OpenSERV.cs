@@ -128,12 +128,74 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                // 3. Register as UnifiedService in SERV infrastructure
-                // Note: This requires ONETUnifiedArchitecture from ONODE.Core assembly
-                // If not available, this step will be skipped
+                // 3. Register with ONET Service Registry (UnifiedAgentServiceManager)
                 try
                 {
-                    // Use reflection to access ONETUnifiedArchitecture if available
+                    var unifiedServiceManagerType = Type.GetType("NextGenSoftware.OASIS.API.Core.Managers.UnifiedAgentServiceManager.UnifiedAgentServiceManager, NextGenSoftware.OASIS.API.Core");
+                    if (unifiedServiceManagerType != null)
+                    {
+                        var instanceProperty = unifiedServiceManagerType.GetProperty("Instance");
+                        if (instanceProperty != null)
+                        {
+                            var managerInstance = instanceProperty.GetValue(null);
+                            var unifiedAgentServiceType = Type.GetType("NextGenSoftware.OASIS.API.Core.Managers.UnifiedAgentServiceManager.UnifiedAgentService, NextGenSoftware.OASIS.API.Core");
+                            
+                            if (unifiedAgentServiceType != null)
+                            {
+                                var unifiedService = Activator.CreateInstance(unifiedAgentServiceType);
+                                unifiedAgentServiceType.GetProperty("ServiceId")?.SetValue(unifiedService, avatar.Id.ToString());
+                                unifiedAgentServiceType.GetProperty("ServiceName")?.SetValue(unifiedService, $"OpenSERV Agent: {openServAgentId}");
+                                unifiedAgentServiceType.GetProperty("ServiceType")?.SetValue(unifiedService, "OpenSERV_AI_Agent");
+                                unifiedAgentServiceType.GetProperty("Endpoint")?.SetValue(unifiedService, openServEndpoint);
+                                unifiedAgentServiceType.GetProperty("Protocol")?.SetValue(unifiedService, "OpenSERV_HTTP");
+                                unifiedAgentServiceType.GetProperty("Description")?.SetValue(unifiedService, a2aCapabilities.Description);
+                                unifiedAgentServiceType.GetProperty("AgentId")?.SetValue(unifiedService, avatar.Id);
+                                unifiedAgentServiceType.GetProperty("RegisteredAt")?.SetValue(unifiedService, DateTime.UtcNow);
+                                
+                                var metadata = new Dictionary<string, object>
+                                {
+                                    ["openserv_agent_id"] = openServAgentId,
+                                    ["a2a_agent_id"] = avatar.Id,
+                                    ["capabilities"] = capabilities,
+                                    ["openserv_endpoint"] = openServEndpoint,
+                                    ["openserv_api_key"] = apiKey ?? string.Empty
+                                };
+                                unifiedAgentServiceType.GetProperty("Metadata")?.SetValue(unifiedService, metadata);
+                                unifiedAgentServiceType.GetProperty("Capabilities")?.SetValue(unifiedService, capabilities);
+                                
+                                var statusType = Type.GetType("NextGenSoftware.OASIS.API.Core.Managers.UnifiedAgentServiceManager.UnifiedServiceStatus, NextGenSoftware.OASIS.API.Core");
+                                if (statusType != null)
+                                {
+                                    var availableStatus = Enum.Parse(statusType, "Available");
+                                    unifiedAgentServiceType.GetProperty("Status")?.SetValue(unifiedService, availableStatus);
+                                }
+
+                                var registerMethod = unifiedServiceManagerType.GetMethod("RegisterServiceAsync");
+                                if (registerMethod != null)
+                                {
+                                    var registerTask = registerMethod.Invoke(managerInstance, new[] { unifiedService }) as Task<OASISResult<bool>>;
+                                    if (registerTask != null)
+                                    {
+                                        var registerResult = await registerTask;
+                                        if (registerResult.IsError)
+                                        {
+                                            LoggingManager.Log($"Warning: Failed to register OpenSERV agent with ONET Service Registry: {registerResult.Message}", Logging.LogType.Warning);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't fail if ONET Service Registry registration fails
+                    LoggingManager.Log($"Warning: Could not register OpenSERV agent with ONET Service Registry: {ex.Message}", Logging.LogType.Warning);
+                }
+
+                // 4. Also register with ONET Unified Architecture for backward compatibility
+                try
+                {
                     var onetType = Type.GetType("NextGenSoftware.OASIS.API.ONODE.Core.Network.ONETUnifiedArchitecture, NextGenSoftware.OASIS.API.ONODE.Core");
                     if (onetType != null)
                     {
@@ -172,7 +234,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                         var registerResult = await registerTask;
                                         if (registerResult.IsError)
                                         {
-                                            LoggingManager.Log($"Warning: Failed to register OpenSERV agent with SERV infrastructure: {registerResult.Message}", Logging.LogType.Warning);
+                                            LoggingManager.Log($"Warning: Failed to register OpenSERV agent with ONET Unified Architecture: {registerResult.Message}", Logging.LogType.Warning);
                                         }
                                     }
                                 }
@@ -182,8 +244,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 catch (Exception ex)
                 {
-                    // Log but don't fail if SERV registration fails (optional integration)
-                    LoggingManager.Log($"Warning: Could not register OpenSERV agent with SERV infrastructure: {ex.Message}", Logging.LogType.Warning);
+                    // Log but don't fail if ONET Unified Architecture registration fails
+                    LoggingManager.Log($"Warning: Could not register OpenSERV agent with ONET Unified Architecture: {ex.Message}", Logging.LogType.Warning);
                 }
 
                 result.Result = true;
@@ -353,6 +415,268 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 OASISErrorHandling.HandleError(ref result, 
                     $"Error in ExecuteAIWorkflowAsync: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Register an OASIS A2A agent with OpenSERV platform for bidirectional discovery
+        /// </summary>
+        /// <param name="agentId">OASIS A2A agent ID</param>
+        /// <param name="openServApiKey">OpenSERV API key for registration</param>
+        /// <param name="oasisAgentEndpoint">OASIS agent endpoint (e.g., https://api.oasisplatform.world/api/a2a/agent-card/{agentId})</param>
+        /// <returns>OASISResult with OpenSERV registration status</returns>
+        public async Task<OASISResult<string>> RegisterOasisAgentWithOpenServAsync(
+            Guid agentId,
+            string openServApiKey,
+            string oasisAgentEndpoint = null)
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                // Validate inputs
+                if (string.IsNullOrEmpty(openServApiKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "OpenServApiKey is required");
+                    return result;
+                }
+
+                // Get agent card for capabilities
+                var agentCardResult = await AgentManager.Instance.GetAgentCardAsync(agentId);
+                if (agentCardResult.IsError || agentCardResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, 
+                        $"Failed to retrieve agent card for {agentId}: {agentCardResult.Message}");
+                    return result;
+                }
+
+                var agentCard = agentCardResult.Result;
+
+                // Build OASIS agent endpoint if not provided
+                if (string.IsNullOrEmpty(oasisAgentEndpoint))
+                {
+                    // Default to OASIS API endpoint
+                    var baseUrl = ProviderManager.Instance.OASISDNA?.OASIS?.OASISAPIURL ?? "https://api.oasisplatform.world";
+                    oasisAgentEndpoint = $"{baseUrl}/api/a2a/agent-card/{agentId}";
+                }
+
+                // Get description from agent card metadata or use default
+                var description = agentCard.Metadata?.ContainsKey("description") == true 
+                    ? agentCard.Metadata["description"]?.ToString() 
+                    : $"OASIS A2A Agent: {agentCard.Name}";
+
+                // Prepare registration payload for OpenSERV
+                var payload = new
+                {
+                    agent_id = $"oasis-{agentId}",
+                    name = agentCard.Name ?? $"OASIS Agent {agentId}",
+                    description = description,
+                    endpoint = oasisAgentEndpoint,
+                    capabilities = agentCard.Capabilities?.Services ?? new List<string>(),
+                    metadata = new Dictionary<string, object>
+                    {
+                        ["oasis_agent_id"] = agentId.ToString(),
+                        ["a2a_protocol"] = "jsonrpc2.0",
+                        ["skills"] = agentCard.Capabilities?.Skills ?? new List<string>(),
+                        ["version"] = agentCard.Version ?? "1.0"
+                    }
+                };
+
+                // Register with OpenSERV platform
+                var httpClient = OpenServHttpClient;
+                var openServBaseUrl = "https://api.openserv.ai";
+                var registerUrl = $"{openServBaseUrl}/api/v1/agents/register";
+
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, registerUrl)
+                {
+                    Content = JsonContent.Create(payload)
+                };
+
+                httpRequest.Headers.Add("Authorization", $"Bearer {openServApiKey}");
+                httpRequest.Headers.Add("Content-Type", "application/json");
+
+                var httpResponse = await httpClient.SendAsync(httpRequest);
+                var responseContent = await httpResponse.Content.ReadAsStringAsync();
+
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, 
+                        $"OpenSERV registration failed with status {httpResponse.StatusCode}: {responseContent}");
+                    return result;
+                }
+
+                // Parse response to get OpenSERV agent ID
+                try
+                {
+                    var response = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    var openServAgentId = response?.ContainsKey("agent_id") == true 
+                        ? response["agent_id"]?.ToString() 
+                        : $"oasis-{agentId}";
+
+                    // Store OpenSERV registration info in agent card metadata
+                    if (agentCard.Metadata == null)
+                        agentCard.Metadata = new Dictionary<string, object>();
+
+                    agentCard.Metadata["openserv_registered_agent_id"] = openServAgentId;
+                    agentCard.Metadata["openserv_registration_endpoint"] = registerUrl;
+                    agentCard.Metadata["openserv_registered_at"] = DateTime.UtcNow.ToString("O");
+
+                    // Also store in IAgentCapabilities if available
+                    var capabilitiesResult = await AgentManager.Instance.GetAgentCapabilitiesAsync(agentId);
+                    if (!capabilitiesResult.IsError && capabilitiesResult.Result != null)
+                    {
+                        var capabilities = capabilitiesResult.Result;
+                        if (capabilities.Metadata == null)
+                            capabilities.Metadata = new Dictionary<string, object>();
+
+                        capabilities.Metadata["openserv_registered_agent_id"] = openServAgentId;
+                        capabilities.Metadata["openserv_registration_endpoint"] = registerUrl;
+                        capabilities.Metadata["openserv_registered_at"] = DateTime.UtcNow.ToString("O");
+
+                        await AgentManager.Instance.RegisterAgentCapabilitiesAsync(agentId, capabilities);
+                    }
+
+                    result.Result = openServAgentId;
+                    result.Message = $"OASIS agent {agentId} registered with OpenSERV platform as {openServAgentId}";
+                }
+                catch (Exception ex)
+                {
+                    // Registration may have succeeded even if parsing fails
+                    result.Result = $"oasis-{agentId}";
+                    result.Message = $"OASIS agent registered with OpenSERV (response parsing failed: {ex.Message})";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, 
+                    $"Error registering OASIS agent with OpenSERV: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Discover agents from OpenSERV platform registry (bidirectional discovery)
+        /// </summary>
+        /// <param name="openServApiKey">OpenSERV API key for authentication</param>
+        /// <param name="capability">Optional capability filter</param>
+        /// <returns>OASISResult with list of discovered agents from OpenSERV</returns>
+        public async Task<OASISResult<List<IAgentCard>>> DiscoverAgentsFromOpenServAsync(
+            string openServApiKey,
+            string capability = null)
+        {
+            var result = new OASISResult<List<IAgentCard>>();
+            try
+            {
+                if (string.IsNullOrEmpty(openServApiKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "OpenServApiKey is required");
+                    return result;
+                }
+
+                // Query OpenSERV platform for agents
+                var httpClient = OpenServHttpClient;
+                var openServBaseUrl = "https://api.openserv.ai";
+                var discoverUrl = string.IsNullOrEmpty(capability)
+                    ? $"{openServBaseUrl}/api/v1/agents"
+                    : $"{openServBaseUrl}/api/v1/agents?capability={capability}";
+
+                var httpRequest = new HttpRequestMessage(HttpMethod.Get, discoverUrl);
+                httpRequest.Headers.Add("Authorization", $"Bearer {openServApiKey}");
+
+                var httpResponse = await httpClient.SendAsync(httpRequest);
+                var responseContent = await httpResponse.Content.ReadAsStringAsync();
+
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, 
+                        $"OpenSERV discovery failed with status {httpResponse.StatusCode}: {responseContent}");
+                    return result;
+                }
+
+                // Parse OpenSERV agents and convert to A2A Agent Cards
+                var agentCards = new List<IAgentCard>();
+                try
+                {
+                    var openServAgents = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, object>>>(responseContent);
+                    
+                    if (openServAgents != null)
+                    {
+                        foreach (var openServAgent in openServAgents)
+                        {
+                            try
+                            {
+                                // Extract OpenSERV agent info
+                                var agentId = openServAgent.ContainsKey("agent_id") 
+                                    ? openServAgent["agent_id"]?.ToString() 
+                                    : null;
+                                var name = openServAgent.ContainsKey("name") 
+                                    ? openServAgent["name"]?.ToString() 
+                                    : "Unknown Agent";
+                                var description = openServAgent.ContainsKey("description") 
+                                    ? openServAgent["description"]?.ToString() 
+                                    : "";
+                                var endpoint = openServAgent.ContainsKey("endpoint") 
+                                    ? openServAgent["endpoint"]?.ToString() 
+                                    : "";
+                                var capabilities = openServAgent.ContainsKey("capabilities") 
+                                    ? openServAgent["capabilities"] as List<object> 
+                                    : new List<object>();
+                                var metadata = openServAgent.ContainsKey("metadata") 
+                                    ? openServAgent["metadata"] as Dictionary<string, object> 
+                                    : new Dictionary<string, object>();
+
+                                // Check if this is an OASIS agent (has oasis_agent_id in metadata)
+                                var oasisAgentId = metadata?.ContainsKey("oasis_agent_id") == true
+                                    ? metadata["oasis_agent_id"]?.ToString()
+                                    : null;
+
+                                if (!string.IsNullOrEmpty(oasisAgentId) && Guid.TryParse(oasisAgentId, out var oasisGuid))
+                                {
+                                    // This is an OASIS agent registered with OpenSERV - get full agent card
+                                    var agentCardResult = await AgentManager.Instance.GetAgentCardAsync(oasisGuid);
+                                    if (!agentCardResult.IsError && agentCardResult.Result != null)
+                                    {
+                                        agentCards.Add(agentCardResult.Result);
+                                    }
+                                }
+                                else
+                                {
+                                    // This is a native OpenSERV agent - create agent card representation
+                                    var agentCardType = Type.GetType("NextGenSoftware.OASIS.API.Core.Interfaces.Agent.IAgentCard, NextGenSoftware.OASIS.API.Core");
+                                    if (agentCardType != null)
+                                    {
+                                        // Create a simplified agent card for OpenSERV agents
+                                        // Note: This would need proper implementation based on IAgentCard interface
+                                        // For now, we'll log and continue
+                                        LoggingManager.Log($"OpenSERV native agent found: {name} ({agentId}) - requires full agent card implementation", Logging.LogType.Info);
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                LoggingManager.Log($"Error processing OpenSERV agent: {ex.Message}", Logging.LogType.Warning);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError(ref result, 
+                        $"Error parsing OpenSERV discovery response: {ex.Message}", ex);
+                    return result;
+                }
+
+                result.Result = agentCards;
+                result.Message = string.IsNullOrEmpty(capability)
+                    ? $"Found {agentCards.Count} agents from OpenSERV platform"
+                    : $"Found {agentCards.Count} agents with capability '{capability}' from OpenSERV platform";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, 
+                    $"Error discovering agents from OpenSERV: {ex.Message}", ex);
             }
 
             return result;

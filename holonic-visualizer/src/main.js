@@ -1,19 +1,32 @@
 import { HolonicVisualizer } from './visualizer/HolonicVisualizer.js';
 import { MockDataGenerator } from './data/MockDataGenerator.js';
 import { OASISClient } from './api/OASISClient.js';
+import { STARClient } from './api/STARClient.js';
 import { OASISDataTransformer } from './data/OASISDataTransformer.js';
 
 // Initialize the visualizer
 const container = document.getElementById('canvas-container');
 const visualizer = new HolonicVisualizer(container);
 
-// Initialize OASIS client
+// Initialize OASIS client (WEB4)
 // Use HTTP (port 5003) for localhost to avoid HTTP/2 protocol errors
 const oasisClient = new OASISClient({
     baseUrl: import.meta.env.VITE_OASIS_API_URL || 'http://localhost:5003',
     username: import.meta.env.VITE_OASIS_USERNAME || 'OASIS_ADMIN',
     password: import.meta.env.VITE_OASIS_PASSWORD || 'Uppermall1!'
 });
+
+// Initialize STAR client (WEB5)
+// STAR API uses JWT tokens from OASIS API for authentication
+const starClient = new STARClient({
+    baseUrl: import.meta.env.VITE_STAR_API_URL || 'http://localhost:50564',
+    oasisBaseUrl: import.meta.env.VITE_OASIS_API_URL || 'https://localhost:5004',
+    username: import.meta.env.VITE_STAR_USERNAME || 'OASIS_ADMIN',
+    password: import.meta.env.VITE_STAR_PASSWORD || 'Uppermall1!'
+});
+
+// Current API mode: 'oasis' or 'star'
+let currentApiMode = 'star'; // Default to STAR API
 
 // Notification log system - subtle corner log
 let notificationLog = [];
@@ -209,7 +222,102 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 // Store current avatar ID for filtering
 let currentAvatarId = null;
 
-// Load data from OASIS API
+// Load data from API (OASIS or STAR)
+async function loadFromAPI(avatarId = null) {
+    if (currentApiMode === 'star') {
+        return loadFromSTAR(avatarId);
+    } else {
+        return loadFromOASIS(avatarId);
+    }
+}
+
+// Load data from STAR API
+async function loadFromSTAR(avatarId = null) {
+    try {
+        showNotification('Connecting to STAR API...', 'success');
+        
+        // Authenticate with OASIS API to get JWT token
+        showNotification('Authenticating with OASIS API...', 'success');
+        await starClient.authenticate();
+        
+        // Check if STAR is ignited
+        showNotification('Checking STAR status...', 'success');
+        const status = await starClient.getStatus();
+        if (!status.isIgnited) {
+            showNotification('STAR is not ignited. Igniting STAR...', 'success');
+            // Try to ignite STAR (beamIn will handle this)
+        }
+        
+        // Beam in (authenticate with STAR and ignite if needed)
+        showNotification('Beaming in to STAR...', 'success');
+        await starClient.beamIn();
+        
+        // If avatarId is provided, get holons for that avatar, otherwise get all
+        let holons, oapps;
+        
+        if (avatarId) {
+            showNotification(`Loading holons for avatar...`, 'success');
+            holons = await starClient.getHolonsForAvatar(avatarId);
+            // Get OAPPs that belong to this avatar's holons
+            const holonOAPPIds = [...new Set(holons.map(h => h.oappId || h.OAPPId || h.metadata?.oappId || h.MetaData?.oappId).filter(Boolean))];
+            oapps = await starClient.getAllOAPPs();
+            // Filter OAPPs to only those with holons from this avatar
+            oapps = oapps.filter(oapp => {
+                const oappId = oapp.id || oapp.Id;
+                return holonOAPPIds.includes(oappId);
+            });
+        } else {
+            showNotification('Loading OAPPs and Holons from STAR...', 'success');
+            
+            // Load OAPPs and holons separately
+            showNotification('Loading OAPPs...', 'success');
+            oapps = await starClient.getAllOAPPs();
+            console.log(`Loaded ${oapps.length} OAPPs from STAR API`);
+            
+            showNotification('Loading Holons...', 'success');
+            holons = await starClient.getAllHolons();
+            console.log(`Loaded ${holons.length} holons from STAR API`);
+        }
+
+        // Ensure oapps and holons are arrays
+        if (!Array.isArray(holons)) holons = [];
+        if (!Array.isArray(oapps)) oapps = [];
+        
+        const totalItems = holons.length + oapps.length;
+        if (totalItems === 0) {
+            showNotification('No data found in STAR API. Try using "Seed Sample Data" to create some test data.', 'error');
+            return;
+        }
+
+        // Transform data
+        let data = OASISDataTransformer.transformToVisualizerFormat(oapps, holons);
+        
+        // Limit data if too large for performance
+        if (data.holons.length > 50000) {
+            showNotification(`Large dataset detected (${data.holons.length} holons). Sampling for performance...`, 'success');
+            data = OASISDataTransformer.limitData(data, 50000);
+        }
+
+        // Load into visualizer
+        visualizer.loadData(data);
+        updateStats(data);
+
+        const oappCount = data.oapps.length;
+        const holonCount = data.holons.length;
+        const avatarText = avatarId ? ` (Avatar: ${avatarId.substring(0, 8)}...)` : '';
+        showNotification(
+            `Loaded from STAR API${avatarText}\n${oappCount} OAPP(s)\n${holonCount.toLocaleString()} holon(s)`,
+            'success'
+        );
+        
+        currentAvatarId = avatarId;
+    } catch (error) {
+        console.error('Failed to load from STAR API:', error);
+        showNotification(`Error loading from STAR API:\n${error.message}`, 'error');
+    }
+}
+
+// Load data from OASIS API (WEB4)
 async function loadFromOASIS(avatarId = null) {
     try {
         showNotification('Connecting to OASIS...', 'success');
@@ -404,7 +512,7 @@ async function createAvatar() {
             
             // Load holons for this avatar
             setTimeout(() => {
-                loadFromOASIS(avatarId);
+                loadFromAPI(avatarId);
             }, 1000);
         } else {
             showNotification('Avatar creation failed or returned invalid data', 'error');
@@ -464,19 +572,30 @@ async function seedOASISData() {
 
 // Add event listeners (wait for DOM to be ready)
 function setupEventListeners() {
-    const loadBtn = document.getElementById('btn-load-oasis');
+    const loadBtn = document.getElementById('btn-load-api');
     if (loadBtn) {
-        loadBtn.addEventListener('click', () => loadFromOASIS());
+        loadBtn.addEventListener('click', () => loadFromAPI());
+    }
+    
+    // API mode toggle
+    const apiModeStar = document.getElementById('api-mode-star');
+    const apiModeOasis = document.getElementById('api-mode-oasis');
+    if (apiModeStar && apiModeOasis) {
+        const updateApiMode = () => {
+            currentApiMode = apiModeStar.checked ? 'star' : 'oasis';
+            const modeLabel = document.getElementById('api-mode-label');
+            if (modeLabel) {
+                modeLabel.textContent = `API: ${currentApiMode.toUpperCase()}`;
+            }
+            showNotification(`Switched to ${currentApiMode.toUpperCase()} API`, 'success');
+        };
+        apiModeStar.addEventListener('change', updateApiMode);
+        apiModeOasis.addEventListener('change', updateApiMode);
     }
     
     const seedBtn = document.getElementById('btn-seed-oasis');
     if (seedBtn) {
         seedBtn.addEventListener('click', seedOASISData);
-    }
-    
-    const createAvatarBtn = document.getElementById('btn-create-avatar');
-    if (createAvatarBtn) {
-        createAvatarBtn.addEventListener('click', createAvatar);
     }
     
     const loadMyHolonsBtn = document.getElementById('btn-load-my-holons');

@@ -132,13 +132,26 @@ export class SmartContractClient {
       // Solana uses keypair, others use ABI/Schema
       if (language === 'Solana' && walletKeypairPath) {
         formData.append('WalletKeypair', fs.createReadStream(walletKeypairPath));
-        // For Solana, Schema can be empty JSON if not provided
-        if (!abiPath) {
+        // For Solana, Schema is required but can be empty JSON
+        if (abiPath && fs.existsSync(abiPath)) {
+          formData.append('Schema', fs.createReadStream(abiPath));
+        } else {
+          // Always provide empty schema for Solana if not provided
           const emptySchema = Buffer.from('{}');
-          formData.append('Schema', emptySchema, { filename: 'schema.json', contentType: 'application/json' });
+          formData.append('Schema', emptySchema, { 
+            filename: 'schema.json', 
+            contentType: 'application/json' 
+          });
         }
-      } else if (abiPath) {
+      } else if (abiPath && fs.existsSync(abiPath)) {
         formData.append('Schema', fs.createReadStream(abiPath));
+      } else if (language !== 'Solana') {
+        // For non-Solana, Schema might be required
+        const emptySchema = Buffer.from('{}');
+        formData.append('Schema', emptySchema, { 
+          filename: 'schema.json', 
+          contentType: 'application/json' 
+        });
       }
     }
 

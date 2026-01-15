@@ -418,6 +418,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.Version = avatar.Version;
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
             mongoAvatar.VersionId = avatar.VersionId;
+            // Explicitly set IsActive - ensure it's not defaulting to false
             mongoAvatar.IsActive = avatar.IsActive;
             //mongoAvatar.CustomKey = avatar.CustomKey;
 

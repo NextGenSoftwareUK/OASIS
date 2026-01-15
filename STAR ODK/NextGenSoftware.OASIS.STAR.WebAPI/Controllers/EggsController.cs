@@ -30,22 +30,20 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         /// <returns>List of available eggs</returns>
         [Authorize]
         [HttpGet("all")]
-        public async Task<OASISResult<List<Egg>>> GetAllEggs([FromQuery] int limit = 50, [FromQuery] int offset = 0)
+        public async Task<OASISResult<List<Egg>>> GetAllEggs()
         {
-            return await EggsManager.Instance.GetAllEggsAsync(limit, offset);
+            return await EggsManager.Instance.GetAllEggsAsync(Avatar.Id);
         }
 
         /// <summary>
         /// Get eggs discovered by the current avatar
         /// </summary>
-        /// <param name="limit">Maximum number of eggs to return</param>
-        /// <param name="offset">Number of eggs to skip</param>
         /// <returns>List of discovered eggs</returns>
         [Authorize]
         [HttpGet("discovered")]
-        public async Task<OASISResult<List<Egg>>> GetDiscoveredEggs([FromQuery] int limit = 50, [FromQuery] int offset = 0)
+        public async Task<OASISResult<List<Egg>>> GetDiscoveredEggs()
         {
-            return await EggsManager.Instance.GetDiscoveredEggsAsync(Avatar.Id, limit, offset);
+            return await EggsManager.Instance.GetAllEggsAsync(Avatar.Id);
         }
 
         /// <summary>
@@ -65,10 +63,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         /// Hatch an egg to reveal its contents
         /// </summary>
         /// <param name="eggId">ID of the egg to hatch</param>
-        /// <returns>Hatching result with rewards</returns>
+        /// <returns>Hatched egg with rewards</returns>
         [Authorize]
         [HttpPost("hatch/{eggId}")]
-        public async Task<OASISResult<HatchingResult>> HatchEgg(Guid eggId)
+        public async Task<OASISResult<Egg>> HatchEgg(Guid eggId)
         {
             return await EggsManager.Instance.HatchEggAsync(Avatar.Id, eggId);
         }
@@ -81,35 +79,20 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         /// <returns>List of active egg quests</returns>
         [Authorize]
         [HttpGet("quests")]
-        public async Task<OASISResult<List<EggQuest>>> GetCurrentEggQuests([FromQuery] int limit = 20, [FromQuery] int offset = 0)
+        public async Task<OASISResult<List<EggQuest>>> GetCurrentEggQuests()
         {
-            return await EggsManager.Instance.GetCurrentEggQuestsAsync(Avatar.Id, limit, offset);
-        }
-
-        /// <summary>
-        /// Complete an egg quest
-        /// </summary>
-        /// <param name="questId">ID of the quest to complete</param>
-        /// <param name="completionNotes">Optional completion notes</param>
-        /// <returns>Quest completion result</returns>
-        [Authorize]
-        [HttpPost("quests/{questId}/complete")]
-        public async Task<OASISResult<EggQuest>> CompleteEggQuest(Guid questId, [FromBody] string completionNotes = null)
-        {
-            return await EggsManager.Instance.CompleteEggQuestAsync(Avatar.Id, questId, completionNotes);
+            return await EggsManager.Instance.GetCurrentEggQuestsAsync(Avatar.Id);
         }
 
         /// <summary>
         /// Get egg quest leaderboard
         /// </summary>
-        /// <param name="limit">Maximum number of entries to return</param>
-        /// <param name="offset">Number of entries to skip</param>
         /// <returns>Egg quest leaderboard</returns>
         [Authorize]
         [HttpGet("quests/leaderboard")]
-        public async Task<OASISResult<List<EggQuestLeaderboard>>> GetEggQuestLeaderboard([FromQuery] int limit = 50, [FromQuery] int offset = 0)
+        public async Task<OASISResult<List<EggQuestLeaderboard>>> GetEggQuestLeaderboard()
         {
-            return await EggsManager.Instance.GetEggQuestLeaderboardAsync(limit, offset);
+            return await EggsManager.Instance.GetCurrentEggQuestLeaderboardAsync(Avatar.Id);
         }
 
         /// <summary>
@@ -130,7 +113,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("types")]
         public async Task<OASISResult<Dictionary<string, object>>> GetEggTypes()
         {
-            return await EggsManager.Instance.GetEggTypesAsync();
+            // Return available egg types and rarities
+            var result = new OASISResult<Dictionary<string, object>>();
+            result.Result = new Dictionary<string, object>
+            {
+                ["types"] = Enum.GetNames(typeof(EggType)),
+                ["rarities"] = Enum.GetNames(typeof(EggRarity)),
+                ["discoveryMethods"] = Enum.GetNames(typeof(EggDiscoveryMethod))
+            };
+            result.Message = "Egg types and rarities retrieved successfully";
+            return await Task.FromResult(result);
         }
     }
 }
