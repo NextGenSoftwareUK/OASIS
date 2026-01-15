@@ -86,10 +86,11 @@
 //            this.ProviderName = "BNBChainOASIS";
 //            this.ProviderDescription = "BNB Chain Provider - Binance Smart Chain EVM-compatible blockchain";
 //            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BNBChainOASIS);
-//            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-//            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
-//            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            //this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+            //this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            //this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            //this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            //this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
 //            _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
 //            _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
@@ -551,7 +552,7 @@
 //        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
 //        {
 //            var result = new OASISResult<IAvatar>();
-            
+
 //            try
 //            {
 //                if (!_isActivated)
@@ -609,7 +610,7 @@
 //                    result.Result = avatar;
 //                    result.IsError = false;
 //                    result.Message = $"Avatar saved to BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
 //                    // Store transaction hash in avatar metadata
 //                    avatar.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
 //                    avatar.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -1794,7 +1795,7 @@
 //                    result.Result = avatar;
 //                    result.IsError = false;
 //                    result.Message = $"Avatar saved to BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
 //                    // Store transaction hash in avatar metadata
 //                    avatar.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
 //                    avatar.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -2121,7 +2122,7 @@
 //                    result.Result = holon;
 //                    result.IsError = false;
 //                    result.Message = $"Holon saved to BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
 //                    // Store transaction hash in holon metadata
 //                    holon.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
 //                    holon.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -2496,7 +2497,7 @@
 //                            NumberOfResults = holons.Count(),
 //                            NumberOfDuplicates = 0
 //                        };
-                        
+
 //                        result.Result = searchResults;
 //                        result.IsError = false;
 //                        result.Message = $"Search completed successfully. Found {holons.Count()} results";
@@ -2509,7 +2510,7 @@
 //                            NumberOfResults = 0,
 //                            NumberOfDuplicates = 0
 //                        };
-                        
+
 //                        result.Result = emptyResults;
 //                        result.IsError = false;
 //                        result.Message = "No results found";
@@ -2760,7 +2761,7 @@
 //                    result.Result = avatarDetail;
 //                    result.IsError = false;
 //                    result.Message = $"Avatar detail saved to BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
 //                    // Store transaction hash in avatar detail metadata
 //                    avatarDetail.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
 //                    avatarDetail.ProviderMetaData[Core.Enums.ProviderType.BNBChainOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -3071,7 +3072,7 @@
 //                        SendNFTTransactionResult = transactionReceipt.TransactionHash,
 //                        // IsSuccessful removed - not in Web3NFTTransactionResponse
 //                    };
-                    
+
 //                    result.Result = nftResponse;
 //                    result.IsError = false;
 //                    result.Message = $"NFT sent successfully. Transaction hash: {transactionReceipt.TransactionHash}";
@@ -3221,7 +3222,7 @@
 //                        TransactionResult = transactionReceipt.TransactionHash,
 //                        MemoText = $"NFT minted successfully: {nftData.title}"
 //                    };
-                    
+
 //                    result.Result = (IWeb3NFTTransactionResponse)nftResponse;
 //                    result.IsError = false;
 //                    result.Message = $"NFT minted successfully. Transaction hash: {transactionReceipt.TransactionHash}";
@@ -3300,7 +3301,7 @@
 //                            Description = nftData.TryGetProperty("description", out var desc) ? desc.GetString() : null,
 //                            Symbol = nftData.TryGetProperty("symbol", out var symbol) ? symbol.GetString() : "BNB"
 //                        };
-                        
+
 //                        result.Result = web3NFT;
 //                        result.IsError = false;
 //                        result.Message = $"NFT data loaded from BNB Chain successfully";
@@ -3677,7 +3678,7 @@
 //            try
 //            {
 //                var avatars = new List<IAvatar>();
-                
+
 //                // Parse real BNB Chain smart contract data for multiple avatars
 //                // This would typically parse an array of avatar data from the blockchain
 //                // For now, return a single avatar as an example
@@ -3764,7 +3765,7 @@
 //            try
 //            {
 //                var avatarDetails = new List<IAvatarDetail>();
-                
+
 //                // Parse real BNB Chain smart contract data for multiple avatar details
 //                // This would typically parse an array of avatar detail data from the blockchain
 //                // For now, return a single avatar detail as an example
@@ -4124,7 +4125,7 @@
 //                var mintToWalletAddress = request.MetaData?.ContainsKey("MintToWalletAddress") == true 
 //                    ? request.MetaData["MintToWalletAddress"]?.ToString() 
 //                    : "";
-                
+
 //                if (request == null || string.IsNullOrWhiteSpace(tokenAddress) || string.IsNullOrWhiteSpace(mintToWalletAddress))
 //                {
 //                    OASISErrorHandling.HandleError(ref result, "TokenAddress and MintToWalletAddress are required");

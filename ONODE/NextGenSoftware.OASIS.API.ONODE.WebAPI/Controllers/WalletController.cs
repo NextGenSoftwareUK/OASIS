@@ -705,7 +705,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByIdAsync(Guid avatarId, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
-            return await WalletManager.CreateWalletForAvatarByIdAsync(avatarId, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+            return await WalletManager.CreateWalletForAvatarByIdAsync(avatarId, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, request.ShowSecretRecoveryPhase, request.ShowPrivateKey, providerTypeToLoadSave);
         }
 
         /// <summary>
@@ -802,6 +802,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ProviderType WalletProviderType { get; set; }
         public bool GenerateKeyPair { get; set; } = true;
         public bool IsDefaultWallet { get; set; } = false;
+        public bool ShowSecretRecoveryPhase { get; set; }
+        public bool ShowPrivateKey { get; set; }
     }
 
     /// <summary>

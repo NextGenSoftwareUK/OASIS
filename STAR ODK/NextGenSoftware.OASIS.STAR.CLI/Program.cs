@@ -787,7 +787,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "onode":
-                                    await ShowONODEConfigSubCommandAsync(inputArgs);
+                                    await ShowONODEMenuAsync(inputArgs);
                                     break;
 
                                 case "hypernet":
@@ -2133,6 +2133,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static async Task ShowWalletSubCommandAsync(string[] inputArgs, ProviderType providerType = ProviderType.Default)
         {
+            bool? showOnlyDefault = null;
+            bool? showPrivateKeys = null;
+            bool? showSecretWords = null;
+
+            if (inputArgs.Contains("default"))
+                showOnlyDefault = true;
+
+            if (inputArgs.Contains("showprivatekeys"))
+                showPrivateKeys = true;
+
+            if (inputArgs.Contains("showsecretwords"))
+                showSecretWords = true;
+
+            //if (inputArgs.Length > 2 && inputArgs[2] == "default")
+            //    showOnlyDefault = true;
+
+            //if (inputArgs.Length > 3 && inputArgs[3] == "showprivatekeys")
+            //    showPrivateKeys = true;
+
+            //if (inputArgs.Length > 4 && inputArgs[4] == "showsecretwords")
+            //    showSecretWords = true;
+
             if (inputArgs.Length > 1)
             {
                 switch (inputArgs[1].ToLower())
@@ -2145,12 +2167,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         CLIEngine.ShowMessage("Coming soon...");
                         break;
 
-                    case "get":
-                        STARCLI.Wallets.ShowWalletThatPublicKeyBelongsTo();
+                    case "show":
+                        {
+                            string key = "";
+
+                            if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
+                                key = inputArgs[2];
+
+                            STARCLI.Wallets.ShowWalletThatPublicKeyBelongsTo(key, showPrivateKeys, showSecretWords);
+                        }
+                        
                         break;
 
-                    case "getdefault":
-                        await STARCLI.Wallets.ShowDefaultWalletForBeamedInAvatarAsync();
+                    case "showdefault":
+                        {
+                            await STARCLI.Wallets.ShowDefaultWalletForBeamedInAvatarAsync(showPrivateKeys, showSecretWords);
+                        }
                         break;
 
                     case "setdefault":
@@ -2158,6 +2190,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "import":
+                        CLIEngine.ShowMessage("Coming soon...");
+                        break;
+
+                    case "export":
                         CLIEngine.ShowMessage("Coming soon...");
                         break;
 
@@ -2171,11 +2207,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "list":
                         {
-                            bool showOnlyDefault = false;
-                            if (inputArgs.Length > 2 && inputArgs[2] == "default")
-                                showOnlyDefault = true;
-
-                            await STARCLI.Wallets.ListProviderWalletsForBeamedInAvatarAsync(showOnlyDefault: showOnlyDefault, providerTypeToLoadFrom: providerType);
+                            await STARCLI.Wallets.ListProviderWalletsForBeamedInAvatarAsync(showOnlyDefault: showOnlyDefault.HasValue ? showOnlyDefault.Value : false, showPrivateKeys: showPrivateKeys.HasValue ? showPrivateKeys.Value : false, showSecretWords: showSecretWords.HasValue ? showSecretWords.Value : false, providerTypeToLoadFrom: providerType);
                         }
                         break;
 
@@ -2198,24 +2230,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"WALLET SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    sendtoken          [walletAddress]            Sends a token to the given wallet address.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    get                [publickey]                Gets the wallet that the public key belongs to.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    getDefault                                    Gets the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    setDefault         [walletId]                 Sets the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import privateKey  [privatekey]               Imports a wallet using the privateKey.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import publicKey   [publickey]                Imports a wallet using the publicKey.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import secretPhase [secretPhase]              Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import json        [jsonFile]                 Imports a wallet using the jsonFile.", ConsoleColor.Green, false);
-                //CLIEngine.ShowMessage("    add                                           Adds a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    create                                        Creates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    update                                        Updates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    sendtoken          [walletAddress]                                  Sends a token to the given wallet address.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    show               [publickey] [showprivatekeys] [showsecretwords]  Shows the wallet that the public key belongs to.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    showdefault        [showprivatekeys] [showsecretwords]              Shows the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    setdefault         [walletId]                                       Sets the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import privateKey  [privatekey]                                     Imports a wallet using the privateKey.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import publicKey   [publickey]                                      Imports a wallet using the publicKey.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import secretPhase [secretPhase]                                    Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import json        [jsonFile]                                       Imports a wallet using the jsonFile.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    export             [walletId]                                       Exports a wallet to a json file.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    export all                                                          Exports all wallets to a json file.", ConsoleColor.Green, false);
+                //CLIEngine.ShowMessage("    add                                                               Adds a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    create                                                              Creates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    update                                                              Updates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
 
-                CLIEngine.ShowMessage("    list               [default]                  Lists the wallets for the currently beamed in avatar. If [default] param is included it will only list the default wallets.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    balance                                       Gets the total balance for all wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    balance            [walletId] [providerType]  Gets the balance for the given wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    list               [default] [showprivatekeys] [showsecretwords]    Lists the wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    balance                                                             Gets the total balance for all wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    balance            [walletId] [providerType]                        Gets the balance for the given wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("To add a wallet please link a private key, public key or wallet address to your avatar using the keys sub-commands.", ConsoleColor.Green);
+                CLIEngine.ShowMessage("For the list sub-command, if [default] param is included it will only list the default wallets.", ConsoleColor.Green);
+                CLIEngine.ShowMessage("For the list, show and showdefault sub-commands, if [showprivatekeys] param is included it will decrypt and show the private keys, likewise if [showsecretwords] is included it will decrypt and show the secret words.", ConsoleColor.Green);
+                CLIEngine.ShowMessage("You can also create a wallet by linking a private key, public key or wallet address to your avatar using the keys sub-commands.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -2949,7 +2985,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
-        private static async Task ShowONODEConfigSubCommandAsync(string[] inputArgs)
+        private static async Task ShowONODEMenuAsync(string[] inputArgs)
         {
             if (inputArgs.Length > 1)
             {
@@ -2970,13 +3006,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         break;
 
                                     default:
-                                        await StartONODEAsync();
+                                        CLIEngine.ShowWarningMessage("Please specify [web4] or [web5] to start the respective OASIS API ONODE in a new window.");
                                         break;
                                 }
+
+                                //default:
+                                //    await StartONODEAsync();
+                                //    break;
                             }
                             else
                             {
-                                await StartONODEAsync();
+                                //await StartONODEAsync();
+                                CLIEngine.ShowWarningMessage("Please specify [web4] or [web5] to start the respective OASIS API ONODE in a new window.");
                             }
                         }
                         break;
@@ -2990,18 +3031,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     case "web4":
                                         await StopWeb4APIAsync();
                                         break;
+
                                     case "web5":
                                         await StopWeb5APIAsync();
                                         break;
+
                                     default:
-                                        await StopONODEAsync();
+                                        CLIEngine.ShowWarningMessage("Please specify [web4] or [web5] to stop the respective OASIS API ONODE in a new window.");
                                         break;
+
+                                    //default:
+                                    //    await StopONODEAsync();
+                                    //    break;
                                 }
                             }
                             else
-                            {
-                                await StopONODEAsync();
-                            }
+                                CLIEngine.ShowWarningMessage("Please specify [web4] or [web5] to stop the respective OASIS API ONODE in a new window.");
+
+                            //else
+                            //{
+                            //    await StopONODEAsync();
+                            //}
                         }
                         break;
 
@@ -3013,7 +3063,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "config":
                         {
-                            await OpenONODEConfigAsync();
+                            if (inputArgs.Length > 2)
+                            {
+                                switch (inputArgs[2].ToLower())
+                                {
+                                    case "web4":
+                                        await OpenONODEConfigAsync();
+                                        break;
+
+                                    case "web5":
+                                        await OpenONODEWeb5ConfigAsync();
+                                        break;
+
+                                    default:
+                                        await OpenONODEConfigAsync();
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                await OpenONODEConfigAsync();
+                            }
                         }
                         break;
 
@@ -3054,13 +3124,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    start          [web4] [web5]   Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    stop           [web4] [web5]   Stops a OASIS Node (ONODE).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    status                         Shows stats for this ONODE.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    config                         Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    config         [web4] [web5]   Opens the ONODE's OASISDNA.json or STARNDNA.json file to allow changes to be made (you will need to stop and start the ONODE for changes to apply).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    providers                      Shows what OASIS Providers are running for this ONODE.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    startprovider  {ProviderName}  Starts a given provider.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    stopprovider   {ProviderName}  Stops a given provider.", ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
                 CLIEngine.ShowMessage("For the start and stop sub-commands, if you specify [web4] it will start/stop a local WEB4 OASIS API ONODE (HTTP REST Service), if you specify [web5] it will start/stop a local WEB5 STAR API ONODE (HTTP REST Service). Otherwise by default it will start the expirmental (beta) OASIS P2P ONET Service and then register the new ONODE on it. For now it is recommended you use the REST HTTP Services.", ConsoleColor.Green);
+                CLIEngine.ShowMessage("For the config sub-command, if you specify [web4] (defaults to if none given) it will open the OASISDNA.json to allow OASIS settings to be configured, for [web5] it will open the STARNDA.json file to allow STAR settings to be configured.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -3542,9 +3613,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("onet topology", "", "Shows the ONET network topology and connections.");
                
                 //ONODE Commands
-                DisplayCommand("onode start", "", "Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
-                DisplayCommand("onode stop", "", "Stops a OASIS Node (ONODE).");
-                DisplayCommand("onode status", "", "Shows stats for this ONODE.");
+                DisplayCommand("onode start", "[web4] [web5]", "Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
+                DisplayCommand("onode stop", "[web4] [web5]", "Stops a OASIS Node (ONODE).");
+                DisplayCommand("onode status", "[web4] [web5]", "Shows stats for this ONODE.");
                 DisplayCommand("onode config", "", "Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).");
                 DisplayCommand("onode providers", "", "Shows what OASIS Providers are running for this ONODE.");
                 DisplayCommand("onode startprovider", "{ProviderName}", "Starts a given provider.");
@@ -4048,7 +4119,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     Arguments = $"run --project \"{csprojPath}\" --urls \"http://localhost:5000\"",
                     WorkingDirectory = web4ApiPath,
                     UseShellExecute = true,
-                    CreateNoWindow = false,
+                    CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Normal
                 };
 
@@ -4230,17 +4301,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         {
             try
             {
-                CLIEngine.ShowWorkingMessage("Opening ONODE configuration...");
+                CLIEngine.ShowWorkingMessage("Opening ONODE WEB4 OASIS DNA configuration...");
                 
-                var configPath = Path.Combine(Environment.CurrentDirectory, "OASISDNA.json");
+                var configPath = Path.Combine(Environment.CurrentDirectory, "DNA", "OASIS_DNA.json");
                 if (File.Exists(configPath))
                 {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    Process.Start(new ProcessStartInfo
                     {
                         FileName = configPath,
                         UseShellExecute = true
                     });
-                    CLIEngine.ShowSuccessMessage("ONODE configuration opened in default editor");
+                    CLIEngine.ShowSuccessMessage("ONODE WEB4 OASIS DNA configuration opened in default editor");
                 }
                 else
                 {
@@ -4249,7 +4320,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
             catch (Exception ex)
             {
-                CLIEngine.ShowErrorMessage($"Error opening ONODE configuration: {ex.Message}");
+                CLIEngine.ShowErrorMessage($"Error opening ONODE WEB4 OASIS DNA configuration: {ex.Message}");
+            }
+        }
+
+        private static async Task OpenONODEWeb5ConfigAsync()
+        {
+            try
+            {
+                CLIEngine.ShowWorkingMessage("Opening ONODE WEB5 STAR DNA configuration...");
+
+                var configPath = Path.Combine(Environment.CurrentDirectory, "DNA", "STAR_DNA.json");
+                if (File.Exists(configPath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = configPath,
+                        UseShellExecute = true
+                    });
+                    CLIEngine.ShowSuccessMessage("ONODE WEB5 STAR DNA configuration opened in default editor");
+                }
+                else
+                {
+                    CLIEngine.ShowErrorMessage("STARDNA.json configuration file not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error opening ONODE WEB5 STAR DNA configuration: {ex.Message}");
             }
         }
 
