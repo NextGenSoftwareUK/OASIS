@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
+using NextGenSoftware.CLI.Engine;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -764,7 +765,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<bool> result = new OASISResult<bool>();
 
             ////Temp supress logging to the console in case STAR CLI is creating a new avatar...
-            //CLIEngine.SupressConsoleLogging = true;
+            CLIEngine.SupressConsoleLogging = true;
 
             //Temp disable the OASIS HyperDrive so it returns fast and does not attempt to find the avatar across all providers! ;-)
             //TODO: May want to fine tune how we handle this in future?
@@ -777,7 +778,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(currentProviderFailOverList);
             //ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
 
-            //CLIEngine.SupressConsoleLogging = false;
+            CLIEngine.SupressConsoleLogging = false;
 
             if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
             {

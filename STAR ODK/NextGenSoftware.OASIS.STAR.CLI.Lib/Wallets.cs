@@ -37,8 +37,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 ProviderType walletProviderType = (ProviderType)objProviderType;
                 bool isDefault = CLIEngine.GetConfirmation($"Will this be the new default wallet?", addLineBefore: false);
-                bool showSecretPhase = CLIEngine.GetConfirmation($"Do you wish to show the secret recovery phase after the wallet has been created?", addLineBefore: true);
-                bool showPrivateKey = CLIEngine.GetConfirmation($"Do you wish to show the private key after the wallet has been created?", addLineBefore: true);
+                bool showSecretPhase = CLIEngine.GetConfirmation($"Do you wish to show/decrypt the secret recovery phase after the wallet has been created?", addLineBefore: true);
+                bool showPrivateKey = CLIEngine.GetConfirmation($"Do you wish to show/decrypt the private key after the wallet has been created?", addLineBefore: true);
 
                 CLIEngine.ShowWorkingMessage("Creating Wallet...", addLineBefore: true);
                 result = await STAR.OASISAPI.Wallets.CreateWalletForAvatarByIdAsync(STAR.BeamedInAvatar.Id, name, desc, walletProviderType, true, isDefault, showSecretPhase, showPrivateKey, providerTypeToLoadSave);
@@ -239,10 +239,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (result != null && result.Result != null && !result.IsError)
             {
                 string path = CLIEngine.GetValidInput("What is the full path you wish to export to?");
-                bool decryptPrivateKeys = CLIEngine.GetConfirmation("Do you wish to decrypt the private keys?"); 
+                bool decryptPrivateKeys = CLIEngine.GetConfirmation("Do you wish to decrypt/show the private keys?");
+                bool showSecretWords = CLIEngine.GetConfirmation("Do you wish to decrypt/show the secrert recovery words?", addLineBefore: true);
 
-                CLIEngine.ShowWorkingMessage("Exporting Wallet..");
-                result = await STAR.OASISAPI.Wallets.ExportWalletByIdAsync(STAR.BeamedInAvatar.Id, result.Result.Id, path, decryptPrivateKeys, providerTypeToLoadSave);
+                CLIEngine.ShowWorkingMessage("Exporting Wallet..", addLineBefore: true);
+                result = await STAR.OASISAPI.Wallets.ExportWalletByIdAsync(STAR.BeamedInAvatar.Id, result.Result.Id, path, decryptPrivateKeys, showSecretWords, providerTypeToLoadSave);
 
                 if (result != null && result.Result != null && !result.IsError)
                     CLIEngine.ShowSuccessMessage("Wallet Successfully Exported", addLineBefore: true);
@@ -260,9 +261,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             string path = CLIEngine.GetValidInput("What is the full path you wish to export to?");
             bool exportDefaultWalletsOnly = CLIEngine.GetConfirmation("Do you wish to only export the default wallets?");
-            bool decryptPrivateKeys = CLIEngine.GetConfirmation("Do you wish to decrypt the private keys?");
+            bool decryptPrivateKeys = CLIEngine.GetConfirmation("Do you wish to decrypt the private keys?", addLineBefore: true);
 
-            if (!CLIEngine.GetConfirmation("Do you wish to export ALL wallets? If you enter 'N' then you will be asked which to export for next."))
+            if (!CLIEngine.GetConfirmation("Do you wish to export ALL wallets? If you enter 'N' then you will be asked which to export for next.", addLineBefore: true))
             {
                 object providerTypeObj = CLIEngine.GetValidInputForEnum("Which provider/chain do you wisth to export for?", typeof(ProviderType));
 
@@ -331,11 +332,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return balance;
         }
 
-        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ListProviderWalletsForBeamedInAvatarAsync(bool showOnlyDefault = false, ProviderType providerTypeToShowWalletsFor = ProviderType.All, ProviderType providerTypeToLoadFrom = ProviderType.Default, bool showNumbers = false)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ListProviderWalletsForBeamedInAvatarAsync(bool showOnlyDefault = false, bool showPrivateKeys = false, bool showSecretWords = false, ProviderType providerTypeToShowWalletsFor = ProviderType.All, ProviderType providerTypeToLoadFrom = ProviderType.Default, bool showNumbers = false)
         {
             CLIEngine.ShowWorkingMessage("Loading Wallets...");
             ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
-            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await STAR.OASISAPI.Wallets.LoadProviderWalletsForAvatarByIdAsync(STAR.BeamedInAvatar.Id, showOnlyDefault, true, providerTypeToShowWalletsFor, providerTypeToLoadFrom);
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await STAR.OASISAPI.Wallets.LoadProviderWalletsForAvatarByIdAsync(STAR.BeamedInAvatar.Id, showOnlyDefault, showPrivateKeys, showSecretWords, providerTypeToShowWalletsFor, providerTypeToLoadFrom);
             ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
 
             if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
@@ -344,7 +345,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return walletsResult;
         }
 
-        public async Task<OASISResult<IProviderWallet>> ShowDefaultWalletForBeamedInAvatarAsync()
+
+        //public async Task<OASISResult<IProviderWallet>> ShowDefaultWalletForBeamedInAvatarAsync()
+        //{
+        //    return await ShowDefaultWalletForBeamedInAvatarAsync(null, null);
+        //}
+
+        public async Task<OASISResult<IProviderWallet>> ShowDefaultWalletForBeamedInAvatarAsync(bool? showPrivateKeys, bool? showSecretWords)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             object providerObj = CLIEngine.GetValidInputForEnum("Enter the provider (chain) you wish to get the default wallet for: ", typeof(ProviderType));
@@ -357,10 +364,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     return result;
                 }
 
-                CLIEngine.ShowWorkingMessage("Loading Default Wallet...");
+                if (!showPrivateKeys.HasValue)
+                    showPrivateKeys = CLIEngine.GetConfirmation("Do you wish to decrypt/show the private keys?");
+
+                if (!showSecretWords.HasValue)
+                    showSecretWords = CLIEngine.GetConfirmation("Do you wish to decrypt/show the secrert recovery words?", addLineBefore: true);
+
+                CLIEngine.ShowWorkingMessage("Loading Default Wallet...", addLineBefore: true);
                 Console.WriteLine("");
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
-                result = await STAR.OASISAPI.Wallets.GetAvatarDefaultWalletByIdAsync(STAR.BeamedInAvatar.Id, (ProviderType)providerObj, true);
+                result = await STAR.OASISAPI.Wallets.GetAvatarDefaultWalletByIdAsync(STAR.BeamedInAvatar.Id, (ProviderType)providerObj, true, showPrivateKeys.Value, showSecretWords.Value);
                 ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
@@ -370,13 +383,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public OASISResult<IProviderWallet> ShowWalletThatPublicKeyBelongsTo()
+        public OASISResult<IProviderWallet> ShowWalletThatPublicKeyBelongsTo(string? publicKey, bool? showPrivateKeys, bool? showSecretWords)
         {
-            string publicKey = CLIEngine.GetValidInput("Enter the provider key you wish to find the wallet for: ");
+            if (string.IsNullOrWhiteSpace(publicKey))
+                publicKey = CLIEngine.GetValidInput("Enter the public key you wish to find the wallet for: ");
 
-            CLIEngine.ShowWorkingMessage("Loading Wallet...");
+            if (!showPrivateKeys.HasValue)
+                showPrivateKeys = CLIEngine.GetConfirmation("Do you wish to decrypt/show the private keys?");
+            
+            if (!showSecretWords.HasValue)
+                showSecretWords = CLIEngine.GetConfirmation("Do you wish to decrypt/show the secrert recovery words?", addLineBefore: true);
+
+            CLIEngine.ShowWorkingMessage("Loading Wallet...", addLineBefore: true);
             Console.WriteLine("");
-            OASISResult<IProviderWallet> walletResult = STAR.OASISAPI.Wallets.GetWalletThatPublicKeyBelongsTo(publicKey, STAR.BeamedInAvatar);
+
+            OASISResult<IProviderWallet> walletResult = STAR.OASISAPI.Wallets.GetWalletThatPublicKeyBelongsTo(publicKey, STAR.BeamedInAvatar, showPrivateKeys.Value, showSecretWords.Value);
 
             if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
                 ShowWallet(walletResult.Result);
@@ -463,7 +484,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
             ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
-            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await ListProviderWalletsForBeamedInAvatarAsync(false,providerTypeToShowWalletsFor, providerTypeToLoadFrom, true);
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await ListProviderWalletsForBeamedInAvatarAsync(false, false, false, providerTypeToShowWalletsFor, providerTypeToLoadFrom, true);
             ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
 
             Dictionary<int, IProviderWallet> lookup = new Dictionary<int, IProviderWallet>();

@@ -128,8 +128,10 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         this.ProviderDescription = "Avalanche Provider";
         this.ProviderType = new(Core.Enums.ProviderType.AvalancheOASIS);
         this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
-        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
         _hostURI = hostUri;
         _chainPrivateKey = chainPrivateKey;
@@ -2454,8 +2456,8 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
             }
 
             // Get avatar wallets by username
-            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(fromAvatarUsername, false, false, this.ProviderType.Value);
-            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(toAvatarUsername, false, false, this.ProviderType.Value);
+            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(fromAvatarUsername, false, false, false, this.ProviderType.Value);
+            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(toAvatarUsername, false, false, false, this.ProviderType.Value);
 
             if (fromWalletResult.IsError || toWalletResult.IsError)
             {

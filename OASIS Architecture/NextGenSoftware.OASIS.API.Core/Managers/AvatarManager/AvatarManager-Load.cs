@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public partial class AvatarManager : OASISManager
     {
         public OASISResult<IAvatar> LoadAvatar(Guid id, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        //public OASISResult<IAvatar> LoadAvatar(Guid id, bool loadWallets = true, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
