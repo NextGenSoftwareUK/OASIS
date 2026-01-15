@@ -290,7 +290,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 // Get avatar's wallet address
-                var walletsResult = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(targetAvatarId, false, false, ProviderType.EthereumOASIS, ProviderType.Default);
+                var walletsResult = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(targetAvatarId, false, false, false, ProviderType.EthereumOASIS, ProviderType.Default);
                 if (walletsResult.IsError || walletsResult.Result == null || !walletsResult.Result.ContainsKey(ProviderType.EthereumOASIS) || walletsResult.Result[ProviderType.EthereumOASIS].Count == 0)
                 {
                     OASISErrorHandling.HandleError(ref result, "No Ethereum wallet found for avatar");

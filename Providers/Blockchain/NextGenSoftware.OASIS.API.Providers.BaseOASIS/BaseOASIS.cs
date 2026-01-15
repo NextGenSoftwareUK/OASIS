@@ -92,7 +92,7 @@ public sealed class BaseOASIS : Web3CoreOASISBaseProvider,
             }
 
             // Get avatar's Base wallet
-            var walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, Core.Enums.ProviderType.BaseOASIS, Core.Enums.ProviderType.Default);
+            var walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, false, Core.Enums.ProviderType.BaseOASIS, Core.Enums.ProviderType.Default);
             if (walletsResult.IsError || walletsResult.Result == null || !walletsResult.Result.ContainsKey(Core.Enums.ProviderType.BaseOASIS) || walletsResult.Result[Core.Enums.ProviderType.BaseOASIS].Count == 0)
             {
                 OASISErrorHandling.HandleError(ref result, "No Base wallet found for avatar");
