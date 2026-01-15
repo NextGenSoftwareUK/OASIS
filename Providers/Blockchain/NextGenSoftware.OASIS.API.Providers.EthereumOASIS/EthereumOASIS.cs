@@ -4424,7 +4424,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Get avatar's Ethereum wallet
-                var walletsResult = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, Core.Enums.ProviderType.EthereumOASIS, Core.Enums.ProviderType.Default);
+                var walletsResult = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, false, Core.Enums.ProviderType.EthereumOASIS, Core.Enums.ProviderType.Default);
                 if (walletsResult.IsError || walletsResult.Result == null || !walletsResult.Result.ContainsKey(Core.Enums.ProviderType.EthereumOASIS) || walletsResult.Result[Core.Enums.ProviderType.EthereumOASIS].Count == 0)
                 {
                     OASISErrorHandling.HandleError(ref result, "No Ethereum wallet found for avatar");
