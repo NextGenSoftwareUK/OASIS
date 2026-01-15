@@ -18,9 +18,12 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     //TODO: Allow people to import wallets using SecretRecoveryPhrase (the public & private key can be dervided & calculated from it, need to find out how?) as others do such as MetaMask, etc.
     //TODO: Currently you need to link the private key and public key seperatley using the walletId for increased security, others seem to only need to import just the private key? I am guessing the public key is then dervived and calculated from the private key? Need to look into this more...
 
-    public interface IProviderWallet : IHolonBase
+    public interface IProviderWallet : IHolonBase //TODO: Do not extend IHolonBase because adds lots of stuff we dont need for wallets! ;-) Unless there is any use have a wallet also a holon? Maybe?
     {
         public Guid WalletId { get; set; }
+
+        public string Name { get; set; }
+        public string Description { get; set; }
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
         public string WalletAddress { get; set; } //Hash of Public Key (shorter version).

@@ -99,8 +99,10 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             throw new InvalidOperationException($"Failed to initialize Solana Account with provided keys. PrivateKey length: {privateKey?.Length ?? 0}, PublicKey length: {publicKey?.Length ?? 0}. Error: {ex.Message}", ex);
         }
 
-        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
 
     public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -3407,11 +3409,11 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         try
         {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
+            //if (!IsProviderActivated)
+            //{
+            //    OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+            //    return result;
+            //}
 
             // Generate a new Solana wallet using Solnet.Wallet SDK (production-ready)
             var mnemonic = new Solnet.Wallet.Bip39.Mnemonic(Solnet.Wallet.Bip39.WordList.English, Solnet.Wallet.Bip39.WordCount.Twelve);
