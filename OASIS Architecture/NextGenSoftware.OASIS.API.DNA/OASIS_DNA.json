@@ -161,10 +161,10 @@
                 "ConnectionString": "bolt://localhost:7687"
             },
             "SolanaOASIS": {
-                "WalletMnemonicWords": "",
-                "PrivateKey": "",
-                "PublicKey": "",
-                "ConnectionString": "https://api.devnet.solana.com"
+                "WalletMnemonicWords": "bullet nothing diamond universe detail east dinner code plunge charge poem ball cable clog spray purpose renew above clay brand control shallow turtle similar",
+                "PrivateKey": "5JvVGV1Apv9eDgey1id9m5BNWp5m8vZ4ApXd7xKX7zvJ",
+                "PublicKey": "3E4WArQ6XZYcrmYyg5qVRYYZrvt77t524ApjmHGQmsWR",
+                "ConnectionString": "https://devnet.helius-rpc.com/?api-key=960ef9a8-4f99-411d-b288-b76ff4986200"
             },
             "CargoOASIS": {
                 "SingingMessage": "",

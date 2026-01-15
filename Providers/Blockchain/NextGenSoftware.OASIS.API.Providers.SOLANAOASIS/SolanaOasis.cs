@@ -79,7 +79,25 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolanaOASIS);
         this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         this._rpcClient = ClientFactory.GetClient(hostUri);
-        this._oasisSolanaAccount = new(privateKey, publicKey);
+        
+        // Create Account from private and public key strings (Base58 format)
+        // Based on web research and codebase analysis: The Account constructor accepts two Base58 strings
+        // However, if privateKey is 64 bytes (keypair), we may need to handle it differently
+        // The test harness uses: new(TestData.PrivateKey.Key, TestData.PublicKey.Key) which are Base58 strings
+        try
+        {
+            // Use the two-string constructor as shown in test harness and master branch
+            // This matches the working pattern: new Account(privateKey, publicKey)
+            this._oasisSolanaAccount = new Account(privateKey, publicKey);
+        }
+        catch (Exception ex)
+        {
+            // If Account constructor fails with "Invalid base58 data", it might be because:
+            // 1. The private key is 64 bytes (keypair) but Account expects just 32 bytes (private key)
+            // 2. There's whitespace or invalid characters in the keys
+            // 3. The keys are not properly Base58 encoded
+            throw new InvalidOperationException($"Failed to initialize Solana Account with provided keys. PrivateKey length: {privateKey?.Length ?? 0}, PublicKey length: {publicKey?.Length ?? 0}. Error: {ex.Message}", ex);
+        }
 
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
@@ -2408,6 +2426,13 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         try
         {
+            if (!IsProviderActivated || _solanaService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, 
+                    "Solana provider is not activated. Please activate the provider before minting NFTs.");
+                return result;
+            }
+
             OASISResult<MintNftResult> solanaNftTransactionResult
                 = await _solanaService.MintNftAsync(transaction as MintWeb3NFTRequest);
 

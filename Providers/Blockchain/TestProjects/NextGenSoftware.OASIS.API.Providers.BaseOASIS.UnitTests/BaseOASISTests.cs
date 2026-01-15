@@ -1,7 +1,6 @@
 using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using System.Numerics;
 
 namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS.UnitTests;
 
@@ -13,52 +12,38 @@ public class BaseOASISTests
 {
     private const string TestHostUri = "https://sepolia.base.org";
     private const string TestPrivateKey = "0000000000000000000000000000000000000000000000000000000000000001";
-    private const BigInteger TestChainId = 84532; // Base Sepolia Testnet
     private const string TestContractAddress = "0x0000000000000000000000000000000000000000";
 
     [Fact]
     public void Constructor_ShouldInitializeProvider_WithCorrectProperties()
     {
         // Arrange & Act
-        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, TestChainId, TestContractAddress);
+        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, TestContractAddress);
 
         // Assert
         Assert.NotNull(provider);
         Assert.Equal("BaseOASIS", provider.ProviderName);
-        Assert.Equal("Base Provider", provider.ProviderDescription);
+        Assert.Equal("Base Provider (Coinbase Layer 2)", provider.ProviderDescription);
         Assert.Equal(ProviderType.BaseOASIS, provider.ProviderType.Value);
         Assert.Equal(ProviderCategory.StorageAndNetwork, provider.ProviderCategory.Value);
     }
 
     [Fact]
-    public void Constructor_ShouldThrowException_WhenHostUriIsNull()
+    public void Constructor_ShouldAcceptNullParameters_ForOptionalFields()
     {
-        // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new BaseOASIS(null!, TestPrivateKey, TestChainId, TestContractAddress));
-    }
+        // Arrange & Act - Web3CoreOASISBaseProvider allows empty strings for optional parameters
+        var provider = new BaseOASIS(TestHostUri, "", "");
 
-    [Fact]
-    public void Constructor_ShouldThrowException_WhenPrivateKeyIsNull()
-    {
-        // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new BaseOASIS(TestHostUri, null!, TestChainId, TestContractAddress));
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrowException_WhenContractAddressIsNull()
-    {
-        // Arrange, Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new BaseOASIS(TestHostUri, TestPrivateKey, TestChainId, null!));
+        // Assert
+        Assert.NotNull(provider);
+        Assert.Equal("BaseOASIS", provider.ProviderName);
     }
 
     [Fact]
     public void ProviderType_ShouldBeBaseOASIS()
     {
         // Arrange
-        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, TestChainId, TestContractAddress);
+        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, TestContractAddress);
 
         // Act
         var providerType = provider.ProviderType.Value;
@@ -71,7 +56,7 @@ public class BaseOASISTests
     public void ProviderCategory_ShouldBeStorageAndNetwork()
     {
         // Arrange
-        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, TestChainId, TestContractAddress);
+        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, TestContractAddress);
 
         // Act
         var category = provider.ProviderCategory.Value;
@@ -87,24 +72,11 @@ public class BaseOASISTests
     public void Constructor_ShouldAcceptVariousHostUris(string hostUri)
     {
         // Arrange & Act
-        var provider = new BaseOASIS(hostUri, TestPrivateKey, TestChainId, TestContractAddress);
+        var provider = new BaseOASIS(hostUri, TestPrivateKey, TestContractAddress);
 
         // Assert
         Assert.NotNull(provider);
         Assert.Equal("BaseOASIS", provider.ProviderName);
-    }
-
-    [Theory]
-    [InlineData(8453)] // Base Mainnet
-    [InlineData(84532)] // Base Sepolia Testnet
-    [InlineData(84531)] // Base Goerli Testnet (deprecated)
-    public void Constructor_ShouldAcceptVariousChainIds(int chainId)
-    {
-        // Arrange & Act
-        var provider = new BaseOASIS(TestHostUri, TestPrivateKey, chainId, TestContractAddress);
-
-        // Assert
-        Assert.NotNull(provider);
     }
 }
 

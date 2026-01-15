@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -229,7 +229,54 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // configure DI for application services
             // services.AddScoped<IAvatarService, AvatarService>(); // AvatarService is being phased out
             //services.AddScoped<IEmailService, EmailService>();
-            //services.AddScoped<ISolanaService, SolanaService>(); //TODO: Not sure we need this? Want to remove this along with all other services ASAP! Use Managers in OASIS.API.Core and OASIS.API.ONODE.Core instead!
+            // Register ISolanaService with factory method to get dependencies from SolanaOASIS provider
+            services.AddScoped<ISolanaService>(serviceProvider =>
+            {
+                // Get the SolanaOASIS provider instance
+                var solanaProvider = NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance
+                    .GetProvider(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS) 
+                    as NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
+                
+                if (solanaProvider == null)
+                {
+                    throw new InvalidOperationException("SolanaOASIS provider is not activated or not available. Please ensure the provider is activated in OASIS_DNA.");
+                }
+                
+                // Try to get the existing _solanaService from the provider first
+                var providerType = solanaProvider.GetType();
+                var solanaServiceField = providerType.GetField("_solanaService", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                
+                if (solanaServiceField != null)
+                {
+                    var existingService = solanaServiceField.GetValue(solanaProvider) as ISolanaService;
+                    if (existingService != null)
+                    {
+                        return existingService;
+                    }
+                }
+                
+                // If service doesn't exist, create a new one using the provider's account and RPC client
+                var accountField = providerType.GetField("_oasisSolanaAccount", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var rpcClientField = providerType.GetField("_rpcClient", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                
+                if (accountField == null || rpcClientField == null)
+                {
+                    throw new InvalidOperationException("Unable to access SolanaOASIS provider internal fields. Provider may need to expose Account and RpcClient.");
+                }
+                
+                var account = accountField.GetValue(solanaProvider) as Solnet.Wallet.Account;
+                var rpcClient = rpcClientField.GetValue(solanaProvider) as Solnet.Rpc.IRpcClient;
+                
+                if (account == null || rpcClient == null)
+                {
+                    throw new InvalidOperationException("SolanaOASIS provider account or RPC client is null. Provider may not be properly initialized.");
+                }
+                
+                return new SolanaService(account, rpcClient);
+            });
             //services.AddScoped<ICargoService, CargoService>();
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();

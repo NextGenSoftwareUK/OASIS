@@ -1,4 +1,4 @@
-# SERV Agent Infrastructure - Complete Documentation
+# ONET Service Registry - Complete Documentation
 
 **Last Updated:** January 2026  
 **Status:** ✅ Production Ready
@@ -27,15 +27,22 @@
 
 ## Overview
 
-**SERV (Service Registry)** is part of the **ONET Unified Architecture** - OASIS's decentralized service discovery and routing infrastructure. The SERV integration enables A2A (Agent-to-Agent) Protocol agents to be registered, discovered, and accessed through the ONET network.
+**ONET Service Registry** is part of the **ONET Unified Architecture** - OASIS's decentralized service discovery and routing infrastructure. The ONET Service Registry enables A2A (Agent-to-Agent) Protocol agents to be registered, discovered, and accessed through the ONET network.
 
 ### Key Concepts
 
-- **SERV**: Service Registry - Central registry for all services (A2A agents, OpenSERV agents, native OASIS services)
+- **ONET Service Registry**: OASIS's internal service registry - Central registry for all services (A2A agents, OpenSERV agents, native OASIS services)
+- **OpenSERV Platform**: External platform (openserv.ai) - Partner platform for AI agent infrastructure
 - **ONET**: OASIS Network - Decentralized P2P network layer
 - **A2A Protocol**: Agent-to-Agent communication protocol (JSON-RPC 2.0)
-- **UnifiedService**: SERV's service representation format
+- **UnifiedService**: ONET Service Registry's service representation format
 - **AgentCard**: A2A Protocol's agent representation format
+
+### Important Distinction
+
+**ONET Service Registry** (OASIS's infrastructure) is **NOT** the same as **OpenSERV Platform** (external partner platform):
+- **ONET Service Registry** = OASIS's own service discovery infrastructure
+- **OpenSERV Platform** = External AI agent platform (openserv.ai) - OASIS's investors/partners
 
 ### Benefits
 
@@ -69,9 +76,9 @@
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  ┌──────────────┐         ┌──────────────┐                │
-│  │ A2A Protocol │────────►│ SERV Bridge  │                │
-│  │   Agents     │         │  (Extension │                │
-│  └──────────────┘         │   Methods)   │                │
+│  │ A2A Protocol │────────►│ ONET Service │                │
+│  │   Agents     │         │  Registry    │                │
+│  └──────────────┘         │  Bridge      │                │
 │                           └──────────────┘                │
 │                                  │                          │
 │                                  ▼                          │
@@ -656,11 +663,18 @@ The SERV functionality is exposed through the MCP (Model Context Protocol) serve
 
 ### Overview
 
-A2A-OpenSERV integration enables OpenSERV AI agents to be registered as A2A agents and execute workflows through the A2A Protocol.
+A2A-OpenSERV integration enables **bidirectional discovery** between OASIS and OpenSERV platforms:
+- **OpenSERV → OASIS**: OpenSERV AI agents can be registered as A2A agents and discovered via ONET Service Registry
+- **OASIS → OpenSERV**: OASIS A2A agents can be registered with OpenSERV platform for discovery on their platform
 
-### Registration Flow
+### Important Distinction
 
-1. **Register OpenSERV Agent**
+- **ONET Service Registry** = OASIS's internal service discovery infrastructure
+- **OpenSERV Platform** = External AI agent platform (openserv.ai) - OASIS's partners/investors
+
+### Registration Flow (OpenSERV → OASIS)
+
+1. **Register OpenSERV Agent with OASIS**
    ```http
    POST /api/a2a/openserv/register
    Content-Type: application/json
@@ -675,7 +689,22 @@ A2A-OpenSERV integration enables OpenSERV AI agents to be registered as A2A agen
 
 2. **Automatic A2A Registration** - Creates avatar and registers capabilities
 
-3. **SERV Registration** - Optionally registers with SERV infrastructure
+3. **ONET Service Registry Registration** - Registers with OASIS's ONET Service Registry
+
+### Registration Flow (OASIS → OpenSERV)
+
+1. **Register OASIS Agent with OpenSERV Platform**
+   ```csharp
+   await A2AManager.Instance.RegisterOasisAgentWithOpenServAsync(
+       agentId: agentGuid,
+       openServApiKey: "sk-...",
+       oasisAgentEndpoint: "https://api.oasisplatform.world/api/a2a/agent-card/{agentId}"
+   );
+   ```
+
+2. **Agent becomes discoverable on OpenSERV platform**
+
+3. **OpenSERV users can discover and use OASIS agents**
 
 ### Workflow Execution
 

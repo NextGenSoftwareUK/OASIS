@@ -228,6 +228,47 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         }
 
         /// <summary>
+        /// Register a unified service dynamically
+        /// </summary>
+        public async Task<OASISResult<bool>> RegisterUnifiedServiceAsync(UnifiedService service)
+        {
+            var result = new OASISResult<bool>();
+            
+            try
+            {
+                if (service == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Service cannot be null");
+                    return result;
+                }
+
+                // Use ServiceId if provided, otherwise generate from Name
+                var serviceId = !string.IsNullOrEmpty(service.ServiceId) 
+                    ? service.ServiceId 
+                    : service.Name?.ToLower().Replace(" ", "-") ?? Guid.NewGuid().ToString();
+
+                // Ensure ServiceId is set
+                service.ServiceId = serviceId;
+
+                // Add to unified services registry
+                lock (_unifiedServices)
+                {
+                    _unifiedServices[serviceId] = service;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Service {service.Name} registered successfully with ID: {serviceId}";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error registering unified service: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Optimize the entire unified architecture
         /// </summary>
         public async Task<OASISResult<UnifiedOptimization>> OptimizeUnifiedArchitectureAsync()
@@ -773,12 +814,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
     public class UnifiedService
     {
+        public string ServiceId { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public List<string> IntegrationLayers { get; set; } = new List<string>();
         public List<string> Endpoints { get; set; } = new List<string>();
         public bool IsActive { get; set; }
+        public Dictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>();
     }
 
     public class UnifiedEndpoint

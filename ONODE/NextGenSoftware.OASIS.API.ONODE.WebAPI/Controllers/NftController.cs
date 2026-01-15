@@ -250,31 +250,98 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             object NFTStandardTypeObject = null;
             Guid sendToAvatarAfterMintingId = Guid.Empty;
 
-            if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject))
+            // Smart defaults: If OnChainProvider not provided, default to SolanaOASIS
+            if (string.IsNullOrWhiteSpace(request?.OnChainProvider))
+            {
+                onChainProvider = ProviderType.SolanaOASIS;
+            }
+            else if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider.Trim(), true, out onChainProviderObject))
+            {
                 onChainProvider = (ProviderType)onChainProviderObject;
+            }
             else
+            {
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The OnChainProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+            }
 
-
-            if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider, out offChainProviderObject))
+            // Smart defaults: If OffChainProvider not provided, default to MongoDBOASIS
+            if (string.IsNullOrWhiteSpace(request?.OffChainProvider))
+            {
+                offChainProvider = ProviderType.MongoDBOASIS;
+            }
+            else if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider.Trim(), true, out offChainProviderObject))
+            {
                 offChainProvider = (ProviderType)offChainProviderObject;
+            }
             else
+            {
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+            }
 
-
-            if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject))
+            // Smart defaults: If NFTOffChainMetaType not provided, default to OASIS
+            if (string.IsNullOrWhiteSpace(request?.NFTOffChainMetaType))
+            {
+                NFTOffChainMetaType = NFTOffChainMetaType.OASIS;
+            }
+            else if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType.Trim(), true, out NFTOffChainMetaTypeObject))
+            {
                 NFTOffChainMetaType = (NFTOffChainMetaType)NFTOffChainMetaTypeObject;
+            }
             else
+            {
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The NFTOffChainMetaType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
+            }
 
-
-            if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject))
+            // Smart defaults: Auto-detect NFTStandardType based on OnChainProvider if not provided
+            if (string.IsNullOrWhiteSpace(request?.NFTStandardType))
+            {
+                // Auto-detect based on blockchain provider
+                switch (onChainProvider)
+                {
+                    case ProviderType.SolanaOASIS:
+                        NFTStandardType = NFTStandardType.SPL;
+                        break;
+                    case ProviderType.EthereumOASIS:
+                    case ProviderType.ArbitrumOASIS:
+                    case ProviderType.PolygonOASIS:
+                    case ProviderType.RootstockOASIS:
+                        NFTStandardType = NFTStandardType.ERC1155;
+                        break;
+                    default:
+                        NFTStandardType = NFTStandardType.ERC1155; // Default fallback
+                        break;
+                }
+            }
+            else if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType.Trim(), true, out NFTStandardTypeObject))
+            {
                 NFTStandardType = (NFTStandardType)NFTStandardTypeObject;
+            }
             else
+            {
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The NFTStandardType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
+            }
 
-            if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingId) && !Guid.TryParse(request.SendToAvatarAfterMintingId, out sendToAvatarAfterMintingId))
+            // Smart default: If no destination specified, send to the authenticated avatar (minting user)
+            if (string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting) && 
+                string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingId) && 
+                string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingUsername) && 
+                string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingEmail))
+            {
+                // Default to sending to the authenticated avatar
+                sendToAvatarAfterMintingId = AvatarId;
+            }
+            else if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingId) && !Guid.TryParse(request.SendToAvatarAfterMintingId, out sendToAvatarAfterMintingId))
+            {
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
+            }
+
+            // Smart default: If ImageUrl not provided, use a placeholder
+            string imageUrl = request.ImageUrl;
+            if (string.IsNullOrWhiteSpace(imageUrl) && request.Image == null)
+            {
+                // Use a default placeholder image URL
+                imageUrl = "https://via.placeholder.com/512/000000/FFFFFF?text=OASIS+NFT";
+            }
 
             API.Core.Objects.NFT.Requests.MintWeb4NFTRequest mintRequest = new API.Core.Objects.NFT.Requests.MintWeb4NFTRequest()
             {
@@ -282,7 +349,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Title = request.Title,
                 Description = request.Description,
                 Image = request.Image,
-                ImageUrl = request.ImageUrl,
+                ImageUrl = imageUrl,
                 Thumbnail = request.Thumbnail,
                 ThumbnailUrl = request.ThumbnailUrl,
                 Price = request.Price,
