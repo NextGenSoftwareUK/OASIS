@@ -105,6 +105,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     try
                     {
                         result = blockchainStorageProvider.GenerateKeyPair();
+
+                        if (result.IsError || result.Result == null || (result.Result != null && (string.IsNullOrEmpty(result.Result.PublicKey) || string.IsNullOrEmpty(result.Result.PrivateKey) || string.IsNullOrEmpty(result.Result.WalletAddressLegacy))))
+                        {
+                            result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                            result.IsError = false;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -138,6 +144,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     try
                     {
                         result = await blockchainStorageProvider.GenerateKeyPairAsync();
+
+                        if (result.IsError || result.Result == null || (result.Result != null && (string.IsNullOrEmpty(result.Result.PublicKey) || string.IsNullOrEmpty(result.Result.PrivateKey) || string.IsNullOrEmpty(result.Result.WalletAddressLegacy))))
+                        {
+                            result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                            result.IsError = false;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -361,7 +373,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             CreatedDate = DateTime.Now,
                             WalletAddress = walletAddress,
                             ProviderType = providerTypeToLinkTo,
-                            SecretRecoveryPhrase = string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words)
+                            SecretRecoveryPhrase = Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256)
+                            //SecretRecoveryPhrase = string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words)
                         };
 
                         result.Result = newWallet;

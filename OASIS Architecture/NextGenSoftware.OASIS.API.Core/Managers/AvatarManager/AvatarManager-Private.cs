@@ -176,10 +176,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (IOASISBlockchainStorageProvider provider in ProviderManager.Instance.GetAllBlockchainProviders())
             {
-                OASISResult<IProviderWallet> walletResult = WalletManager.Instance.CreateWalletWithoutSaving(result.Result.Id, $"Default {Enum.GetName(typeof(ProviderType), provider)} Wallet", $"Default wallet for chain {Enum.GetName(typeof(ProviderType), provider)}", provider.ProviderType.Value, isDefaultWallet: true);
+                OASISResult<IProviderWallet> walletResult = WalletManager.Instance.CreateWalletWithoutSaving(result.Result.Id, $"Default {provider.ProviderType.Name} Wallet", $"Default wallet for chain {provider.ProviderType.Name}", provider.ProviderType.Value, isDefaultWallet: true);
 
                 if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                {
+                    if (!result.Result.ProviderWallets.ContainsKey(provider.ProviderType.Value) )
+                        result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
+
+                    if (result.Result.ProviderWallets[provider.ProviderType.Value] == null)
+                        result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
+
                     result.Result.ProviderWallets[provider.ProviderType.Value].Add(walletResult.Result);
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured creating default wallet for provider/chain {walletResult.Message}");
             }
@@ -1519,7 +1527,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
             {
-                walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(result.Result.Id, false, false, type.Value);
+                walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(result.Result.Id, false, false, false, type.Value);
 
                 if (!walletsResult.IsError && walletsResult.Result != null)
                 {
@@ -1597,7 +1605,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
                 {
-                    walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatar.Id, false, false, type.Value);
+                    walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatar.Id, false, false, false, type.Value);
 
                     if (!walletsResult.IsError && walletsResult.Result != null)
                     {

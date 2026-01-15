@@ -57,17 +57,17 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             if (data is byte[])
                 return true;
 
-            try
-            {
-                byte[] binaryData = Convert.FromBase64String(data.ToString());
+            //try
+            //{
+            //    byte[] binaryData = Convert.FromBase64String(data.ToString());
 
-                for (int i = 0; i < binaryData.Length; i++)
-                {
-                    if (binaryData[i] > 127)
-                        return true;
-                }
-            }
-            catch { }
+            //    for (int i = 0; i < binaryData.Length; i++)
+            //    {
+            //        if (binaryData[i] > 127)
+            //            return true;
+            //    }
+            //}
+            //catch { }
 
             return false;
         }
