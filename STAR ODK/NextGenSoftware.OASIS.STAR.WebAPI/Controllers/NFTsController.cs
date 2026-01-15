@@ -179,7 +179,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.NFTs.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                // CreateOptions can be null - the CreateAsync method should handle it
+                var result = await _starAPI.NFTs.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions ?? null);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -328,7 +329,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.NFTs.SearchAsync<STARNFT>(AvatarId, searchTerm, searchOnlyForCurrentAvatar, showAllVersions, version);
+                var result = await _starAPI.NFTs.SearchAsync<STARNFT>(AvatarId, searchTerm, default(Guid), null, MetaKeyValuePairMatchMode.All, searchOnlyForCurrentAvatar, showAllVersions, version);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -618,7 +619,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public HolonType HolonSubType { get; set; } = HolonType.NFT;
+        public HolonType HolonSubType { get; set; } = HolonType.Web5NFT;
         public string SourceFolderPath { get; set; } = "";
         public ISTARNETCreateOptions<STARNFT, STARNETDNA> CreateOptions { get; set; } = null;
     }

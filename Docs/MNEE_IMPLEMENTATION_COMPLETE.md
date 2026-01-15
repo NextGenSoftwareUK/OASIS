@@ -344,7 +344,36 @@ curl -X POST "http://localhost:5003/api/invoice/create" \
   }'
 ```
 
-### Test Agent Payment
+### Test Agent-to-Agent MNEE Payment
+
+**Quick Demo Script:**
+```bash
+cd MCP
+AGENT_A_USERNAME="agent_a" AGENT_A_PASSWORD="pass_a" \
+AGENT_B_USERNAME="agent_b" AGENT_B_PASSWORD="pass_b" \
+npx tsx demo-agent-mnee-payment.ts
+```
+
+**Via API:**
+```bash
+# Authenticate Agent A
+curl -X POST "http://localhost:5003/api/avatar/authenticate" \
+  -H "Content-Type: application/json" \
+  -d '{"username": "agent_a", "password": "password_a"}'
+
+# Send payment (using Agent A's token)
+curl -X POST "http://localhost:5003/api/a2a/mnee/payment" \
+  -H "Authorization: Bearer {agent_a_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "toAgentId": "{agent_b_id}",
+    "amount": 10.5,
+    "description": "Payment for data analysis service",
+    "autoExecute": true
+  }'
+```
+
+**Via Code:**
 ```csharp
 // Via A2A Protocol
 var paymentResult = await A2AManager.Instance.SendMNEEPaymentRequestAsync(
@@ -355,6 +384,8 @@ var paymentResult = await A2AManager.Instance.SendMNEEPaymentRequestAsync(
     autoExecute: true
 );
 ```
+
+**See:** `A2A/demo/README_MNEE_PAYMENT_DEMO.md` for complete demo guide.
 
 ---
 

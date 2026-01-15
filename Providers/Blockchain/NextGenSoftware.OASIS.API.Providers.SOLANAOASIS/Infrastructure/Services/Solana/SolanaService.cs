@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
@@ -8,17 +8,36 @@ using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
-public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : ISolanaService
+public sealed class SolanaService : ISolanaService
 {
     private const uint SellerFeeBasisPoints = 500;
     private const byte CreatorShare = 100;
     private const string Solana = "Solana";
     private const decimal Lamports = 1_000_000_000m;
 
-    private readonly List<Creator> _creators =
-    [
-        new(oasisAccount.PublicKey, share: CreatorShare, verified: true)
-    ];
+    private readonly Account oasisAccount;
+    private readonly IRpcClient rpcClient;
+    private readonly List<Creator> _creators;
+
+    public SolanaService(Account oasisAccount, IRpcClient rpcClient)
+    {
+        if (oasisAccount == null)
+            throw new ArgumentNullException(nameof(oasisAccount), "OASIS Solana account cannot be null");
+        
+        if (oasisAccount.PublicKey == null)
+            throw new ArgumentNullException(nameof(oasisAccount), "OASIS Solana account PublicKey cannot be null");
+        
+        if (rpcClient == null)
+            throw new ArgumentNullException(nameof(rpcClient), "RPC client cannot be null");
+        
+        this.oasisAccount = oasisAccount;
+        this.rpcClient = rpcClient;
+        
+        _creators = new List<Creator>
+        {
+            new(oasisAccount.PublicKey, share: CreatorShare, verified: true)
+        };
+    }
 
 
     //TODO: Finish porting!
@@ -68,13 +87,25 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     {
         try
         {
+            if (rpcClient == null)
+                return HandleError<MintNftResult>("RPC client is null. Solana provider may not be properly initialized.");
+            
+            if (oasisAccount == null)
+                return HandleError<MintNftResult>("OASIS Solana account is null. Provider may not be properly initialized.");
+            
+            if (mintNftRequest == null)
+                return HandleError<MintNftResult>("Mint NFT request is null.");
+            
+            if (string.IsNullOrEmpty(mintNftRequest.JSONMetaDataURL))
+                return HandleError<MintNftResult>("JSONMetaDataURL is required for Solana NFT minting.");
+
             MetadataClient metadataClient = new(rpcClient);
             Account mintAccount = new();
 
             Metadata tokenMetadata = new()
             {
-                name = mintNftRequest.Title,
-                symbol = mintNftRequest.Symbol,
+                name = mintNftRequest.Title ?? "Untitled NFT",
+                symbol = mintNftRequest.Symbol ?? "NFT",
                 sellerFeeBasisPoints = SellerFeeBasisPoints,
                 uri = mintNftRequest.JSONMetaDataURL,
                 creators = _creators
@@ -95,6 +126,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 tokenMetadata,
                 isMasterEdition: true,
                 isMutable: true);
+
+                if (createNftResult == null)
+                    return HandleError<MintNftResult>("CreateNFT returned null result. RPC client may not be properly connected.");
 
                 if (!createNftResult.WasSuccessful)
                 {
@@ -127,7 +161,23 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         }
         catch (Exception ex)
         {
-            return HandleError<MintNftResult>(ex.Message);
+            // Log full exception details to console for debugging
+            Console.WriteLine($"=== SOLANA MINT NFT EXCEPTION ===");
+            Console.WriteLine($"Exception Type: {ex.GetType().FullName}");
+            Console.WriteLine($"Exception Message: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception Type: {ex.InnerException.GetType().FullName}");
+                Console.WriteLine($"Inner Exception Message: {ex.InnerException.Message}");
+                Console.WriteLine($"Inner Exception StackTrace: {ex.InnerException.StackTrace}");
+            }
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            Console.WriteLine($"=== END EXCEPTION ===");
+            
+            string detailedError = $"Exception in MintNftAsync: {ex.GetType().Name}: {ex.Message}";
+            if (ex.InnerException != null)
+                detailedError += $" Inner: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}";
+            return HandleError<MintNftResult>(detailedError);
         }
     }
 

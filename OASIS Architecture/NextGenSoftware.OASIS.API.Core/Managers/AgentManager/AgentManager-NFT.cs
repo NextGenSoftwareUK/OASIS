@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Agent;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 using Newtonsoft.Json;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers

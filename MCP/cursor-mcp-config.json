@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "oasis-unified": {
+      "command": "node",
+      "args": ["/Users/maxgershfield/OASIS_CLEAN/MCP/dist/index.js"],
+      "env": {
+        "OASIS_API_URL": "http://localhost:5000",
+        "OASIS_API_KEY": ""
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
