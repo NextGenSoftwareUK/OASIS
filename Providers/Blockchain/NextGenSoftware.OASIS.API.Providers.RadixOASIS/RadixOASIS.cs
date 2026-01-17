@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Services.Radix;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Oracle;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.RadixOASIS;
 
@@ -52,7 +53,11 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         this.ProviderName = nameof(RadixOASIS);
         this.ProviderDescription = "Radix DLT Blockchain Provider with Bridge Support";
         this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RadixOASIS);
-        this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
         _config = new RadixOASISConfig
         {

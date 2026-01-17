@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects.Interop;
@@ -30,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public NativePInvokeProvider()
         {
-            _loadedLibraries = new Dictionary<string, IntPtr>();
+            _loadedLibraries = new Dictionary<string, NativeLibraryInfo>();
             _functionCache = new Dictionary<string, Dictionary<string, Delegate>>();
         }
 
@@ -113,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedLibraries.TryGetValue(libraryId, out var handle))
+                    if (!_loadedLibraries.TryGetValue(libraryId, out var libraryInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not found.");
                         return Task.FromResult(result);
@@ -122,11 +123,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     bool success;
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        success = FreeLibrary(handle);
+                        success = FreeLibrary(libraryInfo.Handle);
                     }
                     else
                     {
-                        success = dlclose(handle) == 0;
+                        success = dlclose(libraryInfo.Handle) == 0;
                     }
 
                     if (!success)
@@ -358,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedLibraries.ContainsKey(libraryId))
+                    if (!_loadedLibraries.TryGetValue(libraryId, out var libraryInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);

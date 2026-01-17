@@ -7,6 +7,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
@@ -49,10 +51,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Try to search for existing omniverse
-                var searchResult = await SearchHolonsForParentAsync<IOmiverse>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "",
                     default(Guid),
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     false,
                     HolonType.Omniverse,
                     ProviderType.Default
@@ -61,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (!searchResult.IsError && searchResult.Result != null && searchResult.Result.Any())
                 {
                     // Return the first omniverse found (should only be one)
-                    result.Result = searchResult.Result.FirstOrDefault();
+                    result.Result = searchResult.Result.FirstOrDefault() as IOmiverse;
                     return result;
                 }
 
@@ -337,6 +341,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string searchTerm,
             Guid avatarId,
             Guid parentId = default,
+            Dictionary<string, string> filterByMetaData = null, 
+            MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All,
             bool searchOnlyForCurrentAvatar = true,
             HolonType holonType = HolonType.All,
             ProviderType providerType = ProviderType.Default,
@@ -353,6 +359,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 searchTerm,
                 avatarId,
                 parentId,
+                filterByMetaData,
+                metaKeyValuePairMatchMode,
                 searchOnlyForCurrentAvatar,
                 providerType,
                 "COSMICManager.SearchHolonsForParentAsync",
@@ -373,6 +381,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string searchTerm,
             Guid avatarId,
             Guid parentId = default,
+            Dictionary<string, string> filterByMetaData = null,
+            MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All,
             bool searchOnlyForCurrentAvatar = true,
             HolonType holonType = HolonType.All,
             ProviderType providerType = ProviderType.Default,
@@ -389,6 +399,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 searchTerm,
                 avatarId,
                 parentId,
+                filterByMetaData,
+                metaKeyValuePairMatchMode,
                 searchOnlyForCurrentAvatar,
                 providerType,
                 "COSMICManager.SearchHolonsForParent",
@@ -4038,10 +4050,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // First, try to find existing user multiverse
-                var searchResult = await SearchHolonsForParentAsync<IMultiverse>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "",
                     AvatarId,
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     true, // showOnlyForCurrentAvatar
                     HolonType.Multiverse,
                     ProviderType.Default
@@ -4050,7 +4064,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (!searchResult.IsError && searchResult.Result != null && searchResult.Result.Any())
                 {
                     // Find multiverse created by this avatar
-                    var userMultiverse = searchResult.Result.FirstOrDefault(m => m.CreatedByAvatarId == AvatarId);
+                    var userMultiverse = searchResult.Result.FirstOrDefault(m => m.CreatedByAvatarId == AvatarId) as IMultiverse;
                     if (userMultiverse != null)
                     {
                         result.Result = userMultiverse;
@@ -4176,10 +4190,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                var searchResult = await SearchHolonsForParentAsync<IMultiverse>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "MagicVerse",
                     default(Guid),
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     false,
                     HolonType.Multiverse,
                     ProviderType.Default
@@ -4191,7 +4207,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         m.Name.Equals("MagicVerse", StringComparison.OrdinalIgnoreCase));
                     if (magicVerse != null)
                     {
-                        result.Result = magicVerse;
+                        result.Result = magicVerse as IMultiverse;
                         return result;
                     }
                 }
@@ -4215,10 +4231,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                var searchResult = await SearchHolonsForParentAsync<IMultiverse>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "The Grand Simulation",
                     default(Guid),
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     false,
                     HolonType.Multiverse,
                     ProviderType.Default
@@ -4230,7 +4248,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         m.Name.Equals("The Grand Simulation", StringComparison.OrdinalIgnoreCase));
                     if (grandSim != null)
                     {
-                        result.Result = grandSim;
+                        result.Result = grandSim as IMultiverse;
                         return result;
                     }
                 }
@@ -4282,8 +4300,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 };
 
                 // Save the multiverse
-                var saveResult = await SaveHolonAsync<IMultiverse>(multiverseHolon, AvatarId);
-                OASISResultHelper.CopyResult(saveResult, result);
+                var saveResult = await SaveHolonAsync<Holon>(multiverseHolon, AvatarId);
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
+                if (!saveResult.IsError && saveResult.Result != null)
+                {
+                    result.Result = saveResult.Result as IMultiverse;
+                }
             }
             catch (Exception ex)
             {
@@ -4386,10 +4408,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Load all Proposal holons with ProposalType = "Simulation"
-                var searchResult = await SearchHolonsForParentAsync<ISimulationProposal>(
+                var searchResult = await SearchHolonsForParentAsync<Holon>(
                     "Simulation",
                     onlyMine ? AvatarId : default(Guid),
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     onlyMine,
                     HolonType.Proposal,
                     ProviderType.Default
@@ -4436,7 +4460,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Load the proposal holon using generic overload
-                var loadResult = await Data.LoadHolonAsync<ISimulationProposal>(proposalId);
+                var loadResult = await Data.LoadHolonAsync<Holon>(proposalId, childHolonType: HolonType.Proposal);
                 if (loadResult.IsError || loadResult.Result == null)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
@@ -4444,7 +4468,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                var proposal = loadResult.Result;
+                var proposalHolon = loadResult.Result;
+                var proposal = proposalHolon as ISimulationProposal;
+                
+                if (proposal == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Proposal is not a valid ISimulationProposal.");
+                    return result;
+                }
 
                 // Check if user already voted
                 if (proposal.HasUserVoted(AvatarId))
@@ -4461,7 +4492,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 // Save updated proposal
-                var saveResult = await SaveHolonAsync<ISimulationProposal>(proposal);
+                var saveResult = await SaveHolonAsync<Holon>(proposalHolon, AvatarId);
                 if (saveResult.IsError)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
@@ -4488,14 +4519,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Load the proposal holon using generic overload
-                var loadResult = await Data.LoadHolonAsync<IProposal>(proposalId);
+                var loadResult = await Data.LoadHolonAsync<Holon>(proposalId, childHolonType: HolonType.Proposal);
                 if (loadResult.IsError || loadResult.Result == null)
                 {
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(loadResult, result);
                     return result;
                 }
 
-                var proposal = loadResult.Result;
+                var proposalHolon = loadResult.Result;
+                var proposal = proposalHolon as ISimulationProposal;
+                
+                if (proposal == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Proposal is not a valid ISimulationProposal.");
+                    return result;
+                }
 
                 // Get user's vote
                 result.Result = proposal.GetUserVote(AvatarId);

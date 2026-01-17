@@ -247,45 +247,45 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             //if (request.Web3NFTs != null && request.Web3NFTs.Count > 0)
             //{
-                MintWeb4NFTRequest web4Request = new MintWeb4NFTRequest()
-                {
-                    MintedByAvatarId = request.Web4NFT.MintedByAvatarId,
-                    Title = request.Web4NFT.Title,
-                    Description = request.Web4NFT.Description,
-                    MemoText = request.Web4NFT.MemoText,
-                    Price = request.Web4NFT.Price,
-                    Discount = request.Web4NFT.Discount,
-                    RoyaltyPercentage = request.Web4NFT.RoyaltyPercentage,
-                    IsForSale = request.Web4NFT.IsForSale,
-                    SaleStartDate = request.Web4NFT.SaleStartDate,
-                    SaleEndDate = request.Web4NFT.SaleEndDate,
-                    OnChainProvider = request.Web4NFT.OnChainProvider,
-                    OffChainProvider = request.Web4NFT.OffChainProvider,
-                    StoreNFTMetaDataOnChain = request.Web4NFT.StoreNFTMetaDataOnChain,
-                    NFTOffChainMetaType = request.Web4NFT.NFTOffChainMetaType,
-                    NFTStandardType = request.Web4NFT.NFTStandardType,
-                    Image = request.Web4NFT.Image,
-                    ImageUrl = request.Web4NFT.ImageUrl,
-                    Thumbnail = request.Web4NFT.Thumbnail,
-                    ThumbnailUrl = request.Web4NFT.ThumbnailUrl,
-                    MetaData = request.Web4NFT.MetaData,
-                    Tags = request.Web4NFT.Tags,
-                    JSONMetaData = request.Web4NFT.JSONMetaData,
-                    JSONMetaDataURL = request.Web4NFT.JSONMetaDataURL,
-                    Symbol = request.Web4NFT.Symbol,
-                    NumberToMint = request.Web3NFTs.Count,
-                    AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
-                    WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
-                    WaitTillNFTMinted = request.WaitTillNFTMinted,
-                    AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
-                    WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
-                    WaitTillNFTSent = request.WaitTillNFTSent,
-                    SendToAddressAfterMinting = request.SendToAddressAfterMinting,
-                    SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
-                    SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
-                    SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
-                    Web3NFTs = request.Web3NFTs
-                };
+            MintWeb4NFTRequest web4Request = new MintWeb4NFTRequest()
+            {
+                MintedByAvatarId = request.Web4NFT.MintedByAvatarId,
+                Title = request.Web4NFT.Title,
+                Description = request.Web4NFT.Description,
+                MemoText = request.Web4NFT.MemoText,
+                Price = request.Web4NFT.Price,
+                Discount = request.Web4NFT.Discount,
+                RoyaltyPercentage = request.Web4NFT.RoyaltyPercentage,
+                IsForSale = request.Web4NFT.IsForSale,
+                SaleStartDate = request.Web4NFT.SaleStartDate,
+                SaleEndDate = request.Web4NFT.SaleEndDate,
+                OnChainProvider = request.Web4NFT.OnChainProvider,
+                OffChainProvider = request.Web4NFT.OffChainProvider,
+                StoreNFTMetaDataOnChain = request.Web4NFT.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = request.Web4NFT.NFTOffChainMetaType,
+                NFTStandardType = request.Web4NFT.NFTStandardType,
+                Image = request.Web4NFT.Image,
+                ImageUrl = request.Web4NFT.ImageUrl,
+                Thumbnail = request.Web4NFT.Thumbnail,
+                ThumbnailUrl = request.Web4NFT.ThumbnailUrl,
+                MetaData = request.Web4NFT.MetaData,
+                Tags = request.Web4NFT.Tags,
+                JSONMetaData = request.Web4NFT.JSONMetaData,
+                JSONMetaDataURL = request.Web4NFT.JSONMetaDataURL,
+                Symbol = request.Web4NFT.Symbol,
+                NumberToMint = request.Web3NFTs.Count,
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                Web3NFTs = request.Web3NFTs
+            };
 
             if (request.Web3NFTs.Count > 0)
             {
@@ -392,7 +392,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                         if (web3Request.NumberToMint == 0)
                             web3Request.NumberToMint = 1;
-                            //web3Request.NumberToMint = request.NumberToMint;
+                        //web3Request.NumberToMint = request.NumberToMint;
 
                         IMintWeb4NFTRequest originalMintWeb4NFTRequest = CloneWeb4NFTRequest(request);
                         result = await MintWeb3NFTsAsync(result, originalMintWeb4NFTRequest, web3Request, null, isGeoNFT, responseFormatType, i == request.Web3NFTs.Count);
@@ -1748,7 +1748,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         IWeb3NFT updatedWeb3NFT = UpdateWeb3NFT(web3NFT, request);
 
-                        OASISResult<IHolon> web3NftHolonResult = await Data.LoadHolonAsync(request.Id, providerType: providerType);
+                        OASISResult<IHolon> web3NftHolonResult = await Data.LoadHolonAsync(web3NFT.Id, providerType: providerType);
 
                         if (web3NftHolonResult != null && web3NftHolonResult.Result != null && !web3NftHolonResult.IsError)
                         {
@@ -1860,12 +1860,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (burnWeb3NFT)
                 {
-                    OASISResult<IWeb3NFTTransactionResponse> burnResult = await BurnWeb3NFTAsync(avatarId, new BurnWeb3NFTRequest() 
-                    { 
-                        Web3NFTId = id, 
-                        OwnerPrivateKey = "", 
-                        OwnerPublicKey = "", 
-                        OwnerSeedPhrase = "" }, providerType);
+                    OASISResult<IWeb3NFTTransactionResponse> burnResult = await BurnWeb3NFTAsync(avatarId, new BurnWeb3NFTRequest()
+                    {
+                        Web3NFTId = id,
+                        OwnerPrivateKey = "",
+                        OwnerPublicKey = "",
+                        OwnerSeedPhrase = ""
+                    }, providerType);
 
                     if (!(burnResult != null && burnResult.Result != null && !burnResult.IsError))
                         OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured burning Web3 NFT with id {id}. Reason: {burnResult?.Message}");
@@ -1994,88 +1995,88 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IWeb3NFT>>> SearchWeb3NFTsAsync(string searchTerm, Guid avatarId, Guid parentWeb4NFTId = default, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb3NFT>>> SearchWeb3NFTsAsync(string searchTerm, Guid avatarId, Guid parentWeb4NFTId = default, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error occured in SearchWeb3NFTsAsync in NFTManager. Reason:";
             OASISResult<IEnumerable<IWeb3NFT>> result = new OASISResult<IEnumerable<IWeb3NFT>>();
-            result = DecodeNFTMetaData(await Data.SearchHolonsAsync(searchTerm, avatarId, parentWeb4NFTId, searchOnlyForCurrentAvatar, HolonType.Web3NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            result = DecodeNFTMetaData(await Data.SearchHolonsAsync(searchTerm, avatarId, parentWeb4NFTId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web3NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
 
-        public OASISResult<IEnumerable<IWeb3NFT>> SearchWeb3NFTs(string searchTerm, Guid avatarId, Guid parentWeb4NFTId = default, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IWeb3NFT>> SearchWeb3NFTs(string searchTerm, Guid avatarId, Guid parentWeb4NFTId = default, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IWeb3NFT>> result = new OASISResult<IEnumerable<IWeb3NFT>>();
             string errorMessage = "Error occured in SearchWeb3NFTs in NFTManager. Reason:";
-            result = DecodeNFTMetaData(Data.SearchHolons(searchTerm, avatarId, parentWeb4NFTId, searchOnlyForCurrentAvatar, HolonType.Web3NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            result = DecodeNFTMetaData(Data.SearchHolons(searchTerm, avatarId, parentWeb4NFTId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web3NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> SearchWeb4NFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> SearchWeb4NFTsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error occured in SearchNFTsAsync in NFTManager. Reason:";
             OASISResult<IEnumerable<IWeb4NFT>> result = new OASISResult<IEnumerable<IWeb4NFT>>();
-            result = DecodeNFTMetaData(await Data.SearchHolonsAsync(searchTerm, avatarId, default, searchOnlyForCurrentAvatar, HolonType.Web4NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            result = DecodeNFTMetaData(await Data.SearchHolonsAsync(searchTerm, avatarId, default, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web4NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
 
-        public OASISResult<IEnumerable<IWeb4NFT>> SearchWeb4NFTs(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IWeb4NFT>> SearchWeb4NFTs(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IWeb4NFT>> result = new OASISResult<IEnumerable<IWeb4NFT>>();
             string errorMessage = "Error occured in SearchNFTs in NFTManager. Reason:";
-            result = DecodeNFTMetaData(Data.SearchHolons(searchTerm, avatarId, default, searchOnlyForCurrentAvatar, HolonType.Web4NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            result = DecodeNFTMetaData(Data.SearchHolons(searchTerm, avatarId, default, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web4NFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> SearchWeb4GeoNFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> SearchWeb4GeoNFTsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IWeb4GeoSpatialNFT>> result = new OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>();
             string errorMessage = "Error occured in SearchGeoNFTsAsync in NFTManager. Reason:";
-            result = DecodeGeoNFTMetaData(await Data.SearchHolonsAsync(searchTerm, avatarId, default, searchOnlyForCurrentAvatar, HolonType.Web4GeoNFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            result = DecodeGeoNFTMetaData(await Data.SearchHolonsAsync(searchTerm, avatarId, default, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web4GeoNFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
-        public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> SearchWeb4GeoNFTs(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> SearchWeb4GeoNFTs(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IWeb4GeoSpatialNFT>> result = new OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>();
             string errorMessage = "Error occured in SearchGeoNFT in NFTManager. Reason:";
-            result = DecodeGeoNFTMetaData(Data.SearchHolons(searchTerm, avatarId, default, searchOnlyForCurrentAvatar, HolonType.Web4GeoNFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
+            result = DecodeGeoNFTMetaData(Data.SearchHolons(searchTerm, avatarId, default, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web4GeoNFT, true, true, 0, true, false, HolonType.All, 0, providerType), result, errorMessage);
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> SearchWeb4NFTCollectionsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> SearchWeb4NFTCollectionsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error occured in SearchNFTCollectionsAsync in NFTManager. Reason:";
             OASISResult<IEnumerable<IWeb4NFTCollection>> result = new OASISResult<IEnumerable<IWeb4NFTCollection>>();
-            OASISResult<IEnumerable<Web4NFTCollection>> collectionResults = await Data.SearchHolonsAsync<Web4NFTCollection>(searchTerm, avatarId, default, searchOnlyForCurrentAvatar, HolonType.Web4NFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<Web4NFTCollection>> collectionResults = await Data.SearchHolonsAsync<Web4NFTCollection>(searchTerm, avatarId, default, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web4NFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(collectionResults, result);
             result.Result = collectionResults.Result;
             return result;
         }
 
-        public OASISResult<IEnumerable<IWeb4NFTCollection>> SearchWeb4NFTCollections(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IWeb4NFTCollection>> SearchWeb4NFTCollections(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error occured in SearchNFTCollections in NFTManager. Reason:";
             OASISResult<IEnumerable<IWeb4NFTCollection>> result = new OASISResult<IEnumerable<IWeb4NFTCollection>>();
-            OASISResult<IEnumerable<Web4NFTCollection>> collectionResults = Data.SearchHolons<Web4NFTCollection>(searchTerm, avatarId, default, searchOnlyForCurrentAvatar, HolonType.Web4NFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<Web4NFTCollection>> collectionResults = Data.SearchHolons<Web4NFTCollection>(searchTerm, avatarId, default, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web4NFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(collectionResults, result);
             result.Result = collectionResults.Result;
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IWeb4GeoNFTCollection>>> SearchWeb4GeoNFTCollectionsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4GeoNFTCollection>>> SearchWeb4GeoNFTCollectionsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error occured in SearchGeoNFTCollectionsAsync in NFTManager. Reason:";
             OASISResult<IEnumerable<IWeb4GeoNFTCollection>> result = new OASISResult<IEnumerable<IWeb4GeoNFTCollection>>();
-            OASISResult<IEnumerable<Web4GeoNFTCollection>> collectionResults = await Data.SearchHolonsAsync<Web4GeoNFTCollection>(searchTerm, avatarId, default, searchOnlyForCurrentAvatar, HolonType.Web4GeoNFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<Web4GeoNFTCollection>> collectionResults = await Data.SearchHolonsAsync<Web4GeoNFTCollection>(searchTerm, avatarId, default, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web4GeoNFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(collectionResults, result);
             result.Result = collectionResults.Result;
             return result;
         }
 
-        public OASISResult<IEnumerable<IWeb4GeoNFTCollection>> SearchWeb4GeoNFTCollections(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<IWeb4GeoNFTCollection>> SearchWeb4GeoNFTCollections(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             string errorMessage = "Error occured in SearchGeoNFTCollections in NFTManager. Reason:";
             OASISResult<IEnumerable<IWeb4GeoNFTCollection>> result = new OASISResult<IEnumerable<IWeb4GeoNFTCollection>>();
-            OASISResult<IEnumerable<Web4GeoNFTCollection>> collectionResults = Data.SearchHolons<Web4GeoNFTCollection>(searchTerm, avatarId, default, searchOnlyForCurrentAvatar, HolonType.Web4GeoNFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<Web4GeoNFTCollection>> collectionResults = Data.SearchHolons<Web4GeoNFTCollection>(searchTerm, avatarId, default, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, HolonType.Web4GeoNFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(collectionResults, result);
             result.Result = collectionResults.Result;
             return result;
@@ -3401,7 +3402,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //    return result;
         //}
 
-        private async Task<OASISResult<IWeb4NFT>> MintNFTnIternalAsync(OASISResult<IWeb4NFT> result, IMintWeb4NFTRequest originalWeb4Request, IMintWeb3NFTRequest web3Request, IMintWeb4NFTRequest mergedRequest, EnumValue<ProviderType> metaDataProviderType, OASISResult<IOASISNFTProvider> nftProviderResult, IWeb4NFT existingWeb4NFT = null, bool isGeoNFT = false, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, bool isLastWeb3NFT = false)
+        private async Task<OASISResult<IWeb4NFT>> MintNFTInternalAsync(OASISResult<IWeb4NFT> result, IMintWeb4NFTRequest originalWeb4Request, IMintWeb3NFTRequest web3Request, IMintWeb4NFTRequest mergedRequest, EnumValue<ProviderType> metaDataProviderType, OASISResult<IOASISNFTProvider> nftProviderResult, IWeb4NFT existingWeb4NFT = null, bool isGeoNFT = false, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, bool isLastWeb3NFT = false)
         {
             string errorMessage = "Error occured in NFTManager.MintNFTInternalAsync. Reason:";
             OASISResult<IHolon> jsonSaveResult = null;
@@ -3680,12 +3681,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                             foreach (IWeb3NFT web3NFT in existingWeb4NFT.Web3NFTs)
                             {
-                                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
-                                    web3NFT.MetaData.Remove("new");
+                                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
+                                    web3NFT.MetaData.Remove("{{{newnft}}}");
                             }
                         }
                     }
 
+                    currentWeb3NFT.ParentWeb4NFTId = result.Result.Id;
                     result.Result.Web3NFTs.Add((Web3NFT)UpdateWeb3NFT(currentWeb3NFT, web3Request));
 
                     IHolon web3NFTHolon = CreateWeb3NFTMetaDataHolon(currentWeb3NFT, result.Result.Id, web3Request);
@@ -3758,11 +3760,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
                 {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                     {
                         string sendNFTMessage = GenerateSendMessage(response.Result, request, web3NFT.SendNFTTransactionHash, "", 2);
                         message = string.Concat(message, $"Successfully minted the Web3 NFT on the {web3NFT.OnChainProvider.Name} provider with hash {web3NFT.MintTransactionHash} and title '{web3NFT.Title}' by AvatarId {request.MintedByAvatarId} using OASIS Minting Account {web3NFT.OASISMintWalletAddress} for price {web3NFT.Price}. NFT Address: {web3NFT.NFTTokenAddress}. The OASIS metadata is stored on the {web3NFT.OffChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Mint Date: ", web3NFT.MintedOn, ". ", sendNFTMessage, lineBreak);
-                        web3NFT.MetaData.Remove("new");
+                        web3NFT.MetaData.Remove("{{{newnft}}}");
                     }
                 }
 
@@ -3776,14 +3778,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
             {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                     message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, request, lineBreak, colWidth));
             }
 
             foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
             {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
-                    web3NFT.MetaData.Remove("new");
+                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
+                    web3NFT.MetaData.Remove("{{{newnft}}}");
             }
 
             if (response.IsWarning || response.IsError)
@@ -3806,11 +3808,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
                 {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                     {
                         string sendNFTMessage = GenerateSendMessage(response.Result, request, web3NFT.SendNFTTransactionHash, "", 2);
                         message = string.Concat(message, $"Successfully minted the Web3 NFT on the {web3NFT.OnChainProvider.Name} provider with hash {web3NFT.MintTransactionHash} and title '{web3NFT.Title}' by AvatarId {request.MintedByAvatarId} using OASIS Minting Account {web3NFT.OASISMintWalletAddress} for price {web3NFT.Price}. NFT Address: {web3NFT.NFTTokenAddress}. The OASIS metadata is stored on the {web3NFT.OffChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Mint Date: ", web3NFT.MintedOn, ". The GeoNFT meta data is stored on the GeoNFTMetaDataProvider ", response.Result.GeoNFTMetaDataProvider.Name, " with id ", response.Result.Id, " and was placed by the avatar with id ", response.Result.PlacedByAvatarId, sendNFTMessage, lineBreak);
-                        web3NFT.MetaData.Remove("new");
+                        web3NFT.MetaData.Remove("{{{newnft}}}");
                     }
                 }
 
@@ -3824,10 +3826,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
             {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                 {
                     message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, request, lineBreak, colWidth));
-                    web3NFT.MetaData.Remove("new");
+                    web3NFT.MetaData.Remove("{{{newnft}}}");
                 }
             }
 
@@ -3853,10 +3855,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
                 {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                     {
                         message = string.Concat(message, $"{summary} The meta data is stored on the GeoNFTMetaDataProvider {response.Result.GeoNFTMetaDataProvider.Name} with id {response.Result.Id} and was placed by the avatar with id {response.Result.PlacedByAvatarId}. The NFT was originally minted on the {web3NFT.OnChainProvider.Name} onchain provider with hash {web3NFT.MintTransactionHash} and title '{web3NFT.Title}' by the avatar with id {web3NFT.MintedByAvatarId} for the price of {web3NFT.Price} using OASIS Minting Account {web3NFT.OASISMintWalletAddress}. NFT Address: {web3NFT.NFTTokenAddress}. The OASIS metadata for the original NFT is stored on the {web3NFT.OffChainProvider.Name} offchain provider with the id {response.Result.OriginalWeb4OASISNFTId} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URL Holon Id: ", web3NFT.JSONMetaDataURLHolonId, ", Image URL: {web3NFT.ImageUrl}, Mint Date: {web3NFT.MintedOn}.");
-                        web3NFT.MetaData.Remove("new");
+                        web3NFT.MetaData.Remove("{{{newnft}}}");
                     }
                 }
 
@@ -3871,10 +3873,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
             {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                 {
                     message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, null, lineBreak, colWidth));
-                    web3NFT.MetaData.Remove("new");
+                    web3NFT.MetaData.Remove("{{{newnft}}}");
                 }
             }
 
@@ -3901,12 +3903,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
                 {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                     {
                         message = string.Concat(message, $"Web3 NFT OnChain Provider: {web3NFT.OnChainProvider.Name}, NFTTokenAddress {web3NFT.NFTTokenAddress}, title '{web3NFT.Title}', Imported By Avatar Id: {web3NFT.ImportedByAvatarId}. NFT minted using wallet address: {web3NFT.NFTMintedUsingWalletAddress}. Price: {web3NFT.Price}. The OASIS metadata is stored on the {web3NFT.OnChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Imported Date: ", web3NFT.ImportedOn, lineBreak);
-                        web3NFT.MetaData.Remove("new");
+                        web3NFT.MetaData.Remove("{{{newnft}}}");
                     }
-                } 
+                }
             }
 
             if (responseFormatType == ResponseFormatType.HTML)
@@ -3916,12 +3918,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
             {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                 {
                     message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, lineBreak, colWidth));
-                    web3NFT.MetaData.Remove("new");
+                    web3NFT.MetaData.Remove("{{{newnft}}}");
                 }
-            }  
+            }
 
             if (response.IsWarning || response.IsError)
                 message = string.Concat(message, " Errors Occured:\n", OASISResultHelper.BuildInnerMessageError(response.InnerMessages));
@@ -3945,10 +3947,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
                 {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                     {
                         message = string.Concat(message, $"Web3 NFT OnChain Provider: {web3NFT.OnChainProvider.Name}, NFTTokenAddress {web3NFT.NFTTokenAddress}, title '{web3NFT.Title}', Imported By Avatar Id: {web3NFT.ImportedByAvatarId}. NFT minted using wallet address: {web3NFT.NFTMintedUsingWalletAddress}. Price: {web3NFT.Price}. The OASIS metadata is stored on the {web3NFT.OnChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Imported Date: ", web3NFT.ImportedOn, lineBreak);
-                        web3NFT.MetaData.Remove("new");
+                        web3NFT.MetaData.Remove("{{{newnft}}}");
                     }
                 }
 
@@ -3962,10 +3964,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
             {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                 {
                     message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, lineBreak, colWidth));
-                    web3NFT.MetaData.Remove("new");
+                    web3NFT.MetaData.Remove("{{{newnft}}}");
                 }
             }
 
@@ -3989,12 +3991,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
                 {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                     {
                         message = string.Concat(message, $"Web3 NFT OnChain Provider: {web3NFT.OnChainProvider.Name}, NFTTokenAddress {web3NFT.NFTTokenAddress}, title '{web3NFT.Title}', Imported By Avatar Id: {web3NFT.ImportedByAvatarId}. NFT minted using wallet address: {web3NFT.NFTMintedUsingWalletAddress}. Price: {web3NFT.Price}. The OASIS metadata is stored on the {web3NFT.OnChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Imported Date: ", web3NFT.ImportedOn, lineBreak);
-                        web3NFT.MetaData.Remove("new");
+                        web3NFT.MetaData.Remove("{{{newnft}}}");
                     }
-                } 
+                }
 
                 return message;
             }
@@ -4007,10 +4009,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
             {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("new"))
+                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
                 {
                     message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, lineBreak, colWidth));
-                    web3NFT.MetaData.Remove("new");
+                    web3NFT.MetaData.Remove("{{{newnft}}}");
                 }
             }
 
@@ -4277,7 +4279,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             web3NFT.SaleEndDate = request.SaleEndDate;
             web3NFT.Tags = request.Tags;
             web3NFT.MetaData = request.MetaData;
-            web3NFT.MetaData["new"] = true;
+            web3NFT.MetaData["{{{newnft}}}"] = true;
 
             return web3NFT;
         }

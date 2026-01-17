@@ -75,10 +75,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             this.ProviderName = "BitcoinOASIS";
             this.ProviderDescription = "Bitcoin Provider - First and largest cryptocurrency";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BitcoinOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
-
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _network = network ?? throw new ArgumentNullException(nameof(network));
             _privateKey = privateKey;
@@ -2696,12 +2697,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -2712,29 +2713,29 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Generate Bitcoin key pair using NBitcoin SDK (chain-specific)
-                var network = _network == "mainnet" ? Network.Main : Network.TestNet;
+                //// Generate Bitcoin key pair using NBitcoin SDK (chain-specific)
+                //var network = _network == "mainnet" ? Network.Main : Network.TestNet;
                 
-                // Generate mnemonic seed phrase
-                var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
-                var seedPhrase = mnemonic.ToString();
+                //// Generate mnemonic seed phrase
+                //var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+                //var seedPhrase = mnemonic.ToString();
                 
-                // Derive Bitcoin key from mnemonic
-                var extKey = mnemonic.DeriveExtKey();
-                var key = extKey.PrivateKey;
+                //// Derive Bitcoin key from mnemonic
+                //var extKey = mnemonic.DeriveExtKey();
+                //var key = extKey.PrivateKey;
                 
-                // Get Bitcoin address (public key)
-                var privateKey = key.GetWif(network).ToString();
-                var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
+                //// Get Bitcoin address (public key)
+                //var privateKey = key.GetWif(network).ToString();
+                //var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
                 
                 // Create KeyPairAndWallet using KeyHelper but override with Bitcoin-specific values from NBitcoin SDK
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = privateKey;
-                    keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = publicKey; // Bitcoin address
-                }
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress(); //KeyHelper generates in Bitcoin format by default
+                //if (keyPair != null)
+                //{
+                //    keyPair.PrivateKey = privateKey;
+                //    keyPair.PublicKey = publicKey;
+                //    keyPair.WalletAddressLegacy = publicKey; // Bitcoin address
+                //}
 
                 result.Result = keyPair;
                 result.IsError = false;

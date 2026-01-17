@@ -36,6 +36,7 @@ using static Solnet.Programs.TokenProgram;
 using static Solnet.Programs.AssociatedTokenAccountProgram;
 using static Solnet.Programs.SystemProgram;
 using static Solnet.Programs.MemoProgram;
+using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
@@ -80,8 +81,10 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         this._rpcClient = ClientFactory.GetClient(hostUri);
         this._oasisSolanaAccount = new(privateKey, publicKey);
 
-        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
 
     public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -3369,23 +3372,23 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
     {
-        return GenerateKeyPairAsync(request).Result;
+        return GenerateKeyPairAsync().Result;
     }
 
-    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
     {
         var result = new OASISResult<IKeyPairAndWallet>();
         string errorMessage = "Error in GenerateKeyPairAsync method in SolanaOASIS. Reason: ";
 
         try
         {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
+            //if (!IsProviderActivated)
+            //{
+            //    OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+            //    return result;
+            //}
 
             // Generate a new Solana wallet using Solnet.Wallet SDK (production-ready)
             var mnemonic = new Solnet.Wallet.Bip39.Mnemonic(Solnet.Wallet.Bip39.WordList.English, Solnet.Wallet.Bip39.WordCount.Twelve);
@@ -3393,15 +3396,20 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             var account = wallet.Account;
 
             // Create key pair structure using Solana SDK values directly
-            var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-            if (keyPair != null)
-            {
-                keyPair.PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes);
-                keyPair.PublicKey = account.PublicKey.Key;
-                keyPair.WalletAddressLegacy = account.PublicKey.Key;
-            }
+            //var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+            //if (keyPair != null)
+            //{
+            //    keyPair.PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes);
+            //    keyPair.PublicKey = account.PublicKey.Key;
+            //    keyPair.WalletAddressLegacy = account.PublicKey.Key;
+            //}
 
-            result.Result = keyPair;
+            result.Result = new KeyPairAndWallet()
+            {
+                PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
+                PublicKey = account.PublicKey.Key,
+                WalletAddressLegacy = account.PublicKey.Key
+            };
             result.IsError = false;
             result.Message = "Key pair generated successfully.";
         }

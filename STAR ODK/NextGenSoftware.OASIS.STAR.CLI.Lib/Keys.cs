@@ -365,10 +365,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return avatarUsername;
         }
 
-        public OASISResult<KeyPair> GenerateKeyPair(ProviderType providerType = ProviderType.Default)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Generating KeyPair...");
-            OASISResult<KeyPair> keyPair = STAR.OASISAPI.Keys.GenerateKeyPair(providerType);
+            OASISResult<IKeyPairAndWallet> keyPair = STAR.OASISAPI.Keys.GenerateKeyPairWithWalletAddress(providerType);
 
             if (keyPair != null && keyPair.Result != null && !keyPair.IsError)
             {

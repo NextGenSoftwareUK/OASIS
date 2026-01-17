@@ -109,7 +109,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             this.ProviderName = "CosmosBlockChainOASIS";
             this.ProviderDescription = "Cosmos Blockchain Provider - Inter-blockchain communication protocol";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
@@ -2927,12 +2931,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -2953,7 +2957,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 // For now, use hex format - Cosmos SDK would convert to bech32 format
                 // In production, use Cosmos SDK's address conversion utilities
                 var cosmosAddress = "0x" + publicKey.Substring(2); // Cosmos addresses typically use bech32
-                
+
+                //TODO: Replace KeyHelper with COSMOS specific implementation.
                 // Create key pair structure
                 var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
                 if (keyPair != null)

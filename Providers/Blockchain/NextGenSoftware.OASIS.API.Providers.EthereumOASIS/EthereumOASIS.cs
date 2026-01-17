@@ -94,10 +94,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             this.ProviderName = "EthereumOASIS";
             this.ProviderDescription = "Ethereum Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage);
-
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             this.HostURI = hostUri;
             this.ChainPrivateKey = chainPrivateKey;
@@ -1143,40 +1144,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     result.Result = holons;
                     result.IsError = false;
                     result.Message = $"Successfully loaded {holons.Count} holons from Ethereum smart contract";
-                }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Ethereum: {ex.Message}", ex);
-                }
-                        {
-                            Id = Guid.NewGuid(),
-                            Name = $"Ethereum Holon {i + 1}",
-                            Description = $"Sample holon {i + 1} loaded from Ethereum blockchain",
-                            ProviderMetaData = new Dictionary<ProviderType, Dictionary<string, string>>
-                            {
-                                [Core.Enums.ProviderType.EthereumOASIS] = new Dictionary<string, string>
-                                {
-                                    ["Blockchain"] = "Ethereum",
-                                    ["ContractAddress"] = _contractAddress,
-                                    ["Network"] = _network,
-                                    ["Index"] = i.ToString()
-                                }
-                            },
-                            MetaData = new Dictionary<string, object>
-                            {
-                                ["EthereumContractAddress"] = _contractAddress,
-                                ["EthereumNetwork"] = _network,
-                                ["Provider"] = "EthereumOASIS",
-                                ["Index"] = i
-                            }
-                        };
-                        
-                        holons.Add(holon);
-                    }
-                    
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons from Ethereum";
                 }
                 catch (Exception ex)
                 {
@@ -3300,12 +3267,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -3327,7 +3294,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 {
                     keyPair.PrivateKey = privateKey;
                     keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = publicKey;
+                    keyPair.WalletAddressLegacy = publicKey; //TODO: Replace with Eth wallet address.
                 }
 
                 result.Result = keyPair;
@@ -3920,7 +3887,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 result.Result.TransactionResult = receipt.TransactionHash;
-                result.Result.SendNFTTransactionResult = receipt.TransactionHash;
                 result.Result.Web3NFT = new Web3NFT
                 {
                     NFTTokenAddress = transaction.TokenAddress,
@@ -4049,7 +4015,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var web3 = new Web3(senderAccount, HostURI);
 
                 // ERC-721 burn function ABI (assuming contract has burn function)
-                var erc721Abi = @"[{""constant":false,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""burn"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
+                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""burn"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
                 var erc721Contract = web3.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
                 var burnFunction = erc721Contract.GetFunction("burn");
 
@@ -4183,7 +4149,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var oasisAccount = _oasisAccount ?? new Account(ChainPrivateKey, ChainId);
                 var web3 = new Web3(oasisAccount, HostURI);
                 
-                var erc721Abi = @"[{""constant":false,""inputs"":[{""name"":""_from"",""type"":""address""},{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""transferFrom"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
+                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_from"",""type"":""address""},{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""transferFrom"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
                 var erc721Contract = web3.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
                 var transferFunction = erc721Contract.GetFunction("transferFrom");
 
@@ -4206,7 +4172,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 result.Result.TransactionResult = receipt.TransactionHash;
-                result.Result.SendNFTTransactionResult = receipt.TransactionHash;
                 TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
             }
             catch (Exception ex)
@@ -4371,10 +4336,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 // ERC-721 standard functions ABI
                 var erc721Abi = @"[
-                    {""constant":true,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""ownerOf"",""outputs"":[{""name"":""owner"",""type"":""address""}],""type"":""function""},
-                    {""constant":true,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""tokenURI"",""outputs"":[{""name"":""_tokenURI"",""type"":""string""}],""type"":""function""},
-                    {""constant":true,""inputs"":[],""name"":""name"",""outputs"":[{""name"":""_name"",""type"":""string""}],""type"":""function""},
-                    {""constant":true,""inputs"":[],""name"":""symbol"",""outputs"":[{""name"":""_symbol"",""type"":""string""}],""type"":""function""}
+                    {""constant"":true,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""ownerOf"",""outputs"":[{""name"":""owner"",""type"":""address""}],""type"":""function""},
+                    {""constant"":true,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""tokenURI"",""outputs"":[{""name"":""_tokenURI"",""type"":""string""}],""type"":""function""},
+                    {""constant"":true,""inputs"":[],""name"":""name"",""outputs"":[{""name"":""_name"",""type"":""string""}],""type"":""function""},
+                    {""constant"":true,""inputs"":[],""name"":""symbol"",""outputs"":[{""name"":""_symbol"",""type"":""string""}],""type"":""function""}
                 ]";
                 
                 var erc721Contract = Web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
@@ -4388,7 +4353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var web3NFT = new Web3NFT
                 {
                     NFTTokenAddress = nftTokenAddress,
-                    Name = name,
+                    Title = name,
                     Symbol = symbol
                 };
 

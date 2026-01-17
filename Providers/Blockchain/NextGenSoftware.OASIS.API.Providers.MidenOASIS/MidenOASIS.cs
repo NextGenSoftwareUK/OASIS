@@ -38,8 +38,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
         {
             ProviderName = nameof(MidenOASIS);
             ProviderDescription = "Miden Privacy Provider with STARK Proofs";
-            ProviderType = new EnumValue<ProviderType>(ProviderType.MidenOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _apiBaseUrl = apiBaseUrl ?? Environment.GetEnvironmentVariable("MIDEN_API_URL") ?? "https://testnet.miden.xyz";
             _apiKey = apiKey ?? Environment.GetEnvironmentVariable("MIDEN_API_KEY");

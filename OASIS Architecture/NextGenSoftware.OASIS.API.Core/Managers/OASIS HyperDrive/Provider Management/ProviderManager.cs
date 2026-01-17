@@ -216,8 +216,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IOASISBlockchainStorageProvider> blockchainProviders = new List<IOASISBlockchainStorageProvider>();
 
-            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategories.Contains(new EnumValue<ProviderCategory>(ProviderCategory.Blockchain))))
-                blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
+            foreach (IOASISProvider provider in _registeredProviders)
+            {
+                foreach (ProviderCategory category in provider.ProviderCategories.Select(x => x.Value).ToList())
+                {
+                    if (category == ProviderCategory.Blockchain)
+                        blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
+                }
+            }
+
+            //foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategories.Contains(new EnumValue<ProviderCategory>(ProviderCategory.Blockchain))))
+            //    blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
 
             return blockchainProviders;
         }

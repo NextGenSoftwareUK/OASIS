@@ -155,7 +155,7 @@ private const string Starknet = "STARKNET";
             if (isSupportedPair)
             {
                 // Get source account address (this would come from user's virtual account in a real implementation)
-                string sourceAccountAddress = request.UserId.ToString(); // Placeholder
+                string sourceAccountAddress = request.FromAddress;
                 string sourcePrivateKey = string.Empty; // This would be securely retrieved
 
                 // Check balance
