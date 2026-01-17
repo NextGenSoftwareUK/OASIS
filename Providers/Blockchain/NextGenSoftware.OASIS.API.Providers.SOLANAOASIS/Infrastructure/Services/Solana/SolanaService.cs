@@ -8,36 +8,17 @@ using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
-public sealed class SolanaService : ISolanaService
+public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : ISolanaService
 {
     private const uint SellerFeeBasisPoints = 500;
     private const byte CreatorShare = 100;
     private const string Solana = "Solana";
     private const decimal Lamports = 1_000_000_000m;
 
-    private readonly Account oasisAccount;
-    private readonly IRpcClient rpcClient;
-    private readonly List<Creator> _creators;
-
-    public SolanaService(Account oasisAccount, IRpcClient rpcClient)
-    {
-        if (oasisAccount == null)
-            throw new ArgumentNullException(nameof(oasisAccount), "OASIS Solana account cannot be null");
-        
-        if (oasisAccount.PublicKey == null)
-            throw new ArgumentNullException(nameof(oasisAccount), "OASIS Solana account PublicKey cannot be null");
-        
-        if (rpcClient == null)
-            throw new ArgumentNullException(nameof(rpcClient), "RPC client cannot be null");
-        
-        this.oasisAccount = oasisAccount;
-        this.rpcClient = rpcClient;
-        
-        _creators = new List<Creator>
-        {
-            new(oasisAccount.PublicKey, share: CreatorShare, verified: true)
-        };
-    }
+    private readonly List<Creator> _creators =
+    [
+        new(oasisAccount.PublicKey, share: CreatorShare, verified: true)
+    ];
 
 
     //TODO: Finish porting!
@@ -100,7 +81,9 @@ public sealed class SolanaService : ISolanaService
                 return HandleError<MintNftResult>("JSONMetaDataURL is required for Solana NFT minting.");
 
             MetadataClient metadataClient = new(rpcClient);
-            Account mintAccount = new();
+            // Create a new account for the NFT mint (each NFT needs its own unique mint account)
+            // The ownerAccount (oasisAccount) will own the NFT, but the mintAccount is a new account for this specific NFT
+            Account mintAccount = new Account();
 
             Metadata tokenMetadata = new()
             {
@@ -119,6 +102,15 @@ public sealed class SolanaService : ISolanaService
                 // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
                 Console.SetOut(new NullTextWriter());
 
+                // CreateNFT from Solnet.Metaplex should handle creating the mint account automatically
+                // The mintAccount is a new Account() that CreateNFT will create on-chain
+                // The OASIS account (oasisAccount) needs to have enough SOL to pay for:
+                // - Transaction fees
+                // - Rent for mint account creation
+                // - Rent for metadata account creation
+                // - Rent for master edition account creation
+                // If the error is "Attempt to debit an account but found no record of a prior credit",
+                // it likely means the OASIS account balance is 0 or insufficient
                 RequestResult<string> createNftResult = await metadataClient.CreateNFT(
                 ownerAccount: oasisAccount,
                 mintAccount: mintAccount,
@@ -126,6 +118,21 @@ public sealed class SolanaService : ISolanaService
                 tokenMetadata,
                 isMasterEdition: true,
                 isMutable: true);
+
+                // Log CreateNFT result for debugging
+                Console.WriteLine($"=== CreateNFT Result ===");
+                Console.WriteLine($"WasSuccessful: {createNftResult?.WasSuccessful}");
+                Console.WriteLine($"Reason: {createNftResult?.Reason}");
+                Console.WriteLine($"Result: {createNftResult?.Result}");
+                if (createNftResult?.ErrorData != null)
+                {
+                    Console.WriteLine($"Error Type: {createNftResult.ErrorData.Error?.Type}");
+                    if (createNftResult.ErrorData.Logs != null)
+                    {
+                        Console.WriteLine($"Error Logs: {string.Join("; ", createNftResult.ErrorData.Logs.Take(5))}");
+                    }
+                }
+                Console.WriteLine($"=== END CreateNFT Result ===");
 
                 if (createNftResult == null)
                     return HandleError<MintNftResult>("CreateNFT returned null result. RPC client may not be properly connected.");

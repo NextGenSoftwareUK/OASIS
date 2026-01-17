@@ -1,0 +1,889 @@
+{
+  "slides": [
+    {
+      "index": 1,
+      "text_blocks": [
+        {
+          "text": "Africa-first, next generation mobility platform"
+        },
+        {
+          "text": "Select your driver"
+        },
+        {
+          "text": "CONFIDENTIAL"
+        },
+        {
+          "text": "TIMO"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "text_blocks": [
+        {
+          "text": "\u201cRedefining how the world moves across Africa\u2019s tourism cities\u201d"
+        },
+        {
+          "text": "Timo is the first African mobility company built for the era of decentralisation. \nWe combine deep sector knowledge with web3 principles and emergent technology, to empower riders to travel with confidence, and drivers to work with dignity. \nIdentity, Safety, Interoperability and Choice lie at the heart of our build. We have a strong network of luxury vehicles, tourism partners and corporates waiting for our solution.\n "
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "text_blocks": [
+        {
+          "text": "\u201cRedefining how the world moves across Africa\u2019s tourism cities\u201d"
+        },
+        {
+          "text": "\u2022 Focus areas: differentiation, scalability, unit economics.\n\u2022 Pilot validated: 10K riders | 500 drivers | 5K rides | ZAR 350K revenue.\n\u2022 Target: $1\u20132M ARR by 2027."
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "text_blocks": [
+        {
+          "text": "Rule of one Beachhead strategy"
+        },
+        {
+          "text": "Goal: Capture 1% of Durban tourism spend ($500K GMV)."
+        },
+        {
+          "text": "Focus Market: Durban, South Africa \u2013 $50M+ tourism mobility gap."
+        },
+        {
+          "text": "Beachhead Path: \nDurban \u2192 Victoria Falls \u2192 Livingstone."
+        },
+        {
+          "text": "Core Problem: Limited premium transport for tourists."
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "text_blocks": [
+        {
+          "text": "KEY DIFFERENTIATORS"
+        },
+        {
+          "text": "Mobile money / \nstablecoins"
+        },
+        {
+          "text": "Rides are cashless, \nenhancing safety and convenience\nand allowing people without bank accounts to benefit from the platform"
+        },
+        {
+          "text": "Highly scalable"
+        },
+        {
+          "text": "Web2 + web3 \u2028interoperable"
+        },
+        {
+          "text": "Local partnerships\n+ Government Integration"
+        },
+        {
+          "text": "Identity + Trust \u2028Layer"
+        },
+        {
+          "text": "Timo utilises auto-failover and auto-load balancing - ensuring the app has zero downtime and smooth, reliable service "
+        },
+        {
+          "text": "Timo uses Abstraction Layer technology, giving seamless access to both blockchain and database systems."
+        },
+        {
+          "text": "All riders and drivers are credentialled using an interoperable identity layer - improving trust and safety incrementally. "
+        },
+        {
+          "text": "We bring PathPulse to Africa, \ncreating a road intelligence layer that transforms every vehicle into a live data node with just a smartphone and dashcam."
+        },
+        {
+          "text": "Timo combines several emergent technologies, giving us a tech stack that focuses on interoperability, identity, and robustness. \nAlso notable is our focus on deep integrations with local businesses and government. "
+        },
+        {
+          "text": "Technical \nDifferentiation"
+        },
+        {
+          "text": "Works offline"
+        },
+        {
+          "text": "Timo doesn\u2019t need a constant internet connection to function - and can even operate via bluetooth connection. "
+        },
+        {
+          "text": "The Potential of \u2028Decentralised Mobility"
+        },
+        {
+          "text": "Reliance on centralised technology providers is holding us back. Uber and Bolt hold all user data, and make all the rules. This lack of transparency is frustrating for drivers, and locks users in.  \u2028\u2028Timo imagines a different reality:"
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "text_blocks": [
+        {
+          "text": "Next-generation integrations"
+        },
+        {
+          "text": "Timo capitalises on emergent systems in AI and Zero Knowledge proofs, to generate additional revenue and added layers of protection for users. "
+        },
+        {
+          "text": "Zero Knowledge KYC"
+        },
+        {
+          "text": "Data-as-a-service "
+        },
+        {
+          "text": "ID Verification is managed securely, preventing fake accounts while preserving user privacy. "
+        },
+        {
+          "text": "Timo rides generate real time traffic data, informing AI models and generating new revenue streams"
+        },
+        {
+          "text": "Timo embeds seamlessly into partner platforms and provides revenue sharing options for fast adoption"
+        },
+        {
+          "text": "Interoperable standard"
+        },
+        {
+          "text": "On-chain payments"
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "text_blocks": [
+        {
+          "text": "Connectivity gaps"
+        },
+        {
+          "text": "Unstable demand:"
+        },
+        {
+          "text": "Ride requests are inconsistent, especially outside major cities."
+        },
+        {
+          "text": "Inability to reliably receive bookings or complete trips in low-signal zones reduces earnings"
+        },
+        {
+          "text": "Limited Ownership"
+        },
+        {
+          "text": "High commission cuts"
+        },
+        {
+          "text": "Drivers have no stake in the platform\u2019s growth and can\u2019t build lasting customer relationships."
+        },
+        {
+          "text": "Losing up to 45\u201350% of earnings to platforms, while fuel and operating costs rise."
+        },
+        {
+          "text": "Lack of personalization"
+        },
+        {
+          "text": "Zero option to choose preferred drivers or vehicles leads to impersonal experiences."
+        },
+        {
+          "text": "Unreliable service"
+        },
+        {
+          "text": "Safety concerns"
+        },
+        {
+          "text": "Frequent cancellations, late arrivals, and inconsistent quality disrupt travel plans."
+        },
+        {
+          "text": "Limited transparency on driver background, vehicle condition, and trip monitoring undermines trust."
+        },
+        {
+          "text": "Current Issues with Ride Hailing in Africa"
+        },
+        {
+          "text": "In 2025, the Ride Hailing industry is at a breaking point - with citywide driver strikes affecting Uber and Bolt, and confidence in trust and safety at an all time low. Here are the core issues for both drivers and riders."
+        },
+        {
+          "text": "Riders"
+        },
+        {
+          "text": "Drivers"
+        },
+        {
+          "text": "Connectivity gaps"
+        },
+        {
+          "text": "Existing ride-hailing apps fail in low or no internet signal areas, leaving passengers stranded."
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "text_blocks": [
+        {
+          "text": "Offline job management"
+        },
+        {
+          "text": "Steady demand"
+        },
+        {
+          "text": "Direct partnerships with hotels, airports, and event organizers secure consistent ride requests."
+        },
+        {
+          "text": "Ability to accept and complete rides without continuous internet connectivity ensures work continuity in low-signal zones."
+        },
+        {
+          "text": "Ownership model"
+        },
+        {
+          "text": "Fair earnings"
+        },
+        {
+          "text": "Drivers and community-owned fleets share in platform growth, building loyal customer bases and benefiting long-term."
+        },
+        {
+          "text": "Lower platform rates improve take-home pay amid rising costs."
+        },
+        {
+          "text": "Offline-capable"
+        },
+        {
+          "text": "Choice & comfort"
+        },
+        {
+          "text": "Ability to select preferred drivers and vehicles tailored to trip needs."
+        },
+        {
+          "text": "Works seamlessly in low or no internet areas, automatically reconnecting when signal returns."
+        },
+        {
+          "text": "Enhanced safety"
+        },
+        {
+          "text": "Verified drivers, transparent profiles, and real-time trip monitoring ensure trust."
+        },
+        {
+          "text": "Timo\u2019s Solution:"
+        },
+        {
+          "text": "We have a build that tackles each of these issues for both rides and drives-  combining business insight and technical innovation. "
+        },
+        {
+          "text": "Riders"
+        },
+        {
+          "text": "Drivers"
+        },
+        {
+          "text": "Reliable scheduling"
+        },
+        {
+          "text": "Advance booking with guaranteed on-time arrivals to reduce disruptions."
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "text_blocks": [
+        {
+          "text": "Choose your vehicle"
+        },
+        {
+          "text": "View your driver"
+        },
+        {
+          "text": "Schedule your ride"
+        },
+        {
+          "text": "Product: Full choice + customisability"
+        },
+        {
+          "text": "Timo embeds seamlessly into partner platforms and provides revenue sharing options for fast adoption"
+        },
+        {
+          "text": "We give users the ability to choose everything about their ride, down to the smallest detail. \nThis unlocks trust for tourism operators and corporates who wish to know who they are riding with ahead of time. \nIn addition, Timo embeds into partner portals for a seamless experience, with revenue sharing options. "
+        },
+        {
+          "text": "Book in advance, just like you do on Air Bnb"
+        },
+        {
+          "text": "Find the ride that suits your exact preference"
+        },
+        {
+          "text": "Check their reviews, ratings, and personal traits "
+        },
+        {
+          "text": "Timo"
+        },
+        {
+          "text": "An Africa-first decentralised mobility brand"
+        },
+        {
+          "text": "Timo is the first African mobility company  built for the era of decentralisation. \nWe combine deep sector knowledge with web3 principles and emergent technology, to empower riders to travel with confidence, and drivers to work with dignity. \nIdentity, Safety, Interoperability and Choice lie at the heart of our build. We have a strong network of luxury vehicles, tourism partners and corporates waiting for our solution.\n "
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "text_blocks": [
+        {
+          "text": "KEY DIFFERENTIATORS"
+        },
+        {
+          "text": "Choice"
+        },
+        {
+          "text": "Interoperability"
+        },
+        {
+          "text": "Local Ownership & Trust Layer"
+        },
+        {
+          "text": "Tourism focus"
+        },
+        {
+          "text": "Commission-Based Ecosystem"
+        },
+        {
+          "text": "Focus on Underserved Markets"
+        },
+        {
+          "text": "Enterprise & Events Ready"
+        },
+        {
+          "text": "Scheduled rides with personalized features (vehicle type, driver, comfort)."
+        },
+        {
+          "text": "Connects to hotel systems, event apps"
+        },
+        {
+          "text": "Community-based fleets, trained drivers, ratings, ID, feedback."
+        },
+        {
+          "text": "Partners with hotels, airports, airlines, and tourism boards."
+        },
+        {
+          "text": "100% cashless; partners earn via affiliate QR codes."
+        },
+        {
+          "text": "Africa-first; built for low-signal, fragmented regions."
+        },
+        {
+          "text": "Ride bundles, corporate billing, branded guest services."
+        },
+        {
+          "text": "Focus on on-demand with little customisation"
+        },
+        {
+          "text": "Closed systems, limited API access."
+        },
+        {
+          "text": "Centralized driver onboarding."
+        },
+        {
+          "text": "Focus on B2C only."
+        },
+        {
+          "text": "Transactional; no partner incentives."
+        },
+        {
+          "text": "Struggles in these areas."
+        },
+        {
+          "text": "Minimal or no enterprise features."
+        },
+        {
+          "text": "Tourists and professionals want reliability"
+        },
+        {
+          "text": "Enables rapid scaling via partnerships "
+        },
+        {
+          "text": "Builds safety, cultural sensitivity, and reliability."
+        },
+        {
+          "text": "We access institutional demand with lower CAC."
+        },
+        {
+          "text": "Aligns incentives \u2014 makes Timo worth promoting."
+        },
+        {
+          "text": "Timo unlocks latent demand \u2014 gains first-mover advantage."
+        },
+        {
+          "text": "High-LTV B2B market with repeat demand."
+        },
+        {
+          "text": " TIMO "
+        },
+        {
+          "text": " OTHERS "
+        },
+        {
+          "text": " WHY IT MATTERS "
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "text_blocks": [
+        {
+          "text": "KEY DIFFERENTIATORS"
+        },
+        {
+          "text": "Avg. Fare: $6.80 | \nDriver Take-home: $5.44 \u2028(20% commission)"
+        },
+        {
+          "text": "Gross margin: 25\u201330% \n(vs. 15\u201320% industry avg)."
+        },
+        {
+          "text": "Fare Structure & Dynamic Pricing"
+        },
+        {
+          "text": "Tourism premium adds 15\u201320% margin.\nAdaptive engine supports ZAR/USD/ZMW."
+        },
+        {
+          "text": "The Potential of \u2028Decentralised Mobility"
+        },
+        {
+          "text": "Reliance on centralised technology providers is holding us back. Uber and Bolt hold all user data, and make all the rules. This lack of transparency is frustrating for drivers, and locks users in.  \u2028\u2028Timo imagines a different reality:"
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "text_blocks": [
+        {
+          "text": "MISSION"
+        },
+        {
+          "text": "Tourism market Penetration"
+        },
+        {
+          "text": " Target: 50K riders in Y1 | 20% repeat rate"
+        },
+        {
+          "text": "MOUs signed"
+        },
+        {
+          "text": "Airport & Hotel"
+        },
+        {
+          "text": "Tourism Board "
+        },
+        {
+          "text": "Executive Summary"
+        },
+        {
+          "text": "Executive Summary"
+        },
+        {
+          "text": "Executive Summary"
+        },
+        {
+          "text": "Executive Summary"
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "text_blocks": [
+        {
+          "text": "Unit Economics Optimization"
+        },
+        {
+          "text": "Timo embeds seamlessly into partner platforms and provides revenue sharing options for fast adoption"
+        },
+        {
+          "text": "Interoperable standard"
+        },
+        {
+          "text": "On-chain payments"
+        },
+        {
+          "text": "Pilot \u2192 Next 6 Months Targets:"
+        },
+        {
+          "text": "Driver Utilization: 10 \u2192 80 rides/month (8x)\n\u2022 Revenue per Ride: $3.6 \u2192 $7\u2013$10 (2.5x)\n\u2022 Gross Margin: 8% \u2192 25%+"
+        },
+        {
+          "text": "Levers: PathPulse routing | Pre-booked tourism rides | Driver incentives"
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "text_blocks": [
+        {
+          "text": "Cross Border Scalability & Risk Mitigation"
+        },
+        {
+          "text": "Timo embeds seamlessly into partner platforms and provides revenue sharing options for fast adoption"
+        },
+        {
+          "text": "Interoperable standard"
+        },
+        {
+          "text": "On-chain payments"
+        },
+        {
+          "text": "Local partnerships \u2192 60% licensing risk reduction"
+        },
+        {
+          "text": "Multi-currency wallet (ZAR/USD/ZMW)"
+        },
+        {
+          "text": "Compliance templates \u2192 <45 days new market launch."
+        }
+      ]
+    },
+    {
+      "index": 15,
+      "text_blocks": [
+        {
+          "text": "$40B"
+        },
+        {
+          "text": "KEY DIFFERENTIATORS"
+        },
+        {
+          "text": "Market Opportunity"
+        },
+        {
+          "text": "$5B"
+        },
+        {
+          "text": "$200m"
+        },
+        {
+          "text": "Tourism spend Southern Africa"
+        },
+        {
+          "text": "Mobility SAM"
+        },
+        {
+          "text": "Timo SOM"
+        },
+        {
+          "text": "Technical \nDifferentiation"
+        },
+        {
+          "text": "Mobile money / \nstablecoins"
+        },
+        {
+          "text": "Highly scalable"
+        },
+        {
+          "text": "Identity + Trust \u2028Layer"
+        },
+        {
+          "text": "Timo doesn\u2019t need a constant internet connection to function - and can even operate via bluetooth connection. "
+        },
+        {
+          "text": "Timo utilises auto-failover and auto-load balancing - ensuring the app has zero downtime and smooth, reliable service "
+        },
+        {
+          "text": "Rides are cashless, \nenhancing safety and convenience\nand allowing people without bank accounts to benefit from the platform"
+        },
+        {
+          "text": "All riders and drivers are credentialled using an interoperable identity layer - improving trust and safety incrementally. "
+        },
+        {
+          "text": "2025: 10K riders | 2026: 50K | 2027: 120K\nRevenue: $35K \u2192 $1.8M (break-even)."
+        },
+        {
+          "text": "CONFIDENTIAL"
+        },
+        {
+          "text": "TIMO"
+        }
+      ]
+    },
+    {
+      "index": 16,
+      "text_blocks": [
+        {
+          "text": "Eddison Shumba\nCEO \u2028https://www.linkedin.com/in/eddison-shumba-356a2166/\u2028"
+        },
+        {
+          "text": "Cordy Joseph\nCMO\nhttps://www.linkedin.com/in/cordy-joseph-2ab8a1a9/\nStrategist at the intersection of crypto, mobility, and frontier markets. With 8+ years of experience in decentralized identity, payments, and ecosystem design, Cordy is the founder of HNDL (Bitcoin-based identity) and CEO of FameGuild (AI agents + creator economies). At Timo, he leads growth and platform strategy\u2014integrating trust layers, mobile money, and web3 infrastructure to position Timo as Africa\u2019s category-defining mobility network."
+        },
+        {
+          "text": "Max Gershfield \nCSO\nhttps://www.linkedin.com/in/max-gershfield\n4 years\u2019 experience working for Uber\u2019s Global Creative Team, 4 years experience working inside web3 with OASIS Web4, and award-winning web3 marketing agency Flight3. Max is a highly experienced strategist with a broad understanding of emergent technologies and startups. \n\u2028"
+        },
+        {
+          "text": "Entrepreneur, VC fellow, and startup ecosystem builder with 10+ years\u2019 experience. At TIMO, he leads innovation in tourism and mobility across Africa. He\u2019s also co-leading ProtoSeed Ventures, backing student-led tech startups. Eddison has mentored 1,000+ founders, contributed to early-stage capital programs, and received recognition from UNDP, ILO-GIZ, and the Ford Mobility Fellowship.\u00a0\u00a0"
+        },
+        {
+          "text": "David Ellams\nCTO\nhttps://www.linkedin.com/in/david-ellams-77132142/\nDavid is the architect of OASIS Web4, an interoperability layer spanning web2 and web3. David has over 18 years in professional IT, contracting for companies including Nokia, HSBC, and KPMG. "
+        },
+        {
+          "text": "CORE TEAM"
+        },
+        {
+          "text": "CONFIDENTIAL"
+        },
+        {
+          "text": "TIMO"
+        }
+      ]
+    },
+    {
+      "index": 17,
+      "text_blocks": [
+        {
+          "text": "Faridun Berdiev\nTech Lead \u2028https://www.linkedin.com/in/christineheiss/"
+        },
+        {
+          "text": "Qurbonali Nazarov\nBack-end developer\nhttps://www.linkedin.com/in/qurbonali-nazarov-8837b2310/\nBackend Developer with expertise in .NET Core, Entity Framework Core, and ASP.NET Core. Proficient in building robust backend solutions to support scalable applications. "
+        },
+        {
+          "text": "Aziz Bobokhujaev\nFront-end \nhttps://www.linkedin.com/in/aziz-bobokhujaev-245bb2229/\nAziz focuses on UX / UI, He is familiar with HTML, CSS, and Tailwind CSS. Dedicated to delivering efficient and reliable software solutions."
+        },
+        {
+          "text": "Sahil Jada\nFull stack\nhttps://www.linkedin.com/in/david-ellams-77132142/\nSouth African-based full-stack developer focused on building real-world web applications using the MERN stack"
+        },
+        {
+          "text": "Faha is a highly experienced .NET developer, and the founder of the .NET Academy - a school which produces high quality professional Software Engineers. He has over 5 years as a professional software developer, focusing on back-end and distributed systems, as well as web3 technologies, smart contracting and token bridging."
+        },
+        {
+          "text": "TECH TEAM"
+        },
+        {
+          "text": "5K+"
+        },
+        {
+          "text": "500+"
+        },
+        {
+          "text": "4"
+        },
+        {
+          "text": "Rides completed\u2028During pilot phase"
+        },
+        {
+          "text": "Registered Drivers\u2028Across Africa"
+        },
+        {
+          "text": "Key Partnerships\u2028Tunisia King Events, AMC Chauffeur, SATC, Durban networks"
+        },
+        {
+          "text": "Traction Signals"
+        },
+        {
+          "text": "CONFIDENTIAL"
+        },
+        {
+          "text": "TIMO"
+        }
+      ]
+    },
+    {
+      "index": 18,
+      "text_blocks": [
+        {
+          "text": "Eric Osiekwan\nBoard Member\nEric is a renowned entrepreneur and investor with over 25 years of experience in the ICT sector across Africa and beyond. He has worked in 32 African countries, leading the establishment of Internet Service Providers (ISPs), Internet Exchange Points (IXPs), and high-growth tech startups. Eric is the Co-Founder of Angel Africa List and Angel Fair Africa, and currently serves on the board of Farmerline, among others. As an active investor and ecosystem builder, his influence spans across infrastructure, innovation, and capital\u2014making him an invaluable asset to Timo\u2019s strategic direction and growth in African markets."
+        },
+        {
+          "text": "Anna Ressa\nBoard Member\nAnna\u00a0is an experienced EU Project Manager at TECNOPOLIS Science & Technology Park in Puglia, Italy. With over two decades of expertise, she specializes in designing and managing funded projects across sectors such as culture, business development, agriculture, territorial promotion, youth empowerment, technological innovation, and international cooperation.\nAnna combines strategic thinking with hands-on project execution, working with programs like Interreg, Horizon Europe, and UIA. She is also an independent consultant in European project planning and a former lecturer in EU project design. Anna actively contributes to sustainable growth through collaborative initiatives at the local, national, and EU levels."
+        },
+        {
+          "text": "Tinyiko Valoyi \nBoard Member\nTinyiko is a seasoned technology executive and telecoms entrepreneur. He was most recently the CEO of iBurst Africa, a pioneering wireless broadband group, where he led the company\u2019s first expansion into West Africa by establishing operations in Ghana. Under his leadership, iBurst raised over $33 million to scale its footprint across Ghana, Mozambique, Kenya, and the DRC. Prior to this, he served as Chief Technology Officer at RMB Private Bank, where he spearheaded critical modernization efforts\u2014integrating legacy mainframe banking systems like Hogan and Phoenix into modern service-oriented architectures. Tinyiko brings a rare blend of strategic vision, fundraising experience, and deep technical expertise to the board."
+        },
+        {
+          "text": "BOARD OF ADVISORS"
+        },
+        {
+          "text": "Executive \u2028Summary"
+        },
+        {
+          "text": "CONFIDENTIAL"
+        },
+        {
+          "text": "TIMO"
+        }
+      ]
+    },
+    {
+      "index": 19,
+      "text_blocks": [
+        {
+          "text": "MISSION"
+        },
+        {
+          "text": "The Potential of \u2028Decentralised Mobility"
+        },
+        {
+          "text": "Reliance on centralised technology providers is holding us back. Uber and Bolt hold all user data, and make all the rules. This lack of transparency is frustrating for drivers, and locks users in.  \u2028\u2028Timo imagines a different reality:"
+        },
+        {
+          "text": "Trust is of the utmost importance to fostering a safe platform - and it builds over time. Our cross-chain identity system builds trust with every completed ride, and is owned by the user - meaning it can be taken off Timo at any point. "
+        },
+        {
+          "text": "We believe that users want the ability to choose their ride down to the smallest detail. Our marketplace gives them the tools to do so, displaying clear driver profiles and vehicle conditions for a worry-free experience "
+        },
+        {
+          "text": "Timo embeds seamlessly into partner platforms and provides revenue sharing options for fast adoption"
+        },
+        {
+          "text": "Timo embeds both mobile money and stablecoins payments, offering immediate settlement as well as advanced credit options that assist drivers."
+        },
+        {
+          "text": "Identity System"
+        },
+        {
+          "text": "Mobility Marketplace"
+        },
+        {
+          "text": "Interoperable standard"
+        },
+        {
+          "text": "On-chain payments"
+        },
+        {
+          "text": "Executive Summary"
+        },
+        {
+          "text": "Executive Summary"
+        },
+        {
+          "text": "Executive Summary"
+        },
+        {
+          "text": "Executive Summary"
+        }
+      ]
+    },
+    {
+      "index": 20,
+      "text_blocks": [
+        {
+          "text": "MISSION"
+        },
+        {
+          "text": "Designed for trust, not just for transport"
+        }
+      ]
+    },
+    {
+      "index": 21,
+      "text_blocks": [
+        {
+          "text": "KEY DIFFERENTIATORS"
+        },
+        {
+          "text": "5K+"
+        },
+        {
+          "text": "500+"
+        },
+        {
+          "text": "4"
+        },
+        {
+          "text": "Rides completed\u2028During pilot phase"
+        },
+        {
+          "text": "And recognition from: "
+        },
+        {
+          "text": "Registered Drivers\u2028Across Africa"
+        },
+        {
+          "text": "Key Partnerships\u2028Tunisia King Events, AMC Chauffeur, SATC, Durban networks"
+        },
+        {
+          "text": "Traction Signals"
+        },
+        {
+          "text": "CONFIDENTIAL"
+        },
+        {
+          "text": "TIMO"
+        }
+      ]
+    },
+    {
+      "index": 22,
+      "text_blocks": [
+        {
+          "text": "Term sheet:"
+        },
+        {
+          "text": "FUNDRAISING"
+        },
+        {
+          "text": "WHICH WILL BE USED ON"
+        },
+        {
+          "text": "CONFIDENTIAL"
+        },
+        {
+          "text": "TIMO"
+        },
+        {
+          "text": "Valuation\n$2,500,000"
+        },
+        {
+          "text": "15%"
+        },
+        {
+          "text": "Reserve &\u2028Contingency"
+        },
+        {
+          "text": "10%"
+        },
+        {
+          "text": "Legal & Compliance"
+        },
+        {
+          "text": "20%"
+        },
+        {
+          "text": "Marketing &\u2028Incentives"
+        },
+        {
+          "text": "25% "
+        },
+        {
+          "text": "Tourism Partnership"
+        },
+        {
+          "text": "30% "
+        },
+        {
+          "text": "Product development\u2028PathPulse integration"
+        },
+        {
+          "text": "Instrument: \u2028SAFE\nDiscount: 20%"
+        },
+        {
+          "text": "Raise amount:\n$500,000"
+        }
+      ]
+    },
+    {
+      "index": 23,
+      "text_blocks": [
+        {
+          "text": "REVENUE MODEL"
+        },
+        {
+          "text": "PROFIT MECHANISM"
+        }
+      ]
+    },
+    {
+      "index": 24,
+      "text_blocks": [
+        {
+          "text": "Timo presents a venture-scale opportunity in Africa's rapidly evolving mobility sector. We have the partners, infrastructure, and ambition to build a category-defining platform. This pre-seed raise will position us to launch, scale rapidly, and deliver on a vision that global platforms have yet to realize across the continent."
+        },
+        {
+          "text": " SUMMARY"
+        },
+        {
+          "text": "CONFIDENTIAL"
+        },
+        {
+          "text": "TIMO"
+        }
+      ]
+    }
+  ]
+}
