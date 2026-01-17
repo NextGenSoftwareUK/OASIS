@@ -1,5 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import https from 'https';
+import fs from 'fs';
+import FormData from 'form-data';
 import { config } from '../config.js';
 
 export class OASISClient {
@@ -95,7 +97,7 @@ export class OASISClient {
   /**
    * Mint NFT
    * Requires authentication. Minimum required: JSONMetaDataURL, Symbol
-   * Defaults: OnChainProvider=SolanaOASIS, OffChainProvider=None, NFTOffChainMetaType=ExternalJsonURL, NFTStandardType=SPL
+   * Defaults: OnChainProvider=SolanaOASIS, OffChainProvider=MongoDBOASIS, NFTOffChainMetaType=OASIS, NFTStandardType=SPL
    */
   async mintNFT(request: {
     JSONMetaDataURL: string;
@@ -111,6 +113,7 @@ export class OASISClient {
     NFTOffChainMetaType?: string;
     NFTStandardType?: string;
     StoreNFTMetaDataOnChain?: boolean;
+    MetaData?: Record<string, any>;
     SendToAddressAfterMinting?: string;
     SendToAvatarAfterMintingId?: string;
     SendToAvatarAfterMintingUsername?: string;
@@ -130,10 +133,11 @@ export class OASISClient {
       Price: request.Price || 0,
       NumberToMint: request.NumberToMint || 1,
       OnChainProvider: request.OnChainProvider || 'SolanaOASIS',
-      OffChainProvider: request.OffChainProvider || 'None',
-      NFTOffChainMetaType: request.NFTOffChainMetaType || 'ExternalJsonURL',
+      OffChainProvider: request.OffChainProvider || 'MongoDBOASIS',
+      NFTOffChainMetaType: request.NFTOffChainMetaType || 'OASIS',
       NFTStandardType: request.NFTStandardType || 'SPL',
       StoreNFTMetaDataOnChain: request.StoreNFTMetaDataOnChain || false,
+      MetaData: request.MetaData,
       SendToAddressAfterMinting: request.SendToAddressAfterMinting,
       SendToAvatarAfterMintingId: request.SendToAvatarAfterMintingId,
       SendToAvatarAfterMintingUsername: request.SendToAvatarAfterMintingUsername,
@@ -143,6 +147,47 @@ export class OASISClient {
       AttemptToMintEveryXSeconds: request.AttemptToMintEveryXSeconds || 1,
     };
     const response = await this.client.post('/api/nft/mint-nft', mintRequest);
+    return response.data;
+  }
+
+  /**
+   * Upload a file to Pinata/IPFS
+   * @param filePath - Path to the file to upload
+   * @param provider - Storage provider (default: "PinataOASIS")
+   * @returns IPFS URL of the uploaded file
+   */
+  async uploadFile(filePath: string, provider: string = 'PinataOASIS'): Promise<any> {
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
+
+    const formData = new FormData();
+    const fileStream = fs.createReadStream(filePath);
+    const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || 'file';
+    
+    formData.append('file', fileStream, fileName);
+    formData.append('provider', provider);
+
+    // Use a separate axios instance for multipart/form-data
+    const httpsAgent = new https.Agent({
+      rejectUnauthorized: false
+    });
+
+    const uploadClient = axios.create({
+      baseURL: config.oasisApiUrl,
+      headers: {
+        ...formData.getHeaders(),
+        ...(this.authToken && {
+          Authorization: `Bearer ${this.authToken}`,
+        }),
+      },
+      timeout: 120000, // 2 minutes for large files
+      httpsAgent: httpsAgent,
+      maxRedirects: 0,
+      validateStatus: (status) => status < 500,
+    });
+
+    const response = await uploadClient.post('/api/files/upload', formData);
     return response.data;
   }
 
