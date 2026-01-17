@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -183,6 +187,76 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<bool>> UpdateFileMetadata(Guid fileId, [FromBody] Dictionary<string, object> metadata)
         {
             return await FilesManager.Instance.UpdateFileMetadataAsync(AvatarId, fileId, metadata);
+        }
+
+        /// <summary>
+        /// Upload a file to IPFS via Pinata (multipart/form-data).
+        /// Returns the IPFS hash/URL that can be used for NFT metadata.
+        /// </summary>
+        [Authorize]
+        [HttpPost("upload")]
+        public async Task<OASISResult<string>> UploadFileToIPFS(IFormFile file, string provider = "PinataOASIS")
+        {
+            OASISResult<string> result = new OASISResult<string>();
+
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "No file provided");
+                    return result;
+                }
+
+                // Read file data
+                byte[] fileData;
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    fileData = memoryStream.ToArray();
+                }
+
+                // Use PinataOASIS provider
+                if (provider == "PinataOASIS" || string.IsNullOrEmpty(provider))
+                {
+                    PinataOASIS pinata = new PinataOASIS();
+                    
+                    // Activate provider if not already activated
+                    if (!pinata.IsProviderActivated)
+                    {
+                        var activateResult = pinata.ActivateProvider();
+                        if (activateResult.IsError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Failed to activate Pinata provider: {activateResult.Message}");
+                            return result;
+                        }
+                    }
+
+                    // Upload to Pinata/IPFS
+                    var uploadResult = await pinata.UploadFileToPinataAsync(fileData, file.FileName, file.ContentType);
+                    
+                    if (uploadResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, uploadResult.Message);
+                        return result;
+                    }
+
+                    // Return IPFS URL (using Pinata gateway)
+                    string ipfsHash = uploadResult.Result;
+                    string ipfsUrl = $"https://gateway.pinata.cloud/ipfs/{ipfsHash}";
+                    result.Result = ipfsUrl;
+                    result.Message = "File uploaded to IPFS successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Provider '{provider}' is not yet supported. Please use 'PinataOASIS'.");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error uploading file: {ex.Message}");
+            }
+
+            return result;
         }
     }
 }
