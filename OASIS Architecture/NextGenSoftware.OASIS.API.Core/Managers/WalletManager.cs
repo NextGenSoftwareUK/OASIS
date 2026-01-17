@@ -55,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             ProviderWallet newWallet = new ProviderWallet()
             {
                 WalletId = Guid.NewGuid(),
+                AvatarId = avatarId,
                 Name = name,
                 Description = description,
                 CreatedByAvatarId = avatarId,
@@ -802,8 +803,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar could not be found or does not have a wallet for provider {request.ToProvider.Name} so the transaction cannot be sent. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
             }
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProvider)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
+            //else
+            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProvider)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
 
 
             if (result.IsError)
@@ -2168,16 +2169,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (result.Result != null)
                         {
-                            OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, avatarId, providerType);
+                            result.IsLoaded = true;
+                            result.IsError = false;
 
-                            if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
-                            {
-                                result.Result = walletResult.Result;
-                                result.IsLoaded = true;
-                                result.IsError = false;
-                            }
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ProcessDecryption. Reason: {walletResult.Message}");
+                            //OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, avatarId, providerType);
+
+                            //if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                            //{
+                            //    result.Result = walletResult.Result;
+                            //    result.IsLoaded = true;
+                            //    result.IsError = false;
+                            //}
+                            //else
+                            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ProcessDecryption. Reason: {walletResult.Message}");
 
                             break;
                         }
@@ -2213,17 +2217,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (result.Result != null)
                         {
-                            OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, avatarId, providerType);
+                            result.IsLoaded = true;
+                            result.IsError = false;
 
-                            if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
-                            {
-                                result.Result = walletResult.Result;
-                                result.IsLoaded = true;
-                                result.IsError = false;
-                            }
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ProcessDecryption. Reason: {walletResult.Message}");
+                            //OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, avatarId, providerType);
 
+                            //if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                            //{
+                            //    result.Result = walletResult.Result;
+                            //    result.IsLoaded = true;
+                            //    result.IsError = false;
+                            //}
+                            //else
+                            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ProcessDecryption. Reason: {walletResult.Message}");s
                             break;
                         }
                     }
@@ -2259,17 +2265,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         if (result.Result != null)
                         {
                             //TODO: Check that avatarId isnt needed here (hopefully privatekey should already be loaded from the local provider!)
-                            OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, Guid.Empty, providerType);
+                            result.IsLoaded = true;
+                            result.IsError = false;
 
-                            if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
-                            {
-                                result.Result = walletResult.Result;
-                                result.IsLoaded = true;
-                                result.IsError = false;
-                            }
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ProcessDecryption. Reason: {walletResult.Message}");
+                            //OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, avatarId, providerType);
 
+                            //if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                            //{
+                            //    result.Result = walletResult.Result;
+                            //    result.IsLoaded = true;
+                            //    result.IsError = false;
+                            //}
+                            //else
+                            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ProcessDecryption. Reason: {walletResult.Message}");
                             break;
                         }
                     }
@@ -2304,8 +2312,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (result.Result != null)
                         {
-                            ////TODO: Check that avatarId isnt needed here (hopefully privatekey should already be loaded from the local provider!)
-                            //OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, Guid.Empty, providerType);
+                            result.IsLoaded = true;
+                            result.IsError = false;
+
+                            //OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, avatarId, providerType);
 
                             //if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
                             //{
@@ -2315,7 +2325,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             //}
                             //else
                             //    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ProcessDecryption. Reason: {walletResult.Message}");
-
                             break;
                         }
                     }
@@ -2350,8 +2359,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (result.Result != null)
                         {
-                            //TODO: Check that avatarId isnt needed here (hopefully privatekey should already be loaded from the local provider!)
-                            //OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, Guid.Empty, providerType);
+                            result.IsLoaded = true;
+                            result.IsError = false;
+
+                            //OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, avatarId, providerType);
 
                             //if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
                             //{
@@ -2361,7 +2372,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             //}
                             //else
                             //    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ProcessDecryption. Reason: {walletResult.Message}");
-
                             break;
                         }
                     }
@@ -2396,8 +2406,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (result.Result != null)
                         {
-                            //TODO: Check that avatarId isnt needed here (hopefully privatekey should already be loaded from the local provider!)
-                            //OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, Guid.Empty, providerType);
+                            result.IsLoaded = true;
+                            result.IsError = false;
+
+                            //OASISResult<IProviderWallet> walletResult = ProcessDecryption(result.Result, showPrivateKeys, showSecretWords, avatarId, providerType);
 
                             //if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
                             //{
@@ -2407,7 +2419,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             //}
                             //else
                             //    OASISErrorHandling.HandleError(ref result, $"{errorMessage}Error occured calling ProcessDecryption. Reason: {walletResult.Message}");
-
                             break;
                         }
                     }
@@ -3812,11 +3823,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<IProviderWallet>> ImportWalletUsingJSONFileByIdAsync(Guid avatarId, string pathToJSONFile)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-            string errorMessage = "Error occured in ImportWalletUsingJSONFile. Reason: ";
+            string errorMessage = "Error occured in ImportWalletUsingJSONFileByIdAsync. Reason: ";
 
             try
             {
-                result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
+
+                try
+                {
+                    result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export function and not the export all function.");
+                    return result;
+                }
 
                 if (result.Result != null)
                 {
@@ -3860,7 +3885,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
+
+                try
+                {
+                    result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export function and not the export all function.");
+                    return result;
+                }
 
                 if (result.Result != null)
                 {
@@ -3904,7 +3943,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
+
+                try
+                {
+                    result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export function and not the export all function.");
+                    return result;
+                }
 
                 if (result.Result != null)
                 {
@@ -3948,7 +4001,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
+
+                try
+                {
+                    result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export function and not the export all function.");
+                    return result;
+                }
 
                 if (result.Result != null)
                 {
@@ -3992,7 +4059,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
+
+                try
+                {
+                    result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export function and not the export all function.");
+                    return result;
+                }
 
                 if (result.Result != null)
                 {
@@ -4036,7 +4117,21 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
+
+                try
+                {
+                    result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export function and not the export all function.");
+                    return result;
+                }
 
                 if (result.Result != null)
                 {
@@ -4073,270 +4168,563 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        //TODO: Finish later! ;-)
-        //public async Task<OASISResult<IProviderWallet>> ImportWalletUsingJSONFileByIdAsync(Guid avatarId, string pathToJSONFile)
-        //{
-        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-        //    string errorMessage = "Error occured in ImportWalletUsingJSONFile. Reason: ";
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ImportAllWalletsUsingJSONFileByIdAsync(Guid avatarId, string pathToJSONFile)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            string errorMessage = "Error occured in ImportAllWalletsUsingJSONFileByIdAsync. Reason: ";
+            Dictionary<ProviderType, List<ProviderWallet>> importedWallets = null;
 
-        //    try
-        //    {
-        //        result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+            try
+            {
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
 
-        //        if (result.Result != null)
-        //        {
-        //            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByIdAsync(avatarId);
+                try
+                {
+                    importedWallets = JsonConvert.DeserializeObject<Dictionary<ProviderType, List<ProviderWallet>>>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export all function and not the export function.");
+                    return result;
+                }
 
-        //            if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
-        //            {
-        //                if (!walletsResult.Result.ContainsKey(result.Result.ProviderType))
-        //                    walletsResult.Result[result.Result.ProviderType] = new List<IProviderWallet>();
+                if (importedWallets != null)
+                {
+                    result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
 
-        //                if (!walletsResult.Result[result.Result.ProviderType].Any(x => x.Id == result.Result.Id))
-        //                {
-        //                    walletsResult.Result[result.Result.ProviderType].Add(result.Result);
+                    foreach (ProviderType providerType in importedWallets.Keys)
+                    {
+                        result.Result[providerType] = new List<IProviderWallet>();
+                        foreach (ProviderWallet wallet in importedWallets[providerType])
+                            result.Result[providerType].Add(wallet);
+                    }
+                }
 
-        //                    OASISResult<bool> saveResult = await SaveProviderWalletsForAvatarByIdAsync(avatarId, walletsResult.Result);
+                if (result.Result != null)
+                {
+                    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByIdAsync(avatarId);
 
-        //                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
-        //                        result.Message = "Wallet Imported Successfully";
-        //                    else
-        //                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByIdAsync. Reason: {saveResult.Message}");
-        //                }
-        //                else
-        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The wallet with id {result.Result.Id} and name '{result.Result.Name}' for provider type {Enum.GetName(typeof(ProviderType), result.Result.ProviderType)} already exists so it cannot be imported again!");
-        //            }
-        //            else
-        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByIdAsync. Reason: {walletsResult.Message}");
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
-        //    }
+                    if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                    {
+                        foreach (ProviderType providerType in result.Result.Keys)
+                        {
+                            if (!walletsResult.Result.ContainsKey(providerType))
+                                walletsResult.Result[providerType] = new List<IProviderWallet>();
 
-        //    return result;
-        //}
+                            foreach (IProviderWallet wallet in result.Result[providerType])
+                            {
+                                if (!walletsResult.Result[providerType].Any(x => x.Id == wallet.Id))
+                                {
+                                    result.SavedCount++;
+                                    walletsResult.Result[providerType].Add(wallet);
+                                }
+                                else
+                                {
+                                    CLIEngine.SupressConsoleLogging = true;
+                                    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The wallet with id {wallet.Id} and name '{wallet.Name}' for provider type {Enum.GetName(typeof(ProviderType), providerType)} already exists so it cannot be imported again!");
+                                    CLIEngine.SupressConsoleLogging = false;
+                                }
+                            }
+                        }
 
-        //public OASISResult<IProviderWallet> ImportWalletUsingJSONFileById(Guid avatarId, string pathToJSONFile)
-        //{
-        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-        //    string errorMessage = "Error occured in ImportWalletUsingJSONFileById. Reason: ";
+                        OASISResult<bool> saveResult = await SaveProviderWalletsForAvatarByIdAsync(avatarId, walletsResult.Result);
 
-        //    try
-        //    {
-        //        result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                            result.IsSaved = true;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByIdAsync. Reason: {saveResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByIdAsync. Reason: {walletsResult.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+            }
 
-        //        if (result.Result != null)
-        //        {
-        //            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarById(avatarId);
+            if (!result.IsError)
+            {
+                if (result.WarningCount > 0)
+                {
+                    result.IsWarning = true;
+                    result.Message = $"{result.SavedCount} Wallets Imported with {result.WarningCount} Warnings! \n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                }
+                else
+                    result.Message = $"{result.SavedCount} Wallets Imported Successfully";
+            }
 
-        //            if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
-        //            {
-        //                if (!walletsResult.Result.ContainsKey(result.Result.ProviderType))
-        //                    walletsResult.Result[result.Result.ProviderType] = new List<IProviderWallet>();
+            return result;
+        }
 
-        //                if (!walletsResult.Result[result.Result.ProviderType].Any(x => x.Id == result.Result.Id))
-        //                {
-        //                    walletsResult.Result[result.Result.ProviderType].Add(result.Result);
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> ImportAllWalletsUsingJSONFileById(Guid avatarId, string pathToJSONFile)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            string errorMessage = "Error occured in ImportAllWalletsUsingJSONFileById. Reason: ";
+            Dictionary<ProviderType, List<ProviderWallet>> importedWallets = null;
 
-        //                    OASISResult<bool> saveResult = SaveProviderWalletsForAvatarById(avatarId, walletsResult.Result);
+            try
+            {
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
 
-        //                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
-        //                        result.Message = "Wallet Imported Successfully";
-        //                    else
-        //                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarById. Reason: {saveResult.Message}");
-        //                }
-        //                else
-        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The wallet with id {result.Result.Id} and name '{result.Result.Name}' for provider type {Enum.GetName(typeof(ProviderType), result.Result.ProviderType)} already exists so it cannot be imported again!");
-        //            }
-        //            else
-        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarById. Reason: {walletsResult.Message}");
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
-        //    }
+                try
+                {
+                    importedWallets = JsonConvert.DeserializeObject<Dictionary<ProviderType, List<ProviderWallet>>>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export all function and not the export function.");
+                    return result;
+                }
 
-        //    return result;
-        //}
+                if (importedWallets != null)
+                {
+                    result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
 
-        //public async Task<OASISResult<IProviderWallet>> ImportWalletUsingJSONFileByUsernameAsync(string username, string pathToJSONFile)
-        //{
-        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-        //    string errorMessage = "Error occured in ImportWalletUsingJSONFileByUsernameAsync. Reason: ";
+                    foreach (ProviderType providerType in importedWallets.Keys)
+                    {
+                        result.Result[providerType] = new List<IProviderWallet>();
+                        foreach (ProviderWallet wallet in importedWallets[providerType])
+                            result.Result[providerType].Add(wallet);
+                    }
+                }
 
-        //    try
-        //    {
-        //        result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                if (result.Result != null)
+                {
+                    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarById(avatarId);
 
-        //        if (result.Result != null)
-        //        {
-        //            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByUsernameAsync(username);
+                    if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                    {
+                        foreach (ProviderType providerType in result.Result.Keys)
+                        {
+                            if (!walletsResult.Result.ContainsKey(providerType))
+                                walletsResult.Result[providerType] = new List<IProviderWallet>();
 
-        //            if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
-        //            {
-        //                if (!walletsResult.Result.ContainsKey(result.Result.ProviderType))
-        //                    walletsResult.Result[result.Result.ProviderType] = new List<IProviderWallet>();
+                            foreach (IProviderWallet wallet in result.Result[providerType])
+                            {
+                                if (!walletsResult.Result[providerType].Any(x => x.Id == wallet.Id))
+                                {
+                                    result.SavedCount++;
+                                    walletsResult.Result[providerType].Add(wallet);
+                                }
+                                else
+                                {
+                                    CLIEngine.SupressConsoleLogging = true;
+                                    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The wallet with id {wallet.Id} and name '{wallet.Name}' for provider type {Enum.GetName(typeof(ProviderType), providerType)} already exists so it cannot be imported again!");
+                                    CLIEngine.SupressConsoleLogging = false;
+                                }
+                            }
+                        }
 
-        //                if (!walletsResult.Result[result.Result.ProviderType].Any(x => x.Id == result.Result.Id))
-        //                {
-        //                    walletsResult.Result[result.Result.ProviderType].Add(result.Result);
+                        OASISResult<bool> saveResult = SaveProviderWalletsForAvatarById(avatarId, walletsResult.Result);
 
-        //                    OASISResult<bool> saveResult = await SaveProviderWalletsForAvatarByUsernameAsync(username, walletsResult.Result);
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                            result.IsSaved = true;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarById. Reason: {saveResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarById. Reason: {walletsResult.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+            }
 
-        //                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
-        //                        result.Message = "Wallet Imported Successfully";
-        //                    else
-        //                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByUsernameAsync. Reason: {saveResult.Message}");
-        //                }
-        //                else
-        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The wallet with id {result.Result.Id} and name '{result.Result.Name}' for provider type {Enum.GetName(typeof(ProviderType), result.Result.ProviderType)} already exists so it cannot be imported again!");
-        //            }
-        //            else
-        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByUsernameAsync. Reason: {walletsResult.Message}");
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
-        //    }
+            if (!result.IsError)
+            {
+                if (result.WarningCount > 0)
+                {
+                    result.IsWarning = true;
+                    result.Message = $"{result.SavedCount} Wallets Imported with {result.WarningCount} Warnings! \n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                }
+                else
+                    result.Message = $"{result.SavedCount} Wallets Imported Successfully";
+            }
 
-        //    return result;
-        //}
+            return result;
+        }
 
-        //public OASISResult<IProviderWallet> ImportWalletUsingJSONFileByUsername(string username, string pathToJSONFile)
-        //{
-        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-        //    string errorMessage = "Error occured in ImportWalletUsingJSONFileByUsername. Reason: ";
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ImportAllWalletsUsingJSONFileByUsernameAsync(string username, string pathToJSONFile)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            string errorMessage = "Error occured in ImportAllWalletsUsingJSONFileByUsernameAsync. Reason: ";
+            Dictionary<ProviderType, List<ProviderWallet>> importedWallets = null;
 
-        //    try
-        //    {
-        //        result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+            try
+            {
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
 
-        //        if (result.Result != null)
-        //        {
-        //            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarByUsername(username);
+                try
+                {
+                    importedWallets = JsonConvert.DeserializeObject<Dictionary<ProviderType, List<ProviderWallet>>>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export all function and not the export function.");
+                    return result;
+                }
 
-        //            if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
-        //            {
-        //                if (!walletsResult.Result.ContainsKey(result.Result.ProviderType))
-        //                    walletsResult.Result[result.Result.ProviderType] = new List<IProviderWallet>();
+                if (importedWallets != null)
+                {
+                    result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
 
-        //                if (!walletsResult.Result[result.Result.ProviderType].Any(x => x.Id == result.Result.Id))
-        //                {
-        //                    walletsResult.Result[result.Result.ProviderType].Add(result.Result);
+                    foreach (ProviderType providerType in importedWallets.Keys)
+                    {
+                        result.Result[providerType] = new List<IProviderWallet>();
+                        foreach (ProviderWallet wallet in importedWallets[providerType])
+                            result.Result[providerType].Add(wallet);
+                    }
+                }
 
-        //                    OASISResult<bool> saveResult = SaveProviderWalletsForAvatarByUsername(username, walletsResult.Result);
+                if (result.Result != null)
+                {
+                    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByUsernameAsync(username);
 
-        //                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
-        //                        result.Message = "Wallet Imported Successfully";
-        //                    else
-        //                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByUsername. Reason: {saveResult.Message}");
-        //                }
-        //                else
-        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The wallet with id {result.Result.Id} and name '{result.Result.Name}' for provider type {Enum.GetName(typeof(ProviderType), result.Result.ProviderType)} already exists so it cannot be imported again!");
-        //            }
-        //            else
-        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByUsername. Reason: {walletsResult.Message}");
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
-        //    }
+                    if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                    {
+                        foreach (ProviderType providerType in result.Result.Keys)
+                        {
+                            if (!walletsResult.Result.ContainsKey(providerType))
+                                walletsResult.Result[providerType] = new List<IProviderWallet>();
 
-        //    return result;
-        //}
+                            foreach (IProviderWallet wallet in result.Result[providerType])
+                            {
+                                if (!walletsResult.Result[providerType].Any(x => x.Id == wallet.Id))
+                                {
+                                    result.SavedCount++;
+                                    walletsResult.Result[providerType].Add(wallet);
+                                }
+                                else
+                                {
+                                    CLIEngine.SupressConsoleLogging = true;
+                                    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The wallet with id {wallet.Id} and name '{wallet.Name}' for provider type {Enum.GetName(typeof(ProviderType), providerType)} already exists so it cannot be imported again!");
+                                    CLIEngine.SupressConsoleLogging = false;
+                                }
+                            }
+                        }
 
-        //public async Task<OASISResult<IProviderWallet>> ImportAllWalletsUsingJSONFileByEmailAsync(string email, string pathToJSONFile)
-        //{
-        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-        //    string errorMessage = "Error occured in ImportWalletUsingJSONFileByEmailAsync. Reason: ";
+                        OASISResult<bool> saveResult = await SaveProviderWalletsForAvatarByUsernameAsync(username, walletsResult.Result);
 
-        //    try
-        //    {
-        //        result.Result = JsonConvert.DeserializeObject<IProviderWallet>(File.ReadAllText(pathToJSONFile));
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                            result.IsSaved = true;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByUsernameAsync. Reason: {saveResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByUsernameAsync. Reason: {walletsResult.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+            }
 
-        //        if (result.Result != null)
-        //        {
-        //            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByEmailAsync(email);
+            if (!result.IsError)
+            {
+                if (result.WarningCount > 0)
+                {
+                    result.IsWarning = true;
+                    result.Message = $"{result.SavedCount} Wallets Imported with {result.WarningCount} Warnings! \n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                }
+                else
+                    result.Message = $"{result.SavedCount} Wallets Imported Successfully";
+            }
 
-        //            if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
-        //            {
-        //                if (!walletsResult.Result.ContainsKey(result.Result.ProviderType))
-        //                    walletsResult.Result[result.Result.ProviderType] = new List<IProviderWallet>();
+            return result;
+        }
 
-        //                if (!walletsResult.Result[result.Result.ProviderType].Any(x => x.Id == result.Result.Id))
-        //                {
-        //                    walletsResult.Result[result.Result.ProviderType].Add(result.Result);
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> ImportAllWalletsUsingJSONFileByUsername(string username, string pathToJSONFile)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            string errorMessage = "Error occured in ImportAllWalletsUsingJSONFileByUsername. Reason: ";
+            Dictionary<ProviderType, List<ProviderWallet>> importedWallets = null;
 
-        //                    OASISResult<bool> saveResult = await SaveProviderWalletsForAvatarByEmailAsync(email, walletsResult.Result);
+            try
+            {
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
 
-        //                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
-        //                        result.Message = "Wallet Imported Successfully";
-        //                    else
-        //                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByEmailAsync. Reason: {saveResult.Message}");
-        //                }
-        //                else
-        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The wallet with id {result.Result.Id} and name '{result.Result.Name}' for provider type {Enum.GetName(typeof(ProviderType), result.Result.ProviderType)} already exists so it cannot be imported again!");
-        //            }
-        //            else
-        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByEmailAsync. Reason: {walletsResult.Message}");
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
-        //    }
+                try
+                {
+                    importedWallets = JsonConvert.DeserializeObject<Dictionary<ProviderType, List<ProviderWallet>>>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export all function and not the export function.");
+                    return result;
+                }
+                
+                if (importedWallets != null)
+                {
+                    result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
 
-        //    return result;
-        //}
+                    foreach (ProviderType providerType in importedWallets.Keys)
+                    {
+                        result.Result[providerType] = new List<IProviderWallet>();
+                        foreach (ProviderWallet wallet in importedWallets[providerType])
+                            result.Result[providerType].Add(wallet);
+                    }
+                }
 
-        //public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> ImportAllWalletsUsingJSONFileByEmail(string email, string pathToJSONFile)
-        //{
-        //    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
-        //    string errorMessage = "Error occured in ImportAllWalletsUsingJSONFileByEmail. Reason: ";
+                if (result.Result != null)
+                {
+                    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarByUsername(username);
 
-        //    try
-        //    {
-        //        result.Result = JsonConvert.DeserializeObject<Dictionary<ProviderType, List<IProviderWallet>>>(File.ReadAllText(pathToJSONFile));
+                    if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                    {
+                        foreach (ProviderType providerType in result.Result.Keys)
+                        {
+                            if (!walletsResult.Result.ContainsKey(providerType))
+                                walletsResult.Result[providerType] = new List<IProviderWallet>();
 
-        //        if (result.Result != null)
-        //        {
-        //            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarByEmail(email);
+                            foreach (IProviderWallet wallet in result.Result[providerType])
+                            {
+                                if (!walletsResult.Result[providerType].Any(x => x.Id == wallet.Id))
+                                {
+                                    result.SavedCount++;
+                                    walletsResult.Result[providerType].Add(wallet);
+                                }
+                                else
+                                {
+                                    CLIEngine.SupressConsoleLogging = true;
+                                    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The wallet with id {wallet.Id} and name '{wallet.Name}' for provider type {Enum.GetName(typeof(ProviderType), providerType)} already exists so it cannot be imported again!");
+                                    CLIEngine.SupressConsoleLogging = false;
+                                }
+                            }
+                        }
 
-        //            if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
-        //            {
-        //                if (!walletsResult.Result.ContainsKey(result.Result.ProviderType))
-        //                    walletsResult.Result[result.Result.ProviderType] = new List<IProviderWallet>();
+                        OASISResult<bool> saveResult = SaveProviderWalletsForAvatarByUsername(username, walletsResult.Result);
 
-        //                if (!walletsResult.Result[result.Result.ProviderType].Any(x => x.Id == result.Result.Id))
-        //                {
-        //                    walletsResult.Result[result.Result.ProviderType].Add(result.Result);
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                            result.IsSaved = true;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByUsername. Reason: {saveResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByUsername. Reason: {walletsResult.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+            }
 
-        //                    OASISResult<bool> saveResult = SaveProviderWalletsForAvatarByEmail(email, walletsResult.Result);
+            if (!result.IsError)
+            {
+                if (result.WarningCount > 0)
+                {
+                    result.IsWarning = true;
+                    result.Message = $"{result.SavedCount} Wallets Imported with {result.WarningCount} Warnings! \n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                }
+                else
+                    result.Message = $"{result.SavedCount} Wallets Imported Successfully";
+            }
 
-        //                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
-        //                        result.Message = "Wallet Imported Successfully";
-        //                    else
-        //                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByEmail. Reason: {saveResult.Message}");
-        //                }
-        //                else
-        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The wallet with id {result.Result.Id} and name '{result.Result.Name}' for provider type {Enum.GetName(typeof(ProviderType), result.Result.ProviderType)} already exists so it cannot be imported again!");
-        //            }
-        //            else
-        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByEmail. Reason: {walletsResult.Message}");
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
-        //    }
+            return result;
+        }
 
-        //    return result;
-        //}
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ImportAllWalletsUsingJSONFileByEmailAsync(string email, string pathToJSONFile)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            string errorMessage = "Error occured in ImportAllWalletsUsingJSONFileByEmailAsync. Reason: ";
+            Dictionary<ProviderType, List<ProviderWallet>> importedWallets = null;
+
+            try
+            {
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
+
+                try
+                {
+                    importedWallets = JsonConvert.DeserializeObject<Dictionary<ProviderType, List<ProviderWallet>>>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export all function and not the export function.");
+                    return result;
+                }
+
+                if (importedWallets != null)
+                {
+                    result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
+
+                    foreach (ProviderType providerType in importedWallets.Keys)
+                    {
+                        result.Result[providerType] = new List<IProviderWallet>();
+                        foreach (ProviderWallet wallet in importedWallets[providerType])
+                            result.Result[providerType].Add(wallet);
+                    }
+                }
+
+                if (result.Result != null)
+                {
+                    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await LoadProviderWalletsForAvatarByEmailAsync(email);
+
+                    if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                    {
+                        foreach (ProviderType providerType in result.Result.Keys)
+                        {
+                            if (!walletsResult.Result.ContainsKey(providerType))
+                                walletsResult.Result[providerType] = new List<IProviderWallet>();
+
+                            foreach (IProviderWallet wallet in result.Result[providerType])
+                            {
+                                if (!walletsResult.Result[providerType].Any(x => x.Id == wallet.Id))
+                                {
+                                    walletsResult.Result[providerType].Add(wallet);
+                                    result.SavedCount++;
+                                }
+                                else
+                                {
+                                    CLIEngine.SupressConsoleLogging = true;
+                                    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The wallet with id {wallet.Id} and name '{wallet.Name}' for provider type {Enum.GetName(typeof(ProviderType), providerType)} already exists so it cannot be imported again!");
+                                    CLIEngine.SupressConsoleLogging = false;
+                                }
+                            }
+                        }
+
+                        OASISResult<bool> saveResult = await SaveProviderWalletsForAvatarByEmailAsync(email, walletsResult.Result);
+
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                            result.IsSaved = true;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByEmailAsync. Reason: {saveResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByEmailAsync. Reason: {walletsResult.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+            }
+
+            if (!result.IsError)
+            {
+                if (result.WarningCount > 0)
+                {
+                    result.IsWarning = true;
+                    result.Message = $"{result.SavedCount} Wallets Imported with {result.WarningCount} Warnings! \n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                }
+                else
+                    result.Message = $"{result.SavedCount} Wallets Imported Successfully";
+            }
+
+            return result;
+        }
+
+        public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> ImportAllWalletsUsingJSONFileByEmail(string email, string pathToJSONFile)
+        {
+            OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            string errorMessage = "Error occured in ImportAllWalletsUsingJSONFileByEmail. Reason: ";
+            Dictionary<ProviderType, List<ProviderWallet>> importedWallets = null;
+
+            try
+            {
+                if (!File.Exists(pathToJSONFile))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} was not found!");
+                    return result;
+                }
+
+                try
+                {
+                    importedWallets = JsonConvert.DeserializeObject<Dictionary<ProviderType, List<ProviderWallet>>>(File.ReadAllText(pathToJSONFile));
+                }
+                catch (Exception e)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The json file {pathToJSONFile} is invalid! Make sure you only import files exported using the export all function and not the export function.");
+                    return result;
+                }
+
+                if (importedWallets != null)
+                {
+                    result.Result = new Dictionary<ProviderType, List<IProviderWallet>>();
+
+                    foreach (ProviderType providerType in importedWallets.Keys)
+                    {
+                        result.Result[providerType] = new List<IProviderWallet>();
+                        foreach (ProviderWallet wallet in importedWallets[providerType])
+                            result.Result[providerType].Add(wallet);
+                    }
+                }
+
+                if (result.Result != null)
+                {
+                    OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = LoadProviderWalletsForAvatarByEmail(email);
+
+                    if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
+                    {
+                        foreach (ProviderType providerType in result.Result.Keys)
+                        {
+                            if (!walletsResult.Result.ContainsKey(providerType))
+                                walletsResult.Result[providerType] = new List<IProviderWallet>();
+
+                            foreach (IProviderWallet wallet in result.Result[providerType])
+                            {
+                                if (!walletsResult.Result[providerType].Any(x => x.Id == wallet.Id))
+                                {
+                                    result.SavedCount++;
+                                    walletsResult.Result[providerType].Add(wallet);
+                                }
+                                else
+                                {
+                                    CLIEngine.SupressConsoleLogging = true;
+                                    OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} The wallet with id {wallet.Id} and name '{wallet.Name}' for provider type {Enum.GetName(typeof(ProviderType), providerType)} already exists so it cannot be imported again!");
+                                    CLIEngine.SupressConsoleLogging = false;
+                                }
+                            }
+                        }
+
+                        OASISResult<bool> saveResult = SaveProviderWalletsForAvatarByEmail(email, walletsResult.Result);
+
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                            result.IsSaved = true;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the wallets calling SaveProviderWalletsForAvatarByEmail. Reason: {saveResult.Message}");
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error loading wallets calling LoadProviderWalletsForAvatarByEmail. Reason: {walletsResult.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+            }
+
+            if (!result.IsError)
+            {
+                if (result.WarningCount > 0)
+                {
+                    result.IsWarning = true;
+                    result.Message = $"{result.SavedCount} Wallets Imported with {result.WarningCount} Warnings! \n\n{OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+                }
+                else
+                    result.Message = $"{result.SavedCount} Wallets Imported Successfully";
+            }
+
+            return result;
+        }
 
         public OASISResult<IProviderWallet> ImportWalletUsingPrivateKeyById(Guid avatarId, string key, ProviderType providerToImportTo)
         {
@@ -4671,8 +5059,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (providerTypeToShowWalletsFor != ProviderType.All)
             {
                 Dictionary<ProviderType, List<IProviderWallet>> newWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
-                newWallets[providerTypeToShowWalletsFor] = wallets[providerTypeToShowWalletsFor];
-                wallets = newWallets;
+
+                if (wallets.ContainsKey(providerTypeToShowWalletsFor))
+                {
+                    newWallets[providerTypeToShowWalletsFor] = wallets[providerTypeToShowWalletsFor];
+                    wallets = newWallets;
+                }
             }
 
             if (showPrivateKeys)
@@ -4682,7 +5074,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     foreach (IProviderWallet wallet in wallets[provider])
                     {
                         if (wallet.PrivateKey != null)
-                            wallet.PrivateKey = Rijndael.Decrypt(wallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                        {
+                            try
+                            {
+                                wallet.PrivateKey = Rijndael.Decrypt(wallet.PrivateKey, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                            }
+                            catch (Exception e)
+                            {
+                                OASISErrorHandling.HandleError($"Error decrypting private key for wallet {wallet.Name} (ID: {wallet.Id}) of provider {provider}. Exception: {e}");
+                            }
+                        }
                     }
                 }
             }
@@ -4694,7 +5095,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     foreach (IProviderWallet wallet in wallets[provider])
                     {
                         if (wallet.SecretRecoveryPhrase != null)
-                            wallet.SecretRecoveryPhrase = Rijndael.Decrypt(wallet.SecretRecoveryPhrase, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                        {
+                            try
+                            {
+                                wallet.SecretRecoveryPhrase = Rijndael.Decrypt(wallet.SecretRecoveryPhrase, OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256);
+                            }
+                            catch (Exception e)
+                            {
+                                OASISErrorHandling.HandleError($"Error decrypting secret recovery phase for wallet {wallet.Name} (ID: {wallet.Id}) of provider {provider}. Exception: {e}");
+                            }
+                        }
                     }
                 }
             }
