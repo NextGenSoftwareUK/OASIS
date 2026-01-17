@@ -99,7 +99,8 @@ public class CoinGeckoExchangeRateService : IExchangeRateService
             }
 
             // Fetch rates from CoinGecko
-            string url = $"simple/price?ids={fromCoinId},{toCoinId}&vs_currencies=usd";
+            //string url = $"simple/price?ids={fromCoinId},{toCoinId}&vs_currencies=usd";
+            string url = $"https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&ids={fromCoinId},{toCoinId}&x_cg_demo_api_key=CG-zG3a2tbc6QybLVKcknucz1Hz";
             var response = await _httpClient.GetAsync(url, token);
 
             if (!response.IsSuccessStatusCode)
