@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
+using Cryptography.ECDSA;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
@@ -80,24 +81,152 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         this._rpcClient = ClientFactory.GetClient(hostUri);
         
+        Console.WriteLine($"=== SOLANAOASIS CONSTRUCTOR ===");
+        Console.WriteLine($"HostUri: {hostUri}");
+        Console.WriteLine($"PrivateKey (first 20): {privateKey?.Substring(0, Math.Min(20, privateKey?.Length ?? 0))}...");
+        Console.WriteLine($"PrivateKey (last 20): ...{privateKey?.Substring(Math.Max(0, (privateKey?.Length ?? 0) - 20))}");
+        Console.WriteLine($"PrivateKey Length: {privateKey?.Length ?? 0}");
+        Console.WriteLine($"PublicKey: {publicKey}");
+        
         // Create Account from private and public key strings (Base58 format)
-        // Based on web research and codebase analysis: The Account constructor accepts two Base58 strings
-        // However, if privateKey is 64 bytes (keypair), we may need to handle it differently
-        // The test harness uses: new(TestData.PrivateKey.Key, TestData.PublicKey.Key) which are Base58 strings
+        // Test harness approach: Create PrivateKey and PublicKey objects first, then use their .Key properties
+        // This ensures proper Base58 decoding and validation
         try
         {
-            // Use the two-string constructor as shown in test harness and master branch
-            // This matches the working pattern: new Account(privateKey, publicKey)
-            this._oasisSolanaAccount = new Account(privateKey, publicKey);
+            // IMPORTANT: Match the test harness approach exactly!
+            // Test harness: Creates PrivateKey from Base58 of full 64-byte keypair, then uses PrivateKey.Key for Account constructor
+            // The Account constructor expects the Base58 string of the FULL 64-byte keypair, not a 32-byte private key
+            PrivateKey privateKeyObj;
+            PublicKey publicKeyObj;
+            
+            // CRITICAL DISCOVERY: PrivateKey.KeyBytes fails with "Invalid base58 data" when the Base58 string is a 64-byte keypair
+            // The test harness works, but we're getting the same error. The issue is that Solnet.Wallet.PrivateKey
+            // can't decode a 64-byte keypair Base58 string when accessing KeyBytes.
+            // 
+            // SOLUTION: Decode the Base58 string ourselves, extract the 32-byte private key, and create Account from bytes
+            // OR: Use the Account constructor that accepts byte arrays if available
+            // OR: The Account might need the Base58 string but decode it differently internally
+            
+            // CRITICAL: Match the test harness approach EXACTLY
+            // Test harness: Base64 -> bytes -> Base58 (using Cryptography.ECDSA.Base58) -> PrivateKey -> PrivateKey.Key
+            // The test harness passes PrivateKey.Key (Base58 of full 64-byte keypair) to Account constructor
+            byte[] keyBytes;
+            string base58Key;
+            
+            try
+            {
+                // Check if the key is Base64 (contains +, /, or =) or Base58
+                bool isBase64 = privateKey.Contains('+') || privateKey.Contains('/') || privateKey.EndsWith("==") || privateKey.EndsWith("=");
+                
+                if (isBase64)
+                {
+                    Console.WriteLine($"⚠️  INFO: PrivateKey appears to be Base64 format. Converting to Base58 (matching test harness)...");
+                    // Step 1: Decode Base64 to bytes (same as test harness)
+                    keyBytes = Convert.FromBase64String(privateKey);
+                    Console.WriteLine($"✅ Base64 decoded to bytes. Length: {keyBytes?.Length ?? 0} bytes");
+                    
+                    // Step 2: Encode bytes to Base58 using Cryptography.ECDSA.Base58 (SAME as test harness)
+                    // If Cryptography.ECDSA is not available, fallback to NBitcoin
+                    try
+                    {
+                        base58Key = Cryptography.ECDSA.Base58.Encode(keyBytes);
+                        Console.WriteLine($"✅ Converted to Base58 using Cryptography.ECDSA.Base58. Length: {base58Key?.Length ?? 0}");
+                    }
+                    catch
+                    {
+                        // Fallback to NBitcoin if Cryptography.ECDSA is not available
+                        base58Key = NBitcoin.DataEncoders.Encoders.Base58.EncodeData(keyBytes);
+                        Console.WriteLine($"✅ Converted to Base58 using NBitcoin (fallback). Length: {base58Key?.Length ?? 0}");
+                    }
+                }
+                else
+                {
+                    // Already Base58, use it directly
+                    base58Key = privateKey;
+                    Console.WriteLine($"✅ PrivateKey is already Base58 format. Length: {base58Key?.Length ?? 0}");
+                }
+                
+                // Step 3: Create PrivateKey from Base58 string (SAME as test harness: new PrivateKey(_privateKeyBase58))
+                // This Base58 string represents the FULL 64-byte keypair, not just the 32-byte private key
+                privateKeyObj = new PrivateKey(base58Key);
+                Console.WriteLine($"✅ Created PrivateKey from Base58 string. Key length: {privateKeyObj.Key?.Length ?? 0}");
+                
+                // Step 4: Use PrivateKey.Key (Base58 of full 64-byte keypair) for Account constructor
+                // This is exactly what the test harness does: TestData.PrivateKey.Key
+            }
+            catch (Exception decodeEx)
+            {
+                Console.WriteLine($"❌ ERROR: Failed to process PrivateKey: {decodeEx.GetType().FullName}: {decodeEx.Message}");
+                if (decodeEx.InnerException != null)
+                    Console.WriteLine($"   Inner: {decodeEx.InnerException.GetType().FullName}: {decodeEx.InnerException.Message}");
+                throw new Exception($"Invalid PrivateKey: {decodeEx.Message}", decodeEx);
+            }
+            
+            try
+            {
+                publicKeyObj = new PublicKey(publicKey);
+                Console.WriteLine($"✅ PublicKey object created. Key: {publicKeyObj.Key}");
+            }
+            catch (Exception pubEx)
+            {
+                Console.WriteLine($"❌ ERROR: Failed to create PublicKey object: {pubEx.GetType().FullName}: {pubEx.Message}");
+                throw new Exception($"Invalid PublicKey Base58 string: {pubEx.Message}", pubEx);
+            }
+            
+            // Use PrivateKey.Key (Base58 of full 64-byte keypair) - EXACTLY like test harness does
+            // Test harness: new SolanaOASIS(TestData.HostUri, TestData.PrivateKey.Key, TestData.PublicKey.Key)
+            string privateKeyToUse = privateKeyObj.Key;
+            Console.WriteLine($"Using PrivateKey.Key (Base58 of full 64-byte keypair, matching test harness). Length: {privateKeyToUse?.Length ?? 0}");
+            
+            // Create Account using PrivateKey.Key (Base58 of full 64-byte keypair) and PublicKey.Key
+            // This matches the test harness approach exactly
+            try
+            {
+                this._oasisSolanaAccount = new Account(privateKeyToUse, publicKeyObj.Key);
+                Console.WriteLine($"✅ Account created using PrivateKey.Key (Base58 of full 64-byte keypair) and PublicKey.Key");
+                Console.WriteLine($"✅ Account created successfully. PublicKey: {this._oasisSolanaAccount.PublicKey.Key}");
+            }
+            catch (Exception accountEx)
+            {
+                Console.WriteLine($"❌ ERROR: Failed to create Account: {accountEx.GetType().FullName}: {accountEx.Message}");
+                if (accountEx.InnerException != null)
+                    Console.WriteLine($"   Inner: {accountEx.InnerException.GetType().FullName}: {accountEx.InnerException.Message}");
+                throw new Exception($"Failed to create Account: {accountEx.Message}", accountEx);
+            }
+            
+            // CRITICAL: Verify the Account's PrivateKey can be used for signing
+            // This is where the "Invalid base58 data" error occurs
+            // NOTE: We log the error but don't throw, so the provider can still be created
+            // This allows us to debug the signing issue without preventing provider registration
+            try
+            {
+                byte[] testMessage = new byte[] { 1, 2, 3 };
+                byte[] signature = this._oasisSolanaAccount.Sign(testMessage);
+                Console.WriteLine($"✅ Account signing test successful! Signature length: {signature?.Length ?? 0}");
+            }
+            catch (Exception signEx)
+            {
+                Console.WriteLine($"⚠️  WARNING: Account signing test FAILED (provider will still be created): {signEx.GetType().FullName}: {signEx.Message}");
+                if (signEx.InnerException != null)
+                    Console.WriteLine($"   Inner: {signEx.InnerException.GetType().FullName}: {signEx.InnerException.Message}");
+                Console.WriteLine($"   This error will occur during NFT minting. Provider created but signing will fail.");
+                Console.WriteLine($"   PrivateKey Base58 string length: {privateKeyToUse?.Length ?? 0}");
+                // DON'T throw - allow provider to be created so we can debug further
+                // The signing error will occur during actual minting, which we can then debug
+            }
         }
         catch (Exception ex)
         {
-            // If Account constructor fails with "Invalid base58 data", it might be because:
-            // 1. The private key is 64 bytes (keypair) but Account expects just 32 bytes (private key)
-            // 2. There's whitespace or invalid characters in the keys
-            // 3. The keys are not properly Base58 encoded
-            throw new InvalidOperationException($"Failed to initialize Solana Account with provided keys. PrivateKey length: {privateKey?.Length ?? 0}, PublicKey length: {publicKey?.Length ?? 0}. Error: {ex.Message}", ex);
+            Console.WriteLine($"=== ERROR CREATING ACCOUNT ===");
+            Console.WriteLine($"Exception Type: {ex.GetType().FullName}");
+            Console.WriteLine($"Message: {ex.Message}");
+            if (ex.InnerException != null)
+                Console.WriteLine($"Inner: {ex.InnerException.GetType().FullName}: {ex.InnerException.Message}");
+            Console.WriteLine($"Stack: {ex.StackTrace}");
+            Console.WriteLine($"=== END ERROR ===");
+            throw;
         }
+        Console.WriteLine($"=== END CONSTRUCTOR ===");
 
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
@@ -111,16 +240,55 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         try
         {
+            // Validate Account was created successfully
+            if (_oasisSolanaAccount == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "SolanaOASIS Account is null. Provider was not initialized correctly. Check PrivateKey and PublicKey in OASIS_DNA.json.");
+                return result;
+            }
+
+            // Validate RPC client
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana RPC client is null. Check ConnectionString in OASIS_DNA.json.");
+                return result;
+            }
+
+            Console.WriteLine($"=== ACTIVATING SOLANAOASIS PROVIDER ===");
+            Console.WriteLine($"Account PublicKey: {_oasisSolanaAccount.PublicKey.Key}");
+            Console.WriteLine($"RPC Client: {(_rpcClient != null ? "NOT NULL" : "NULL")}");
+
             _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
             _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
+
+            // Verify service was created
+            if (_solanaService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Failed to create SolanaService. Check Account and RPC client.");
+                return result;
+            }
+
+            Console.WriteLine($"SolanaService created successfully");
+            Console.WriteLine($"=== PROVIDER ACTIVATED SUCCESSFULLY ===");
 
             result.Result = true;
             IsProviderActivated = true;
         }
         catch (Exception e)
         {
+            Console.WriteLine($"=== ERROR ACTIVATING SOLANAOASIS PROVIDER ===");
+            Console.WriteLine($"Exception Type: {e.GetType().FullName}");
+            Console.WriteLine($"Message: {e.Message}");
+            if (e.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception Type: {e.InnerException.GetType().FullName}");
+                Console.WriteLine($"Inner Message: {e.InnerException.Message}");
+            }
+            Console.WriteLine($"Stack Trace: {e.StackTrace}");
+            Console.WriteLine($"=== END ACTIVATION ERROR ===");
+            
             OASISErrorHandling.HandleError(ref result,
-                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e}");
+                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e.Message}. Inner: {(e.InnerException != null ? e.InnerException.Message : "None")}", e);
         }
 
         return result;
@@ -2428,12 +2596,35 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         try
         {
-            if (!IsProviderActivated || _solanaService == null)
+            // Detailed validation of provider state
+            if (!IsProviderActivated)
             {
                 OASISErrorHandling.HandleError(ref result, 
-                    "Solana provider is not activated. Please activate the provider before minting NFTs.");
+                    "Solana provider is not activated. IsProviderActivated = false. Please activate the provider before minting NFTs.");
                 return result;
             }
+
+            if (_solanaService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, 
+                    "Solana provider _solanaService is null. Provider activation may have failed. Check activation logs.");
+                return result;
+            }
+
+            if (_oasisSolanaAccount == null)
+            {
+                OASISErrorHandling.HandleError(ref result, 
+                    "Solana provider _oasisSolanaAccount is null. Provider was not initialized correctly. Check PrivateKey and PublicKey in OASIS_DNA.json.");
+                return result;
+            }
+
+            Console.WriteLine($"=== MINTNFTAsync VALIDATION ===");
+            Console.WriteLine($"IsProviderActivated: {IsProviderActivated}");
+            Console.WriteLine($"_solanaService is null: {_solanaService == null}");
+            Console.WriteLine($"_oasisSolanaAccount is null: {_oasisSolanaAccount == null}");
+            if (_oasisSolanaAccount != null)
+                Console.WriteLine($"Account PublicKey: {_oasisSolanaAccount.PublicKey.Key}");
+            Console.WriteLine($"=== END VALIDATION ===");
 
             OASISResult<MintNftResult> solanaNftTransactionResult
                 = await _solanaService.MintNftAsync(transaction as MintWeb3NFTRequest);

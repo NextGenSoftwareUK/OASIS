@@ -1,0 +1,396 @@
+meta:
+  source: Timo Rides new deck.pptx
+  description: Structured content schema extracted from the October 2025 TimoRides pitch deck.
+  created_at: '2025-11-08'
+  slide_count: 24
+slides:
+  - id: 1
+    layout: cover
+    title: Africa-first, next generation mobility platform
+    subtitle: Select your driver
+    footer: CONFIDENTIAL
+    brand_mark: TIMO
+
+  - id: 2
+    layout: narrative
+    headline: "“Redefining how the world moves across Africa’s tourism cities”"
+    body: >
+      Timo is the first African mobility company built for the era of decentralisation.
+      We combine deep sector knowledge with web3 principles and emergent technology
+      to empower riders to travel with confidence and drivers to work with dignity.
+      Identity, safety, interoperability, and choice lie at the heart of our build,
+      supported by a growing network of luxury vehicles, tourism partners, and corporate clients.
+
+  - id: 3
+    layout: bullet_summary
+    headline: Executive Summary
+    bullets:
+      - Focus areas: differentiation, scalability, unit economics.
+      - Pilot validated: 10K riders | 500 drivers | 5K rides | ZAR 350K revenue.
+      - Target: $1–2M ARR by 2027.
+
+  - id: 4
+    layout: market_beachhead
+    title: Rule of one Beachhead strategy
+    stats:
+      - label: Goal
+        value: Capture 1% of Durban tourism spend ($500K GMV).
+      - label: Focus Market
+        value: Durban, South Africa – $50M+ tourism mobility gap.
+      - label: Beachhead Path
+        value: Durban → Victoria Falls → Livingstone.
+      - label: Core Problem
+        value: Limited premium transport for tourists.
+
+  - id: 5
+    layout: differentiators_grid
+    title: Key Differentiators
+    pillars:
+      - name: Mobile money / stablecoins
+        description: >
+          Cashless rides enhance safety and convenience while enabling unbanked customers
+          to participate through mobile money and stablecoins.
+      - name: Highly scalable
+        description: >
+          Auto-failover and auto-load balancing deliver zero downtime and smooth service as the network grows.
+      - name: Web2 + Web3 interoperability
+        description: >
+          Abstraction layer technology gives seamless access to both blockchain and traditional database systems.
+      - name: Local partnerships & Government Integration
+        description: >
+          Deep integrations with local businesses and authorities build trust and unlock regulatory alignment.
+      - name: Identity + Trust Layer
+        description: >
+          Interoperable identity credentials for riders and drivers improve safety and transparency over time.
+      - name: Technical Differentiation
+        description: >
+          PathPulse road intelligence transforms every vehicle into a live data node using only a smartphone and dashcam.
+      - name: Works offline
+        description: >
+          The platform functions in low- or no-connectivity environments and can operate via Bluetooth links.
+
+  - id: 6
+    layout: integrations
+    title: Next-generation integrations
+    body: >
+      Timo capitalises on emergent systems in AI and Zero Knowledge proofs to generate additional revenue and protection.
+    features:
+      - heading: Zero Knowledge KYC
+        detail: Secure ID verification prevents fake accounts while preserving user privacy.
+      - heading: Data-as-a-service
+        detail: Real-time traffic data feeds AI models and opens new revenue streams.
+      - heading: Interoperable standard
+        detail: Seamless partner portal integration with revenue sharing options.
+      - heading: On-chain payments
+        detail: Support for blockchain-enabled settlement alongside traditional rails.
+
+  - id: 7
+    layout: problem_landscape
+    title: Current Issues with Ride Hailing in Africa
+    intro: >
+      In 2025, ride hailing faces citywide driver strikes and diminishing trust. Core pain points span both riders and drivers.
+    segments:
+      - audience: Drivers
+        challenges:
+          - heading: Connectivity gaps
+            bullets:
+              - Inability to reliably receive bookings or complete trips in low-signal zones reduces earnings.
+          - heading: Limited ownership
+            bullets:
+              - Drivers lack stake in platform growth and cannot build lasting customer relationships.
+          - heading: High commission cuts
+            bullets:
+              - Platforms take up to 45–50% of earnings while fuel and operating costs rise.
+      - audience: Riders
+        challenges:
+          - heading: Lack of personalization
+            bullets:
+              - No ability to choose preferred drivers or vehicles leads to impersonal experiences.
+          - heading: Unreliable service
+            bullets:
+              - Frequent cancellations and late arrivals disrupt travel plans.
+          - heading: Safety concerns
+            bullets:
+              - Limited transparency on driver background, vehicle condition, and trip monitoring undermines trust.
+
+  - id: 8
+    layout: solution_response
+    title: How Timo addresses the gaps
+    segments:
+      - heading: Offline job management
+        bullets:
+          - Works in low-signal zones through Bluetooth-first operations.
+          - Ensures bookings and trip completions even when connectivity drops.
+      - heading: Steady demand
+        bullets:
+          - Direct partnerships with hotels, airports, and event organizers secure consistent ride volume.
+      - heading: Driver-first ownership
+        bullets:
+          - Transparent commissions and revenue-share pathways build loyalty and retention.
+      - heading: Tourism-grade experience
+        bullets:
+          - Personalised driver selection, premium vehicles, and trusted service levels for guests.
+
+  - id: 9
+    layout: product_flow
+    title: Product – Full choice & customisability
+    caption: >
+      We give users control over every ride detail, unlocking trust for tourism operators and corporate partners.
+    steps:
+      - label: Choose your vehicle
+        description: Find the ride that fits exact preferences, including comfort class and amenities.
+      - label: View your driver
+        description: Review ratings, credentials, and personal traits before confirming.
+      - label: Schedule your ride
+        description: Book in advance, with integrations into partner portals and revenue-sharing options.
+
+  - id: 10
+    layout: differentiators_comparison
+    title: Why Timo wins
+    comparison_points:
+      - attribute: Choice
+        timo: Scheduled, personalised rides with vehicle and driver selection.
+        incumbents: On-demand focus with minimal customisation.
+        why_it_matters: Tourists and professionals demand reliability and tailored service.
+      - attribute: Interoperability
+        timo: Open APIs connecting to hotel systems, event apps, and enterprise tools.
+        incumbents: Closed systems with limited integration.
+        why_it_matters: Enables rapid scaling via partnerships.
+      - attribute: Local Ownership & Trust Layer
+        timo: Community-based fleets, trained drivers, ratings, ID, and feedback loops.
+        incumbents: Centralised driver onboarding.
+        why_it_matters: Builds safety, cultural sensitivity, and reliability.
+      - attribute: Tourism focus
+        timo: Partnerships with hotels, airports, airlines, tourism boards.
+        incumbents: Primarily B2C orientation.
+        why_it_matters: Unlocks institutional demand with lower CAC.
+      - attribute: Commission-Based Ecosystem
+        timo: 100% cashless; partners earn via affiliate QR codes.
+        incumbents: Transactional with limited partner incentives.
+        why_it_matters: Aligns incentives and makes Timo worth promoting.
+      - attribute: Underserved markets
+        timo: Built for low-signal, fragmented regions across Africa.
+        incumbents: Struggle to operate effectively in these areas.
+        why_it_matters: Unlocks latent demand and first-mover advantage.
+      - attribute: Enterprise & events ready
+        timo: Ride bundles, corporate billing, branded guest services.
+        incumbents: Minimal enterprise features.
+        why_it_matters: High-LTV B2B market with repeat demand.
+
+  - id: 11
+    layout: unit_economics_snapshot
+    title: Fare Structure & Dynamic Pricing
+    metrics:
+      - label: Average fare
+        value: $6.80
+      - label: Driver take-home
+        value: $5.44 (20% commission)
+      - label: Gross margin
+        value: 25–30% (vs. 15–20% industry average)
+      - label: Tourism premium
+        value: Adds 15–20% margin uplift
+      - label: Currency support
+        value: Adaptive engine across ZAR / USD / ZMW
+
+  - id: 12
+    layout: mission_targets
+    title: Mission – Tourism market penetration
+    bullets:
+      - MOUs signed with airport & hotel partners; SATC collaboration pipeline.
+      - QR code integrations underway across Durban tourism ecosystem.
+      - Tourism board co-marketing campaigns in progress.
+      - Target: 50K riders in year one with 20% repeat rate.
+
+  - id: 13
+    layout: growth_levers
+    title: Unit Economics Optimization
+    overview: Pilot learnings inform the next six months of scaling.
+    targets:
+      - name: Driver utilization
+        baseline: 10 rides/month
+        goal: 80 rides/month (8×)
+      - name: Revenue per ride
+        baseline: $3.6
+        goal: $7–$10 (2.5×)
+      - name: Gross margin
+        baseline: 8%
+        goal: ≥25%
+    levers:
+      - PathPulse intelligent routing
+      - Pre-booked tourism rides
+      - Driver incentive programs
+
+  - id: 14
+    layout: risk_mitigation
+    title: Cross-Border Scalability & Risk Mitigation
+    points:
+      - Local partnerships reduce licensing risk by 60%.
+      - Multi-currency wallet covering ZAR, USD, and ZMW.
+      - Compliance templates enable new market launches in under 45 days.
+      - Interoperable integrations sustain revenue-sharing across partner platforms.
+
+  - id: 15
+    layout: market_opportunity
+    title: Market Opportunity
+    stats:
+      - label: Africa tourism spend
+        value: $40B
+      - label: Southern Africa mobility SAM
+        value: $5B
+      - label: Timo SOM (target corridor)
+        value: $200M
+      - label: Rider growth
+        value: 2025 – 10K | 2026 – 50K | 2027 – 120K
+      - label: Revenue trajectory
+        value: $35K → $1.8M (break-even)
+
+  - id: 16
+    layout: team_core
+    title: Leadership Team
+    team:
+      - name: Eddison Shumba
+        role: CEO
+        blurb: Entrepreneur, VC fellow, and mobility innovator with 10+ years leading tourism and startup ecosystems in Africa.
+        link: https://www.linkedin.com/in/eddison-shumba-356a2166/
+      - name: Cordy Joseph
+        role: CMO
+        blurb: Strategist across crypto, mobility, and frontier markets; founder of HNDL and CEO of FameGuild.
+        link: https://www.linkedin.com/in/cordy-joseph-2ab8a1a9/
+      - name: Max Gershfield
+        role: CSO
+        blurb: Former Uber Global Creative Team leader and Flight3 strategist with deep emerging tech expertise.
+        link: https://www.linkedin.com/in/max-gershfield
+
+  - id: 17
+    layout: team_extended
+    title: Technical Team
+    team:
+      - name: David Ellams
+        role: CTO
+        blurb: Architect of OASIS Web4 with 18+ years delivering enterprise IT for Nokia, HSBC, and KPMG.
+        link: https://www.linkedin.com/in/david-ellams-77132142/
+      - name: Faridun Berdiev
+        role: Tech Lead
+        blurb: Senior engineer overseeing solution delivery and integration quality.
+      - name: Qurbonali Nazarov
+        role: Back-end developer
+        blurb: .NET Core specialist building scalable backend services and APIs.
+        link: https://www.linkedin.com/in/qurbonali-nazarov-8837b2310/
+      - name: Aziz Bobokhujaev
+        role: Front-end engineer
+        blurb: UI/UX-focused developer skilled in HTML, CSS, Tailwind for high-quality web applications.
+        link: https://www.linkedin.com/in/aziz-bobokhujaev-245bb2229/
+      - name: Sahil Jada
+        role: Full stack developer
+        blurb: South Africa-based MERN engineer building production-ready web apps.
+      - name: Faha
+        role: Senior .NET engineer
+        blurb: Founder of .NET Academy with extensive experience in distributed systems and web3 contracts.
+
+  - id: 18
+    layout: advisors
+    title: Board & Advisors
+    advisors:
+      - name: Erick Osiakwan
+        role: Board Member
+        blurb: Entrepreneur and investor with 25+ years advancing ICT infrastructure across 32 African countries.
+      - name: Anna Ressa
+        role: Board Member
+        blurb: EU project manager at TECNOPOLIS with two decades leading innovation, cooperation, and sustainable growth initiatives.
+      - name: Tinyiko Valoyi
+        role: Board Member
+        blurb: Telecom executive and former iBurst Africa CEO; raised $33M to scale broadband across multiple African markets.
+      - name: Howard Lee
+        role: Advisor
+        blurb: Strategic advisor supporting mobility and smart-city initiatives.
+
+  - id: 19
+    layout: mission_perspective
+    title: The Potential of Decentralised Mobility
+    body: >
+      Reliance on centralised technology providers keeps data siloed and rules opaque.
+      Uber and Bolt control user data, frustrating drivers and locking in riders.
+      Timo imagines a different reality—transparent, partner-driven, and interoperable.
+
+  - id: 20
+    layout: mission_statement
+    title: Designed for trust, not just for transport
+    subpoints:
+      - Identity-first onboarding and verification.
+      - Transparent driver and rider reputations.
+      - Embedded compliance and safety protocols.
+
+  - id: 21
+    layout: traction
+    title: Traction Signals
+    highlights:
+      - metric: 5K+
+        description: Rides completed during pilot phase.
+      - metric: 500+
+        description: Registered drivers across Africa.
+      - metric: 4
+        description: Key partnerships (Tunisia King Events, AMC Chauffeur, SATC, Durban networks).
+
+  - id: 22
+    layout: fundraising
+    title: Term sheet – fundraising
+    raise_amount: $500,000 SAFE
+    valuation_cap: $2,500,000
+    discount: 20%
+    fund_allocation:
+      - label: Product development & PathPulse integration
+        percentage: 30%
+      - label: Tourism partnerships
+        percentage: 25%
+      - label: Marketing & incentives
+        percentage: 20%
+      - label: Legal & compliance
+        percentage: 10%
+      - label: Reserve & contingency
+        percentage: 15%
+
+  - id: 23
+    layout: revenue_model
+    title: Revenue Model & Profit Mechanism
+    fare_model:
+      base_fare: R30
+      price_per_km: R17
+      price_per_minute: R1.60
+      minimum_fare: R60
+    average_ride_assumptions:
+      distance_km: 10
+      duration_minutes: 15
+    profitability:
+      total_fare: R224
+      driver_commission: 20%
+      driver_payout: R179.20
+      operational_costs: R30
+      contribution_margin_per_ride: R14.80
+      monthly_fixed_costs: R100,000
+      breakeven_rides_per_month: 6,757
+      estimated_daily_rides: 225
+      drivers_needed: 23
+      profit_margin: 15.6%
+    segments:
+      - Daily commuters
+      - Tourists
+      - Corporate clients
+    strategy: >
+      Increase user base and ride frequency while managing costs through optimized payouts and operations.
+    risks_and_mitigation:
+      - risk: Regulatory changes
+        mitigation: Adaptive pricing and service models.
+      - risk: Competition
+        mitigation: Deep partnerships and differentiated experience.
+
+  - id: 24
+    layout: closing
+    title: Summary
+    body: >
+      Timo presents a venture-scale opportunity in Africa's rapidly evolving mobility sector.
+      With the partners, infrastructure, and ambition to build a category-defining platform,
+      this pre-seed raise positions us to launch, scale rapidly, and deliver on a vision that global platforms
+      have yet to realize across the continent.
+    footer: CONFIDENTIAL
+
+

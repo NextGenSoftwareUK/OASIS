@@ -1,0 +1,35 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#05070F"/>
+  <g filter="url(#filter0_f_1_1)">
+    <path d="M1398 317C1398 466.812 1276.81 588 1127 588C977.188 588 856 466.812 856 317C856 167.188 977.188 46 1127 46C1276.81 46 1398 167.188 1398 317Z" fill="#1B44FF" fill-opacity="0.55"/>
+  </g>
+  <g filter="url(#filter1_f_1_1)">
+    <path d="M245 640C245 764.264 144.264 865 20 865C-104.264 865 -205 764.264 -205 640C-205 515.736 -104.264 415 20 415C144.264 415 245 515.736 245 640Z" fill="#00D9FF" fill-opacity="0.5"/>
+  </g>
+  <g filter="url(#filter2_f_1_1)">
+    <path d="M918 857C918 956.65 837.65 1037 738 1037C638.35 1037 558 956.65 558 857C558 757.35 638.35 677 738 677C837.65 677 918 757.35 918 857Z" fill="#7F85FF" fill-opacity="0.35"/>
+  </g>
+  <defs>
+    <filter id="filter0_f_1_1" x="556" y="-254" width="1142" height="1142" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur stdDeviation="150" result="effect1_foregroundBlur_1_1"/>
+    </filter>
+    <filter id="filter1_f_1_1" x="-505" y="115" width="1050" height="1050" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur stdDeviation="150" result="effect1_foregroundBlur_1_1"/>
+    </filter>
+    <filter id="filter2_f_1_1" x="258" y="377" width="660" height="660" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur stdDeviation="150" result="effect1_foregroundBlur_1_1"/>
+    </filter>
+  </defs>
+</svg>
+
+
+
+
+
+
