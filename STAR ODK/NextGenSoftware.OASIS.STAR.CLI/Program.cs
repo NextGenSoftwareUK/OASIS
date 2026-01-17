@@ -2136,6 +2136,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             bool? showOnlyDefault = null;
             bool? showPrivateKeys = null;
             bool? showSecretWords = null;
+            string param = "";
 
             if (inputArgs.Contains("default"))
                 showOnlyDefault = true;
@@ -2145,6 +2146,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
             if (inputArgs.Contains("showsecretwords"))
                 showSecretWords = true;
+
+            if (inputArgs.Length > 3 && !string.IsNullOrEmpty(inputArgs[3]))
+                param = inputArgs[3];
 
             //if (inputArgs.Length > 2 && inputArgs[2] == "default")
             //    showOnlyDefault = true;
@@ -2164,7 +2168,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "sendtoken":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        await STARCLI.Wallets.SendToken(providerType);
                         break;
 
                     case "show":
@@ -2190,16 +2194,62 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         break;
 
                     case "import":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        {
+                            if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
+                            {
+                                switch (inputArgs[2])
+                                {
+                                    case "privateKey":
+                                        STARCLI.Wallets.ImportWalletUsingPrivateKey(providerType);
+                                        break;
+
+                                    case "publicKey":
+                                        STARCLI.Wallets.ImportWalletUsingPublicKey(providerType);
+                                        break;
+
+                                    case "secretPhase":
+                                        await STARCLI.Wallets.ImportWalletUsingSecretRecoveryPhaseAsync(providerType);
+                                        break;
+
+                                    case "json":
+                                        {
+                                            if (inputArgs.Contains("all"))
+                                            {
+                                                param = "";
+                                                if (inputArgs.Length > 5 && !string.IsNullOrEmpty(inputArgs[5]))
+                                                    param = inputArgs[5];
+
+                                                await STARCLI.Wallets.ImportAllWalletsUsingJSONFileAsync(param, providerType);
+                                            }
+                                            else
+                                            {
+                                                param = "";
+                                                if (inputArgs.Length > 4 && !string.IsNullOrEmpty(inputArgs[4]))
+                                                    param = inputArgs[4];
+
+                                                await STARCLI.Wallets.ImportWalletUsingJSONFileAsync(param, providerType);
+                                            }
+                                        }
+                                        break;
+
+                                    default:
+                                        CLIEngine.ShowWarningMessage("You need to enter privateKey, publicKey, secretPhase or json");
+                                        break;
+                                }
+                            }
+                            else
+                                CLIEngine.ShowWarningMessage("You need to enter privateKey, publicKey, secretPhase or json");
+                        }
                         break;
 
                     case "export":
-                        CLIEngine.ShowMessage("Coming soon...");
+                        {
+                            if (inputArgs.Contains("all"))
+                                await STARCLI.Wallets.ExportAllWalletsAsync(providerType);
+                            else
+                                await STARCLI.Wallets.ExportWalletAsync(param, providerType);
+                        }
                         break;
-
-                    //case "add":
-                    //    CLIEngine.ShowMessage("Coming soon...");
-                    //    break;
 
                     case "update":
                         await STARCLI.Wallets.UpdateWallet(providerType);
@@ -2230,27 +2280,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"WALLET SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    sendtoken          [walletAddress]                                  Sends a token to the given wallet address.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    create                                                              Creates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    update                                                              Updates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    show               [publickey] [showprivatekeys] [showsecretwords]  Shows the wallet that the public key belongs to.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    showdefault        [showprivatekeys] [showsecretwords]              Shows the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    setdefault         [walletId]                                       Sets the default wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import privateKey  [privatekey]                                     Imports a wallet using the privateKey.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import publicKey   [publickey]                                      Imports a wallet using the publicKey.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import secretPhase [secretPhase]                                    Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import json        [jsonFile]                                       Imports a wallet using the jsonFile.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    export             [walletId]                                       Exports a wallet to a json file.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    export all                                                          Exports all wallets to a json file.", ConsoleColor.Green, false);
-                //CLIEngine.ShowMessage("    add                                                               Adds a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    create                                                              Creates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    update                                                              Updates a wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
-
+                CLIEngine.ShowMessage("    sendtoken          [walletAddress]                                  Sends a token to the given wallet address.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import privateKey  {privatekey}                                     Imports a wallet using the privateKey.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import publicKey   {publickey}                                      Imports a wallet using the publicKey.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import secretPhase {secretPhase}                                    Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import json        [all] {jsonFile}                                 Imports all/a wallet(s) using the jsonFile.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    export             [all] {walletId}                                 Exports all/a wallet(s) to a json file.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    list               [default] [showprivatekeys] [showsecretwords]    Lists the wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    balance                                                             Gets the total balance for all wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    balance            [walletId] [providerType]                        Gets the balance for the given wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    balance            {walletId} [providerType]                        Gets the balance for the given wallet for the currently beamed in avatar.", ConsoleColor.Green, false);
 
                 CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
+                CLIEngine.ShowMessage("For the import sub-command, if [all] is included it will import a collection of wallets (from a previous 'export all' sub-command). If it is omitted it will import a singular wallet (from a previous 'export' sub-command).", ConsoleColor.Green);
                 CLIEngine.ShowMessage("For the list sub-command, if [default] param is included it will only list the default wallets.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("For the list, show and showdefault sub-commands, if [showprivatekeys] param is included it will decrypt and show the private keys, likewise if [showsecretwords] is included it will decrypt and show the secret words.", ConsoleColor.Green);
+                
                 CLIEngine.ShowMessage("You can also create a wallet by linking a private key, public key or wallet address to your avatar using the keys sub-commands.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
