@@ -34,27 +34,6 @@ const ethereumWalletTools = new EthereumWalletMCPTools(
 
 export const oasisTools: Tool[] = [
   {
-    name: 'oasis_get_avatar',
-    description: 'Get avatar information by ID, username, or email',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        avatarId: {
-          type: 'string',
-          description: 'Avatar ID (UUID)',
-        },
-        username: {
-          type: 'string',
-          description: 'Avatar username',
-        },
-        email: {
-          type: 'string',
-          description: 'Avatar email address',
-        },
-      },
-    },
-  },
-  {
     name: 'oasis_get_karma',
     description: 'Get karma (reputation) score for an avatar',
     inputSchema: {
@@ -133,14 +112,6 @@ export const oasisTools: Tool[] = [
     },
   },
   {
-    name: 'oasis_get_all_avatars',
-    description: 'Get all avatars in OASIS (requires Wizard/Admin authentication)',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
-  },
-  {
     name: 'oasis_register_avatar',
     description: 'Register/Create a new avatar in OASIS. For A2A agents, set avatarType to "Agent". After registration, authenticate to get JWT token for subsequent requests.',
     inputSchema: {
@@ -206,17 +177,17 @@ export const oasisTools: Tool[] = [
   },
   {
     name: 'oasis_mint_nft',
-    description: 'Mint a new NFT. Requires authentication. Minimum required: JSONMetaDataURL and Symbol. Defaults: OnChainProvider=SolanaOASIS, OffChainProvider=None, NFTOffChainMetaType=ExternalJsonURL, NFTStandardType=SPL',
+    description: 'Mint a new Solana NFT interactively. Can be called with partial information - the AI will prompt for missing required fields. Minimum required: JSONMetaDataURL and Symbol. Defaults: OnChainProvider=SolanaOASIS, OffChainProvider=MongoDBOASIS, NFTOffChainMetaType=OASIS, NFTStandardType=SPL. When called with incomplete information, returns a prompt object indicating what is needed.',
     inputSchema: {
       type: 'object',
       properties: {
         JSONMetaDataURL: {
           type: 'string',
-          description: 'URL to NFT metadata (JSON or IPFS) - REQUIRED',
+          description: 'URL to NFT metadata (JSON or IPFS). If not provided, you will be prompted for it. For testing, you can use: https://jsonplaceholder.typicode.com/posts/1',
         },
         Symbol: {
           type: 'string',
-          description: 'NFT symbol/ticker - REQUIRED',
+          description: 'NFT symbol/ticker (e.g., "MYNFT", "ART123"). If not provided, you will be prompted for it.',
         },
         Title: {
           type: 'string',
@@ -248,15 +219,19 @@ export const oasisTools: Tool[] = [
         },
         OffChainProvider: {
           type: 'string',
-          description: 'Off-chain provider (optional, defaults to "None")',
+          description: 'Off-chain provider (optional, defaults to "MongoDBOASIS")',
         },
         NFTOffChainMetaType: {
           type: 'string',
-          description: 'NFT off-chain metadata type (optional, defaults to "ExternalJsonURL")',
+          description: 'NFT off-chain metadata type (optional, defaults to "OASIS")',
         },
         NFTStandardType: {
           type: 'string',
           description: 'NFT standard type (optional, defaults to "SPL")',
+        },
+        MetaData: {
+          type: 'object',
+          description: 'Additional metadata object with custom attributes (optional)',
         },
         SendToAddressAfterMinting: {
           type: 'string',
@@ -267,7 +242,25 @@ export const oasisTools: Tool[] = [
           description: 'Avatar ID to send NFT to after minting (optional)',
         },
       },
-      required: ['JSONMetaDataURL', 'Symbol'],
+      required: [], // Made optional to support interactive mode - handler will prompt for missing required fields
+    },
+  },
+  {
+    name: 'oasis_upload_file',
+    description: 'Upload a file (image, JSON, etc.) to Pinata/IPFS storage. Returns the IPFS URL that can be used for NFT metadata or images. Requires authentication.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        filePath: {
+          type: 'string',
+          description: 'Path to the file to upload (absolute or relative to workspace root)',
+        },
+        provider: {
+          type: 'string',
+          description: 'Storage provider (default: "PinataOASIS")',
+        },
+      },
+      required: ['filePath'],
     },
   },
   {
@@ -368,7 +361,7 @@ export const oasisTools: Tool[] = [
   },
   {
     name: 'oasis_get_avatar_detail',
-    description: 'Get detailed avatar information by ID, username, or email',
+    description: 'Get detailed avatar information including portrait by ID, username, or email',
     inputSchema: {
       type: 'object',
       properties: {
@@ -459,7 +452,7 @@ export const oasisTools: Tool[] = [
   },
   {
     name: 'oasis_get_provider_wallets',
-    description: 'Get provider wallets for an avatar',
+    description: 'Get provider wallets for an avatar. Can lookup by avatarId, username, or email.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -467,12 +460,19 @@ export const oasisTools: Tool[] = [
           type: 'string',
           description: 'Avatar ID (UUID)',
         },
+        username: {
+          type: 'string',
+          description: 'Avatar username (alternative to avatarId)',
+        },
+        email: {
+          type: 'string',
+          description: 'Avatar email (alternative to avatarId)',
+        },
         providerType: {
           type: 'string',
           description: 'Provider type (optional)',
         },
       },
-      required: ['avatarId'],
     },
   },
   {
@@ -513,7 +513,7 @@ export const oasisTools: Tool[] = [
   },
   {
     name: 'oasis_search_holons',
-    description: 'Search holons (data objects)',
+    description: 'Search holons (data objects). Use parentId parameter to load holons for a specific parent.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -527,7 +527,7 @@ export const oasisTools: Tool[] = [
         },
         parentId: {
           type: 'string',
-          description: 'Parent ID filter (optional)',
+          description: 'Parent ID filter (optional). Use this to load all holons for a specific parent.',
         },
         limit: {
           type: 'number',
@@ -538,20 +538,6 @@ export const oasisTools: Tool[] = [
           description: 'Offset for pagination (optional, default: 0)',
         },
       },
-    },
-  },
-  {
-    name: 'oasis_load_holons_for_parent',
-    description: 'Load all holons for a parent holon',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        parentId: {
-          type: 'string',
-          description: 'Parent holon ID',
-        },
-      },
-      required: ['parentId'],
     },
   },
   {
@@ -665,94 +651,6 @@ export const oasisTools: Tool[] = [
     },
   },
   {
-    name: 'oasis_search_avatars',
-    description: 'Search avatars',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        searchQuery: {
-          type: 'string',
-          description: 'Search query string',
-        },
-        avatarType: {
-          type: 'string',
-          description: 'Avatar type filter (optional)',
-        },
-        limit: {
-          type: 'number',
-          description: 'Maximum results (optional, default: 50)',
-        },
-        offset: {
-          type: 'number',
-          description: 'Offset for pagination (optional, default: 0)',
-        },
-      },
-    },
-  },
-  {
-    name: 'oasis_search_nfts',
-    description: 'Search NFTs',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        searchQuery: {
-          type: 'string',
-          description: 'Search query string',
-        },
-        avatarId: {
-          type: 'string',
-          description: 'Avatar ID filter (optional)',
-        },
-        limit: {
-          type: 'number',
-          description: 'Maximum results (optional, default: 50)',
-        },
-        offset: {
-          type: 'number',
-          description: 'Offset for pagination (optional, default: 0)',
-        },
-      },
-    },
-  },
-  {
-    name: 'oasis_get_all_avatar_names',
-    description: 'Get all avatar names (optionally including usernames and IDs)',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        includeUsernames: {
-          type: 'boolean',
-          description: 'Include usernames (default: true)',
-        },
-        includeIds: {
-          type: 'boolean',
-          description: 'Include IDs (default: true)',
-        },
-      },
-    },
-  },
-  {
-    name: 'oasis_get_avatar_portrait',
-    description: 'Get avatar portrait by ID, username, or email',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        avatarId: {
-          type: 'string',
-          description: 'Avatar ID (UUID)',
-        },
-        username: {
-          type: 'string',
-          description: 'Avatar username',
-        },
-        email: {
-          type: 'string',
-          description: 'Avatar email address',
-        },
-      },
-    },
-  },
-  {
     name: 'oasis_get_nfts_for_mint_address',
     description: 'Get all NFTs for a mint wallet address',
     inputSchema: {
@@ -794,42 +692,6 @@ export const oasisTools: Tool[] = [
     inputSchema: {
       type: 'object',
       properties: {},
-    },
-  },
-  {
-    name: 'oasis_get_provider_wallets_by_username',
-    description: 'Get provider wallets for avatar by username',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        username: {
-          type: 'string',
-          description: 'Avatar username',
-        },
-        providerType: {
-          type: 'string',
-          description: 'Provider type (optional)',
-        },
-      },
-      required: ['username'],
-    },
-  },
-  {
-    name: 'oasis_get_provider_wallets_by_email',
-    description: 'Get provider wallets for avatar by email',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        email: {
-          type: 'string',
-          description: 'Avatar email',
-        },
-        providerType: {
-          type: 'string',
-          description: 'Provider type (optional)',
-        },
-      },
-      required: ['email'],
     },
   },
   {
@@ -1173,30 +1035,8 @@ export const oasisTools: Tool[] = [
     },
   },
   {
-    name: 'oasis_basic_search',
-    description: 'Basic search across OASIS',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        searchQuery: {
-          type: 'string',
-          description: 'Search query string',
-        },
-        limit: {
-          type: 'number',
-          description: 'Maximum results (optional, default: 50)',
-        },
-        offset: {
-          type: 'number',
-          description: 'Offset for pagination (optional, default: 0)',
-        },
-      },
-      required: ['searchQuery'],
-    },
-  },
-  {
     name: 'oasis_advanced_search',
-    description: 'Advanced search with filters',
+    description: 'Advanced search with filters. Use entityType parameter to search for specific entity types (avatars, NFTs, files, etc.).',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1206,40 +1046,11 @@ export const oasisTools: Tool[] = [
         },
         entityType: {
           type: 'string',
-          description: 'Entity type filter (optional)',
+          description: 'Entity type filter (optional). Use "Avatar" for avatars, "NFT" for NFTs, "File" for files, etc.',
         },
         filters: {
           type: 'object',
-          description: 'Additional filters (optional)',
-        },
-        limit: {
-          type: 'number',
-          description: 'Maximum results (optional, default: 50)',
-        },
-        offset: {
-          type: 'number',
-          description: 'Offset for pagination (optional, default: 0)',
-        },
-      },
-    },
-  },
-  {
-    name: 'oasis_search_files',
-    description: 'Search files',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        searchQuery: {
-          type: 'string',
-          description: 'Search query string',
-        },
-        avatarId: {
-          type: 'string',
-          description: 'Avatar ID filter (optional)',
-        },
-        fileType: {
-          type: 'string',
-          description: 'File type filter (optional)',
+          description: 'Additional filters (optional). For avatars: {avatarType: "User"}, For NFTs: {avatarId: "..."}, For files: {fileType: "..."}',
         },
         limit: {
           type: 'number',
@@ -1534,18 +1345,6 @@ export async function handleOASISTool(
 ): Promise<any> {
   try {
     switch (name) {
-      case 'oasis_get_avatar': {
-        if (args.avatarId) {
-          return await oasisClient.getAvatar(args.avatarId);
-        } else if (args.username) {
-          return await oasisClient.getAvatarByUsername(args.username);
-        } else if (args.email) {
-          return await oasisClient.getAvatarByEmail(args.email);
-        } else {
-          throw new Error('Must provide avatarId, username, or email');
-        }
-      }
-
       case 'oasis_get_karma': {
         if (!args.avatarId) {
           throw new Error('avatarId is required');
@@ -1583,10 +1382,6 @@ export async function handleOASISTool(
 
       case 'oasis_health_check': {
         return await oasisClient.healthCheck();
-      }
-
-      case 'oasis_get_all_avatars': {
-        return await oasisClient.getAllAvatars();
       }
 
       case 'oasis_register_avatar': {
@@ -1648,16 +1443,168 @@ export async function handleOASISTool(
       }
 
       case 'oasis_mint_nft': {
-        if (!args.JSONMetaDataURL || !args.Symbol) {
-          throw new Error('JSONMetaDataURL and Symbol are required');
+        // Interactive mode: Check for missing required fields and return prompts
+        const missingFields: string[] = [];
+        const recommendedFields: string[] = [];
+        const optionalFields: string[] = [];
+        const prompts: Record<string, string> = {};
+        const recommendedPrompts: Record<string, string> = {};
+        const optionalPrompts: Record<string, string> = {};
+        
+        // Required fields
+        if (!args.JSONMetaDataURL) {
+          missingFields.push('JSONMetaDataURL');
+          prompts.JSONMetaDataURL = 'Please provide a URL to the NFT metadata JSON file (or use a placeholder like https://jsonplaceholder.typicode.com/posts/1 for testing)';
         }
+        
+        if (!args.Symbol) {
+          missingFields.push('Symbol');
+          prompts.Symbol = 'Please provide a symbol/ticker for your NFT (e.g., "MYNFT", "ART123")';
+        }
+        
+        // Recommended fields (not strictly required, but highly recommended)
+        if (!args.ImageUrl) {
+          recommendedFields.push('ImageUrl');
+          recommendedPrompts.ImageUrl = 'Please provide an image URL for your NFT. Options: 1) Upload a local image file to Pinata/IPFS (I can help with that), 2) Use a local image server (start server in NFT_Content folder), 3) Use any public image URL, or 4) Use placeholder: https://via.placeholder.com/512';
+        }
+        
+        if (args.NumberToMint === undefined || args.NumberToMint === null) {
+          recommendedFields.push('NumberToMint');
+          recommendedPrompts.NumberToMint = 'How many NFTs would you like to mint? (Default: 1). Useful for creating multiple copies or a collection.';
+        }
+        
+        if (!args.Title) {
+          recommendedFields.push('Title');
+          recommendedPrompts.Title = 'What would you like to name your NFT? (e.g., "My Awesome Artwork", "Digital Masterpiece")';
+        }
+        
+        if (!args.Description) {
+          optionalFields.push('Description');
+          optionalPrompts.Description = 'Would you like to add a description for your NFT? This helps explain what the NFT is about.';
+        }
+        
+        // Optional but useful fields
+        if (!args.MetaData || !args.MetaData.attributes) {
+          optionalFields.push('Attributes/Traits');
+          optionalPrompts['Attributes/Traits'] = 'Would you like to add attributes/traits? (e.g., Color: Blue, Rarity: Common, Artist: Your Name). These help with filtering and rarity systems.';
+        }
+        
+        if (!args.MetaData || !args.MetaData.external_url) {
+          optionalFields.push('External URL');
+          optionalPrompts['External URL'] = 'Do you have a website or project page URL for this NFT? (Optional - links to your project/collection page)';
+        }
+        
+        if (!args.MetaData || !args.MetaData.category) {
+          optionalFields.push('Category');
+          optionalPrompts.Category = 'What category is your NFT? (e.g., "image", "video", "audio", "3d"). Helps platforms categorize your NFT.';
+        }
+        
+        if (args.Price === undefined || args.Price === null) {
+          optionalFields.push('Price');
+          optionalPrompts.Price = 'Would you like to set a price for this NFT? (Default: 0 - free). Enter 0 if not for sale.';
+        }
+        
+        // If required or recommended fields are missing, return interactive prompt
+        // Optional fields are truly optional - don't block minting if only they're missing
+        if (missingFields.length > 0 || recommendedFields.length > 0) {
+          const allFields = [...missingFields, ...recommendedFields, ...optionalFields];
+          const allPrompts = { ...prompts, ...recommendedPrompts, ...optionalPrompts };
+          
+          return {
+            interactive: true,
+            needsMoreInfo: true,
+            missingFields: missingFields,
+            recommendedFields: recommendedFields,
+            optionalFields: optionalFields,
+            prompts: allPrompts,
+            providedFields: {
+              Title: args.Title || null,
+              Description: args.Description || null,
+              ImageUrl: args.ImageUrl || null,
+              NumberToMint: args.NumberToMint !== undefined ? args.NumberToMint : null,
+              Price: args.Price !== undefined ? args.Price : null,
+              OnChainProvider: args.OnChainProvider || 'SolanaOASIS (default)',
+              NFTStandardType: args.NFTStandardType || 'SPL (default)',
+            },
+            message: missingFields.length > 0 
+              ? `I need a bit more information to mint your NFT. Required: ${missingFields.join(', ')}${recommendedFields.length > 0 ? `. Also recommended: ${recommendedFields.join(', ')}` : ''}${optionalFields.length > 0 ? `. Optional but useful: ${optionalFields.join(', ')}` : ''}`
+              : recommendedFields.length > 0
+              ? `I have the required information. Would you like to provide: ${recommendedFields.join(', ')}?${optionalFields.length > 0 ? ` Also optional: ${optionalFields.join(', ')}` : ''}`
+              : `I have the required and recommended information. Optional fields available: ${optionalFields.join(', ')}`,
+            help: 'You can provide the missing information and I\'ll proceed with minting. For testing, you can use placeholder URLs like https://jsonplaceholder.typicode.com/posts/1 for JSONMetaDataURL and https://via.placeholder.com/512 for images. You can provide all information at once or answer prompts one by one.'
+          };
+        }
+        
+        // All required fields present, check for local file paths and auto-upload to Pinata
+        let imageUrl = args.ImageUrl;
+        let thumbnailUrl = args.ThumbnailUrl;
+        
+        // Auto-detect and upload local file paths to Pinata
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        // Check if ImageUrl is a local file path (not a URL)
+        if (imageUrl && !imageUrl.match(/^https?:\/\//) && !imageUrl.startsWith('ipfs://')) {
+          // Try to resolve the path (could be relative or absolute)
+          let resolvedPath = imageUrl;
+          if (!path.isAbsolute(imageUrl)) {
+            // Try relative to workspace root (common case: NFT_Content/file.png)
+            resolvedPath = path.resolve(process.cwd(), imageUrl);
+          }
+          
+          // Check if file exists
+          if (fs.existsSync(resolvedPath)) {
+            try {
+              console.error(`[MCP] Detected local file path, auto-uploading to Pinata: ${resolvedPath}`);
+              // Upload to Pinata automatically using PinataOASIS
+              const uploadResult = await oasisClient.uploadFile(resolvedPath, 'PinataOASIS');
+              if (uploadResult && uploadResult.result && !uploadResult.isError) {
+                imageUrl = uploadResult.result; // IPFS URL from Pinata
+                console.error(`[MCP] ✅ Successfully uploaded to Pinata: ${imageUrl}`);
+              } else {
+                console.error(`[MCP] ⚠️ Failed to upload image to Pinata: ${uploadResult?.message || 'Unknown error'}`);
+                throw new Error(`Failed to upload image to Pinata: ${uploadResult?.message || 'Unknown error'}`);
+              }
+            } catch (uploadError: any) {
+              console.error(`[MCP] ❌ Error auto-uploading image: ${uploadError.message}`);
+              throw new Error(`Failed to auto-upload image to Pinata: ${uploadError.message}`);
+            }
+          } else {
+            console.error(`[MCP] ⚠️ File not found at path: ${resolvedPath}`);
+            throw new Error(`Image file not found: ${resolvedPath}`);
+          }
+        }
+        
+        // Check if ThumbnailUrl is a local file path
+        if (thumbnailUrl && !thumbnailUrl.match(/^https?:\/\//) && !thumbnailUrl.startsWith('ipfs://')) {
+          let resolvedPath = thumbnailUrl;
+          if (!path.isAbsolute(thumbnailUrl)) {
+            resolvedPath = path.resolve(process.cwd(), thumbnailUrl);
+          }
+          
+          if (fs.existsSync(resolvedPath)) {
+            try {
+              console.error(`[MCP] Auto-uploading thumbnail to Pinata: ${resolvedPath}`);
+              const uploadResult = await oasisClient.uploadFile(resolvedPath, 'PinataOASIS');
+              if (uploadResult && uploadResult.result && !uploadResult.isError) {
+                thumbnailUrl = uploadResult.result;
+                console.error(`[MCP] ✅ Thumbnail uploaded: ${thumbnailUrl}`);
+              }
+            } catch (uploadError: any) {
+              console.error(`[MCP] ⚠️ Error auto-uploading thumbnail: ${uploadError.message}`);
+              // Don't fail minting if thumbnail upload fails
+            }
+          }
+        }
+        
+        // Proceed with minting (using uploaded URLs if files were uploaded)
         return await oasisClient.mintNFT({
           JSONMetaDataURL: args.JSONMetaDataURL,
           Symbol: args.Symbol,
           Title: args.Title,
           Description: args.Description,
-          ImageUrl: args.ImageUrl,
-          ThumbnailUrl: args.ThumbnailUrl,
+          ImageUrl: imageUrl,
+          ThumbnailUrl: thumbnailUrl,
           Price: args.Price,
           NumberToMint: args.NumberToMint,
           OnChainProvider: args.OnChainProvider,
@@ -1665,6 +1612,7 @@ export async function handleOASISTool(
           NFTOffChainMetaType: args.NFTOffChainMetaType,
           NFTStandardType: args.NFTStandardType,
           StoreNFTMetaDataOnChain: args.StoreNFTMetaDataOnChain,
+          MetaData: args.MetaData,
           SendToAddressAfterMinting: args.SendToAddressAfterMinting,
           SendToAvatarAfterMintingId: args.SendToAvatarAfterMintingId,
           SendToAvatarAfterMintingUsername: args.SendToAvatarAfterMintingUsername,
@@ -1673,6 +1621,13 @@ export async function handleOASISTool(
           WaitForNFTToMintInSeconds: args.WaitForNFTToMintInSeconds,
           AttemptToMintEveryXSeconds: args.AttemptToMintEveryXSeconds,
         });
+      }
+
+      case 'oasis_upload_file': {
+        if (!args.filePath) {
+          throw new Error('filePath is required');
+        }
+        return await oasisClient.uploadFile(args.filePath, args.provider);
       }
 
       case 'oasis_save_holon': {
@@ -1769,10 +1724,15 @@ export async function handleOASISTool(
       }
 
       case 'oasis_get_provider_wallets': {
-        if (!args.avatarId) {
-          throw new Error('avatarId is required');
+        if (args.avatarId) {
+          return await oasisClient.getProviderWalletsForAvatar(args.avatarId, args.providerType);
+        } else if (args.username) {
+          return await oasisClient.getProviderWalletsForAvatarByUsername(args.username, args.providerType);
+        } else if (args.email) {
+          return await oasisClient.getProviderWalletsForAvatarByEmail(args.email, args.providerType);
+        } else {
+          throw new Error('Must provide avatarId, username, or email');
         }
-        return await oasisClient.getProviderWalletsForAvatar(args.avatarId, args.providerType);
       }
 
       case 'oasis_get_transaction': {
@@ -1797,13 +1757,6 @@ export async function handleOASISTool(
           limit: args.limit,
           offset: args.offset,
         });
-      }
-
-      case 'oasis_load_holons_for_parent': {
-        if (!args.parentId) {
-          throw new Error('parentId is required');
-        }
-        return await oasisClient.loadHolonsForParent(args.parentId);
       }
 
       case 'oasis_delete_holon': {
@@ -1851,40 +1804,6 @@ export async function handleOASISTool(
         });
       }
 
-      case 'oasis_search_avatars': {
-        return await oasisClient.searchAvatars({
-          searchQuery: args.searchQuery,
-          avatarType: args.avatarType,
-          limit: args.limit,
-          offset: args.offset,
-        });
-      }
-
-      case 'oasis_search_nfts': {
-        return await oasisClient.searchNFTs({
-          searchQuery: args.searchQuery,
-          avatarId: args.avatarId,
-          limit: args.limit,
-          offset: args.offset,
-        });
-      }
-
-      case 'oasis_get_all_avatar_names': {
-        return await oasisClient.getAllAvatarNames(args.includeUsernames ?? true, args.includeIds ?? true);
-      }
-
-      case 'oasis_get_avatar_portrait': {
-        if (args.avatarId) {
-          return await oasisClient.getAvatarPortrait(args.avatarId);
-        } else if (args.username) {
-          return await oasisClient.getAvatarPortraitByUsername(args.username);
-        } else if (args.email) {
-          return await oasisClient.getAvatarPortraitByEmail(args.email);
-        } else {
-          throw new Error('Must provide avatarId, username, or email');
-        }
-      }
-
       case 'oasis_get_nfts_for_mint_address': {
         if (!args.mintWalletAddress) {
           throw new Error('mintWalletAddress is required');
@@ -1905,20 +1824,6 @@ export async function handleOASISTool(
 
       case 'oasis_get_all_geo_nfts': {
         return await oasisClient.getAllGeoNFTs();
-      }
-
-      case 'oasis_get_provider_wallets_by_username': {
-        if (!args.username) {
-          throw new Error('username is required');
-        }
-        return await oasisClient.getProviderWalletsForAvatarByUsername(args.username, args.providerType);
-      }
-
-      case 'oasis_get_provider_wallets_by_email': {
-        if (!args.email) {
-          throw new Error('email is required');
-        }
-        return await oasisClient.getProviderWalletsForAvatarByEmail(args.email, args.providerType);
       }
 
       case 'oasis_get_default_wallet': {
@@ -2055,28 +1960,11 @@ export async function handleOASISTool(
         return await oasisClient.voteForNegativeKarmaWeighting(args.karmaType, args.weighting);
       }
 
-      case 'oasis_basic_search': {
-        if (!args.searchQuery) {
-          throw new Error('searchQuery is required');
-        }
-        return await oasisClient.basicSearch(args.searchQuery, args.limit, args.offset);
-      }
-
       case 'oasis_advanced_search': {
         return await oasisClient.advancedSearch({
           searchQuery: args.searchQuery,
           entityType: args.entityType,
           filters: args.filters,
-          limit: args.limit,
-          offset: args.offset,
-        });
-      }
-
-      case 'oasis_search_files': {
-        return await oasisClient.searchFiles({
-          searchQuery: args.searchQuery,
-          avatarId: args.avatarId,
-          fileType: args.fileType,
           limit: args.limit,
           offset: args.offset,
         });
