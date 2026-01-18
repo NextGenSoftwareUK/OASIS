@@ -3200,10 +3200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 if (!IsProviderActivated || Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
-                }
+                    ActivateProvider();
 
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
                 {
@@ -3235,10 +3232,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 if (!IsProviderActivated || Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
-                }
+                    await ActivateProviderAsync(); //TODO: Need to fix all other methods and providers to follow this pattern!
 
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
                 {
