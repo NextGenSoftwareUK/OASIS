@@ -606,9 +606,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 return result;
             }
 
-            if ((NFTStandardType == NFTStandardType.ERC721 || NFTStandardType == NFTStandardType.ERC1155) && (onChainProvider == ProviderType.ArbitrumOASIS || onChainProvider == ProviderType.EthereumOASIS || onChainProvider == ProviderType.PolygonOASIS))
+            if ((NFTStandardType == NFTStandardType.ERC721 || NFTStandardType == NFTStandardType.ERC1155) && !ProviderManager.Instance.IsProviderEVMBlockchain(onChainProvider))
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} When selecting NFTStandardType ERC721 or ERC1155 then the OnChainProvider needs to be set to a supported EVM chain such as ArbitrumOASIS, EthereumOASIS or PolygonOASIS.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} When selecting NFTStandardType ERC721 or ERC1155 then the OnChainProvider needs to be set to a supported EVM chain such as ArbitrumOASIS, EthereumOASIS, PolygonOASIS & BaseOASIS.");
                 return result;
             }
 
@@ -3600,7 +3600,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                     } while (attemptingToMint);
 
-                    if (!string.IsNullOrEmpty(currentWeb3NFT.MintTransactionHash) && !string.IsNullOrEmpty(mergedRequest.SendToAddressAfterMinting))
+                    if (!string.IsNullOrEmpty(currentWeb3NFT.MintTransactionHash) && !currentWeb3NFT.MintTransactionHash.ToLower().Contains("error") && !string.IsNullOrEmpty(mergedRequest.SendToAddressAfterMinting))
                     {
                         bool attemptingToSend = true;
                         startTime = DateTime.Now;
@@ -3691,10 +3691,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     result.Result.Web3NFTs.Add((Web3NFT)UpdateWeb3NFT(currentWeb3NFT, web3Request));
 
                     IHolon web3NFTHolon = CreateWeb3NFTMetaDataHolon(currentWeb3NFT, result.Result.Id, web3Request);
-                    OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(web3NFTHolon, web3Request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+                    OASISResult<IHolon> saveHolonResult = null;
 
-                    if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB3 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                    //TODO: Do we want to still save the holon even if it did not mint?!
+                    //TODO: After the FormatSuccessMessage call below we need to remove the web3nft from the parent web4 nft (otherwise there wont be a matching holon fo it and could cause issues later?)
+                    if (!currentWeb3NFT.MintTransactionHash.ToLower().Contains("error"))
+                    {
+                        saveHolonResult = await Data.SaveHolonAsync(web3NFTHolon, web3Request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+
+                        if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB3 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                    }
 
                     //Default to Mongo for storing the OASIS NFT meta data if none is specified.
                     if (metaDataProviderType.Value == ProviderType.None)
@@ -3723,17 +3730,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             }
                         }
 
-                        saveHolonResult = await Data.SaveHolonAsync(webNFTHolon, originalWeb4Request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
-
-                        if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                        //TODO: Do we want to still save the holon even if none of it's child web3 NFT's minted?!
+                        if (result.SavedCount > 0)
                         {
-                            result.IsError = false;
-                            result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, responseFormatType);
+                            saveHolonResult = await Data.SaveHolonAsync(webNFTHolon, originalWeb4Request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+
+                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            {
+                                result.IsError = result.SavedCount == 0;
+                                result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, responseFormatType);
+                            }
+                            else
+                            {
+                                result.Result = null;
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB4 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                            }
                         }
                         else
                         {
-                            result.Result = null;
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB4 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                            result.IsError = result.SavedCount == 0;
+                            result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, responseFormatType);
                         }
                     }
                 }
@@ -3751,7 +3767,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully minted the OASIS NFT containing {response.SavedCount} Web NFT(s) & {response.ErrorCount} errored!";
-            string summary = $"Successfully minted the OASIS NFT containing {response.SavedCount} Web NFT(s)";
+            string summary = response.SavedCount > 0 ? $"Successfully minted the OASIS NFT containing {response.SavedCount} Web NFT(s)" : "No OASIS NFT's were minted!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -3799,7 +3815,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully minted & placed the OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
-            string summary = $"Successfully minted & placed the OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s)";
+            //string summary = $"Successfully minted & placed the OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s)";
+            string summary = response.SavedCount > 0 ? $"Successfully minted the OASIS Geo-FT containing {response.SavedCount} Web NFT(s)" : "No OASIS Geo-NFT's were minted!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -3846,7 +3863,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully created & placed OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
-            string summary = $"Successfully created & placed OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s)";
+            //string summary = $"Successfully created & placed OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s)";
+            string summary = response.SavedCount > 0 ? $"Successfully created & placed OASIS Geo-NFT containing {response.SavedCount} Web NFT(s)" : "No OASIS Geo-NFT's were placed!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -3894,7 +3912,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully imported {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
-            string summary = $"Successfully imported {response.SavedCount} Web3 NFT(s)";
+            string summary = response.SavedCount > 0 ? $"Successfully imported {response.SavedCount} Web NFT(s)" : "No OASIS NFT's were imported!";
+            //string summary = $"Successfully imported {response.SavedCount} Web3 NFT(s)";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -3936,7 +3955,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully imported the OASIS NFT containing {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
-            string summary = $"Successfully imported the OASIS NFT containing {response.SavedCount} Web3 NFT(s)";
+            //string summary = $"Successfully imported the OASIS NFT containing {response.SavedCount} Web3 NFT(s)";
+            string summary = response.SavedCount > 0 ? $"Successfully imported the OASIS NFT containing {response.SavedCount} Web NFT(s)" : "No OASIS NFT's were imported!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -3982,7 +4002,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully imported the GeoNFT containing {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
-            string summary = $"Successfully imported the GeoNFT containing {response.SavedCount} Web3 NFT(s)";
+            //string summary = $"Successfully imported the GeoNFT containing {response.SavedCount} Web3 NFT(s)";
+            string summary = response.SavedCount > 0 ? $"Successfully imported the GeoNFT containing {response.SavedCount} Web NFT(s)" : "No GeoNFT's were imported!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {

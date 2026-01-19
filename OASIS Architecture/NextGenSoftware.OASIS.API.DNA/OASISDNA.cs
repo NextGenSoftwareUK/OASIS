@@ -222,6 +222,9 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class StorageProviderSettings
     {
+        //public bool LogSwitchingProvidersToConsole { get; set; } = true;
+        //public bool LogSwitchingProvidersToFile { get; set; } = true;
+        public bool LogSwitchingProviders { get; set; } = true;
         public int ProviderMethodCallTimeOutSeconds { get; set; } = 10;
         public int ActivateProviderTimeOutSeconds { get; set; } = 10;
         public int DectivateProviderTimeOutSeconds { get; set; } = 10;
