@@ -3018,6 +3018,50 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
+                    case "logproviderswitching":
+                        {
+                            if (inputArgs.Length > 2)
+                            {
+                                switch (inputArgs[2].ToLower())
+                                {
+                                    case "enabled":
+                                        {
+                                            ProviderManager.Instance.OASISDNA.OASIS.StorageProviders.LogSwitchingProviders = true;
+                                            CLIEngine.ShowSuccessMessage("OASIS Hyperdrive Provider Switching Logging: Enabled.");
+                                        }
+                                        break;
+
+                                    case "disabled":
+                                        {
+                                            ProviderManager.Instance.OASISDNA.OASIS.StorageProviders.LogSwitchingProviders = false;
+                                            CLIEngine.ShowSuccessMessage("OASIS Hyperdrive Provider Switching Logging: Disabled.");
+                                        }
+                                        break;
+
+                                    case "status":
+                                        {
+                                            if (ProviderManager.Instance.OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
+                                                CLIEngine.ShowMessage("OASIS Hyperdrive Provider Switching Logging: Enabled.");
+                                            else
+                                                CLIEngine.ShowMessage("OASIS Hyperdrive Provider Switching Logging: Disabled.");
+                                        }
+                                        break;
+
+                                    default:
+                                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                if (ProviderManager.Instance.OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
+                                    CLIEngine.ShowMessage("OASIS Hyperdrive Provider Switching Logging: Enabled.");
+                                else
+                                    CLIEngine.ShowMessage("OASIS Hyperdrive Provider Switching Logging: Disabled.");
+                            }
+                        }
+                        break;
+
                     default:
                         CLIEngine.ShowErrorMessage("Command Unknown.");
                         break;
@@ -3030,6 +3074,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage("    cosmicdetailedoutput     [enable/disable/status] Enables/disables COSMIC Detailed Output.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    starstatusdetailedoutput [enable/disable/status] Enables/disables STAR ODK Detailed Output.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    logproviderswitching     [enable/disable/status] Enables/disables OASIS Hyperdrive Provider Switching Logging.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }

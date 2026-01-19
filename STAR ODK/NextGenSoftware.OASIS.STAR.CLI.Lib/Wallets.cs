@@ -387,9 +387,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> ListProviderWalletsForBeamedInAvatarAsync(bool showOnlyDefault = false, bool showPrivateKeys = false, bool showSecretWords = false, ProviderType providerTypeToShowWalletsFor = ProviderType.All, ProviderType providerTypeToLoadFrom = ProviderType.Default, bool showNumbers = false)
         {
             CLIEngine.ShowWorkingMessage("Loading Wallets...");
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
             OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await STAR.OASISAPI.Wallets.LoadProviderWalletsForAvatarByIdAsync(STAR.BeamedInAvatar.Id, showOnlyDefault, showPrivateKeys, showSecretWords, providerTypeToShowWalletsFor, providerTypeToLoadFrom);
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
             if (walletsResult != null && walletsResult.Result != null && !walletsResult.IsError)
                 ShowWallets(walletsResult.Result, showNumbers: showNumbers);
@@ -424,9 +424,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 CLIEngine.ShowWorkingMessage("Loading Default Wallet...", addLineBefore: true);
                 Console.WriteLine("");
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
                 result = await STAR.OASISAPI.Wallets.GetAvatarDefaultWalletByIdAsync(STAR.BeamedInAvatar.Id, (ProviderType)providerObj, true, showPrivateKeys.Value, showSecretWords.Value);
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
                     ShowWallet(result.Result);
@@ -541,9 +541,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (Guid.TryParse(idOrName, out Guid walletId))
                 {
                     CLIEngine.ShowWorkingMessage("Loading Wallet...");
-                    ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+                    //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
                     OASISResult<IProviderWallet> walletResult = await STAR.OASISAPI.Wallets.LoadProviderWalletForAvatarByIdAsync(STAR.BeamedInAvatar.Id, walletId, false, false, providerTypeToLoadFrom);
-                    ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+                    //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
                     if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
                     {
@@ -558,9 +558,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
             }
 
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
             OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = await ListProviderWalletsForBeamedInAvatarAsync(false, false, false, providerTypeToShowWalletsFor, providerTypeToLoadFrom, true);
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
             Dictionary<int, IProviderWallet> lookup = new Dictionary<int, IProviderWallet>();
             int number = 0;
