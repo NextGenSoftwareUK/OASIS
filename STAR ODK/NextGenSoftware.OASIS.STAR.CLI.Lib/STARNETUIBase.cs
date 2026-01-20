@@ -165,11 +165,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         await ShowAsync(result.Result);
                         Console.WriteLine("");
 
-                        if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETHolonUIName} folder now?"))
-                            Process.Start("explorer.exe", holonPath);
-
                         if (addDependencies)
                             await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
+
+                        if (CLIEngine.GetConfirmation($"Do you wish to open the {STARNETManager.STARNETHolonUIName} folder now?"))
+                            Process.Start("explorer.exe", holonPath);
 
                         Console.WriteLine("");
                     }
