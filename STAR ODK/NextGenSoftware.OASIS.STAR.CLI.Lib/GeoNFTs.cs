@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ADRaffy.ENSNormalize;
+using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -15,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
@@ -91,10 +93,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
-                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"OASISGeoNFT_{geoNFTResult.Result.Id}.json"), JsonConvert.SerializeObject(geoNFT));
+                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB4_GEONFT_{geoNFTResult.Result.Id}.json"), JsonConvert.SerializeObject(geoNFT));
 
                         if (!string.IsNullOrEmpty(geoNFTResult.Result.JSONMetaData))
-                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"JSONMetaData_{geoNFTResult.Result.Id}.json"), geoNFTResult.Result.JSONMetaData);
+                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB4_JSONMetaData_{geoNFTResult.Result.Id}.json"), geoNFTResult.Result.JSONMetaData);
+
+                        foreach (IWeb3NFT web3Nft in geoNFTResult.Result.Web3NFTs)
+                        {
+                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB3_NFT_{web3Nft.Id}.json"), JsonConvert.SerializeObject(web3Nft));
+
+                            if (!string.IsNullOrEmpty(web3Nft.JSONMetaData))
+                                File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB3_JSONMetaData_{web3Nft.Id}.json"), web3Nft.JSONMetaData);
+                        }
 
                         result.Result.NFTType = (NFTType)Enum.Parse(typeof(NFTType), result.Result.STARNETDNA.STARNETCategory.ToString());
                         OASISResult<STARGeoNFT> saveResult = await result.Result.SaveAsync<STARGeoNFT>();
@@ -111,6 +121,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             OASISErrorHandling.HandleError(ref result, $"Error occured saving WEB5 STAR Geo-NFT after creation in CreateAsync method. Reason: {saveResult.Message}");
                     }
                 }
+                else
+                    Console.WriteLine("");
             }
             else
             {
@@ -894,7 +906,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             MetaDataHelper.ShowMetaData(web4GeoNFT.MetaData, displayFieldLength);
 
             Console.WriteLine("");
-            DisplayProperty("WEB3 NFT's:", "", displayFieldLength);
+            DisplayProperty($"WEB3 NFT's ({web4GeoNFT.Web3NFTs.Count})", "", displayFieldLength);
 
             foreach (Web3NFT web3NFT in web4GeoNFT.Web3NFTs)
             {

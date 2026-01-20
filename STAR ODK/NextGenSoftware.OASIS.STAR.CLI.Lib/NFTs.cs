@@ -105,10 +105,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
-                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"OASISNFT_{NFTResult.Result.Id}.json"), JsonConvert.SerializeObject(NFT));
+                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB4_NFT_{NFTResult.Result.Id}.json"), JsonConvert.SerializeObject(NFT));
 
                         if (!string.IsNullOrEmpty(NFTResult.Result.JSONMetaData))
-                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"JSONMetaData_{NFTResult.Result.Id}.json"), NFTResult.Result.JSONMetaData);
+                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB4_JSONMetaData_{NFTResult.Result.Id}.json"), NFTResult.Result.JSONMetaData);
+
+                        foreach (IWeb3NFT web3Nft in NFTResult.Result.Web3NFTs)
+                        {                             
+                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB3_NFT_{web3Nft.Id}.json"), JsonConvert.SerializeObject(web3Nft));
+
+                            if (!string.IsNullOrEmpty(web3Nft.JSONMetaData))
+                                File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB3_JSONMetaData_{web3Nft.Id}.json"), web3Nft.JSONMetaData);
+                        }
 
                         result.Result.NFTType = (NFTType)Enum.Parse(typeof(NFTType), result.Result.STARNETDNA.STARNETCategory.ToString());
                         OASISResult<STARNFT> saveResult = await result.Result.SaveAsync<STARNFT>();
@@ -128,6 +136,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             OASISErrorHandling.HandleError(ref result, $"Error occured saving WEB5 STAR NFT after creation in CreateAsync method. Reason: {saveResult.Message}");
                     }
                 }
+                else
+                    Console.WriteLine("");
             }
             else
             {

@@ -207,7 +207,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             List<IMintWeb3NFTRequest> mintRequests = new List<IMintWeb3NFTRequest>();
 
-            if (request.NumberToMint > 0 && !CLIEngine.GetConfirmation("Do all of the WEB3 NFT's share the same parent WEB4 NFT MetaData? (Select 'N' if you wish to create WEB3 NFT varients that share some or none of their parent WEB4 NFT MetaData)."))
+            if (request.NumberToMint > 1 && !CLIEngine.GetConfirmation("Do all of the WEB3 NFT's share the same parent WEB4 NFT MetaData? (Select 'N' if you wish to create WEB3 NFT varients that share some or none of their parent WEB4 NFT MetaData)."))
             {
                 if (request.Web3NFTs == null)
                     request.Web3NFTs = new List<IMintWeb3NFTRequest>();
