@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class InstalledGeoNFT : InstalledSTARNETHolon, IInstalledGeoNFT
     {
-        public InstalledGeoNFT() : base("GeoNFTDNAJSON")
+        public InstalledGeoNFT() : base("STARGeoNFTDNAJSON")
         {
             this.HolonType = HolonType.InstalledGeoNFT;
         }
