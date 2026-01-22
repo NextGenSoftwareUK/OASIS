@@ -899,7 +899,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listUnpublishedPredicate = null,
             Func<ProviderType, Task> listDeactivatedPredicate = null,
             Func<string, Guid, bool, bool, ProviderType, Task> searchPredicate = null,
-            Func<string, string, string, ISTARNETDNA, ProviderType, Task> addDependencyPredicate = null,
+            Func<string, ISTARNETDNA, string, string, ProviderType, Task> addDependencyPredicate = null,
             Func<string, string, string, ProviderType, Task> removeDependencyPredicate = null,
             Func<object, Task> clonePredicate = null,
             Func<object, Task> mintPredicate = null, //WEB4 Commands
@@ -1357,7 +1357,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "adddependency":
                         {
                             if (addDependencyPredicate != null)
-                                await addDependencyPredicate(id, subCommandParam3, subCommandParam4, null, providerType);
+                                await addDependencyPredicate(id, null, subCommandParam3, subCommandParam4, providerType);
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
