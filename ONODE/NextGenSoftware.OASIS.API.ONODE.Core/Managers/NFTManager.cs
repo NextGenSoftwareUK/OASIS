@@ -1772,7 +1772,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnWeb3NFTAsync(Guid avatarId, IBurnWeb3NFTRequest request, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnWeb3NFTAsync(Guid avatarId, IBurnWeb3NFTRequest request)
         {
             OASISResult<IWeb3NFTTransactionResponse> result = new();
             string errorMessage = "Error occured in BurnWeb3NFTAsync in NFTManager. Reason:";
@@ -1785,65 +1785,61 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                if (string.IsNullOrEmpty(request.NFTTokenAddress))
-                {
-                    OASISResult<IWeb3NFT> web3NFTResult = await LoadWeb3NftAsync(request.Web3NFTId);
+                OASISResult<IWeb3NFT> web3NFTResult = await LoadWeb3NftAsync(request.Web3NFTId);
 
-                    if (web3NFTResult != null && web3NFTResult.Result != null && web3NFTResult.IsError!)
+                if (web3NFTResult != null && web3NFTResult.Result != null && !web3NFTResult.IsError)
+                {
+                    request.NFTTokenAddress = web3NFTResult.Result.NFTTokenAddress;
+
+                    OASISResult<IOASISNFTProvider> providerResult = GetNFTProvider(web3NFTResult.Result.OnChainProvider.Value);
+
+                    if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
                     {
-                        request.NFTTokenAddress = web3NFTResult.Result.NFTTokenAddress;
-                        //request.MintWalletAddress = web3NFTResult.Result.OASISMintWalletAddress;
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadWeb3NftAsync to resolve the NFTTokenAddress. Reason: {web3NFTResult.Message}");
-                        return result;
+                        bool burnt = false;
+                        DateTime startTime = DateTime.Now;
+
+                        do
+                        {
+                            try
+                            {
+                                OASISResult<IWeb3NFTTransactionResponse> burnResult = await providerResult.Result.BurnNFTAsync(request);
+                                string burnErrorMessage = "";
+
+                                if (burnResult != null && burnResult.Result != null && !burnResult.IsError)
+                                {
+                                    burnt = true;
+                                    result.Result = burnResult.Result;
+                                    result.Message = "Web3 NFT Burnt Successfully!";
+                                }
+                                else
+                                    burnErrorMessage = $"{errorMessage} Error occured calling BurnNFTAsync on provider {web3NFTResult.Result.OnChainProvider.Name}. Reason: {providerResult.Message}.";
+
+                                if (!burnt && !request.WaitTillNFTBurnt)
+                                {
+                                    OASISErrorHandling.HandleError(ref result, $"{burnErrorMessage} WaitTillNFTBurnt is false so aborting!");
+                                    break;
+                                }
+
+                                Thread.Sleep(request.AttemptToBurnEveryXSeconds * 1000);
+
+                                if (startTime.AddSeconds(request.WaitForNFTToBurnInSeconds).Ticks < DateTime.Now.Ticks)
+                                {
+                                    OASISErrorHandling.HandleError(ref result, $"{burnErrorMessage}Timeout expired, WaitForNFTToBurnInSeconds ({request.WaitForNFTToBurnInSeconds}) exceeded, try increasing and trying again!");
+                                    break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured calling BurnNFTAsync on provider {web3NFTResult.Result.OnChainProvider.Name} : {e.Message}", e);
+                            }
+                        }
+                        while (!burnt);
                     }
                 }
-
-                OASISResult<IOASISNFTProvider> providerResult = GetNFTProvider(providerType);
-
-                if (providerResult != null && providerResult.Result != null && !providerResult.IsError)
+                else
                 {
-                    bool burnt = false;
-                    DateTime startTime = DateTime.Now;
-
-                    do
-                    {
-                        try
-                        {
-                            OASISResult<IWeb3NFTTransactionResponse> burnResult = await providerResult.Result.BurnNFTAsync(request);
-                            string burnErrorMessage = "";
-
-                            if (burnResult != null && burnResult.Result != null && !burnResult.IsError)
-                            {
-                                burnt = true;
-                                result.Result = burnResult.Result;
-                                result.Message = "Web3 NFT Burnt Successfully!";
-                            }
-                            else
-                                burnErrorMessage = $"{errorMessage} Error occured calling BurnNFTAsync on provider {Enum.GetName(typeof(ProviderType), providerType)}. Reason: {providerResult.Message}.";
-
-                            if (!burnt && !request.WaitTillNFTBurnt)
-                            {
-                                OASISErrorHandling.HandleError(ref result, $"{burnErrorMessage} WaitTillNFTBurnt is false so aborting!");
-                                break;
-                            }
-
-                            Thread.Sleep(request.AttemptToBurnEveryXSeconds * 1000);
-
-                            if (startTime.AddSeconds(request.WaitForNFTToBurnInSeconds).Ticks < DateTime.Now.Ticks)
-                            {
-                                OASISErrorHandling.HandleError(ref result, $"{burnErrorMessage}Timeout expired, WaitForNFTToBurnInSeconds ({request.WaitForNFTToBurnInSeconds}) exceeded, try increasing and trying again!");
-                                break;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured calling BurnNFTAsync on provider {Enum.GetName(typeof(ProviderType), providerType)} : {e.Message}", e);
-                        }
-                    }
-                    while (!burnt);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadWeb3NftAsync. Reason: {web3NFTResult.Message}");
+                    return result;
                 }
             }
             catch (Exception e)
@@ -1869,7 +1865,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OwnerPrivateKey = "",
                         OwnerPublicKey = "",
                         OwnerSeedPhrase = ""
-                    }, providerType);
+                    });
 
                     if (!(burnResult != null && burnResult.Result != null && !burnResult.IsError))
                         OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured burning Web3 NFT with id {id}. Reason: {burnResult?.Message}");

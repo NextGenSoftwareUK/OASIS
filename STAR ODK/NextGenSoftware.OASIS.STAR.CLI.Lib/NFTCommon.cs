@@ -957,7 +957,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, default, new Dictionary<string, string>() { { "NFT.ParentWeb4NFTId", parentWeb4NFTId.ToString() } }, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType: providerType);
+                    Dictionary<string, string> metaData = null;
+
+                    if (parentWeb4NFTId != Guid.Empty)
+                        metaData = new Dictionary<string, string>() { { "NFT.ParentWeb4NFTId", parentWeb4NFTId.ToString() } };
+                
+                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, default, metaData, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
