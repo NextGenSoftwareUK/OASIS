@@ -918,7 +918,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<string, string, ProviderType, Task> addWeb4NFTToCollectionPredicate = null,
             Func<string, string, ProviderType, Task> removeWeb4NFTFromCollectionPredicate = null,
             Func<string, ProviderType, Task> updateWeb3Predicate = null, //WEB3 Commands
-            Func<string, bool, bool, ProviderType, Task<OASISResult<bool>>> deleteWeb3Predicate = null,
+            Func<string, bool?, bool?, ProviderType, Task<OASISResult<bool>>> deleteWeb3Predicate = null,
             Func<ProviderType, Task> listAllWeb3Predicate = null,
             Func<ProviderType, Task> listWeb3ForBeamedInAvatarPredicate = null,
             Func<string, ProviderType, Task> showWeb3Predicate = null,
