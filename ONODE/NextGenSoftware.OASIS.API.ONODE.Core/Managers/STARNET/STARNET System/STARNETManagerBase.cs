@@ -808,7 +808,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in DeleteAsync. Reason: ";
-            OASISResult<T1> loadResult = await LoadAsync(id, avatarId, version, providerType: providerType);
+            OASISResult<T1> loadResult = await LoadAsync(avatarId, id, version, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await DeleteAsync(avatarId, loadResult.Result, version, softDelete, deleteDownload, deleteInstall, providerType);
@@ -822,7 +822,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in Delete. Reason: ";
-            OASISResult<T1> loadResult = Load(id, avatarId, version, providerType: providerType);
+            OASISResult<T1> loadResult = Load(avatarId, id, version, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = Delete(avatarId, loadResult.Result, version, softDelete, deleteDownload, deleteInstall, providerType);

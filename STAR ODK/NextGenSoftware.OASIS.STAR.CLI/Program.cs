@@ -1138,10 +1138,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         {
                             if (showDelete)
                             {
-                                bool softDelete = true;
+                                bool temp = false;
+                                bool? softDelete = null;
 
-                                if (inputArgs.Length > 3)
-                                    bool.TryParse(inputArgs[3], out softDelete);
+                                if (inputArgs.Length > 3 && bool.TryParse(inputArgs[3], out temp))
+                                    softDelete = temp;
 
                                 if (web3)
                                 {
@@ -1151,8 +1152,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     if (inputArgs.Length > 3)
                                         id = inputArgs[3];
 
-                                    if (inputArgs.Length > 4)
-                                        bool.TryParse(inputArgs[4], out softDelete);
+                                    if (inputArgs.Length > 4 && bool.TryParse(inputArgs[4], out temp))
+                                        softDelete = temp;
 
                                     if (inputArgs.Length > 5)
                                         bool.TryParse(inputArgs[5], out burnWeb3NFT);
@@ -1169,25 +1170,24 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 else if (web4)
                                 {
                                     id = "";
-                                    bool deleteChildWeb4NFTs = false;
-                                    bool deleteChildWeb3NFTs = true;
-                                    bool burnChildWeb3NFTs = true;
-                                    bool temp = false;
+                                    bool? deleteChildWeb4NFTs = null;
+                                    bool? deleteChildWeb3NFTs = null;
+                                    bool? burnChildWeb3NFTs = null;
 
                                     if (inputArgs.Length > 3)
                                         id = inputArgs[3];
 
-                                    if (inputArgs.Length > 4)
-                                        bool.TryParse(inputArgs[4], out softDelete);
+                                    if (inputArgs.Length > 4 && bool.TryParse(inputArgs[4], out temp))
+                                        softDelete = temp;
 
-                                    if (inputArgs.Length > 5)
-                                        bool.TryParse(inputArgs[5], out deleteChildWeb4NFTs);
+                                    if (inputArgs.Length > 5 && bool.TryParse(inputArgs[5], out temp))
+                                        deleteChildWeb4NFTs = temp;
 
-                                    if (inputArgs.Length > 6)
-                                        bool.TryParse(inputArgs[6], out deleteChildWeb3NFTs);
+                                    if (inputArgs.Length > 6 && bool.TryParse(inputArgs[6], out temp))
+                                        deleteChildWeb3NFTs = temp;
 
-                                    if (inputArgs.Length > 7)
-                                        bool.TryParse(inputArgs[7], out burnChildWeb3NFTs);
+                                    if (inputArgs.Length > 7 && bool.TryParse(inputArgs[7], out temp))
+                                        burnChildWeb3NFTs = temp;
 
                                     switch (subCommand.ToUpper())
                                     {
@@ -1220,7 +1220,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 else
                                 {
                                     if (deletePredicate != null)
-                                        await deletePredicate(id, softDelete, providerType);
+                                        await deletePredicate(id, softDelete.Value, providerType); //TODO: Fix later so we pass the ?bool softDelete value in like above for web4 and web3!
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }

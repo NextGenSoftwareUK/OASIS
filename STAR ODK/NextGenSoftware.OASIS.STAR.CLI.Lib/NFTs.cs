@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Flurl.Http;
+using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -90,6 +91,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (!mint || (mint && CLIEngine.GetConfirmation("Would you like to submit the WEB4 OASIS NFT to WEB5 STARNET which will create a WEB5 STAR NFT that wraps around the WEB4 OASISNFT allowing you to version control, publish, share, use in Our World, Quests, etc? (recommended). Selecting 'Y' will also create a WEB3 JSONMetaData and a WEB4 OASISNFT json file in the WEB5 STAR NFT folder.")))
                 {
                     Console.WriteLine("");
+
+                    //if (NFT != null && NFT.MetaData != null)
+                    //{
+                    //    foreach (string key in NFT.MetaData.Keys)
+                    //    {
+                    //        if (NFT.MetaData[key] != null)
+                    //        {
+                    //            string value = NFT.MetaData[key].ToString();
+                    //            int start = value.IndexOf(":");
+                    //            int end = value.IndexOf("]", start);
+                    //            end = end - 2;
+                    //            NFT.MetaData[key] = value.Substring(start + 3, end - start); 
+                    //        }
+                    //    }
+                    //}
 
                     result = await base.CreateAsync(new STARNETCreateOptions<STARNFT, STARNETDNA>()
                     {
