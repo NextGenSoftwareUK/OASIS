@@ -640,7 +640,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 // Note: Web3 NFTs are typically updated through their parent Web4 NFT
                 // This is a placeholder for future implementation if direct Web3 NFT updates are needed
-                CLIEngine.ShowWarningMessage("Web3 NFT updates are typically done through their parent Web4 NFT. Use 'nft update {id/name}' to update the parent Web4 NFT.");
+                //TODO: Needs implementing properly!
+                CLIEngine.ShowWarningMessage("Web3 NFT updates are typically done through their parent Web4 NFT. Use 'nft update {id/name} web4' to update the parent Web4 NFT.");
                 result = nftResult;
             }
             else
@@ -651,7 +652,74 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public virtual async Task<OASISResult<bool>> DeleteWeb3NFTAsync(string idOrName, bool softDelete = true, bool burnWeb3NFT = true, ProviderType providerType = ProviderType.Default)
+        //TODO: Finish implementing ASAP! :)
+        //public virtual async Task<OASISResult<IWeb3NFT>> UpdateWeb3NFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<IWeb3NFT> result = new OASISResult<IWeb3NFT>();
+        //    UpdateWeb3NFTRequest request = new UpdateWeb3NFTRequest();
+
+        //    Console.WriteLine("");
+        //    CLIEngine.ShowWorkingMessage($"Loading WEB3 NFT's...");
+
+        //    OASISResult<IWeb3NFT> nftResult = await NFTCommon.FindWeb3NFTAsync("update", default, idOrName, true, providerType: providerType);
+
+        //    if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+        //    {
+        //        // Let the common helper prepare the update request (prompts etc).
+        //        OASISResult<IUpdateWeb3NFTRequest> updateResult = await NFTCommon.UpdateWeb3NFTAsync(request, nftResult.Result, "WEB3 NFT");
+
+        //        if (updateResult != null && updateResult.Result != null && !updateResult.IsError)
+        //        {
+        //            request = (UpdateWeb3NFTRequest)updateResult.Result;
+
+        //            Console.WriteLine("");
+        //            CLIEngine.ShowWorkingMessage("Saving WEB3 NFT...");
+        //            // Call manager to perform the update on the Web3 NFT
+        //            result = await NFTCommon.NFTManager.UpdateWeb3NFTAsync(request, providerType);
+
+        //            if (result != null && result.Result != null && !result.IsError)
+        //            {
+        //                CLIEngine.ShowSuccessMessage("WEB3 NFT Successfully Updated.");
+
+        //                // Try to update any STARNET holon mapping if present in the metadata (keeps STARNET in sync).
+        //                // This mirrors how WEB4 updates propagate to STARNET holons.
+        //                try
+        //                {
+        //                    result = await NFTCommon.UpdateSTARNETHolonAsync("Web5STARNFTId", "WEB3 NFT", STARNETManager, result.Result.MetaData, result, providerType);
+        //                }
+        //                catch
+        //                {
+        //                    // If STARNET sync fails we don't want to lose the successful NFT update, just log the error.
+        //                    // The UpdateSTARNETHolonAsync method will set the result error/message if needed; swallow exceptions here.
+        //                }
+        //            }
+        //            else
+        //            {
+        //                string msg = result != null ? result.Message : "";
+        //                OASISErrorHandling.HandleError(ref result, $"Error Occured Updating WEB3 NFT in UpdateWeb3NFTAsync method. Reason: {msg}");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            string msg = updateResult != null ? updateResult.Message : "";
+        //            OASISErrorHandling.HandleError(ref result, $"Error Occured preparing WEB3 NFT update: {msg}");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        string msg = nftResult != null ? nftResult.Message : "";
+        //        OASISErrorHandling.HandleError(ref result, $"Error Occured Finding WEB3 NFT to update: {msg}");
+        //    }
+
+        //    return result;
+        //}
+
+        public virtual async Task<OASISResult<bool>> DeleteWeb3NFTAsync(string idOrName, ProviderType providerType = ProviderType.Default)
+        {
+            return await DeleteWeb3NFTAsync(idOrName, null, null, providerType);
+        }
+
+        public virtual async Task<OASISResult<bool>> DeleteWeb3NFTAsync(string idOrName, bool? softDelete = true, bool? burnWeb3NFT = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -662,7 +730,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (nft != null && nft.Result != null && !nft.IsError)
             {
-                OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb3NFTAsync(STAR.BeamedInAvatar.Id, nft.Result.Id, softDelete, burnWeb3NFT, providerType: providerType);
+                if (!softDelete.HasValue)
+                    softDelete = CLIEngine.GetConfirmation("Do you wish to permanently delete the Web3 NFT? (defaults to false)");
+
+                if (!burnWeb3NFT.HasValue)
+                    burnWeb3NFT = CLIEngine.GetConfirmation("Do you wish to also burn the Web3 NFT? (permanently destroy the Web3 NFT on-chain) (recommeneded/default)", addLineBefore: true);
+
+                CLIEngine.ShowWorkingMessage("Deleting WEB3 NFT...", addLineBefore: true);
+                OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteWeb3NFTAsync(STAR.BeamedInAvatar.Id, nft.Result.Id, softDelete.Value, burnWeb3NFT.Value, providerType: providerType);
 
                 if (deleteResult != null && !deleteResult.IsError && deleteResult.Result)
                 {
@@ -672,14 +747,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowSuccessMessage(deleteResult.Message);
                 }
                 else
-                {
                     OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB3 NFT. Reason: {deleteResult?.Message}");
-                }
             }
             else
-            {
                 OASISErrorHandling.HandleError(ref result, "No WEB3 NFT Found For That Id or Name!");
-            }
 
             return result;
         }
