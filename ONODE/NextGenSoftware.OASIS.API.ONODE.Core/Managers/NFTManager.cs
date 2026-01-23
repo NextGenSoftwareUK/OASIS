@@ -1911,7 +1911,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         foreach (IWeb3NFT web3NFT in web3NFTs.Result)
                         {
-                            OASISResult<bool> deleteWeb3NFTResult = await DeleteWeb3NFTAsync(avatarId, id, softDelete, burnChildWeb3NFTs, providerType);
+                            OASISResult<bool> deleteWeb3NFTResult = await DeleteWeb3NFTAsync(avatarId, web3NFT.Id, softDelete, burnChildWeb3NFTs, providerType);
 
                             if (!(deleteWeb3NFTResult != null && !deleteWeb3NFTResult.IsError && deleteWeb3NFTResult.Result != null))
                                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting Web3 NFT with id {web3NFT.Id} and title '{web3NFT.Title}'. Reason: {deleteWeb3NFTResult?.Message}");

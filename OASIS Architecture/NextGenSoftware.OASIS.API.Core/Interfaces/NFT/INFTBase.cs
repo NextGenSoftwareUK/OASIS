@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         string ThumbnailUrl { get; set; }
         //public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
         public string MemoText { get; set; }
-        Dictionary<string, object> MetaData { get; set; }
+        Dictionary<string, object> MetaData { get; set; } //TODO: Possibly change to string for values... but then how do we store binaries? Could serilaize?
         public List<string> Tags { get; set; }
         EnumValue<ProviderType> OffChainProvider { get; set; }
         EnumValue<ProviderType> OnChainProvider { get; set; }
