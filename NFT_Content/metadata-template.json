@@ -1,0 +1,34 @@
+{
+  "name": "My Awesome NFT",
+  "symbol": "MYNFT",
+  "description": "A description of my NFT artwork",
+  "image": "https://example.com/image.png",
+  "external_url": "https://example.com/nft",
+  "attributes": [
+    {
+      "trait_type": "Color",
+      "value": "Blue"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Common"
+    },
+    {
+      "trait_type": "Artist",
+      "value": "Your Name"
+    },
+    {
+      "trait_type": "Year",
+      "value": "2025"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "https://example.com/image.png",
+        "type": "image/png"
+      }
+    ],
+    "category": "image"
+  }
+}
