@@ -1,14 +1,34 @@
 {
-  "name": "oasis-unified-mcp-server",
+  "name": "@oasis-unified/mcp-server",
   "version": "1.0.0",
   "type": "module",
-  "description": "Unified MCP server for OASIS, OpenSERV, and STAR",
+  "description": "OASIS Unified MCP Server - Access OASIS, OpenSERV, and STAR platforms from Cursor IDE",
   "main": "dist/index.js",
+  "bin": {
+    "oasis-mcp": "./dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "oasis",
+    "cursor",
+    "nft",
+    "blockchain",
+    "smart-contracts",
+    "web3"
+  ],
+  "author": "OASIS",
+  "license": "PROPRIETARY",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NextGenSoftwareUK/OASIS"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "watch": "tsx watch src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",

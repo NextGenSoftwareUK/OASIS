@@ -4,6 +4,9 @@ import { SolanaRpcClient } from '../clients/solanaRpcClient.js';
 import { SolanaWalletMCPTools } from '../../solana-wallet-tools.js';
 import { EthereumWalletMCPTools } from '../../ethereum-wallet-tools.js';
 import { config } from '../config.js';
+import fs from 'fs';
+import path from 'path';
+import axios from 'axios';
 
 const oasisClient = new OASISClient();
 const solanaRpcClient = new SolanaRpcClient();
@@ -232,6 +235,23 @@ export const oasisTools: Tool[] = [
         MetaData: {
           type: 'object',
           description: 'Additional metadata object with custom attributes (optional)',
+        },
+        X402Enabled: {
+          type: 'boolean',
+          description: 'Enable x402 revenue sharing for automatic payment distribution to NFT holders (optional, default: false)',
+        },
+        X402PaymentEndpoint: {
+          type: 'string',
+          description: 'x402 payment endpoint URL for revenue distribution webhooks (required if X402Enabled is true)',
+        },
+        X402RevenueModel: {
+          type: 'string',
+          description: 'x402 revenue distribution model: "equal" (equal split), "weighted" (by ownership), or "creator-split" (optional, default: "equal")',
+          enum: ['equal', 'weighted', 'creator-split'],
+        },
+        X402TreasuryWallet: {
+          type: 'string',
+          description: 'Treasury wallet address that receives payments for x402 distribution (optional)',
         },
         SendToAddressAfterMinting: {
           type: 'string',
@@ -692,6 +712,56 @@ export const oasisTools: Tool[] = [
     inputSchema: {
       type: 'object',
       properties: {},
+    },
+  },
+  {
+    name: 'oasis_place_geo_nft',
+    description: 'Place (geocache) an existing NFT at real-world coordinates. The NFT must be owned by the authenticated avatar. Coordinates are in standard degrees (e.g., 51.5074, -0.1278 for London).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        originalOASISNFTId: {
+          type: 'string',
+          description: 'The OASIS NFT ID to place at the coordinates (must be owned by you)',
+        },
+        latitude: {
+          type: 'number',
+          description: 'Latitude in degrees (e.g., 51.5074 for London). Will be automatically converted to micro-degrees.',
+        },
+        longitude: {
+          type: 'number',
+          description: 'Longitude in degrees (e.g., -0.1278 for London). Will be automatically converted to micro-degrees.',
+        },
+        allowOtherPlayersToAlsoCollect: {
+          type: 'boolean',
+          description: 'Allow other players to collect this GeoNFT (default: true)',
+        },
+        permSpawn: {
+          type: 'boolean',
+          description: 'Permanent spawn (default: false)',
+        },
+        globalSpawnQuantity: {
+          type: 'number',
+          description: 'Global spawn quantity (default: 1)',
+        },
+        playerSpawnQuantity: {
+          type: 'number',
+          description: 'Player spawn quantity (default: 1)',
+        },
+        respawnDurationInSeconds: {
+          type: 'number',
+          description: 'Respawn duration in seconds (default: 0)',
+        },
+        geoNFTMetaDataProvider: {
+          type: 'string',
+          description: 'GeoNFT metadata provider (default: MongoDBOASIS)',
+        },
+        originalOASISNFTOffChainProvider: {
+          type: 'string',
+          description: 'Original NFT off-chain provider (default: MongoDBOASIS)',
+        },
+      },
+      required: ['originalOASISNFTId', 'latitude', 'longitude'],
     },
   },
   {
@@ -1337,6 +1407,114 @@ export const oasisTools: Tool[] = [
       required: ['signature'],
     },
   },
+  {
+    name: 'glif_generate_image',
+    description: 'Generate an image using Glif.app API (easiest option - uses pre-built workflows). Supports reference images for better accuracy. Returns the generated image that can be used for NFT minting.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        prompt: {
+          type: 'string',
+          description: 'Text prompt describing the image to generate (e.g., "A Gundam robot in neo-tokyo style")',
+        },
+        referenceImagePath: {
+          type: 'string',
+          description: 'Path to a reference image file (optional). If provided, the AI will use this image as a style/context reference. Can be a local file path or you can paste images in chat and I\'ll save them first.',
+        },
+        referenceImageUrl: {
+          type: 'string',
+          description: 'URL to a reference image (optional). Alternative to referenceImagePath if you have an image URL.',
+        },
+        workflowId: {
+          type: 'string',
+          description: 'Glif workflow ID (optional, uses default image generation workflow if not provided)',
+        },
+        savePath: {
+          type: 'string',
+          description: 'Path to save the generated image (optional, defaults to NFT_Content/generated-{timestamp}.png)',
+        },
+      },
+      required: ['prompt'],
+    },
+  },
+  {
+    name: 'nanobanana_generate_image',
+    description: 'Generate an image using Nano Banana API (Google Gemini-powered, more accurate than Glif). Supports up to 8 reference images for precise results. Best for accurate character/scene generation. Returns the generated image that can be used for NFT minting.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        prompt: {
+          type: 'string',
+          description: 'Detailed text prompt describing the image to generate (e.g., "Epic battle scene: Godzilla, a massive dark green reptilian kaiju with jagged dorsal fins, standing on hind legs roaring with atomic blue energy. Mothra, a colossal moth with orange-brown fuzzy body, enormous wings with black, orange, and yellow patterns, hovering above with wings spread")',
+        },
+        referenceImageUrls: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Array of reference image URLs (optional, up to 8 images). These will be used to guide the AI for accurate character/scene generation.',
+        },
+        aspectRatio: {
+          type: 'string',
+          description: 'Aspect ratio (optional, default: "16:9"). Options: "1:1", "16:9", "9:16", "4:3", "3:4"',
+        },
+        size: {
+          type: 'string',
+          description: 'Image size (optional, default: "1024x1024"). Examples: "1024x1024", "1920x1080"',
+        },
+        savePath: {
+          type: 'string',
+          description: 'Path to save the generated image (optional, defaults to NFT_Content/generated-{timestamp}.png)',
+        },
+      },
+      required: ['prompt'],
+    },
+  },
+  {
+    name: 'ltx_generate_video',
+    description: 'Generate a video using LTX.io API. Supports text-to-video and image-to-video generation. Returns MP4 video that can be saved and used for NFT minting or other purposes.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        prompt: {
+          type: 'string',
+          description: 'Text prompt describing the video to generate (required for text-to-video, optional for image-to-video to guide motion)',
+        },
+        imageUrl: {
+          type: 'string',
+          description: 'URL of an image to animate (for image-to-video). If provided, will generate video from this image.',
+        },
+        imageBase64: {
+          type: 'string',
+          description: 'Base64 encoded image to animate (for image-to-video). Alternative to imageUrl.',
+        },
+        model: {
+          type: 'string',
+          enum: ['ltx-2-fast', 'ltx-2-pro'],
+          description: 'LTX model to use: ltx-2-fast (faster, optimized for speed) or ltx-2-pro (higher quality, maximum detail). Default: ltx-2-fast',
+        },
+        duration: {
+          type: 'number',
+          description: 'Video duration in seconds (1-20, default: 5)',
+        },
+        resolution: {
+          type: 'string',
+          description: 'Video resolution (e.g., "1920x1080", "3840x2160" for 4K). Default: "1920x1080"',
+        },
+        aspectRatio: {
+          type: 'string',
+          description: 'Aspect ratio (e.g., "16:9", "9:16", "1:1"). Default: "16:9"',
+        },
+        fps: {
+          type: 'number',
+          description: 'Frames per second (up to 50, default: 24)',
+        },
+        savePath: {
+          type: 'string',
+          description: 'Path to save the generated video (optional, defaults to NFT_Content/generated-{timestamp}.mp4)',
+        },
+      },
+      required: [],
+    },
+  },
 ];
 
 export async function handleOASISTool(
@@ -1504,6 +1682,60 @@ export async function handleOASISTool(
           optionalPrompts.Price = 'Would you like to set a price for this NFT? (Default: 0 - free). Enter 0 if not for sale.';
         }
         
+        // x402 Revenue Sharing (optional) - with natural language handling
+        let x402Enabled = args.X402Enabled;
+        
+        // Handle natural language responses for x402
+        if (args.X402Enabled === undefined || args.X402Enabled === null) {
+          // Check if user provided a natural language response
+          const x402Response = args.X402Response || args['x402 Revenue Sharing'] || args['Enable x402'];
+          if (x402Response) {
+            const responseLower = String(x402Response).toLowerCase().trim();
+            if (responseLower === 'yes' || responseLower === 'y' || responseLower === 'true' || responseLower === 'enable' || responseLower === 'enable x402') {
+              x402Enabled = true;
+            } else if (responseLower === 'no' || responseLower === 'n' || responseLower === 'false' || responseLower === 'disable' || responseLower === 'skip') {
+              x402Enabled = false;
+            }
+          }
+        }
+        
+        if (x402Enabled === undefined || x402Enabled === null) {
+          optionalFields.push('x402 Revenue Sharing');
+          optionalPrompts['x402 Revenue Sharing'] = 'Would you like to enable automatic revenue sharing for this NFT? When enabled, any payments your NFT receives will be automatically distributed to all NFT holders. This is great for creating revenue-generating NFTs where holders earn from usage. Answer "yes" to enable revenue sharing, or "no" to skip this feature.';
+        } else {
+          // Update args with parsed value
+          args.X402Enabled = x402Enabled;
+        }
+        
+        // If x402 is enabled, check for payment endpoint
+        if (x402Enabled === true && !args.X402PaymentEndpoint) {
+          // Check for natural language responses
+          const endpointResponse = args.X402EndpointResponse || args['x402 Payment Endpoint'] || args['Payment Endpoint'];
+          if (endpointResponse) {
+            const responseLower = String(endpointResponse).toLowerCase().trim();
+            if (responseLower === 'create endpoint' || responseLower === 'create' || responseLower === 'generate' || responseLower === 'auto' || responseLower === 'use oasis' || responseLower === 'oasis') {
+              // Generate a default endpoint URL based on OASIS API
+              const baseUrl = config.oasisApiUrl.replace(/\/$/, '');
+              const symbol = args.Symbol || 'nft';
+              args.X402PaymentEndpoint = `${baseUrl}/api/x402/revenue/${symbol.toLowerCase()}`;
+              console.error(`[MCP] ✅ Auto-generated x402 payment endpoint: ${args.X402PaymentEndpoint}`);
+              console.error(`[MCP] Note: This endpoint will be created automatically by the OASIS API when payments are received.`);
+            } else if (responseLower === 'skip' || responseLower === 'no' || responseLower === 'disable') {
+              // Disable x402 if user wants to skip
+              args.X402Enabled = false;
+              x402Enabled = false;
+            } else if (endpointResponse.match(/^https?:\/\//)) {
+              // User provided a URL
+              args.X402PaymentEndpoint = endpointResponse;
+            }
+          }
+          
+          if (x402Enabled === true && !args.X402PaymentEndpoint) {
+            optionalFields.push('x402 Payment Endpoint');
+            optionalPrompts['x402 Payment Endpoint'] = 'To enable revenue sharing, we need a payment endpoint URL. This is where payment notifications will be sent when your NFT receives payments. You have three options: 1) Say "create endpoint" or "use oasis" to automatically generate an endpoint using the OASIS API (recommended - easiest option), 2) Provide your own custom endpoint URL (e.g., "https://api.yourservice.com/x402/revenue"), or 3) Say "skip" to disable revenue sharing. What would you like to do?';
+          }
+        }
+        
         // If required or recommended fields are missing, return interactive prompt
         // Optional fields are truly optional - don't block minting if only they're missing
         if (missingFields.length > 0 || recommendedFields.length > 0) {
@@ -1523,6 +1755,8 @@ export async function handleOASISTool(
               ImageUrl: args.ImageUrl || null,
               NumberToMint: args.NumberToMint !== undefined ? args.NumberToMint : null,
               Price: args.Price !== undefined ? args.Price : null,
+              X402Enabled: x402Enabled !== undefined ? x402Enabled : (args.X402Enabled !== undefined ? args.X402Enabled : null),
+              X402PaymentEndpoint: args.X402PaymentEndpoint || null,
               OnChainProvider: args.OnChainProvider || 'SolanaOASIS (default)',
               NFTStandardType: args.NFTStandardType || 'SPL (default)',
             },
@@ -1597,6 +1831,33 @@ export async function handleOASISTool(
           }
         }
         
+        // Build MetaData object, including x402 config if enabled
+        let metadata = args.MetaData || {};
+        
+        // Add x402 configuration to metadata if enabled
+        // Use the parsed x402Enabled value (handles natural language)
+        const finalX402Enabled = x402Enabled !== undefined ? x402Enabled : args.X402Enabled;
+        
+        if (finalX402Enabled === true && args.X402PaymentEndpoint) {
+          metadata.x402Config = {
+            enabled: true,
+            paymentEndpoint: args.X402PaymentEndpoint,
+            revenueModel: args.X402RevenueModel || 'equal',
+            treasuryWallet: args.X402TreasuryWallet || '',
+            preAuthorizeDistributions: false,
+            metadata: {
+              contentType: metadata.category || 'other',
+              distributionFrequency: 'realtime',
+              revenueSharePercentage: 100
+            }
+          };
+          
+          console.error(`[MCP] ✅ x402 Revenue Sharing enabled with endpoint: ${args.X402PaymentEndpoint}`);
+        } else if (finalX402Enabled === true && !args.X402PaymentEndpoint) {
+          console.error(`[MCP] ⚠️ x402 enabled but no payment endpoint provided - x402 will be disabled`);
+          // Don't add x402 config if endpoint is missing
+        }
+        
         // Proceed with minting (using uploaded URLs if files were uploaded)
         return await oasisClient.mintNFT({
           JSONMetaDataURL: args.JSONMetaDataURL,
@@ -1612,7 +1873,7 @@ export async function handleOASISTool(
           NFTOffChainMetaType: args.NFTOffChainMetaType,
           NFTStandardType: args.NFTStandardType,
           StoreNFTMetaDataOnChain: args.StoreNFTMetaDataOnChain,
-          MetaData: args.MetaData,
+          MetaData: metadata,
           SendToAddressAfterMinting: args.SendToAddressAfterMinting,
           SendToAvatarAfterMintingId: args.SendToAvatarAfterMintingId,
           SendToAvatarAfterMintingUsername: args.SendToAvatarAfterMintingUsername,
@@ -1725,7 +1986,7 @@ export async function handleOASISTool(
 
       case 'oasis_get_provider_wallets': {
         if (args.avatarId) {
-          return await oasisClient.getProviderWalletsForAvatar(args.avatarId, args.providerType);
+        return await oasisClient.getProviderWalletsForAvatar(args.avatarId, args.providerType);
         } else if (args.username) {
           return await oasisClient.getProviderWalletsForAvatarByUsername(args.username, args.providerType);
         } else if (args.email) {
@@ -1824,6 +2085,28 @@ export async function handleOASISTool(
 
       case 'oasis_get_all_geo_nfts': {
         return await oasisClient.getAllGeoNFTs();
+      }
+
+      case 'oasis_place_geo_nft': {
+        if (!args.originalOASISNFTId || args.latitude === undefined || args.longitude === undefined) {
+          return {
+            error: true,
+            message: 'originalOASISNFTId, latitude, and longitude are required',
+          };
+        }
+
+        return await oasisClient.placeGeoNFT({
+          originalOASISNFTId: args.originalOASISNFTId,
+          latitude: args.latitude,
+          longitude: args.longitude,
+          allowOtherPlayersToAlsoCollect: args.allowOtherPlayersToAlsoCollect,
+          permSpawn: args.permSpawn,
+          globalSpawnQuantity: args.globalSpawnQuantity,
+          playerSpawnQuantity: args.playerSpawnQuantity,
+          respawnDurationInSeconds: args.respawnDurationInSeconds,
+          geoNFTMetaDataProvider: args.geoNFTMetaDataProvider,
+          originalOASISNFTOffChainProvider: args.originalOASISNFTOffChainProvider,
+        });
       }
 
       case 'oasis_get_default_wallet': {
@@ -2068,6 +2351,249 @@ export async function handleOASISTool(
           workflowRequest: args.workflowRequest,
           workflowParameters: args.workflowParameters,
         });
+      }
+
+      case 'glif_generate_image': {
+        if (!args.prompt) {
+          return {
+            error: true,
+            message: 'Prompt is required for image generation',
+          };
+        }
+
+        // Generate image using Glif.app (easiest option)
+        // Supports reference images for better accuracy
+        const result = await oasisClient.generateImageWithGlif({
+          workflowId: args.workflowId,
+          prompt: args.prompt,
+          referenceImagePath: args.referenceImagePath,
+          referenceImageUrl: args.referenceImageUrl,
+        });
+
+        if (result.error) {
+          return {
+            error: true,
+            message: `Image generation failed: ${result.error}`,
+          };
+        }
+
+        if (!result.imageUrl) {
+          return {
+            error: true,
+            message: 'Image generated but no image URL returned',
+          };
+        }
+
+        // Save image to file
+        const savePath = args.savePath || path.join(
+          process.cwd(),
+          'NFT_Content',
+          `generated-${Date.now()}.png`
+        );
+
+        // Ensure directory exists
+        const dir = path.dirname(savePath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+
+        // Download image from URL and save
+        try {
+          const imageResponse = await axios.get(result.imageUrl, { 
+            responseType: 'arraybuffer',
+            timeout: 30000,
+          });
+          fs.writeFileSync(savePath, imageResponse.data);
+          
+          // Convert to base64 for preview in MCP response
+          const imageBase64 = Buffer.from(imageResponse.data).toString('base64');
+          
+          // Determine MIME type from file extension or default to PNG
+          const ext = path.extname(savePath).toLowerCase();
+          const mimeType = ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : 
+                          ext === '.gif' ? 'image/gif' : 
+                          ext === '.webp' ? 'image/webp' : 'image/png';
+          
+          return {
+            success: true,
+            imagePath: savePath,
+            imageUrl: result.imageUrl,
+            imageBase64: imageBase64, // Include base64 for preview
+            mimeType: mimeType, // Include MIME type for proper display
+            message: `Image generated and saved to ${savePath}. Preview shown above. You can now use this image for NFT minting.`,
+            prompt: args.prompt,
+          };
+        } catch (downloadError: any) {
+          return {
+            error: true,
+            message: `Failed to download image: ${downloadError.message}`,
+            imageUrl: result.imageUrl, // Still return URL in case user wants to use it directly
+          };
+        }
+      }
+
+      case 'nanobanana_generate_image': {
+        const fs = await import('fs');
+        const path = await import('path');
+        const axios = await import('axios');
+
+        if (!args.prompt) {
+          return {
+            error: true,
+            message: 'Prompt is required for image generation',
+          };
+        }
+
+        // Generate image using Nano Banana (more accurate, supports reference images)
+        const result = await oasisClient.generateImageWithNanoBanana({
+          prompt: args.prompt,
+          referenceImageUrls: args.referenceImageUrls,
+          aspectRatio: args.aspectRatio,
+          size: args.size,
+        });
+
+        if (result.error) {
+          return {
+            error: true,
+            message: `Image generation failed: ${result.error}`,
+          };
+        }
+
+        if (!result.imageUrl) {
+          return {
+            error: true,
+            message: 'Image generated but no image URL returned',
+          };
+        }
+
+        // Save image to file
+        const savePath = args.savePath || path.join(
+          process.cwd(),
+          'NFT_Content',
+          `nanobanana-generated-${Date.now()}.png`
+        );
+
+        // Ensure directory exists
+        const dir = path.dirname(savePath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+
+        // Download image from URL and save
+        try {
+          const imageResponse = await axios.default.get(result.imageUrl, { 
+            responseType: 'arraybuffer',
+            timeout: 60000,
+          });
+          fs.writeFileSync(savePath, imageResponse.data);
+          
+          return {
+            success: true,
+            imagePath: savePath,
+            imageUrl: result.imageUrl,
+            message: `Image generated using Nano Banana and saved to ${savePath}. You can now use this image for NFT minting.`,
+            prompt: args.prompt,
+          };
+        } catch (downloadError: any) {
+          return {
+            error: true,
+            message: `Failed to download image: ${downloadError.message}`,
+            imageUrl: result.imageUrl, // Still return URL in case user wants to use it directly
+          };
+        }
+      }
+
+      case 'ltx_generate_video': {
+        // Determine if this is text-to-video or image-to-video
+        const isImageToVideo = !!(args.imageUrl || args.imageBase64);
+        
+        if (!isImageToVideo && !args.prompt) {
+          return {
+            error: true,
+            message: 'Prompt is required for text-to-video generation. For image-to-video, provide imageUrl or imageBase64.',
+          };
+        }
+
+        if (isImageToVideo && !args.imageUrl && !args.imageBase64) {
+          return {
+            error: true,
+            message: 'Either imageUrl or imageBase64 is required for image-to-video generation',
+          };
+        }
+
+        // Generate video using LTX.io
+        let result;
+        if (isImageToVideo) {
+          result = await oasisClient.generateVideoFromImageWithLTX({
+            imageUrl: args.imageUrl,
+            imageBase64: args.imageBase64,
+            prompt: args.prompt, // Optional prompt to guide motion
+            model: args.model || 'ltx-2-fast',
+            duration: args.duration || 5,
+            resolution: args.resolution || '1920x1080',
+            aspectRatio: args.aspectRatio || '16:9',
+            fps: args.fps || 24,
+          });
+        } else {
+          result = await oasisClient.generateVideoWithLTX({
+            prompt: args.prompt,
+            model: args.model || 'ltx-2-fast',
+            duration: args.duration || 5,
+            resolution: args.resolution || '1920x1080',
+            aspectRatio: args.aspectRatio || '16:9',
+            fps: args.fps || 24,
+          });
+        }
+
+        if (result.error) {
+          return {
+            error: true,
+            message: `Video generation failed: ${result.error}`,
+          };
+        }
+
+        if (!result.videoBase64) {
+          return {
+            error: true,
+            message: 'Video generated but no video data returned',
+          };
+        }
+
+        // Save video to file
+        const savePath = args.savePath || path.join(
+          process.cwd(),
+          'NFT_Content',
+          `generated-video-${Date.now()}.mp4`
+        );
+
+        // Ensure directory exists
+        const dir = path.dirname(savePath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+
+        // Decode base64 and save video
+        try {
+          const videoBuffer = Buffer.from(result.videoBase64, 'base64');
+          fs.writeFileSync(savePath, videoBuffer);
+          
+          return {
+            success: true,
+            videoPath: savePath,
+            message: `Video generated and saved to ${savePath}. Duration: ${args.duration || 5}s, Resolution: ${args.resolution || '1920x1080'}, Model: ${args.model || 'ltx-2-fast'}`,
+            prompt: args.prompt,
+            type: isImageToVideo ? 'image-to-video' : 'text-to-video',
+            duration: args.duration || 5,
+            resolution: args.resolution || '1920x1080',
+            model: args.model || 'ltx-2-fast',
+          };
+        } catch (saveError: any) {
+          return {
+            error: true,
+            message: `Failed to save video: ${saveError.message}`,
+            videoBase64: result.videoBase64, // Still return base64 in case user wants to use it directly
+          };
+        }
       }
 
       case 'solana_send_sol': {
