@@ -1751,6 +1751,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             return result;
         }
 
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            // Call the overloaded version with null request
+            return await GenerateKeyPairAsync(null);
+        }
+
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
         {
             return GenerateKeyPairAsync(request).Result;

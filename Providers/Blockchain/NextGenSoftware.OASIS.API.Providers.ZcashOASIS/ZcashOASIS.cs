@@ -812,15 +812,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                         // SearchGroups can be different types (SearchTextGroup, SearchNumberGroup, etc.)
                         // For now, use a simplified search approach
                         // In production, would handle each group type appropriately
-                        if (group is ISearchTextGroup textGroup && textGroup.SearchFields != null)
+                        if (group is ISearchTextGroup textGroup && !string.IsNullOrEmpty(textGroup.SearchQuery))
                         {
-                            foreach (var field in textGroup.SearchFields)
+                            // Use SearchQuery instead of SearchFields
+                            var holonsResult = await LoadHolonsByMetaDataAsync("SearchQuery", textGroup.SearchQuery, HolonType.All);
+                            if (!holonsResult.IsError && holonsResult.Result != null)
                             {
-                                var holonsResult = await LoadHolonsByMetaDataAsync(field.FieldName, field.Value, HolonType.All);
-                                if (!holonsResult.IsError && holonsResult.Result != null)
-                                {
-                                    holons.AddRange(holonsResult.Result);
-                                }
+                                holons.AddRange(holonsResult.Result);
+                            }
                             }
                         }
                     }
@@ -1722,6 +1721,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
             result.IsError = false;
             result.Message = "Zcash transaction history retrieval is limited due to privacy features. Use viewing keys for shielded transactions.";
             return result;
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            // Call the overloaded version with null request
+            return await GenerateKeyPairAsync(null);
         }
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)

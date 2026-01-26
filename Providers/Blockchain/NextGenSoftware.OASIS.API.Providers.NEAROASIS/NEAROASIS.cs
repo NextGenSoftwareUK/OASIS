@@ -25,7 +25,9 @@ using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
@@ -4019,10 +4021,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 }
 
                 // IBurnWeb3TokenRequest doesn't have Amount property
-                // Get burn amount from MetaData or use default
-                var burnAmount = request.MetaData?.ContainsKey("Amount") == true && 
-                    decimal.TryParse(request.MetaData["Amount"]?.ToString(), out var amt) 
-                    ? amt : 1m;
+                // Use default burn amount of 1
+                var burnAmount = 1m;
                 var amountInYoctoNEAR = (ulong)(burnAmount * 1_000_000_000_000_000_000_000_000m);
 
                 // Create NEAR FT burn transaction
@@ -4103,12 +4103,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 // Lock token by transferring to bridge pool
                 var bridgePoolAddress = _contractAddress ?? "bridge.oasispool.near";
                 
+                // ILockWeb3TokenRequest doesn't have Amount in interface, but LockWeb3TokenRequest class does
+                var lockRequest = request as LockWeb3TokenRequest;
+                var amount = lockRequest?.Amount ?? 1m;
+                
                 var sendRequest = new SendWeb3TokenRequest
                 {
                     FromTokenAddress = request.TokenAddress,
                     OwnerPrivateKey = request.FromWalletPrivateKey,
                     ToWalletAddress = bridgePoolAddress,
-                    Amount = request.Amount > 0 ? request.Amount : 1m
+                    Amount = amount
                 };
 
                 return await SendTokenAsync(sendRequest);
@@ -4160,12 +4164,13 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     return result;
                 }
 
+                // IUnlockWeb3TokenRequest doesn't have Amount property - use default
                 var sendRequest = new SendWeb3TokenRequest
                 {
                     FromTokenAddress = request.TokenAddress,
                     OwnerPrivateKey = bridgePoolPrivateKey,
                     ToWalletAddress = toWalletResult.Result,
-                    Amount = request.Amount > 0 ? request.Amount : 1m
+                    Amount = 1m // Default unlock amount
                 };
 
                 return await SendTokenAsync(sendRequest);
@@ -4309,12 +4314,13 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                             {
                                 var transaction = new WalletTransaction
                                 {
-                                    TransactionHash = receipt.TryGetProperty("id", out var id) ? id.GetString() : "",
-                                    FromAddress = request.WalletAddress,
-                                    ToAddress = outcome.TryGetProperty("executor_id", out var executor) ? executor.GetString() : "",
-                                    Amount = 0m,
-                                    MemoText = "",
-                                    TransactionDate = DateTime.UtcNow
+                                    TransactionId = Guid.NewGuid(),
+                                    FromWalletAddress = request.WalletAddress,
+                                    ToWalletAddress = outcome.TryGetProperty("executor_id", out var executor) ? executor.GetString() : "",
+                                    Amount = 0.0,
+                                    Description = receipt.TryGetProperty("id", out var id) ? id.GetString() : "",
+                                    TransactionType = TransactionType.Credit,
+                                    TransactionCategory = TransactionCategory.Other
                                 };
                                 transactions.Add(transaction);
                             }
@@ -4333,6 +4339,17 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             return result;
         }
 
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            // Call the overloaded version with null request
+            return await GenerateKeyPairAsync(null);
+        }
+
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
         {
             return GenerateKeyPairAsync(request).Result;
@@ -4349,17 +4366,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     return result;
                 }
 
-                // Generate NEAR Ed25519 key pair using Solnet.Wallet (Ed25519 compatible)
-                var mnemonic = new Solnet.Wallet.Bip39.Mnemonic(Solnet.Wallet.Bip39.Wordlist.English, Solnet.Wallet.Bip39.WordCount.Twelve);
-                var wallet = new Solnet.Wallet.Wallet(mnemonic);
-                var account = wallet.GetAccount(0);
+                // Generate NEAR Ed25519 key pair using built-in method
+                var nearKeyPair = await GenerateNEARKeyPairAsync();
 
-                var keyPair = new KeyPairAndWallet
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
                 {
-                    PublicKey = account.PublicKey.Key,
-                    PrivateKey = account.PrivateKey.Key,
-                    WalletAddress = account.PublicKey.Key // NEAR uses public key as account ID
-                };
+                    keyPair.PrivateKey = nearKeyPair.PrivateKey;
+                    keyPair.PublicKey = nearKeyPair.PublicKey;
+                    keyPair.WalletAddressLegacy = nearKeyPair.PublicKey; // NEAR uses public key as account ID
+                }
 
                 result.Result = keyPair;
                 result.IsError = false;
@@ -4382,7 +4398,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
 
         #region Bridge Methods (IOASISBlockchainStorageProvider)
 
-    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<decimal>();
         try
@@ -4413,8 +4429,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 }
             };
 
-            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-            var content = await response.Content.ReadAsStringAsync(token);
+            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, cancellationToken);
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var jsonDoc = JsonDocument.Parse(content);
 
             if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement) &&
@@ -4445,7 +4461,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         return result;
     }
 
-    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
         try
@@ -4470,7 +4486,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         return result;
     }
 
-    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<(string PublicKey, string PrivateKey)>();
         try
@@ -4560,8 +4576,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 }
             };
 
-            var accountInfoResponse = await _httpClient.PostAsJsonAsync("", accountInfoRequest, token);
-            var accountInfoContent = await accountInfoResponse.Content.ReadAsStringAsync(token);
+            var accountInfoResponse = await _httpClient.PostAsJsonAsync("", accountInfoRequest);
+            var accountInfoContent = await accountInfoResponse.Content.ReadAsStringAsync();
             var accountInfo = JsonDocument.Parse(accountInfoContent);
 
             var nonce = accountInfo.RootElement.TryGetProperty("result", out var accResult) &&
@@ -4576,8 +4592,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new { finality = "final" }
             };
 
-            var blockResponse = await _httpClient.PostAsJsonAsync("", blockRequest, token);
-            var blockContent = await blockResponse.Content.ReadAsStringAsync(token);
+            var blockResponse = await _httpClient.PostAsJsonAsync("", blockRequest);
+            var blockContent = await blockResponse.Content.ReadAsStringAsync();
             var blockData = JsonDocument.Parse(blockContent);
             var blockHash = blockData.RootElement.TryGetProperty("result", out var blockRes) &&
                            blockRes.TryGetProperty("header", out var header) &&
@@ -4624,8 +4640,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new[] { Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(signedTransaction))) }
             };
 
-            var httpResponse = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-            var responseContent = await httpResponse.Content.ReadAsStringAsync(token);
+            var httpResponse = await _httpClient.PostAsJsonAsync("", rpcRequest);
+            var responseContent = await httpResponse.Content.ReadAsStringAsync();
             var rpcResponse = JsonDocument.Parse(responseContent);
 
             if (rpcResponse.RootElement.TryGetProperty("result", out var txResult))
@@ -4710,8 +4726,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 }
             };
 
-            var accountInfoResponse = await _httpClient.PostAsJsonAsync("", accountInfoRequest, token);
-            var accountInfoContent = await accountInfoResponse.Content.ReadAsStringAsync(token);
+            var accountInfoResponse = await _httpClient.PostAsJsonAsync("", accountInfoRequest);
+            var accountInfoContent = await accountInfoResponse.Content.ReadAsStringAsync();
             var accountInfo = JsonDocument.Parse(accountInfoContent);
 
             var nonce = accountInfo.RootElement.TryGetProperty("result", out var accResult) &&
@@ -4726,8 +4742,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new { finality = "final" }
             };
 
-            var blockResponse = await _httpClient.PostAsJsonAsync("", blockRequest, token);
-            var blockContent = await blockResponse.Content.ReadAsStringAsync(token);
+            var blockResponse = await _httpClient.PostAsJsonAsync("", blockRequest);
+            var blockContent = await blockResponse.Content.ReadAsStringAsync();
             var blockData = JsonDocument.Parse(blockContent);
             var blockHash = blockData.RootElement.TryGetProperty("result", out var blockRes) &&
                            blockRes.TryGetProperty("header", out var header) &&
@@ -4774,8 +4790,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new[] { Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(signedTransaction))) }
             };
 
-            var httpResponse = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-            var responseContent = await httpResponse.Content.ReadAsStringAsync(token);
+            var httpResponse = await _httpClient.PostAsJsonAsync("", rpcRequest);
+            var responseContent = await httpResponse.Content.ReadAsStringAsync();
             var rpcResponse = JsonDocument.Parse(responseContent);
 
             if (rpcResponse.RootElement.TryGetProperty("result", out var txResult))
@@ -4819,7 +4835,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         return result;
     }
 
-    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<BridgeTransactionStatus>();
         try
@@ -4851,8 +4867,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new object[] { transactionHash }
             };
 
-            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-            var content = await response.Content.ReadAsStringAsync(token);
+            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, cancellationToken);
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var jsonDoc = JsonDocument.Parse(content);
 
             if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
