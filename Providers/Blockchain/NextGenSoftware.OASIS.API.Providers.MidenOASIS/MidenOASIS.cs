@@ -8,6 +8,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
@@ -942,6 +944,324 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             }
 
             return newAvatar;
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "LoadAvatarDetailByEmail not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
+        {
+            return new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "LoadAvatarDetailByEmail not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatar by providerKey not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatar by providerKey not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "LoadHolon by providerKey not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByProviderKey not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+        {
+            return new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByProviderKey not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0)
+        {
+            return new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
+        {
+            return SaveAvatarDetailAsync(avatarDetail).Result;
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "SaveAvatarDetail not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAllDataForAvatarById not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAllDataForAvatarById not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                IsError = false,
+                Message = "LoadAllHolons not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "LoadHolon by Guid not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                IsError = false,
+                Message = "LoadHolonsForParent not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+        {
+            return Task.FromResult(new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "SaveAvatar not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
+        {
+            return new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "SaveAvatar not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "SaveHolons not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatarByUsername not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatarByUsername not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            return Task.FromResult(new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "DeleteHolon not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
+        {
+            return new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "DeleteHolon not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IAvatarDetail>>
+            {
+                Result = new List<IAvatarDetail>(),
+                IsError = false,
+                Message = "LoadAllAvatarDetails not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
+        {
+            return new OASISResult<IEnumerable<IAvatarDetail>>
+            {
+                Result = new List<IAvatarDetail>(),
+                IsError = false,
+                Message = "LoadAllAvatarDetails not fully implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAll not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAll not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            return Task.FromResult(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "Import not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "Import not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        }
+
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<ISearchResults>
+            {
+                IsError = true,
+                Message = "Search not implemented for MidenOASIS - use for bridge operations"
+            });
         }
 
         #endregion

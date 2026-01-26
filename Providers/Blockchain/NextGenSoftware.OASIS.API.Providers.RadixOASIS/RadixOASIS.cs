@@ -6,12 +6,15 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using System.Collections.Generic;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Services.Radix;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Oracle;
@@ -159,7 +162,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
     /// <summary>
     /// Sends a transaction on the Radix network
     /// </summary>
-    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+    public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
         return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
     }
@@ -167,9 +170,9 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
     /// <summary>
     /// Sends a transaction on the Radix network asynchronously
     /// </summary>
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        var result = new OASISResult<ITransactionRespone>();
+        var result = new OASISResult<ITransactionResponse>();
         
         try
         {
@@ -192,9 +195,9 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             }
 
             // Create transaction response
-            result.Result = new TransactionRespone
+            result.Result = new TransactionResponse
             {
-                TransactionResult = depositResult.Result.TransactionHash ?? depositResult.Result.IntentHash ?? "Unknown"
+                TransactionResult = depositResult.Result?.TransactionId ?? "Unknown"
             };
             
             result.IsError = false;
@@ -202,9 +205,206 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<ITransactionRespone>(ref result,
+            OASISErrorHandling.HandleError<ITransactionResponse>(ref result,
                 $"Error sending transaction: {ex.Message}", ex);
+            return result;
         }
+    }
+
+    public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+    {
+        return SendTokenAsync(request).Result;
+    }
+
+    public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        try
+        {
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized. Activate provider first.");
+                return result;
+            }
+
+            if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "To wallet address is required");
+                return result;
+            }
+
+            // Use DepositAsync to send tokens
+            var depositResult = await _radixService.DepositAsync(request.Amount, request.ToWalletAddress);
+            
+            if (depositResult.IsError || depositResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, 
+                    depositResult.Message ?? "Failed to send token");
+                return result;
+            }
+
+            // Create transaction response
+            result.Result = new TransactionResponse
+            {
+                TransactionResult = depositResult.Result.TransactionId ?? depositResult.Result.DuplicateTransactionId ?? "Unknown"
+            };
+            
+            result.IsError = false;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError<ITransactionResponse>(ref result,
+                $"Error sending token: {ex.Message}", ex);
+            return result;
+        }
+    }
+
+    public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+    {
+        return MintTokenAsync(request).Result;
+    }
+
+    public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        result.IsError = true;
+        result.Message = "MintToken not yet implemented for RadixOASIS";
+        return await Task.FromResult(result);
+    }
+
+    public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+    {
+        return BurnTokenAsync(request).Result;
+    }
+
+    public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        result.IsError = true;
+        result.Message = "BurnToken not yet implemented for RadixOASIS";
+        return await Task.FromResult(result);
+    }
+
+    public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+    {
+        return LockTokenAsync(request).Result;
+    }
+
+    public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        result.IsError = true;
+        result.Message = "LockToken not yet implemented for RadixOASIS";
+        return await Task.FromResult(result);
+    }
+
+    public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+    {
+        return UnlockTokenAsync(request).Result;
+    }
+
+    public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        result.IsError = true;
+        result.Message = "UnlockToken not yet implemented for RadixOASIS";
+        return await Task.FromResult(result);
+    }
+
+    public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+    {
+        return GetBalanceAsync(request).Result;
+    }
+
+    public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+    {
+        var result = new OASISResult<double>();
+        try
+        {
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized. Activate provider first.");
+                return result;
+            }
+
+            if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Wallet address is required");
+                return result;
+            }
+
+            var balanceResult = await _radixService.GetAccountBalanceAsync(request.WalletAddress);
+            if (balanceResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, balanceResult.Message ?? "Failed to get balance");
+                return result;
+            }
+
+            result.Result = (double)balanceResult.Result;
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting balance: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
+    {
+        return GetTransactionsAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+    {
+        var result = new OASISResult<IList<IWalletTransaction>>();
+        result.IsError = true;
+        result.Message = "GetTransactions not yet implemented for RadixOASIS";
+        return await Task.FromResult(result);
+    }
+
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+    {
+        return GenerateKeyPairAsync().Result;
+    }
+
+    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+    {
+        var result = new OASISResult<IKeyPairAndWallet>();
+        try
+        {
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized. Activate provider first.");
+                return result;
+            }
+
+            // Generate Radix key pair
+            var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+            if (keyPair != null)
+            {
+                // Radix uses Ed25519 keys - generate using cryptographic RNG
+                using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+                var privateKeyBytes = new byte[32];
+                rng.GetBytes(privateKeyBytes);
+                
+                keyPair.PrivateKey = Convert.ToBase64String(privateKeyBytes);
+                // Derive public key (simplified - in production use proper Ed25519 library)
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                var publicKeyBytes = sha256.ComputeHash(privateKeyBytes);
+                keyPair.PublicKey = Convert.ToBase64String(publicKeyBytes);
+                keyPair.WalletAddressLegacy = keyPair.PublicKey;
+            }
+
+            result.Result = keyPair;
+            result.IsError = false;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
+        }
+        return result;
     }
 
     #endregion
@@ -391,6 +591,24 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         {
             IsError = true,
             Message = "DeleteAvatarByUsername not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+    {
+        return Task.FromResult(new OASISResult<bool>
+        {
+            IsError = true,
+            Message = "DeleteAvatar not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+    {
+        return new OASISResult<bool>
+        {
+            IsError = true,
+            Message = "DeleteAvatar not implemented for RadixOASIS - use for bridge operations"
         };
     }
 
@@ -628,6 +846,388 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             OASISErrorHandling.HandleError(ref result, $"Error getting holons near me: {ex.Message}", ex);
         }
         return result;
+    }
+
+    #endregion
+
+    #region OASISStorageProviderBase Abstract Methods Implementation
+
+    public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<ISearchResults>
+        {
+            IsError = true,
+            Message = "Search not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+    {
+        return new OASISResult<ISearchResults>
+        {
+            IsError = true,
+            Message = "Search not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "LoadHolon not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "LoadHolon not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "LoadHolon by providerKey not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "LoadHolon by providerKey not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadHolonsForParent not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadHolonsForParent not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadHolonsForParent by providerKey not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadHolonsForParent by providerKey not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadHolonsByMetaData not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadHolonsByMetaData not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadHolonsByMetaData not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadHolonsByMetaData not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadAllHolons not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "LoadAllHolons not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        return Task.FromResult(new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "SaveHolon not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        return new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "SaveHolon not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "SaveHolons not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "SaveHolons not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+    {
+        return Task.FromResult(new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "DeleteHolon not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IHolon> DeleteHolon(Guid id)
+    {
+        return new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "DeleteHolon not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+    {
+        return Task.FromResult(new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "DeleteHolon by providerKey not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IHolon> DeleteHolon(string providerKey)
+    {
+        return new OASISResult<IHolon>
+        {
+            IsError = true,
+            Message = "DeleteHolon by providerKey not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+    {
+        return Task.FromResult(new OASISResult<bool>
+        {
+            IsError = true,
+            Message = "Import not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+    {
+        return new OASISResult<bool>
+        {
+            IsError = true,
+            Message = "Import not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "ExportAllDataForAvatarById not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "ExportAllDataForAvatarById not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "ExportAllDataForAvatarByUsername not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "ExportAllDataForAvatarByUsername not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "ExportAllDataForAvatarByEmail not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "ExportAllDataForAvatarByEmail not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "ExportAll not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+    {
+        return new OASISResult<IEnumerable<IHolon>>
+        {
+            IsError = true,
+            Message = "ExportAll not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IAvatar>
+        {
+            IsError = true,
+            Message = "LoadAvatarByProviderKey not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+    {
+        return new OASISResult<IAvatar>
+        {
+            IsError = true,
+            Message = "LoadAvatarByProviderKey not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IAvatarDetail>
+        {
+            IsError = true,
+            Message = "LoadAvatarDetailByEmail not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
+    {
+        return new OASISResult<IAvatarDetail>
+        {
+            IsError = true,
+            Message = "LoadAvatarDetailByEmail not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IAvatarDetail>
+        {
+            IsError = true,
+            Message = "LoadAvatarDetailByUsername not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0)
+    {
+        return new OASISResult<IAvatarDetail>
+        {
+            IsError = true,
+            Message = "LoadAvatarDetailByUsername not implemented for RadixOASIS - use for bridge operations"
+        };
+    }
+
+    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+    {
+        return Task.FromResult(new OASISResult<IEnumerable<IAvatarDetail>>
+        {
+            IsError = true,
+            Message = "LoadAllAvatarDetails not implemented for RadixOASIS - use for bridge operations"
+        });
+    }
+
+    public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
+    {
+        return new OASISResult<IEnumerable<IAvatarDetail>>
+        {
+            IsError = true,
+            Message = "LoadAllAvatarDetails not implemented for RadixOASIS - use for bridge operations"
+        };
     }
 
     #endregion

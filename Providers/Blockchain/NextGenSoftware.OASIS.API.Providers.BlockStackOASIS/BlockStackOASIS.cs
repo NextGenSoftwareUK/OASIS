@@ -19,15 +19,16 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NBitcoin;
@@ -1556,98 +1557,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
-                    return result;
-                }
-
-                // Real BlockStack implementation for geo queries
-                // Use BlockStack Gaia storage to find avatars near the specified location
-                var nearbyAvatars = new List<IAvatar>();
-                
-                // Get all avatars from BlockStack Gaia storage and filter by geo location
-                var allAvatarsData = _blockStackClient.GetFileAsync("avatars/index.json").Result;
-                
-                if (allAvatarsData != null && allAvatarsData.ContainsKey("avatars"))
-                {
-                    var avatarIds = allAvatarsData["avatars"] as List<object>;
-                    if (avatarIds != null)
-                    {
-                        foreach (var avatarId in avatarIds)
-                        {
-                            try
-                            {
-                                var avatarData = _blockStackClient.GetFileAsync($"avatars/{avatarId}.json").Result;
-                                if (avatarData != null && avatarData.ContainsKey("geoLocation"))
-                                {
-                                    var geoLocation = avatarData["geoLocation"] as Dictionary<string, object>;
-                                    if (geoLocation != null && geoLocation.ContainsKey("latitude") && geoLocation.ContainsKey("longitude"))
-                                    {
-                                        var avatarLat = Convert.ToDouble(geoLocation["latitude"]);
-                                        var avatarLong = Convert.ToDouble(geoLocation["longitude"]);
-                                        
-                                       // Calculate distance using GeoHelper
-                                       var distance = GeoHelper.CalculateDistance(geoLat, geoLong, avatarLat, avatarLong);
-                                        
-                                        if (distance <= radiusInMeters)
-                                        {
-                                            var avatar = new Avatar
-                                            {
-                                                Id = Guid.Parse(avatarData.GetValueOrDefault("id")?.ToString() ?? avatarId.ToString()),
-                                                Username = avatarData.GetValueOrDefault("username")?.ToString() ?? "BlockStack User",
-                                                Email = avatarData.GetValueOrDefault("email")?.ToString() ?? "user@blockstack.example",
-                                                FirstName = avatarData.GetValueOrDefault("firstName")?.ToString() ?? "BlockStack",
-                                                LastName = avatarData.GetValueOrDefault("lastName")?.ToString() ?? "User",
-                                                CreatedDate = DateTime.TryParse(avatarData.GetValueOrDefault("createdDate")?.ToString(), out var createdDate) ? createdDate : DateTime.UtcNow,
-                                                ModifiedDate = DateTime.TryParse(avatarData.GetValueOrDefault("modifiedDate")?.ToString(), out var modifiedDate) ? modifiedDate : DateTime.UtcNow,
-                                                Title = avatarData.GetValueOrDefault("title")?.ToString(),
-                                                AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
-                                                Description = avatarData.GetValueOrDefault("description")?.ToString(),
-                                                ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>(),
-                                                MetaData = new Dictionary<string, object>
-                                                {
-                                                    ["BlockStackGaiaHub"] = _blockStackClient.GaiaHubUrl,
-                                                    ["BlockStackAppDomain"] = _blockStackClient.AppDomain,
-                                                    ["BlockStackProvider"] = "BlockStackOASIS",
-                                                    ["BlockStackGeoLat"] = avatarLat,
-                                                    ["BlockStackGeoLong"] = avatarLong,
-                                                    ["BlockStackDistance"] = distance,
-                                                    ["BlockStackRadius"] = radiusInMeters,
-                                                    ["LoadedAt"] = DateTime.UtcNow
-                                                }
-                                            };
-                                            
-                                            nearbyAvatars.Add(avatar);
-                                        }
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Error loading avatar {avatarId}: {ex.Message}");
-                                continue;
-                            }
-                        }
-                    }
-                }
-                
-                result.Result = nearbyAvatars;
-                result.IsError = false;
-                result.Message = $"Avatars near location loaded successfully from BlockStack Gaia storage with full property mapping ({nearbyAvatars.Count} avatars)";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatars near location from BlockStack: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
-        {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
@@ -1743,9 +1652,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1756,7 +1665,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
                 // Real BlockStack implementation for sending transactions
                 // BlockStack uses Stacks blockchain for transactions
-                var transactionResponse = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
+                var transactionResponse = new TransactionResponse
                 {
                     TransactionResult = $"BlockStack transaction sent successfully. From: {fromWalletAddress}, To: {toWalletAddress}, Amount: {amount}"
                 };
@@ -1772,9 +1681,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1787,7 +1696,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 // BlockStack uses Stacks blockchain for transactions
                 await Task.Delay(100); // Simulate async blockchain transaction processing
                 
-                var transactionResponse = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
+                var transactionResponse = new TransactionResponse
                 {
                     TransactionResult = $"BlockStack transaction sent successfully. From: {fromWalletAddress}, To: {toWalletAddress}, Amount: {amount}"
                 };
@@ -1816,9 +1725,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transation)
+        public OASISResult<ITransactionResponse> SendTransaction(IWalletTransactionRequest transation)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1835,7 +1744,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
                 // Real BlockStack implementation for sending transactions via IWalletTransactionRequest
                 // BlockStack uses Stacks blockchain for transactions
-                var transactionResponse = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
+                var transactionResponse = new TransactionResponse
                 {
                     TransactionResult = $"BlockStack transaction sent successfully. From: {transation.FromWalletAddress}, To: {transation.ToWalletAddress}, Amount: {transation.Amount}"
                 };
@@ -1851,77 +1760,181 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return result;
         }
 
-        public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transation)
+        public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(IWalletTransactionRequest transation)
         {
             return Task.FromResult(SendTransaction(transation));
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransaction(new WalletTransactionRequest());
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return await SendTransactionAsync(new WalletTransactionRequest());
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+        {
+            return SendTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            result.IsError = true;
+            result.Message = "SendToken not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
+        {
+            return MintTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            result.IsError = true;
+            result.Message = "MintToken not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
+        {
+            return BurnTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            result.IsError = true;
+            result.Message = "BurnToken not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
+        {
+            return LockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            result.IsError = true;
+            result.Message = "LockToken not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
+        {
+            return UnlockTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            result.IsError = true;
+            result.Message = "UnlockToken not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+        {
+            return GetBalanceAsync(request).Result;
+        }
+
+        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+        {
+            var result = new OASISResult<double>();
+            result.IsError = true;
+            result.Message = "GetBalance not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
+        {
+            return GetTransactionsAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+        {
+            var result = new OASISResult<IList<IWalletTransaction>>();
+            result.IsError = true;
+            result.Message = "GetTransactions not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            result.IsError = true;
+            result.Message = "GenerateKeyPair not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
             return SendTransaction(new WalletTransactionRequest());
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
             return await SendTransactionAsync(new WalletTransactionRequest());
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             return await SendTransactionAsync(new WalletTransactionRequest());
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             return SendTransaction(new WalletTransactionRequest());
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
             return await SendTransactionAsync(new WalletTransactionRequest());
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
             return SendTransaction(new WalletTransactionRequest());
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             return await SendTransactionAsync(new WalletTransactionRequest());
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             return SendTransaction(new WalletTransactionRequest());
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             return await SendTransactionAsync(new WalletTransactionRequest());
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             return SendTransaction(new WalletTransactionRequest());
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransaction(new WalletTransactionRequest());
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return await SendTransactionAsync(new WalletTransactionRequest());
         }
@@ -2115,48 +2128,48 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return result;
         }
 
-        public OASISResult<IOASISNFT> LoadNFT(Guid id)
+        public OASISResult<IWeb3NFT> LoadNFT(Guid id)
         {
-            var result = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb3NFT>();
             OASISErrorHandling.HandleWarning(ref result, "Loading NFTs by Guid is not supported by BlockStack provider.");
             return result;
         }
 
-        public Task<OASISResult<IOASISNFT>> LoadNFTAsync(Guid id)
+        public Task<OASISResult<IWeb3NFT>> LoadNFTAsync(Guid id)
         {
             return Task.FromResult(LoadNFT(id));
         }
 
-        public OASISResult<IOASISNFT> LoadNFT(string hash)
+        public OASISResult<IWeb3NFT> LoadNFT(string hash)
         {
-            var result = new OASISResult<IOASISNFT>();
+            var result = new OASISResult<IWeb3NFT>();
             OASISErrorHandling.HandleWarning(ref result, "Loading NFTs by hash is not supported by BlockStack provider.");
             return result;
         }
 
-        public Task<OASISResult<IOASISNFT>> LoadNFTAsync(string hash)
+        public Task<OASISResult<IWeb3NFT>> LoadNFTAsync(string hash)
         {
             return Task.FromResult(LoadNFT(hash));
         }
 
-        public OASISResult<List<IOASISNFT>> LoadAllNFTsForAvatar(Guid avatarId)
+        public OASISResult<List<IWeb3NFT>> LoadAllNFTsForAvatar(Guid avatarId)
         {
-            return new OASISResult<List<IOASISNFT>> { Result = new List<IOASISNFT>() };
+            return new OASISResult<List<IWeb3NFT>> { Result = new List<IWeb3NFT>() };
         }
 
-        public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
+        public Task<OASISResult<List<IWeb3NFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
         {
-            return Task.FromResult(new OASISResult<List<IOASISNFT>> { Result = new List<IOASISNFT>() });
+            return Task.FromResult(new OASISResult<List<IWeb3NFT>> { Result = new List<IWeb3NFT>() });
         }
 
-        public OASISResult<List<IOASISNFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
+        public OASISResult<List<IWeb3NFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
         {
-            return new OASISResult<List<IOASISNFT>> { Result = new List<IOASISNFT>() };
+            return new OASISResult<List<IWeb3NFT>> { Result = new List<IWeb3NFT>() };
         }
 
-        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
+        public async Task<OASISResult<List<IWeb3NFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            var response = new OASISResult<List<IOASISNFT>>();
+            var response = new OASISResult<List<IWeb3NFT>>();
 
             try
             {
@@ -2183,7 +2196,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                         
                         if (nfts != null)
                         {
-                            response.Result = nfts.Cast<IOASISNFT>().ToList();
+                            response.Result = nfts.Cast<IWeb3NFT>().ToList();
                             response.IsError = false;
                             response.Message = "NFTs loaded from BlockStack Gaia storage successfully";
                         }
@@ -2194,7 +2207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     }
                     else
                     {
-                        response.Result = new List<IOASISNFT>();
+                        response.Result = new List<IWeb3NFT>();
                         response.IsError = false;
                         response.Message = "No NFTs found in BlockStack storage";
                     }
@@ -2210,24 +2223,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
 
-        public OASISResult<List<IWeb4OASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
+        public OASISResult<List<IWeb4GeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
         {
-            return new OASISResult<List<IWeb4OASISGeoSpatialNFT>> { Result = new List<IWeb4OASISGeoSpatialNFT>() };
+            return new OASISResult<List<IWeb4GeoSpatialNFT>> { Result = new List<IWeb4GeoSpatialNFT>() };
         }
 
-        public Task<OASISResult<List<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
+        public Task<OASISResult<List<IWeb4GeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
         {
-            return Task.FromResult(new OASISResult<List<IWeb4OASISGeoSpatialNFT>> { Result = new List<IWeb4OASISGeoSpatialNFT>() });
+            return Task.FromResult(new OASISResult<List<IWeb4GeoSpatialNFT>> { Result = new List<IWeb4GeoSpatialNFT>() });
         }
 
-        public OASISResult<List<IWeb4OASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
+        public OASISResult<List<IWeb4GeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
         {
-            return new OASISResult<List<IWeb4OASISGeoSpatialNFT>> { Result = new List<IWeb4OASISGeoSpatialNFT>() };
+            return new OASISResult<List<IWeb4GeoSpatialNFT>> { Result = new List<IWeb4GeoSpatialNFT>() };
         }
 
-        public async Task<OASISResult<List<IWeb4OASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
+        public async Task<OASISResult<List<IWeb4GeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            var response = new OASISResult<List<IWeb4OASISGeoSpatialNFT>>();
+            var response = new OASISResult<List<IWeb4GeoSpatialNFT>>();
 
             try
             {
@@ -2254,7 +2267,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                         
                         if (geoNfts != null)
                         {
-                            response.Result = geoNfts.Cast<IWeb4OASISGeoSpatialNFT>().ToList();
+                            response.Result = geoNfts.Cast<IWeb4GeoSpatialNFT>().ToList();
                             response.IsError = false;
                             response.Message = "GeoNFTs loaded from BlockStack Gaia storage successfully";
                         }
@@ -2265,7 +2278,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     }
                     else
                     {
-                        response.Result = new List<IWeb4OASISGeoSpatialNFT>();
+                        response.Result = new List<IWeb4GeoSpatialNFT>();
                         response.IsError = false;
                         response.Message = "No GeoNFTs found in BlockStack storage";
                     }
@@ -2280,26 +2293,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return response;
         }
 
-        public OASISResult<IWeb4OASISGeoSpatialNFT> PlaceGeoNFT(IPlaceWeb4GeoSpatialNFTRequest request)
+        public OASISResult<IWeb4GeoSpatialNFT> PlaceGeoNFT(IPlaceWeb4GeoSpatialNFTRequest request)
         {
-            var result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
+            var result = new OASISResult<IWeb4GeoSpatialNFT>();
             OASISErrorHandling.HandleWarning(ref result, "Geo NFT placement not supported by BlockStack provider.");
             return result;
         }
 
-        public Task<OASISResult<IWeb4OASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceWeb4GeoSpatialNFTRequest request)
+        public Task<OASISResult<IWeb4GeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceWeb4GeoSpatialNFTRequest request)
         {
             return Task.FromResult(PlaceGeoNFT(request));
         }
 
-        public OASISResult<IWeb4OASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceWeb4GeoSpatialNFTRequest request)
+        public OASISResult<IWeb4GeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceWeb4GeoSpatialNFTRequest request)
         {
-            var result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
+            var result = new OASISResult<IWeb4GeoSpatialNFT>();
             OASISErrorHandling.HandleWarning(ref result, "Mint and place Geo NFT not supported by BlockStack provider.");
             return result;
         }
 
-        public Task<OASISResult<IWeb4OASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceWeb4GeoSpatialNFTRequest request)
+        public Task<OASISResult<IWeb4GeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceWeb4GeoSpatialNFTRequest request)
         {
             return Task.FromResult(MintAndPlaceGeoNFT(request));
         }
@@ -2444,13 +2457,56 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #endregion
 
-    // NFT-specific lock/unlock methods
-    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
-    {
-        return LockNFTAsync(request).Result;
-    }
+        // Duplicate IOASISNFTProvider region removed - methods already defined above
+        /*
+        #region IOASISNFTProvider
 
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transation)
+        {
+            return SendNFTAsync(transation).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest transation)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            result.IsError = true;
+            result.Message = "SendNFT not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest transation)
+        {
+            return MintNFTAsync(transation).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest transation)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            result.IsError = true;
+            result.Message = "MintNFT not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
+        {
+            return BurnNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            result.IsError = true;
+            result.Message = "BurnNFT not yet implemented for BlockStackOASIS";
+            return await Task.FromResult(result);
+        }
+
+        // NFT-specific lock/unlock methods
+        public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+        {
+            return LockNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
         try
@@ -2652,6 +2708,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
         return result;
     }
+        */
+        // End of duplicate region comment
 
         #region Bridge Methods (IOASISBlockchainStorageProvider)
 

@@ -9,8 +9,8 @@ Console.WriteLine("NextGen Software OASIS API Manager Test Harness");
 //OASISAPI API = new OASISAPI();
 
 CLIEngine.ShowWorkingMessage("Booting OASIS...");
-//OASISResult<bool> bootResult = API.BootOASIS();
-OASISResult<bool> bootResult  = await OASISAPI.BootOASISAsync();
+OASISAPI API = new OASISAPI();
+OASISResult<bool> bootResult = await API.BootOASISAsync();
 
 if (!bootResult.IsError && bootResult.Result)
 {

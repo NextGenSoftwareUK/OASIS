@@ -19,8 +19,12 @@ public static class RadixBridgeHelper
     /// </summary>
     public static PrivateKey GetPrivateKey(Mnemonic mnemonic)
     {
-        var seed = mnemonic.ToSeed();
-        return new PrivateKey.Ed25519(seed[..32]);
+        // NBitcoin Mnemonic doesn't have ToSeed() - use DeriveExtKey() instead
+        var extKey = mnemonic.DeriveExtKey();
+        var seed = extKey.PrivateKey.ToBytes();
+        // RadixEngineToolkit PrivateKey may not have Ed25519 nested type
+        // Use PrivateKey constructor directly with bytes
+        return new PrivateKey(seed[..32]);
     }
 
     /// <summary>
@@ -29,6 +33,15 @@ public static class RadixBridgeHelper
     public static uint RandomNonce()
     {
         return (uint)RandomNumberGenerator.GetInt32(0, int.MaxValue);
+    }
+
+    /// <summary>
+    /// Gets a private key from hex string
+    /// </summary>
+    public static PrivateKey GetPrivateKeyFromHex(string hexPrivateKey)
+    {
+        var privateKeyBytes = Convert.FromHexString(hexPrivateKey);
+        return new PrivateKey.Ed25519(privateKeyBytes);
     }
 }
 
