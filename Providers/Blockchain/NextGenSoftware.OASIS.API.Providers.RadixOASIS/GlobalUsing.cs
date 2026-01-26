@@ -13,6 +13,7 @@ global using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 global using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 global using NextGenSoftware.OASIS.API.Core.Objects;
 global using NextGenSoftware.OASIS.Common;
-global using RadixDlt.CoreApiSdk;
+// RadixDlt.CoreApiSdk may not be available - commented out
+// global using RadixDlt.CoreApiSdk;
 global using RadixEngineToolkit;
 

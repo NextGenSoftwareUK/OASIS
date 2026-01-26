@@ -13,13 +13,14 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+// using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request; // Removed - use Requests (plural) instead
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
@@ -1099,9 +1100,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                     var web3NFT = new Web3NFT
                     {
                         NFTTokenAddress = nftTokenAddress,
-                        Name = nftData.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null,
+                        Title = nftData.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null,
                         Symbol = nftData.TryGetProperty("symbol", out var symbolProp) ? symbolProp.GetString() : null,
-                        TokenUri = nftData.TryGetProperty("token_uri", out var uriProp) ? uriProp.GetString() : null
+                        JSONMetaDataURL = nftData.TryGetProperty("token_uri", out var uriProp) ? uriProp.GetString() : null
                     };
                     
                     return new OASISResult<IWeb3NFT>(web3NFT) { Message = "NFT metadata loaded from Moralis Web3 Data API successfully." };

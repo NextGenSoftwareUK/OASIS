@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
 
             this.Name=source.Name;
             this.Description=source.Description;
-            this.Quantity=source.Quantity;
+            // Quantity property removed from InventoryItem
         }
 
         public InventoryItem GetInventoryItem(){
@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
 
             item.Name=this.Name;
             item.Description=this.Description;
-            item.Quantity=this.Quantity;
+            // Quantity property removed from InventoryItem
 
             return(item);
         }

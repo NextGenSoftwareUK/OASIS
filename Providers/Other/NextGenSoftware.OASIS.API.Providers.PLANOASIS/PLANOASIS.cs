@@ -8,7 +8,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -719,10 +720,27 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 }
 
                 var searchUrl = $"{_apiBaseUrl}/search";
+                
+                // Extract search query and holon type from SearchGroups if available
+                string searchQuery = "";
+                string holonTypeStr = "All";
+                
+                if (searchParams?.SearchGroups != null && searchParams.SearchGroups.Count > 0)
+                {
+                    var firstGroup = searchParams.SearchGroups[0];
+                    holonTypeStr = firstGroup.HolonType.ToString();
+                    
+                    // Try to get SearchQuery from SearchTextGroup if available
+                    if (firstGroup is SearchTextGroup textGroup)
+                    {
+                        searchQuery = textGroup.SearchQuery ?? "";
+                    }
+                }
+                
                 var searchRequest = new
                 {
-                    query = searchParams?.SearchQuery ?? "",
-                    holonType = searchParams?.HolonType?.ToString() ?? "All",
+                    query = searchQuery,
+                    holonType = holonTypeStr,
                     version = version
                 };
 
@@ -736,8 +754,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
                     var searchResults = new SearchResults
                     {
-                        SearchQuery = searchParams?.SearchQuery ?? "",
-                        Results = new List<IHolon>()
+                        SearchResultHolons = new List<IHolon>(),
+                        SearchResultAvatars = new List<IAvatar>(),
+                        NumberOfResults = 0,
+                        NumberOfDuplicates = 0
                     };
 
                     if (searchData?.ContainsKey("results") == true && searchData["results"] is JsonElement resultsArray)
@@ -750,13 +770,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                                 Name = item.GetProperty("name").GetString() ?? "",
                                 Description = item.TryGetProperty("description", out var desc) ? desc.GetString() : ""
                             };
-                            searchResults.Results.Add(holon);
+                            searchResults.SearchResultHolons.Add(holon);
                         }
+                        searchResults.NumberOfResults = searchResults.SearchResultHolons.Count;
                     }
 
                     result.Result = searchResults;
                     result.IsError = false;
-                    result.Message = $"Search completed successfully, found {searchResults.Results.Count} results";
+                    result.Message = $"Search completed successfully, found {searchResults.NumberOfResults} results";
                 }
                 else
                 {
@@ -809,7 +830,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     {
                         importedCount++;
                     }
-                    else if (!continueOnError)
+                    else if (!result.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to import holon {holon.Id}: {response.StatusCode}");
                         return result;
@@ -1060,9 +1081,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var result = new OASISResult<IEnumerable<IPlayer>>();
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 if (!IsProviderActivated)
@@ -1071,7 +1092,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
-                var playersUrl = $"{_apiBaseUrl}/players/nearby";
+                var playersUrl = $"{_apiBaseUrl}/players/nearby?lat={geoLat}&lng={geoLong}&radius={radiusInMeters}";
                 var response = _httpClient.GetAsync(playersUrl).Result;
 
                 if (response.IsSuccessStatusCode)
@@ -1079,38 +1100,38 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     var content = response.Content.ReadAsStringAsync().Result;
                     var playersData = JsonSerializer.Deserialize<Dictionary<string, object>>(content);
 
-                    var players = new List<IPlayer>();
+                    var avatars = new List<IAvatar>();
                     if (playersData?.ContainsKey("players") == true && playersData["players"] is JsonElement playersArray)
                     {
                         foreach (var item in playersArray.EnumerateArray())
                         {
-                            var player = new Avatar
+                            var avatar = new Avatar
                             {
                                 Id = Guid.Parse(item.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
                                 Username = item.GetProperty("username").GetString() ?? "",
                                 Email = item.TryGetProperty("email", out var email) ? email.GetString() : ""
                             };
-                            players.Add(player as IPlayer);
+                            avatars.Add(avatar);
                         }
                     }
 
-                    result.Result = players;
+                    result.Result = avatars;
                     result.IsError = false;
-                    result.Message = $"Found {players.Count} players nearby from PLAN";
+                    result.Message = $"Found {avatars.Count} avatars nearby from PLAN";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"PLAN GetPlayersNearMe failed: {response.StatusCode}");
+                    OASISErrorHandling.HandleError(ref result, $"PLAN GetAvatarsNearMe failed: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from PLAN: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from PLAN: {ex.Message}", ex);
             }
             return result;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -1245,11 +1266,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 var transactionUrl = $"{_apiBaseUrl}/transactions/send";
                 var transactionData = new
                 {
-                    fromAddress = transaction.FromAddress,
-                    toAddress = transaction.ToAddress,
+                    fromAddress = transaction.FromWalletAddress,
+                    toAddress = transaction.ToWalletAddress,
                     amount = transaction.Amount,
-                    token = transaction.Token ?? "PLAN",
-                    memo = transaction.Memo ?? ""
+                    token = "PLAN", // Default token for PLAN
+                    memo = transaction.MemoText ?? ""
                 };
 
                 var content = new StringContent(JsonSerializer.Serialize(transactionData), Encoding.UTF8, "application/json");
@@ -1301,17 +1322,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
-                var walletResult = WalletManager.GetWalletForAvatarAsync(fromAvatarId, ProviderType.Value);
-                if (walletResult.Result.IsError || walletResult.Result.Result == null)
+                var walletResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(fromAvatarId, providerTypeToLoadFrom: ProviderType.Value);
+                if (walletResult.IsError || walletResult.Result == null || !walletResult.Result.ContainsKey(ProviderType.Value) || walletResult.Result[ProviderType.Value] == null || !walletResult.Result[ProviderType.Value].Any())
                 {
                     OASISErrorHandling.HandleError(ref result, "Failed to get wallet for sender avatar");
                     return result;
                 }
 
+                var fromWallet = walletResult.Result[ProviderType.Value].FirstOrDefault();
+                var toWallet = toAvatar.Result.ProviderWallets?.ContainsKey(ProviderType.Value) == true && toAvatar.Result.ProviderWallets[ProviderType.Value]?.Any() == true 
+                    ? toAvatar.Result.ProviderWallets[ProviderType.Value].FirstOrDefault() 
+                    : null;
+
                 var transactionRequest = new WalletTransactionRequest
                 {
-                    FromAddress = walletResult.Result.Result.Address,
-                    ToAddress = toAvatar.Result.ProviderWallets?.FirstOrDefault()?.Address ?? "",
+                    FromWalletAddress = fromWallet?.WalletAddress ?? "",
+                    ToWalletAddress = toWallet?.WalletAddress ?? "",
                     Amount = amount
                 };
 
@@ -1349,19 +1375,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
-                var walletResult = WalletManager.GetWalletForAvatarAsync(fromAvatarId, ProviderType.Value);
-                if (walletResult.Result.IsError || walletResult.Result.Result == null)
+                var walletResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(fromAvatarId, providerTypeToLoadFrom: ProviderType.Value);
+                if (walletResult.IsError || walletResult.Result == null || !walletResult.Result.ContainsKey(ProviderType.Value) || walletResult.Result[ProviderType.Value] == null || !walletResult.Result[ProviderType.Value].Any())
                 {
                     OASISErrorHandling.HandleError(ref result, "Failed to get wallet for sender avatar");
                     return result;
                 }
 
+                var fromWallet = walletResult.Result[ProviderType.Value].FirstOrDefault();
+                var toWallet = toAvatar.Result.ProviderWallets?.ContainsKey(ProviderType.Value) == true && toAvatar.Result.ProviderWallets[ProviderType.Value]?.Any() == true 
+                    ? toAvatar.Result.ProviderWallets[ProviderType.Value].FirstOrDefault() 
+                    : null;
+
                 var transactionRequest = new WalletTransactionRequest
                 {
-                    FromAddress = walletResult.Result.Result.Address,
-                    ToAddress = toAvatar.Result.ProviderWallets?.FirstOrDefault()?.Address ?? "",
+                    FromWalletAddress = fromWallet?.WalletAddress ?? "",
+                    ToWalletAddress = toWallet?.WalletAddress ?? "",
                     Amount = amount,
-                    Token = token
+                    MemoText = token?.ToString() ?? ""
                 };
 
                 return await SendTransactionAsync(transactionRequest);
@@ -1518,10 +1549,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 var nftUrl = $"{_apiBaseUrl}/nft/transfer";
                 var nftData = new
                 {
-                    fromAddress = transaction.FromAddress,
-                    toAddress = transaction.ToAddress,
-                    nftTokenId = transaction.TokenId ?? "",
-                    nftContractAddress = transaction.NFTTokenAddress ?? ""
+                    fromAddress = transaction.FromWalletAddress ?? "",
+                    toAddress = transaction.ToWalletAddress ?? "",
+                    nftTokenId = "",
+                    nftContractAddress = ""
                 };
 
                 var content = new StringContent(JsonSerializer.Serialize(nftData), Encoding.UTF8, "application/json");
