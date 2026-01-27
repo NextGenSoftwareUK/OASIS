@@ -3813,7 +3813,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 NFTTokenAddress = jsonElement.TryGetProperty("contractAddress", out var contractElement) ? contractElement.GetString() : "",
                 MintedOn = DateTime.UtcNow,
                 ModifiedOn = DateTime.UtcNow,
-                MetaData = new Dictionary<string, object>
+                MetaData = new Dictionary<string, string>
                 {
                     { "BaseContent", content },
                     { "ProviderType", "BaseOASIS" }
@@ -3833,7 +3833,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 NFTTokenAddress = "",
                 MintedOn = DateTime.UtcNow,
                 ModifiedOn = DateTime.UtcNow,
-                MetaData = new Dictionary<string, object>
+                MetaData = new Dictionary<string, string>
                 {
                     { "BaseContent", content },
                     { "ProviderType", "BaseOASIS" }

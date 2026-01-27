@@ -820,7 +820,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                             {
                                 holons.AddRange(holonsResult.Result);
                             }
-                            }
                         }
                     }
                 }

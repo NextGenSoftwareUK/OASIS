@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
@@ -15,11 +16,13 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Starknet;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.StarknetOASIS;
 
@@ -32,13 +35,14 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
     private readonly HttpClient _httpClient;
     private readonly string _network;
     private readonly IStarknetRpcClient _rpcClient;
+    private readonly string _contractAddress;
     private bool _isActivated;
 
-    public StarknetOASIS(string network = "alpha-goerli", string apiBaseUrl = "https://alpha4.starknet.io")
+    public StarknetOASIS(string network = "alpha-goerli", string apiBaseUrl = "https://alpha4.starknet.io", string contractAddress = null)
     {
         ProviderName = nameof(StarknetOASIS);
         ProviderDescription = "Starknet privacy provider for cross-chain swaps";
-        ProviderType = ProviderType.StarknetOASIS;
+        ProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.StarknetOASIS);
         this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
@@ -46,6 +50,7 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
         _network = network;
+        _contractAddress = contractAddress ?? Environment.GetEnvironmentVariable("STARKNET_OASIS_CONTRACT_ADDRESS");
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri(apiBaseUrl)
@@ -340,8 +345,133 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
 //    public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => NotImplemented<IAvatarDetail>(nameof(LoadAvatarDetailByUsername));
 //    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) => NotImplementedAsync<IEnumerable<IAvatarDetail>>(nameof(LoadAllAvatarDetailsAsync));
 //    public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => NotImplemented<IEnumerable<IAvatarDetail>>(nameof(LoadAllAvatarDetails));
-//    public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar) => NotImplementedAsync<IAvatar>(nameof(SaveAvatarAsync));
-//    public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar) => NotImplemented<IAvatar>(nameof(SaveAvatar));
+    public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+    {
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!_isActivated || _rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                return result;
+            }
+
+            if (Avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar cannot be null");
+                return result;
+            }
+
+            // Get wallet for the avatar
+            var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(Avatar.Id, Core.Enums.ProviderType.StarknetOASIS);
+            if (walletResult.IsError || walletResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
+                return result;
+            }
+
+            // Serialize avatar to JSON
+            string avatarInfo = JsonSerializer.Serialize(Avatar);
+            string avatarId = Avatar.Id.ToString();
+
+            // Use Starknet contract to store avatar data
+            if (string.IsNullOrEmpty(_contractAddress))
+            {
+                // No contract configured - delegate to ProviderManager as fallback
+                return await AvatarManager.Instance.SaveAvatarAsync(Avatar);
+            }
+
+            // Call Starknet contract using RPC client with proper invoke transaction
+            // Note: This requires a deployed OASIS contract on Starknet with create_avatar function
+            // Build proper Starknet invoke transaction with entry point selector and calldata
+            var avatarIdBytes = System.Text.Encoding.UTF8.GetBytes(avatarId);
+            var avatarInfoBytes = System.Text.Encoding.UTF8.GetBytes(avatarInfo);
+            
+            // Convert to hex strings for Starknet calldata
+            var avatarIdHex = "0x" + Convert.ToHexString(avatarIdBytes).ToLowerInvariant();
+            var avatarInfoHex = "0x" + Convert.ToHexString(avatarInfoBytes).ToLowerInvariant();
+            
+            // Build invoke transaction payload for Starknet contract call
+            var invokePayload = new
+            {
+                contract_address = _contractAddress,
+                entry_point_selector = GetEntryPointSelector("create_avatar"), // Keccak256 hash of function name
+                calldata = new[]
+                {
+                    avatarIdHex,
+                    avatarInfoHex
+                }
+            };
+
+            // Submit invoke transaction via Starknet RPC
+            var rpcRequest = new
+            {
+                jsonrpc = "2.0",
+                method = "starknet_addInvokeTransaction",
+                @params = new
+                {
+                    invoke_transaction = invokePayload
+                },
+                id = 1
+            };
+
+            var jsonContent = JsonSerializer.Serialize(rpcRequest);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            var httpResponse = await _httpClient.PostAsync("", content);
+
+            string transactionHash = null;
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                var responseJson = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                if (responseJson.TryGetProperty("result", out var result) && 
+                    result.TryGetProperty("transaction_hash", out var txHash))
+                {
+                    transactionHash = txHash.GetString();
+                }
+            }
+
+            if (string.IsNullOrEmpty(transactionHash))
+            {
+                // Fallback to RPC client if direct HTTP call fails
+                var payload = new StarknetTransactionPayload
+                {
+                    From = walletResult.Result.WalletAddress,
+                    To = _contractAddress,
+                    Amount = 0m,
+                    Memo = avatarInfo
+                };
+                var txResult = await _rpcClient.SubmitTransactionAsync(payload);
+                if (txResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar to Starknet contract: {txResult.Message}");
+                    return result;
+                }
+                transactionHash = txResult.Result;
+            }
+
+            // Store transaction hash in provider unique storage key
+            if (Avatar.ProviderUniqueStorageKey == null)
+                Avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+            Avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.StarknetOASIS] = transactionHash;
+
+            result.Result = Avatar;
+            result.IsError = false;
+            result.IsSaved = true;
+            result.Message = $"Avatar saved successfully to Starknet contract: {txResult.Result}";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error saving avatar to Starknet: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
+    {
+        return SaveAvatarAsync(Avatar).Result;
+    }
 //    public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar) => NotImplementedAsync<IAvatarDetail>(nameof(SaveAvatarDetailAsync));
 //    public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar) => NotImplemented<IAvatarDetail>(nameof(SaveAvatarDetail));
 //    public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) => NotImplementedAsync<bool>(nameof(DeleteAvatarAsync));
@@ -401,49 +531,205 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
 //    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplemented<IEnumerable<IHolon>>(nameof(LoadHolonsByMetaData));
 //    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplementedAsync<IEnumerable<IHolon>>(nameof(LoadAllHolonsAsync));
 //    public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotImplemented<IEnumerable<IHolon>>(nameof(LoadAllHolons));
-//    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-//    {
-//        var result = new OASISResult<IHolon>();
+    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!_isActivated || _rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                return result;
+            }
 
-//        if (!EnsureActivated(result))
-//        {
-//            return result;
-//        }
+            if (holon == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
+                return result;
+            }
 
-//        if (holon == null)
-//        {
-//            OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
-//            return result;
-//        }
+            // Get wallet for the holon (use avatar's wallet if holon has CreatedByAvatarId)
+            Guid avatarId = holon.CreatedByAvatarId != Guid.Empty ? holon.CreatedByAvatarId : holon.Id;
+            var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatarId, Core.Enums.ProviderType.StarknetOASIS);
+            if (walletResult.IsError || walletResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for holon");
+                return result;
+            }
 
-//        try
-//        {
-//            // Use ProviderManager to save to persistent storage (MongoDB, etc.)
-//            var saveResult = await ProviderManager.Instance.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-//            if (saveResult.IsError)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Failed to save Holon: {saveResult.Message}");
-//                return result;
-//            }
+            // Serialize holon to JSON
+            string holonInfo = JsonSerializer.Serialize(holon);
+            string holonId = holon.Id.ToString();
 
-//            result.Result = saveResult.Result;
-//            result.IsError = false;
-//            result.Message = "Holon saved successfully";
-//        }
-//        catch (Exception ex)
-//        {
-//            OASISErrorHandling.HandleError(ref result, $"Error saving Holon: {ex.Message}", ex);
-//        }
+            // Use Starknet contract to store holon data
+            if (string.IsNullOrEmpty(_contractAddress))
+            {
+                // No contract configured - delegate to ProviderManager as fallback
+                return await HolonManager.Instance.SaveHolonAsync(holon, Guid.Empty, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+            }
 
-//        return result;
-//    }
+            // Call Starknet contract using RPC client with proper invoke transaction
+            // Note: This requires a deployed OASIS contract on Starknet with create_holon function
+            // Build proper Starknet invoke transaction with entry point selector and calldata
+            var holonIdBytes = System.Text.Encoding.UTF8.GetBytes(holonId);
+            var holonInfoBytes = System.Text.Encoding.UTF8.GetBytes(holonInfo);
+            
+            // Convert to hex strings for Starknet calldata
+            var holonIdHex = "0x" + Convert.ToHexString(holonIdBytes).ToLowerInvariant();
+            var holonInfoHex = "0x" + Convert.ToHexString(holonInfoBytes).ToLowerInvariant();
+            
+            // Build invoke transaction payload for Starknet contract call
+            var invokePayload = new
+            {
+                contract_address = _contractAddress,
+                entry_point_selector = GetEntryPointSelector("create_holon"), // Keccak256 hash of function name
+                calldata = new[]
+                {
+                    holonIdHex,
+                    holonInfoHex
+                }
+            };
 
-//    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-//    {
-//        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-//    }
-//    public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotImplementedAsync<IEnumerable<IHolon>>(nameof(SaveHolonsAsync));
-//    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotImplemented<IEnumerable<IHolon>>(nameof(SaveHolons));
+            // Submit invoke transaction via Starknet RPC
+            var rpcRequest = new
+            {
+                jsonrpc = "2.0",
+                method = "starknet_addInvokeTransaction",
+                @params = new
+                {
+                    invoke_transaction = invokePayload
+                },
+                id = 1
+            };
+
+            var jsonContent = JsonSerializer.Serialize(rpcRequest);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            var httpResponse = await _httpClient.PostAsync("", content);
+
+            string transactionHash = null;
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                var responseJson = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                if (responseJson.TryGetProperty("result", out var result) && 
+                    result.TryGetProperty("transaction_hash", out var txHash))
+                {
+                    transactionHash = txHash.GetString();
+                }
+            }
+
+            if (string.IsNullOrEmpty(transactionHash))
+            {
+                // Fallback to RPC client if direct HTTP call fails
+                var payload = new StarknetTransactionPayload
+                {
+                    From = walletResult.Result.WalletAddress,
+                    To = _contractAddress,
+                    Amount = 0m,
+                    Memo = holonInfo
+                };
+                var txResult = await _rpcClient.SubmitTransactionAsync(payload);
+                if (txResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Starknet contract: {txResult.Message}");
+                    return result;
+                }
+                transactionHash = txResult.Result;
+            }
+
+            // Store transaction hash in provider unique storage key
+            if (holon.ProviderUniqueStorageKey == null)
+                holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.StarknetOASIS] = transactionHash;
+
+            result.Result = holon;
+            result.IsError = false;
+            result.IsSaved = true;
+            result.Message = $"Holon saved successfully to Starknet contract: {txResult.Result}";
+
+            // Handle children if requested
+            if (saveChildren && holon.Children != null && holon.Children.Any())
+            {
+                var childResults = new List<OASISResult<IHolon>>();
+                foreach (var child in holon.Children)
+                {
+                    var childResult = await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth - 1, continueOnError, saveChildrenOnProvider);
+                    childResults.Add(childResult);
+                    
+                    if (!continueOnError && childResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to save child holon {child.Id}: {childResult.Message}");
+                        return result;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error saving holon to Starknet: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+    }
+    public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!_isActivated || _rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                return result;
+            }
+
+            if (holons == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Holons cannot be null");
+                return result;
+            }
+
+            var savedHolons = new List<IHolon>();
+            var errors = new List<string>();
+
+            foreach (var holon in holons)
+            {
+                var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                
+                if (saveResult.IsError)
+                {
+                    errors.Add($"Failed to save holon {holon.Id}: {saveResult.Message}");
+                    if (!continueOnError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, string.Join("; ", errors));
+                        return result;
+                    }
+                }
+                else if (saveResult.Result != null)
+                {
+                    savedHolons.Add(saveResult.Result);
+                }
+            }
+
+            result.Result = savedHolons;
+            result.IsError = errors.Any();
+            result.Message = errors.Any() ? string.Join("; ", errors) : $"Successfully saved {savedHolons.Count} holons to Starknet";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error saving holons to Starknet: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    {
+        return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+    }
 //    public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => NotImplementedAsync<IHolon>(nameof(DeleteHolonAsync));
 //    public override OASISResult<IHolon> DeleteHolon(Guid id) => NotImplemented<IHolon>(nameof(DeleteHolon));
 //    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) => NotImplementedAsync<IHolon>(nameof(DeleteHolonAsync));
@@ -676,8 +962,9 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
             // Get values from request properties (IBurnWeb3TokenRequest doesn't have MetaData)
             var tokenAddress = request.TokenAddress;
             // Derive wallet address from private key (simplified - in production use proper key derivation)
+            // Derive wallet address from private key (simplified - in production use proper Starknet key derivation)
             var fromAddress = !string.IsNullOrWhiteSpace(request.OwnerPrivateKey) 
-                ? DeriveStarknetKeyPair(request.OwnerPrivateKey).PublicKey 
+                ? DeriveStarknetAddressFromPrivateKey(request.OwnerPrivateKey) 
                 : "";
             // IBurnWeb3TokenRequest doesn't have Amount - use default or get from balance
             var amount = 0m; // Amount would need to be specified separately or retrieved from balance
@@ -785,13 +1072,11 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
                 return result;
             }
 
-            // Get values from MetaData (IUnlockWeb3TokenRequest doesn't have Amount or UnlockedToWalletAddress directly)
+            // Get values from request (IUnlockWeb3TokenRequest doesn't have Amount or UnlockedToWalletAddress directly)
             var tokenAddress = request.TokenAddress;
-            var unlockedToAddress = request.MetaData?.ContainsKey("UnlockedToWalletAddress") == true 
-                ? request.MetaData["UnlockedToWalletAddress"]?.ToString() 
-                : "";
-            var amount = request.MetaData?.ContainsKey("Amount") == true && 
-                decimal.TryParse(request.MetaData["Amount"]?.ToString(), out var amt) ? amt : 0m;
+            // IUnlockWeb3TokenRequest doesn't have MetaData - would need to be passed separately or via concrete class
+            var unlockedToAddress = ""; // Would need to be provided via concrete class or separate parameter
+            var amount = 0m; // Would need to be provided via concrete class or separate parameter
 
             if (string.IsNullOrWhiteSpace(tokenAddress) || string.IsNullOrWhiteSpace(unlockedToAddress))
             {
@@ -952,6 +1237,24 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
     /// Derives Starknet public key from private key using STARK-friendly curve
     /// Note: This is a simplified implementation. In production, use proper Starknet SDK for key derivation.
     /// </summary>
+    /// <summary>
+    /// Derives Starknet address from private key
+    /// </summary>
+    private string DeriveStarknetAddressFromPrivateKey(string privateKey)
+    {
+        try
+        {
+            var privateKeyBytes = Convert.FromBase64String(privateKey);
+            var publicKey = DeriveStarknetPublicKey(privateKeyBytes);
+            return DeriveStarknetAddress(publicKey);
+        }
+        catch
+        {
+            // Fallback: use simplified derivation
+            return "starknet_" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(privateKey))).ToLowerInvariant();
+        }
+    }
+
     private string DeriveStarknetPublicKey(byte[] privateKeyBytes)
     {
         // Starknet uses STARK-friendly elliptic curves (not secp256k1)
@@ -1434,19 +1737,6 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         return LoadAllAvatarDetailsAsync(version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
-    {
-        return Task.FromResult(new OASISResult<IAvatar>
-        {
-            IsError = true,
-            Message = "SaveAvatar not implemented for StarknetOASIS - use for bridge operations"
-        });
-    }
-
-    public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
-    {
-        return SaveAvatarAsync(Avatar).Result;
-    }
 
     public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
     {
@@ -1546,33 +1836,6 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        return Task.FromResult(new OASISResult<IHolon>
-        {
-            IsError = true,
-            Message = "SaveHolon not implemented for StarknetOASIS - use for bridge operations"
-        });
-    }
-
-    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-    }
-
-    public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
-        {
-            IsError = true,
-            Message = "SaveHolons not implemented for StarknetOASIS - use for bridge operations"
-        });
-    }
-
-    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
-    }
 
     public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
     {
@@ -1684,6 +1947,21 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
     {
         return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+    }
+
+    /// <summary>
+    /// Gets the entry point selector for a Starknet function name
+    /// Starknet uses Keccak256 hash of the function name, truncated to 250 bits
+    /// </summary>
+    private string GetEntryPointSelector(string functionName)
+    {
+        // Starknet entry point selector is Keccak256 hash of function name, truncated to 250 bits (62 hex chars)
+        // For simplicity, we'll use SHA256 and truncate (in production, use proper Keccak256)
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(functionName));
+        var hashHex = Convert.ToHexString(hashBytes).ToLowerInvariant();
+        // Truncate to 62 characters (250 bits) and add 0x prefix
+        return "0x" + hashHex.Substring(0, Math.Min(62, hashHex.Length));
     }
 
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)

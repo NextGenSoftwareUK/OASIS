@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -290,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Discount = request.Discount,
                 MemoText = request.MemoText,
                 NumberToMint = request.NumberToMint,
-                MetaData = request.MetaData,
+                MetaData = request.MetaData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.ToString() ?? string.Empty) ?? new Dictionary<string, string>(),
                 OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
                 OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                 JSONMetaDataURL = request.JSONMetaDataURL,
@@ -419,7 +420,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Discount = request.Discount,
                 MemoText = request.MemoText,
                 NumberToMint = request.NumberToMint,
-                MetaData = request.MetaData,
+                MetaData = request.MetaData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.ToString() ?? string.Empty) ?? new Dictionary<string, string>(),
                 OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
                 OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                 JSONMetaDataURL = request.JSONMetaDataURL,

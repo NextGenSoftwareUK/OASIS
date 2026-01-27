@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         // public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
         public int NumberToMint { get; set; }
         public bool StoreNFTMetaDataOnChain { get; set; }
-        public Dictionary<string, object> MetaData { get; set; }
+        public Dictionary<string, string> MetaData { get; set; }
         public EnumValue<ProviderType> OffChainProvider { get; set; }
         public EnumValue<ProviderType> OnChainProvider { get; set; }
         public EnumValue<NFTStandardType> NFTStandardType { get; set; }

@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
-                            geoNFTCollection.MetaData["Web5STARGeoNFTCollectionId"] = saveResult.Result.Id;
+                            geoNFTCollection.MetaData["Web5STARGeoNFTCollectionId"] = saveResult.Result.Id.ToString();
                             OASISResult<IWeb4GeoNFTCollection> web4GeoNFTCollection = await NFTCommon.NFTManager.UpdateWeb4GeoNFTCollectionAsync(new UpdateWeb4GeoNFTCollectionRequest() { Id = geoNFTCollection.Id, ModifiedBy = STAR.BeamedInAvatar.Id, MetaData = geoNFTCollection.MetaData }, providerType: providerType);
 
                             if (!(web4GeoNFTCollection != null && web4GeoNFTCollection.Result != null && !web4GeoNFTCollection.IsError))
@@ -701,7 +701,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(collection.ThumbnailUrl) ? collection.ThumbnailUrl : "None", displayFieldLength);
             TagHelper.ShowTags(collection.Tags, displayFieldLength);
 
-            Dictionary<string, object> metaData = collection.MetaData;
+            Dictionary<string, string> metaData = collection.MetaData;
 
             //Temp remove internal metaData.
             collection.MetaData.Remove("Image");

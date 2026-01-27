@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
-                            geoNFT.MetaData["Web5STARGeoNFTId"] = saveResult.Result.Id;
+                            geoNFT.MetaData["Web5STARGeoNFTId"] = saveResult.Result.Id.ToString();
                             OASISResult<IWeb4GeoSpatialNFT> web4GeoNFT = await NFTCommon.NFTManager.UpdateWeb4GeoNFTAsync(new UpdateWeb4GeoNFTRequest() { Id = geoNFT.Id, ModifiedByAvatarId = STAR.BeamedInAvatar.Id, MetaData = geoNFT.MetaData }, providerType: providerType);
 
                             if (!(web4GeoNFT != null && web4GeoNFT.Result != null && !web4GeoNFT.IsError))
@@ -393,7 +393,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 request.Price = existing.Price;
                 request.Discount = existing.Discount;
                 request.Tags = existing.Tags != null ? new List<string>(existing.Tags) : null;
-                request.MetaData = existing.MetaData != null ? new Dictionary<string, object>(existing.MetaData) : new Dictionary<string, object>();
+                request.MetaData = existing.MetaData != null ? new Dictionary<string, string>(existing.MetaData) : new Dictionary<string, string>();
 
                 // Geo specific
                 request.Lat = existing.Lat;
