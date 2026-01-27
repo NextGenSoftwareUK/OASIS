@@ -383,6 +383,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
+                if (request.Web3NFTs == null || request.Web3NFTs != null && request.Web3NFTs.Count < request.NumberToMint)
+                {
+                    if (request.Web3NFTs == null)
+                        request.Web3NFTs = new List<IMintWeb3NFTRequest>();
+
+                    for (int i = 0; i <= (request.NumberToMint - request.Web3NFTs.Count) + 1; i++)
+                        request.Web3NFTs.Add(new MintWeb3NFTRequest());
+                }
+
                 if (request.Web3NFTs != null && request.Web3NFTs.Count > 0)
                 {
                     int i = 0;
@@ -398,8 +407,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         result = await MintWeb3NFTsAsync(result, originalMintWeb4NFTRequest, web3Request, null, isGeoNFT, responseFormatType, i == request.Web3NFTs.Count);
                     }
                 }
-                else
-                    result = await MintWeb3NFTsAsync(result, request, null, null, isGeoNFT, responseFormatType, true);
+                //else
+                //    result = await MintWeb3NFTsAsync(result, request, null, null, isGeoNFT, responseFormatType, true);
             }
             catch (Exception e)
             {
@@ -2289,7 +2298,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     holonResult.Result.Image = request.Image != null ? request.Image : holonResult.Result.Image;
                     holonResult.Result.ThumbnailUrl = !string.IsNullOrEmpty(request.ThumbnailUrl) ? request.ThumbnailUrl : holonResult.Result.ThumbnailUrl;
                     holonResult.Result.Thumbnail = request.Thumbnail != null ? request.Thumbnail : holonResult.Result.Thumbnail;
-                    holonResult.Result.MetaData = request.MetaData != null ? request.MetaData : holonResult.Result.MetaData;
+                    
+                    
+                    
+                    //holonResult.Result.MetaData = request.MetaData != null ? request.MetaData : holonResult.Result.MetaData;
                     //holonResult.Result.Web4NFTIds = request.Web4NFTIds ?? holonResult.Result.Web4NFTIds;
                     holonResult.Result.Tags = request.Tags ?? holonResult.Result.Tags;
 
@@ -2358,7 +2370,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     holonResult.Result.Image = request.Image != null ? request.Image : holonResult.Result.Image;
                     holonResult.Result.ThumbnailUrl = !string.IsNullOrEmpty(request.ThumbnailUrl) ? request.ThumbnailUrl : holonResult.Result.ThumbnailUrl;
                     holonResult.Result.Thumbnail = request.Thumbnail != null ? request.Thumbnail : holonResult.Result.Thumbnail;
-                    holonResult.Result.MetaData = request.MetaData != null ? request.MetaData : holonResult.Result.MetaData;
+                    
+                    if (request.MetaData != null)
+                    {
+                        if (holonResult.Result.MetaData == null)
+                            holonResult.Result.MetaData = new Dictionary<string, string>();
+
+                        foreach (var kvp in request.MetaData)
+                        {
+                            holonResult.Result.MetaData[kvp.Key] = kvp.Value;
+                        }
+                    }
+
+                    //holonResult.Result.MetaData = request.MetaData != null ? request.MetaData : holonResult.Result.MetaData;
                     // holonResult.Result.Web4GeoNFTIds = request.Web4GeoNFTIds ?? holonResult.Result.Web4GeoNFTIds;
                     holonResult.Result.Tags = request.Tags ?? holonResult.Result.Tags;
 
@@ -2973,7 +2997,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 ThumbnailUrl = request.ThumbnailUrl,
                 JSONMetaDataURL = request.JSONMetaDataURL,
                 Tags = request.Tags != null ? new List<string>(request.Tags) : null,
-                MetaData = request.MetaData != null ? new Dictionary<string, object>(request.MetaData) : null,
+                MetaData = request.MetaData != null ? new Dictionary<string, string>(request.MetaData) : null,
                 Symbol = request.Symbol,
                 SendToAddressAfterMinting = request.SendToAddressAfterMinting,
                 SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
@@ -3105,7 +3129,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (web3Request.MetaData != null)
                 {
                     if (request.MetaData == null)
-                        request.MetaData = new Dictionary<string, object>();
+                        request.MetaData = new Dictionary<string, string>();
 
                     foreach (string key in web3Request.MetaData.Keys)
                     {
@@ -4231,7 +4255,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 seller_fee_basis_points = 500,
                 image = request.ImageUrl,
                 thumbnail = request.ThumbnailUrl,
-                attributes = request.MetaData != null ? request.MetaData : new Dictionary<string, object>(),
+                attributes = request.MetaData != null ? request.MetaData : new Dictionary<string, string>(),
                 price = request.Price,
                 discount = request.Discount,
                 memo = request.MemoText
@@ -4248,7 +4272,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 description = request.Description,
                 image = request.ImageUrl,
                 thumbnail = request.ThumbnailUrl,
-                attributes = request.MetaData != null ? request.MetaData : new Dictionary<string, object>(),
+                attributes = request.MetaData != null ? request.MetaData : new Dictionary<string, string>(),
                 price = request.Price,
                 discount = request.Discount,
                 memo = request.MemoText
@@ -4266,7 +4290,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 image = request.ImageUrl,
                 thumbnail = request.ThumbnailUrl,
                 copies = request.NumberToMint,
-                attributes = request.MetaData != null ? request.MetaData : new Dictionary<string, object>(),
+                attributes = request.MetaData != null ? request.MetaData : new Dictionary<string, string>(),
                 price = request.Price,
                 discount = request.Discount,
                 memo = request.MemoText
@@ -4307,7 +4331,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             web3NFT.SaleEndDate = request.SaleEndDate;
             web3NFT.Tags = request.Tags;
             web3NFT.MetaData = request.MetaData;
-            web3NFT.MetaData["{{{newnft}}}"] = true;
+            web3NFT.MetaData["{{{newnft}}}"] = "true";
 
             return web3NFT;
         }

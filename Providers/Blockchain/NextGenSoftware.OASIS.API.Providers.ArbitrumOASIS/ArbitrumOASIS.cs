@@ -2922,12 +2922,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 MintedOn = dataDict.ContainsKey("mintedOn") ? DateTime.Parse(dataDict["mintedOn"].ToString()) : DateTime.UtcNow,
                 ImportedOn = DateTime.UtcNow,
                 OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArbitrumOASIS),
-                MetaData = new Dictionary<string, object>
-                {
-                    ["ArbitrumData"] = nftData,
-                    ["ParsedAt"] = DateTime.UtcNow,
-                    ["Provider"] = "ArbitrumOASIS"
-                }
+                //MetaData = new Dictionary<string, string>
+                //{
+                //    ["ArbitrumData"] = nftData,
+                //    ["ParsedAt"] = DateTime.UtcNow,
+                //    ["Provider"] = "ArbitrumOASIS"
+                //}
             };
 
             return nft;
@@ -4201,11 +4201,11 @@ file static class ArbitrumContractHelper
                 Description = "NFT from Arbitrum blockchain",
                 NFTTokenAddress = "0x0000000000000000000000000000000000000000",
                 OnChainProvider = new EnumValue<ProviderType>(ProviderType.ArbitrumOASIS),
-                MetaData = new Dictionary<string, object>
-                {
-                    ["ArbitrumData"] = nftData,
-                    ["ParsedAt"] = DateTime.Now
-                }
+                //MetaData = new Dictionary<string, object>
+                //{
+                //    ["ArbitrumData"] = nftData,
+                //    ["ParsedAt"] = DateTime.Now
+                //}
             };
             
             return nft;

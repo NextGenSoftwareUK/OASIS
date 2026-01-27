@@ -104,6 +104,7 @@ public class RadixChainObserver : IChainObserver
         {
             OASISErrorHandling.HandleError<BlockData>(ref result,
                 $"Error getting latest block: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -145,8 +146,8 @@ public class RadixChainObserver : IChainObserver
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError<TransactionData>(ref result,
-                $"Error getting transaction: {ex.Message}", ex);
+            OASISErrorHandling.HandleError<TransactionData>(ref result, $"Error getting transaction: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -281,6 +282,7 @@ public class RadixChainObserver : IChainObserver
             _isMonitoring = false;
             OASISErrorHandling.HandleError<bool>(ref result,
                 $"Error starting monitoring: {ex.Message}", ex);
+            return result;
         }
     }
 

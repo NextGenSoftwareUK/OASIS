@@ -1219,6 +1219,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 }
                                 else
                                 {
+                                    //TODO: Temp, need to make so can pass nullable softDelete to Web5 delete functions.
+                                    if (softDelete == null)
+                                        softDelete = true;
+
                                     if (deletePredicate != null)
                                         await deletePredicate(id, softDelete.Value, providerType); //TODO: Fix later so we pass the ?bool softDelete value in like above for web4 and web3!
                                     else

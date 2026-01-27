@@ -2687,7 +2687,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                 var nft = new Web3NFT();
                 nft.Id = Guid.NewGuid();
                 nft.NFTTokenAddress = nftTokenAddress;
-                nft.MetaData.Add("AvalancheEntityId", nftData.EntityId);
+                nft.MetaData.Add("AvalancheEntityId", nftData.EntityId.ToString());
                 nft.MetaData.Add("AvalancheInfo", nftData.Info);
             
             result.Result = nft;

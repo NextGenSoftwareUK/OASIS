@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 { 
     public static class MetaDataHelper
     {
-        public static void ShowMetaData(Dictionary<string, object> metaData, int displayFieldLength)
+        public static void ShowMetaData(Dictionary<string, string> metaData, int displayFieldLength)
         {
             if (metaData != null)
             {
@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 CLIEngine.ShowMessage(string.Concat("MetaData:".PadRight(displayFieldLength), "None"), false);
         }
 
-        public static string GetMetaData(Dictionary<string, object> metaData)
+        public static string GetMetaData(Dictionary<string, string> metaData)
         {
             string metaDataString = "";
 
@@ -72,9 +72,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return false;
         }
 
-        public static Dictionary<string, object> AddMetaData(string holonName)
+        public static Dictionary<string, string> AddMetaData(string holonName)
         {
-            Dictionary<string, object> metaData = new Dictionary<string, object>();
+            Dictionary<string, string> metaData = new Dictionary<string, string>();
 
             if (CLIEngine.GetConfirmation($"Do you wish to add any metadata to this {holonName}?"))
             {
@@ -94,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             return metaData;
         }
 
-        public static Dictionary<string, object> AddItemToMetaData(Dictionary<string, object> metaData)
+        public static Dictionary<string, string> AddItemToMetaData(Dictionary<string, string> metaData)
         {
             Console.WriteLine("");
             string key = CLIEngine.GetValidInput("What is the key?");
@@ -114,17 +114,17 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             }
 
             if (metaFile != null)
-                metaData[key] = metaFile;
+                metaData[key] = Convert.ToBase64String(metaFile);
             else
                 metaData[key] = value;
 
             return metaData;
         }
 
-        public static Dictionary<string, object> ManageMetaData(Dictionary<string, object> metaData, string itemName)
+        public static Dictionary<string, string> ManageMetaData(Dictionary<string, string> metaData, string itemName)
         {
             if (metaData == null)
-                metaData = new Dictionary<string, object>();
+                metaData = new Dictionary<string, string>();
 
             bool done = false;
 
@@ -176,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                             if (CLIEngine.GetConfirmation("This value is binary. Do you want to replace it with a file? (Y) or replace with text (N)?"))
                             {
                                 string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
-                                metaData[editKey] = File.ReadAllBytes(metaPath);
+                                metaData[editKey] = Convert.ToBase64String(File.ReadAllBytes(metaPath));
                             }
                             else
                             {
@@ -192,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                             if (CLIEngine.GetConfirmation("Do you want to set this value from a file? (Y) or enter text value (N)?"))
                             {
                                 string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
-                                metaData[editKey] = File.ReadAllBytes(metaPath);
+                                metaData[editKey] = Convert.ToBase64String(File.ReadAllBytes(metaPath));
                             }
                             else
                             {
