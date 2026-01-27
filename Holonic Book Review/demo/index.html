@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holonic Book Review — Decentralized reviews for indie publishers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: rgba(255,255,255,0.08);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.55);
+      --accent: #c9a227;
+      --star: #e5c64c;
+      --success: rgba(72,187,120,0.9);
+      --error: rgba(239,68,68,0.9);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .container { max-width: 720px; margin: 0 auto; padding: 1.5rem; }
+    h1, h2, h3 { font-family: 'Literata', Georgia, serif; font-weight: 600; }
+    h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem; color: var(--accent); }
+    h3 { font-size: 1.05rem; margin: 1rem 0 0.5rem; }
+    p { margin-bottom: 0.75rem; color: var(--muted); font-size: 0.95rem; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .story {
+      margin-bottom: 2rem;
+    }
+    .story p { margin-bottom: 0.5rem; }
+    .mode-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+    .mode-row label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; }
+    .mode-row input[type="radio"] { accent-color: var(--accent); }
+    .btn {
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
+    .btn-accent { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn-accent:hover { filter: brightness(1.1); }
+    .book-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+    .book-tab {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .book-tab:hover { border-color: var(--accent); color: var(--accent); }
+    .book-tab.active { border-color: var(--accent); background: rgba(201,162,39,0.12); color: var(--accent); }
+    .book-meta { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
+    .reviews-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0 0.5rem;
+    }
+    .aggregate {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .aggregate strong { color: var(--accent); }
+    .review-item {
+      border-left: 3px solid var(--border);
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+    .review-item .source { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .review-item .name { font-weight: 500; margin-bottom: 0.25rem; }
+    .review-item .description { font-size: 0.9rem; color: var(--muted); }
+    .stars { color: var(--star); letter-spacing: 0.05em; }
+    .add-review { margin-top: 1.5rem; }
+    .add-review h3 { margin-bottom: 0.75rem; }
+    .form-group { margin-bottom: 0.75rem; }
+    .form-group label { display: block; font-size: 0.85rem; margin-bottom: 0.25rem; color: var(--muted); }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .msg { padding: 0.5rem 0.75rem; border-radius: 6px; margin-top: 0.5rem; font-size: 0.9rem; }
+    .msg.success { background: rgba(72,187,120,0.15); color: var(--success); }
+    .msg.error { background: rgba(239,68,68,0.15); color: var(--error); }
+    .count-by-source { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header style="margin-bottom: 1.5rem;">
+      <h1>Holonic Book Review</h1>
+      <p style="color: var(--muted); font-size: 0.9rem;">Decentralized review aggregation for independent publishers</p>
+    </header>
+
+    <section class="story card">
+      <h2>The problem</h2>
+      <p>Independent book publishers (Red Hen Press, Small Beer Press, Sarabande Books, and many others) struggle to collect and display reviews. Amazon only treats reviews as &quot;verified&quot; if the book was bought on Amazon, and reviewers must have spent at least $50 on Amazon in the past year. Publishers who sell mainly through their own sites, bookshops, and festivals can’t easily gather prominent reviews on Amazon—so their books look under-reviewed and less trusted.</p>
+      <h2>The solution</h2>
+      <p>Here, <strong>each book is one parent holon</strong> and <strong>each review is a child holon</strong> of that book. Reviews can come from any source—publisher site, independent bookshop, festival, or reader—and they are aggregated in one place. The same list can be shown on any publisher or partner site, without depending on a single platform’s rules.</p>
+    </section>
+
+    <section class="card">
+      <h3>Mode</h3>
+      <div class="mode-row">
+        <label><input type="radio" name="mode" value="simulator" checked> Demo mode (simulator)</label>
+        <label><input type="radio" name="mode" value="api"> OASIS API</label>
+        <button type="button" class="btn" id="btn-reset" title="Reset simulator to seed data">Reset to seed</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Choose a book</h3>
+      <p class="book-meta" style="margin-bottom: 0.5rem;">Sample titles from Small Beer Press, Red Hen Press, and Sarabande Books.</p>
+      <div class="book-tabs" id="book-tabs"></div>
+      <div id="book-detail"></div>
+    </section>
+
+    <section class="card" id="reviews-section">
+      <div class="reviews-header">
+        <h3>Aggregated reviews</h3>
+        <span class="aggregate" id="aggregate-line"></span>
+      </div>
+      <p class="muted" style="font-size: 0.85rem; margin-bottom: 0.75rem;">Reviews from any source appear in one shared list for this book—not tied to Amazon or a single store.</p>
+      <div id="reviews-list"></div>
+      <div class="add-review">
+        <h3>Add a review</h3>
+        <form id="form-review">
+          <div class="form-group">
+            <label>Your name</label>
+            <input type="text" id="reviewer-name" placeholder="e.g. Jane Reader" required>
+          </div>
+          <div class="form-group">
+            <label>Review</label>
+            <textarea id="review-text" placeholder="Your review text..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Rating (1–5)</label>
+            <input type="number" id="review-rating" min="1" max="5" value="5" style="width: 4rem;">
+          </div>
+          <div class="form-group">
+            <label>Source</label>
+            <select id="review-source">
+              <option value="Reader">Reader</option>
+              <option value="Publisher website">Publisher website</option>
+              <option value="Independent bookshop">Independent bookshop</option>
+              <option value="Festival">Festival</option>
+              <option value="Partner site">Partner site</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-accent">Submit review</button>
+        </form>
+        <div id="form-msg"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="seed-data.js"></script>
+  <script src="oasis-api.js"></script>
+  <script src="simulator.js"></script>
+  <script>
+(function () {
+  var books = (window.HolonicBookReviewSeed && window.HolonicBookReviewSeed.books) ? window.HolonicBookReviewSeed.books.slice() : [];
+  var currentBookId = null;
+  var mode = 'simulator';
+  var simulator = null;
+  var apiClient = null;
+
+  function getClient() {
+    if (mode === 'simulator') {
+      if (!simulator) simulator = new window.BookReviewSimulator();
+      return simulator;
+    }
+    if (!apiClient) apiClient = new window.BookReviewOASISClient({ baseURL: 'http://localhost:5003' });
+    return apiClient;
+  }
+
+  function unwrap(res) {
+    if (!res) return null;
+    if (res.isError) return null;
+    var r = res.result !== undefined ? res.result : (res.Result !== undefined ? res.Result : res);
+    return r;
+  }
+
+  function renderBookTabs() {
+    var el = document.getElementById('book-tabs');
+    if (!el) return;
+    el.innerHTML = '';
+    books.forEach(function (b) {
+      var tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'book-tab' + (currentBookId === b.id ? ' active' : '');
+      tab.textContent = b.name;
+      tab.dataset.id = b.id;
+      tab.addEventListener('click', function () {
+        currentBookId = b.id;
+        renderBookTabs();
+        renderBookDetail();
+        loadReviews();
+      });
+      el.appendChild(tab);
+    });
+    if (books.length && !currentBookId) {
+      currentBookId = books[0].id;
+      renderBookTabs();
+      renderBookDetail();
+      loadReviews();
+    }
+  }
+
+  function renderBookDetail() {
+    var el = document.getElementById('book-detail');
+    if (!el) return;
+    var book = books.filter(function (b) { return b.id === currentBookId; })[0];
+    if (!book) {
+      el.innerHTML = '<p class="book-meta">Select a book.</p>';
+      return;
+    }
+    var md = book.metaData || {};
+    el.innerHTML =
+      '<p class="book-meta"><strong>' + escapeHtml(book.name) + '</strong></p>' +
+      '<p class="book-meta">' + escapeHtml(md.author || '') + ' — Published by ' + escapeHtml(md.publisher || '') + '</p>';
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  function renderStars(n) {
+    if (n == null || isNaN(n)) return '';
+    var k = Math.min(5, Math.max(0, Math.round(Number(n))));
+    return '★'.repeat(k) + '☆'.repeat(5 - k);
+  }
+
+  function loadReviews() {
+    var listEl = document.getElementById('reviews-list');
+    var aggEl = document.getElementById('aggregate-line');
+    if (!listEl || !currentBookId) return;
+    listEl.innerHTML = '<p style="color: var(--muted);">Loading…</p>';
+    aggEl.textContent = '';
+    var client = getClient();
+    client.loadHolonsForParent(currentBookId).then(function (res) {
+      var arr = unwrap(res);
+      if (!Array.isArray(arr)) arr = [];
+      var ratingSum = 0;
+      var ratingCount = 0;
+      var bySource = {};
+      arr.forEach(function (r) {
+        var m = (r.metaData || {});
+        var rt = m.rating;
+        if (rt != null && !isNaN(rt)) {
+          ratingSum += Number(rt);
+          ratingCount++;
+        }
+        var src = m.source || 'Other';
+        bySource[src] = (bySource[src] || 0) + 1;
+      });
+      var avg = ratingCount ? (ratingSum / ratingCount).toFixed(1) : null;
+      var html = '';
+      if (avg != null) {
+        html += '<strong>' + avg + '</strong> average rating · ';
+      }
+      html += arr.length + ' review' + (arr.length === 1 ? '' : 's');
+      var srcParts = Object.keys(bySource).map(function (s) { return s + ': ' + bySource[s]; });
+      if (srcParts.length) {
+        html += '<div class="count-by-source">By source: ' + srcParts.join(', ') + '</div>';
+      }
+      aggEl.innerHTML = html;
+      listEl.innerHTML = '';
+      if (arr.length === 0) {
+        listEl.innerHTML = '<p style="color: var(--muted);">No reviews yet. Add one below.</p>';
+        return;
+      }
+      arr.forEach(function (r) {
+        var m = (r.metaData || {});
+        var d = document.createElement('div');
+        d.className = 'review-item';
+        d.innerHTML =
+          '<div class="source"><span class="badge">' + escapeHtml(m.source || '') + '</span> ' + escapeHtml(m.date ? new Date(m.date).toLocaleDateString() : '') + '</div>' +
+          '<div class="name">' + escapeHtml(r.name || '') + '</div>' +
+          (m.rating != null ? '<div class="stars">' + renderStars(m.rating) + '</div>' : '') +
+          '<div class="description">' + escapeHtml(r.description || '') + '</div>';
+        listEl.appendChild(d);
+      });
+    });
+  }
+
+  document.querySelectorAll('input[name="mode"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      mode = this.value;
+      loadReviews();
+    });
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', function () {
+    if (mode === 'simulator' && window.BookReviewSimulator) {
+      var s = new window.BookReviewSimulator();
+      if (s.resetToSeed) s.resetToSeed();
+      loadReviews();
+    }
+  });
+
+  document.getElementById('form-review').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!currentBookId) return;
+    var nameEl = document.getElementById('reviewer-name');
+    var textEl = document.getElementById('review-text');
+    var ratingEl = document.getElementById('review-rating');
+    var sourceEl = document.getElementById('review-source');
+    var msgEl = document.getElementById('form-msg');
+    var reviewerName = (nameEl && nameEl.value) ? nameEl.value.trim() : '';
+    var text = (textEl && textEl.value) ? textEl.value.trim() : '';
+    var rating = (ratingEl && ratingEl.value) ? parseInt(ratingEl.value, 10) : 5;
+    var source = (sourceEl && sourceEl.value) ? sourceEl.value : 'Reader';
+    if (!reviewerName || !text) {
+          msgEl.innerHTML = '<div class="msg error">Name and review text are required.</div>';
+      return;
+    }
+    msgEl.innerHTML = '';
+    var holon = {
+      parentHolonId: currentBookId,
+      name: 'Review by ' + reviewerName,
+      description: text,
+      holonType: 'Holon',
+      metaData: {
+        rating: rating,
+        reviewerName: reviewerName,
+        source: source,
+        date: new Date().toISOString()
+      }
+    };
+    getClient().saveHolon(holon).then(function (res) {
+      if (res && res.isError) {
+        msgEl.innerHTML = '<div class="msg error">' + escapeHtml(res.message || 'Failed to save review.') + '</div>';
+        return;
+      }
+      msgEl.innerHTML = '<div class="msg success">Review added. The list above updates from one shared holon for this book.</div>';
+      textEl.value = '';
+      loadReviews();
+    });
+  });
+
+  renderBookTabs();
+})();
+  </script>
+</body>
+</html>
