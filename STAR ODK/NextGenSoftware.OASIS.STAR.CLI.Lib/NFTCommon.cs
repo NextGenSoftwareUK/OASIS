@@ -279,7 +279,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             // MetaData
                             if (web3Request.MetaData != null)
-                                web3RequestInternal.MetaData = new Dictionary<string, object>(web3Request.MetaData);
+                                web3RequestInternal.MetaData = new Dictionary<string, string>(web3Request.MetaData);
 
                             // Merge strategies
                             web3RequestInternal.NFTTagsMergeStrategy = web3Request.NFTTagsMergeStrategy;
@@ -453,7 +453,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             // MetaData
             if (CLIEngine.GetConfirmation($"Do you wish to edit the MetaData for this WEB3 Request? (It currently inherits from the parent WEB4 NFT)"))
             {
-                web3Request.MetaData = request.MetaData != null ? new Dictionary<string, object>(request.MetaData) : new Dictionary<string, object>();
+                web3Request.MetaData = request.MetaData != null ? new Dictionary<string, string>(request.MetaData) : new Dictionary<string, string>();
                 web3Request.MetaData = MetaDataHelper.ManageMetaData(web3Request.MetaData, "WEB3 NFT");
             }
             else
@@ -1283,7 +1283,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<T5>> UpdateSTARNETHolonAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, string starnetDNAKeyForWeb4Object, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, object> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default) 
+        public async Task<OASISResult<T5>> UpdateSTARNETHolonAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, string starnetDNAKeyForWeb4Object, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, string> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default) 
             where T1 : ISTARNETHolon, new()
             where T2 : IDownloadedSTARNETHolon, new()
             where T3 : IInstalledSTARNETHolon, new()
@@ -1320,7 +1320,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<T5>> DeleteAllSTARNETVersionsAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, object> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T5>> DeleteAllSTARNETVersionsAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, string> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default)
             where T1 : ISTARNETHolon, new()
             where T2 : IDownloadedSTARNETHolon, new()
             where T3 : IInstalledSTARNETHolon, new()

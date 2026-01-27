@@ -538,25 +538,37 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     return response;
                 }
 
-                // Save avatar to Polkadot blockchain using smart contract call
-                var avatarJson = JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                if (avatar == null)
                 {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
+                    OASISErrorHandling.HandleError(ref response, "Avatar cannot be null");
+                    return response;
+                }
 
-                var rpcRequest = new
+                // Check if smart contract is configured
+                if (string.IsNullOrEmpty(_contractAddress))
                 {
-                    jsonrpc = "2.0",
+                    // No contract configured - delegate to ProviderManager as fallback
+                    return await AvatarManager.Instance.SaveAvatarAsync(avatar);
+                }
+
+                // Serialize avatar to Polkadot format
+                string avatarData = ConvertAvatarToPolkadot(avatar);
+                string avatarId = avatar.Id.ToString();
+
+                // Create Polkadot extrinsic to call smart contract
+                // Note: This requires a deployed OASIS smart contract on Polkadot/Substrate
+                var signedTx = await CreatePolkadotTransaction("save_avatar", avatarData);
+
+                // Submit extrinsic to Polkadot network
+                var submitRequest = new
+                {
                     id = 1,
+                    jsonrpc = "2.0",
                     method = "author_submitExtrinsic",
-                    @params = new[]
-                    {
-                        await CreatePolkadotTransaction("Oasis_saveAvatar", avatarJson)
-                    }
+                    @params = new[] { signedTx }
                 };
 
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var jsonContent = JsonSerializer.Serialize(submitRequest);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 var httpResponse = await _httpClient.PostAsync("", content);
 
@@ -567,18 +579,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
                     if (rpcResponse.TryGetProperty("result", out var result))
                     {
+                        // Store transaction hash in provider unique storage key
+                        if (avatar.ProviderUniqueStorageKey == null)
+                            avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                        avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PolkadotOASIS] = result.GetString() ?? string.Empty;
+
                         response.Result = avatar;
                         response.IsError = false;
-                        response.Message = "Avatar saved to Polkadot blockchain successfully";
+                        response.IsSaved = true;
+                        response.Message = $"Avatar saved successfully to Polkadot: {result.GetString()}";
                     }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref response, "Failed to save avatar to Polkadot blockchain");
+                        OASISErrorHandling.HandleError(ref response, "Failed to save avatar to Polkadot - no transaction hash returned");
                     }
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to Polkadot: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to submit Polkadot transaction: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
@@ -1551,26 +1569,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var response = new OASISResult<IHolon>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "SaveHolon is not supported by Polkadot provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolon: {ex.Message}");
-            }
-            return response;
-        }
-
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var response = new OASISResult<IHolon>();
@@ -1581,34 +1579,96 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "SaveHolonAsync is not supported by Polkadot provider");
+
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Holon cannot be null");
+                    return response;
+                }
+
+                // Check if smart contract is configured
+                if (string.IsNullOrEmpty(_contractAddress))
+                {
+                    // No contract configured - delegate to ProviderManager as fallback
+                    return await HolonManager.Instance.SaveHolonAsync(holon, Guid.Empty, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                }
+
+                // Serialize holon to Polkadot format
+                string holonData = ConvertHolonToPolkadot(holon);
+                string holonId = holon.Id.ToString();
+
+                // Create Polkadot extrinsic to call smart contract
+                // Note: This requires a deployed OASIS smart contract on Polkadot/Substrate
+                var signedTx = await CreatePolkadotTransaction("save_holon", holonData);
+
+                // Submit extrinsic to Polkadot network
+                var submitRequest = new
+                {
+                    id = 1,
+                    jsonrpc = "2.0",
+                    method = "author_submitExtrinsic",
+                    @params = new[] { signedTx }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(submitRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        // Store transaction hash in provider unique storage key
+                        if (holon.ProviderUniqueStorageKey == null)
+                            holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                        holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PolkadotOASIS] = result.GetString() ?? string.Empty;
+
+                        response.Result = holon;
+                        response.IsError = false;
+                        response.IsSaved = true;
+                        response.Message = $"Holon saved successfully to Polkadot: {result.GetString()}";
+
+                        // Handle children if requested
+                        if (saveChildren && holon.Children != null && holon.Children.Any())
+                        {
+                            var childResults = new List<OASISResult<IHolon>>();
+                            foreach (var child in holon.Children)
+                            {
+                                var childResult = await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth - 1, continueOnError, saveChildrenOnProvider);
+                                childResults.Add(childResult);
+                                
+                                if (!continueOnError && childResult.IsError)
+                                {
+                                    OASISErrorHandling.HandleError(ref response, $"Failed to save child holon {child.Id}: {childResult.Message}");
+                                    return response;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to save holon to Polkadot - no transaction hash returned");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to submit Polkadot transaction: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonAsync: {ex.Message}", ex);
             }
             return response;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "SaveHolons is not supported by Polkadot provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolons: {ex.Message}");
-            }
-            return response;
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1621,14 +1681,50 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "SaveHolonsAsync is not supported by Polkadot provider");
+
+                if (holons == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Holons cannot be null");
+                    return response;
+                }
+
+                var savedHolons = new List<IHolon>();
+                var errors = new List<string>();
+
+                foreach (var holon in holons)
+                {
+                    var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    
+                    if (saveResult.IsError)
+                    {
+                        errors.Add($"Failed to save holon {holon.Id}: {saveResult.Message}");
+                        if (!continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref response, string.Join("; ", errors));
+                            return response;
+                        }
+                    }
+                    else if (saveResult.Result != null)
+                    {
+                        savedHolons.Add(saveResult.Result);
+                    }
+                }
+
+                response.Result = savedHolons;
+                response.IsError = errors.Any();
+                response.Message = errors.Any() ? string.Join("; ", errors) : $"Successfully saved {savedHolons.Count} holons to Polkadot";
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonsAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonsAsync: {ex.Message}", ex);
             }
             return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
@@ -2867,6 +2963,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error getting transactions: {ex.Message}", ex);
             }
             return result;
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            return GenerateKeyPairAsync(null);
         }
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)

@@ -1,4 +1,5 @@
-﻿using Flurl.Http;
+﻿using ADRaffy.ENSNormalize;
+using Flurl.Http;
 using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -131,9 +132,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
                             if (NFT.MetaData == null)
-                                NFT.MetaData = new Dictionary<string, object>();
+                                NFT.MetaData = new Dictionary<string, string>();
 
-                            NFT.MetaData["Web5STARNFTId"] = saveResult.Result.Id;
+                            NFT.MetaData["Web5STARNFTId"] = saveResult.Result.Id.ToString();
                             OASISResult<IWeb4NFT> web4NFT = await NFTCommon.NFTManager.UpdateWeb4NFTAsync(new UpdateWeb4NFTRequest() { Id = NFT.Id, ModifiedByAvatarId = STAR.BeamedInAvatar.Id, MetaData = NFT.MetaData }, providerType: providerType);
 
                             if (!(web4NFT != null && web4NFT.Result != null && !web4NFT.IsError))
@@ -172,8 +173,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (nft != null)
                     {
+                        //Need to delete the link from Web4 to Web5 in the web4 metadata here.
+                        nft.MetaData.Remove("Web5STARNFTId");
+                        OASISResult<IWeb4NFT> web4NFT = await NFTCommon.NFTManager.UpdateWeb4NFTAsync(new UpdateWeb4NFTRequest() { Id = nft.Id, ModifiedByAvatarId = STAR.BeamedInAvatar.Id, MetaData = nft.MetaData }, providerType: providerType);
+
+                        if (!(web4NFT != null && web4NFT.Result != null && !web4NFT.IsError))
+                            OASISErrorHandling.HandleError(ref result, $"Error occured removing WEB5 NFT ID link from the metadata on it's child/wrapped WEB4 NFT {nft.Id} and title {nft.Title}. Reason: {web4NFT.Message}");
+                        else
+                            CLIEngine.ShowSuccessMessage("WEB4 Link To WEB5 Removed.");
+
                         if (CLIEngine.GetConfirmation($"Do you wish to also delete the child WEB4 NFT ({nft.Title}) and optionally it's child WEB3 NFT's?"))
                             await DeleteWeb4NFTAsync(nft.Id.ToString());
+                        else
+                            Console.WriteLine("");
                     }
                 }
             }

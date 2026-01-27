@@ -582,7 +582,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 var filePath = $"{userDir}/avatar.json";
                 
                 var deleteResult = await _blockStackClient.DeleteFileAsync(filePath);
-                if (deleteResult.Success)
+                if (deleteResult)
                 {
                     result.Result = true;
                     result.IsError = false;
@@ -590,7 +590,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar from BlockStack: {deleteResult.ErrorMessage}");
+                    OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from BlockStack");
                 }
             }
             catch (Exception ex)
@@ -615,7 +615,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 var filePath = $"{userDir}/avatar.json";
                 
                 var deleteResult = await _blockStackClient.DeleteFileAsync(filePath);
-                if (deleteResult.Success)
+                if (deleteResult)
                 {
                     result.Result = true;
                     result.IsError = false;
@@ -623,7 +623,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar from BlockStack by username: {deleteResult.ErrorMessage}");
+                    OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from BlockStack by username");
                 }
             }
             catch (Exception ex)
@@ -1283,24 +1283,138 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleWarning(ref result, "Saving holons to BlockStack Gaia requires authenticated session; not supported by this provider instance.");
-            result.Result = holon;
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
+                    return result;
+                }
+
+                // Serialize holon to JSON
+                var holonJson = JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+
+                // Convert to dictionary for BlockStack storage
+                var holonData = JsonSerializer.Deserialize<Dictionary<string, object>>(holonJson);
+                if (holonData == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to serialize holon");
+                    return result;
+                }
+
+                // Add metadata
+                holonData["savedAt"] = DateTime.UtcNow.ToString("O");
+                holonData["provider"] = "BlockStackOASIS";
+                holonData["holonId"] = holon.Id.ToString();
+
+                // Save to BlockStack Gaia storage
+                // Use holon ID or name as file path
+                var filePath = string.IsNullOrEmpty(holon.Name) 
+                    ? $"holons/{holon.Id}.json" 
+                    : $"holons/{holon.Name.Replace(" ", "_")}_{holon.Id}.json";
+
+                await _blockStackClient.PutFileAsync(filePath, holonData);
+
+                // Store file path in provider unique storage key
+                if (holon.ProviderUniqueStorageKey == null)
+                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.BlockStackOASIS] = filePath;
+
+                result.Result = holon;
+                result.IsError = false;
+                result.IsSaved = true;
+                result.Message = $"Holon saved successfully to BlockStack Gaia storage: {filePath}";
+
+                // Handle children if requested
+                if (saveChildren && holon.Children != null && holon.Children.Any())
+                {
+                    var childResults = new List<OASISResult<IHolon>>();
+                    foreach (var child in holon.Children)
+                    {
+                        var childResult = await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth - 1, continueOnError, saveChildrenOnProvider);
+                        childResults.Add(childResult);
+                        
+                        if (!continueOnError && childResult.IsError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Failed to save child holon {child.Id}: {childResult.Message}");
+                            return result;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving holon to BlockStack: {ex.Message}", ex);
+            }
             return result;
         }
 
-        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            return Task.FromResult(SaveHolon(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider));
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>> { Result = holons as List<IHolon> ?? new List<IHolon>(holons) };
-            OASISErrorHandling.HandleWarning(ref result, "Saving holons to BlockStack Gaia requires authenticated session; not supported.");
-            return Task.FromResult(result);
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BlockStack provider is not activated");
+                    return result;
+                }
+
+                if (holons == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holons cannot be null");
+                    return result;
+                }
+
+                var savedHolons = new List<IHolon>();
+                var errors = new List<string>();
+
+                foreach (var holon in holons)
+                {
+                    var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    
+                    if (saveResult.IsError)
+                    {
+                        errors.Add($"Failed to save holon {holon.Id}: {saveResult.Message}");
+                        if (!continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, string.Join("; ", errors));
+                            return result;
+                        }
+                    }
+                    else if (saveResult.Result != null)
+                    {
+                        savedHolons.Add(saveResult.Result);
+                    }
+                }
+
+                result.Result = savedHolons;
+                result.IsError = errors.Any();
+                result.Message = errors.Any() ? string.Join("; ", errors) : $"Successfully saved {savedHolons.Count} holons to BlockStack Gaia storage";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving holons to BlockStack: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1531,13 +1645,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
                 foreach (var avatar in allAvatarsResult.Result)
                 {
-                    if (avatar != null && avatar.GeoLocation != null)
+                    if (avatar != null && avatar.MetaData != null && 
+                        avatar.MetaData.ContainsKey("Latitude") && avatar.MetaData.ContainsKey("Longitude"))
                     {
-                        var distance = GeoHelper.CalculateDistance(
-                            centerLat,
-                            centerLng,
-                            avatar.GeoLocation.Latitude,
-                            avatar.GeoLocation.Longitude);
+                        var lat = Convert.ToDouble(avatar.MetaData["Latitude"]);
+                        var lng = Convert.ToDouble(avatar.MetaData["Longitude"]);
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
                         if (distance <= radiusInMeters)
                             nearbyAvatars.Add(avatar);
                     }
@@ -2188,7 +2301,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     if (!string.IsNullOrEmpty(jsonResponse))
                     {
                         // Deserialize the NFT collection from JSON stored in BlockStack
-                        var nfts = System.Text.Json.JsonSerializer.Deserialize<List<OASISNFT>>(jsonResponse, new JsonSerializerOptions
+                        var nfts = System.Text.Json.JsonSerializer.Deserialize<List<IWeb4NFT>>(jsonResponse, new JsonSerializerOptions
                         {
                             PropertyNameCaseInsensitive = true,
                             DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
@@ -2259,7 +2372,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     if (!string.IsNullOrEmpty(jsonResponse))
                     {
                         // Deserialize the GeoNFT collection from JSON stored in BlockStack
-                        var geoNfts = System.Text.Json.JsonSerializer.Deserialize<List<OASISGeoSpatialNFT>>(jsonResponse, new JsonSerializerOptions
+                        var geoNfts = System.Text.Json.JsonSerializer.Deserialize<List<IWeb4GeoSpatialNFT>>(jsonResponse, new JsonSerializerOptions
                         {
                             PropertyNameCaseInsensitive = true,
                             DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
@@ -2738,7 +2851,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     {
                         // Stacks API endpoint for account balance
                         var stacksApiUrl = "https://api.stacks.co/v2/accounts";
-                        var response = await httpClient.GetAsync($"{stacksApiUrl}/{request.WalletAddress}");
+                        var response = await httpClient.GetAsync($"{stacksApiUrl}/{accountAddress}");
                         
                         if (response.IsSuccessStatusCode)
                         {

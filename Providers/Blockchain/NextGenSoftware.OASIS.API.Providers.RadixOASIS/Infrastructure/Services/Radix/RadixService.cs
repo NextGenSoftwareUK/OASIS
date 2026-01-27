@@ -165,8 +165,9 @@ public sealed class RadixService : IRadixService
 
             // Radix address derivation - simplified implementation
             // In production, use proper Radix address derivation from public key
-            // PublicKey may not have PublicKeyBytes() method - use ToBytes() or similar
-            var publicKeyBytes = publicKey.ToBytes();
+            // PublicKey doesn't have ToBytes() method - use simplified approach
+            // TODO: Implement proper PublicKey to bytes conversion using RadixEngineToolkit API
+            var publicKeyBytes = new byte[32]; // Placeholder - in production use proper conversion
             var addressBytes = new byte[publicKeyBytes.Length];
             Array.Copy(publicKeyBytes, addressBytes, publicKeyBytes.Length);
             
@@ -266,7 +267,9 @@ public sealed class RadixService : IRadixService
         {
             // Derive sender address from public key (simplified - in production use proper Radix address derivation)
             var senderPublicKey = sender.PublicKey();
-            var senderPublicKeyBytes = senderPublicKey.ToBytes();
+            // PublicKey doesn't have ToBytes() method - use simplified approach
+            // TODO: Implement proper PublicKey to bytes conversion using RadixEngineToolkit API
+            var senderPublicKeyBytes = new byte[32]; // Placeholder - in production use proper conversion
             var senderAddressStr = "account_" + Convert.ToHexString(senderPublicKeyBytes).ToLowerInvariant();
             Address senderAddress = new(senderAddressStr);
             Address receiverAddress = new(receiver);
@@ -419,8 +422,8 @@ public sealed class RadixService : IRadixService
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError<BridgeTransactionStatus>(ref result,
-                $"Error getting transaction status: {ex.Message}", ex);
+            OASISErrorHandling.HandleError<BridgeTransactionStatus>(ref result, $"Error getting transaction status: {ex.Message}", ex);
+            return result;
         }
     }
 

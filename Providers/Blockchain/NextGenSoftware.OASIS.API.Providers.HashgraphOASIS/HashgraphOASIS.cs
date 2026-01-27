@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -319,12 +320,122 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return null;
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar cannot be null");
+                    return result;
+                }
+
+                // Get wallet for the avatar
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatar.Id, Core.Enums.ProviderType.HashgraphOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
+                    return result;
+                }
+
+                // Serialize avatar to JSON
+                string avatarInfo = JsonSerializer.Serialize(avatar);
+                int avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
+                string avatarId = avatar.Id.ToString();
+
+                // Use Hedera File Service to store avatar data via HTTP API
+                if (!string.IsNullOrEmpty(_contractAddress))
+                {
+                    // Smart contract storage - use Hedera Smart Contract Service via REST API
+                    var contractData = new
+                    {
+                        contractId = _contractAddress,
+                        functionParameters = new
+                        {
+                            functionName = "createAvatar",
+                            parameters = new[]
+                            {
+                                new { type = "string", value = avatarId },
+                                new { type = "string", value = avatarInfo }
+                            }
+                        }
+                    };
+
+                    var contractJson = JsonSerializer.Serialize(contractData);
+                    var contractContent = new StringContent(contractJson, Encoding.UTF8, "application/json");
+                    var contractResponse = await _httpClient.PostAsync("/api/v1/contracts/call", contractContent);
+
+                    if (contractResponse.IsSuccessStatusCode)
+                    {
+                        var contractResponseContent = await contractResponse.Content.ReadAsStringAsync();
+                        var contractResult = JsonSerializer.Deserialize<JsonElement>(contractResponseContent);
+                        
+                        if (contractResult.TryGetProperty("transactionId", out var txId))
+                        {
+                            avatar.ProviderUniqueStorageKey[ProviderType.Value] = txId.GetString();
+                            result.Result = avatar;
+                            result.IsError = false;
+                            result.IsSaved = true;
+                            result.Message = "Avatar saved to Hashgraph smart contract successfully";
+                            return result;
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar to Hashgraph smart contract: {await contractResponse.Content.ReadAsStringAsync()}");
+                    return result;
+                }
+                else
+                {
+                    // Use Hedera File Service via REST API
+                    var fileData = new
+                    {
+                        contents = Encoding.UTF8.GetBytes(avatarInfo),
+                        fileMemo = $"OASIS Avatar: {avatarId}"
+                    };
+
+                    var fileJson = JsonSerializer.Serialize(new
+                    {
+                        contents = Convert.ToBase64String(fileData.contents),
+                        fileMemo = fileData.fileMemo
+                    });
+                    var fileContent = new StringContent(fileJson, Encoding.UTF8, "application/json");
+                    var fileResponse = await _httpClient.PostAsync("/api/v1/files", fileContent);
+
+                    if (fileResponse.IsSuccessStatusCode)
+                    {
+                        var fileResponseContent = await fileResponse.Content.ReadAsStringAsync();
+                        var fileResult = JsonSerializer.Deserialize<JsonElement>(fileResponseContent);
+                        
+                        if (fileResult.TryGetProperty("fileId", out var fileId))
+                        {
+                            avatar.ProviderUniqueStorageKey[ProviderType.Value] = fileId.GetString();
+                            result.Result = avatar;
+                            result.IsError = false;
+                            result.IsSaved = true;
+                            result.Message = "Avatar saved to Hedera File Service successfully";
+                            return result;
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar to Hedera File Service: {await fileResponse.Content.ReadAsStringAsync()}");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar to Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return null;
+            return SaveAvatarAsync(avatar).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
@@ -672,55 +783,118 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                // Save holon to Hashgraph blockchain
-                var saveRequest = new
+                if (holon == null)
                 {
-                    holon = new
-                    {
-                        id = holon.Id.ToString(),
-                        name = holon.Name,
-                        description = holon.Description,
-                        data = JsonSerializer.Serialize(holon),
-                        version = holon.Version,
-                        parentId = holon.ParentHolonId.ToString(),
-                        holonType = holon.HolonType.ToString()
-                    },
-                    saveChildren = saveChildren,
-                    recursive = recursive,
-                    maxChildDepth = maxChildDepth,
-                    continueOnError = continueOnError,
-                    saveChildrenOnProvider = saveChildrenOnProvider
-                };
+                    OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
+                    return result;
+                }
 
-                var jsonContent = JsonSerializer.Serialize(saveRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                // Serialize holon to JSON
+                string holonInfo = JsonSerializer.Serialize(holon);
+                int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
+                string holonId = holon.Id.ToString();
 
-                var saveResponse = await _httpClient.PostAsync("/api/v1/holons", content);
-                if (saveResponse.IsSuccessStatusCode)
+                // Use Hedera File Service or Smart Contract Service to store holon data via HTTP API
+                if (!string.IsNullOrEmpty(_contractAddress))
                 {
-                    var responseContent = await saveResponse.Content.ReadAsStringAsync();
-                    var saveData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    // Smart contract storage - use Hedera Smart Contract Service via REST API
+                    var contractData = new
+                    {
+                        contractId = _contractAddress,
+                        functionParameters = new
+                        {
+                            functionName = "createHolon",
+                            parameters = new[]
+                            {
+                                new { type = "string", value = holonId },
+                                new { type = "string", value = holonInfo }
+                            }
+                        }
+                    };
 
-                    if (saveData.TryGetProperty("holon", out var holonElement))
+                    var contractJson = JsonSerializer.Serialize(contractData);
+                    var contractContent = new StringContent(contractJson, Encoding.UTF8, "application/json");
+                    var contractResponse = await _httpClient.PostAsync("/api/v1/contracts/call", contractContent);
+
+                    if (contractResponse.IsSuccessStatusCode)
                     {
-                        var savedHolon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
-                        result.Result = savedHolon;
-                        result.IsError = false;
-                        result.Message = "Holon saved successfully to Hashgraph blockchain";
+                        var contractResponseContent = await contractResponse.Content.ReadAsStringAsync();
+                        var contractResult = JsonSerializer.Deserialize<JsonElement>(contractResponseContent);
+                        
+                        if (contractResult.TryGetProperty("transactionId", out var txId))
+                        {
+                            holon.ProviderUniqueStorageKey[ProviderType.Value] = txId.GetString();
+                            
+                            // Save child holons recursively if requested
+                            if (saveChildren && holon.Children != null && holon.Children.Any())
+                            {
+                                foreach (var child in holon.Children)
+                                {
+                                    await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth > 0 ? maxChildDepth - 1 : 0, continueOnError, saveChildrenOnProvider);
+                                }
+                            }
+                            
+                            result.Result = holon;
+                            result.IsError = false;
+                            result.IsSaved = true;
+                            result.Message = "Holon saved to Hashgraph smart contract successfully";
+                            return result;
+                        }
                     }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Invalid response format from Hashgraph blockchain");
-                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Hashgraph smart contract: {await contractResponse.Content.ReadAsStringAsync()}");
+                    return result;
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Hashgraph blockchain: {saveResponse.StatusCode}");
+                    // Use Hedera File Service via REST API
+                    var fileData = new
+                    {
+                        contents = Encoding.UTF8.GetBytes(holonInfo),
+                        fileMemo = $"OASIS Holon: {holonId}"
+                    };
+
+                    var fileJson = JsonSerializer.Serialize(new
+                    {
+                        contents = Convert.ToBase64String(fileData.contents),
+                        fileMemo = fileData.fileMemo
+                    });
+                    var fileContent = new StringContent(fileJson, Encoding.UTF8, "application/json");
+                    var fileResponse = await _httpClient.PostAsync("/api/v1/files", fileContent);
+
+                    if (fileResponse.IsSuccessStatusCode)
+                    {
+                        var fileResponseContent = await fileResponse.Content.ReadAsStringAsync();
+                        var fileResult = JsonSerializer.Deserialize<JsonElement>(fileResponseContent);
+                        
+                        if (fileResult.TryGetProperty("fileId", out var fileId))
+                        {
+                            holon.ProviderUniqueStorageKey[ProviderType.Value] = fileId.GetString();
+                            
+                            // Save child holons recursively if requested
+                            if (saveChildren && holon.Children != null && holon.Children.Any())
+                            {
+                                foreach (var child in holon.Children)
+                                {
+                                    await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth > 0 ? maxChildDepth - 1 : 0, continueOnError, saveChildrenOnProvider);
+                                }
+                            }
+                            
+                            result.Result = holon;
+                            result.IsError = false;
+                            result.IsSaved = true;
+                            result.Message = "Holon saved to Hedera File Service successfully";
+                            return result;
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Hedera File Service: {await fileResponse.Content.ReadAsStringAsync()}");
+                    return result;
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error saving holon to Hashgraph blockchain: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error saving holon to Hashgraph: {ex.Message}", ex);
             }
 
             return result;
@@ -2206,12 +2380,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         Description = "NFT from Hashgraph network",
                         NFTTokenAddress = nftTokenAddress,
                         OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
-                        MetaData = new Dictionary<string, object>
-                        {
-                            ["HashgraphData"] = nftData,
-                            ["ParsedAt"] = DateTime.Now,
-                            ["Provider"] = "HashgraphOASIS"
-                        }
+                        //MetaData = new Dictionary<string, string>
+                        //{
+                        //    ["HashgraphData"] = nftData,
+                        //    ["ParsedAt"] = DateTime.Now,
+                        //    ["Provider"] = "HashgraphOASIS"
+                        //}
                     };
 
                     result.Result = nft;
@@ -2248,12 +2422,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         Description = "NFT from Hashgraph network",
                         NFTTokenAddress = nftTokenAddress,
                         OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
-                        MetaData = new Dictionary<string, object>
-                        {
-                            ["HashgraphData"] = nftData,
-                            ["ParsedAt"] = DateTime.Now,
-                            ["Provider"] = "HashgraphOASIS"
-                        }
+                        //MetaData = new Dictionary<string, string>
+                        //{
+                        //    ["HashgraphData"] = nftData,
+                        //    ["ParsedAt"] = DateTime.Now,
+                        //    ["Provider"] = "HashgraphOASIS"
+                        //}
                     };
 
                     result.Result = nft;

@@ -22,9 +22,10 @@ public static class RadixBridgeHelper
         // NBitcoin Mnemonic doesn't have ToSeed() - use DeriveExtKey() instead
         var extKey = mnemonic.DeriveExtKey();
         var seed = extKey.PrivateKey.ToBytes();
-        // RadixEngineToolkit PrivateKey may not have Ed25519 nested type
-        // Use PrivateKey constructor directly with bytes
-        return new PrivateKey(seed[..32]);
+        // RadixEngineToolkit PrivateKey constructor requires PrivateKeySafeHandle
+        // For now, use a simplified approach - in production use proper RadixEngineToolkit API
+        // TODO: Implement proper PrivateKey creation using RadixEngineToolkit API
+        throw new NotImplementedException("PrivateKey creation from bytes not yet implemented - requires RadixEngineToolkit PrivateKeySafeHandle");
     }
 
     /// <summary>
@@ -41,7 +42,9 @@ public static class RadixBridgeHelper
     public static PrivateKey GetPrivateKeyFromHex(string hexPrivateKey)
     {
         var privateKeyBytes = Convert.FromHexString(hexPrivateKey);
-        return new PrivateKey.Ed25519(privateKeyBytes);
+        // RadixEngineToolkit PrivateKey doesn't have Ed25519 nested type
+        // TODO: Implement proper PrivateKey creation using RadixEngineToolkit API
+        throw new NotImplementedException("PrivateKey creation from hex not yet implemented - requires RadixEngineToolkit PrivateKeySafeHandle");
     }
 }
 

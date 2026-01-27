@@ -12,12 +12,16 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using System.Collections.Generic;
 using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Services.Radix;
 using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Oracle;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Helpers;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Infrastructure.Entities.DTOs;
+using NextGenSoftware.OASIS.API.Providers.RadixOASIS.Extensions;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -504,22 +508,125 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         };
     }
 
-    public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+    public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
     {
-        return Task.FromResult(new OASISResult<IAvatar>
+        var result = new OASISResult<IAvatar>();
+        try
         {
-            IsError = true,
-            Message = "SaveAvatar not implemented for RadixOASIS - use for bridge operations"
-        });
+            if (!IsProviderActivated || _radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                return result;
+            }
+
+            if (avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar cannot be null");
+                return result;
+            }
+
+            // Check if OASIS blueprint is configured
+            if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
+            {
+                // No blueprint configured - delegate to ProviderManager as fallback
+                return await AvatarManager.Instance.SaveAvatarAsync(avatar);
+            }
+
+            // Serialize avatar to JSON
+            string avatarInfo = System.Text.Json.JsonSerializer.Serialize(avatar);
+            string avatarId = avatar.Id.ToString();
+
+            // Get wallet for signing
+            var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatar.Id, ProviderType.Value);
+            if (walletResult.IsError || walletResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet for avatar");
+                return result;
+            }
+
+            // Build transaction manifest calling OASIS blueprint's create_avatar function
+            var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
+            var manifest = new
+            {
+                instructions = new[]
+                {
+                    new
+                    {
+                        kind = "CallMethod",
+                        componentAddress = _config.OasisBlueprintAddress,
+                        methodName = "create_avatar",
+                        args = new[]
+                        {
+                            new { kind = "String", value = avatarId },
+                            new { kind = "String", value = avatarInfo }
+                        }
+                    }
+                },
+                blobs = new object[0]
+            };
+
+            // Get construction metadata for transaction header
+            var metadataResult = await _httpClient.GetConstructionMetadataAsync(_config);
+            if (metadataResult == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Failed to get Radix construction metadata");
+                return result;
+            }
+
+            // Build transaction header
+            var transactionHeader = new
+            {
+                networkId = _config.NetworkId,
+                startEpochInclusive = metadataResult.CurrentEpoch,
+                endEpochExclusive = metadataResult.CurrentEpoch + 50,
+                nonce = new Random().Next(),
+                notaryPublicKey = walletResult.Result.PublicKey,
+                notaryIsSignatory = true,
+                tipPercentage = 0
+            };
+
+            // Build complete transaction
+            var transactionData = new
+            {
+                network = network,
+                manifest = System.Text.Json.JsonSerializer.Serialize(manifest),
+                header = transactionHeader,
+                message = new { kind = "None" }
+            };
+
+            // Submit transaction via Radix Gateway API
+            var submitResult = await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
+                _httpClient,
+                $"{_config.HostUri}/core/lts/transaction/submit",
+                transactionData);
+
+            if (submitResult.IsError || submitResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to submit Radix transaction: {submitResult.Message}");
+                return result;
+            }
+
+            // Store transaction hash
+            if (!string.IsNullOrEmpty(submitResult.Result.TransactionHash))
+            {
+                avatar.ProviderUniqueStorageKey[ProviderType.Value] = submitResult.Result.TransactionHash;
+            }
+
+            result.Result = avatar;
+            result.IsError = false;
+            result.IsSaved = true;
+            result.Message = "Avatar saved to Radix blueprint successfully";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error saving avatar to Radix: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
     {
-        return new OASISResult<IAvatar>
-        {
-            IsError = true,
-            Message = "SaveAvatar not implemented for RadixOASIS - use for bridge operations"
-        };
+        return SaveAvatarAsync(avatar).Result;
     }
 
     public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
@@ -971,56 +1078,201 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        return new OASISResult<IEnumerable<IHolon>>
-        {
-            IsError = true,
-            Message = "LoadHolonsByMetaData not implemented for RadixOASIS - use for bridge operations"
-        };
+        // RadixOASIS focuses on bridge operations - delegate storage to ProviderManager
+        return HolonManager.Instance.LoadHolonsByMetaData(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
     }
 
     public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
-        {
-            IsError = true,
-            Message = "LoadAllHolons not implemented for RadixOASIS - use for bridge operations"
-        });
+        // RadixOASIS focuses on bridge operations - delegate storage to ProviderManager
+        return HolonManager.Instance.LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        return new OASISResult<IEnumerable<IHolon>>
-        {
-            IsError = true,
-            Message = "LoadAllHolons not implemented for RadixOASIS - use for bridge operations"
-        };
+        // RadixOASIS focuses on bridge operations - delegate storage to ProviderManager
+        return HolonManager.Instance.LoadAllHolons(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
     }
 
-    public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        return Task.FromResult(new OASISResult<IHolon>
+        var result = new OASISResult<IHolon>();
+        try
         {
-            IsError = true,
-            Message = "SaveHolon not implemented for RadixOASIS - use for bridge operations"
-        });
+            if (!IsProviderActivated || _radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                return result;
+            }
+
+            if (holon == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
+                return result;
+            }
+
+            // Check if OASIS blueprint is configured
+            if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
+            {
+                // No blueprint configured - delegate to ProviderManager as fallback
+                return await HolonManager.Instance.SaveHolonAsync(holon, Guid.Empty, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+            }
+
+            // Serialize holon to JSON
+            string holonInfo = System.Text.Json.JsonSerializer.Serialize(holon);
+            string holonId = holon.Id.ToString();
+
+            // Get wallet for signing (use creator's wallet or holon's wallet)
+            Guid creatorId = holon.CreatedByAvatarId != Guid.Empty ? holon.CreatedByAvatarId : holon.Id;
+            var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(creatorId, ProviderType.Value);
+            if (walletResult.IsError || walletResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet for holon creator");
+                return result;
+            }
+
+            // Build transaction manifest calling OASIS blueprint's create_holon function
+            var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
+            var manifest = new
+            {
+                instructions = new[]
+                {
+                    new
+                    {
+                        kind = "CallMethod",
+                        componentAddress = _config.OasisBlueprintAddress,
+                        methodName = "create_holon",
+                        args = new[]
+                        {
+                            new { kind = "String", value = holonId },
+                            new { kind = "String", value = holonInfo }
+                        }
+                    }
+                },
+                blobs = new object[0]
+            };
+
+            // Get construction metadata for transaction header
+            var metadataResult = await _httpClient.GetConstructionMetadataAsync(_config);
+            if (metadataResult == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Failed to get Radix construction metadata");
+                return result;
+            }
+
+            // Build transaction header
+            var transactionHeader = new
+            {
+                networkId = _config.NetworkId,
+                startEpochInclusive = metadataResult.CurrentEpoch,
+                endEpochExclusive = metadataResult.CurrentEpoch + 50,
+                nonce = new Random().Next(),
+                notaryPublicKey = walletResult.Result.PublicKey,
+                notaryIsSignatory = true,
+                tipPercentage = 0
+            };
+
+            // Build complete transaction
+            var transactionData = new
+            {
+                network = network,
+                manifest = System.Text.Json.JsonSerializer.Serialize(manifest),
+                header = transactionHeader,
+                message = new { kind = "None" }
+            };
+
+            // Submit transaction via Radix Gateway API
+            var submitResult = await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
+                _httpClient,
+                $"{_config.HostUri}/core/lts/transaction/submit",
+                transactionData);
+
+            if (submitResult.IsError || submitResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to submit Radix transaction: {submitResult.Message}");
+                return result;
+            }
+
+            // Store transaction hash
+            if (!string.IsNullOrEmpty(submitResult.Result.TransactionHash))
+            {
+                holon.ProviderUniqueStorageKey[ProviderType.Value] = submitResult.Result.TransactionHash;
+            }
+
+            // Save child holons recursively if requested
+            if (saveChildren && holon.Children != null && holon.Children.Any())
+            {
+                foreach (var child in holon.Children)
+                {
+                    await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth > 0 ? maxChildDepth - 1 : 0, continueOnError, saveChildrenOnProvider);
+                }
+            }
+
+            result.Result = holon;
+            result.IsError = false;
+            result.IsSaved = true;
+            result.Message = "Holon saved to Radix blueprint successfully";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error saving holon to Radix: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        return new OASISResult<IHolon>
-        {
-            IsError = true,
-            Message = "SaveHolon not implemented for RadixOASIS - use for bridge operations"
-        };
+        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
         {
-            IsError = true,
-            Message = "SaveHolons not implemented for RadixOASIS - use for bridge operations"
-        });
+            if (!IsProviderActivated || _radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                return result;
+            }
+
+            if (holons == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Holons cannot be null");
+                return result;
+            }
+
+            var savedHolons = new List<IHolon>();
+            var errors = new List<string>();
+
+            foreach (var holon in holons)
+            {
+                var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                
+                if (saveResult.IsError)
+                {
+                    errors.Add($"Failed to save holon {holon.Id}: {saveResult.Message}");
+                    if (!continueOnError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, string.Join("; ", errors));
+                        return result;
+                    }
+                }
+                else if (saveResult.Result != null)
+                {
+                    savedHolons.Add(saveResult.Result);
+                }
+            }
+
+            result.Result = savedHolons;
+            result.IsError = errors.Any();
+            result.Message = errors.Any() ? string.Join("; ", errors) : $"Successfully saved {savedHolons.Count} holons to Radix";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error saving holons to Radix: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
