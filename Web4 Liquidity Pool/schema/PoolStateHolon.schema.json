@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PoolStateHolon",
+  "description": "Canonical state for a Web4 Liquidity Pool. Stored as Holon MetaData (or dedicated holon type). Target chains: solana, base.",
+  "type": "object",
+  "required": [ "poolId", "token0", "token1", "totalLpSupply", "reservesByChain", "lpSharesByAvatar", "version" ],
+  "properties": {
+    "poolId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique pool identifier (holon Id or dedicated UUID)."
+    },
+    "token0": {
+      "type": "string",
+      "description": "Web4 token id or symbol for first asset (e.g. USDC, pUSD)."
+    },
+    "token1": {
+      "type": "string",
+      "description": "Web4 token id or symbol for second asset."
+    },
+    "totalLpSupply": {
+      "type": "string",
+      "description": "Total LP tokens (wei-style string for precision)."
+    },
+    "reservesByChain": {
+      "type": "object",
+      "description": "Reserves per chain. Keys: solana, base (and later ethereum, polygon, etc.).",
+      "additionalProperties": {
+        "type": "object",
+        "required": [ "token0", "token1" ],
+        "properties": {
+          "token0": { "type": "string", "description": "Amount of token0 on this chain." },
+          "token1": { "type": "string", "description": "Amount of token1 on this chain." }
+        }
+      }
+    },
+    "lpSharesByAvatar": {
+      "type": "object",
+      "description": "LP shares per avatar. Keys: avatar Guid string; values: LP amount (string).",
+      "additionalProperties": { "type": "string" }
+    },
+    "feesPendingByChain": {
+      "type": "object",
+      "description": "Accumulated fees not yet distributed. Keys: solana, base, ...",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "token0": { "type": "string" },
+          "token1": { "type": "string" }
+        }
+      }
+    },
+    "lastRebalanceAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time reserves were rebalanced across chains."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema/state version for migrations."
+    },
+    "reserveAddressByChain": {
+      "type": "object",
+      "description": "Optional: pool reserve address or vault per chain. Keys: solana, base.",
+      "additionalProperties": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}
