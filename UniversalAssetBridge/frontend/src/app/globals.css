@@ -1,0 +1,365 @@
+@import "tailwindcss";
+/*
+  ---break---
+*/
+@custom-variant dark (&:is(.dark *));
+
+@config '../../tailwind.config.ts';
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+  
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  :root {
+    /* OASIS WEB4 Theme */
+    --oasis-background: #050510;
+    --oasis-background-secondary: #0b1120;
+    --oasis-foreground: #e2f4ff;
+    --oasis-accent: #22d3ee;
+    --oasis-accent-soft: rgba(45, 212, 191, 0.12);
+    --oasis-accent-strong: rgba(14, 116, 144, 0.8);
+    --oasis-card: rgba(15, 23, 42, 0.6);
+    --oasis-card-border: rgba(56, 189, 248, 0.2);
+    --oasis-muted: rgba(148, 163, 184, 0.75);
+    --oasis-negative: rgba(239, 68, 68, 0.8);
+    --oasis-positive: rgba(34, 197, 94, 0.85);
+    --oasis-warning: rgba(250, 204, 21, 0.85);
+    
+    /* Legacy */
+    --backgroundWebsite: oklch(0.1353 0.0271 230.82);
+  }
+
+  body {
+    font-family: "DM Sans" !important;
+    background: radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.1), transparent 45%),
+      radial-gradient(circle at 80% 10%, rgba(129, 140, 248, 0.12), transparent 40%),
+      radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.08), transparent 50%),
+      linear-gradient(180deg, rgba(2, 6, 23, 0.95) 0%, rgba(5, 5, 16, 0.95) 100%) !important;
+    background-attachment: fixed !important;
+    color: var(--oasis-foreground) !important;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  /* Chrome, Safari, Edge, Opera */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  input:disabled {
+    background-color: transparent;
+  }
+
+  .btn {
+    /* padding: 7px 14px; */
+    border-radius: 100px;
+    border: 0;
+    background: rgb(168, 168, 180);
+    background: linear-gradient(
+      180deg,
+      rgba(168, 168, 180, 1) 0%,
+      rgba(121, 121, 129, 1) 100%
+    );
+    color: #fff;
+    transition: 0.3s;
+  }
+
+  .btn:hover {
+    box-shadow: 0 3px 5px rgb(0, 0, 0, 0.2);
+  }
+
+  .btn-lg {
+    padding: 14px 20px;
+  }
+
+  .btn-sm {
+    padding: 10px 20px;
+  }
+
+  .input-swap {
+    outline: none;
+    padding: 0;
+    font-family: inherit;
+    /* border-radius: 5px; */
+    font-size: 26px;
+  }
+
+  .input {
+    outline: none;
+    padding: 14px 20px;
+    font-family: inherit;
+    border-radius: 12px;
+    background-color: var(--gray);
+    font-size: 16px;
+  }
+
+  .h1 {
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .h2 {
+    font-size: 20px;
+  }
+
+  .h3 {
+    font-size: 18px;
+  }
+
+  .p {
+    font-size: 16px;
+  }
+
+  .p-sm {
+    font-size: 14px;
+    /* line-height: 20px; */
+  }
+
+  @media (max-width: 640px) {
+    .h1 {
+      font-size: 22px;
+    }
+
+    .h2 {
+      font-size: 18px;
+    }
+
+    .p {
+      font-size: 15px;
+      line-height: 18px;
+    }
+
+    .p-sm {
+      font-size: 13px;
+    }
+
+    .input {
+      padding: 14px 20px;
+      font-size: 15px;
+    }
+
+    .input-swap {
+      padding: 0;
+      font-size: 22px;
+    }
+
+    .btn-lg {
+      padding: 11px 18px;
+    }
+
+    .btn-sm {
+      padding: 5px 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .h1 {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .h1 {
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .input-swap {
+      padding: 0;
+      font-size: 20px;
+    }
+
+    .btn-lg {
+      padding: 9px 18px;
+    }
+  }
+
+  @media (max-height: 690px) {
+    .main {
+      height: auto !important;
+    }
+  }
+}
+
+/*
+  ---break---
+*/
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-input-dark: oklch(30.072% 0.02736 264.051);
+
+  --font-sans: "DM Sans", sans-serif;
+  --font-mono: "DM Mono", monospace;
+}
+
+/*
+  ---break---
+*/
+
+:root {
+  /* --primary: oklch(49.674% 0.02226 282.293); */
+  --radius: 1rem;
+  --background: oklch(0.0813 0.0407 262.93);
+  --foreground: oklch(1 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.13 0.028 261.692);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.13 0.028 261.692);
+  --primary: oklch(0.4343 0.0215 278.55);
+  --primary-foreground: oklch(0.985 0.002 247.839);
+  --secondary: oklch(0.8853 0 0);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.9461 0 0);
+  --muted-foreground: oklch(0.5727 0 0);
+  --accent: oklch(92.191% 0.0001 271.152);
+  --accent-foreground: oklch(22.662% 0.02937 263.736);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.928 0.006 264.531);
+  --input: oklch(0.928 0 264.531);
+  --input-dark: oklch(30.072% 0.02736 264.051);
+  --ring: oklch(0.707 0.022 261.325);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0.002 247.839);
+  --sidebar-foreground: oklch(0.13 0.028 261.692);
+  --sidebar-primary: oklch(0.21 0.034 264.665);
+  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
+  --sidebar-accent: oklch(0.967 0.003 264.542);
+  --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
+  --sidebar-border: oklch(0.928 0.006 264.531);
+  --sidebar-ring: oklch(0.707 0.022 261.325);
+}
+
+/*
+  ---break---
+*/
+
+.dark {
+  --background: oklch(0.13 0.028 261.692);
+  --foreground: oklch(0.985 0.002 247.839);
+  --card: oklch(0.21 0.034 264.665);
+  --card-foreground: oklch(0.985 0.002 247.839);
+  --popover: oklch(0.21 0.034 264.665);
+  --popover-foreground: oklch(0.985 0.002 247.839);
+  --primary: oklch(0.928 0.006 264.531);
+  --primary-foreground: oklch(0.21 0.034 264.665);
+  --secondary: oklch(0.278 0.033 256.848);
+  --secondary-foreground: oklch(0.985 0.002 247.839);
+  --muted: oklch(0.278 0.033 256.848);
+  --muted-foreground: oklch(0.707 0.022 261.325);
+  --accent: oklch(0.278 0.033 256.848);
+  --accent-foreground: oklch(0.985 0.002 247.839);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.21 0.034 264.665);
+  --sidebar-foreground: oklch(0.985 0.002 247.839);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
+  --sidebar-accent: oklch(0.278 0.033 256.848);
+  --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+/*
+  ---break---
+*/
+
+/* Web4 Token Minting Platform - Glass Effects */
+.glass-card {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.gradient-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, rgba(34, 211, 238, 0.85), rgba(191, 219, 254, 0.15), rgba(59, 130, 246, 0.65));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
