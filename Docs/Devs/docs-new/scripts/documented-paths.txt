@@ -1,0 +1,49 @@
+# Paths we document in docs-new. One path per line; # = comment.
+# Validator checks that each path (or a spec path under it) exists in the OpenAPI spec.
+# Add new paths here when you add new API docs.
+
+# Avatar
+/api/avatar/get-all-avatar-details
+/api/avatar/get-by-id
+/api/avatar/authenticate
+/api/avatar/register
+
+# NFT
+/api/nft/load-all-nfts
+/api/nft/load-all-nfts-for_avatar
+/api/nft/load-all-geo-nfts-for-avatar
+/api/nft/place-geo-nft
+/api/nft/mint-nft
+
+# Wallet
+/api/wallet/avatar
+/api/wallet/send_token
+/api/wallet/supported-chains
+
+# Karma
+/api/karma/get-karma-for-avatar
+/api/karma/get-karma-stats
+
+# Data
+/api/data/load-holon
+/api/data/load-all-holons
+
+# Keys
+/api/keys/get_all_provider_public_keys_for_avatar_by_id
+
+# HyperDrive
+/api/hyperdrive/config
+/api/hyperdrive/status
+
+# Search
+/api/search
+
+# Stats, Messaging, Settings
+/api/stats/get-stats-for-current-logged-in-avatar
+/api/messaging/messages
+/api/settings/get-all-settings-for-current-logged-in-avatar
+
+# WEB5 STAR (live)
+# /api/competition  - add when exposed in OpenAPI spec
+/api/eggs
+/api/map

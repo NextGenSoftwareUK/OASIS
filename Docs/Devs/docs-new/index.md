@@ -23,6 +23,7 @@ The **WEB4 OASIS API** gives you universal data aggregation and identity managem
 | [Wallet API](web4-oasis-api/blockchain-wallets/wallet-api.md) | Multi-chain wallet support for 50+ blockchains | `/api/wallet` |
 | [NFT API](web4-oasis-api/blockchain-wallets/nft-api.md) | Cross-chain NFT operations with GeoNFT support | `/api/nft` |
 | [Data API](web4-oasis-api/data-storage/data-api.md) | Universal data operations with auto-replication | `/api/data` |
+| [Holons API](web4-oasis-api/data-storage/holons-api.md) | Load, save, and manage holons (core data model) | `/api/data` |
 | [Karma API](web4-oasis-api/authentication-identity/karma-api.md) | Reputation and reward system | `/api/karma` |
 | [HyperDrive API](web4-oasis-api/network-operations/hyperdrive-api.md) | Auto-failover system with intelligent routing | `/api/hyperdrive` |
 
@@ -114,15 +115,20 @@ OASIS includes several revolutionary systems that set it apart from other platfo
 
 ## 🎯 Quick Navigation
 
+### Core concepts (start here)
+- **What is the core data model?** → [What are Holons?](concepts/holons.md)
+- **How do I use holons?** → [How to use holons](guides/using-holons.md)
+
 ### By Use Case
 - **Building a Game?** → [WEB5 STAR API](web5-star-api/overview.md)
 - **Managing Identity?** → [Avatar API](web4-oasis-api/authentication-identity/avatar-api.md)
 - **Working with NFTs?** → [NFT API](web4-oasis-api/blockchain-wallets/nft-api.md)
+- **Storing / querying app data?** → [Holons](concepts/holons.md) → [Data API (Holons)](web4-oasis-api/data-storage/holons-api.md)
 - **Creating a Metaverse?** → [Celestial Systems](web5-star-api/celestial-systems/celestial-bodies-api.md)
 - **Need Auto-Failover?** → [HyperDrive](revolutionary-systems/hyperdrive/overview.md)
 
 ### By Experience Level
-- **New to OASIS?** → [Getting Started Guide](getting-started/overview.md)
+- **New to OASIS?** → [Getting Started Guide](getting-started/overview.md) or [What are Holons?](concepts/holons.md)
 - **Familiar with APIs?** → [API Reference](reference/api-reference/web4-complete-reference.md)
 - **Advanced Developer?** → [Architecture Guide](guides/architecture/system-overview.md)
 
@@ -143,9 +149,11 @@ OASIS includes several revolutionary systems that set it apart from other platfo
 
 ### Reference
 - [Complete API Reference](reference/api-reference/web4-complete-reference.md) - All endpoints
+- [OpenAPI Endpoint Inventory](reference/openapi-endpoint-inventory.md) - Generated from live spec (always up-to-date)
 - [Error Codes](reference/error-codes.md) - Error handling guide
 - [Rate Limits](reference/rate-limits.md) - Rate limiting information
 - [SDK Documentation](reference/sdk-reference/javascript-sdk.md) - Language-specific SDKs
+- [Keeping docs up-to-date](guides/keeping-docs-up-to-date.md) - OpenAPI as source of truth, scripts for maintainers
 
 ### Guides
 - [Architecture Overview](guides/architecture/system-overview.md) - System design
