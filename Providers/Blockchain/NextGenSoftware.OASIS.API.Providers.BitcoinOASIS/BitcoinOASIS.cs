@@ -164,8 +164,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Real Bitcoin implementation: Search for avatar data in OP_RETURN transactions
@@ -259,8 +263,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query Bitcoin blockchain for avatar by address
@@ -309,8 +317,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query Bitcoin blockchain for avatar by email using OP_RETURN data
@@ -373,8 +385,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query Bitcoin blockchain for avatar by username using OP_RETURN data
@@ -443,8 +459,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Real Bitcoin implementation: Store avatar data in OP_RETURN transaction
@@ -644,8 +664,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Serialize avatar detail to JSON
@@ -716,8 +740,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Bitcoin is immutable, so we can't actually delete
@@ -792,8 +820,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Bitcoin is immutable, so we can't actually delete
@@ -868,8 +900,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Bitcoin is immutable, so we can't actually delete
@@ -944,8 +980,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Bitcoin is immutable, so we can't actually delete
@@ -1020,8 +1060,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Serialize holon to JSON
@@ -1093,8 +1137,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 foreach (var holon in holons)
@@ -1136,8 +1184,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Bitcoin is immutable, so we can't actually delete
@@ -1211,8 +1263,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Bitcoin is immutable, so we can't actually delete
@@ -1286,8 +1342,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Search Bitcoin blockchain for transactions matching search criteria
@@ -1344,8 +1404,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Import holons to Bitcoin blockchain
@@ -1381,8 +1445,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data from Bitcoin blockchain
@@ -1434,8 +1502,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data for specific avatar from Bitcoin blockchain
@@ -1488,8 +1560,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data for specific avatar by username from Bitcoin blockchain
@@ -1542,8 +1618,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data for specific avatar by email from Bitcoin blockchain
@@ -1595,8 +1675,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Bitcoin doesn't support location-based avatar discovery
@@ -1619,8 +1703,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Bitcoin doesn't support location-based holon discovery

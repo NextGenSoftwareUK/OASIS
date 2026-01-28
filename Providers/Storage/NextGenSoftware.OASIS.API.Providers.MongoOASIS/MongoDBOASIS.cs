@@ -947,8 +947,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var importedCount = 0;
@@ -999,8 +1003,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar
@@ -1023,8 +1031,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar username
@@ -1047,8 +1059,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar email
@@ -1071,8 +1087,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons

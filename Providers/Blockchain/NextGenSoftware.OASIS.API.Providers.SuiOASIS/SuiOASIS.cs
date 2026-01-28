@@ -1313,15 +1313,156 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Sui provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Sui provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+                if (_httpClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Sui HTTP client is not initialized");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "SaveAvatarAsync is not supported by Sui provider");
+
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar cannot be null");
+                    return response;
+                }
+
+                // Get wallet for the avatar
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatar.Id, Core.Enums.ProviderType.SuiOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Could not retrieve wallet address for avatar");
+                    return response;
+                }
+
+                // Serialize avatar to JSON
+                string avatarInfo = JsonSerializer.Serialize(avatar);
+                string avatarId = avatar.Id.ToString();
+
+                // Use Sui Move call to store avatar data
+                // Check if smart contract is configured
+                if (string.IsNullOrEmpty(_contractAddress))
+                {
+                    // No contract configured - use Sui object storage via Move call
+                    // Create a Sui object with avatar data
+                    var moveCallRequest = new
+                    {
+                        jsonrpc = "2.0",
+                        id = 1,
+                        method = "sui_moveCall",
+                        @params = new object[]
+                        {
+                            walletResult.Result.WalletAddress, // sender
+                            "0x2", // package (Sui system package)
+                            "object", // module
+                            "create", // function
+                            new object[] { }, // typeArguments
+                            new object[] // arguments
+                            {
+                                avatarId,
+                                avatarInfo
+                            },
+                            "10000000" // gasBudget (10M MIST = 0.01 SUI)
+                        }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(moveCallRequest);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var httpResponse = await _httpClient.PostAsync("", content);
+
+                    if (httpResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                        var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                        if (rpcResponse.TryGetProperty("result", out var result))
+                        {
+                            // Store transaction hash in provider unique storage key
+                            if (avatar.ProviderUniqueStorageKey == null)
+                                avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SuiOASIS] = result.GetString() ?? string.Empty;
+
+                            response.Result = avatar;
+                            response.IsError = false;
+                            response.IsSaved = true;
+                            response.Message = $"Avatar saved successfully to Sui: {result.GetString()}";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref response, "Failed to save avatar to Sui - no transaction hash returned");
+                        }
+                    }
+                    else
+                    {
+                        var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                        OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to Sui: {httpResponse.StatusCode} - {errorContent}");
+                    }
+                }
+                else
+                {
+                    // Use configured smart contract
+                    var moveCallRequest = new
+                    {
+                        jsonrpc = "2.0",
+                        id = 1,
+                        method = "sui_moveCall",
+                        @params = new object[]
+                        {
+                            walletResult.Result.WalletAddress, // sender
+                            _contractAddress, // package (contract address)
+                            "oasis", // module
+                            "create_avatar", // function
+                            new object[] { }, // typeArguments
+                            new object[] // arguments
+                            {
+                                avatarId,
+                                avatarInfo
+                            },
+                            Guid.NewGuid().ToString() // gasBudget
+                        }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(moveCallRequest);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var httpResponse = await _httpClient.PostAsync("", content);
+
+                    if (httpResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                        var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                        if (rpcResponse.TryGetProperty("result", out var result))
+                        {
+                            if (avatar.ProviderUniqueStorageKey == null)
+                                avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SuiOASIS] = result.GetString() ?? string.Empty;
+
+                            response.Result = avatar;
+                            response.IsError = false;
+                            response.IsSaved = true;
+                            response.Message = $"Avatar saved successfully to Sui contract: {result.GetString()}";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref response, "Failed to save avatar to Sui contract - no transaction hash returned");
+                        }
+                    }
+                    else
+                    {
+                        var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                        OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to Sui contract: {httpResponse.StatusCode} - {errorContent}");
+                    }
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveAvatarAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveAvatarAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -1373,15 +1514,188 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Sui provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Sui provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+                if (_httpClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Sui HTTP client is not initialized");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "SaveHolonAsync is not supported by Sui provider");
+
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Holon cannot be null");
+                    return response;
+                }
+
+                // Get wallet for the holon (use avatar's wallet if holon has CreatedByAvatarId)
+                Guid avatarId = holon.CreatedByAvatarId != Guid.Empty ? holon.CreatedByAvatarId : holon.Id;
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatarId, Core.Enums.ProviderType.SuiOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Could not retrieve wallet address for holon");
+                    return response;
+                }
+
+                // Serialize holon to JSON
+                string holonInfo = JsonSerializer.Serialize(holon);
+                string holonId = holon.Id.ToString();
+
+                // Use Sui Move call to store holon data
+                if (string.IsNullOrEmpty(_contractAddress))
+                {
+                    // No contract configured - use Sui object storage
+                    var moveCallRequest = new
+                    {
+                        jsonrpc = "2.0",
+                        id = 1,
+                        method = "sui_moveCall",
+                        @params = new object[]
+                        {
+                            walletResult.Result.WalletAddress,
+                            "0x2",
+                            "object",
+                            "create",
+                            new object[] { },
+                            new object[]
+                            {
+                                holonId,
+                                holonInfo
+                            },
+                            Guid.NewGuid().ToString()
+                        }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(moveCallRequest);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var httpResponse = await _httpClient.PostAsync("", content);
+
+                    if (httpResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                        var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                        if (rpcResponse.TryGetProperty("result", out var result))
+                        {
+                            if (holon.ProviderUniqueStorageKey == null)
+                                holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SuiOASIS] = result.GetString() ?? string.Empty;
+
+                            response.Result = holon;
+                            response.IsError = false;
+                            response.IsSaved = true;
+                            response.Message = $"Holon saved successfully to Sui: {result.GetString()}";
+
+                            // Handle children if requested
+                            if (saveChildren && holon.Children != null && holon.Children.Any())
+                            {
+                                var childResults = new List<OASISResult<IHolon>>();
+                                foreach (var child in holon.Children)
+                                {
+                                    var childResult = await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth - 1, continueOnError, saveChildrenOnProvider);
+                                    childResults.Add(childResult);
+                                    
+                                    if (!continueOnError && childResult.IsError)
+                                    {
+                                        OASISErrorHandling.HandleError(ref response, $"Failed to save child holon {child.Id}: {childResult.Message}");
+                                        return response;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref response, "Failed to save holon to Sui - no transaction hash returned");
+                        }
+                    }
+                    else
+                    {
+                        var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                        OASISErrorHandling.HandleError(ref response, $"Failed to save holon to Sui: {httpResponse.StatusCode} - {errorContent}");
+                    }
+                }
+                else
+                {
+                    // Use configured smart contract
+                    var moveCallRequest = new
+                    {
+                        jsonrpc = "2.0",
+                        id = 1,
+                        method = "sui_moveCall",
+                        @params = new object[]
+                        {
+                            walletResult.Result.WalletAddress,
+                            _contractAddress,
+                            "oasis",
+                            "create_holon",
+                            new object[] { },
+                            new object[]
+                            {
+                                holonId,
+                                holonInfo
+                            },
+                            Guid.NewGuid().ToString()
+                        }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(moveCallRequest);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var httpResponse = await _httpClient.PostAsync("", content);
+
+                    if (httpResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                        var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                        if (rpcResponse.TryGetProperty("result", out var result))
+                        {
+                            if (holon.ProviderUniqueStorageKey == null)
+                                holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SuiOASIS] = result.GetString() ?? string.Empty;
+
+                            response.Result = holon;
+                            response.IsError = false;
+                            response.IsSaved = true;
+                            response.Message = $"Holon saved successfully to Sui contract: {result.GetString()}";
+
+                            // Handle children if requested
+                            if (saveChildren && holon.Children != null && holon.Children.Any())
+                            {
+                                var childResults = new List<OASISResult<IHolon>>();
+                                foreach (var child in holon.Children)
+                                {
+                                    var childResult = await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth - 1, continueOnError, saveChildrenOnProvider);
+                                    childResults.Add(childResult);
+                                    
+                                    if (!continueOnError && childResult.IsError)
+                                    {
+                                        OASISErrorHandling.HandleError(ref response, $"Failed to save child holon {child.Id}: {childResult.Message}");
+                                        return response;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref response, "Failed to save holon to Sui contract - no transaction hash returned");
+                        }
+                    }
+                    else
+                    {
+                        var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                        OASISErrorHandling.HandleError(ref response, $"Failed to save holon to Sui contract: {httpResponse.StatusCode} - {errorContent}");
+                    }
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -1996,26 +2310,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                     return result;
                 }
 
-                // Generate Sui Ed25519 key pair (Sui uses Ed25519)
-                // Sui uses Ed25519 curve for key generation
-                var privateKeyBytes = new byte[32];
+                // Generate Sui Ed25519 key pair (Sui uses Ed25519).
+                // The private key seed is 32 bytes; public key is derived deterministically from it.
+                var privateKeySeed = new byte[32];
                 using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
                 {
-                    rng.GetBytes(privateKeyBytes);
+                    rng.GetBytes(privateKeySeed);
                 }
 
-                // Generate Ed25519 key pair for Sui
-                // Note: Ed25519 is not available in .NET 8.0 by default
-                // For now, we'll use a placeholder - in production, you would use a Sui-specific library
-                // or implement Ed25519 key generation using a third-party library like Chaos.NaCl
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-                // In production, derive public key from private key using Ed25519
-                var publicKey = Convert.ToBase64String(privateKeyBytes); // Placeholder - should be Ed25519 public key
-                
-                // Generate Sui address from public key (Sui uses base58 encoding)
-                // Sui addresses are derived from the public key
-                // For now, use a placeholder since we don't have the actual Ed25519 public key
-                var address = "0x" + Convert.ToHexString(privateKeyBytes).Substring(0, Math.Min(40, privateKeyBytes.Length * 2)); // Placeholder address
+                byte[] publicKeyBytes;
+                byte[] expandedPrivateKey;
+                Chaos.NaCl.Ed25519.KeyPairFromSeed(out publicKeyBytes, out expandedPrivateKey, privateKeySeed);
+
+                var privateKey = Convert.ToBase64String(privateKeySeed);
+                var publicKey = Convert.ToBase64String(publicKeyBytes);
+
+                // Sui address derivation: blake2b-256( schemeFlag || publicKey )
+                var address = DeriveSuiAddress(publicKeyBytes);
 
                 // Create KeyPairAndWallet using KeyHelper but override with Sui-specific values
                 //var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
@@ -2033,7 +2344,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                     WalletAddressLegacy = address
                 };
                 result.IsError = false;
-                result.Message = "Sui Ed25519 key pair generated successfully (placeholder implementation)";
+                result.Message = "Sui Ed25519 key pair generated successfully";
             }
             catch (Exception ex)
             {
@@ -2050,14 +2361,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         {
             try
             {
-                // Sui addresses are 32 bytes, derived from public key hash
-                // Simplified - in production use proper Sui address derivation library
-                using var sha256 = System.Security.Cryptography.SHA256.Create();
-                var hash = sha256.ComputeHash(publicKeyBytes);
-                // Take first 32 bytes for address
-                var addressBytes = new byte[32];
-                Array.Copy(hash, 0, addressBytes, 0, Math.Min(32, hash.Length));
-                return "0x" + BitConverter.ToString(addressBytes).Replace("-", "").ToLowerInvariant();
+                const byte ed25519SchemeFlag = 0x00;
+                var data = new byte[1 + publicKeyBytes.Length];
+                data[0] = ed25519SchemeFlag;
+                Buffer.BlockCopy(publicKeyBytes, 0, data, 1, publicKeyBytes.Length);
+
+                var config = new Isopoh.Cryptography.Blake2b.Blake2BConfig { OutputSizeInBytes = 32 };
+                var hash = Isopoh.Cryptography.Blake2b.Blake2B.ComputeHash(data, config);
+
+                return "0x" + Convert.ToHexString(hash).ToLowerInvariant();
             }
             catch
             {

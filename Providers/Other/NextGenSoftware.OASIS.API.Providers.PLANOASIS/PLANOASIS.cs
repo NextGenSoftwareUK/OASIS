@@ -115,8 +115,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "PLAN provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar from PLAN network using HTTP client
@@ -414,8 +418,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchParams = new Dictionary<string, string>
@@ -469,8 +477,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchRequest = new
@@ -535,8 +547,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holon == null)
@@ -589,8 +605,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holons == null || !holons.Any())
@@ -643,8 +663,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/{id}");
@@ -679,8 +703,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/by-provider-key/{Uri.EscapeDataString(providerKey)}");
@@ -715,8 +743,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchUrl = $"{_apiBaseUrl}/search";
@@ -803,8 +835,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var importUrl = $"{_apiBaseUrl}/import";
@@ -860,8 +896,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var exportUrl = $"{_apiBaseUrl}/export/avatar/{avatarId}?version={version}";
@@ -916,8 +956,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var exportUrl = $"{_apiBaseUrl}/export/avatar/username/{avatarUsername}?version={version}";
@@ -972,8 +1016,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var exportUrl = $"{_apiBaseUrl}/export/avatar/email/{Uri.EscapeDataString(avatarEmailAddress)}?version={version}";
@@ -1028,8 +1076,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var exportUrl = $"{_apiBaseUrl}/export/all?version={version}";
@@ -1088,8 +1140,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var playersUrl = $"{_apiBaseUrl}/players/nearby?lat={geoLat}&lng={geoLong}&radius={radiusInMeters}";
@@ -1138,8 +1194,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsUrl = $"{_apiBaseUrl}/holons/nearby?type={Type}";
@@ -1259,8 +1319,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionUrl = $"{_apiBaseUrl}/transactions/send";
@@ -1309,8 +1373,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var fromAvatar = await LoadAvatarAsync(fromAvatarId);
@@ -1362,8 +1430,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var fromAvatar = await LoadAvatarAsync(fromAvatarId);
@@ -1542,8 +1614,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var nftUrl = $"{_apiBaseUrl}/nft/transfer";
@@ -1597,8 +1673,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar to get provider wallets
@@ -1641,8 +1721,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar and update provider wallets

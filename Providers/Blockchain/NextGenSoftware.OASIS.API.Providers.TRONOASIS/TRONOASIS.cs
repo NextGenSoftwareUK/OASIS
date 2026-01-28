@@ -1057,8 +1057,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -1104,8 +1108,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -1151,8 +1159,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var allAvatarsResult = LoadAllAvatars();
@@ -1195,8 +1207,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var allHolonsResult = LoadAllHolons(Type);
@@ -1366,8 +1382,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "TRON provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1423,8 +1443,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "TRON provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Get wallet addresses for the avatars from TRON blockchain
@@ -1499,8 +1523,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "TRON provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Send transaction using real TRON API
@@ -1586,8 +1614,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "TRON provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Send transaction using real TRON API
@@ -1714,8 +1746,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.FromWalletAddress) || string.IsNullOrEmpty(request.ToWalletAddress))
@@ -1784,8 +1820,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // TRON TRC20 token minting (requires admin permissions)
@@ -1842,8 +1882,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.TokenAddress))
@@ -1904,8 +1948,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.TokenAddress) || string.IsNullOrEmpty(request.FromWalletPrivateKey))
@@ -1969,8 +2017,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.TokenAddress))
@@ -2034,8 +2086,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.WalletAddress))
@@ -2099,8 +2155,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.WalletAddress))
@@ -2184,8 +2244,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate TRON-specific key pair using Nethereum SDK (production-ready)
@@ -2324,8 +2388,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(accountAddress))
@@ -2385,8 +2453,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate TRON key pair (secp256k1)
@@ -2421,8 +2493,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(seedPhrase))
@@ -2466,8 +2542,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
@@ -2566,8 +2646,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(receiverAccountAddress))
@@ -2666,8 +2750,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(transactionHash))
@@ -2769,8 +2857,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "TRON provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Create TRON NFT transfer transaction
@@ -2826,8 +2918,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
@@ -2892,8 +2988,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "TRON provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Create TRON NFT mint transaction
@@ -3465,8 +3565,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var bridgePoolAddress = _contractAddress ?? "" ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
@@ -3509,8 +3613,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var bridgePoolAddress = _contractAddress ?? "" ?? "TQn9Y2khEsLMWDmP8KpVJwqBvZ9XKzF8XK";
@@ -3549,8 +3657,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
@@ -3610,8 +3722,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
