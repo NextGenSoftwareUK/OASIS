@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -95,6 +96,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((context, config) =>
+                {
+                    // Load OASIS_DNA.json so SubscriptionStore can fall back to MongoDBOASIS connection
+                    config.AddJsonFile("OASIS_DNA.json", optional: true, reloadOnChange: false);
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
