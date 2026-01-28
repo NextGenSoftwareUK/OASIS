@@ -13,3 +13,5 @@ public class WalletTransactionRequest : IWalletTransactionRequest
     public string MemoText { get; set; } = string.Empty;
 }
 
+
+

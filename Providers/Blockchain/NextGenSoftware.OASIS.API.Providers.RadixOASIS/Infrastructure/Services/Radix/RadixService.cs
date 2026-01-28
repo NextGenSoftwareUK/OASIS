@@ -587,21 +587,60 @@ public sealed class RadixService : IRadixService
         
         try
         {
-            // TODO: Integrate with actual price sources (CoinGecko, CoinMarketCap, RadixDEX, etc.)
-            // For now, return a placeholder structure
-            
+            token.ThrowIfCancellationRequested();
+
+            var vs = (currency ?? "USD").Trim().ToLowerInvariant();
+
+            // CoinGecko IDs observed for Radix over time; try a few to be robust.
+            var idsToTry = new[] { "radix", "radix-protocol" };
+
+            decimal? price = null;
+            string usedId = null;
+
+            using (var http = new System.Net.Http.HttpClient())
+            {
+                http.DefaultRequestHeaders.UserAgent.ParseAdd("OASIS-RadixOASIS/1.0");
+
+                foreach (var id in idsToTry)
+                {
+                    var url = $"https://api.coingecko.com/api/v3/simple/price?ids={Uri.EscapeDataString(id)}&vs_currencies={Uri.EscapeDataString(vs)}";
+                    using var resp = await http.GetAsync(url, token);
+                    if (!resp.IsSuccessStatusCode)
+                        continue;
+
+                    var json = await resp.Content.ReadAsStringAsync(token);
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+
+                    if (doc.RootElement.TryGetProperty(id, out var idEl) &&
+                        idEl.TryGetProperty(vs, out var priceEl) &&
+                        priceEl.ValueKind == System.Text.Json.JsonValueKind.Number &&
+                        priceEl.TryGetDecimal(out var p))
+                    {
+                        price = p;
+                        usedId = id;
+                        break;
+                    }
+                }
+            }
+
+            if (price == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Unable to retrieve XRD price from CoinGecko.");
+                return result;
+            }
+
             result.Result = new Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed
             {
                 TokenSymbol = "XRD",
                 Currency = currency,
-                Price = 0, // Would fetch from price source
+                Price = price.Value,
                 Timestamp = DateTime.UtcNow,
-                Source = "Placeholder", // Would be "CoinGecko", "CoinMarketCap", etc.
-                Confidence = 0 // Would be calculated based on source reliability
+                Source = $"CoinGecko:{usedId}",
+                Confidence = 0.9m
             };
-            
+
             result.IsError = false;
-            result.Message = "Price feed not yet integrated - implement CoinGecko/CoinMarketCap integration";
+            result.Message = "XRD price retrieved successfully from CoinGecko.";
             return result;
         }
         catch (Exception ex)

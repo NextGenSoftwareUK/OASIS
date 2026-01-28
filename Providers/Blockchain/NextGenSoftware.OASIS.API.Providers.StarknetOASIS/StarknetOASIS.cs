@@ -350,9 +350,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<IAvatar>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -425,8 +434,8 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
                 var responseContent = await httpResponse.Content.ReadAsStringAsync();
                 var responseJson = JsonSerializer.Deserialize<JsonElement>(responseContent);
                 
-                if (responseJson.TryGetProperty("result", out var result) && 
-                    result.TryGetProperty("transaction_hash", out var txHash))
+                if (responseJson.TryGetProperty("result", out var result2) && 
+                    result2.TryGetProperty("transaction_hash", out var txHash))
                 {
                     transactionHash = txHash.GetString();
                 }
@@ -459,7 +468,8 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
             result.Result = Avatar;
             result.IsError = false;
             result.IsSaved = true;
-            result.Message = $"Avatar saved successfully to Starknet contract: {txResult.Result}";
+            //result.Message = $"Avatar saved successfully to Starknet contract: {txResult.Result}";
+            result.Message = $"Avatar saved successfully to Starknet";
         }
         catch (Exception ex)
         {
@@ -536,9 +546,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<IHolon>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -612,8 +631,8 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
                 var responseContent = await httpResponse.Content.ReadAsStringAsync();
                 var responseJson = JsonSerializer.Deserialize<JsonElement>(responseContent);
                 
-                if (responseJson.TryGetProperty("result", out var result) && 
-                    result.TryGetProperty("transaction_hash", out var txHash))
+                if (responseJson.TryGetProperty("result", out var result2) && 
+                    result2.TryGetProperty("transaction_hash", out var txHash))
                 {
                     transactionHash = txHash.GetString();
                 }
@@ -646,7 +665,8 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
             result.Result = holon;
             result.IsError = false;
             result.IsSaved = true;
-            result.Message = $"Holon saved successfully to Starknet contract: {txResult.Result}";
+            //result.Message = $"Holon saved successfully to Starknet contract: {txResult.Result}";
+            result.Message = $"Holon saved successfully to Starknet.";
 
             // Handle children if requested
             if (saveChildren && holon.Children != null && holon.Children.Any())
@@ -681,9 +701,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<IEnumerable<IHolon>>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -852,9 +881,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -895,9 +933,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -953,9 +1000,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -1011,9 +1067,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -1066,9 +1131,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -1121,9 +1195,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<double>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -1154,9 +1237,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<IList<IWalletTransaction>>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -1184,9 +1276,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<IKeyPairAndWallet>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -1307,9 +1408,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<decimal>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -1399,9 +1509,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<BridgeTransactionResponse>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -1487,9 +1606,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<BridgeTransactionResponse>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 
@@ -1547,9 +1675,18 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
         var result = new OASISResult<BridgeTransactionStatus>();
         try
         {
-            if (!_isActivated || _rpcClient == null)
+            if (!_isActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Starknet provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Starknet provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_rpcClient == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Starknet RPC client is not initialized");
                 return result;
             }
 

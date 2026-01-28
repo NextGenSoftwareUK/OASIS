@@ -221,7 +221,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
             string errorMessage = "Error occured reminting WEB4 OASIS NFT in RemintNFTAsync method. Reason: ";
-            result = await FindWeb4NFTAsync("remint");
+            result = await FindWeb4NFTAsync("remint", showOnlyForCurrentAvatar: true);
 
             try
             {
@@ -245,11 +245,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                                 if (saveWeb5NFT != null && saveWeb5NFT.Result != null && !saveWeb5NFT.IsError)
                                 {
-                                    File.WriteAllText(Path.Combine(web5NFT.Result.STARNETDNA.SourcePath, $"OASISNFT_{result.Result.Id}.json"), JsonConvert.SerializeObject(result.Result));
-
-                                    if (!string.IsNullOrEmpty(result.Result.JSONMetaData))
-                                        File.WriteAllText(Path.Combine(web5NFT.Result.STARNETDNA.SourcePath, $"JSONMetaData_{result.Result.Id}.json"), result.Result.JSONMetaData);
-
+                                    UpdateWeb4AndWeb3NFTJSONFiles(result.Result, web5NFT.Result.STARNETDNA.SourcePath);
                                     CLIEngine.ShowSuccessMessage(result.Message);
                                 }
                                 else
@@ -782,7 +778,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IWeb4NFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 NFT", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = true, bool addSpace = true, string UIName = "WEB4 NFT", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
             Guid id = Guid.Empty;

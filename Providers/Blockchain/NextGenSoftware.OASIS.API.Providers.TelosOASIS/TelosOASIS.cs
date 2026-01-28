@@ -252,8 +252,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load all avatars from Telos blockchain using real EOSIO smart contract
@@ -335,8 +339,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar from Telos blockchain using real EOSIO smart contract
@@ -405,8 +413,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by email from Telos blockchain using real EOSIO smart contract
@@ -477,8 +489,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username from Telos blockchain using real EOSIO smart contract
@@ -597,8 +613,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar detail from Telos blockchain using real EOSIO smart contract
@@ -668,8 +688,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar detail by username from Telos blockchain using real EOSIO smart contract
@@ -740,8 +764,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar detail by email from Telos blockchain using real EOSIO smart contract
@@ -817,8 +845,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load all avatar details from Telos blockchain using real EOSIO smart contract
@@ -895,8 +927,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Save avatar to Telos blockchain using real EOSIO smart contract
@@ -1012,8 +1048,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Save avatar detail to Telos blockchain using real EOSIO smart contract
@@ -1519,8 +1559,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Convert decimal amount to TLOS (1 TLOS = 10^4 precision)
@@ -1643,8 +1687,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
                 // Delegate to EOSIOOASIS for NFT operations
                 var sendResult = await _eosioOASIS?.SendNFTAsync(transaction);
@@ -1678,8 +1726,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
                 var mintResult = await _eosioOASIS?.MintNFTAsync(transaction);
                 if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
@@ -1712,8 +1764,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
                 var burnResult = await _eosioOASIS?.BurnNFTAsync(request);
                 if (burnResult != null && burnResult.Result != null && !burnResult.IsError)
@@ -1747,8 +1803,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var bridgePoolAccount = "oasisbridge";
@@ -1792,8 +1852,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var bridgePoolAccount = "oasisbridge";
@@ -1832,8 +1896,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
@@ -1893,8 +1961,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
@@ -1956,8 +2028,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
                 var loadResult = await _eosioOASIS?.LoadOnChainNFTDataAsync(nftTokenAddress);
                 if (loadResult != null && !loadResult.IsError)
@@ -1984,8 +2060,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Delegate to EOSIOOASIS for token transfer
@@ -2020,8 +2100,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Delegate to EOSIOOASIS for token minting
@@ -2056,8 +2140,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Delegate to EOSIOOASIS for token burning
@@ -2092,8 +2180,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Lock token by transferring to bridge pool account on Telos
@@ -2136,8 +2228,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Unlock token by transferring from bridge pool account on Telos
@@ -2180,8 +2276,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query Telos account balance using EOSIO API
@@ -2250,8 +2350,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var accountAddress = request.WalletAddress;
@@ -2317,8 +2421,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate Telos key pair using KeyManager
@@ -2352,8 +2460,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate key pair and seed phrase using KeyManager
@@ -2385,8 +2497,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(seedPhrase))
@@ -2426,8 +2542,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create bridge withdrawal transaction on Telos
@@ -2491,8 +2611,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create bridge deposit transaction on Telos
@@ -2556,8 +2680,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query transaction status from Telos
@@ -2615,8 +2743,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Delegate to EOSIOOASIS for loading NFT data
@@ -2684,8 +2816,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var saveResult = await SaveHolonsAsync(holons);
@@ -2719,8 +2855,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
@@ -2747,8 +2887,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
@@ -2782,8 +2926,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
@@ -2817,8 +2965,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);

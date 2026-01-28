@@ -711,8 +711,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "SEEDS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Use EOSIO SDK ChainAPI to read table rows instead of raw HTTP
@@ -753,8 +757,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "SEEDS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatars", "true", email, email, 1);
@@ -794,8 +802,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatars", "true", username, username, 1);
@@ -836,8 +848,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatars", "true", 0, -1, 1000);
@@ -884,8 +900,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatardetails", "true", id.ToString(), id.ToString(), 1);
@@ -925,8 +945,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatardetails", "true", email, email, 1);
@@ -966,8 +990,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatardetails", "true", username, username, 1);
@@ -1007,8 +1035,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatardetails", "true", 0, -1, 1000);
@@ -1050,8 +1082,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "SEEDS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Use EOSIO SDK to construct and push action rather than raw RPC
@@ -1100,8 +1136,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("upsertavatardetail", SEEDS_EOSIO_ACCOUNT_TEST, "active", SEEDS_EOSIO_ACCOUNT_TEST, new

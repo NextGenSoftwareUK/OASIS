@@ -203,8 +203,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar from Cosmos blockchain
@@ -261,8 +265,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load holon from Cosmos blockchain
@@ -311,8 +319,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load holon by provider key from Cosmos blockchain
@@ -361,8 +373,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all holons from Cosmos blockchain
@@ -411,8 +427,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save holon to Cosmos blockchain
@@ -454,8 +474,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon from Cosmos blockchain
@@ -497,8 +521,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon by provider key from Cosmos blockchain
@@ -544,8 +572,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -593,8 +625,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -924,10 +960,77 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            var result = new OASISResult<IAvatar> { Message = "SaveAvatar is not supported yet by Cosmos provider." };
-            return Task.FromResult(result);
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar cannot be null");
+                    return response;
+                }
+
+                // Get wallet for the avatar
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatar.Id, Core.Enums.ProviderType.CosmosBlockChainOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Could not retrieve wallet address for avatar");
+                    return response;
+                }
+
+                // Save avatar to Cosmos blockchain using transaction
+                var txUrl = "/cosmos/tx/v1beta1/txs";
+                var cosmosJson = ConvertAvatarToCosmos(avatar);
+                
+                var content = new StringContent(cosmosJson, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(txUrl, content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (txResponse.TryGetProperty("tx_response", out var txResp) && 
+                        txResp.TryGetProperty("txhash", out var txHash))
+                    {
+                        // Store transaction hash in provider unique storage key
+                        if (avatar.ProviderUniqueStorageKey == null)
+                            avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                        avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.CosmosBlockChainOASIS] = txHash.GetString() ?? string.Empty;
+
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.IsSaved = true;
+                        response.Message = $"Avatar saved successfully to Cosmos blockchain: {txHash.GetString()}";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to save avatar to Cosmos blockchain - no transaction hash returned");
+                    }
+                }
+                else
+                {
+                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to Cosmos blockchain: {httpResponse.StatusCode} - {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to Cosmos: {ex.Message}", ex);
+            }
+            return response;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -1192,8 +1295,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var txRequest = new
@@ -1286,8 +1393,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // First, get wallet addresses for the avatars from Cosmos blockchain
@@ -1413,8 +1524,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars using WalletHelper
@@ -1430,33 +1545,71 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 var fromAddress = fromWalletResult.Result;
                 var toAddress = toWalletResult.Result;
 
-                // Create Cosmos transaction
-                var transactionData = new
+                // Submit transaction to Cosmos network via Cosmos SDK API
+                var txUrl = "/cosmos/tx/v1beta1/txs";
+                var txRequest = new
                 {
-                    from = fromAddress,
-                    to = toAddress,
-                    amount = amount,
-                    token = token,
-                    memo = $"OASIS transaction from {fromAvatarId} to {toAvatarId}"
+                    tx = new
+                    {
+                        body = new
+                        {
+                            messages = new[]
+                            {
+                                new
+                                {
+                                    type = "/cosmos.bank.v1beta1.MsgSend",
+                                    from_address = fromAddress,
+                                    to_address = toAddress,
+                                    amount = new[]
+                                    {
+                                        new
+                                        {
+                                            denom = token.ToLowerInvariant(),
+                                            amount = amount.ToString()
+                                        }
+                                    }
+                                }
+                            },
+                            memo = $"OASIS transaction from {fromAvatarId} to {toAvatarId}"
+                        },
+                        auth_info = new
+                        {
+                            signer_infos = new object[0],
+                            fee = new
+                            {
+                                amount = new[] { new { denom = "uatom", amount = "1000" } },
+                                gas_limit = "200000"
+                            }
+                        }
+                    },
+                    mode = "BROADCAST_MODE_SYNC"
                 };
 
-                // Submit transaction to Cosmos network
-                // var cosmosClient = new CosmosClient();
-                // var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
-                var transactionResult = new { TransactionId = "placeholder", Success = true }; // Placeholder
+                var jsonContent = JsonSerializer.Serialize(txRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(txUrl, content);
 
-                if (transactionResult != null)
+                if (httpResponse.IsSuccessStatusCode)
                 {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    var txHash = txResponse.TryGetProperty("tx_response", out var txResp) &&
+                                 txResp.TryGetProperty("txhash", out var hash)
+                        ? hash.GetString()
+                        : "";
+
                     result.Result = new TransactionResponse
                     {
-                        TransactionResult = transactionResult.TransactionId
+                        TransactionResult = txHash ?? ""
                     };
                     result.IsError = false;
                     result.Message = "Cosmos transaction sent successfully";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Cosmos transaction");
+                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send Cosmos transaction: {httpResponse.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
@@ -1478,8 +1631,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for usernames using WalletHelper
@@ -1495,33 +1652,71 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 var fromAddress = fromWalletResult.Result;
                 var toAddress = toWalletResult.Result;
 
-                // Create Cosmos transaction
-                var transactionData = new
+                // Submit transaction to Cosmos network via Cosmos SDK API
+                var txUrl = "/cosmos/tx/v1beta1/txs";
+                var txRequest = new
                 {
-                    from = fromAddress,
-                    to = toAddress,
-                    amount = amount,
-                    token = token,
-                    memo = $"OASIS transaction from {fromAvatarUsername} to {toAvatarUsername}"
+                    tx = new
+                    {
+                        body = new
+                        {
+                            messages = new[]
+                            {
+                                new
+                                {
+                                    type = "/cosmos.bank.v1beta1.MsgSend",
+                                    from_address = fromAddress,
+                                    to_address = toAddress,
+                                    amount = new[]
+                                    {
+                                        new
+                                        {
+                                            denom = token.ToLowerInvariant(),
+                                            amount = amount.ToString()
+                                        }
+                                    }
+                                }
+                            },
+                            memo = $"OASIS transaction from {fromAvatarUsername} to {toAvatarUsername}"
+                        },
+                        auth_info = new
+                        {
+                            signer_infos = new object[0],
+                            fee = new
+                            {
+                                amount = new[] { new { denom = "uatom", amount = "1000" } },
+                                gas_limit = "200000"
+                            }
+                        }
+                    },
+                    mode = "BROADCAST_MODE_SYNC"
                 };
 
-                // Submit transaction to Cosmos network
-                // var cosmosClient = new CosmosClient();
-                // var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
-                var transactionResult = new { TransactionId = "placeholder", Success = true }; // Placeholder
+                var jsonContent = JsonSerializer.Serialize(txRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(txUrl, content);
 
-                if (transactionResult != null)
+                if (httpResponse.IsSuccessStatusCode)
                 {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    var txHash = txResponse.TryGetProperty("tx_response", out var txResp) &&
+                                 txResp.TryGetProperty("txhash", out var hash)
+                        ? hash.GetString()
+                        : "";
+
                     result.Result = new TransactionResponse
                     {
-                        TransactionResult = transactionResult.TransactionId
+                        TransactionResult = txHash ?? ""
                     };
                     result.IsError = false;
                     result.Message = "Cosmos transaction sent successfully";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Cosmos transaction");
+                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send Cosmos transaction: {httpResponse.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
@@ -1553,8 +1748,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for emails using WalletHelper
@@ -1570,33 +1769,71 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 var fromAddress = fromWalletResult.Result;
                 var toAddress = toWalletResult.Result;
 
-                // Create Cosmos transaction
-                var transactionData = new
+                // Submit transaction to Cosmos network via Cosmos SDK API
+                var txUrl = "/cosmos/tx/v1beta1/txs";
+                var txRequest = new
                 {
-                    from = fromAddress,
-                    to = toAddress,
-                    amount = amount,
-                    token = token,
-                    memo = $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail}"
+                    tx = new
+                    {
+                        body = new
+                        {
+                            messages = new[]
+                            {
+                                new
+                                {
+                                    type = "/cosmos.bank.v1beta1.MsgSend",
+                                    from_address = fromAddress,
+                                    to_address = toAddress,
+                                    amount = new[]
+                                    {
+                                        new
+                                        {
+                                            denom = token.ToLowerInvariant(),
+                                            amount = amount.ToString()
+                                        }
+                                    }
+                                }
+                            },
+                            memo = $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail}"
+                        },
+                        auth_info = new
+                        {
+                            signer_infos = new object[0],
+                            fee = new
+                            {
+                                amount = new[] { new { denom = "uatom", amount = "1000" } },
+                                gas_limit = "200000"
+                            }
+                        }
+                    },
+                    mode = "BROADCAST_MODE_SYNC"
                 };
 
-                // Submit transaction to Cosmos network
-                // var cosmosClient = new CosmosClient();
-                // var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
-                var transactionResult = new { TransactionId = "placeholder", Success = true }; // Placeholder
+                var jsonContent = JsonSerializer.Serialize(txRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(txUrl, content);
 
-                if (transactionResult != null)
+                if (httpResponse.IsSuccessStatusCode)
                 {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    var txHash = txResponse.TryGetProperty("tx_response", out var txResp) &&
+                                 txResp.TryGetProperty("txhash", out var hash)
+                        ? hash.GetString()
+                        : "";
+
                     result.Result = new TransactionResponse
                     {
-                        TransactionResult = transactionResult.TransactionId
+                        TransactionResult = txHash ?? ""
                     };
                     result.IsError = false;
                     result.Message = "Cosmos transaction sent successfully";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Cosmos transaction");
+                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send Cosmos transaction: {httpResponse.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
@@ -1629,8 +1866,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars using WalletHelper
@@ -1646,33 +1887,71 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 var fromAddress = fromWalletResult.Result;
                 var toAddress = toWalletResult.Result;
 
-                // Create Cosmos transaction
-                var transactionData = new
+                // Submit transaction to Cosmos network via Cosmos SDK API
+                var txUrl = "/cosmos/tx/v1beta1/txs";
+                var txRequest = new
                 {
-                    from = fromAddress,
-                    to = toAddress,
-                    amount = amount,
-                    token = "ATOM",
-                    memo = $"OASIS default wallet transaction from {fromAvatarId} to {toAvatarId}"
+                    tx = new
+                    {
+                        body = new
+                        {
+                            messages = new[]
+                            {
+                                new
+                                {
+                                    type = "/cosmos.bank.v1beta1.MsgSend",
+                                    from_address = fromAddress,
+                                    to_address = toAddress,
+                                    amount = new[]
+                                    {
+                                        new
+                                        {
+                                            denom = "uatom",
+                                            amount = amount.ToString()
+                                        }
+                                    }
+                                }
+                            },
+                            memo = $"OASIS default wallet transaction from {fromAvatarId} to {toAvatarId}"
+                        },
+                        auth_info = new
+                        {
+                            signer_infos = new object[0],
+                            fee = new
+                            {
+                                amount = new[] { new { denom = "uatom", amount = "1000" } },
+                                gas_limit = "200000"
+                            }
+                        }
+                    },
+                    mode = "BROADCAST_MODE_SYNC"
                 };
 
-                // Submit transaction to Cosmos network
-                // var cosmosClient = new CosmosClient();
-                // var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
-                var transactionResult = new { TransactionId = "placeholder", Success = true }; // Placeholder
+                var jsonContent = JsonSerializer.Serialize(txRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(txUrl, content);
 
-                if (transactionResult != null)
+                if (httpResponse.IsSuccessStatusCode)
                 {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    var txHash = txResponse.TryGetProperty("tx_response", out var txResp) &&
+                                 txResp.TryGetProperty("txhash", out var hash)
+                        ? hash.GetString()
+                        : "";
+
                     result.Result = new TransactionResponse
                     {
-                        TransactionResult = transactionResult.TransactionId
+                        TransactionResult = txHash ?? ""
                     };
                     result.IsError = false;
                     result.Message = "Cosmos default wallet transaction sent successfully";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Cosmos default wallet transaction");
+                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send Cosmos default wallet transaction: {httpResponse.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
@@ -1694,8 +1973,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Create Cosmos NFT transfer transaction using REST API
@@ -1806,8 +2089,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (transation == null)
@@ -1925,8 +2212,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
@@ -2017,8 +2308,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
@@ -2070,8 +2365,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
@@ -2118,8 +2417,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) ||
@@ -2181,8 +2484,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
@@ -2248,8 +2555,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress))
@@ -2330,8 +2641,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.FromWalletAddress) || string.IsNullOrEmpty(request.ToWalletAddress))
@@ -2421,8 +2736,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Cosmos token minting requires admin permissions
@@ -2506,8 +2825,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.TokenAddress))
@@ -2594,8 +2917,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.TokenAddress) || string.IsNullOrEmpty(request.FromWalletPrivateKey))
@@ -2686,8 +3013,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.TokenAddress))
@@ -2779,8 +3110,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.WalletAddress))
@@ -2859,8 +3194,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(request.WalletAddress))
@@ -2943,8 +3282,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate Cosmos-specific key pair using Nethereum SDK (production-ready)
@@ -3079,8 +3422,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(accountAddress))
@@ -3144,8 +3491,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate Cosmos key pair (secp256k1 for Cosmos)
@@ -3180,8 +3531,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(seedPhrase))
@@ -3225,8 +3580,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
@@ -3333,8 +3692,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(receiverAccountAddress))
@@ -3441,8 +3804,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Cosmos provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(transactionHash))

@@ -156,8 +156,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar from NEAR blockchain
@@ -206,8 +210,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query NEAR account by provider key using RPC
@@ -279,8 +287,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query NEAR account by email using smart contract call
@@ -345,8 +357,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query NEAR account by username using smart contract call
@@ -411,8 +427,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar to NEAR blockchain using smart contract call
@@ -478,8 +498,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar from NEAR blockchain using smart contract call
@@ -541,8 +565,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all avatars from NEAR smart contract
@@ -607,8 +635,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar details from NEAR smart contract
@@ -677,8 +709,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holon from NEAR smart contract
@@ -748,8 +784,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holon by provider key from NEAR smart contract
@@ -824,8 +864,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save holon to NEAR blockchain using smart contract call
@@ -902,8 +946,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon from NEAR blockchain using smart contract call
@@ -976,8 +1024,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon by provider key from NEAR blockchain using smart contract call
@@ -1045,8 +1097,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all holons of specific type from NEAR smart contract
@@ -1129,8 +1185,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holons for parent from NEAR smart contract
@@ -1213,8 +1273,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holons for parent by provider key from NEAR smart contract
@@ -1297,8 +1361,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var savedHolons = new List<IHolon>();
@@ -1343,8 +1411,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar detail to NEAR smart contract
@@ -1407,8 +1479,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar detail by email from NEAR smart contract
@@ -1478,8 +1554,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar detail by username from NEAR smart contract
@@ -1549,8 +1629,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all avatar details from NEAR smart contract
@@ -1634,8 +1718,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Perform search on NEAR smart contract
@@ -1728,8 +1816,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var saveResult = await SaveHolonsAsync(holons);
@@ -1760,8 +1852,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all holons from NEAR smart contract
@@ -1845,8 +1941,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data for avatar from NEAR smart contract
@@ -1929,8 +2029,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data for avatar by email from NEAR smart contract
@@ -2013,8 +2117,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data for avatar by username from NEAR smart contract
@@ -2098,8 +2206,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by username from NEAR smart contract
@@ -2162,8 +2274,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by email from NEAR smart contract
@@ -2217,8 +2333,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Get avatars near me from NEAR blockchain
@@ -2296,8 +2416,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Get holons near me from NEAR blockchain
@@ -2382,8 +2506,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Send NFT on NEAR blockchain
@@ -2457,8 +2585,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Mint NFT on NEAR blockchain
@@ -2528,8 +2660,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holons by metadata from NEAR smart contract
@@ -2612,8 +2748,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holons by metadata dictionary from NEAR smart contract
@@ -2701,8 +2841,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Get players near me from NEAR blockchain
@@ -2752,8 +2896,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Create NEAR transaction for token transfer
@@ -2888,8 +3036,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Create NEAR NFT transfer transaction
@@ -2957,8 +3109,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query NFT from NEAR blockchain
