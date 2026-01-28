@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Text.Json;
@@ -16,6 +17,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         private readonly RequestDelegate _next;
         private readonly ILogger<SubscriptionMiddleware> _logger;
         private readonly IConfiguration _configuration;
+        private readonly ISubscriptionStore _store;
 
         // Pay-as-you-go pricing (based on industry standards)
         private static readonly Dictionary<string, decimal> PayAsYouGoPricing = new()
@@ -35,11 +37,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             { "enterprise", int.MaxValue } // Unlimited
         };
 
-        public SubscriptionMiddleware(RequestDelegate next, ILogger<SubscriptionMiddleware> logger, IConfiguration configuration)
+        public SubscriptionMiddleware(RequestDelegate next, ILogger<SubscriptionMiddleware> logger, IConfiguration configuration, ISubscriptionStore store)
         {
             _next = next;
             _logger = logger;
             _configuration = configuration;
+            _store = store ?? throw new ArgumentNullException(nameof(store));
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -61,11 +64,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                     return;
                 }
 
-                // Get subscription info
+                // Get subscription info (from MongoDB or mock)
                 var subscriptionInfo = await GetSubscriptionInfo(avatar.Id);
                 if (subscriptionInfo == null)
                 {
-                    // No subscription - check if this is a free tier request
+                    // No subscription - try credits path if store is configured
+                    if (_store.IsConfigured)
+                    {
+                        var balance = await _store.GetCreditsBalanceAsync(avatar.Id.ToString()).ConfigureAwait(false);
+                        var costPerRequest = GetCostPerRequestUsd();
+                        if (balance >= costPerRequest)
+                        {
+                            var deducted = await _store.DeductCreditsAsync(avatar.Id.ToString(), costPerRequest).ConfigureAwait(false);
+                            if (deducted)
+                            {
+                                await _next(context);
+                                return;
+                            }
+                        }
+                        await ReturnInsufficientCreditsError(context, balance, costPerRequest);
+                        return;
+                    }
+
                     if (IsFreeTierEndpoint(context))
                     {
                         await _next(context);
@@ -85,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 
                 // Get current month's usage
                 var currentUsage = await GetCurrentMonthUsage(avatar.Id);
-                var planLimit = PlanLimits[subscriptionInfo.PlanId];
+                var planLimit = PlanLimits.TryGetValue(subscriptionInfo.PlanId, out var limit) ? limit : 0;
 
                 // Check if over limit
                 if (currentUsage >= planLimit)
@@ -158,12 +178,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         {
             try
             {
-                // TODO: Implement actual database query
-                // For now, return mock data
+                if (_store.IsConfigured)
+                {
+                    var record = await _store.GetSubscriptionAsync(avatarId.ToString()).ConfigureAwait(false);
+                    if (record == null) return null;
+                    return new SubscriptionInfo
+                    {
+                        AvatarId = avatarId,
+                        PlanId = record.PlanId ?? "bronze",
+                        Status = record.Status ?? "active",
+                        PayAsYouGoEnabled = record.PayAsYouGoEnabled,
+                        CurrentPeriodStart = record.CurrentPeriodStart,
+                        CurrentPeriodEnd = record.CurrentPeriodEnd
+                    };
+                }
                 return new SubscriptionInfo
                 {
                     AvatarId = avatarId,
-                    PlanId = "silver", // Mock plan
+                    PlanId = "silver",
                     Status = "active",
                     PayAsYouGoEnabled = false,
                     CurrentPeriodStart = DateTime.UtcNow.AddDays(-15),
@@ -177,6 +209,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             }
         }
 
+        private decimal GetCostPerRequestUsd()
+        {
+            if (decimal.TryParse(_configuration["Credits:CostPerRequestUsd"], out var cost) && cost > 0)
+                return cost;
+            return 0.001m;
+        }
+
+        private async Task ReturnInsufficientCreditsError(HttpContext context, decimal balance, decimal costPerRequest)
+        {
+            context.Response.StatusCode = 402;
+            context.Response.ContentType = "application/json";
+            var errorResponse = new
+            {
+                error = "Insufficient Credits",
+                message = "Your credits balance is insufficient for this request. Buy more credits to continue.",
+                code = "INSUFFICIENT_CREDITS",
+                balanceUsd = balance,
+                costPerRequestUsd = costPerRequest,
+                upgradeUrl = "/api/subscription/plans"
+            };
+            await context.Response.WriteAsync(JsonSerializer.Serialize(errorResponse));
+        }
+
         private bool IsSubscriptionActive(SubscriptionInfo subscription)
         {
             return subscription.Status == "active" && 
@@ -184,13 +239,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                    DateTime.UtcNow <= subscription.CurrentPeriodEnd;
         }
 
+        private static DateTime GetCurrentPeriodStartUtc()
+        {
+            var now = DateTime.UtcNow;
+            return new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        }
+
         private async Task<int> GetCurrentMonthUsage(Guid avatarId)
         {
             try
             {
-                // TODO: Implement actual usage tracking
-                // For now, return mock usage
-                return 50000; // Mock usage
+                if (_store.IsConfigured)
+                    return await _store.GetUsageAsync(avatarId.ToString(), GetCurrentPeriodStartUtc()).ConfigureAwait(false);
+                return 0;
             }
             catch (Exception ex)
             {
@@ -218,8 +279,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         {
             try
             {
-                // TODO: Implement actual usage counter increment
-                _logger.LogDebug("Usage incremented for avatar {AvatarId}", avatarId);
+                if (_store.IsConfigured)
+                    await _store.IncrementUsageAsync(avatarId.ToString(), GetCurrentPeriodStartUtc()).ConfigureAwait(false);
+                else
+                    _logger.LogDebug("Usage incremented for avatar {AvatarId}", avatarId);
             }
             catch (Exception ex)
             {
