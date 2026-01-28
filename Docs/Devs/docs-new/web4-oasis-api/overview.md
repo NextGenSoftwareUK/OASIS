@@ -49,9 +49,11 @@ The **WEB4 OASIS API** is the foundational data aggregation and identity layer f
 
 | API | Description | Endpoints |
 |-----|-------------|-----------|
-| [Data API](data-storage/data-api.md) | Universal data operations | `/api/data` |
-| [Files API](data-storage/files-api.md) | File upload and management | `/api/files` |
-| [Holons API](data-storage/holons-api.md) | Hierarchical data structures | `/api/holons` |
+| [Data API](data-storage/data-api.md) | Universal data operations (files, key/value) | `/api/data` |
+| [Holons API](data-storage/holons-api.md) | Holon CRUD and queries (load, save, delete, children) | `/api/data` |
+| [Files API](data-storage/files-api.md) | File upload and management | `/api/data` |
+
+**Start here:** [What are Holons?](../../concepts/holons.md) explains the core data model. Then see [How to use holons](../../guides/using-holons.md) and the [Holons API reference](data-storage/holons-api.md).
 
 ### 3. Blockchain & Wallets
 

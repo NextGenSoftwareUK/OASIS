@@ -168,6 +168,8 @@ docs-new/
 - **Base URL:** `http://api.oasisweb4.com/api`
 - **Restructuring Plan:** `../DOCUMENTATION_RESTRUCTURING_PLAN.md`
 - **Implementation Progress:** `IMPLEMENTATION_PROGRESS.md`
+- **Keeping docs up-to-date:** [guides/keeping-docs-up-to-date.md](guides/keeping-docs-up-to-date.md) — OpenAPI as source of truth, scripts to generate/validate
+- **Publish to GitBook:** [guides/PUBLISH_TO_GITBOOK.md](guides/PUBLISH_TO_GITBOOK.md) — How to sync these docs to https://oasis-web4.gitbook.io/oasis-web4-docs/
 
 ---
 

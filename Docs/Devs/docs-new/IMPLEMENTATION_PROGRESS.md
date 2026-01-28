@@ -20,6 +20,29 @@
 - [x] **WEB4 OASIS API Overview** (`web4-oasis-api/overview.md`)
 - [x] **Avatar API** (`web4-oasis-api/authentication-identity/avatar-api.md`) - Comprehensive with examples
 - [x] **NFT API** (`web4-oasis-api/blockchain-wallets/nft-api.md`) - Improved version
+- [x] **Wallet API** (`web4-oasis-api/blockchain-wallets/wallet-api.md`)
+- [x] **Karma API** (`web4-oasis-api/authentication-identity/karma-api.md`)
+- [x] **Data API** (`web4-oasis-api/data-storage/data-api.md`) - Overview; holon details in Holons API
+- [x] **Keys API** (`web4-oasis-api/authentication-identity/keys-api.md`)
+- [x] **HyperDrive API** (`web4-oasis-api/network-operations/hyperdrive-api.md`)
+- [x] **Search API** (`web4-oasis-api/core-services/search-api.md`)
+- [x] **Files API** (`web4-oasis-api/data-storage/files-api.md`)
+- [x] **Stats API** (`web4-oasis-api/core-services/stats-api.md`)
+- [x] **Messaging API** (`web4-oasis-api/core-services/messaging-api.md`)
+- [x] **Settings API** (`web4-oasis-api/core-services/settings-api.md`)
+- [x] **ONET API** (`web4-oasis-api/network-operations/onet-api.md`)
+- [x] **ONODE API** (`web4-oasis-api/network-operations/onode-api.md`)
+- [x] **Solana API** (`web4-oasis-api/blockchain-wallets/solana-api.md`)
+- [x] **Reference: Error codes** (`reference/error-codes.md`)
+- [x] **Reference: Rate limits** (`reference/rate-limits.md`)
+- [x] **WEB5 STAR API Overview** (`web5-star-api/overview.md`)
+- [x] **WEB5 Missions API** (`web5-star-api/game-mechanics/missions-api.md`)
+- [x] **WEB5 Quests API** (`web5-star-api/game-mechanics/quests-api.md`)
+- [x] **WEB5 GeoNFTs API** (`web5-star-api/location-services/geonfts-api.md`)
+- [x] **WEB5 OAPPs API** (`web5-star-api/development-tools/oapps-api.md`)
+- [x] **WEB5 Celestial Bodies API** (`web5-star-api/celestial-systems/celestial-bodies-api.md`)
+- [x] **WEB5 Inventory API** (`web5-star-api/data-structures/inventory-api.md`)
+- [x] **Endpoint testing script** (`test-api-endpoints.sh`) – treats 200+body isError as "auth required"
 
 ### API Testing
 - [x] Verified API is accessible at `http://api.oasisweb4.com/swagger/index.html`
@@ -32,12 +55,7 @@
 ## 🚧 In Progress
 
 ### Documentation
-- [ ] Wallet API documentation
-- [ ] Karma API documentation
-- [ ] Data API documentation
-- [ ] Keys API documentation
-- [ ] HyperDrive API documentation
-- [ ] WEB5 STAR API overview and key APIs
+- [ ] (Optional) WEB5 STAR extended APIs when deployed (missions, quests, celestial, inventory routes)
 
 ### Testing
 - [ ] Create automated testing script
@@ -82,10 +100,10 @@
 - **Other:** 303
 
 ### Documentation Coverage
-- **WEB4 APIs Documented:** 2/30+ (Avatar, NFT)
-- **WEB5 APIs Documented:** 0/20+
+- **WEB4 APIs Documented:** 20+ (Avatar, NFT, Wallet, Karma, Data, Keys, HyperDrive, Search, Files, Stats, Messaging, Settings, ONET, ONODE, Solana, Holons)
+- **WEB5 APIs Documented:** Overview + 6 key APIs (Missions, Quests, GeoNFTs, OAPPs, Celestial Bodies, Inventory)
 - **Getting Started:** 2/5 guides
-- **Reference Docs:** 0/5
+- **Reference Docs:** 2 (error codes, rate limits)
 
 ---
 
