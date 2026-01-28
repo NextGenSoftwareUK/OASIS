@@ -421,8 +421,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchParams = new Dictionary<string, string>
@@ -476,8 +480,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchRequest = new
@@ -542,8 +550,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holon == null)
@@ -596,8 +608,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holons == null || !holons.Any())
@@ -650,8 +666,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/{id}");
@@ -686,8 +706,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/by-provider-key/{Uri.EscapeDataString(providerKey)}");
@@ -722,8 +746,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (searchParams == null)
@@ -802,8 +830,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holons == null || !holons.Any())
@@ -846,8 +878,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/export/avatar/{avatarId}?version={version}");
@@ -892,8 +928,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/export/avatar/username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
@@ -938,8 +978,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/export/avatar/email/{Uri.EscapeDataString(avatarEmailAddress)}?version={version}");
@@ -984,8 +1028,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/export/all?version={version}");
@@ -1034,8 +1082,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -1081,8 +1133,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -1141,8 +1197,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (transation == null)
@@ -1203,8 +1263,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1258,8 +1322,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1314,8 +1382,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1369,8 +1441,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1425,8 +1501,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1480,8 +1560,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1542,8 +1626,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // ThreeFold transaction implementation
@@ -1586,8 +1674,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1645,8 +1737,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (transation == null)
@@ -1708,8 +1804,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (transation == null)
@@ -1774,8 +1874,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(nftTokenAddress))
@@ -1826,8 +1930,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var burnRequest = new
@@ -1881,8 +1989,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var mintRequest = new
@@ -1937,8 +2049,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var burnRequest = new
@@ -1992,8 +2108,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var lockRequest = new
@@ -2047,8 +2167,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var unlockRequest = new
@@ -2102,8 +2226,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var walletAddress = request.WalletAddress;
@@ -2164,8 +2292,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var walletAddress = request.WalletAddress;
@@ -2218,8 +2350,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // result.Result = keyPairResult.Result; //TODO: Implement ThreeFold key pair generation properly
@@ -2245,8 +2381,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate key pair and seed phrase using KeyManager
@@ -2278,8 +2418,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(seedPhrase))
@@ -2317,8 +2461,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var withdrawRequest = new
@@ -2367,8 +2515,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var depositRequest = new
@@ -2416,8 +2568,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/bridge/transactions/{Uri.EscapeDataString(transactionHash)}/status", token);
@@ -2475,8 +2631,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var lockRequest = new
@@ -2530,8 +2690,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var unlockRequest = new
@@ -2585,8 +2749,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var withdrawRequest = new
@@ -2636,8 +2804,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var depositRequest = new

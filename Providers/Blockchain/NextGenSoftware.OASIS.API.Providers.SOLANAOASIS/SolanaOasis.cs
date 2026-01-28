@@ -26,8 +26,11 @@ using Solnet.Rpc.Utilities;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Utilities;
+using Newtonsoft.Json;
 using NextGenSoftware.Utilities.ExtentionMethods;
 using System.Linq;
 using System.IO;
@@ -183,8 +186,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query all avatars from Solana program using RPC client
@@ -272,8 +279,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Real Solana implementation: Query Solana smart contract for avatar by username
@@ -318,8 +329,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref response, "Solana provider is not activated");
-                return response;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return response;
+                }
             }
 
             // Real Solana implementation: Query Solana smart contract for avatar by ID
@@ -365,8 +380,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Real Solana implementation: Query Solana smart contract for avatar by email
@@ -435,8 +454,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query avatar detail by ID from Solana program
@@ -481,8 +504,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query avatar detail by username from Solana program
@@ -527,8 +554,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query avatar detail by email from Solana program
@@ -577,8 +608,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query all avatar details from Solana program using RPC client
@@ -778,22 +813,42 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Delete avatar from Solana program
-            // Placeholder: Delete via repository or mark as deleted
-            var deleteResult = new OASISResult<bool> { Result = true, IsError = false };
-            if (deleteResult.IsError)
+            // Real Solana implementation: Load avatar first to get provider key, then delete
+            var avatarResult = await LoadAvatarAsync(id, version);
+            if (avatarResult.IsError || avatarResult.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Solana: {deleteResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Avatar not found for deletion: {avatarResult.Message}");
                 return result;
             }
 
-            result.Result = deleteResult.Result;
-            result.IsError = false;
-            result.Message = "Avatar deleted successfully from Solana";
+            if (avatarResult.Result.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
+                avatarResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS, out var providerKey))
+            {
+                var deleteSuccess = await _solanaRepository.DeleteAsync(providerKey);
+                if (deleteSuccess)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from Solana";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from Solana repository");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar does not have a Solana provider key (transaction hash)");
+            }
         }
         catch (Exception ex)
         {
@@ -814,8 +869,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first
@@ -864,8 +923,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username first
@@ -976,36 +1039,65 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holon by ID from Solana blockchain
-            // Placeholder: Solana service currently does not expose holon endpoints
-            var holonData = new OASISResult<Entities.Models.SolanaHolonDto> { IsError = true, Message = "Not implemented" };
-            if (holonData.IsError)
+            // Real Solana implementation: Query program accounts and find holon with matching ID
+            try
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon by ID from Solana: {holonData.Message}");
-                return result;
-            }
-
-            if (holonData.Result != null)
-            {
-                var holon = holonData.Result != null ? holonData.Result.GetHolon() : null;
-                if (holon != null)
+                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
+                
+                if (accounts.WasSuccessful && accounts.Result != null)
                 {
-                    result.Result = holon;
-                    result.IsError = false;
-                    result.Message = "Holon loaded successfully by ID from Solana with full object mapping";
+                    foreach (var account in accounts.Result)
+                    {
+                        try
+                        {
+                            // Parse account data to check if it's a holon with matching ID
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Length > 0)
+                            {
+                                var accountDataString = Encoding.UTF8.GetString(accountData);
+                                var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
+                                
+                                if (holonDto != null && holonDto.Id == id)
+                                {
+                                    holonDto.PublicKey = account.PublicKey;
+                                    holonDto.AccountInfo = account.Account;
+                                    holonDto.Lamports = account.Account.Lamports;
+                                    holonDto.Owner = account.Account.Owner;
+                                    
+                                    var holon = holonDto.GetHolon();
+                                    if (holon != null)
+                                    {
+                                        result.Result = holon;
+                                        result.IsError = false;
+                                        result.IsLoaded = true;
+                                        result.Message = "Holon loaded successfully by ID from Solana";
+                                        return result;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Continue searching other accounts
+                            continue;
+                        }
+                    }
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse holon data from Solana");
-                }
-            }
-            else
-            {
+                
                 OASISErrorHandling.HandleError(ref result, "Holon not found by ID in Solana");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error querying Solana program accounts: {ex.Message}", ex);
             }
         }
         catch (Exception ex)
@@ -1032,8 +1124,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons for parent from Solana blockchain
@@ -1128,8 +1224,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons for parent by provider key from Solana blockchain
@@ -1176,8 +1276,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load all holons from Solana blockchain
@@ -1414,22 +1518,90 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Search avatars and holons using Solana program
-            // Placeholder until ISolanaService supports search
-            var searchData = new OASISResult<SearchResults> { IsError = true, Message = "Not implemented" };
-            if (searchData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error searching in Solana: {searchData.Message}");
-                return result;
-            }
+            // Real Solana implementation: Query program accounts and filter by search criteria
+            var searchResults = new SearchResults();
+            var matchingAvatars = new List<IAvatar>();
+            var matchingHolons = new List<IHolon>();
 
-            result.Result = searchData.Result;
-            result.IsError = false;
-            result.Message = "Search completed successfully in Solana with full object mapping";
+            try
+            {
+                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
+                
+                if (accounts.WasSuccessful && accounts.Result != null)
+                {
+                    foreach (var account in accounts.Result)
+                    {
+                        try
+                        {
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Length > 0)
+                            {
+                                var accountDataString = Encoding.UTF8.GetString(accountData);
+                                
+                                // Try parsing as avatar
+                                try
+                                {
+                                    var avatarDto = JsonConvert.DeserializeObject<SolanaAvatarDto>(accountDataString);
+                                    if (avatarDto != null && !string.IsNullOrEmpty(searchParams.SearchQuery))
+                                    {
+                                        if (avatarDto.UserName?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true ||
+                                            avatarDto.Email?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                                        {
+                                            var avatar = avatarDto.GetAvatar();
+                                            if (avatar != null) matchingAvatars.Add(avatar);
+                                        }
+                                    }
+                                }
+                                catch { }
+
+                                // Try parsing as holon
+                                try
+                                {
+                                    var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
+                                    if (holonDto != null && !string.IsNullOrEmpty(searchParams.SearchQuery))
+                                    {
+                                        if (holonDto.Name?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true ||
+                                            holonDto.Description?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                                        {
+                                            holonDto.PublicKey = account.PublicKey;
+                                            holonDto.AccountInfo = account.Account;
+                                            var holon = holonDto.GetHolon();
+                                            if (holon != null) matchingHolons.Add(holon);
+                                        }
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!continueOnError) throw;
+                            continue;
+                        }
+                    }
+                }
+
+                searchResults.SearchResultAvatars = matchingAvatars;
+                searchResults.SearchResultHolons = matchingHolons;
+                searchResults.NumberOfResults = matchingAvatars.Count + matchingHolons.Count;
+
+                result.Result = searchResults;
+                result.IsError = false;
+                result.Message = $"Search completed: Found {matchingAvatars.Count} avatars and {matchingHolons.Count} holons";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching Solana program accounts: {ex.Message}", ex);
+            }
         }
         catch (Exception ex)
         {
@@ -1450,8 +1622,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holon first to get the provider key
@@ -1464,19 +1640,27 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             if (holonResult.Result != null)
             {
-                // Delete holon from Solana blockchain
-                // Placeholder until ISolanaService supports holon delete
-                var deleteResult = new OASISResult<bool> { IsError = false, Result = true };
-                if (deleteResult.IsError)
+                // Delete holon from Solana blockchain using provider key (transaction hash)
+                if (holonResult.Result.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
+                    holonResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS, out var providerKey))
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Solana: {deleteResult.Message}");
-                    return result;
+                    var deleteSuccess = await _solanaRepository.DeleteAsync(providerKey);
+                    if (deleteSuccess)
+                    {
+                        result.Result = holonResult.Result;
+                        result.IsDeleted = true;
+                        result.IsError = false;
+                        result.Message = "Holon deleted successfully from Solana";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to delete holon from Solana repository");
+                    }
                 }
-
-                result.Result = holonResult.Result;
-                result.IsDeleted = true;
-                result.IsError = false;
-                result.Message = "Holon deleted successfully from Solana";
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon does not have a Solana provider key (transaction hash)");
+                }
             }
             else
             {
@@ -1519,8 +1703,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             var avatarsResult = LoadAllAvatars();
@@ -1566,8 +1754,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             var holonsResult = LoadAllHolons(Type);
@@ -1926,8 +2118,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             if (holons == null || !holons.Any())
@@ -1980,22 +2176,62 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load all holons for avatar from Solana blockchain
-            // Note: ISolanaService doesn't have GetAllHolonsForAvatarAsync, using placeholder implementation
-            var holonsData = new OASISResult<List<SolanaHolonDto>> { Result = new List<SolanaHolonDto>() };
-            if (holonsData.IsError)
+            // Real Solana implementation: Query program accounts and filter by CreatedByAvatarId
+            var holons = new List<IHolon>();
+            try
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar from Solana: {holonsData.Message}");
-                return result;
-            }
+                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
+                
+                if (accounts.WasSuccessful && accounts.Result != null)
+                {
+                    foreach (var account in accounts.Result)
+                    {
+                        try
+                        {
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Length > 0)
+                            {
+                                var accountDataString = Encoding.UTF8.GetString(accountData);
+                                var holonDto = JsonConvert.DeserializeObject<SolanaHolonDto>(accountDataString);
+                                
+                                if (holonDto != null && holonDto.CreatedByAvatarId == avatarId)
+                                {
+                                    holonDto.PublicKey = account.PublicKey;
+                                    holonDto.AccountInfo = account.Account;
+                                    holonDto.Lamports = account.Account.Lamports;
+                                    
+                                    var holon = holonDto.GetHolon();
+                                    if (holon != null)
+                                    {
+                                        holons.Add(holon);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            continue; // Continue searching other accounts
+                        }
+                    }
+                }
 
-            result.Result = holonsData.Result?.Select(h => h.GetHolon());
-            result.IsError = false;
-            result.Message = $"Successfully exported {holonsData.Result?.Count() ?? 0} holons for avatar from Solana";
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Count} holons for avatar from Solana";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error querying Solana program accounts for avatar holons: {ex.Message}", ex);
+            }
         }
         catch (Exception ex)
         {
@@ -2012,8 +2248,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username first
@@ -2058,8 +2298,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first
@@ -2103,8 +2347,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load all holons from Solana blockchain
@@ -2199,8 +2447,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for both avatars
@@ -2253,8 +2505,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatars by username
@@ -2297,8 +2553,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatars by email
@@ -2649,32 +2909,65 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Query holons by metadata from Solana program
-            // Not supported in current ISolanaService
-            var holonsData = new OASISResult<List<Entities.Models.SolanaHolonDto>> { IsError = true, Message = "Not implemented" };
-            if (holonsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Solana: {holonsData.Message}");
-                return result;
-            }
-
-            var holons = new List<IHolon>();
-            foreach (var holonData in holonsData.Result)
-            {
-                var holon = holonData != null ? holonData.GetHolon() : null;
-                if (holon != null)
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
                 {
-                    holons.Add(holon);
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
                 }
             }
 
-            result.Result = holons;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {holons.Count} holons by metadata from Solana with full object mapping";
+            // Query holons by metadata from Solana program
+            // Real Solana implementation: Query program accounts and filter by metadata
+            var holons = new List<IHolon>();
+            try
+            {
+                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
+                
+                if (accounts.WasSuccessful && accounts.Result != null)
+                {
+                    foreach (var account in accounts.Result)
+                    {
+                        try
+                        {
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Length > 0)
+                            {
+                                var accountDataString = Encoding.UTF8.GetString(accountData);
+                                var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
+                                
+                                if (holonDto != null)
+                                {
+                                    holonDto.PublicKey = account.PublicKey;
+                                    holonDto.AccountInfo = account.Account;
+                                    holonDto.Lamports = account.Account.Lamports;
+                                    
+                                    var holon = holonDto.GetHolon();
+                                    if (holon != null && holon.MetaData != null && 
+                                        holon.MetaData.ContainsKey(metaKey) &&
+                                        holon.MetaData[metaKey]?.ToString()?.Equals(metaValue, StringComparison.OrdinalIgnoreCase) == true)
+                                    {
+                                        holons.Add(holon);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!continueOnError) throw;
+                            continue;
+                        }
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Found {holons.Count} holons matching metadata key '{metaKey}' = '{metaValue}'";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error querying Solana program accounts by metadata: {ex.Message}", ex);
+            }
         }
         catch (Exception ex)
         {
@@ -2702,31 +2995,80 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Query holons by multiple metadata pairs from Solana program
-            // Not supported in current ISolanaService
-            var holonsData = new OASISResult<List<Entities.Models.SolanaHolonDto>> { IsError = true, Message = "Not implemented" };
-            if (holonsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Solana: {holonsData.Message}");
-                return result;
-            }
-
-            var holons = new List<IHolon>();
-            foreach (var holonData in holonsData.Result)
-            {
-                var holon = holonData != null ? holonData.GetHolon() : null;
-                if (holon != null)
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
                 {
-                    holons.Add(holon);
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
                 }
             }
 
-            result.Result = holons;
-            result.IsError = false;
+            // Query holons by multiple metadata pairs from Solana program
+            // Real Solana implementation: Query program accounts and filter by metadata pairs
+            var holons = new List<IHolon>();
+            try
+            {
+                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
+                
+                if (accounts.WasSuccessful && accounts.Result != null)
+                {
+                    foreach (var account in accounts.Result)
+                    {
+                        try
+                        {
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Length > 0)
+                            {
+                                var accountDataString = Encoding.UTF8.GetString(accountData);
+                                var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
+                                
+                                if (holonDto != null)
+                                {
+                                    holonDto.PublicKey = account.PublicKey;
+                                    holonDto.AccountInfo = account.Account;
+                                    holonDto.Lamports = account.Account.Lamports;
+                                    
+                                    var holon = holonDto.GetHolon();
+                                    if (holon != null && holon.MetaData != null)
+                                    {
+                                        bool matches = false;
+                                        if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
+                                        {
+                                            matches = metaKeyValuePairs.All(kvp => 
+                                                holon.MetaData.ContainsKey(kvp.Key) &&
+                                                holon.MetaData[kvp.Key]?.ToString()?.Equals(kvp.Value, StringComparison.OrdinalIgnoreCase) == true);
+                                        }
+                                        else // MetaKeyValuePairMatchMode.Any
+                                        {
+                                            matches = metaKeyValuePairs.Any(kvp => 
+                                                holon.MetaData.ContainsKey(kvp.Key) &&
+                                                holon.MetaData[kvp.Key]?.ToString()?.Equals(kvp.Value, StringComparison.OrdinalIgnoreCase) == true);
+                                        }
+                                        
+                                        if (matches)
+                                        {
+                                            holons.Add(holon);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!continueOnError) throw;
+                            continue;
+                        }
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Found {holons.Count} holons matching metadata pairs";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error querying Solana program accounts by metadata pairs: {ex.Message}", ex);
+            }
             result.Message = $"Successfully loaded {holons.Count} holons by metadata pairs from Solana with full object mapping";
         }
         catch (Exception ex)
@@ -3195,9 +3537,18 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         try
         {
-            if (!IsProviderActivated || _solanaService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_solanaService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana service is not initialized");
                 return result;
             }
 
@@ -3239,9 +3590,18 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         try
         {
-            if (!IsProviderActivated || _solanaService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_solanaService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana service is not initialized");
                 return result;
             }
 
@@ -3432,8 +3792,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(accountAddress))
@@ -3471,8 +3835,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Generate a new Solana wallet
@@ -3501,8 +3869,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(seedPhrase))
@@ -3534,9 +3906,18 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         var result = new OASISResult<BridgeTransactionResponse>();
         try
         {
-            if (!IsProviderActivated || _solanaService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_solanaService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana service is not initialized");
                 return result;
             }
 
@@ -3605,8 +3986,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(receiverAccountAddress))
@@ -3674,8 +4059,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(transactionHash))
@@ -3740,8 +4129,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
@@ -3802,8 +4195,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))

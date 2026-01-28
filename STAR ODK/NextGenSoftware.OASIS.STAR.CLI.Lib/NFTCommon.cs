@@ -203,11 +203,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return request;
         }
 
-        public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IMintWeb4NFTRequest request)
+        public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IMintWeb4NFTRequest request, bool remint = false)
         {
             List<IMintWeb3NFTRequest> mintRequests = new List<IMintWeb3NFTRequest>();
 
-            if (request.NumberToMint > 1 && !CLIEngine.GetConfirmation("Do all of the WEB3 NFT's share the same parent WEB4 NFT MetaData? (Select 'N' if you wish to create WEB3 NFT varients that share some or none of their parent WEB4 NFT MetaData)."))
+            if (((request.NumberToMint > 1 && !remint) || remint) && !CLIEngine.GetConfirmation("Do all of the WEB3 NFT(s) share the same parent WEB4 NFT MetaData? (Select 'N' if you wish to create WEB3 NFT varients that share some or none of their parent WEB4 NFT MetaData)."))
             {
                 if (request.Web3NFTs == null)
                     request.Web3NFTs = new List<IMintWeb3NFTRequest>();
@@ -587,7 +587,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             };
 
             request = GetSendAndAdvancedOptions(request) as MintWeb4NFTRequest;
-            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
+            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request, true);
 
             return new RemintWeb4NFTRequest()
             {
@@ -1342,11 +1342,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         OASISResult<T1> deleteResult = await STARNETManager.DeleteAsync(STAR.BeamedInAvatar.Id, web5Id, version.STARNETDNA.VersionSequence, providerType: providerType);
 
                         if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
-                            CLIEngine.ShowSuccessMessage($"Successfully Deleted Version {version.STARNETDNA.VersionSequence}.");
+                            CLIEngine.ShowSuccessMessage($"Successfully Deleted Version {version.STARNETDNA.Version}.");
                         else
                         {
                             string msg = versionsResult != null ? versionsResult.Message : "";
-                            OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB5 STAR {STARNETManager.STARNETHolonUIName} Version {version.STARNETDNA.VersionSequence}. Reason: {msg}");
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB5 STAR {STARNETManager.STARNETHolonUIName} Version {version.STARNETDNA.Version}. Reason: {msg}");
                         }
                     }
                 }

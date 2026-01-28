@@ -513,9 +513,18 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         var result = new OASISResult<IAvatar>();
         try
         {
-            if (!IsProviderActivated || _radixService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized");
                 return result;
             }
 
@@ -728,9 +737,18 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         var result = new OASISResult<decimal>();
         try
         {
-            if (!IsProviderActivated || _radixService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized");
                 return result;
             }
 
@@ -748,9 +766,18 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
         try
         {
-            if (!IsProviderActivated || _radixService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized");
                 return result;
             }
 
@@ -768,9 +795,18 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         var result = new OASISResult<(string PublicKey, string PrivateKey)>();
         try
         {
-            if (!IsProviderActivated || _radixService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized");
                 return result;
             }
 
@@ -788,9 +824,18 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         var result = new OASISResult<BridgeTransactionResponse>();
         try
         {
-            if (!IsProviderActivated || _radixService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized");
                 return result;
             }
 
@@ -815,9 +860,18 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         var result = new OASISResult<BridgeTransactionResponse>();
         try
         {
-            if (!IsProviderActivated || _radixService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized");
                 return result;
             }
 
@@ -842,9 +896,18 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         var result = new OASISResult<BridgeTransactionStatus>();
         try
         {
-            if (!IsProviderActivated || _radixService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized");
                 return result;
             }
 
@@ -1079,19 +1142,48 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         // RadixOASIS focuses on bridge operations - delegate storage to ProviderManager
-        return HolonManager.Instance.LoadHolonsByMetaData(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+        return HolonManager.Instance.LoadHolonsByMetaData(
+            metaKey,
+            metaValue,
+            holonType: type,
+            loadChildren: loadChildren,
+            recursive: recursive,
+            maxChildDepth: maxChildDepth,
+            continueOnError: continueOnError,
+            loadChildrenFromProvider: loadChildrenFromProvider,
+            currentChildDepth: curentChildDepth,
+            version: version,
+            providerType: Core.Enums.ProviderType.Default);
     }
 
     public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         // RadixOASIS focuses on bridge operations - delegate storage to ProviderManager
-        return HolonManager.Instance.LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+        return HolonManager.Instance.LoadAllHolonsAsync(
+            holonType: type,
+            loadChildren: loadChildren,
+            recursive: recursive,
+            maxChildDepth: maxChildDepth,
+            continueOnError: continueOnError,
+            loadChildrenFromProvider: loadChildrenFromProvider,
+            childHolonType: HolonType.All,
+            version: version,
+            providerType: Core.Enums.ProviderType.Default);
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         // RadixOASIS focuses on bridge operations - delegate storage to ProviderManager
-        return HolonManager.Instance.LoadAllHolons(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+        return HolonManager.Instance.LoadAllHolons(
+            holonType: type,
+            loadChildren: loadChildren,
+            recursive: recursive,
+            maxChildDepth: maxChildDepth,
+            continueOnError: continueOnError,
+            loadChildrenFromProvider: loadChildrenFromProvider,
+            childHolonType: HolonType.All,
+            version: version,
+            providerType: Core.Enums.ProviderType.Default);
     }
 
     public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1099,9 +1191,18 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         var result = new OASISResult<IHolon>();
         try
         {
-            if (!IsProviderActivated || _radixService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized");
                 return result;
             }
 
@@ -1230,9 +1331,18 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         var result = new OASISResult<IEnumerable<IHolon>>();
         try
         {
-            if (!IsProviderActivated || _radixService == null)
+            if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Radix provider is not activated");
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Radix provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+            if (_radixService == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Radix service is not initialized");
                 return result;
             }
 

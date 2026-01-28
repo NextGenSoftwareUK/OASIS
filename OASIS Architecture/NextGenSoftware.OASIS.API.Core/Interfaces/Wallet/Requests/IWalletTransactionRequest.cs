@@ -11,3 +11,5 @@ public interface IWalletTransactionRequest
     string MemoText { get; set; }
 }
 
+
+

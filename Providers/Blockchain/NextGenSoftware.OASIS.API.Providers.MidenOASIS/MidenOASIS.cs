@@ -111,9 +111,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<PrivateNote>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -133,9 +142,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<STARKProof>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -154,9 +172,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -175,9 +202,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<PrivateNote>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -197,9 +233,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<string>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -224,9 +269,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<string>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -251,9 +305,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<string>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -484,9 +547,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -519,9 +591,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -561,9 +642,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -588,9 +678,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -632,9 +731,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -1182,9 +1290,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -1252,9 +1369,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -1446,9 +1572,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 

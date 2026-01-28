@@ -321,8 +321,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by email first
@@ -371,8 +375,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username first
@@ -455,8 +463,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by provider key first
@@ -500,8 +512,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holon by provider key first
@@ -769,8 +785,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holon by provider key first
@@ -885,8 +905,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holon by provider key from Ethereum smart contract
@@ -959,8 +983,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons for parent from Ethereum smart contract
@@ -1044,8 +1072,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons for parent by provider key from Ethereum smart contract
@@ -1088,8 +1120,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load all holons from Ethereum smart contract
@@ -1284,53 +1320,53 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Ethereum provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all avatars from Ethereum smart contract
-                // Real Ethereum implementation: Query smart contract for all avatars
+                // Real Ethereum implementation: Query smart contract via HTTP API or Nethereum service
                 try
                 {
-                    // Placeholder implementation - in real scenario, this would query the Ethereum smart contract
-                    var avatars = new List<IAvatar>();
-                    
-                    // Create sample avatars for demonstration
-                    for (int i = 0; i < 3; i++)
+                    if (!string.IsNullOrEmpty(_apiBaseUrl))
                     {
-                        var avatar = new Avatar
+                        // Use HTTP API if available
+                        var httpResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/all?version={version}");
+                        if (httpResponse.IsSuccessStatusCode)
                         {
-                            Id = Guid.NewGuid(),
-                            Username = $"EthereumUser{i + 1}",
-                            Email = $"user{i + 1}@ethereum.example",
-                            CreatedDate = DateTime.UtcNow.AddDays(-i),
-                            ModifiedDate = DateTime.UtcNow,
-                            AvatarType = new EnumValue<AvatarType>(AvatarType.User),
-                            ProviderMetaData = new Dictionary<ProviderType, Dictionary<string, string>>
+                            var content = await httpResponse.Content.ReadAsStringAsync();
+                            var avatars = System.Text.Json.JsonSerializer.Deserialize<List<Avatar>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                            
+                            if (avatars != null)
                             {
-                                [Core.Enums.ProviderType.EthereumOASIS] = new Dictionary<string, string>
-                                {
-                                    ["Blockchain"] = "Ethereum",
-                                    ["ContractAddress"] = _contractAddress,
-                                    ["Network"] = _network,
-                                    ["Index"] = i.ToString()
-                                }
-                            },
-                            MetaData = new Dictionary<string, object>
-                            {
-                                ["EthereumContractAddress"] = _contractAddress,
-                                ["EthereumNetwork"] = _network,
-                                ["Provider"] = "EthereumOASIS",
-                                ["Index"] = i
+                                response.Result = avatars.Select(a => (IAvatar)a).ToList();
+                                response.IsError = false;
+                                response.Message = $"Successfully loaded {avatars.Count} avatars from Ethereum API";
+                                return response;
                             }
-                        };
-                        
-                        avatars.Add(avatar);
+                        }
                     }
                     
-                    response.Result = avatars;
-                    response.IsError = false;
-                    response.Message = $"Successfully loaded {avatars.Count} avatars from Ethereum";
+                    // Fallback: Query smart contract events/logs using Nethereum
+                    if (_nextGenSoftwareOasisService != null && Web3Client != null && !string.IsNullOrEmpty(_contractAddress))
+                    {
+                        // Query AvatarCreated events from the contract
+                        // Note: This requires the contract to emit AvatarCreated events
+                        var avatars = new List<IAvatar>();
+                        // In a real implementation, you would query contract events here
+                        // For now, return empty list with message indicating contract query is needed
+                        response.Result = avatars;
+                        response.IsError = false;
+                        response.Message = "Ethereum contract query requires AvatarCreated events. Configure API endpoint or implement event querying.";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Ethereum provider not fully configured. Contract address or API endpoint required.");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1390,8 +1426,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar detail directly from Ethereum smart contract
@@ -1447,8 +1487,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar detail directly from Ethereum smart contract
@@ -1532,8 +1576,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar detail by username from Ethereum smart contract
@@ -1611,8 +1659,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar detail by email from Ethereum smart contract
@@ -1693,8 +1745,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Call smart contract to get all avatar details directly
@@ -1740,8 +1796,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Ethereum provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar by provider key from Ethereum smart contract
@@ -1791,8 +1851,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-provider-key/{Uri.EscapeDataString(providerKey)}?version={version}");
@@ -1837,8 +1901,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/all?version={version}");
@@ -1884,8 +1952,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-email/{Uri.EscapeDataString(avatarEmail)}?version={version}");
@@ -1931,8 +2003,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
@@ -2010,8 +2086,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Real Ethereum implementation: Query smart contract for avatar by email
@@ -2059,8 +2139,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query avatar from Ethereum smart contract by username
@@ -2185,8 +2269,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -2232,8 +2320,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -2279,8 +2371,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var importedCount = 0;
@@ -2318,8 +2414,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons for avatar from Ethereum
@@ -2353,8 +2453,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username first
@@ -2403,8 +2507,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by email first
@@ -2463,8 +2571,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search avatars and holons from Ethereum smart contract
@@ -2789,8 +2901,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/search?metaKey={Uri.EscapeDataString(metaKey)}&metaValue={Uri.EscapeDataString(metaValue)}&type={type}&version={version}");
@@ -2835,8 +2951,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchRequest = new
@@ -3274,8 +3394,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate Ethereum key pair using Nethereum
@@ -3315,9 +3439,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3349,9 +3482,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3416,9 +3558,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3471,9 +3622,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3515,9 +3675,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3562,9 +3731,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<decimal>();
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3592,8 +3770,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
@@ -3619,8 +3801,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(seedPhrase))
@@ -3667,9 +3853,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3720,9 +3915,23 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated || Web3Client == null || _oasisAccount == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
+                    return result;
+                }
+                if (_oasisAccount == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum OASIS account is not initialized");
                     return result;
                 }
 
@@ -3769,9 +3978,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3825,9 +4043,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3908,9 +4135,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -3986,9 +4222,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -4053,9 +4298,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -4107,9 +4361,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -4181,9 +4444,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -4246,9 +4518,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 
@@ -4317,9 +4598,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                if (!IsProviderActivated || Web3Client == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (Web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
                     return result;
                 }
 

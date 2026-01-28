@@ -161,8 +161,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar from Polkadot blockchain
@@ -210,8 +214,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query Polkadot account by provider key using JSON-RPC
@@ -278,8 +286,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query Polkadot account by email using smart contract call
@@ -342,8 +354,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query Polkadot account by username using smart contract call
@@ -406,8 +422,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all avatars from Polkadot blockchain using smart contract call
@@ -470,8 +490,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar details from Polkadot blockchain using smart contract call
@@ -534,8 +558,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 if (avatar == null)
@@ -619,8 +647,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar from Polkadot blockchain using smart contract call
@@ -687,8 +719,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all avatars and filter by location
@@ -733,8 +769,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all holons and filter by location
@@ -792,8 +832,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 // Polkadot uses Substrate framework for NFTs
                 // Use Polkadot.js SDK or Substrate API for NFT transfers
@@ -819,8 +863,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 // Polkadot uses Substrate framework for NFTs
                 // Use Polkadot.js SDK or Substrate API for NFT minting
@@ -846,8 +894,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 // Polkadot uses Substrate framework for NFTs
                 // Use Polkadot.js SDK or Substrate API for NFT burning
@@ -868,8 +920,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTData is not supported by Polkadot provider");
             }
@@ -888,8 +944,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 // Polkadot uses Substrate framework for NFTs
                 // Use Polkadot.js SDK or Substrate API to query NFT metadata
@@ -1277,8 +1337,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "ExportAll is not supported by Polkadot provider");
             }
@@ -1297,8 +1361,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "ExportAllAsync is not supported by Polkadot provider");
             }
@@ -1317,8 +1385,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolon is not supported by Polkadot provider");
             }
@@ -1337,8 +1409,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolonAsync is not supported by Polkadot provider");
             }
@@ -1357,8 +1433,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolon is not supported by Polkadot provider");
             }
@@ -1377,8 +1457,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolonAsync is not supported by Polkadot provider");
             }
@@ -1397,8 +1481,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolonsForParent is not supported by Polkadot provider");
             }
@@ -1417,8 +1505,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync is not supported by Polkadot provider");
             }
@@ -1437,8 +1529,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolonsForParent is not supported by Polkadot provider");
             }
@@ -1457,8 +1553,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync is not supported by Polkadot provider");
             }
@@ -1477,8 +1577,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaData is not supported by Polkadot provider");
             }
@@ -1497,8 +1601,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync is not supported by Polkadot provider");
             }
@@ -1517,8 +1625,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadAllHolons is not supported by Polkadot provider");
             }
@@ -1537,8 +1649,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 // Load all holons from Polkadot blockchain
                 var queryUrl = type == HolonType.All ? "/api/v1/holons" : $"/api/v1/holons?type={type}";
@@ -1576,8 +1692,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 if (holon == null)
@@ -1678,8 +1798,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 if (holons == null)
@@ -1734,8 +1858,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "DeleteHolon is not supported by Polkadot provider");
             }
@@ -1754,8 +1882,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "DeleteHolonAsync is not supported by Polkadot provider");
             }
@@ -1774,8 +1906,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "DeleteHolon is not supported by Polkadot provider");
             }
@@ -1794,8 +1930,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "DeleteHolonAsync is not supported by Polkadot provider");
             }
@@ -1814,8 +1954,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "Search is not supported by Polkadot provider");
             }
@@ -1834,8 +1978,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "SearchAsync is not supported by Polkadot provider");
             }
@@ -1854,8 +2002,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarById is not supported by Polkadot provider");
             }
@@ -1874,8 +2026,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByIdAsync is not supported by Polkadot provider");
             }
@@ -1894,8 +2050,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByUsername is not supported by Polkadot provider");
             }
@@ -1914,8 +2074,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByUsernameAsync is not supported by Polkadot provider");
             }
@@ -1934,8 +2098,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByEmail is not supported by Polkadot provider");
             }
@@ -1954,8 +2122,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByEmailAsync is not supported by Polkadot provider");
             }
@@ -1974,8 +2146,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "Import is not supported by Polkadot provider");
             }
@@ -1994,8 +2170,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "ImportAsync is not supported by Polkadot provider");
             }
@@ -2016,8 +2196,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "SaveAvatarDetailAsync is not supported by Polkadot provider");
             }
@@ -2036,8 +2220,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync is not supported by Polkadot provider");
             }
@@ -2056,8 +2244,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync is not supported by Polkadot provider");
             }
@@ -2076,8 +2268,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmail is not supported by Polkadot provider");
             }
@@ -2096,8 +2292,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByUsernameAsync is not supported by Polkadot provider");
             }
@@ -2121,8 +2321,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByEmailAsync is not supported by Polkadot provider");
             }
@@ -2141,8 +2345,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "LoadAllAvatarDetailsAsync is not supported by Polkadot provider");
             }
@@ -2176,8 +2384,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmailAsync is not supported by Polkadot provider");
             }
@@ -2201,8 +2413,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
                 OASISErrorHandling.HandleError(ref response, "DeleteAvatarByUsernameAsync is not supported by Polkadot provider");
             }

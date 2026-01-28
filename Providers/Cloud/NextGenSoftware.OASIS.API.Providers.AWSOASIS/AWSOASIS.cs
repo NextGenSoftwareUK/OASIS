@@ -129,8 +129,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar from AWS DynamoDB
@@ -187,8 +191,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load holon from AWS DynamoDB
@@ -237,8 +245,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load holon by provider key from AWS DynamoDB
@@ -287,8 +299,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all holons from AWS DynamoDB
@@ -337,8 +353,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save holon to AWS DynamoDB
@@ -380,8 +400,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon from AWS DynamoDB
@@ -421,8 +445,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon by provider key from AWS DynamoDB
@@ -571,8 +599,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Get players near me from AWS
@@ -616,8 +648,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Get holons near me from AWS
