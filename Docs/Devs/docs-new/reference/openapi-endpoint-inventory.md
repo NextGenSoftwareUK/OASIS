@@ -5,7 +5,7 @@ This file is **generated** from the live OpenAPI spec. Do not edit by hand.
 **Source:** [OpenAPI spec](http://api.oasisweb4.com/swagger/v1/swagger.json)
 **Swagger UI:** [Interactive docs](http://api.oasisweb4.com/swagger/index.html)
 
-**Generated:** 2026-01-28T13:50:47.369Z
+**Generated:** 2026-01-28T14:10:58.752Z
 **Total endpoints:** 600
 
 ---
