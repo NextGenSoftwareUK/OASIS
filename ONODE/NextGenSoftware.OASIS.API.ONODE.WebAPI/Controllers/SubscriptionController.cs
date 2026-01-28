@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.SubscriptionStore;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using System.Linq;
@@ -17,10 +20,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class SubscriptionController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly ISubscriptionStore _store;
 
-        public SubscriptionController(IConfiguration configuration)
+        /// <summary>In-memory credit balance fallback when MongoDB is not configured.</summary>
+        private static readonly ConcurrentDictionary<string, decimal> CreditsBalanceByAvatar = new();
+
+        private static readonly decimal[] CreditsPresetAmounts = { 20m, 50m, 100m, 250m };
+
+        public SubscriptionController(IConfiguration configuration, ISubscriptionStore store)
         {
             _configuration = configuration;
+            _store = store ?? throw new ArgumentNullException(nameof(store));
         }
 
         [HttpGet("plans")]
@@ -126,6 +136,90 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>Get credit balance for the current avatar (or by avatarId when provided).</summary>
+        [HttpGet("balance")]
+        public async Task<ActionResult<object>> GetCreditsBalance([FromQuery] string avatarId = null)
+        {
+            var id = avatarId ?? GetCurrentUserId();
+            if (string.IsNullOrWhiteSpace(id))
+                return Ok(new { Result = new { CreditsBalanceUsd = 0m, Currency = "USD" }, IsError = false });
+            var balance = _store.IsConfigured
+                ? await _store.GetCreditsBalanceAsync(id).ConfigureAwait(false)
+                : CreditsBalanceByAvatar.GetValueOrDefault(id, 0m);
+            return Ok(new { Result = new { CreditsBalanceUsd = balance, Currency = "USD" }, IsError = false });
+        }
+
+        /// <summary>Create a one-time Stripe Checkout session to buy credits (Anthropic-style).</summary>
+        [HttpPost("checkout/credits")]
+        public async Task<ActionResult<CreateCheckoutSessionResponse>> CreateCreditsCheckoutSession([FromBody] BuyCreditsRequest request)
+        {
+            if (request == null)
+                return BadRequest(new { IsError = true, Message = "Invalid request" });
+            if (!CreditsPresetAmounts.Contains(request.AmountUsd))
+                return BadRequest(new { IsError = true, Message = $"Amount must be one of: {string.Join(", ", CreditsPresetAmounts)} USD." });
+            if (string.IsNullOrWhiteSpace(request.AvatarId))
+                return BadRequest(new { IsError = true, Message = "Sign in to buy credits. AvatarId is required." });
+
+            try
+            {
+                var publishableKey = _configuration["STRIPE_PUBLISHABLE_KEY"];
+                var secretKey = _configuration["STRIPE_SECRET_KEY"];
+                if (string.IsNullOrWhiteSpace(secretKey))
+                    return StatusCode(500, new { IsError = true, Message = "Stripe keys not configured." });
+
+                StripeConfiguration.ApiKey = secretKey;
+                var session = await CreateCreditsStripeSessionAsync(request);
+                return Ok(new CreateCheckoutSessionResponse
+                {
+                    IsError = false,
+                    Message = "Checkout session created",
+                    SessionId = session.Id,
+                    SessionUrl = session.Url
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { IsError = true, Message = $"Error creating credits checkout: {ex.Message}" });
+            }
+        }
+
+        private async Task<Stripe.Checkout.Session> CreateCreditsStripeSessionAsync(BuyCreditsRequest request)
+        {
+            var options = new Stripe.Checkout.SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = new List<Stripe.Checkout.SessionLineItemOptions>
+                {
+                    new Stripe.Checkout.SessionLineItemOptions
+                    {
+                        PriceData = new Stripe.Checkout.SessionLineItemPriceDataOptions
+                        {
+                            Currency = "usd",
+                            UnitAmount = (long)(request.AmountUsd * 100),
+                            ProductData = new Stripe.Checkout.SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = "OASIS API Credits",
+                                Description = $"${request.AmountUsd:N0} in prepaid API credits. Use until depleted.",
+                                Metadata = new Dictionary<string, string> { { "type", "credits" } }
+                            }
+                        },
+                        Quantity = 1
+                    }
+                },
+                Mode = "payment",
+                SuccessUrl = request.SuccessUrl ?? "https://oasisweb4.com/checkout-success.html?type=credits",
+                CancelUrl = request.CancelUrl ?? "https://oasisweb4.com/pricing.html",
+                CustomerEmail = request.CustomerEmail,
+                Metadata = new Dictionary<string, string>
+                {
+                    { "type", "credits" },
+                    { "avatar_id", request.AvatarId },
+                    { "amount_usd", request.AmountUsd.ToString("F2") }
+                }
+            };
+            var service = new Stripe.Checkout.SessionService();
+            return await service.CreateAsync(options);
+        }
 
         private async Task<Stripe.Checkout.Session> CreateStripeCheckoutSessionAsync(CreateCheckoutSessionRequest request)
         {
@@ -289,65 +383,101 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private async Task HandleCheckoutSessionCompletedAsync(Stripe.Checkout.Session session)
         {
+            if (session.Mode == "payment")
+            {
+                var type = session.Metadata?.GetValueOrDefault("type");
+                if (type == "credits")
+                {
+                    var avatarId = session.Metadata?.GetValueOrDefault("avatar_id");
+                    var amountStr = session.Metadata?.GetValueOrDefault("amount_usd");
+                    if (!string.IsNullOrEmpty(avatarId) && decimal.TryParse(amountStr, out var amountUsd) && amountUsd > 0)
+                    {
+                        if (_store.IsConfigured)
+                            await _store.AddCreditsAsync(avatarId, amountUsd).ConfigureAwait(false);
+                        else
+                            CreditsBalanceByAvatar.AddOrUpdate(avatarId, amountUsd, (_, existing) => existing + amountUsd);
+                    }
+                }
+                return;
+            }
+
             // Create or update user subscription
-            var userId = session.Metadata.GetValueOrDefault("user_id");
-            var planId = session.Metadata.GetValueOrDefault("plan_id");
-            
+            var userId = session.Metadata?.GetValueOrDefault("user_id") ?? session.Metadata?.GetValueOrDefault("avatar_id");
+            var planId = session.Metadata?.GetValueOrDefault("plan_id");
             if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(planId))
             {
-                // Update user subscription in database
                 await UpdateUserSubscriptionAsync(userId, planId, session.CustomerId, session.SubscriptionId);
             }
         }
 
         private async Task HandleSubscriptionCreatedAsync(Subscription subscription)
         {
-            // Handle new subscription creation
-            await UpdateSubscriptionStatusAsync(subscription.Id, "active", subscription.CustomerId);
+            await UpdateSubscriptionStatusAsync(
+                subscription.Id, "active", subscription.CustomerId,
+                subscription.CurrentPeriodStart, subscription.CurrentPeriodEnd);
         }
 
         private async Task HandleSubscriptionUpdatedAsync(Subscription subscription)
         {
-            // Handle subscription updates
-            var status = subscription.Status;
-            await UpdateSubscriptionStatusAsync(subscription.Id, status, subscription.CustomerId);
+            await UpdateSubscriptionStatusAsync(
+                subscription.Id, subscription.Status, subscription.CustomerId,
+                subscription.CurrentPeriodStart, subscription.CurrentPeriodEnd);
         }
 
         private async Task HandleSubscriptionDeletedAsync(Subscription subscription)
         {
-            // Handle subscription cancellation
             await UpdateSubscriptionStatusAsync(subscription.Id, "cancelled", subscription.CustomerId);
         }
 
         private async Task HandlePaymentSucceededAsync(Invoice invoice)
         {
-            // Handle successful payment
             if (invoice.SubscriptionId != null)
-            {
                 await UpdateSubscriptionStatusAsync(invoice.SubscriptionId, "active", invoice.CustomerId);
-            }
         }
 
         private async Task HandlePaymentFailedAsync(Invoice invoice)
         {
-            // Handle failed payment
             if (invoice.SubscriptionId != null)
-            {
                 await UpdateSubscriptionStatusAsync(invoice.SubscriptionId, "past_due", invoice.CustomerId);
-            }
         }
 
         private async Task UpdateUserSubscriptionAsync(string userId, string planId, string customerId, string subscriptionId)
         {
-            // Update user subscription in database
-            // This would typically involve updating a database record
-            Console.WriteLine($"Updated subscription for user {userId}: plan={planId}, customer={customerId}, subscription={subscriptionId}");
+            if (!_store.IsConfigured)
+            {
+                Console.WriteLine($"Updated subscription for user {userId}: plan={planId}, customer={customerId}, subscription={subscriptionId}");
+                return;
+            }
+            var periodStart = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var periodEnd = periodStart.AddMonths(1);
+            await _store.UpsertSubscriptionAsync(new SubscriptionRecord
+            {
+                AvatarId = userId,
+                PlanId = planId,
+                Status = "active",
+                StripeCustomerId = customerId,
+                StripeSubscriptionId = subscriptionId,
+                CurrentPeriodStart = periodStart,
+                CurrentPeriodEnd = periodEnd,
+                PayAsYouGoEnabled = false,
+                UpdatedAt = DateTime.UtcNow
+            }).ConfigureAwait(false);
         }
 
-        private async Task UpdateSubscriptionStatusAsync(string subscriptionId, string status, string customerId)
+        private async Task UpdateSubscriptionStatusAsync(string subscriptionId, string status, string customerId, DateTime? periodStart = null, DateTime? periodEnd = null)
         {
-            // Update subscription status in database
-            Console.WriteLine($"Updated subscription {subscriptionId} status to {status} for customer {customerId}");
+            if (!_store.IsConfigured)
+            {
+                Console.WriteLine($"Updated subscription {subscriptionId} status to {status} for customer {customerId}");
+                return;
+            }
+            var record = await _store.GetSubscriptionByStripeSubscriptionIdAsync(subscriptionId).ConfigureAwait(false);
+            if (record == null) return;
+            record.Status = status;
+            record.UpdatedAt = DateTime.UtcNow;
+            if (periodStart.HasValue) record.CurrentPeriodStart = periodStart.Value;
+            if (periodEnd.HasValue) record.CurrentPeriodEnd = periodEnd.Value;
+            await _store.UpsertSubscriptionAsync(record).ConfigureAwait(false);
         }
 
         [HttpGet("subscriptions/me")]
@@ -857,6 +987,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             public string CouponCode { get; set; }
             public string CustomerEmail { get; set; }
             public string AvatarId { get; set; }
+        }
+
+        /// <summary>Request to create a one-time checkout session to buy credits.</summary>
+        public class BuyCreditsRequest
+        {
+            [Required]
+            public decimal AmountUsd { get; set; }
+            [Required]
+            public string AvatarId { get; set; }
+            public string SuccessUrl { get; set; }
+            public string CancelUrl { get; set; }
+            public string CustomerEmail { get; set; }
         }
 
         public class CreateCheckoutSessionResponse

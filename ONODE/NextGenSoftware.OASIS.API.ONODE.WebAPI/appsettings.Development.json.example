@@ -1,0 +1,12 @@
+{
+  "STRIPE_PUBLISHABLE_KEY": "pk_test_REPLACE_WITH_YOUR_PUBLISHABLE_KEY",
+  "STRIPE_SECRET_KEY": "REPLACE_WITH_YOUR_STRIPE_SECRET_KEY_FROM_DASHBOARD",
+  "STRIPE_WEBHOOK_SECRET": "whsec_REPLACE_WITH_YOUR_WEBHOOK_SIGNING_SECRET",
+  "SubscriptionStore": {
+    "ConnectionString": "mongodb+srv://user:pass@cluster.mongodb.net/?retryWrites=true&w=majority",
+    "DatabaseName": "OASISAPI_DEV"
+  },
+  "Credits": {
+    "CostPerRequestUsd": 0.001
+  }
+}
