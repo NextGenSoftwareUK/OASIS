@@ -1,0 +1,6 @@
+# GitBook content configuration (used when this folder is the sync root)
+# See: https://docs.gitbook.com/getting-started/git-sync/content-configuration
+
+structure:
+  readme: index.md
+  summary: SUMMARY.md

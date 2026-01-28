@@ -1,0 +1,8 @@
+# GitBook content root: use the restructured docs (replaces previous docs on sync)
+# https://docs.gitbook.com/getting-started/git-sync/content-configuration
+
+root: ./Docs/Devs/docs-new/
+
+structure:
+  readme: index.md
+  summary: SUMMARY.md
