@@ -1781,7 +1781,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnWeb3NFTAsync(Guid avatarId, IBurnWeb3NFTRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnWeb3NFTAsync(IBurnWeb3NFTRequest request)
         {
             OASISResult<IWeb3NFTTransactionResponse> result = new();
             string errorMessage = "Error occured in BurnWeb3NFTAsync in NFTManager. Reason:";
@@ -1868,9 +1868,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (burnWeb3NFT)
                 {
-                    OASISResult<IWeb3NFTTransactionResponse> burnResult = await BurnWeb3NFTAsync(avatarId, new BurnWeb3NFTRequest()
+                    OASISResult<IWeb3NFTTransactionResponse> burnResult = await BurnWeb3NFTAsync(new BurnWeb3NFTRequest()
                     {
                         Web3NFTId = id,
+                        BurntByAvatarId = avatarId,
                         OwnerPrivateKey = "",
                         OwnerPublicKey = "",
                         OwnerSeedPhrase = ""

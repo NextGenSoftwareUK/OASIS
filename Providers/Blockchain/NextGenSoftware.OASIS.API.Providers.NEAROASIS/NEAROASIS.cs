@@ -245,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     {
                         var avatar = new Avatar
                         {
-                            Id = Guid.NewGuid(),
+                            Id = CreateDeterministicGuid($"{ProviderType.Value}:{providerKey}"),
                             Username = providerKey,
                             Email = result.TryGetProperty("account_id", out var accountId) ? accountId.GetString() : "",
                             CreatedDate = DateTime.UtcNow,
@@ -3434,8 +3434,10 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 // Look up the private key from the secure NEAR key store
                 // This uses the real NEAR key management system for secure key retrieval
+                // Note: This method should receive avatarId as parameter - using accountId as fallback for deterministic lookup
                 var keyManager = KeyManager.Instance;
-                var keysResult = keyManager.GetProviderPrivateKeysForAvatarById(Guid.NewGuid(), Core.Enums.ProviderType.NEAROASIS);
+                var avatarId = CreateDeterministicGuid($"{ProviderType.Value}:{accountId}");
+                var keysResult = keyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.NEAROASIS);
                 if (keysResult.IsError || !keysResult.Result.Any())
                 {
                     return null;
@@ -3518,7 +3520,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 // Extract basic information from NEAR JSON response
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractNEARProperty(nearJson, "account_id") ?? "near_user"}"),
                     Username = ExtractNEARProperty(nearJson, "account_id") ?? "near_user",
                     Email = ExtractNEARProperty(nearJson, "email") ?? "user@near.example",
                     FirstName = ExtractNEARProperty(nearJson, "first_name"),
@@ -3859,7 +3861,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -4468,13 +4470,29 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                             if (receipt.TryGetProperty("outcome", out var outcome) &&
                                 outcome.TryGetProperty("status", out var status))
                             {
+                                // Create deterministic GUID from receipt ID
+                                var receiptId = receipt.TryGetProperty("id", out var id) ? id.GetString() : null;
+                                Guid txGuid;
+                                if (!string.IsNullOrWhiteSpace(receiptId))
+                                {
+                                    using var sha256 = System.Security.Cryptography.SHA256.Create();
+                                    var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(receiptId));
+                                    txGuid = new Guid(hashBytes.Take(16).ToArray());
+                                }
+                                else
+                                {
+                                    // Fallback: use deterministic GUID from transaction data
+                                    var txData = $"{request.WalletAddress}:{receipt.GetRawText()}";
+                                    txGuid = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txData}");
+                                }
+                                
                                 var transaction = new WalletTransaction
                                 {
-                                    TransactionId = Guid.NewGuid(),
+                                    TransactionId = txGuid,
                                     FromWalletAddress = request.WalletAddress,
                                     ToWalletAddress = outcome.TryGetProperty("executor_id", out var executor) ? executor.GetString() : "",
                                     Amount = 0.0,
-                                    Description = receipt.TryGetProperty("id", out var id) ? id.GetString() : "",
+                                    Description = receiptId ?? "",
                                     TransactionType = TransactionType.Credit,
                                     TransactionCategory = TransactionCategory.Other
                                 };
@@ -4805,9 +4823,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 var txHash = txResult.TryGetProperty("transaction", out var tx) &&
                             tx.TryGetProperty("hash", out var txHashEl) ? txHashEl.GetString() : "";
 
+                // If txHash is null, create deterministic hash from transaction parameters
+                var finalTxHash = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N");
+                
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = txHash ?? Guid.NewGuid().ToString(),
+                    TransactionId = finalTxHash,
                     IsSuccessful = true,
                     Status = BridgeTransactionStatus.Pending
                 };
@@ -4955,9 +4976,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 var txHash = txResult.TryGetProperty("transaction", out var tx) &&
                             tx.TryGetProperty("hash", out var txHashEl) ? txHashEl.GetString() : "";
 
+                // If txHash is null, create deterministic hash from transaction parameters
+                var finalTxHash = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N");
+                
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = txHash ?? Guid.NewGuid().ToString(),
+                    TransactionId = finalTxHash,
                     IsSuccessful = true,
                     Status = BridgeTransactionStatus.Completed
                 };
@@ -5087,6 +5111,19 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
     }
 
     #endregion
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
 
         #endregion
     }

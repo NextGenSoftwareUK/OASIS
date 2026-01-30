@@ -1740,7 +1740,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 // Extract avatar data from Bitcoin OP_RETURN transaction
                 var avatar = new Avatar
                 {
-                    Id = Guid.TryParse(bitcoinData.TryGetProperty("id", out var id) ? id.GetString() : Guid.NewGuid().ToString(), out var guid) ? guid : Guid.NewGuid(),
+                    Id = Guid.TryParse(bitcoinData.TryGetProperty("id", out var id) ? id.GetString() : null, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:{(bitcoinData.TryGetProperty("address", out var addr) ? addr.GetString() : "bitcoin_user")}"),
                     Username = bitcoinData.TryGetProperty("username", out var username) ? username.GetString() : "bitcoin_user",
                     Email = bitcoinData.TryGetProperty("email", out var email) ? email.GetString() : "user@bitcoin.example",
                     FirstName = bitcoinData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "Bitcoin",
@@ -1775,7 +1775,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 // Extract basic information from Bitcoin JSON response
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractBitcoinProperty(bitcoinJson, "address") ?? "bitcoin_user"}"),
                     Username = ExtractBitcoinProperty(bitcoinJson, "address") ?? "bitcoin_user",
                     Email = ExtractBitcoinProperty(bitcoinJson, "email") ?? "user@bitcoin.example",
                     FirstName = ExtractBitcoinProperty(bitcoinJson, "first_name"),
@@ -1902,7 +1902,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{identifier}"),
                     Username = identifier,
                     Email = bitcoinData.TryGetProperty("address", out var address) ? address.GetString() : identifier,
                     FirstName = "Bitcoin",
@@ -2407,7 +2407,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -2762,13 +2762,29 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 {
                     foreach (var tx in resultElement.EnumerateArray())
                     {
+                        // Extract transaction ID for deterministic GUID
+                        var txId = tx.TryGetProperty("txid", out var txidProp) ? txidProp.GetString() : null;
+                        Guid txGuid;
+                        if (!string.IsNullOrWhiteSpace(txId))
+                        {
+                            using var sha256 = System.Security.Cryptography.SHA256.Create();
+                            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txId));
+                            txGuid = new Guid(hashBytes.Take(16).ToArray());
+                        }
+                        else
+                        {
+                            // Fallback: use deterministic GUID from transaction data
+                            var txData = $"{request.WalletAddress}:{tx.GetRawText()}";
+                            txGuid = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txData}");
+                        }
+                        
                         var walletTx = new WalletTransaction
                         {
-                            TransactionId = Guid.NewGuid(),
+                            TransactionId = txGuid,
                             FromWalletAddress = tx.TryGetProperty("address", out var addr) ? addr.GetString() : string.Empty,
                             ToWalletAddress = tx.TryGetProperty("address", out var toAddr) ? toAddr.GetString() : string.Empty,
                             Amount = tx.TryGetProperty("amount", out var amt) ? amt.GetDouble() : 0.0,
-                            Description = tx.TryGetProperty("txid", out var txid) ? $"Bitcoin transaction: {txid.GetString()}" : "Bitcoin transaction"
+                            Description = txId != null ? $"Bitcoin transaction: {txId}" : "Bitcoin transaction"
                         };
                         transactions.Add(walletTx);
                     }
@@ -2976,7 +2992,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 // Convert amount to Satoshis
                 var satoshiAmount = (ulong)(amount * 100_000_000m);
-                var bridgePoolAddress = "1" + new string('0', 33); // TODO: Get from config
+                var bridgePoolAddress = _contractAddress ?? "1" + new string('0', 33);
 
                 // Create Bitcoin transaction using RPC
                 var rpcRequest = new
@@ -2996,7 +3012,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     var txHash = resultElement.GetString();
                     result.Result = new BridgeTransactionResponse
                     {
-                        TransactionId = txHash ?? Guid.NewGuid().ToString(),
+                        TransactionId = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N"),
                         IsSuccessful = true,
                         Status = BridgeTransactionStatus.Pending
                     };
@@ -3069,7 +3085,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     var txHash = resultElement.GetString();
                     result.Result = new BridgeTransactionResponse
                     {
-                        TransactionId = txHash ?? Guid.NewGuid().ToString(),
+                        TransactionId = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N"),
                         IsSuccessful = true,
                         Status = BridgeTransactionStatus.Pending
                     };

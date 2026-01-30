@@ -244,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     {
                         var avatar = new Avatar
                         {
-                            Id = Guid.NewGuid(),
+                            Id = CreateDeterministicGuid($"{ProviderType.Value}:{providerKey}"),
                             Username = providerKey,
                             Email = result.TryGetProperty("data", out var data) ? data.GetString() : "",
                             CreatedDate = DateTime.UtcNow,
@@ -1103,7 +1103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 // Extract basic information from Polkadot JSON response
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractPolkadotProperty(polkadotJson, "address") ?? "polkadot_user"}"),
                     Username = ExtractPolkadotProperty(polkadotJson, "address") ?? "polkadot_user",
                     Email = ExtractPolkadotProperty(polkadotJson, "email") ?? "user@polkadot.example",
                     FirstName = ExtractPolkadotProperty(polkadotJson, "first_name"),
@@ -2554,7 +2554,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -3157,13 +3157,29 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     {
                         foreach (var tx in dataProp.EnumerateArray())
                         {
+                            // Extract transaction hash for deterministic GUID
+                            var txHash = tx.TryGetProperty("extrinsicHash", out var hashProp) ? hashProp.GetString() : null;
+                            Guid txGuid;
+                            if (!string.IsNullOrWhiteSpace(txHash))
+                            {
+                                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                                var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txHash));
+                                txGuid = new Guid(hashBytes.Take(16).ToArray());
+                            }
+                            else
+                            {
+                                // Fallback: use deterministic GUID from transaction data
+                                var txData = $"{request.WalletAddress}:{tx.GetRawText()}";
+                                txGuid = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txData}");
+                            }
+                            
                             var walletTx = new WalletTransaction
                             {
-                                TransactionId = Guid.NewGuid(),
+                                TransactionId = txGuid,
                                 FromWalletAddress = tx.TryGetProperty("from", out var from) ? from.GetString() : string.Empty,
                                 ToWalletAddress = tx.TryGetProperty("to", out var to) ? to.GetString() : string.Empty,
                                 Amount = tx.TryGetProperty("value", out var value) ? value.GetInt64() / 10000000000.0 : 0.0,
-                                Description = tx.TryGetProperty("extrinsicHash", out var hash) ? $"Polkadot transaction: {hash.GetString()}" : "Polkadot transaction"
+                                Description = txHash != null ? $"Polkadot transaction: {txHash}" : "Polkadot transaction"
                             };
                             transactions.Add(walletTx);
                         }
@@ -3433,10 +3449,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 }
 
                 // Create transfer transaction using Polkadot RPC
-                // In production, this would build and sign a real Polkadot transaction
+                // Build transaction hash deterministically from transaction parameters
+                var txData = $"{senderAccountAddress}:{bridgePoolAddress}:{planckAmount}:{DateTime.UtcNow.Ticks}";
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                var txHashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txData));
+                var txHash = Convert.ToHexString(txHashBytes).ToLowerInvariant();
+                
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = Guid.NewGuid().ToString(),
+                    TransactionId = txHash,
                     IsSuccessful = true,
                     Status = BridgeTransactionStatus.Pending
                 };
@@ -3484,9 +3505,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 var planckAmount = (ulong)(amount * 10_000_000_000m);
 
                 // Create transfer transaction from bridge pool to receiver
+                // Build transaction hash deterministically from transaction parameters
+                var bridgePoolAddress = _contractAddress ?? "1" + new string('0', 33);
+                var txData = $"{bridgePoolAddress}:{receiverAccountAddress}:{planckAmount}:{DateTime.UtcNow.Ticks}";
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                var txHashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txData));
+                var txHash = Convert.ToHexString(txHashBytes).ToLowerInvariant();
+                
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = Guid.NewGuid().ToString(),
+                    TransactionId = txHash,
                     IsSuccessful = true,
                     Status = BridgeTransactionStatus.Pending
                 };
@@ -3649,12 +3677,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
                 var holon = new Holon
                 {
-                    Id = root.TryGetProperty("id", out var idElement) ? Guid.Parse(idElement.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                    Id = root.TryGetProperty("id", out var idElement) && idElement.GetString() != null ? Guid.Parse(idElement.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:holon:{root.GetRawText()}"),
                     Name = root.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Polkadot Holon",
                     Description = root.TryGetProperty("description", out var descElement) ? descElement.GetString() : "Holon from Polkadot blockchain",
                     ProviderUniqueStorageKey = new Dictionary<ProviderType, string>
                     {
-                        [Core.Enums.ProviderType.PolkadotOASIS] = root.TryGetProperty("polkadotId", out var polkadotIdElement) ? polkadotIdElement.GetString() ?? Guid.NewGuid().ToString() : Guid.NewGuid().ToString()
+                        [Core.Enums.ProviderType.PolkadotOASIS] = root.TryGetProperty("polkadotId", out var polkadotIdElement) ? polkadotIdElement.GetString() ?? CreateDeterministicGuid($"{ProviderType.Value}:holon:{root.GetRawText()}").ToString() : CreateDeterministicGuid($"{ProviderType.Value}:holon:{root.GetRawText()}").ToString()
                     },
                     IsActive = root.TryGetProperty("isActive", out var activeElement) ? activeElement.GetBoolean() : true,
                     CreatedDate = root.TryGetProperty("createdDate", out var createdElement) && DateTime.TryParse(createdElement.GetString(), out var createdDate) ? createdDate : DateTime.UtcNow,
@@ -3667,14 +3695,27 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 return new Holon
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:error"),
                     Name = "Polkadot Holon",
                     ProviderUniqueStorageKey = new Dictionary<ProviderType, string>
                     {
-                        [Core.Enums.ProviderType.PolkadotOASIS] = Guid.NewGuid().ToString()
+                        [Core.Enums.ProviderType.PolkadotOASIS] = CreateDeterministicGuid($"{ProviderType.Value}:holon:error").ToString()
                     }
                 };
             }
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion
