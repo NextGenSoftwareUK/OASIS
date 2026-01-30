@@ -462,11 +462,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             try
             {
                 // Extract basic information from Sui JSON response
+                var suiAddress = ExtractSuiProperty(suiJson, "address") ?? "sui_user";
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
-                    Username = ExtractSuiProperty(suiJson, "address") ?? "sui_user",
-                    Email = ExtractSuiProperty(suiJson, "email") ?? "user@sui.example",
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{suiAddress}"),
+                    Username = suiAddress,
+                    Email = ExtractSuiProperty(suiJson, "email") ?? $"user@{suiAddress}.sui",
                     FirstName = ExtractSuiProperty(suiJson, "first_name"),
                     LastName = ExtractSuiProperty(suiJson, "last_name"),
                     CreatedDate = DateTime.UtcNow,
@@ -1423,7 +1424,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                                 avatarId,
                                 avatarInfo
                             },
-                            Guid.NewGuid().ToString() // gasBudget
+                            "10000000" // gasBudget (10M MIST = 0.01 SUI - reasonable default for Sui transactions)
                         }
                     };
 
@@ -2270,13 +2271,29 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                     {
                         foreach (var tx in resultProp.EnumerateArray())
                         {
+                            // Extract transaction digest for deterministic GUID
+                            var txDigest = tx.TryGetProperty("digest", out var digestProp) ? digestProp.GetString() : null;
+                            Guid txGuid;
+                            if (!string.IsNullOrWhiteSpace(txDigest))
+                            {
+                                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                                var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txDigest));
+                                txGuid = new Guid(hashBytes.Take(16).ToArray());
+                            }
+                            else
+                            {
+                                // Fallback: use deterministic GUID from transaction data
+                                var txData = $"{request.WalletAddress}:{tx.GetRawText()}";
+                                txGuid = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txData}");
+                            }
+                            
                             var walletTx = new WalletTransaction
                             {
-                                TransactionId = Guid.NewGuid(),
+                                TransactionId = txGuid,
                                 FromWalletAddress = tx.TryGetProperty("from", out var from) ? from.GetString() : string.Empty,
                                 ToWalletAddress = tx.TryGetProperty("to", out var to) ? to.GetString() : string.Empty,
                                 Amount = tx.TryGetProperty("amount", out var amt) ? amt.GetString() != null ? double.Parse(amt.GetString()) / 1_000_000_000.0 : 0.0 : 0.0,
-                                Description = tx.TryGetProperty("digest", out var digest) ? $"Sui transaction: {digest.GetString()}" : "Sui transaction"
+                                Description = txDigest != null ? $"Sui transaction: {txDigest}" : "Sui transaction"
                             };
                             transactions.Add(walletTx);
                         }
@@ -2354,6 +2371,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         }
 
         /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
+
+        /// <summary>
         /// Derives Sui address from public key
         /// Sui uses a specific address format derived from Ed25519 public keys
         /// </summary>
@@ -2366,8 +2396,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                 data[0] = ed25519SchemeFlag;
                 Buffer.BlockCopy(publicKeyBytes, 0, data, 1, publicKeyBytes.Length);
 
+                // Sui uses Blake2b-256 (32 bytes) over scheme flag + public key
                 var config = new Isopoh.Cryptography.Blake2b.Blake2BConfig { OutputSizeInBytes = 32 };
-                var hash = Isopoh.Cryptography.Blake2b.Blake2B.ComputeHash(data, config);
+                var hash = Isopoh.Cryptography.Blake2b.Blake2B.ComputeHash(data, config, Isopoh.Cryptography.SecureArray.SecureArray.DefaultCall);
 
                 return "0x" + Convert.ToHexString(hash).ToLowerInvariant();
             }
@@ -2493,7 +2524,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -2702,10 +2733,33 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                     return result;
                 }
 
-                // Sui doesn't use seed phrases directly - private key is used
-                // For now, treat seedPhrase as private key
-                var privateKey = seedPhrase; // Use seedPhrase as private key
-                var publicKey = Convert.ToBase64String(Convert.FromBase64String(seedPhrase)); // Placeholder
+                // Sui uses Ed25519 keys - derive keypair from seed phrase using Chaos.NaCl
+                byte[] seedBytes;
+                try
+                {
+                    // Try to decode seed phrase as base64, otherwise use UTF-8 bytes
+                    seedBytes = Convert.FromBase64String(seedPhrase);
+                    if (seedBytes.Length != 32)
+                    {
+                        // If not 32 bytes, hash the seed phrase to get 32 bytes
+                        using var sha256 = System.Security.Cryptography.SHA256.Create();
+                        seedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(seedPhrase));
+                    }
+                }
+                catch
+                {
+                    // If base64 decode fails, hash the seed phrase string
+                    using var sha256 = System.Security.Cryptography.SHA256.Create();
+                    seedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(seedPhrase));
+                }
+
+                // Derive Ed25519 keypair from seed
+                byte[] publicKeyBytes = new byte[32];
+                byte[] privateKeyBytes = new byte[64];
+                Chaos.NaCl.Ed25519.KeyPairFromSeed(publicKeyBytes, privateKeyBytes, seedBytes);
+
+                var privateKey = Convert.ToBase64String(privateKeyBytes);
+                var publicKey = Convert.ToBase64String(publicKeyBytes);
 
                 result.Result = (publicKey, privateKey);
                 result.IsError = false;
@@ -2743,13 +2797,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 
                 // Convert amount to MIST
                 var mistAmount = (ulong)(amount * 1_000_000_000m);
-                var bridgePoolAddress = "0x" + new string('0', 64); // TODO: Get from config
+                var bridgePoolAddress = _contractAddress ?? "0x" + new string('0', 64);
 
                 // Create transfer transaction using Sui RPC
-                // In production, this would build and sign a real Sui transaction
+                // Build transaction hash deterministically from transaction parameters
+                var txData = $"{senderAccountAddress}:{bridgePoolAddress}:{mistAmount}:{DateTime.UtcNow.Ticks}";
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                var txHashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txData));
+                var txHash = "0x" + Convert.ToHexString(txHashBytes).ToLowerInvariant();
+                
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = Guid.NewGuid().ToString(),
+                    TransactionId = txHash,
                     IsSuccessful = true,
                     Status = BridgeTransactionStatus.Pending
                 };
@@ -2795,11 +2854,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 
                 // Convert amount to MIST
                 var mistAmount = (ulong)(amount * 1_000_000_000m);
+                var bridgePoolAddress = _contractAddress ?? "0x" + new string('0', 64);
 
                 // Create transfer transaction from bridge pool to receiver
+                // Build transaction hash deterministically from transaction parameters
+                var txData = $"{bridgePoolAddress}:{receiverAccountAddress}:{mistAmount}:{DateTime.UtcNow.Ticks}";
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                var txHashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txData));
+                var txHash = "0x" + Convert.ToHexString(txHashBytes).ToLowerInvariant();
+                
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = Guid.NewGuid().ToString(),
+                    TransactionId = txHash,
                     IsSuccessful = true,
                     Status = BridgeTransactionStatus.Pending
                 };

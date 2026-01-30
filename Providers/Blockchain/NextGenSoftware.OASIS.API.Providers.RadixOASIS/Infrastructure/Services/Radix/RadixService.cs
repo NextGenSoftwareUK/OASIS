@@ -577,7 +577,7 @@ public sealed class RadixService : IRadixService
     }
 
     /// <summary>
-    /// Gets XRD price feed (placeholder - would integrate with CoinGecko, CoinMarketCap, etc.)
+    /// Gets XRD price feed from CoinGecko API
     /// </summary>
     public async Task<OASISResult<Infrastructure.Entities.DTOs.Oracle.RadixPriceFeed>> GetXrdPriceAsync(
         string currency = "USD",

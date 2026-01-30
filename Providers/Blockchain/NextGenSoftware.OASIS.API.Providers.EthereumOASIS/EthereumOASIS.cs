@@ -321,7 +321,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -375,7 +375,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -463,7 +463,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -512,7 +512,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -785,7 +785,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -905,7 +905,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -983,7 +983,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1072,7 +1072,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1120,7 +1120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1320,7 +1320,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1426,7 +1426,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1441,7 +1441,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     // Placeholder implementation - in real scenario, this would query the Ethereum smart contract
                     var avatarDetail = new AvatarDetail
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{this.ProviderType.Value}:{avatarEmail}"),
                         Username = $"ethereum_user_{avatarEmail.Split('@')[0]}",
                         Email = avatarEmail,
                         FirstName = "Ethereum",
@@ -1487,7 +1487,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1576,7 +1576,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1659,7 +1659,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1745,7 +1745,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1796,7 +1796,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1851,7 +1851,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1901,7 +1901,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -1952,7 +1952,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2003,7 +2003,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2086,7 +2086,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2139,7 +2139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2269,7 +2269,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2320,7 +2320,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2371,7 +2371,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2414,7 +2414,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2453,7 +2453,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2507,7 +2507,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2571,7 +2571,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2901,7 +2901,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -2951,7 +2951,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3014,9 +3014,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 // Convert Ethereum smart contract response to Avatar
+                var ethereumAddress = GetEthereumProperty(ethereumData, "address") ?? GetEthereumProperty(ethereumData, "account") ?? "ethereum_user";
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{this.ProviderType.Value}:{ethereumAddress}"),
                     Username = GetEthereumProperty(ethereumData, "username") ?? "ethereum_user",
                     Email = GetEthereumProperty(ethereumData, "email") ?? "user@ethereum.example",
                     FirstName = GetEthereumProperty(ethereumData, "firstName") ?? "Ethereum",
@@ -3228,9 +3229,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(smartContractData.ToString());
                 if (dataDict == null) return null;
                 
+                var ethereumAddress = dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("account")?.ToString() ?? email;
                 var avatar = new Avatar
                 {
-                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{this.ProviderType.Value}:{ethereumAddress}"),
                     Username = dataDict.GetValueOrDefault("username")?.ToString() ?? $"ethereum_user_{email}",
                     Email = dataDict.GetValueOrDefault("email")?.ToString() ?? email,
                     FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "Ethereum",
@@ -3394,7 +3396,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3413,7 +3415,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 {
                     keyPair.PrivateKey = privateKey;
                     keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = publicKey; //TODO: Replace with Eth wallet address.
+                    keyPair.WalletAddressLegacy = publicKey; // publicKey from GetPublicAddress() is already the Ethereum address
                 }
 
                 result.Result = keyPair;
@@ -3441,7 +3443,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3484,7 +3486,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3560,7 +3562,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3624,7 +3626,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3677,7 +3679,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3733,7 +3735,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3770,7 +3772,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3801,7 +3803,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3855,7 +3857,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3917,7 +3919,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -3980,7 +3982,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -4045,7 +4047,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -4137,7 +4139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -4224,7 +4226,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -4259,9 +4261,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var erc721Contract = web3.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
                 var burnFunction = erc721Contract.GetFunction("burn");
 
-                // Token ID would need to be retrieved from the NFT record
-                // For now, using a placeholder - in production, this should come from the NFT data
-                var tokenId = BigInteger.Zero; // Should be retrieved from request.Web3NFTId
+                // Get token ID from request
+                var tokenId = request?.Web3NFTId != null && request.Web3NFTId != Guid.Empty
+                    ? new BigInteger(request.Web3NFTId.GetHashCode())
+                    : BigInteger.Zero;
 
                 var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
                     senderAccount.Address,
@@ -4300,7 +4303,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -4363,7 +4366,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -4446,7 +4449,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -4520,7 +4523,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -4600,7 +4603,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
@@ -4650,6 +4653,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             return result;
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion

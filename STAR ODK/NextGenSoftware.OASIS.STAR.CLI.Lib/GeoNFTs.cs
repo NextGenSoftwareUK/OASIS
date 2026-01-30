@@ -93,18 +93,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
-                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB4_GEONFT_{geoNFTResult.Result.Id}.json"), JsonConvert.SerializeObject(geoNFT));
+                        UpdateWeb4AndWeb3GeoNFTJSONFiles(geoNFT, result.Result.STARNETDNA.SourcePath);
 
-                        if (!string.IsNullOrEmpty(geoNFTResult.Result.JSONMetaData))
-                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB4_JSONMetaData_{geoNFTResult.Result.Id}.json"), geoNFTResult.Result.JSONMetaData);
+                        //File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB4_GEONFT_{geoNFTResult.Result.Id}.json"), JsonConvert.SerializeObject(geoNFT));
 
-                        foreach (IWeb3NFT web3Nft in geoNFTResult.Result.Web3NFTs)
-                        {
-                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB3_NFT_{web3Nft.Id}.json"), JsonConvert.SerializeObject(web3Nft));
+                        //if (!string.IsNullOrEmpty(geoNFTResult.Result.JSONMetaData))
+                        //    File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB4_JSONMetaData_{geoNFTResult.Result.Id}.json"), geoNFTResult.Result.JSONMetaData);
 
-                            if (!string.IsNullOrEmpty(web3Nft.JSONMetaData))
-                                File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB3_JSONMetaData_{web3Nft.Id}.json"), web3Nft.JSONMetaData);
-                        }
+                        //foreach (IWeb3NFT web3Nft in geoNFTResult.Result.Web3NFTs)
+                        //{
+                        //    File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB3_NFT_{web3Nft.Id}.json"), JsonConvert.SerializeObject(web3Nft));
+
+                        //    if (!string.IsNullOrEmpty(web3Nft.JSONMetaData))
+                        //        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"WEB3_JSONMetaData_{web3Nft.Id}.json"), web3Nft.JSONMetaData);
+                        //}
 
                         result.Result.NFTType = (NFTType)Enum.Parse(typeof(NFTType), result.Result.STARNETDNA.STARNETCategory.ToString());
                         OASISResult<STARGeoNFT> saveResult = await result.Result.SaveAsync<STARGeoNFT>();
@@ -173,6 +175,41 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             CLIEngine.ShowDivider();
+        }
+
+        public override async Task<OASISResult<STARGeoNFT>> DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<STARGeoNFT> result = await base.DeleteAsync(idOrName, softDelete, providerType);
+
+            if (result != null && result.Result != null && !result.IsError && result.IsDeleted)
+            {
+                if (result.Result.STARNETDNA != null && result.Result.STARNETDNA.MetaData != null && result.Result.STARNETDNA.MetaData.ContainsKey("WEB4 GEONFT") && result.Result.STARNETDNA.MetaData["WEB4 GEONFT"] != null)
+                {
+                    IWeb4GeoSpatialNFT nft = result.Result.STARNETDNA.MetaData["WEB4 GEONFT"] as IWeb4GeoSpatialNFT;
+
+                    if (nft == null)
+                        nft = JsonConvert.DeserializeObject<IWeb4GeoSpatialNFT>(result.Result.STARNETDNA.MetaData["WEB4 GEONFT"].ToString());
+
+                    if (nft != null)
+                    {
+                        //Need to delete the link from Web4 to Web5 in the web4 metadata here.
+                        nft.MetaData.Remove("Web5STARNFTId");
+                        OASISResult<IWeb4GeoSpatialNFT> web4NFT = await NFTCommon.NFTManager.UpdateWeb4GeoNFTAsync(new UpdateWeb4GeoNFTRequest() { Id = nft.Id, ModifiedByAvatarId = STAR.BeamedInAvatar.Id, MetaData = nft.MetaData }, providerType: providerType);
+
+                        if (!(web4NFT != null && web4NFT.Result != null && !web4NFT.IsError))
+                            OASISErrorHandling.HandleError(ref result, $"Error occured removing WEB5 GeoNFT ID link from the metadata on it's child/wrapped WEB4 GeoNFT {nft.Id} and title {nft.Title}. Reason: {web4NFT.Message}");
+                        else
+                            CLIEngine.ShowSuccessMessage("WEB4 Link To WEB5 Removed.");
+
+                        if (CLIEngine.GetConfirmation($"Do you wish to also delete the child WEB4 GeoNFT ({nft.Title}) and optionally it's child WEB3 NFT's?"))
+                            await DeleteWeb4GeoNFTAsync(nft.Id.ToString(), providerType);
+                        else
+                            Console.WriteLine("");
+                    }
+                }
+            }
+
+            return result;
         }
 
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> MintGeoNFTAsync(object mintParams = null)
@@ -343,26 +380,94 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> BurnGeoNFTAsync(object mintParams = null)
         {
             OASISResult<IWeb4GeoSpatialNFT> result = new OASISResult<IWeb4GeoSpatialNFT>();
+
+            OASISResult<IWeb3NFTTransactionResponse> burnResult = await NFTCommon.NFTManager.BurnWeb3NFTAsync(new BurnWeb3NFTRequest()
+            {
+                OwnerPublicKey = CLIEngine.GetValidInput("Please enter the Public Key of the wallet that owns the NFT: "),
+                OwnerPrivateKey = CLIEngine.GetValidInput("Please enter the Private Key of the wallet that owns the NFT: "),
+                OwnerSeedPhrase = CLIEngine.GetValidInput("Please enter the Seed Phrase of the wallet that owns the NFT: "),
+                NFTTokenAddress = CLIEngine.GetValidInput("Please enter the Token Address of the NFT you wish to burn: "),
+                BurntByAvatarId = STAR.BeamedInAvatar.Id
+            });
+
+            if (result != null && result.Result != null && !result.IsError)
+                CLIEngine.ShowSuccessMessage("NFT Successfully Burnt.");
+            else
+                CLIEngine.ShowSuccessMessage($"Error Burning NFT, Reason: {result.Message}");
+
             return result;
         }
 
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> ImportGeoNFTAsync(object mintParams = null)
         {
             OASISResult<IWeb4GeoSpatialNFT> result = new OASISResult<IWeb4GeoSpatialNFT>();
+
+            try
+            {
+                string filePath = CLIEngine.GetValidFile("Please enter the full path to the WEB4 OASIS GeoNFT file you wish to import: ");
+
+                OASISResult<IWeb4GeoSpatialNFT> importResult = await NFTCommon.NFTManager.ImportWeb4GeoNFTAsync(STAR.BeamedInAvatar.Id, filePath);
+
+                if (importResult != null && importResult.Result != null && !importResult.IsError)
+                {
+                    CLIEngine.ShowSuccessMessage(importResult.Message);
+                    result.Result = importResult.Result;
+                    result.Message = importResult.Message;
+                }
+                else
+                {
+                    string msg = importResult != null ? importResult.Message : "";
+                    CLIEngine.ShowErrorMessage($"Failed to import WEB4 OASIS GeoNFT: {msg}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error importing WEB4 OASIS GeoNFT: {ex.Message}";
+                CLIEngine.ShowErrorMessage($"Error importing WEB4 OASIS GeoNFT: {ex.Message}");
+            }
+
             return result;
         }
 
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> ExportGeoNFTAsync(object mintParams = null)
         {
             OASISResult<IWeb4GeoSpatialNFT> result = new OASISResult<IWeb4GeoSpatialNFT>();
+
+            try
+            {
+                OASISResult<IWeb4GeoSpatialNFT> geoNFTResult = await FindWeb4GeoNFTAsync("export");
+                
+                if (geoNFTResult == null || geoNFTResult.Result == null || geoNFTResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error occured loading WEB4 Geo-NFT in ExportGeoNFTAsync method. Reason: {geoNFTResult.Message}");
+                    return result;
+                }
+
+                string filePath = CLIEngine.GetValidFile("Please enter the full path to where you would like to export the WEB4 OASIS GeoNFT file: ");
+                OASISResult<IWeb4GeoSpatialNFT> exportResult = await NFTCommon.NFTManager.ExportWeb4GeoNFTAsync(geoNFTResult.Result.Id, filePath);
+
+                if (exportResult != null && exportResult.Result != null && !exportResult.IsError)
+                {
+                    CLIEngine.ShowSuccessMessage(exportResult.Message);
+                    result.Result = exportResult.Result;
+                    result.Message = exportResult.Message;
+                }
+                else
+                {
+                    string msg = exportResult != null ? exportResult.Message : "";
+                    CLIEngine.ShowErrorMessage($"Failed to export WEB4 OASIS GeoNFT: {msg}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error exporting WEB4 OASIS GeoNFT: {ex.Message}";
+                CLIEngine.ShowErrorMessage($"Error importing WEB4 OASIS GeoNFT: {ex.Message}");
+            }
+
             return result;
         }
-
-        //public async Task<OASISResult<IOASISGeoSpatialNFT>> CloneGeoNFTAsync(object mintParams = null)
-        //{
-        //    OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
-        //    return result;
-        //}
 
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> ConvertGeoNFTAsync(object mintParams = null)
         {
@@ -370,7 +475,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        //public virtual async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> ListAllWeb4GeoNFTsAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
         public virtual async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> ListAllWeb4GeoNFTsAsync(ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
@@ -378,7 +482,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return ListWeb4GeoNFTs(await NFTCommon.NFTManager.LoadAllWeb4GeoNFTsAsync(providerType));
         }
 
-        //public virtual OASISResult<IEnumerable<IOASISGeoSpatialNFT>> ListAllWeb4GeoNFTs(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
         public virtual OASISResult<IEnumerable<IWeb4GeoSpatialNFT>> ListAllWeb4GeoNFTs(ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
@@ -622,6 +725,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return result;
+        }
+
+        public async Task<OASISResult<IWeb4GeoSpatialNFT>> DeleteWeb4GeoNFTAsync(string idOrName, ProviderType providerType = ProviderType.Default)
+        {
+            return await DeleteWeb4GeoNFTAsync(idOrName, null, null, null, providerType);
         }
 
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> DeleteWeb4GeoNFTAsync(string idOrName, bool? softDelete = true, bool? deleteChildWeb3NFTs = false, bool? burnChildWebNFTs = false, ProviderType providerType = ProviderType.Default)

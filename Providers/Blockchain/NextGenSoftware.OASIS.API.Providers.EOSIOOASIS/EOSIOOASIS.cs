@@ -325,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -371,7 +371,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 {
                     var avatar = new Avatar
                     {
-                        Id = Guid.NewGuid(), // Would be retrieved from account metadata
+                        Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{accountName}"),
                         Username = accountName,
                         Email = avatarEmail,
                         FirstName = accountResponse.Result.AccountName,
@@ -447,7 +447,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -528,7 +528,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -546,7 +546,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     // Convert EOSIO account data to OASIS Avatar
                     var avatar = new Avatar
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{avatarData.AccountName ?? "eosio_user"}"),
                         Username = avatarData.AccountName ?? "",
                         Email = "", // EOSIO doesn't store email directly
                         CreatedDate = DateTime.TryParse(avatarData.Created, out var createdDate) ? createdDate : DateTime.UtcNow,
@@ -626,7 +626,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -655,7 +655,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                         var avatarDetail = new AvatarDetail
                         {
-                            Id = Guid.NewGuid(),
+                            Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{accountResponse.AccountName}"),
                             Username = accountResponse.AccountName,
                             Email = avatarEmail,
                             FirstName = accountResponse.AccountName,
@@ -747,7 +747,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1125,7 +1125,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1173,7 +1173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1225,7 +1225,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1341,7 +1341,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1393,7 +1393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1443,7 +1443,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1768,7 +1768,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1802,7 +1802,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1850,7 +1850,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1895,7 +1895,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1940,7 +1940,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -1985,7 +1985,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -2030,7 +2030,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -2069,7 +2069,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -2120,7 +2120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -2272,7 +2272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -2318,7 +2318,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -2368,7 +2368,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3081,7 +3081,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3169,7 +3169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3217,7 +3217,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3261,7 +3261,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3279,7 +3279,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var lockRequest = new LockWeb3NFTRequest
                 {
                     NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:nft:{nftTokenAddress}"),
                     LockedByAvatarId = Guid.Empty
                 };
 
@@ -3326,7 +3326,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3401,7 +3401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 {
                     avatar = new Avatar
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{username}"),
                         Username = username,
                         Email = $"user@{username}.eosio",
                         FirstName = "EOSIO",
@@ -3475,12 +3475,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 var holon = new Holon
                 {
-                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                    Id = dataDict.ContainsKey("id") && dataDict["id"] != null ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:holon:{JsonConvert.SerializeObject(dataDict)}"),
                     Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "EOSIO Holon",
                     Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "Holon from EOSIO blockchain",
                     ProviderUniqueStorageKey = new Dictionary<ProviderType, string>
                     {
-                        [Core.Enums.ProviderType.EOSIOOASIS] = dataDict.GetValueOrDefault("eosioId")?.ToString() ?? Guid.NewGuid().ToString()
+                        [Core.Enums.ProviderType.EOSIOOASIS] = dataDict.GetValueOrDefault("eosioId")?.ToString() ?? CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:holon:{JsonConvert.SerializeObject(dataDict)}").ToString()
                     },
                     IsActive = dataDict.GetValueOrDefault("isActive")?.ToString()?.ToLower() == "true",
                     CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
@@ -3520,7 +3520,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3589,7 +3589,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3646,7 +3646,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3731,7 +3731,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3813,7 +3813,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3881,7 +3881,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -3949,7 +3949,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -4020,7 +4020,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -4100,7 +4100,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -4234,7 +4234,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -4296,7 +4296,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -4317,7 +4317,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 // EOS doesn't use seed phrases in the same way as other chains
                 // For compatibility, we'll generate a simple identifier
                 // In production, you would use proper BIP39 mnemonic generation if needed
-                var seedPhrase = Guid.NewGuid().ToString("N"); // Simple identifier for now
+                // Generate deterministic seed phrase from account name and timestamp
+                var seedPhrase = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:account:{DateTime.UtcNow.Ticks}").ToString("N");
 
                 // EOS uses WIF (Wallet Import Format) for private keys and public keys in EOS format
                 // The generated keys will work for EOS, though in production you might want to convert to EOS-specific formats
@@ -4341,7 +4342,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -4417,7 +4418,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -4491,7 +4492,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -4565,7 +4566,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
@@ -4597,6 +4598,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 result.Result = BridgeTransactionStatus.NotFound;
             }
             return result;
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion
