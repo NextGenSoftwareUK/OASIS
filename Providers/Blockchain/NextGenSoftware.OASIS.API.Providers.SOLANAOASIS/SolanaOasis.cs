@@ -211,8 +211,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                             // Parse account data to SolanaAvatarDto
                             var avatarDto = new SolanaAvatarDto
                             {
-                                Id = Guid.NewGuid(),
-                                AvatarId = Guid.NewGuid(),
+                                Id = CreateDeterministicGuid($"{ProviderType.Value}:{account.PublicKey}"),
+                                AvatarId = CreateDeterministicGuid($"{ProviderType.Value}:{account.PublicKey}"),
                                 UserName = $"solana_user_{account.PublicKey[..8]}",
                                 Email = $"user_{account.PublicKey[..8]}@solana.example",
                                 Password = "solana_secure_password",
@@ -633,7 +633,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                             // Parse account data to SolanaAvatarDetailDto with extended properties
                 var avatarDetailDto = new SolanaAvatarDetailDto
                             {
-                                Id = Guid.NewGuid(),
+                                Id = CreateDeterministicGuid($"{ProviderType.Value}:{account.PublicKey}"),
                                 Version = 1,
                                 // AvatarDetail specific properties
                                 Address = $"Solana Address: {account.PublicKey}",
@@ -1151,7 +1151,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                             // and check the parent ID field
                             var holonDto = new Entities.Models.SolanaHolonDto
                             {
-                                Id = Guid.NewGuid(),
+                                Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{id}:{account.PublicKey}"),
                                 Name = $"Solana Child Holon for Parent {id}",
                                 Description = $"Solana blockchain holon with parent {id}",
                                 CreatedDate = DateTime.UtcNow,
@@ -1300,7 +1300,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                         {
                             var holonDto = new SolanaHolonDto
                             {
-                                Id = Guid.NewGuid(),
+                                Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{account.PublicKey}"),
                                 Name = $"Solana Holon {account.PublicKey[..8]}",
                                 Description = $"Solana blockchain holon with account {account.PublicKey}",
                                 CreatedDate = DateTime.UtcNow,
@@ -2371,7 +2371,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                         {
                             var holonDto = new SolanaHolonDto
                             {
-                                Id = Guid.NewGuid(),
+                                Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{account.PublicKey}"),
                                 Name = $"Solana Holon {account.PublicKey[..8]}",
                                 Description = $"Solana blockchain holon with account {account.PublicKey}",
                                 CreatedDate = DateTime.UtcNow,
@@ -3115,7 +3115,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             {
                 avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{GetSolanaProperty(solanaData, "address") ?? GetSolanaProperty(solanaData, "username") ?? "solana_user"}"),
                     Username = GetSolanaProperty(solanaData, "username") ?? "solana_user",
                     Email = GetSolanaProperty(solanaData, "email") ?? "user@solana.example",
                     FirstName = GetSolanaProperty(solanaData, "firstName") ?? "Solana",
@@ -3171,7 +3171,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             {
                 avatarDetail = new AvatarDetail
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{GetSolanaProperty(solanaData, "address") ?? GetSolanaProperty(solanaData, "username") ?? "solana_user"}"),
                     Username = GetSolanaProperty(solanaData, "username") ?? "solana_user",
                     Email = GetSolanaProperty(solanaData, "email") ?? "user@solana.example",
                     FirstName = GetSolanaProperty(solanaData, "firstName") ?? "Solana",
@@ -4148,7 +4148,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty // Would be passed in a real implementation
             };
 
@@ -4341,6 +4341,19 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         catch (Exception)
         {
             return false;
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
     }
     #endregion

@@ -2615,7 +2615,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                             // Extract transaction hash as the transaction ID
                             var txHash = tx.TryGetProperty("hash", out var hashProp) ? hashProp.GetString() : 
                                         tx.TryGetProperty("version", out var versionProp) ? versionProp.GetString() : 
-                                        Guid.NewGuid().ToString();
+                                        CreateDeterministicGuid($"{ProviderType.Value}:tx:{tx.GetRawText()}").ToString();
                             
                             // Try to parse hash as GUID, otherwise use hash string directly
                             Guid txGuid;
@@ -3315,7 +3315,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         {
                             request.FromWalletAddress,
                             request.ToWalletAddress,
-                            request.Web3NFTId?.ToString() ?? request.TokenId ?? Guid.NewGuid().ToString(), // Use NFT ID from request
+                            request.Web3NFTId?.ToString() ?? request.TokenId ?? CreateDeterministicGuid($"{ProviderType.Value}:nft:{request.FromWalletAddress}:{request.ToWalletAddress}").ToString(), // Use NFT ID from request
                             "1" // quantity
                         }
                     };
@@ -3533,7 +3533,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     // Parse NFT data from Aptos resources
                     response.Result = new Web3NFT
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                         Title = "On-Chain NFT",
                         Description = "Loaded from Aptos blockchain",
                         NFTTokenAddress = nftTokenAddress
@@ -3567,9 +3567,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var nftData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
+                    var nftTokenId = nftData?.ContainsKey("token_id") == true ? nftData["token_id"]?.ToString() : nftTokenAddress;
                     response.Result = new Web3NFT
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenId}"),
                         Title = "OASIS NFT",
                         Description = "NFT loaded from Aptos blockchain",
                         ImageUrl = ""
@@ -3836,7 +3837,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var unlockRequest = new UnlockWeb3NFTRequest
                 {
                     NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                     UnlockedByAvatarId = Guid.Empty // Would be retrieved from receiverAccountAddress in production
                 };
 
@@ -3897,7 +3898,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 {
                     var avatar = new Avatar
                     {
-                        Id = Guid.TryParse(avatarData.TryGetProperty("id", out var id) ? id.GetString() : Guid.NewGuid().ToString(), out var guid) ? guid : Guid.NewGuid(),
+                        Id = Guid.TryParse(avatarData.TryGetProperty("id", out var id) ? id.GetString() : null, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:{(avatarData.TryGetProperty("address", out var addr) ? addr.GetString() : "aptos_user")}"),
                         Username = avatarData.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
                         Email = avatarData.TryGetProperty("email", out var email) ? email.GetString() : "user@aptos.example",
                         FirstName = avatarData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "Aptos",
@@ -3950,7 +3951,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             }
             catch (Exception)
             {
-                return new Avatar { Id = Guid.NewGuid(), Username = "aptos_user", Email = "user@aptos.example" };
+                return new Avatar { Id = CreateDeterministicGuid($"{ProviderType.Value}:aptos_user"), Username = "aptos_user", Email = "user@aptos.example" };
             }
         }
 
@@ -4082,9 +4083,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 // If deserialization fails, create from extracted properties
                 if (avatar == null)
                 {
+                    var aptosAddress = aptosData.TryGetProperty("data", out var addrData) && addrData.TryGetProperty("address", out var addr) ? addr.GetString() : "aptos_user";
                     avatar = new Avatar
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:{aptosAddress}"),
                         Username = aptosData.TryGetProperty("data", out var data) &&
                                   data.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
                         Email = aptosData.TryGetProperty("data", out var data2) &&
@@ -4411,7 +4413,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 Console.WriteLine($"Error parsing Aptos JSON to AvatarDetail: {ex.Message}");
                 return new AvatarDetail
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:aptos_user"),
                     Username = "aptos_user",
                     Email = "user@aptos.example"
                 };
@@ -4428,7 +4430,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var avatarDetail = new AvatarDetail
                 {
                     Id = aptosData.TryGetProperty("data", out var data) &&
-                         data.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                         data.TryGetProperty("id", out var id) && id.GetString() != null ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:{aptosData.GetRawText()}"),
                     Username = aptosData.TryGetProperty("data", out var data2) &&
                               data2.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
                     Email = aptosData.TryGetProperty("data", out var data3) &&
@@ -4481,7 +4483,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 Console.WriteLine($"Error parsing Aptos data to AvatarDetail: {ex.Message}");
                 return new AvatarDetail
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:aptos_user"),
                     Username = "aptos_user",
                     Email = "user@aptos.example"
                 };
@@ -4583,7 +4585,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var holon = new Holon
                 {
                     Id = aptosData.TryGetProperty("data", out var data) &&
-                         data.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                         data.TryGetProperty("id", out var id) && id.GetString() != null ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:{aptosData.GetRawText()}"),
                     Name = aptosData.TryGetProperty("data", out var data2) &&
                            data2.TryGetProperty("name", out var name) ? name.GetString() : "Aptos Holon",
                     Description = aptosData.TryGetProperty("data", out var data3) &&
@@ -4603,11 +4605,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 Console.WriteLine($"Error parsing Aptos data to Holon: {ex.Message}");
                 return new Holon
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:error"),
                     Name = "Aptos Holon",
                     Description = "Aptos Holon Description"
                 };
             }
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion

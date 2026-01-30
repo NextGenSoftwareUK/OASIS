@@ -193,7 +193,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                 if (accountInfo != null)
                 {
-                    var avatar = ParseTRONToAvatar(accountInfo, Guid.NewGuid());
+                    var avatar = ParseTRONToAvatar(accountInfo, CreateDeterministicGuid($"{ProviderType.Value}:{providerKey}"));
                     if (avatar != null)
                     {
                         response.Result = avatar;
@@ -232,7 +232,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                 if (accountInfo != null)
                 {
-                    var avatar = ParseTRONToAvatar(accountInfo, Guid.NewGuid());
+                    var avatar = ParseTRONToAvatar(accountInfo, CreateDeterministicGuid($"{ProviderType.Value}:{providerKey}"));
                     if (avatar != null)
                     {
                         response.Result = avatar;
@@ -1159,7 +1159,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
@@ -1207,7 +1207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
@@ -4245,6 +4245,19 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error calling contract: {ex.Message}", ex);
             }
             return result;
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion
