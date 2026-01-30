@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.Holochain.HoloNET.Client;
@@ -34,14 +33,9 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using static NextGenSoftware.Utilities.KeyHelper;
 using DataHelper = NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers.DataHelper;
 using NextGenSoftware.Utilities.ExtentionMethods;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -105,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             this.HoloNETClientAdmin = holoNETClientAdmin;
             this.HoloNETClientAppAgent = holoNETClientAppAgent;
-            this._oasisDNA = oasisDNA ?? OASISBootLoader.OASISBootLoader.OASISDNA;
+            this._oasisDNA = oasisDNA;
             this.HoloNetworkURI = holoNetworkURI;
             this.UseLocalNode = useLocalNode;
             this.UseHoloNetwork = useHoloNetwork;
@@ -115,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public HoloOASIS(string holochainConductorAdminURI, OASISDNA oasisDNA = null, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
         {
-            this._oasisDNA = oasisDNA ?? OASISBootLoader.OASISBootLoader.OASISDNA;
+            this._oasisDNA = oasisDNA;
             this.HoloNetworkURI = holoNetworkURI;
             this.UseLocalNode = useLocalNode;
             this.UseHoloNetwork = useHoloNetwork;
@@ -126,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public HoloOASIS(string holochainConductorAdminURI, string holochainConductorAppAgentURI, OASISDNA oasisDNA = null, string holoNetworkURI = HOLO_NETWORK_URI, bool useLocalNode = true, bool useHoloNetwork = true, bool useHoloNETORMReflection = true)
         {
-            this._oasisDNA = oasisDNA ?? OASISBootLoader.OASISBootLoader.OASISDNA;
+            this._oasisDNA = oasisDNA;
             _holochainConductorAppAgentURI = holochainConductorAppAgentURI;
             this.HoloNetworkURI = holoNetworkURI;
             this.UseLocalNode = useLocalNode;
@@ -975,8 +969,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchResults = new SearchResults();
@@ -1028,8 +1026,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var saveResult = await _holonRepository.SaveHolonsAsync(holons, "holons", "holons_anchor", ZOME_SAVE_ALL_HOLONS_FUNCTION, new Dictionary<string, string>()
@@ -1076,8 +1078,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar from Holochain
@@ -1107,8 +1113,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar username from Holochain
@@ -1144,8 +1154,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar email from Holochain
@@ -1175,8 +1189,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons from Holochain
@@ -1216,8 +1234,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -1263,8 +1285,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -1347,11 +1373,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                 // Get OASISDNA to access Rust template paths from HoloOASIS settings
                 // Use injected OASISDNA or fallback to OASISBootLoader
-                var oasisDNA = _oasisDNA ?? OASISBootLoader.OASISBootLoader.OASISDNA;
-                if (oasisDNA == null || oasisDNA.StorageProviders?.HoloOASIS == null)
+                if (_oasisDNA == null || _oasisDNA.OASIS.StorageProviders?.HoloOASIS == null)
                     return false;
 
-                var holoSettings = oasisDNA.StorageProviders.HoloOASIS;
+                var holoSettings = _oasisDNA.OASIS.StorageProviders.HoloOASIS;
                 
                 // Get base STAR path and Rust template folder from OASISDNA
                 string baseSTARPath = holoSettings.BaseSTARPath;
@@ -1565,8 +1590,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create Holochain transaction
@@ -1621,8 +1650,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars
@@ -1665,8 +1698,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars
@@ -1704,8 +1741,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars by username
@@ -1748,8 +1789,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars by username
@@ -1792,8 +1837,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars by email
@@ -1836,8 +1885,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars by email
@@ -1900,8 +1953,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create Holochain NFT transfer transaction
@@ -1955,8 +2012,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create Holochain NFT mint transaction
@@ -2014,8 +2075,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar to get provider wallets
@@ -2058,8 +2123,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar and update provider wallets
@@ -2409,8 +2478,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create Holochain NFT burn transaction
@@ -2464,8 +2537,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get mint to address from avatar ID
@@ -2531,8 +2608,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get from address from avatar ID
@@ -2599,8 +2680,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Lock token by transferring to bridge pool account on Holochain
@@ -2659,8 +2744,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Unlock token by transferring from bridge pool account on Holochain
@@ -2726,8 +2815,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
@@ -2767,8 +2860,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
@@ -2821,20 +2918,24 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate Holochain key pair using KeyManager
@@ -2865,8 +2966,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query Holochain for account balance
@@ -2908,8 +3013,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate key pair and seed phrase using KeyManager
@@ -2943,8 +3052,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Restore key pair from seed phrase for Holochain
@@ -2987,8 +3100,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create bridge withdrawal transaction on Holochain
@@ -3036,8 +3153,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create bridge deposit transaction on Holochain
@@ -3084,8 +3205,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query transaction status from Holochain
@@ -3135,8 +3260,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Lock NFT by transferring to bridge pool on Holochain
@@ -3191,8 +3320,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Unlock NFT by transferring from bridge pool on Holochain
@@ -3247,8 +3380,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create NFT withdrawal transaction on Holochain bridge
@@ -3297,8 +3434,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create NFT deposit transaction on Holochain bridge

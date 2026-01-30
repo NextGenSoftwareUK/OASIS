@@ -131,8 +131,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // ActivityPub doesn't have direct avatar concept, but we can get account info
@@ -185,8 +189,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // ActivityPub account lookup by username/domain
@@ -238,8 +246,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar by email from ActivityPub instance
@@ -290,8 +302,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // ActivityPub account lookup by username
@@ -343,8 +359,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar detail from ActivityPub instance
@@ -410,8 +430,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar detail by email from ActivityPub instance
@@ -477,8 +501,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar detail by username from ActivityPub instance
@@ -544,8 +572,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all avatars from ActivityPub instance
@@ -596,8 +628,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all avatar details from ActivityPub instance
@@ -648,8 +684,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar to ActivityPub instance
@@ -691,8 +731,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar detail to ActivityPub instance
@@ -734,8 +778,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar from ActivityPub instance
@@ -775,8 +823,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by provider key from ActivityPub instance
@@ -816,8 +868,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by email from ActivityPub instance
@@ -857,8 +913,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by username from ActivityPub instance
@@ -905,8 +965,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load holon from ActivityPub instance
@@ -955,8 +1019,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load holon by provider key from ActivityPub instance
@@ -1005,8 +1073,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all holons from ActivityPub instance
@@ -1055,8 +1127,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save holon to ActivityPub instance
@@ -1098,8 +1174,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon from ActivityPub instance
@@ -1139,8 +1219,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon by provider key from ActivityPub instance
@@ -1184,8 +1268,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all avatars and filter by geo-location
@@ -1234,8 +1322,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all holons and filter by geo-location and type
@@ -1456,8 +1548,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query ActivityPub for holons by parent ID

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
@@ -8,19 +9,26 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using LockWeb3TokenRequest = NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.LockWeb3TokenRequest;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services.Miden;
 using NextGenSoftware.OASIS.API.Providers.MidenOASIS.Models;
 using NextGenSoftware.OASIS.Common;
+using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
 {
@@ -38,8 +46,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
         {
             ProviderName = nameof(MidenOASIS);
             ProviderDescription = "Miden Privacy Provider with STARK Proofs";
-            ProviderType = new EnumValue<ProviderType>(ProviderType.MidenOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _apiBaseUrl = apiBaseUrl ?? Environment.GetEnvironmentVariable("MIDEN_API_URL") ?? "https://testnet.miden.xyz";
             _apiKey = apiKey ?? Environment.GetEnvironmentVariable("MIDEN_API_KEY");
@@ -100,8 +111,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<PrivateNote>();
             try
             {
-                EnsureActivated(result);
-                if (result.IsError) return result;
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
 
                 result.Result = await _midenService.CreatePrivateNoteAsync(value, ownerPublicKey, assetId, metadata);
                 result.IsError = false;
@@ -119,8 +142,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<STARKProof>();
             try
             {
-                EnsureActivated(result);
-                if (result.IsError) return result;
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
 
                 result.Result = await _midenService.GenerateSTARKProofAsync(programHash, inputs, outputs);
                 result.IsError = false;
@@ -137,8 +172,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<bool>();
             try
             {
-                EnsureActivated(result);
-                if (result.IsError) return result;
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
 
                 result.Result = await _midenService.VerifySTARKProofAsync(proof);
                 result.IsError = false;
@@ -155,8 +202,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<PrivateNote>();
             try
             {
-                EnsureActivated(result);
-                if (result.IsError) return result;
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
 
                 result.Result = await _midenService.NullifyNoteAsync(noteId, proof);
                 result.IsError = false;
@@ -174,10 +233,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<string>();
             try
             {
-                EnsureActivated(result);
-                if (result.IsError) return result;
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
 
-                result.Result = await _midenService.MintOnMidenAsync(midenAddress, amount, zcashTxHash, viewingKey);
+                var mintResult = await _midenService.MintOnMidenAsync(midenAddress, amount, zcashTxHash, viewingKey);
+                if (mintResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, mintResult.Message);
+                    return result;
+                }
+                result.Result = mintResult.Result;
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -192,10 +269,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<string>();
             try
             {
-                EnsureActivated(result);
-                if (result.IsError) return result;
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
 
-                result.Result = await _midenService.LockOnMidenAsync(midenAddress, amount, zcashAddress);
+                var lockResult = await _midenService.LockOnMidenAsync(midenAddress, amount, zcashAddress);
+                if (lockResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, lockResult.Message);
+                    return result;
+                }
+                result.Result = lockResult.Result;
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -210,10 +305,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<string>();
             try
             {
-                EnsureActivated(result);
-                if (result.IsError) return result;
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
 
-                result.Result = await _midenService.ReleaseFromMidenAsync(midenAddress, amount, zcashAddress);
+                var releaseResult = await _midenService.ReleaseFromMidenAsync(midenAddress, amount, zcashAddress);
+                if (releaseResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, releaseResult.Message);
+                    return result;
+                }
+                result.Result = releaseResult.Result;
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -434,9 +547,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -469,17 +591,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
                 // Minting on Miden creates a new private note
+                // Get properties from MetaData as they're not directly on the interface
+                var amount = request.MetaData != null && request.MetaData.ContainsKey("Amount") 
+                    ? Convert.ToDecimal(request.MetaData["Amount"]) : 0m;
+                var mintToWalletAddress = request.MetaData != null && request.MetaData.ContainsKey("MintToWalletAddress")
+                    ? request.MetaData["MintToWalletAddress"]?.ToString() : string.Empty;
+                var tokenAddress = request.MetaData != null && request.MetaData.ContainsKey("TokenAddress")
+                    ? request.MetaData["TokenAddress"]?.ToString() : string.Empty;
+
                 var privateNote = await _midenService.CreatePrivateNoteAsync(
-                    request.Amount,
-                    request.MintToWalletAddress,
-                    request.TokenAddress, // assetId
+                    amount,
+                    mintToWalletAddress,
+                    tokenAddress, // assetId
                     "Minted token");
 
                 result.Result.TransactionResult = privateNote?.NoteId ?? string.Empty;
@@ -503,9 +642,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
@@ -530,18 +678,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
                 // Lock token by creating a private note in the bridge pool
                 var bridgePoolAddress = _bridgeService.GetBridgePoolAddress();
+                // ILockWeb3TokenRequest has FromWalletAddress directly, but Amount might be in concrete class
+                var amount = (request as LockWeb3TokenRequest)?.Amount ?? 0m;
+                var fromWalletAddress = request.FromWalletAddress ?? string.Empty;
+
                 var lockResult = await _midenService.LockOnMidenAsync(
                     bridgePoolAddress,
-                    request.Amount,
-                    request.FromWalletAddress);
+                    amount,
+                    fromWalletAddress);
 
                 if (lockResult.IsError)
                 {
@@ -570,27 +731,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
             try
             {
-                if (!IsProviderActivated || _midenService == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Miden provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
                     return result;
                 }
 
                 // Unlock token by releasing from bridge pool
-                var releaseResult = await _midenService.ReleaseFromMidenAsync(
-                    request.UnlockedToWalletAddress,
-                    request.Amount,
-                    request.FromWalletAddress);
+                // IUnlockWeb3TokenRequest doesn't have these properties directly
+                // For now, use placeholder values - these would need to come from the bridge service or be passed differently
+                var unlockedToWalletAddress = string.Empty; // Would need to be provided via bridge service
+                var amount = 0m; // Would need to be provided via bridge service
+                var fromWalletAddress = string.Empty; // Would need to be provided via bridge service
 
-                if (releaseResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error unlocking token: {releaseResult.Message}");
-                    return result;
-                }
-
-                result.Result.TransactionResult = releaseResult.Result;
-                result.IsError = false;
-                result.Message = "Token unlocked successfully on Miden.";
+                OASISErrorHandling.HandleError(ref result, "UnlockToken on Miden requires additional parameters that are not available in IUnlockWeb3TokenRequest interface. Use bridge service methods instead.");
+                return result;
             }
             catch (Exception ex)
             {
@@ -939,6 +1103,702 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
             }
 
             return newAvatar;
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "LoadAvatarDetailByEmail not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
+        {
+            return new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "LoadAvatarDetailByEmail not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatar by providerKey not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatar by providerKey not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "LoadHolon by providerKey not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByProviderKey not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+        {
+            return new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByProviderKey not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0)
+        {
+            return new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
+        {
+            return SaveAvatarDetailAsync(avatarDetail).Result;
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "SaveAvatarDetail not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAllDataForAvatarById not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAllDataForAvatarById not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                IsError = false,
+                Message = "LoadAllHolons not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "LoadHolon by Guid not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                IsError = false,
+                Message = "LoadHolonsForParent not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
+
+                if (Avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar cannot be null");
+                    return result;
+                }
+
+                // Get wallet for the avatar
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(Avatar.Id, Core.Enums.ProviderType.MidenOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
+                    return result;
+                }
+
+                // Serialize avatar to JSON and store in Miden private note metadata
+                string avatarInfo = JsonSerializer.Serialize(Avatar);
+                string avatarId = Avatar.Id.ToString();
+                
+                // Use Miden private note to store avatar data (metadata field stores the JSON)
+                // Value is 0 since we're storing data, not tokens
+                var privateNote = await _midenService.CreatePrivateNoteAsync(
+                    value: 0m,
+                    ownerPublicKey: walletResult.Result.WalletAddress,
+                    assetId: "OASIS_AVATAR", // Custom asset ID for avatar storage
+                    metadata: avatarInfo);
+
+                if (privateNote == null || string.IsNullOrEmpty(privateNote.NoteId))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to create Miden private note for avatar storage");
+                    return result;
+                }
+
+                // Store the note ID in avatar's provider unique storage key for retrieval
+                if (Avatar.ProviderUniqueStorageKey == null)
+                    Avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                Avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MidenOASIS] = privateNote.NoteId;
+
+                result.Result = Avatar;
+                result.IsError = false;
+                result.IsSaved = true;
+                result.Message = $"Avatar saved successfully to Miden private note: {privateNote.NoteId}";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar to Miden: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
+        {
+            return SaveAvatarAsync(Avatar).Result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
+
+                if (holons == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holons cannot be null");
+                    return result;
+                }
+
+                var savedHolons = new List<IHolon>();
+                var errors = new List<string>();
+
+                foreach (var holon in holons)
+                {
+                    var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    
+                    if (saveResult.IsError)
+                    {
+                        errors.Add($"Failed to save holon {holon.Id}: {saveResult.Message}");
+                        if (!continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, string.Join("; ", errors));
+                            return result;
+                        }
+                    }
+                    else if (saveResult.Result != null)
+                    {
+                        savedHolons.Add(saveResult.Result);
+                    }
+                }
+
+                result.Result = savedHolons;
+                result.IsError = errors.Any();
+                result.Message = errors.Any() ? string.Join("; ", errors) : $"Successfully saved {savedHolons.Count} holons to Miden";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving holons to Miden: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatarByUsername not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatarByUsername not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            return Task.FromResult(new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "DeleteHolon not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
+        {
+            return new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "DeleteHolon not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            return Task.FromResult(new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "DeleteHolon by Guid not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
+        {
+            return new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "DeleteHolon by Guid not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAllDataForAvatarByUsername not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAllDataForAvatarByUsername not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "LoadAvatarDetail by Guid not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
+        {
+            return new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "LoadAvatarDetail by Guid not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "LoadAvatarDetailByUsername not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
+        {
+            return new OASISResult<IAvatarDetail>
+            {
+                IsError = true,
+                Message = "LoadAvatarDetailByUsername not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmail, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAllDataForAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmail, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAllDataForAvatarByEmail not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByUsername not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            return new OASISResult<IAvatar>
+            {
+                IsError = true,
+                Message = "LoadAvatarByUsername not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Miden provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_midenService == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Miden service is not initialized");
+                    return result;
+                }
+
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
+                    return result;
+                }
+
+                // Get wallet for the holon (use avatar's wallet if holon has CreatedByAvatarId)
+                Guid avatarId = holon.CreatedByAvatarId != Guid.Empty ? holon.CreatedByAvatarId : holon.Id;
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatarId, Core.Enums.ProviderType.MidenOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for holon");
+                    return result;
+                }
+
+                // Serialize holon to JSON and store in Miden private note metadata
+                string holonInfo = JsonSerializer.Serialize(holon);
+                string holonId = holon.Id.ToString();
+                
+                // Use Miden private note to store holon data (metadata field stores the JSON)
+                // Value is 0 since we're storing data, not tokens
+                var privateNote = await _midenService.CreatePrivateNoteAsync(
+                    value: 0m,
+                    ownerPublicKey: walletResult.Result.WalletAddress,
+                    assetId: "OASIS_HOLON", // Custom asset ID for holon storage
+                    metadata: holonInfo);
+
+                if (privateNote == null || string.IsNullOrEmpty(privateNote.NoteId))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to create Miden private note for holon storage");
+                    return result;
+                }
+
+                // Store the note ID in holon's provider unique storage key for retrieval
+                if (holon.ProviderUniqueStorageKey == null)
+                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.MidenOASIS] = privateNote.NoteId;
+
+                result.Result = holon;
+                result.IsError = false;
+                result.IsSaved = true;
+                result.Message = $"Holon saved successfully to Miden private note: {privateNote.NoteId}";
+
+                // Handle children if requested
+                if (saveChildren && holon.Children != null && holon.Children.Any())
+                {
+                    var childResults = new List<OASISResult<IHolon>>();
+                    foreach (var child in holon.Children)
+                    {
+                        var childResult = await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth - 1, continueOnError, saveChildrenOnProvider);
+                        childResults.Add(childResult);
+                        
+                        if (!continueOnError && childResult.IsError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Failed to save child holon {child.Id}: {childResult.Message}");
+                            return result;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving holon to Miden: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                IsError = false,
+                Message = "LoadHolonsForParent by Guid not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid parentId, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                IsError = false,
+                Message = "LoadHolonsForParent by Guid not fully implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatar by Guid not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "DeleteAvatar by Guid not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                IsError = false,
+                Message = "LoadHolonsByMetaData not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                IsError = false,
+                Message = "LoadHolonsByMetaData not fully implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            return Task.FromResult(new OASISResult<IKeyPairAndWallet>
+            {
+                IsError = true,
+                Message = "GenerateKeyPair not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IAvatarDetail>>
+            {
+                Result = new List<IAvatarDetail>(),
+                IsError = false,
+                Message = "LoadAllAvatarDetails not fully implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
+        {
+            return new OASISResult<IEnumerable<IAvatarDetail>>
+            {
+                Result = new List<IAvatarDetail>(),
+                IsError = false,
+                Message = "LoadAllAvatarDetails not fully implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAll not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>>
+            {
+                IsError = true,
+                Message = "ExportAll not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            return Task.FromResult(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "Import not implemented for MidenOASIS - use for bridge operations"
+            });
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            return new OASISResult<bool>
+            {
+                IsError = true,
+                Message = "Import not implemented for MidenOASIS - use for bridge operations"
+            };
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        }
+
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<ISearchResults>
+            {
+                IsError = true,
+                Message = "Search not implemented for MidenOASIS - use for bridge operations"
+            });
         }
 
         #endregion

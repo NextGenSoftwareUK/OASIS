@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public string ThumbnailUrl { get; set; }
         public decimal? Price { get; set; }
         public decimal? Discount { get; set; }
-        public Dictionary<string, object> MetaData { get; set; }
+        public Dictionary<string, string> MetaData { get; set; }
         public List<string> Tags { get; set; }
 
 

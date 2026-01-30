@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -290,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Discount = request.Discount,
                 MemoText = request.MemoText,
                 NumberToMint = request.NumberToMint,
-                MetaData = request.MetaData,
+                MetaData = request.MetaData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.ToString() ?? string.Empty) ?? new Dictionary<string, string>(),
                 OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
                 OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                 JSONMetaDataURL = request.JSONMetaDataURL,
@@ -419,7 +420,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Discount = request.Discount,
                 MemoText = request.MemoText,
                 NumberToMint = request.NumberToMint,
-                MetaData = request.MetaData,
+                MetaData = request.MetaData?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.ToString() ?? string.Empty) ?? new Dictionary<string, string>(),
                 OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
                 OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                 JSONMetaDataURL = request.JSONMetaDataURL,
@@ -694,9 +695,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("search-web4-nfts/{searchTerm}/{avatarId}")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb4NFT>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> SearchWeb4NFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> SearchWeb4NFTsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            return await NFTManager.SearchWeb4NFTsAsync(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType);
+            return await NFTManager.SearchWeb4NFTsAsync(searchTerm, avatarId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType);
         }
 
         /// <summary>
@@ -712,9 +713,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("search-web4-geo-nfts/{searchTerm}/{avatarId}")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> SearchWeb4GeoNFTsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> SearchWeb4GeoNFTsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            return await NFTManager.SearchWeb4GeoNFTsAsync(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType);
+            return await NFTManager.SearchWeb4GeoNFTsAsync(searchTerm, avatarId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType);
         }
 
         /// <summary>
@@ -730,9 +731,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("search-web4-nft-collections/{searchTerm}/{avatarId}")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb4NFTCollection>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> SearchWeb4NFTCollectionsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> SearchWeb4NFTCollectionsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
-            return await NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType);
+            return await NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, avatarId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType);
         }
     }
 }

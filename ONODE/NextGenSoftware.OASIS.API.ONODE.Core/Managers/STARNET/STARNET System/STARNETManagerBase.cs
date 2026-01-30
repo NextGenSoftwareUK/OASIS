@@ -215,7 +215,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         var subCategory = createOptions.CustomCreateParams["STARNETSubCategory"];
                         if (subCategory != null)
                         {
-                            STARNETDNA.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
+                            // Use dynamic to access STARNETSubCategory since it may not be in ISTARNETDNA interface
+                            dynamic dna = STARNETDNA;
+                            dna.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
                         }
                     }
                     
@@ -374,7 +376,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         var subCategory = dependency["STARNETSubCategory"];
                         if (subCategory != null)
                         {
-                            STARNETDNA.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
+                            // Use dynamic to access STARNETSubCategory since it may not be in ISTARNETDNA interface
+                            dynamic dna = STARNETDNA;
+                            dna.STARNETSubCategory = subCategory is Enum ? Enum.GetName(subCategory.GetType(), subCategory) : subCategory.ToString();
                         }
                     }
                     
@@ -786,17 +790,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public virtual async Task<OASISResult<IEnumerable<T>>> SearchAsync<T>(Guid avatarId, string searchTerm, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
+        public virtual async Task<OASISResult<IEnumerable<T>>> SearchAsync<T>(Guid avatarId, string searchTerm, Guid parentId = default, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
-            OASISResult<IEnumerable<T>> loadHolonsResult = await SearchHolonsAsync<T>(searchTerm, avatarId, parentId, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.SearchAsync", STARNETHolonType);
+            OASISResult<IEnumerable<T>> loadHolonsResult = await SearchHolonsAsync<T>(searchTerm, avatarId, parentId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.SearchAsync", STARNETHolonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
-        public OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, Guid parentId = default, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, Guid parentId = default, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
-            OASISResult<IEnumerable<T1>> loadHolonsResult = SearchHolons<T1>(searchTerm, avatarId, parentId, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.Search", STARNETHolonType);
+            OASISResult<IEnumerable<T1>> loadHolonsResult = SearchHolons<T1>(searchTerm, avatarId, parentId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.Search", STARNETHolonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
@@ -804,7 +808,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in DeleteAsync. Reason: ";
-            OASISResult<T1> loadResult = await LoadAsync(id, avatarId, version, providerType: providerType);
+            OASISResult<T1> loadResult = await LoadAsync(avatarId, id, version, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await DeleteAsync(avatarId, loadResult.Result, version, softDelete, deleteDownload, deleteInstall, providerType);
@@ -818,7 +822,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in Delete. Reason: ";
-            OASISResult<T1> loadResult = Load(id, avatarId, version, providerType: providerType);
+            OASISResult<T1> loadResult = Load(avatarId, id, version, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = Delete(avatarId, loadResult.Result, version, softDelete, deleteDownload, deleteInstall, providerType);
@@ -2854,6 +2858,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
+                if (!Directory.Exists(fullDownloadPath))
+                    Directory.CreateDirectory(fullDownloadPath);
+
                 if (!fullDownloadPath.Contains(string.Concat(".", STARNETHolonFileExtention)))
                     fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(holon.Name, "_v", holon.STARNETDNA.Version, ".", STARNETHolonFileExtention));
 
@@ -3445,6 +3452,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         STARNETDNA = (T4)STARNETHolonLoadResult.Result.STARNETDNA;
                         STARNETHolon = STARNETHolonLoadResult.Result;
 
+                        if (!Directory.Exists(fullInstallPath))
+                            Directory.CreateDirectory(fullInstallPath);
+
                         if (createSTARNETHolonDirectory)
                             fullInstallPath = Path.Combine(fullInstallPath, string.Concat(STARNETDNAResult.Result.Name, "_v", STARNETDNAResult.Result.Version));
 
@@ -3452,7 +3462,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             Directory.Delete(fullInstallPath, true);
 
                         OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { STARNETDNA = STARNETDNAResult.Result, Status = STARNETHolonInstallStatus.Installing });
+
+                        //if (!Directory.Exists(fullInstallPath))
+                        //    Directory.CreateDirectory(fullInstallPath);
+
                         Directory.Move(tempPath, fullInstallPath);
+
                         OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                         if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
@@ -4485,8 +4500,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             }, MetaKeyValuePairMatchMode.All, STARNETHolonInstalledHolonType, true, true, 0, true, 0, false, HolonType.All, providerType);
 
-            if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
+            //if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError && installedSTARNETHolonsResult.Result != null)
+            if (installedSTARNETHolonsResult != null && !installedSTARNETHolonsResult.IsError)
+            {
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedSTARNETHolonsResult, result);
                 result.Result = installedSTARNETHolonsResult.Result;
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaDataAsync. Reason: {installedSTARNETHolonsResult.Message}");
 

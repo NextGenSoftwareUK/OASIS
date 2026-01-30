@@ -203,11 +203,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return request;
         }
 
-        public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IMintWeb4NFTRequest request)
+        public async Task<List<IMintWeb3NFTRequest>> GenerateWeb3NFTRequestsAsync(IMintWeb4NFTRequest request, bool remint = false)
         {
             List<IMintWeb3NFTRequest> mintRequests = new List<IMintWeb3NFTRequest>();
 
-            if (request.NumberToMint > 0 && !CLIEngine.GetConfirmation("Do all of the WEB3 NFT's share the same parent WEB4 NFT MetaData? (Select 'N' if you wish to create WEB3 NFT varients that share some or none of their parent WEB4 NFT MetaData)."))
+            if (((request.NumberToMint > 1 && !remint) || remint) && !CLIEngine.GetConfirmation("Do all of the WEB3 NFT(s) share the same parent WEB4 NFT MetaData? (Select 'N' if you wish to create WEB3 NFT varients that share some or none of their parent WEB4 NFT MetaData)."))
             {
                 if (request.Web3NFTs == null)
                     request.Web3NFTs = new List<IMintWeb3NFTRequest>();
@@ -279,7 +279,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             // MetaData
                             if (web3Request.MetaData != null)
-                                web3RequestInternal.MetaData = new Dictionary<string, object>(web3Request.MetaData);
+                                web3RequestInternal.MetaData = new Dictionary<string, string>(web3Request.MetaData);
 
                             // Merge strategies
                             web3RequestInternal.NFTTagsMergeStrategy = web3Request.NFTTagsMergeStrategy;
@@ -453,7 +453,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             // MetaData
             if (CLIEngine.GetConfirmation($"Do you wish to edit the MetaData for this WEB3 Request? (It currently inherits from the parent WEB4 NFT)"))
             {
-                web3Request.MetaData = request.MetaData != null ? new Dictionary<string, object>(request.MetaData) : new Dictionary<string, object>();
+                web3Request.MetaData = request.MetaData != null ? new Dictionary<string, string>(request.MetaData) : new Dictionary<string, string>();
                 web3Request.MetaData = MetaDataHelper.ManageMetaData(web3Request.MetaData, "WEB3 NFT");
             }
             else
@@ -587,7 +587,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             };
 
             request = GetSendAndAdvancedOptions(request) as MintWeb4NFTRequest;
-            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request);
+            request.Web3NFTs = await GenerateWeb3NFTRequestsAsync(request, true);
 
             return new RemintWeb4NFTRequest()
             {
@@ -957,7 +957,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, parentWeb4NFTId, showOnlyForCurrentAvatar, providerType: providerType);
+                    Dictionary<string, string> metaData = null;
+
+                    if (parentWeb4NFTId != Guid.Empty)
+                        metaData = new Dictionary<string, string>() { { "NFT.ParentWeb4NFTId", parentWeb4NFTId.ToString() } };
+                
+                    OASISResult<IEnumerable<IWeb3NFT>> searchResults = await NFTManager.SearchWeb3NFTsAsync(idOrName, STAR.BeamedInAvatar.Id, default, metaData, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -1044,7 +1049,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private OASISResult<IEnumerable<IWeb3NFT>> ListWeb3NFTs(OASISResult<IEnumerable<IWeb3NFT>> nfts, bool showNumbers = false, bool showDetailedInfo = false)
+        public OASISResult<IEnumerable<IWeb3NFT>> ListWeb3NFTs(OASISResult<IEnumerable<IWeb3NFT>> nfts, bool showNumbers = false, bool showDetailedInfo = false)
         {
             if (nfts != null)
             {
@@ -1060,7 +1065,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB3 NFT's Found:");
 
                         for (int i = 0; i < nfts.Result.Count(); i++)
-                            ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, i == nfts.Result.Count() - 1, showNumbers, i + 1, showDetailedInfo);
+                            ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, false, showNumbers, i + 1, showDetailedInfo);
+                            //ShowWeb3NFT(nfts.Result.ElementAt(i), i == 0, i == nfts.Result.Count() - 1, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No WEB3 NFT's Found.");
@@ -1094,10 +1100,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("NFT Token Address", web3NFT.NFTTokenAddress, displayFieldLength);
             DisplayProperty("Update Authority", web3NFT.UpdateAuthority, displayFieldLength);
             
-            //CLIEngine.ShowDivider();
+            CLIEngine.ShowDivider();
                
-            if (showFooter)
-                CLIEngine.ShowDivider();
+            //if (showFooter)
+            //    CLIEngine.ShowDivider();
         }
 
         public void ShowNFTDetails(INFTBase nft, IWeb4NFT web4NFT, int displayFieldLength, bool displayTags = true, bool displayMetaData = true)
@@ -1277,7 +1283,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<T5>> UpdateSTARNETHolonAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, string starnetDNAKeyForWeb4Object, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, object> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default) 
+        public async Task<OASISResult<T5>> UpdateSTARNETHolonAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, string starnetDNAKeyForWeb4Object, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, string> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default) 
             where T1 : ISTARNETHolon, new()
             where T2 : IDownloadedSTARNETHolon, new()
             where T3 : IInstalledSTARNETHolon, new()
@@ -1314,7 +1320,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<T5>> DeleteAllSTARNETVersionsAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, object> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T5>> DeleteAllSTARNETVersionsAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, string> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default)
             where T1 : ISTARNETHolon, new()
             where T2 : IDownloadedSTARNETHolon, new()
             where T3 : IInstalledSTARNETHolon, new()
@@ -1336,11 +1342,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         OASISResult<T1> deleteResult = await STARNETManager.DeleteAsync(STAR.BeamedInAvatar.Id, web5Id, version.STARNETDNA.VersionSequence, providerType: providerType);
 
                         if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
-                            CLIEngine.ShowSuccessMessage($"Successfully Deleted Version {version.STARNETDNA.VersionSequence}.");
+                            CLIEngine.ShowSuccessMessage($"Successfully Deleted Version {version.STARNETDNA.Version}.");
                         else
                         {
                             string msg = versionsResult != null ? versionsResult.Message : "";
-                            OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB5 STAR {STARNETManager.STARNETHolonUIName} Version {version.STARNETDNA.VersionSequence}. Reason: {msg}");
+                            OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB5 STAR {STARNETManager.STARNETHolonUIName} Version {version.STARNETDNA.Version}. Reason: {msg}");
                         }
                     }
                 }

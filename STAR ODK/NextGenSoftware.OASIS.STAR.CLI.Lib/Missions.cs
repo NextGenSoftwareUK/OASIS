@@ -30,11 +30,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultMissionsInstalledPath, "DefaultMissionsInstalledPath")
         { }
 
-        public override async Task<OASISResult<Mission>> CreateAsync(ISTARNETCreateOptions<Mission, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Mission>> CreateAsync(ISTARNETCreateOptions<Mission, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Mission> result = new OASISResult<Mission>();
 
-            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
+            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, false, providerType);
 
             if (result != null)
             {
@@ -55,11 +55,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
 
                             Console.WriteLine("");
-                            OASISResult<Mission> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "Chapter", idOrNameOfDependency: chapterId.ToString(), providerType: providerType);
+                            OASISResult<Mission> addResult = await AddDependencyAsync(parentSTARNETDNA: result.Result.STARNETDNA, dependencyType: "Chapter", idOrNameOfDependency: chapterId.ToString(), providerType: providerType);
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another Chapter?"));
                     }
 
+                    Console.WriteLine();
                     if (CLIEngine.GetConfirmation("Do you want to add any Quest's to this Mission now?"))
                     {
                         do
@@ -75,11 +76,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
 
                             Console.WriteLine("");
-                            OASISResult<Mission> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: questId.ToString(), providerType: providerType);
+                            OASISResult<Mission> addResult = await AddDependencyAsync(parentSTARNETDNA: result.Result.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: questId.ToString(), providerType: providerType);
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another Quest?"));
                     }
 
+                    Console.WriteLine();
                     await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
                 }
             }

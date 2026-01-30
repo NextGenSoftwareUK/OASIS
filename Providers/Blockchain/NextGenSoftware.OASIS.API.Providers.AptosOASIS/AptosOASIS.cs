@@ -36,6 +36,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using Solnet.Wallet;
 using Solnet.Wallet.Bip39;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 {
@@ -88,6 +90,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             this.ProviderName = "AptosOASIS";
             this.ProviderDescription = "Aptos blockchain provider for OASIS";
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+
         }
 
         #region OASISProvider Implementation
@@ -167,8 +175,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar from Aptos blockchain using real Move smart contract
@@ -263,8 +275,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all avatars from Aptos blockchain using smart contract call
@@ -340,8 +356,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar by provider key from Aptos blockchain
@@ -411,8 +431,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar by username from Aptos blockchain using real Move smart contract
@@ -471,8 +495,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar by email from Aptos blockchain using real Move smart contract
@@ -531,8 +559,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar detail from Aptos blockchain using real Move smart contract
@@ -591,8 +623,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar detail by email from Aptos blockchain using real Move smart contract
@@ -651,8 +687,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar detail by username from Aptos blockchain using real Move smart contract
@@ -711,8 +751,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all avatar details from Aptos blockchain using real Move smart contract
@@ -770,8 +814,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar to Aptos blockchain using real Move smart contract
@@ -842,8 +890,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar detail to Aptos blockchain using real Move smart contract
@@ -933,8 +985,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar from Aptos blockchain using real Move smart contract
@@ -1034,8 +1090,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by email from Aptos blockchain using real Move smart contract
@@ -1102,8 +1162,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by username from Aptos blockchain using real Move smart contract
@@ -1170,8 +1234,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Search on Aptos blockchain using real Move smart contract
@@ -1452,8 +1520,49 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => new OASISResult<IEnumerable<IHolon>> { Result = holons };
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => Task.FromResult(new OASISResult<IHolon> { Result = new Holon { Id = id } });
         public override OASISResult<IHolon> DeleteHolon(Guid id) => new OASISResult<IHolon> { Result = new Holon { Id = id } };
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) => Task.FromResult(new OASISResult<IHolon> { Result = new Holon { Id = Guid.NewGuid() } });
-        public override OASISResult<IHolon> DeleteHolon(string providerKey) => new OASISResult<IHolon> { Result = new Holon { Id = Guid.NewGuid() } };
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                // Load holon first to get its ID
+                var loadResult = await LoadHolonAsync(providerKey);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Holon not found for provider key: {providerKey}");
+                    return result;
+                }
+                
+                // Delete holon using Aptos Move smart contract
+                var deletePayload = new
+                {
+                    type = "entry_function_payload",
+                    function = "0x1::oasis::delete_holon",
+                    type_arguments = new string[0],
+                    arguments = new[] { providerKey }
+                };
+                
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(deletePayload);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("/transactions", content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    result.Result = loadResult.Result;
+                    result.Message = "Holon deleted successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to delete holon: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {ex.Message}", ex);
+            }
+            return result;
+        }
+        public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
         public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) => Task.FromResult(new OASISResult<bool> { Result = true });
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => new OASISResult<bool> { Result = true };
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAll is not supported by Aptos provider." });
@@ -1482,8 +1591,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var transactionPayload = new
@@ -1546,8 +1659,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Implement real Aptos transaction
@@ -1771,8 +1888,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // REAL Aptos implementation for sending transaction by usernames
@@ -1851,8 +1972,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // REAL Aptos implementation for sending transaction by email
@@ -2487,9 +2612,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     {
                         foreach (var tx in transactionsData.EnumerateArray())
                         {
+                            // Extract transaction hash as the transaction ID
+                            var txHash = tx.TryGetProperty("hash", out var hashProp) ? hashProp.GetString() : 
+                                        tx.TryGetProperty("version", out var versionProp) ? versionProp.GetString() : 
+                                        CreateDeterministicGuid($"{ProviderType.Value}:tx:{tx.GetRawText()}").ToString();
+                            
+                            // Try to parse hash as GUID, otherwise use hash string directly
+                            Guid txGuid;
+                            if (!Guid.TryParse(txHash, out txGuid))
+                            {
+                                // Use hash of transaction hash string as GUID
+                                var hashBytes = System.Security.Cryptography.SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(txHash ?? ""));
+                                txGuid = new Guid(hashBytes.Take(16).ToArray());
+                            }
+                            
                             var walletTx = new NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response.WalletTransaction
                             {
-                                TransactionId = Guid.NewGuid(),
+                                TransactionId = txGuid,
                                 FromWalletAddress = tx.TryGetProperty("sender", out var sender) ? sender.GetString() : string.Empty,
                                 ToWalletAddress = tx.TryGetProperty("payload", out var payload) && 
                                                  payload.TryGetProperty("arguments", out var args) && 
@@ -2521,12 +2660,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -2547,15 +2686,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var aptosAddress = "0x" + BitConverter.ToString(account.PublicKey.KeyBytes).Replace("-", "").ToLowerInvariant();
                 
                 // Create key pair structure
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes);
-                    keyPair.PublicKey = account.PublicKey.Key;
-                    keyPair.WalletAddressLegacy = aptosAddress;
-                }
+                //var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                //if (keyPair != null)
+                //{
+                //    keyPair.PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes);
+                //    keyPair.PublicKey = account.PublicKey.Key;
+                //    keyPair.WalletAddressLegacy = aptosAddress;
+                //}
 
-                result.Result = keyPair;
+                //result.Result = keyPair;
+                result.Result = new KeyPairAndWallet
+                {
+                    PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
+                    PublicKey = account.PublicKey.Key,
+                    WalletAddressLegacy = aptosAddress
+                };
+
                 result.IsError = false;
                 result.Message = "Aptos key pair generated successfully using Ed25519 (Solnet.Wallet SDK).";
             }
@@ -3046,8 +3192,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Implement real Aptos smart contract function call
@@ -3138,8 +3288,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Implement real Aptos NFT transfer
@@ -3161,7 +3315,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         {
                             request.FromWalletAddress,
                             request.ToWalletAddress,
-                            Guid.NewGuid().ToString(), // Use a generated NFT ID since NFTId doesn't exist
+                            request.Web3NFTId?.ToString() ?? request.TokenId ?? CreateDeterministicGuid($"{ProviderType.Value}:nft:{request.FromWalletAddress}:{request.ToWalletAddress}").ToString(), // Use NFT ID from request
                             "1" // quantity
                         }
                     };
@@ -3177,13 +3331,26 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         var responseContent = await httpResponse.Content.ReadAsStringAsync();
                         var transactionResult = System.Text.Json.JsonSerializer.Deserialize<dynamic>(responseContent);
 
+                        // Extract NFT ID and transaction hash from response
+                        var txHash = transactionResult?.GetProperty("hash")?.GetString() ?? "";
+                        var nftIdStr = request.Web3NFTId?.ToString() ?? request.TokenId ?? "";
+                        Guid nftId;
+                        if (!Guid.TryParse(nftIdStr, out nftId))
+                        {
+                            // Generate deterministic GUID from NFT ID string
+                            var hashBytes = System.Security.Cryptography.SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(nftIdStr));
+                            nftId = new Guid(hashBytes.Take(16).ToArray());
+                        }
+                        
                         response.Result = new Web3NFTTransactionResponse
                         {
-                            TransactionResult = $"NFT transfer submitted successfully: {transactionResult}",
+                            TransactionResult = txHash,
+                            TransactionHash = txHash,
                             Web3NFT = new Web3NFT
                             {
-                                Id = Guid.NewGuid(),
-                                Title = "Transferred NFT"
+                                Id = nftId,
+                                TokenId = nftIdStr,
+                                Title = request.Web3NFT?.Title ?? "Transferred NFT"
                             }
                         };
                         response.IsError = false;
@@ -3215,8 +3382,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(_privateKey))
@@ -3343,8 +3514,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Implement real Aptos NFT data loading
@@ -3358,7 +3533,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     // Parse NFT data from Aptos resources
                     response.Result = new Web3NFT
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                         Title = "On-Chain NFT",
                         Description = "Loaded from Aptos blockchain",
                         NFTTokenAddress = nftTokenAddress
@@ -3392,9 +3567,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var nftData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
+                    var nftTokenId = nftData?.ContainsKey("token_id") == true ? nftData["token_id"]?.ToString() : nftTokenAddress;
                     response.Result = new Web3NFT
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenId}"),
                         Title = "OASIS NFT",
                         Description = "NFT loaded from Aptos blockchain",
                         ImageUrl = ""
@@ -3588,11 +3764,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
 
+                // Validate token ID format
+                if (!Guid.TryParse(tokenId, out var tokenGuid))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Invalid token ID format: {tokenId}. Expected a valid GUID.");
+                    return result;
+                }
+                
                 // Lock NFT by transferring to bridge pool
                 var lockRequest = new LockWeb3NFTRequest
                 {
                     NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                    Web3NFTId = tokenGuid,
                     LockedByAvatarId = Guid.Empty // Would be retrieved from senderAccountAddress in production
                 };
 
@@ -3654,7 +3837,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var unlockRequest = new UnlockWeb3NFTRequest
                 {
                     NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                     UnlockedByAvatarId = Guid.Empty // Would be retrieved from receiverAccountAddress in production
                 };
 
@@ -3715,7 +3898,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 {
                     var avatar = new Avatar
                     {
-                        Id = Guid.TryParse(avatarData.TryGetProperty("id", out var id) ? id.GetString() : Guid.NewGuid().ToString(), out var guid) ? guid : Guid.NewGuid(),
+                        Id = Guid.TryParse(avatarData.TryGetProperty("id", out var id) ? id.GetString() : null, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:{(avatarData.TryGetProperty("address", out var addr) ? addr.GetString() : "aptos_user")}"),
                         Username = avatarData.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
                         Email = avatarData.TryGetProperty("email", out var email) ? email.GetString() : "user@aptos.example",
                         FirstName = avatarData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "Aptos",
@@ -3768,7 +3951,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             }
             catch (Exception)
             {
-                return new Avatar { Id = Guid.NewGuid(), Username = "aptos_user", Email = "user@aptos.example" };
+                return new Avatar { Id = CreateDeterministicGuid($"{ProviderType.Value}:aptos_user"), Username = "aptos_user", Email = "user@aptos.example" };
             }
         }
 
@@ -3900,9 +4083,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 // If deserialization fails, create from extracted properties
                 if (avatar == null)
                 {
+                    var aptosAddress = aptosData.TryGetProperty("data", out var addrData) && addrData.TryGetProperty("address", out var addr) ? addr.GetString() : "aptos_user";
                     avatar = new Avatar
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:{aptosAddress}"),
                         Username = aptosData.TryGetProperty("data", out var data) &&
                                   data.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
                         Email = aptosData.TryGetProperty("data", out var data2) &&
@@ -4229,7 +4413,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 Console.WriteLine($"Error parsing Aptos JSON to AvatarDetail: {ex.Message}");
                 return new AvatarDetail
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:aptos_user"),
                     Username = "aptos_user",
                     Email = "user@aptos.example"
                 };
@@ -4246,7 +4430,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var avatarDetail = new AvatarDetail
                 {
                     Id = aptosData.TryGetProperty("data", out var data) &&
-                         data.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                         data.TryGetProperty("id", out var id) && id.GetString() != null ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:{aptosData.GetRawText()}"),
                     Username = aptosData.TryGetProperty("data", out var data2) &&
                               data2.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
                     Email = aptosData.TryGetProperty("data", out var data3) &&
@@ -4299,7 +4483,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 Console.WriteLine($"Error parsing Aptos data to AvatarDetail: {ex.Message}");
                 return new AvatarDetail
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:aptos_user"),
                     Username = "aptos_user",
                     Email = "user@aptos.example"
                 };
@@ -4401,7 +4585,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var holon = new Holon
                 {
                     Id = aptosData.TryGetProperty("data", out var data) &&
-                         data.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                         data.TryGetProperty("id", out var id) && id.GetString() != null ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:{aptosData.GetRawText()}"),
                     Name = aptosData.TryGetProperty("data", out var data2) &&
                            data2.TryGetProperty("name", out var name) ? name.GetString() : "Aptos Holon",
                     Description = aptosData.TryGetProperty("data", out var data3) &&
@@ -4421,11 +4605,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 Console.WriteLine($"Error parsing Aptos data to Holon: {ex.Message}");
                 return new Holon
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:error"),
                     Name = "Aptos Holon",
                     Description = "Aptos Holon Description"
                 };
             }
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion
