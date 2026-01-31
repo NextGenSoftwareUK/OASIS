@@ -9,29 +9,34 @@
 - **Test:** `curl http://localhost:5001/api/v1/contracts/cache-stats`
 - **Response:** `{"enabled":false,"message":"sccache not found"}` (This is OK - sccache is optional)
 
-### ⚠️ OASIS API
-- **Status:** Starting/Checking...
-- **Port:** 5000
-- **URL:** http://localhost:5000
-- **Test:** `curl http://localhost:5000/api/health`
+### ✅ OASIS API (ONODE WebAPI)
+- **Status:** Built and runs on ports from launchSettings (not 5000 unless overridden)
+- **Ports:** HTTP **5003**, HTTPS **5004** (see `Properties/launchSettings.json`)
+- **URL (HTTP):** http://localhost:5003
+- **URL (HTTPS):** https://localhost:5004
+- **Test:** `curl http://localhost:5003/api/health`
+- **MCP:** Set `OASIS_API_URL=http://localhost:5003` in MCP `.env` (default in config is now 5003)
 
 ## Quick Commands
 
 ### Check API Status
 ```bash
-# OASIS API
-curl http://localhost:5000/api/health
+# OASIS API (HTTP 5003 or HTTPS 5004)
+curl http://localhost:5003/api/health
+# or: curl -k https://localhost:5004/api/health
 
 # SmartContractGenerator API
 curl http://localhost:5001/api/v1/contracts/cache-stats
 ```
 
-### Start APIs Manually
+### Build & Start APIs Manually
 
-**OASIS API:**
+**OASIS API (build then run):**
 ```bash
 cd /Users/maxgershfield/OASIS_CLEAN/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI
-dotnet run --urls "http://localhost:5000"
+dotnet build
+dotnet run
+# Listens on http://localhost:5003 and https://localhost:5004 by default
 ```
 
 **SmartContractGenerator API:**
@@ -49,8 +54,9 @@ pkill -f "dotnet.*OASIS.API.ONODE.WebAPI"
 pkill -f "dotnet.*ScGen.API"
 
 # Or by port
-lsof -ti:5000 | xargs kill -9
-lsof -ti:5001 | xargs kill -9
+lsof -ti:5003 | xargs kill -9   # OASIS API HTTP
+lsof -ti:5004 | xargs kill -9   # OASIS API HTTPS
+lsof -ti:5001 | xargs kill -9   # SmartContractGenerator
 ```
 
 ## Test MCP Server Now
@@ -67,7 +73,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"scgen_get_
 ## Next Steps
 
 1. ✅ SmartContractGenerator API is running on port 5001
-2. ⚠️ Start OASIS API on port 5000 (if not already running)
+2. ✅ Build OASIS API (`dotnet build` in ONODE WebAPI); run with `dotnet run` (ports 5003/5004)
 3. ✅ Test MCP server with both APIs
 4. ✅ Configure Cursor to use MCP server
 

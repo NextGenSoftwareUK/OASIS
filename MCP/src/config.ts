@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 export const config = {
-  oasisApiUrl: process.env.OASIS_API_URL || 'https://127.0.0.1:5004',
+  oasisApiUrl: process.env.OASIS_API_URL || 'http://localhost:5003',
   openservApiUrl: process.env.OPENSERV_API_URL || 'http://127.0.0.1:8080',
   starApiUrl: process.env.STAR_API_URL || 'http://127.0.0.1:5001',
   smartContractApiUrl: process.env.SMART_CONTRACT_API_URL || 'http://127.0.0.1:5000',

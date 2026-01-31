@@ -21,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public ErrorHandlingSettings ErrorHandling { get; set; }
         public SecuritySettings Security { get; set; }
         public EmailSettings Email { get; set; }
+        public AISettings AI { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }
         public OASISHyperDriveConfig OASISHyperDriveConfig { get; set; }
         
@@ -298,6 +299,40 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string OASISWebSiteURL { get; set; }
     }
 
+    public class AISettings
+    {
+        public OpenAISettings OpenAI { get; set; }
+        public AnthropicSettings Anthropic { get; set; }
+        public LTXSettings LTX { get; set; }
+        public GlifSettings Glif { get; set; }
+    }
+
+    public class OpenAISettings
+    {
+        public string ApiKey { get; set; }
+        public string Model { get; set; } = "gpt-4o-mini";
+        public string BaseUrl { get; set; } = "https://api.openai.com/v1";
+    }
+
+    public class AnthropicSettings
+    {
+        public string ApiKey { get; set; }
+        public string Model { get; set; } = "claude-3-5-haiku-20241022";
+        public string BaseUrl { get; set; } = "https://api.anthropic.com/v1";
+    }
+
+    public class LTXSettings
+    {
+        public string ApiToken { get; set; }
+        public string ApiUrl { get; set; } = "https://api.ltx.video/v1";
+    }
+
+    public class GlifSettings
+    {
+        public string ApiToken { get; set; }
+        public string ApiUrl { get; set; } = "https://simple-api.glif.app";
+    }
+
     public class ProviderSettingsBase
     {
         public string ConnectionString { get; set; }
@@ -320,6 +355,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string WalletMnemonicWords { get; set; }
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
+        /// <summary>Optional. When set, token metadata lookup (e.g. Solscan memecoin → NFT) uses this mainnet RPC. Leave empty to use ConnectionString (devnet) for everything.</summary>
+        public string MainnetConnectionString { get; set; }
     }
 
     //public class HoloOASISProviderSettings : ProviderSettingsBase

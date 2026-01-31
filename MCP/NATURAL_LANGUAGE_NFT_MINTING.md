@@ -2,7 +2,9 @@
 
 ## Overview
 
-Yes! You can mint NFTs using **natural language** through the MCP tools. The AI assistant (me) can interpret your natural language requests and handle all the technical details automatically.
+Yes! You can mint NFTs using **natural language** through the MCP tools.
+
+**For agents:** A copy-paste workflow (authenticate → Glif image → mint) with exact curl commands and MCP tool order is in [AGENT_NFT_MINT_WORKFLOW.md](AGENT_NFT_MINT_WORKFLOW.md). The AI assistant (me) can interpret your natural language requests and handle all the technical details automatically.
 
 ## How It Works
 

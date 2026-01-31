@@ -78,6 +78,10 @@ Restart Cursor IDE to load the MCP server.
 - `oasis_register_avatar` - **Create** a new avatar
 - `oasis_authenticate_avatar` - Authenticate (login) and get JWT token
 - `oasis_mint_nft` - **Mint** a new NFT on Solana
+- `oasis_create_nft` - **Single command:** authenticate → Glif image → mint (use this for consistent NFT creation)
+
+**See [AGENT_NFT_MINT_WORKFLOW.md](AGENT_NFT_MINT_WORKFLOW.md) for the full workflow (single MCP command + curl).**
+
 - `oasis_save_holon` - **Create or update** a holon (data object)
 - `oasis_update_avatar` - **Update** avatar information
 - `oasis_create_wallet` - **Create** a wallet for an avatar (basic)
