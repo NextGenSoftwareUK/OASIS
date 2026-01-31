@@ -48,6 +48,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+	  <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

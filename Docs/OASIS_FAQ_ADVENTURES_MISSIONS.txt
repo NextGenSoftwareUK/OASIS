@@ -1,0 +1,303 @@
+OASIS FAQ: Adventures & Missions (Core Mechanics)
+
+================================================================================
+CREATION & SCOPE
+================================================================================
+
+Are adventures global at launch or phased?
+
+Based on the current implementation, adventures (missions and quests) can be created and made available globally through the STAR API. However, the specific rollout strategy for launch adventures is not explicitly defined in the codebase.
+
+Current Implementation:
+- Missions and quests are stored in the STAR API and are discoverable globally once published
+- Adventures can be location-based (GeoNFTs) or location-independent
+- The system supports filtering by location, status, difficulty, and other criteria
+- Adventures can be searched and discovered by any user with access to the API
+
+Questions for Clarification:
+1. Are you planning a phased rollout (city-by-city) or global launch for initial adventures?
+2. Will launch adventures be created by the OASIS core team, or will partners/community be involved from day one?
+3. Is there a specific launch strategy document or plan that defines this?
+
+
+Is the intended rollout: full global coverage, city-by-city release, or hybrid approach?
+
+The system architecture supports all three approaches:
+
+Full Global Coverage:
+- Adventures can be created without location requirements
+- Global adventures are immediately discoverable by all users
+- No geographic restrictions in the API
+
+City-by-City Release:
+- Location-based adventures (GeoNFTs) can be placed in specific cities
+- Adventures can be filtered by location when searching
+- Supports gradual rollout by geographic region
+
+Hybrid Approach:
+- Mix of global adventures (available everywhere) and location-specific adventures
+- Some adventures may require being at a location, others can be completed anywhere
+- Flexible system allows for any combination
+
+Technical Capabilities:
+- Location fields (LocationLat, LocationLong, LocationName) are optional in quest creation
+- GeoNFT placement allows precise location-based adventures
+- Search/filter APIs support location-based discovery
+- System can support any rollout strategy
+
+Recommendation: The system is flexible enough to support a hybrid approach where:
+- Core launch adventures could be global (tutorial missions, onboarding quests)
+- Location-specific adventures could roll out city-by-city
+- Community-created adventures can appear anywhere as creators publish them
+
+
+Who is programming the launch quests, if any?
+
+Current System Capabilities:
+
+OASIS Core Team:
+- Core team can create missions/quests through the STAR API
+- Portal interface allows authenticated users to create adventures
+- MissionManager and QuestManager provide programmatic creation
+
+Partners:
+- Partners with API access can create missions/quests
+- Authentication system supports partner accounts
+- Partners can create branded or sponsored adventures
+
+Community Creators:
+- Any authenticated user can create missions/quests through the portal
+- Quest Builder and Mission Builder interfaces are available in the portal
+- Community-created adventures become discoverable once published
+- Creators are tracked via CreatedByAvatarId field
+
+From Documentation:
+"The portal guides you step-by-step... No coding needed - Just fill in forms and click buttons"
+
+Questions for Clarification:
+1. Will launch quests be pre-programmed by the core team before launch?
+2. Will there be a curated set of launch adventures, or will the system open with community-created content?
+3. Are there any restrictions on who can create adventures at launch (e.g., beta testers only, verified creators)?
+4. Will there be a review/approval process for adventures before they go live?
+
+
+Why are adventures tied to specific locations? Do they have to be or just toggleable option?
+
+Location is OPTIONAL - Adventures do NOT have to be tied to specific locations.
+
+Current Implementation:
+
+Optional Location Fields:
+- LocationLat, LocationLong, LocationName are optional fields in QuestInfo
+- CreateQuestRequest includes location fields but they are not required
+- Missions can be created without any location data
+
+Location-Based Adventures (GeoNFTs):
+- If an adventure involves real-world locations, it CAN be turned into a GeoNFT
+- GeoNFTs place digital markers on a map that appear when players are nearby
+- Location-based adventures are discoverable when players are in the area
+- This is a toggleable option, not a requirement
+
+Location-Independent Adventures:
+- Adventures can be created without any location requirements
+- These are discoverable globally through the mission/quest search APIs
+- Can be completed from anywhere
+- Examples: Tutorial missions, online challenges, collection quests
+
+From Documentation:
+"If your adventure involves real-world locations, you can turn it into a GeoNFT (Geographic NFT). This is like placing a digital marker on a map that only appears when players are nearby."
+
+Technical Details:
+- Location fields are nullable/optional in the data structures
+- Search APIs can filter by location OR return all adventures
+- System supports both location-based and location-independent adventures simultaneously
+- No enforcement of location requirements in the core API
+
+Use Cases:
+- Location-Based: Walking tours, historical quests, AR experiences at landmarks
+- Location-Independent: Tutorial missions, online challenges, collection quests, social quests
+
+
+Do adventures expire?
+
+Current Implementation Status:
+
+Expiration Fields Exist:
+- DueDate field exists in QuestInfo data structure
+- timeLimit field exists in requirements metadata (e.g., "timeLimit": 7 days)
+- QuestInfo includes CompletedOn timestamp for tracking
+
+Expiration Logic:
+- Expiration logic appears to be partially implemented but may not be fully active
+- Commented-out code in GameIntegrationManager shows expired mission handling was considered
+- No active expiration enforcement found in current MissionManager/QuestManager code
+
+Current Behavior:
+- Adventures do NOT appear to expire automatically in the current implementation
+- Status can be set to Active/Inactive manually
+- CompletedOn timestamp tracks when adventures are finished
+- DueDate field exists but may not be enforced
+
+Questions for Clarification:
+1. Is expiration functionality planned but not yet implemented?
+2. Should adventures expire, or remain available indefinitely?
+3. If they should expire, under what conditions?
+
+
+If they do not expire, should they?
+
+Considerations for Expiration:
+
+Arguments FOR Expiration:
+- Creates urgency and FOMO (fear of missing out)
+- Prevents adventure overload/clutter
+- Encourages timely participation
+- Seasonal/event-based adventures make sense with expiration
+- Limited-time rewards create exclusivity
+
+Arguments AGAINST Expiration:
+- Persistent adventures allow players to discover content at their own pace
+- Location-based adventures should remain available for travelers
+- Community-created content should persist for creators' investment
+- Educational/historical adventures benefit from permanence
+- No expiration aligns with "adventures exist forever" philosophy in documentation
+
+From Documentation:
+"Persistent - Adventures exist forever, even if creators move on"
+
+Recommendation: Hybrid Approach
+- Default: Adventures do NOT expire (persistent by default)
+- Optional Expiration: Creators can set expiration dates when creating adventures
+- Event-Based: Special events/limited-time adventures can have expiration
+- Location-Based: GeoNFT adventures could have optional expiration for seasonal content
+- Manual Expiration: Creators can manually deactivate adventures if needed
+
+
+Under what conditions could they expire?
+
+Potential Expiration Conditions:
+
+1. Time-Based Expiration:
+- DueDate field could trigger expiration when reached
+- timeLimit in requirements could set completion deadlines
+- Example: "Complete within 7 days of starting"
+
+2. Event-Based Expiration:
+- Seasonal events (holidays, festivals)
+- Limited-time promotions
+- Special collaboration events
+- Example: "Christmas Quest - Available Dec 1-31"
+
+3. Completion-Based Expiration:
+- Adventure expires after X number of completions
+- Limited edition adventures (first 1000 players)
+- Example: "Only available to first 500 completers"
+
+4. Creator-Controlled Expiration:
+- Creator manually sets expiration date
+- Creator can deactivate/reactivate adventures
+- Example: Creator removes outdated content
+
+5. Location-Based Expiration:
+- GeoNFT adventures could expire if location becomes inaccessible
+- Temporary installations/events
+- Example: "Art installation quest - expires when installation ends"
+
+6. Status-Based Expiration:
+- Adventures marked as "Inactive" are effectively expired
+- System could auto-expire adventures with no activity for X months
+- Example: "Adventure inactive for 1 year - auto-archived"
+
+7. Quality/Moderation Expiration:
+- Adventures that violate guidelines could be expired
+- Low-quality adventures could be removed
+- Example: "Adventure removed due to policy violation"
+
+Technical Implementation Needed:
+- Expiration check in MissionManager/QuestManager
+- Scheduled job to check DueDate fields
+- Status updates when adventures expire
+- Notification system for expiring adventures
+- Archive system for expired adventures (preserve completion history)
+
+Questions for Clarification:
+1. Should expiration be mandatory, optional, or not implemented?
+2. What expiration conditions make the most sense for your use case?
+3. Should expired adventures be archived (preserved but not playable) or deleted?
+4. Should players be notified when adventures they're playing are about to expire?
+
+
+================================================================================
+TECHNICAL DETAILS FROM CODEBASE
+================================================================================
+
+Mission/Quest Structure:
+
+Missions:
+- Container for multiple quests
+- Can have optional chapters for organization
+- MissionType enum (Easy, Medium, Hard, Expert)
+- Inherits from QuestBase (has rewards, status, difficulty, etc.)
+- Can be location-based or location-independent
+
+Quests:
+- Individual adventure steps within missions or standalone
+- QuestType enum (Main, Side, Daily, Weekly, etc.)
+- QuestDifficulty enum (Easy, Medium, Hard, Expert)
+- QuestStatus enum (NotStarted, InProgress, Completed, Failed, etc.)
+- Optional location fields (LocationLat, LocationLong, LocationName)
+- Optional DueDate field
+- Objectives list (Location, Collection, Action, ARInteraction, Quiz, etc.)
+- Rewards (Karma, XP, NFTs, Currency)
+
+Creation Process:
+1. Creator uses Portal Quest Builder or Mission Builder
+2. Fills in forms (name, description, objectives, rewards, requirements)
+3. Optionally sets location (if location-based)
+4. Optionally sets DueDate/timeLimit (if expiration desired)
+5. Publishes adventure via STAR API
+6. Adventure becomes discoverable
+
+Discovery:
+- Search by location (for GeoNFT adventures)
+- Search by type, difficulty, status
+- Filter by requirements (level, prerequisites)
+- Global search for location-independent adventures
+
+Completion:
+- Progress tracked per avatar
+- Objectives completed sequentially or in parallel (depending on quest design)
+- Rewards automatically distributed upon completion
+- Completion history preserved in KarmaAkashicRecords
+
+
+================================================================================
+QUESTIONS FOR CLARIFICATION
+================================================================================
+
+1. Launch Strategy:
+   - What is the planned rollout approach (global, phased, hybrid)?
+   - Will there be pre-launch adventures created by the core team?
+   - What is the timeline for launch?
+
+2. Launch Adventures:
+   - Who will create the initial launch quests (core team, partners, community)?
+   - Will there be a curated set of launch adventures?
+   - Is there a review/approval process for launch content?
+
+3. Expiration Policy:
+   - Should adventures expire by default, or remain persistent?
+   - What expiration conditions should be supported?
+   - Should expiration be mandatory or optional for creators?
+
+4. Location Requirements:
+   - Confirmed: Location is optional (toggleable)
+   - Should there be any restrictions on location-based vs location-independent adventures?
+
+5. Community Creation:
+   - Are there any restrictions on who can create adventures at launch?
+   - Will there be moderation/review for community-created content?
+   - What is the approval process (if any)?
+
+
+Last Updated: January 2025

@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.Core.Enums
+namespace NextGenSoftware.OASIS.API.Core.Enums
 {
     public enum ProviderType
     {
@@ -38,6 +38,7 @@
         MidenOASIS,
         ZcashOASIS,
         RadixOASIS,
+        AlephiumOASIS,
         TelegramOASIS,
         MonadOASIS,
         MoralisOASIS, //Web3 API

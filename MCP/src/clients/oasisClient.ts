@@ -647,6 +647,16 @@ export class OASISClient {
   }
 
   /**
+   * Get token metadata by Solana mint address (e.g. memecoin/SPL token from Solscan).
+   * Returns name, symbol, uri, image, description. Use to convert memecoin → NFT.
+   * Endpoint is AllowAnonymous so no auth required.
+   */
+  async getTokenMetadataByMint(mint: string) {
+    const response = await this.client.get('/api/nft/metadata-by-mint', { params: { mint } });
+    return response.data;
+  }
+
+  /**
    * Get provider wallets for avatar by username
    */
   async getProviderWalletsForAvatarByUsername(username: string, providerType?: string) {
@@ -1107,6 +1117,80 @@ export class OASISClient {
     } catch (error: any) {
       console.error('[MCP] Glif.app API error:', error.message);
       return { error: error.message || 'Failed to generate image' };
+    }
+  }
+
+  /**
+   * Single workflow: authenticate → generate image with Glif → mint NFT.
+   * Use this for one consistent way to trigger NFT creation.
+   */
+  async createNFTWithGlif(request: {
+    username: string;
+    password: string;
+    imagePrompt: string;
+    symbol: string;
+    title?: string;
+    description?: string;
+    numberToMint?: number;
+    price?: number;
+    workflowId?: string;
+  }): Promise<{
+    success?: boolean;
+    error?: string;
+    auth?: { ok: boolean };
+    imageUrl?: string;
+    mintResult?: any;
+  }> {
+    try {
+      // 1) Authenticate
+      const authResponse = await this.authenticateAvatar(request.username, request.password);
+      const jwt = (authResponse as any)?.result?.result?.jwtToken
+        ?? (authResponse as any)?.result?.jwtToken
+        ?? (authResponse as any)?.jwtToken;
+      if (!jwt || typeof jwt !== 'string') {
+        return {
+          success: false,
+          error: 'Authentication failed: no JWT in response',
+          auth: { ok: false },
+        };
+      }
+      this.setAuthToken(jwt);
+
+      // 2) Generate image with Glif
+      const glifResult = await this.generateImageWithGlif({
+        prompt: request.imagePrompt,
+        workflowId: request.workflowId,
+      });
+      if (glifResult.error || !glifResult.imageUrl) {
+        return {
+          success: false,
+          error: glifResult.error || 'No image URL from Glif',
+          auth: { ok: true },
+        };
+      }
+
+      // 3) Mint NFT
+      const mintResult = await this.mintNFT({
+        Symbol: request.symbol,
+        JSONMetaDataURL: 'https://jsonplaceholder.typicode.com/posts/1',
+        Title: request.title || request.symbol,
+        Description: request.description || '',
+        ImageUrl: glifResult.imageUrl,
+        NumberToMint: request.numberToMint ?? 1,
+        Price: request.price ?? 0,
+      });
+
+      return {
+        success: true,
+        auth: { ok: true },
+        imageUrl: glifResult.imageUrl,
+        mintResult,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err?.message || String(err),
+      };
     }
   }
 

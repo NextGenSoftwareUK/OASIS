@@ -266,6 +266,66 @@ export const oasisTools: Tool[] = [
     },
   },
   {
+    name: 'oasis_get_token_metadata_by_mint',
+    description: 'Get Solana token metadata by mint address (e.g. memecoin from Solscan). Returns name, symbol, uri, image, description. Use to convert a memecoin/SPL token to an NFT: call this first, then oasis_mint_nft with the returned Title, Symbol, ImageUrl, Description, JSONMetaDataURL.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        mint: {
+          type: 'string',
+          description: 'Solana token/mint address (e.g. from Solscan token URL: https://solscan.io/token/<mint>)',
+        },
+      },
+      required: ['mint'],
+    },
+  },
+  {
+    name: 'oasis_create_nft',
+    description: 'Single consistent way to create an NFT: authenticate avatar → generate image with Glif → mint NFT. If required fields are missing, returns prompts so the agent can ask the user. Required: username, password, imagePrompt, symbol. Optional: title, description, numberToMint, price, workflowId.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        username: {
+          type: 'string',
+          description: 'OASIS avatar username (required)',
+        },
+        password: {
+          type: 'string',
+          description: 'OASIS avatar password (required)',
+        },
+        imagePrompt: {
+          type: 'string',
+          description: 'Text prompt for Glif to generate the NFT image (required, e.g. "A futuristic OASIS digital art, holographic, cyberpunk, 4k")',
+        },
+        symbol: {
+          type: 'string',
+          description: 'NFT symbol/ticker (required, e.g. "OASISART", "MYNFT")',
+        },
+        title: {
+          type: 'string',
+          description: 'NFT title (optional, defaults to symbol)',
+        },
+        description: {
+          type: 'string',
+          description: 'NFT description (optional)',
+        },
+        numberToMint: {
+          type: 'number',
+          description: 'Number of NFTs to mint (optional, default 1)',
+        },
+        price: {
+          type: 'number',
+          description: 'NFT price in SOL (optional, default 0)',
+        },
+        workflowId: {
+          type: 'string',
+          description: 'Glif workflow ID (optional, uses default image generation workflow)',
+        },
+      },
+      required: [], // Optional at call time so tool can be invoked with no args and return interactive prompts for missing fields
+    },
+  },
+  {
     name: 'oasis_upload_file',
     description: 'Upload a file (image, JSON, etc.) to Pinata/IPFS storage. Returns the IPFS URL that can be used for NFT metadata or images. Requires authentication.',
     inputSchema: {
@@ -1884,6 +1944,54 @@ export async function handleOASISTool(
         });
       }
 
+      case 'oasis_create_nft': {
+        // Interactive: prompt for missing required inputs so the agent can ask the user
+        const missingFields: string[] = [];
+        const prompts: Record<string, string> = {};
+        if (!args.username) {
+          missingFields.push('username');
+          prompts.username = 'OASIS avatar username (e.g. OASIS_ADMIN)';
+        }
+        if (!args.password) {
+          missingFields.push('password');
+          prompts.password = 'OASIS avatar password';
+        }
+        if (!args.imagePrompt) {
+          missingFields.push('imagePrompt');
+          prompts.imagePrompt = 'Text prompt for the NFT image (e.g. "A futuristic OASIS digital art, holographic, cyberpunk, 4k")';
+        }
+        if (!args.symbol) {
+          missingFields.push('symbol');
+          prompts.symbol = 'NFT symbol/ticker (e.g. OASISART, MYNFT)';
+        }
+        if (missingFields.length > 0) {
+          return {
+            interactive: true,
+            needsMoreInfo: true,
+            missingFields,
+            prompts,
+            message: `To create an NFT I need: ${missingFields.join(', ')}. Please provide these and I'll run the full workflow (authenticate → Glif image → mint).`,
+            optionalFields: {
+              title: 'NFT title (optional, defaults to symbol)',
+              description: 'NFT description (optional)',
+              numberToMint: 'Number to mint (optional, default 1)',
+              price: 'Price in SOL (optional, default 0)',
+            },
+          };
+        }
+        return await oasisClient.createNFTWithGlif({
+          username: args.username,
+          password: args.password,
+          imagePrompt: args.imagePrompt,
+          symbol: args.symbol,
+          title: args.title,
+          description: args.description,
+          numberToMint: args.numberToMint,
+          price: args.price,
+          workflowId: args.workflowId,
+        });
+      }
+
       case 'oasis_upload_file': {
         if (!args.filePath) {
           throw new Error('filePath is required');
@@ -2085,6 +2193,13 @@ export async function handleOASISTool(
 
       case 'oasis_get_all_geo_nfts': {
         return await oasisClient.getAllGeoNFTs();
+      }
+
+      case 'oasis_get_token_metadata_by_mint': {
+        if (!args.mint) {
+          throw new Error('mint is required (Solana token/mint address, e.g. from Solscan token URL)');
+        }
+        return await oasisClient.getTokenMetadataByMint(args.mint);
       }
 
       case 'oasis_place_geo_nft': {
