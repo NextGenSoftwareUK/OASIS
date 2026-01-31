@@ -2855,6 +2855,41 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
+    /// <summary>
+    /// Load token/NFT metadata using a specific RPC URL (e.g. mainnet for Solscan memecoin lookup when ConnectionString is devnet).
+    /// </summary>
+    public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataWithRpcAsync(string mint, string rpcUrl)
+    {
+        OASISResult<IWeb3NFT> result = new();
+        if (string.IsNullOrWhiteSpace(rpcUrl))
+            return result;
+
+        try
+        {
+            var rpcClient = ClientFactory.GetClient(rpcUrl);
+            var tempService = new SolanaService(_oasisSolanaAccount, rpcClient);
+            OASISResult<GetNftResult> response = await tempService.LoadNftAsync(mint).ConfigureAwait(false);
+            if (response.IsLoaded && response.Result != null)
+            {
+                result.IsLoaded = true;
+                result.IsError = false;
+                result.Result = response.Result.ToOasisNft();
+            }
+            else
+            {
+                result.IsError = true;
+                result.Message = response?.Message ?? "Token metadata not found.";
+            }
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result,
+                $"Error in SolanaOASIS LoadOnChainNFTDataWithRpcAsync. Reason: {e.Message}");
+        }
+
+        return result;
+    }
+
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
         string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
         int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,

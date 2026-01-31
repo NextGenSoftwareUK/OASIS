@@ -50,6 +50,8 @@ Generate an image with prompt "A Gundam robot in neo-tokyo style"
 
 ### Complete Workflow: Generate → Mint NFT
 
+**For agents:** Exact curl and MCP steps (auth, Glif, mint) are in [AGENT_NFT_MINT_WORKFLOW.md](AGENT_NFT_MINT_WORKFLOW.md).
+
 **Step 1: Generate Image**
 ```
 Generate an image with prompt "A futuristic Gundam robot in cyberpunk style"

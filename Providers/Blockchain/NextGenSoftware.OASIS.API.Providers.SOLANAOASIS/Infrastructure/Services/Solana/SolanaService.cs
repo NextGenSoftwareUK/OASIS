@@ -85,86 +85,227 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             // The ownerAccount (oasisAccount) will own the NFT, but the mintAccount is a new account for this specific NFT
             Account mintAccount = new Account();
 
+            // Metaplex metadata name field has a maximum length of 32 characters
+            // Truncate to prevent "Name too long" error (0xb)
+            string nftName = mintNftRequest.Title ?? "Untitled NFT";
+            if (nftName.Length > 32)
+            {
+                nftName = nftName.Substring(0, 32);
+            }
+
+            // Metaplex metadata symbol field has a maximum length of 10 characters
+            // Truncate to prevent "Invalid instruction" error (0xc)
+            string nftSymbol = mintNftRequest.Symbol ?? "NFT";
+            if (nftSymbol.Length > 10)
+            {
+                nftSymbol = nftSymbol.Substring(0, 10);
+            }
+
             Metadata tokenMetadata = new()
             {
-                name = mintNftRequest.Title ?? "Untitled NFT",
-                symbol = mintNftRequest.Symbol ?? "NFT",
+                name = nftName,
+                symbol = nftSymbol,
                 sellerFeeBasisPoints = SellerFeeBasisPoints,
                 uri = mintNftRequest.JSONMetaDataURL,
                 creators = _creators
             };
 
+            // Enhanced logging for debugging Instruction 3 error
+            Console.WriteLine($"=== SOLANA NFT MINTING DEBUG ===");
+            Console.WriteLine($"Owner Account (OASIS): {oasisAccount.PublicKey.Key}");
+            Console.WriteLine($"Mint Account (New): {mintAccount.PublicKey.Key}");
+            Console.WriteLine($"Metadata URI: {tokenMetadata.uri}");
+            Console.WriteLine($"Creators Count: {_creators.Count}");
+            foreach (var creator in _creators)
+            {
+                Console.WriteLine($"  Creator: {creator.key}, Share: {creator.share}, Verified: {creator.verified}");
+            }
+            Console.WriteLine($"IsMasterEdition: true");
+            Console.WriteLine($"IsMutable: true");
+            
+            // Check owner account balance and state
+            try
+            {
+                var balanceResult = await rpcClient.GetBalanceAsync(oasisAccount.PublicKey);
+                if (balanceResult.WasSuccessful)
+                {
+                    Console.WriteLine($"Owner Account Balance: {balanceResult.Result.Value} lamports ({balanceResult.Result.Value / 1_000_000_000m} SOL)");
+                }
+                else
+                {
+                    Console.WriteLine($"⚠️  Failed to get owner account balance: {balanceResult.Reason}");
+                }
+            }
+            catch (Exception balanceEx)
+            {
+                Console.WriteLine($"⚠️  Exception getting balance: {balanceEx.Message}");
+            }
+            
+            // Check if owner account has data (might cause error 0xb)
+            try
+            {
+                var accountInfo = await rpcClient.GetAccountInfoAsync(oasisAccount.PublicKey);
+                if (accountInfo.WasSuccessful && accountInfo.Result.Value != null)
+                {
+                    int dataLength = 0;
+                    if (accountInfo.Result.Value.Data != null)
+                    {
+                        // AccountInfo.Data is List<string> in Solnet
+                        List<string> data = accountInfo.Result.Value.Data;
+                        dataLength = data.Count;
+                    }
+                    Console.WriteLine($"Owner Account Data Length: {dataLength} bytes");
+                    Console.WriteLine($"Owner Account Executable: {accountInfo.Result.Value.Executable}");
+                    Console.WriteLine($"Owner Account Owner: {accountInfo.Result.Value.Owner}");
+                    if (dataLength > 0)
+                    {
+                        Console.WriteLine($"⚠️  WARNING: Owner account has data ({dataLength} bytes). This might cause error 0xb if it's not a native SOL wallet.");
+                    }
+                }
+            }
+            catch (Exception accountEx)
+            {
+                Console.WriteLine($"⚠️  Exception checking account info: {accountEx.Message}");
+            }
+            Console.WriteLine($"=== END DEBUG INFO ===");
+
             // Save the original Console.Out
             var originalConsoleOut = Console.Out;
 
-            try
+            // Retry logic for Instruction 3 errors (master edition creation)
+            int maxRetries = 3;
+            int retryDelay = 2000; // Start with 2 seconds
+            RequestResult<string> createNftResult = null;
+            bool isInstruction3Error = false;
+
+            for (int attempt = 0; attempt < maxRetries; attempt++)
             {
-                // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
-                Console.SetOut(new NullTextWriter());
-
-                // CreateNFT from Solnet.Metaplex should handle creating the mint account automatically
-                // The mintAccount is a new Account() that CreateNFT will create on-chain
-                // The OASIS account (oasisAccount) needs to have enough SOL to pay for:
-                // - Transaction fees
-                // - Rent for mint account creation
-                // - Rent for metadata account creation
-                // - Rent for master edition account creation
-                // If the error is "Attempt to debit an account but found no record of a prior credit",
-                // it likely means the OASIS account balance is 0 or insufficient
-                RequestResult<string> createNftResult = await metadataClient.CreateNFT(
-                ownerAccount: oasisAccount,
-                mintAccount: mintAccount,
-                TokenStandard.NonFungible,
-                tokenMetadata,
-                isMasterEdition: true,
-                isMutable: true);
-
-                // Log CreateNFT result for debugging
-                Console.WriteLine($"=== CreateNFT Result ===");
-                Console.WriteLine($"WasSuccessful: {createNftResult?.WasSuccessful}");
-                Console.WriteLine($"Reason: {createNftResult?.Reason}");
-                Console.WriteLine($"Result: {createNftResult?.Result}");
-                if (createNftResult?.ErrorData != null)
+                try
                 {
-                    Console.WriteLine($"Error Type: {createNftResult.ErrorData.Error?.Type}");
-                    if (createNftResult.ErrorData.Logs != null)
+                    // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
+                    Console.SetOut(new NullTextWriter());
+
+                    // CreateNFT from Solnet.Metaplex should handle creating the mint account automatically
+                    // The mintAccount is a new Account() that CreateNFT will create on-chain
+                    // The OASIS account (oasisAccount) needs to have enough SOL to pay for:
+                    // - Transaction fees
+                    // - Rent for mint account creation
+                    // - Rent for metadata account creation
+                    // - Rent for master edition account creation
+                    // If the error is "Attempt to debit an account but found no record of a prior credit",
+                    // it likely means the OASIS account balance is 0 or insufficient
+                    Console.WriteLine($"Calling CreateNFT (attempt {attempt + 1}/{maxRetries}) with skipPreflight: false (will simulate first)");
+                    createNftResult = await metadataClient.CreateNFT(
+                    ownerAccount: oasisAccount,
+                    mintAccount: mintAccount,
+                    TokenStandard.NonFungible,
+                    tokenMetadata,
+                    isMasterEdition: true,
+                    isMutable: true);
+
+                    // Restore Console.Out before checking result
+                    Console.SetOut(originalConsoleOut);
+
+                    // Check if successful
+                    if (createNftResult?.WasSuccessful == true)
                     {
-                        Console.WriteLine($"Error Logs: {string.Join("; ", createNftResult.ErrorData.Logs.Take(5))}");
-                    }
-                }
-                Console.WriteLine($"=== END CreateNFT Result ===");
-
-                if (createNftResult == null)
-                    return HandleError<MintNftResult>("CreateNFT returned null result. RPC client may not be properly connected.");
-
-                if (!createNftResult.WasSuccessful)
-                {
-                    bool isBalanceError =
-                        createNftResult.ErrorData?.Error.Type is TransactionErrorType.InsufficientFundsForFee
-                            or TransactionErrorType.InvalidRentPayingAccount;
-
-                    bool isLamportError = createNftResult.ErrorData?.Logs?.Any(log =>
-                        log.Contains("insufficient lamports", StringComparison.OrdinalIgnoreCase)) == true;
-
-                    if (isBalanceError || isLamportError)
-                    {
-                        return HandleError<MintNftResult>(
-                            $"{createNftResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
+                        break; // Success, exit retry loop
                     }
 
-                    return HandleError<MintNftResult>(createNftResult.Reason);
-                }
+                    // Check if it's an Instruction 3 error
+                    isInstruction3Error = createNftResult?.Reason?.Contains("Instruction 3") == true ||
+                                        createNftResult?.Reason?.Contains("0xb") == true ||
+                                        createNftResult?.ErrorData?.Logs?.Any(log => log.Contains("Instruction 3") || log.Contains("0xb")) == true;
 
-                return SuccessResult(
-                    new(mintAccount.PublicKey.Key,
-                        Solana,
-                        createNftResult.Result));
+                    // If it's an Instruction 3 error and we have retries left, retry
+                    if (isInstruction3Error && attempt < maxRetries - 1)
+                    {
+                        Console.WriteLine($"⚠️  Instruction 3 error detected. Retrying in {retryDelay}ms... (attempt {attempt + 1}/{maxRetries})");
+                        await Task.Delay(retryDelay);
+                        retryDelay *= 2; // Exponential backoff: 2s, 4s, 8s
+                        continue;
+                    }
+
+                    // Not an Instruction 3 error or out of retries, break
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    // Restore Console.Out before logging
+                    Console.SetOut(originalConsoleOut);
+                    Console.WriteLine($"⚠️  Exception during CreateNFT (attempt {attempt + 1}/{maxRetries}): {ex.Message}");
+                    
+                    if (attempt < maxRetries - 1)
+                    {
+                        Console.WriteLine($"Retrying in {retryDelay}ms...");
+                        await Task.Delay(retryDelay);
+                        retryDelay *= 2;
+                        continue;
+                    }
+                    else
+                    {
+                        throw; // Re-throw on last attempt
+                    }
+                }
             }
-            finally
+
+            // Restore Console.Out before logging results (so debug logs are visible)
+            Console.SetOut(originalConsoleOut);
+            
+            // Log CreateNFT result for debugging
+            Console.WriteLine($"=== CreateNFT Result ===");
+            Console.WriteLine($"WasSuccessful: {createNftResult?.WasSuccessful}");
+            Console.WriteLine($"Reason: {createNftResult?.Reason}");
+            Console.WriteLine($"Result: {createNftResult?.Result}");
+            if (createNftResult?.ErrorData != null)
             {
-                // Restore the original Console.Out
-                Console.SetOut(originalConsoleOut);
-            } 
+                Console.WriteLine($"Error Type: {createNftResult.ErrorData.Error?.Type}");
+                if (createNftResult.ErrorData.Logs != null)
+                {
+                    Console.WriteLine($"Error Logs (all): {string.Join(" | ", createNftResult.ErrorData.Logs)}");
+                    Console.WriteLine($"Error Logs (first 10): {string.Join("; ", createNftResult.ErrorData.Logs.Take(10))}");
+                }
+                // Check specifically for Instruction 3 error
+                if (createNftResult.Reason?.Contains("Instruction 3") == true || 
+                    createNftResult.Reason?.Contains("0xb") == true ||
+                    createNftResult.ErrorData.Logs?.Any(log => log.Contains("Instruction 3") || log.Contains("0xb")) == true)
+                {
+                    Console.WriteLine($"🔴 INSTRUCTION 3 ERROR DETECTED!");
+                    Console.WriteLine($"   This is the master edition creation instruction.");
+                    Console.WriteLine($"   Error 0xb typically means account data issue.");
+                    Console.WriteLine($"   Check if owner account has unexpected data.");
+                }
+            }
+            Console.WriteLine($"=== END CreateNFT Result ===");
+            
+            // Redirect Console.Out back to NullTextWriter for remaining operations
+            Console.SetOut(new NullTextWriter());
+
+            if (createNftResult == null)
+                return HandleError<MintNftResult>("CreateNFT returned null result. RPC client may not be properly connected.");
+
+            if (!createNftResult.WasSuccessful)
+            {
+                bool isBalanceError =
+                    createNftResult.ErrorData?.Error.Type is TransactionErrorType.InsufficientFundsForFee
+                        or TransactionErrorType.InvalidRentPayingAccount;
+
+                bool isLamportError = createNftResult.ErrorData?.Logs?.Any(log =>
+                    log.Contains("insufficient lamports", StringComparison.OrdinalIgnoreCase)) == true;
+
+                if (isBalanceError || isLamportError)
+                {
+                    return HandleError<MintNftResult>(
+                        $"{createNftResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
+                }
+
+                return HandleError<MintNftResult>(createNftResult.Reason);
+            }
+
+            return SuccessResult(
+                new(mintAccount.PublicKey.Key,
+                    Solana,
+                    createNftResult.Result));
         }
         catch (Exception ex)
         {

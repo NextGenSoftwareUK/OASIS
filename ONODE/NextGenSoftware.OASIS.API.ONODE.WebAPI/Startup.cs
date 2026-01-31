@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
 
@@ -55,6 +56,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             //services.AddCors(); //Needed twice? It is below too...
             services.AddControllers(x => x.Filters.Add(typeof(ServiceExceptionInterceptor)))
                 .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+            services.AddHttpClient();
+            services.AddHttpClient("Pinata", c => c.Timeout = TimeSpan.FromSeconds(45));
+            services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions>(
+                Configuration.GetSection(NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions.SectionName));
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ITokenMetadataByMintService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TokenMetadataByMintService>();
+            services.AddSingleton<TelegramNftMintFlowService>();
+            services.AddSingleton<WorldService>();
+            services.AddSingleton<ISubscriptionStore, SubscriptionStoreMongoDb>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {
@@ -338,7 +347,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            app.UseHttpsRedirection();
+            // Only use HTTPS redirection in production (not in development to avoid self-signed certificate issues)
+            if (!string.Equals(env.EnvironmentName, "Development", StringComparison.OrdinalIgnoreCase))
+            {
+                app.UseHttpsRedirection();
+            }
 
             app.UseRouting();
             //app.UseSession();

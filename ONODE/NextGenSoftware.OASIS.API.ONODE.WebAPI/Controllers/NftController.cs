@@ -1,5 +1,8 @@
 using System;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
@@ -13,6 +16,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFTs;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -25,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Authorize]
     public class NftController : OASISControllerBase
     {
+        private readonly ITokenMetadataByMintService _tokenMetadataByMintService;
         NFTManager _NFTManager = null;
        
         NFTManager NFTManager 
@@ -38,9 +44,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }   
         }
 
-        public NftController()
+        public NftController(ITokenMetadataByMintService tokenMetadataByMintService = null)
         {
-           
+            _tokenMetadataByMintService = tokenMetadataByMintService;
         }
 
 
@@ -94,6 +100,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await LoadWeb4NftByHashAsync(hash);
+        }
+
+        /// <summary>
+        /// Gets token metadata by Solana mint address (e.g. memecoin/SPL token from Solscan).
+        /// Returns on-chain name, symbol, uri, and resolves image + description from the token's metadata JSON.
+        /// Use this to convert a memecoin to an NFT: call mint-nft with the returned image, title, symbol, description, and JSONMetaDataURL (uri).
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("metadata-by-mint")]
+        [ProducesResponseType(typeof(TokenMetadataByMintResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetTokenMetadataByMintAsync([FromQuery] string mint)
+        {
+            if (string.IsNullOrWhiteSpace(mint))
+                return BadRequest("mint is required (Solana token/mint address, e.g. from a Solscan token URL).");
+
+            if (_tokenMetadataByMintService == null)
+                return BadRequest("Token metadata service not configured.");
+
+            var result = await _tokenMetadataByMintService.GetMetadataAsync(mint);
+            if (result == null)
+                return BadRequest("Token metadata not found. Ensure the mint has Metaplex metadata (e.g. pump.fun / memecoin).");
+
+            return Ok(result);
         }
 
         [Authorize]
