@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
@@ -129,7 +130,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return new OASISResult<bool>(true);
         }
 
-        // TODO: Implement GetAccountAsync in EOS provider - use EOSIOOASIS ChainAPI where available
         public async Task<Account> GetTelosAccountAsync(string telosAccountName)
         {
             try
@@ -155,7 +155,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                 //     }
                 // }
 
-                // Fallback: attempt HTTP call to Telos get_account endpoint
+                // Use EOSIO RPC to get account information
                 var request = new { account_name = telosAccountName };
                 var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
                 var httpResponse = await _httpClient.PostAsync("/v1/chain/get_account", content);
@@ -163,19 +163,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    // Try to deserialize into Account if possible
-                    try
+                    var accountData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    // Parse account data from EOSIO RPC response
+                    var account = new Account
                     {
-                        var account = JsonSerializer.Deserialize<Account>(responseContent);
-                        return account ?? new Account();
-                    }
-                    catch
-                    {
-                        return new Account();
-                    }
+                        AccountName = telosAccountName,
+                        Created = accountData.TryGetProperty("created", out var created) ? created.GetString() : "",
+                        CoreLiquidBalance = accountData.TryGetProperty("core_liquid_balance", out var balance) ? balance.GetString() : "0.0000 TLOS",
+                        RamQuota = accountData.TryGetProperty("ram_quota", out var ramQuota) ? ramQuota.GetInt64() : 0,
+                        NetWeight = accountData.TryGetProperty("net_weight", out var netWeight) ? netWeight.GetString() : "0 TLOS",
+                        CpuWeight = accountData.TryGetProperty("cpu_weight", out var cpuWeight) ? cpuWeight.GetString() : "0 TLOS"
+                    };
+                    
+                    return account;
                 }
-
-                return new Account();
+                else
+                {
+                    // Return empty account if not found
+                    return new Account { AccountName = telosAccountName };
+                }
             }
             catch
             {
@@ -183,12 +190,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             }
         }
 
-        // TODO: Implement GetAccount in EOS provider
-        // Note: EOSIOOASIS is currently commented out
         public GetAccountResponseDto GetTelosAccount(string telosAccountName)
         {
-            // return EOSIOOASIS?.GetEOSIOAccount(telosAccountName);
-            return new GetAccountResponseDto();
+            var account = GetTelosAccountAsync(telosAccountName).Result;
+            
+            // Convert Account to GetAccountResponseDto
+            return new GetAccountResponseDto
+            {
+                AccountName = account.AccountName,
+                Created = account.Created,
+                CoreLiquidBalance = account.CoreLiquidBalance,
+                RamQuota = account.RamQuota,
+                NetWeight = account.NetWeight,
+                CpuWeight = account.CpuWeight
+            };
         }
 
         public async Task<string> GetBalanceAsync(string telosAccountName, string code, string symbol)
@@ -578,11 +593,80 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         //}
 
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            result.Message = "LoadAvatar by ProviderKey is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load avatar by provider key from Telos blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = "oasis.telos",
+                        scope = "oasis.telos",
+                        table = "avatars",
+                        index_position = 3, // Secondary index on provider key
+                        key_type = "name",
+                        lower_bound = providerKey,
+                        upper_bound = providerKey,
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarData = rows[0];
+                        var avatar = ParseTelosToAvatar(avatarData);
+                        result.Result = avatar;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded by provider key from Telos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Avatar not found on Telos blockchain by provider key");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar by provider key from Telos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Telos: {ex.Message}");
+            }
+
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
@@ -1170,22 +1254,110 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar is not supported yet by Telos provider." };
-            return Task.FromResult(result);
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load avatar first to get account info
+                var avatarResult = await LoadAvatarAsync(id);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar not found: {id}");
+                    return result;
+                }
+
+                // Send delete transaction to Telos smart contract
+                var deleteUrl = $"{TELOS_API_BASE_URL}/v1/chain/push_transaction";
+                var deleteData = new
+                {
+                    actions = new[]
+                    {
+                        new
+                        {
+                            account = "oasis.telos",
+                            name = softDelete ? "softdeleteavatar" : "deleteavatar",
+                            authorization = new[]
+                            {
+                                new { actor = "oasis.telos", permission = "active" }
+                            },
+                            data = new
+                            {
+                                avatar_id = id.ToString()
+                            }
+                        }
+                    }
+                };
+
+                var content = new StringContent(JsonSerializer.Serialize(deleteData), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(deleteUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Avatar {id} {(softDelete ? "soft deleted" : "deleted")} from Telos blockchain successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar from Telos blockchain: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar by Email is not supported yet by Telos provider." };
-            return Task.FromResult(result);
+            var result = new OASISResult<bool>();
+            try
+            {
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar not found: {avatarEmail}");
+                    return result;
+                }
+                return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar by Username is not supported yet by Telos provider." };
-            return Task.FromResult(result);
+            var result = new OASISResult<bool>();
+            try
+            {
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar not found: {avatarUsername}");
+                    return result;
+                }
+                return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
@@ -1193,17 +1365,106 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar by ProviderKey is not supported yet by Telos provider." };
-            return Task.FromResult(result);
+            var result = new OASISResult<bool>();
+            try
+            {
+                var avatarResult = await LoadAvatarByProviderKeyAsync(providerKey);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar not found: {providerKey}");
+                    return result;
+                }
+                return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<ISearchResults>();
-            result.Message = "Search is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load all holons and avatars, then filter by search params
+                var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);
+                var allAvatarsResult = await LoadAllAvatarsAsync(version);
+
+                var searchResults = new SearchResults
+                {
+                    SearchResultHolons = new List<IHolon>(),
+                    NumberOfResults = 0
+                };
+
+                // Search in holons
+                if (allHolonsResult.Result != null)
+                {
+                    var matchingHolons = allHolonsResult.Result.Where(h =>
+                    {
+                        if (h == null) return false;
+                        var searchText = searchParams?.SearchQuery?.ToLower() ?? "";
+                        return (!string.IsNullOrEmpty(searchText) && (
+                            h.Name?.ToLower().Contains(searchText) == true ||
+                            h.Description?.ToLower().Contains(searchText) == true ||
+                            h.MetaData?.Values.Any(v => v?.ToString()?.ToLower().Contains(searchText) == true) == true
+                        ));
+                    }).ToList();
+                    searchResults.SearchResultHolons.AddRange(matchingHolons);
+                }
+
+                // Search in avatars (convert to holons for consistency)
+                if (allAvatarsResult.Result != null)
+                {
+                    var matchingAvatars = allAvatarsResult.Result.Where(a =>
+                    {
+                        if (a == null) return false;
+                        var searchText = searchParams?.SearchQuery?.ToLower() ?? "";
+                        return (!string.IsNullOrEmpty(searchText) && (
+                            a.Username?.ToLower().Contains(searchText) == true ||
+                            a.Email?.ToLower().Contains(searchText) == true ||
+                            a.FirstName?.ToLower().Contains(searchText) == true ||
+                            a.LastName?.ToLower().Contains(searchText) == true
+                        ));
+                    }).ToList();
+                    
+                    // Convert avatars to holons for search results
+                    foreach (var avatar in matchingAvatars)
+                    {
+                        var holon = new Holon
+                        {
+                            Id = avatar.Id,
+                            Name = avatar.Username,
+                            Description = $"{avatar.FirstName} {avatar.LastName}",
+                            HolonType = HolonType.Avatar
+                        };
+                        searchResults.SearchResultHolons.Add(holon);
+                    }
+                }
+
+                searchResults.NumberOfResults = searchResults.SearchResultHolons.Count;
+                result.Result = searchResults;
+                result.IsError = false;
+                result.Message = $"Found {searchResults.NumberOfResults} results matching '{searchParams?.SearchQuery}'";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error performing search on Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1438,14 +1699,45 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         //    throw new NotImplementedException();
         //}
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
             {
-                Result = new List<IHolon>(),
-                Message = "LoadHolonsByMetaData is not supported yet by Telos provider."
-            };
-            return Task.FromResult(result);
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load all holons and filter by metadata
+                var allHolonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                if (allHolonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons: {allHolonsResult.Message}");
+                    return result;
+                }
+
+                // Filter by metadata
+                var filteredHolons = allHolonsResult.Result?
+                    .Where(h => h?.MetaData != null && 
+                                h.MetaData.ContainsKey(metaKey) && 
+                                h.MetaData[metaKey]?.ToString() == metaValue)
+                    .ToList() ?? new List<IHolon>();
+
+                result.Result = filteredHolons;
+                result.IsError = false;
+                result.Message = $"Found {filteredHolons.Count} holons matching metadata {metaKey}={metaValue}";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1453,14 +1745,54 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
             {
-                Result = new List<IHolon>(),
-                Message = "LoadHolonsByMetaData (multi) is not supported yet by Telos provider."
-            };
-            return Task.FromResult(result);
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load all holons and filter by metadata
+                var allHolonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                if (allHolonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons: {allHolonsResult.Message}");
+                    return result;
+                }
+
+                // Filter by metadata based on match mode
+                IEnumerable<IHolon> filteredHolons = allHolonsResult.Result ?? new List<IHolon>();
+                
+                if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.And)
+                {
+                    filteredHolons = filteredHolons.Where(h => h?.MetaData != null &&
+                        metaKeyValuePairs.All(kvp => h.MetaData.ContainsKey(kvp.Key) && 
+                                                     h.MetaData[kvp.Key]?.ToString() == kvp.Value));
+                }
+                else // MetaKeyValuePairMatchMode.Or
+                {
+                    filteredHolons = filteredHolons.Where(h => h?.MetaData != null &&
+                        metaKeyValuePairs.Any(kvp => h.MetaData.ContainsKey(kvp.Key) && 
+                                                     h.MetaData[kvp.Key]?.ToString() == kvp.Value));
+                }
+
+                result.Result = filteredHolons.ToList();
+                result.IsError = false;
+                result.Message = $"Found {result.Result.Count()} holons matching metadata";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1470,12 +1802,87 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
             {
-                Result = new List<IHolon>(),
-                Message = "LoadAllHolons is not supported yet by Telos provider."
-            };
-            return await Task.FromResult(result);
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load all holons from Telos blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        json = true,
+                        code = "orgs.seeds",
+                        scope = "orgs.seeds",
+                        table = "holon",
+                        limit = 1000, // Load up to 1000 holons
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{TELOS_API_BASE_URL}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array)
+                    {
+                        var holons = new List<IHolon>();
+                        foreach (var row in rows.EnumerateArray())
+                        {
+                            try
+                            {
+                                var holon = ParseTelosToHolon(row.GetRawText());
+                                if (holon != null && (type == HolonType.All || holon.HolonType == type))
+                                {
+                                    holons.Add(holon);
+                                }
+                            }
+                            catch (Exception ex) when (continueOnError)
+                            {
+                                // Continue processing other holons on error
+                                continue;
+                            }
+                        }
+
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = $"Loaded {holons.Count} holons from Telos blockchain";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to parse holons from Telos blockchain response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons from Telos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1488,11 +1895,83 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
-        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IHolon>();
-            result.Message = "SaveHolon is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
+                    return result;
+                }
+
+                // Save holon to Telos blockchain using real EOSIO smart contract
+                var saveUrl = $"{TELOS_API_BASE_URL}/v1/chain/push_transaction";
+                var saveData = new
+                {
+                    actions = new[]
+                    {
+                        new
+                        {
+                            account = "orgs.seeds",
+                            name = "upsertholon",
+                            authorization = new[]
+                            {
+                                new { actor = "orgs.seeds", permission = "active" }
+                            },
+                            data = new
+                            {
+                                id = holon.Id.ToString(),
+                                name = holon.Name ?? "",
+                                description = holon.Description ?? "",
+                                holon_type = holon.HolonType.ToString(),
+                                parent_holon_id = holon.ParentHolonId?.ToString() ?? "",
+                                metadata = holon.MetaData != null ? JsonSerializer.Serialize(holon.MetaData) : "{}"
+                            }
+                        }
+                    }
+                };
+
+                var content = new StringContent(JsonSerializer.Serialize(saveData), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(saveUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("transaction_id", out var txId))
+                    {
+                        result.Result = holon;
+                        result.IsError = false;
+                        result.Message = $"Holon saved to Telos blockchain successfully. Transaction ID: {txId.GetString()}";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to parse transaction response from Telos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Telos blockchain: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving holon to Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1500,14 +1979,55 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
             {
-                Result = new List<IHolon>(),
-                Message = "SaveHolons is not supported yet by Telos provider."
-            };
-            return Task.FromResult(result);
+                if (holons == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holons collection cannot be null");
+                    return result;
+                }
+
+                var savedHolons = new List<IHolon>();
+                var errors = new List<string>();
+
+                foreach (var holon in holons)
+                {
+                    try
+                    {
+                        var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (!saveResult.IsError && saveResult.Result != null)
+                        {
+                            savedHolons.Add(saveResult.Result);
+                        }
+                        else if (!continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Failed to save holon {holon.Id}: {saveResult.Message}");
+                            return result;
+                        }
+                        else
+                        {
+                            errors.Add($"Holon {holon.Id}: {saveResult.Message}");
+                        }
+                    }
+                    catch (Exception ex) when (continueOnError)
+                    {
+                        errors.Add($"Holon {holon?.Id}: {ex.Message}");
+                    }
+                }
+
+                result.Result = savedHolons;
+                result.IsError = errors.Count > 0;
+                result.Message = $"Saved {savedHolons.Count} of {holons.Count()} holons to Telos blockchain" + 
+                    (errors.Count > 0 ? $". {errors.Count} errors occurred." : "");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving holons to Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
@@ -1515,11 +2035,70 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return DeleteHolonAsync(id).Result;
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            result.Message = "DeleteHolon by Id is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load holon first to return it
+                var holonResult = await LoadHolonAsync(id);
+                if (holonResult.IsError || holonResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Holon not found: {id}");
+                    return result;
+                }
+
+                // Send delete transaction to Telos smart contract
+                var deleteUrl = $"{TELOS_API_BASE_URL}/v1/chain/push_transaction";
+                var deleteData = new
+                {
+                    actions = new[]
+                    {
+                        new
+                        {
+                            account = "orgs.seeds",
+                            name = "deleteholon",
+                            authorization = new[]
+                            {
+                                new { actor = "orgs.seeds", permission = "active" }
+                            },
+                            data = new
+                            {
+                                id = id.ToString()
+                            }
+                        }
+                    }
+                };
+
+                var content = new StringContent(JsonSerializer.Serialize(deleteData), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(deleteUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = holonResult.Result;
+                    result.IsError = false;
+                    result.Message = $"Holon {id} deleted from Telos blockchain successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to delete holon from Telos blockchain: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
@@ -1527,22 +2106,138 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return DeleteHolonAsync(providerKey).Result;
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             var result = new OASISResult<IHolon>();
-            result.Message = "DeleteHolon by ProviderKey is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+            try
+            {
+                // Load holon by provider key first
+                var holonResult = await LoadHolonAsync(providerKey);
+                if (holonResult.IsError || holonResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Holon not found: {providerKey}");
+                    return result;
+                }
+
+                // Delegate to DeleteHolonAsync(Guid)
+                return await DeleteHolonAsync(holonResult.Result.Id);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var result = new OASISResult<IEnumerable<IAvatar>> { Result = new List<IAvatar>(), Message = "GetAvatarsNearMe is not supported by Telos provider." };
+            return GetAvatarsNearMeAsync(geoLat, geoLong, radiusInMeters).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsNearMeAsync(long geoLat, long geoLong, int radiusInMeters)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var avatarsResult = await LoadAllAvatarsAsync(0);
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Telos: {ex.Message}", ex);
+            }
             return result;
         }
 
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
-            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "GetHolonsNearMe is not supported by Telos provider." };
+            return GetHolonsNearMeAsync(geoLat, geoLong, radiusInMeters, Type).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Telos provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var holonsResult = await LoadAllHolonsAsync(Type, true, true, 0, 0, true, false, 0);
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Telos: {ex.Message}", ex);
+            }
             return result;
         }
 
@@ -3048,6 +3743,66 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             catch (Exception)
             {
                 return new Avatar();
+            }
+        }
+
+        /// <summary>
+        /// Parse Telos blockchain response to Holon object
+        /// </summary>
+        private IHolon ParseTelosToHolon(JsonElement telosData)
+        {
+            try
+            {
+                var holon = new Holon();
+                
+                if (telosData.TryGetProperty("id", out var id))
+                    holon.Id = Guid.TryParse(id.GetString(), out var guid) ? guid : Guid.NewGuid();
+                
+                if (telosData.TryGetProperty("name", out var name))
+                    holon.Name = name.GetString();
+                
+                if (telosData.TryGetProperty("description", out var description))
+                    holon.Description = description.GetString();
+                
+                if (telosData.TryGetProperty("holon_type", out var holonType) || telosData.TryGetProperty("holonType", out holonType))
+                {
+                    if (Enum.TryParse<HolonType>(holonType.GetString(), out var type))
+                        holon.HolonType = type;
+                }
+                
+                if (telosData.TryGetProperty("parent_holon_id", out var parentId) || telosData.TryGetProperty("parentHolonId", out parentId))
+                {
+                    if (Guid.TryParse(parentId.GetString(), out var parentGuid))
+                        holon.ParentHolonId = parentGuid;
+                }
+                
+                if (telosData.TryGetProperty("created_date", out var createdDate) || telosData.TryGetProperty("createdDate", out createdDate))
+                {
+                    if (DateTime.TryParse(createdDate.GetString(), out var created))
+                        holon.CreatedDate = created;
+                }
+                
+                if (telosData.TryGetProperty("modified_date", out var modifiedDate) || telosData.TryGetProperty("modifiedDate", out modifiedDate))
+                {
+                    if (DateTime.TryParse(modifiedDate.GetString(), out var modified))
+                        holon.ModifiedDate = modified;
+                }
+                
+                // Parse metadata if present
+                if (telosData.TryGetProperty("metadata", out var metadata) || telosData.TryGetProperty("metaData", out metadata))
+                {
+                    holon.MetaData = new Dictionary<string, object>();
+                    foreach (var prop in metadata.EnumerateObject())
+                    {
+                        holon.MetaData[prop.Name] = prop.Value.GetString();
+                    }
+                }
+                
+                return holon;
+            }
+            catch (Exception)
+            {
+                return new Holon();
             }
         }
 

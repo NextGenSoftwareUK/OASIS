@@ -3115,7 +3115,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             {
                 avatar = new Avatar
                 {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{GetSolanaProperty(solanaData, "address") ?? GetSolanaProperty(solanaData, "username") ?? "solana_user"}"),
+                    // Use Solana address (immutable) - never use username which can change
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{GetSolanaProperty(solanaData, "address") ?? GetSolanaProperty(solanaData, "publicKey") ?? "solana_unknown"}"),
                     Username = GetSolanaProperty(solanaData, "username") ?? "solana_user",
                     Email = GetSolanaProperty(solanaData, "email") ?? "user@solana.example",
                     FirstName = GetSolanaProperty(solanaData, "firstName") ?? "Solana",
@@ -3171,7 +3172,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             {
                 avatarDetail = new AvatarDetail
                 {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{GetSolanaProperty(solanaData, "address") ?? GetSolanaProperty(solanaData, "username") ?? "solana_user"}"),
+                    // Use Solana address (immutable) - never use username which can change
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{GetSolanaProperty(solanaData, "address") ?? GetSolanaProperty(solanaData, "publicKey") ?? "solana_unknown"}"),
                     Username = GetSolanaProperty(solanaData, "username") ?? "solana_user",
                     Email = GetSolanaProperty(solanaData, "email") ?? "user@solana.example",
                     FirstName = GetSolanaProperty(solanaData, "firstName") ?? "Solana",

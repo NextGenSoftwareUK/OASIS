@@ -2130,15 +2130,71 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Implement async version
-                response.Result = null;
-                response.IsError = false;
-                response.Message = "Avatar detail loaded successfully";
+                if (!_isActivated)
+                {
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Query avatar detail by email from Cardano blockchain using Blockfrost API
+                // Search metadata for avatar with matching email
+                var queryUrl = $"/metadata/txs/labels/721?count=100";
+
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var metadataArray = JsonSerializer.Deserialize<JsonElement[]>(content);
+
+                    // Find avatar metadata matching email
+                    foreach (var metadata in metadataArray)
+                    {
+                        if (metadata.TryGetProperty("json_metadata", out var jsonMeta))
+                        {
+                            var metadataString = jsonMeta.GetString();
+                            if (metadataString != null && metadataString.Contains(avatarEmail))
+                            {
+                                var metadataObj = JsonSerializer.Deserialize<Dictionary<string, object>>(metadataString);
+                                if (metadataObj != null && metadataObj.ContainsKey("email") && metadataObj["email"].ToString() == avatarEmail)
+                                {
+                                    var avatarDetail = new AvatarDetail
+                                    {
+                                        Id = CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{avatarEmail}"),
+                                        Email = avatarEmail,
+                                        Username = metadataObj.ContainsKey("username") ? metadataObj["username"].ToString() : avatarEmail.Split('@')[0],
+                                        FirstName = metadataObj.ContainsKey("firstName") ? metadataObj["firstName"].ToString() : "",
+                                        LastName = metadataObj.ContainsKey("lastName") ? metadataObj["lastName"].ToString() : "",
+                                        Karma = metadataObj.ContainsKey("karma") && long.TryParse(metadataObj["karma"].ToString(), out var karma) ? karma : 0,
+                                        XP = metadataObj.ContainsKey("xp") && int.TryParse(metadataObj["xp"].ToString(), out var xp) ? xp : 0,
+                                        CreatedDate = DateTime.UtcNow,
+                                        ModifiedDate = DateTime.UtcNow,
+                                        Version = version
+                                    };
+
+                                    response.Result = avatarDetail;
+                                    response.IsError = false;
+                                    response.Message = "Avatar detail loaded from Cardano successfully";
+                                    return response;
+                                }
+                            }
+                        }
+                    }
+
+                    OASISErrorHandling.HandleError(ref response, $"Avatar detail with email {avatarEmail} not found on Cardano blockchain");
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to query Cardano metadata: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by email from Cardano: {ex.Message}");
             }
             return response;
         }
@@ -2148,15 +2204,71 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Implement async version
-                response.Result = null;
-                response.IsError = false;
-                response.Message = "Avatar detail loaded successfully";
+                if (!_isActivated)
+                {
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Query avatar detail by username from Cardano blockchain using Blockfrost API
+                // Search metadata for avatar with matching username
+                var queryUrl = $"/metadata/txs/labels/721?count=100";
+
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var metadataArray = JsonSerializer.Deserialize<JsonElement[]>(content);
+
+                    // Find avatar metadata matching username
+                    foreach (var metadata in metadataArray)
+                    {
+                        if (metadata.TryGetProperty("json_metadata", out var jsonMeta))
+                        {
+                            var metadataString = jsonMeta.GetString();
+                            if (metadataString != null && metadataString.Contains(avatarUsername))
+                            {
+                                var metadataObj = JsonSerializer.Deserialize<Dictionary<string, object>>(metadataString);
+                                if (metadataObj != null && metadataObj.ContainsKey("username") && metadataObj["username"].ToString() == avatarUsername)
+                                {
+                                    var avatarDetail = new AvatarDetail
+                                    {
+                                        Id = CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{avatarUsername}"),
+                                        Username = avatarUsername,
+                                        Email = metadataObj.ContainsKey("email") ? metadataObj["email"].ToString() : $"{avatarUsername}@cardano.local",
+                                        FirstName = metadataObj.ContainsKey("firstName") ? metadataObj["firstName"].ToString() : "",
+                                        LastName = metadataObj.ContainsKey("lastName") ? metadataObj["lastName"].ToString() : "",
+                                        Karma = metadataObj.ContainsKey("karma") && long.TryParse(metadataObj["karma"].ToString(), out var karma) ? karma : 0,
+                                        XP = metadataObj.ContainsKey("xp") && int.TryParse(metadataObj["xp"].ToString(), out var xp) ? xp : 0,
+                                        CreatedDate = DateTime.UtcNow,
+                                        ModifiedDate = DateTime.UtcNow,
+                                        Version = version
+                                    };
+
+                                    response.Result = avatarDetail;
+                                    response.IsError = false;
+                                    response.Message = "Avatar detail loaded from Cardano successfully";
+                                    return response;
+                                }
+                            }
+                        }
+                    }
+
+                    OASISErrorHandling.HandleError(ref response, $"Avatar detail with username {avatarUsername} not found on Cardano blockchain");
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to query Cardano metadata: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by username from Cardano: {ex.Message}");
             }
             return response;
         }
@@ -2166,16 +2278,82 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
             var response = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                // Implement async version
-                var avatarDetails = new List<IAvatarDetail>();
-                response.Result = avatarDetails;
-                response.IsError = false;
-                response.Message = "Avatar details loaded successfully";
+                if (!_isActivated)
+                {
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Query all avatar details from Cardano blockchain using Blockfrost API
+                var queryUrl = $"/metadata/txs/labels/721?count=100";
+
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var metadataArray = JsonSerializer.Deserialize<JsonElement[]>(content);
+
+                    var avatarDetails = new List<IAvatarDetail>();
+                    foreach (var metadata in metadataArray)
+                    {
+                        if (metadata.TryGetProperty("json_metadata", out var jsonMeta))
+                        {
+                            var metadataString = jsonMeta.GetString();
+                            if (metadataString != null && metadataString.Contains("avatar"))
+                            {
+                                try
+                                {
+                                    var metadataObj = JsonSerializer.Deserialize<Dictionary<string, object>>(metadataString);
+                                    if (metadataObj != null)
+                                    {
+                                        var email = metadataObj.ContainsKey("email") ? metadataObj["email"].ToString() : "";
+                                        var username = metadataObj.ContainsKey("username") ? metadataObj["username"].ToString() : "";
+                                        
+                                        if (!string.IsNullOrEmpty(email) || !string.IsNullOrEmpty(username))
+                                        {
+                                            var avatarDetail = new AvatarDetail
+                                            {
+                                                Id = CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{email ?? username}"),
+                                                Email = email ?? $"{username}@cardano.local",
+                                                Username = username ?? email?.Split('@')[0] ?? "",
+                                                FirstName = metadataObj.ContainsKey("firstName") ? metadataObj["firstName"].ToString() : "",
+                                                LastName = metadataObj.ContainsKey("lastName") ? metadataObj["lastName"].ToString() : "",
+                                                Karma = metadataObj.ContainsKey("karma") && long.TryParse(metadataObj["karma"].ToString(), out var karma) ? karma : 0,
+                                                XP = metadataObj.ContainsKey("xp") && int.TryParse(metadataObj["xp"].ToString(), out var xp) ? xp : 0,
+                                                CreatedDate = DateTime.UtcNow,
+                                                ModifiedDate = DateTime.UtcNow,
+                                                Version = version
+                                            };
+                                            avatarDetails.Add(avatarDetail);
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    // Skip invalid metadata entries
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
+                    response.Result = avatarDetails;
+                    response.IsError = false;
+                    response.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Cardano";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to query Cardano metadata: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar details: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar details from Cardano: {ex.Message}");
             }
             return response;
         }
@@ -2860,30 +3038,7 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool continueOnError = true, int maxChildren = 50, bool recurseChildren = true, bool loadDetail = true, int maxDepth = 0)
         {
-            var response = new OASISResult<IHolon>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cardano provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Implement holon loading from Cardano blockchain
-                response.Result = null;
-                response.IsError = false;
-                response.Message = "Holon loaded successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holon: {ex.Message}");
-            }
-            return response;
+            return LoadHolonAsync(id, loadChildren, continueOnError, maxChildren, recurseChildren, loadDetail, maxDepth).Result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool continueOnError = true, int maxChildren = 50, bool recurseChildren = true, bool loadDetail = true, int maxDepth = 0)
@@ -2901,10 +3056,67 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
                     }
                 }
 
-                // Implement holon loading from Cardano blockchain
-                response.Result = null;
-                response.IsError = false;
-                response.Message = "Holon loaded successfully";
+                // Load holon from Cardano blockchain by provider key using Blockfrost API
+                // Query metadata for holon with matching provider key
+                var queryUrl = $"/metadata/txs/labels/721?count=100";
+
+                var httpResponse = _httpClient.GetAsync(queryUrl).Result;
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = httpResponse.Content.ReadAsStringAsync().Result;
+                    var metadataArray = JsonSerializer.Deserialize<JsonElement[]>(content);
+
+                    // Find holon metadata matching the provider key
+                    foreach (var metadata in metadataArray)
+                    {
+                        if (metadata.TryGetProperty("json_metadata", out var jsonMeta))
+                        {
+                            var metadataString = jsonMeta.GetString();
+                            if (metadataString != null && metadataString.Contains(providerKey))
+                            {
+                                try
+                                {
+                                    var metadataObj = JsonSerializer.Deserialize<Dictionary<string, object>>(metadataString);
+                                    if (metadataObj != null && metadataObj.ContainsKey("721"))
+                                    {
+                                        var label721 = metadataObj["721"] as Dictionary<string, object>;
+                                        if (label721 != null)
+                                        {
+                                            // Search through all holon entries for matching provider key
+                                            foreach (var entry in label721)
+                                            {
+                                                var holonEntry = entry.Value as Dictionary<string, object>;
+                                                if (holonEntry != null && holonEntry.ContainsKey("holon_data"))
+                                                {
+                                                    var holonJson = holonEntry["holon_data"].ToString();
+                                                    var holon = JsonSerializer.Deserialize<Holon>(holonJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                                    if (holon != null && holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsValue(providerKey))
+                                                    {
+                                                        response.Result = holon;
+                                                        response.IsError = false;
+                                                        response.Message = "Holon loaded from Cardano successfully";
+                                                        return response;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    // Continue searching if parsing fails
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
+                    OASISErrorHandling.HandleError(ref response, $"Holon with provider key {providerKey} not found on Cardano blockchain");
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to query Cardano metadata: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -2929,10 +3141,68 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
                     }
                 }
 
-                // Implement async holon loading from Cardano blockchain
-                response.Result = null;
-                response.IsError = false;
-                response.Message = "Holon loaded successfully";
+                // Load holon from Cardano blockchain using Blockfrost API
+                // Query metadata for holon with matching ID
+                var queryUrl = $"/metadata/txs/labels/721?count=100";
+
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var metadataArray = JsonSerializer.Deserialize<JsonElement[]>(content);
+
+                    // Find holon metadata matching the ID
+                    foreach (var metadata in metadataArray)
+                    {
+                        if (metadata.TryGetProperty("json_metadata", out var jsonMeta))
+                        {
+                            var metadataString = jsonMeta.GetString();
+                            if (metadataString != null)
+                            {
+                                try
+                                {
+                                    var metadataObj = JsonSerializer.Deserialize<Dictionary<string, object>>(metadataString);
+                                    if (metadataObj != null && metadataObj.ContainsKey("721"))
+                                    {
+                                        var label721 = metadataObj["721"] as Dictionary<string, object>;
+                                        if (label721 != null)
+                                        {
+                                            // Look for holon data with matching ID
+                                            var holonIdStr = id.ToString();
+                                            if (label721.ContainsKey(holonIdStr))
+                                            {
+                                                var holonEntry = label721[holonIdStr] as Dictionary<string, object>;
+                                                if (holonEntry != null && holonEntry.ContainsKey("holon_data"))
+                                                {
+                                                    var holonJson = holonEntry["holon_data"].ToString();
+                                                    var holon = JsonSerializer.Deserialize<Holon>(holonJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                                    if (holon != null)
+                                                    {
+                                                        response.Result = holon;
+                                                        response.IsError = false;
+                                                        response.Message = "Holon loaded from Cardano successfully";
+                                                        return response;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    // Continue searching if parsing fails
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
+                    OASISErrorHandling.HandleError(ref response, $"Holon with ID {id} not found on Cardano blockchain");
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to query Cardano metadata: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {

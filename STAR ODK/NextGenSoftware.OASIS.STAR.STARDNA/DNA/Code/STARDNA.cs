@@ -111,6 +111,12 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultQuestsDownloadedPath { get; set; } = "Quests\\Downloaded";
         public string DefaultQuestsInstalledPath { get; set; } = "Quests\\Installed";
 
+        //Games support cross-game interoperability, shared inventory, avatar SSO, karma scores, NFTs, and keycards.
+        public string DefaultGamesSourcePath { get; set; } = "Games\\Source";
+        public string DefaultGamesPublishedPath { get; set; } = "Games\\Published";
+        public string DefaultGamesDownloadedPath { get; set; } = "Games\\Downloaded";
+        public string DefaultGamesInstalledPath { get; set; } = "Games\\Installed";
+
 
         //OASIS NFTs (wrap around all types of web3 NFTs and form an abstraction layer to convert between standards and chains) are Non-Fungible Tokens that can be used to represent unique items, assets or collectibles in the Omniverse/OASIS/Our World.
         public string DefaultNFTsSourcePath { get; set; } = "NFTs\\Source";

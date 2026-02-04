@@ -1,8 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using Newtonsoft.Json;
 
@@ -116,6 +121,181 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 Message = "Avatar retrieved successfully"
             });
         }
+
+        #region Avatar Inventory Management
+
+        /// <summary>
+        /// Gets all inventory items owned by the authenticated avatar
+        /// This is the avatar's actual inventory (items they own), not items they created
+        /// Inventory is shared across all games, apps, websites, and services
+        /// </summary>
+        [HttpGet("inventory")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IInventoryItem>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IInventoryItem>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetInventory()
+        {
+            try
+            {
+                var result = await AvatarManager.Instance.GetAvatarInventoryAsync(AvatarId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
+                {
+                    IsError = true,
+                    Message = $"Error getting avatar inventory: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Adds an item to the avatar's inventory
+        /// The item can be from the STARNET store (created by anyone) or a new item
+        /// </summary>
+        [HttpPost("inventory")]
+        [ProducesResponseType(typeof(OASISResult<IInventoryItem>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IInventoryItem>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AddItemToInventory([FromBody] InventoryItem item)
+        {
+            try
+            {
+                var result = await AvatarManager.Instance.AddItemToAvatarInventoryAsync(AvatarId, item);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IInventoryItem>
+                {
+                    IsError = true,
+                    Message = $"Error adding item to inventory: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Removes an item from the avatar's inventory
+        /// </summary>
+        [HttpDelete("inventory/{itemId}")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RemoveItemFromInventory(Guid itemId)
+        {
+            try
+            {
+                var result = await AvatarManager.Instance.RemoveItemFromAvatarInventoryAsync(AvatarId, itemId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error removing item from inventory: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Checks if the avatar has a specific item in their inventory
+        /// </summary>
+        [HttpGet("inventory/{itemId}/has")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> HasItem(Guid itemId)
+        {
+            try
+            {
+                var result = await AvatarManager.Instance.AvatarHasItemAsync(AvatarId, itemId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error checking for item: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Checks if the avatar has a specific item by name in their inventory
+        /// </summary>
+        [HttpGet("inventory/has-by-name")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> HasItemByName([FromQuery] string itemName)
+        {
+            try
+            {
+                var result = await AvatarManager.Instance.AvatarHasItemByNameAsync(AvatarId, itemName);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error checking for item by name: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Searches the avatar's inventory by name or description
+        /// </summary>
+        [HttpGet("inventory/search")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IInventoryItem>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IInventoryItem>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SearchInventory([FromQuery] string searchTerm)
+        {
+            try
+            {
+                var result = await AvatarManager.Instance.SearchAvatarInventoryAsync(AvatarId, searchTerm);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
+                {
+                    IsError = true,
+                    Message = $"Error searching inventory: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets a specific item from the avatar's inventory by ID
+        /// </summary>
+        [HttpGet("inventory/{itemId}")]
+        [ProducesResponseType(typeof(OASISResult<IInventoryItem>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IInventoryItem>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetInventoryItem(Guid itemId)
+        {
+            try
+            {
+                var result = await AvatarManager.Instance.GetAvatarInventoryItemAsync(AvatarId, itemId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IInventoryItem>
+                {
+                    IsError = true,
+                    Message = $"Error getting inventory item: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        #endregion
     }
 
     public class AuthenticateRequest

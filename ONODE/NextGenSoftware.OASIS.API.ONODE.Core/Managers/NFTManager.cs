@@ -435,7 +435,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateWeb4NFTMetaDataHolon(result.Result, request), request.ImportedByAvatarId, true, true, 0, true, false, request.OffChainProvider.Value);
 
                 if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                    result.Message = FormatSuccessMessage(request, result, responseFormatType);
+                {
+                    List<IWeb3NFT> web3NFTs = new List<IWeb3NFT>();
+
+                    foreach (IWeb3NFT webNFT in result.Result.Web3NFTs)
+                        web3NFTs.Add(webNFT);
+
+                    result.Message = FormatSuccessMessage(request, result, web3NFTs, responseFormatType);
+                }
                 else
                 {
                     result.Result = null;
@@ -467,7 +474,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateWeb4NFTMetaDataHolon(result.Result, request), request.ImportedByAvatarId, true, true, 0, true, false, request.OffChainProvider.Value);
 
                 if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
-                    result.Message = FormatSuccessMessage(request, result, responseFormatType);
+                {
+                    List<IWeb3NFT> web3NFTs = new List<IWeb3NFT>();
+
+                    foreach (IWeb3NFT webNFT in result.Result.Web3NFTs)
+                        web3NFTs.Add(webNFT);
+
+                    result.Message = FormatSuccessMessage(request, result, web3NFTs, responseFormatType);
+                }
                 else
                 {
                     result.Result = null;
@@ -563,7 +577,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(holon, importedByAvatarId, true, true, 0, true, false, providerType);
 
                 if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                {
+                    result.Result = OASISGeoNFT;
                     result.Message = FormatSuccessMessage(result, importedByAvatarId, responseFormatType);
+                }
                 else
                 {
                     result.Result = null;
@@ -1392,8 +1409,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         result.Result = null;
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the GeoNFTMetaDataProvider {Enum.GetName(typeof(ProviderType), request.GeoNFTMetaDataProvider)}. Reason: {saveHolonResult.Message}");
                     }
-                    else
-                        result.Message = FormatSuccessMessage(result, responseFormatType: responseFormatType);
+                    {
+                        List<IWeb3NFT> web3NFTs = new List<IWeb3NFT>();
+
+                        foreach (IWeb3NFT webNFT in loadNftResult.Result.Web3NFTs)
+                            web3NFTs.Add(webNFT);
+
+                        result.Message = FormatSuccessMessage(result, web3NFTs, responseFormatType: responseFormatType);
+                    }
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading original OASIS NFT with id {request.OriginalWeb4OASISNFTId}. Reason: {loadNftResult.Message}");
@@ -1426,7 +1449,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the GeoNFTMetaDataProvider {Enum.GetName(typeof(ProviderType), request.GeoNFTMetaDataProvider)}. Reason: {saveHolonResult.Message}");
                     }
                     else
-                        result.Message = FormatSuccessMessage(result, responseFormatType: responseFormatType);
+                    {
+                        List<IWeb3NFT> web3NFTs = new List<IWeb3NFT>();
+
+                        foreach (IWeb3NFT webNFT in loadNftResult.Result.Web3NFTs)
+                            web3NFTs.Add(webNFT);
+
+                        result.Message = FormatSuccessMessage(result, web3NFTs, responseFormatType: responseFormatType);
+                    }
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading original OASIS NFT with id {request.OriginalWeb4OASISNFTId}. Reason: {loadNftResult.Message}");
@@ -1480,7 +1510,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     else
                     {
                         result.SavedCount = mintNftResult.SavedCount;
-                        result.Message = FormatSuccessMessage(request, result, responseFormatType);
+                        result.Message = FormatSuccessMessage(request, result, mintNftResult.Result.NewlyMintedWeb3NFTs, responseFormatType);
                     }
                 }
                 else
@@ -3732,6 +3762,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB3 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
                     }
 
+                    //Important to set this AFTER we save the holon so its not persited! ;-)
+                    currentWeb3NFT.MetaData["{{{newnft}}}"] = "true";
+
                     //Default to Mongo for storing the OASIS NFT meta data if none is specified.
                     if (metaDataProviderType.Value == ProviderType.None)
                         metaDataProviderType.Value = ProviderType.MongoDBOASIS;
@@ -3740,6 +3773,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     if (isLastWeb3NFT)
                     {
                         IHolon webNFTHolon = null;
+                        List<IWeb3NFT> newlyMintedNFTs = new List<IWeb3NFT>();
+
+                        //Temp remove the metadata so its not persisted on the Web4 NFT Holon.
+                        foreach (IWeb3NFT web3NFT in existingWeb4NFT.Web3NFTs)
+                        {
+                            if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
+                            {
+                                newlyMintedNFTs.Add(web3NFT);
+                                web3NFT.MetaData.Remove("{{{newnft}}}");
+                            }
+                        }
 
                         if (existingWeb4NFT == null)
                             webNFTHolon = CreateWeb4NFTMetaDataHolon(result.Result, originalWeb4Request);
@@ -3767,7 +3811,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
                             {
                                 result.IsError = result.SavedCount == 0;
-                                result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, responseFormatType);
+                                result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                             }
                             else
                             {
@@ -3778,8 +3822,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         else
                         {
                             result.IsError = result.SavedCount == 0;
-                            result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, responseFormatType);
+                            result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                         }
+
+                        result.Result.NewlyMintedWeb3NFTs = newlyMintedNFTs; //Used for returning the newly minted web3 nfts only (not persisted). Currently only used for the MintAndPlaceGeoNFT functions.
                     }
                 }
                 else
@@ -3791,26 +3837,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private string FormatSuccessMessage(IMintWeb4NFTRequest request, OASISResult<IWeb4NFT> response, EnumValue<ProviderType> metaDataProviderType, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
+        private string FormatSuccessMessage(IMintWeb4NFTRequest request, OASISResult<IWeb4NFT> response, EnumValue<ProviderType> metaDataProviderType, IList<IWeb3NFT> newlyMintedWeb3Nfts, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
         {
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully minted the OASIS NFT containing {response.SavedCount} Web NFT(s) & {response.ErrorCount} errored!";
-            string summary = response.SavedCount > 0 ? $"Successfully minted the OASIS NFT containing {response.SavedCount} Web NFT(s)" : "No OASIS NFT's were minted!";
+            string summary = response.SavedCount > 0 ? $"Successfully minted the Web4 NFT containing {newlyMintedWeb3Nfts.Count} Web3 NFT(s)" : "No Web4 NFT's were minted!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
                 lineBreak = "|";
                 message = string.Concat(summary, lineBreak);
 
-                foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
+                foreach (IWeb3NFT web3NFT in newlyMintedWeb3Nfts)
                 {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                    {
-                        string sendNFTMessage = GenerateSendMessage(response.Result, request, web3NFT.SendNFTTransactionHash, "", 2);
-                        message = string.Concat(message, $"Successfully minted the Web3 NFT on the {web3NFT.OnChainProvider.Name} provider with hash {web3NFT.MintTransactionHash} and title '{web3NFT.Title}' by AvatarId {request.MintedByAvatarId} using OASIS Minting Account {web3NFT.OASISMintWalletAddress} for price {web3NFT.Price}. NFT Address: {web3NFT.NFTTokenAddress}. The OASIS metadata is stored on the {web3NFT.OffChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Mint Date: ", web3NFT.MintedOn, ". ", sendNFTMessage, lineBreak);
-                        //web3NFT.MetaData.Remove("{{{newnft}}}");
-                    }
+                    string sendNFTMessage = GenerateSendMessage(response.Result, request, web3NFT.SendNFTTransactionHash, "", 2);
+                    message = string.Concat(message, $"Successfully minted the Web3 NFT on the {web3NFT.OnChainProvider.Name} provider with hash {web3NFT.MintTransactionHash} and title '{web3NFT.Title}' by AvatarId {request.MintedByAvatarId} using OASIS Minting Account {web3NFT.OASISMintWalletAddress} for price {web3NFT.Price}. NFT Address: {web3NFT.NFTTokenAddress}. The OASIS metadata is stored on the {web3NFT.OffChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Mint Date: ", web3NFT.MintedOn, ". ", sendNFTMessage, lineBreak);
                 }
 
                 return message;
@@ -3821,17 +3863,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             message = string.Concat(message, summary, lineBreak, lineBreak);
 
-            foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-            {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                    message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, request, lineBreak, colWidth));
-            }
-
-            //foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-            //{
-            //    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-            //        web3NFT.MetaData.Remove("{{{newnft}}}");
-            //}
+            foreach (IWeb3NFT web3NFT in newlyMintedWeb3Nfts)
+                message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, request, lineBreak, colWidth));
 
             if (response.IsWarning || response.IsError)
                 message = string.Concat(message, " Errors Occured:\n", OASISResultHelper.BuildInnerMessageError(response.InnerMessages));
@@ -3839,13 +3872,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return message;
         }
 
-        private string FormatSuccessMessage(IMintWeb4NFTRequest request, OASISResult<IWeb4GeoSpatialNFT> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 40)
+        private string FormatSuccessMessage(IMintWeb4NFTRequest request, OASISResult<IWeb4GeoSpatialNFT> response, IList<IWeb3NFT> newlyMintedWeb3Nfts, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 40)
         {
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully minted & placed the OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
             //string summary = $"Successfully minted & placed the OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s)";
-            string summary = response.SavedCount > 0 ? $"Successfully minted the OASIS Geo-FT containing {response.SavedCount} Web NFT(s)" : "No OASIS Geo-NFT's were minted!";
+            string summary = response.SavedCount > 0 ? $"Successfully minted the Web4 Geo-FT containing {newlyMintedWeb3Nfts.Count} Web3 NFT(s)" : "No Web4 Geo-NFT's were minted!";
             //string summary = mintWeb4NFResult.SavedCount > 0 ? $"Successfully minted the OASIS Geo-FT containing {mintWeb4NFResult.SavedCount} Web NFT(s)" : "No OASIS Geo-NFT's were minted!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
@@ -3853,14 +3886,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 lineBreak = "|";
                 message = string.Concat(summary, lineBreak);
 
-                foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
+                foreach (IWeb3NFT web3NFT in newlyMintedWeb3Nfts)
                 {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                    {
-                        string sendNFTMessage = GenerateSendMessage(response.Result, request, web3NFT.SendNFTTransactionHash, "", 2);
-                        message = string.Concat(message, $"Successfully minted the Web3 NFT on the {web3NFT.OnChainProvider.Name} provider with hash {web3NFT.MintTransactionHash} and title '{web3NFT.Title}' by AvatarId {request.MintedByAvatarId} using OASIS Minting Account {web3NFT.OASISMintWalletAddress} for price {web3NFT.Price}. NFT Address: {web3NFT.NFTTokenAddress}. The OASIS metadata is stored on the {web3NFT.OffChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Mint Date: ", web3NFT.MintedOn, ". The GeoNFT meta data is stored on the GeoNFTMetaDataProvider ", response.Result.GeoNFTMetaDataProvider.Name, " with id ", response.Result.Id, " and was placed by the avatar with id ", response.Result.PlacedByAvatarId, sendNFTMessage, lineBreak);
-                        //web3NFT.MetaData.Remove("{{{newnft}}}");
-                    }
+                    string sendNFTMessage = GenerateSendMessage(response.Result, request, web3NFT.SendNFTTransactionHash, "", 2);
+                    message = string.Concat(message, $"Successfully minted the Web3 NFT on the {web3NFT.OnChainProvider.Name} provider with hash {web3NFT.MintTransactionHash} and title '{web3NFT.Title}' by AvatarId {request.MintedByAvatarId} using OASIS Minting Account {web3NFT.OASISMintWalletAddress} for price {web3NFT.Price}. NFT Address: {web3NFT.NFTTokenAddress}. The OASIS metadata is stored on the {web3NFT.OffChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Mint Date: ", web3NFT.MintedOn, ". The GeoNFT meta data is stored on the GeoNFTMetaDataProvider ", response.Result.GeoNFTMetaDataProvider.Name, " with id ", response.Result.Id, " and was placed by the avatar with id ", response.Result.PlacedByAvatarId, sendNFTMessage, lineBreak);
                 }
 
                 //return string.Concat(mintWeb4NFResult.Message, lineBreak, message);
@@ -3873,14 +3902,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             //message = string.Concat(mintWeb4NFResult.Message, lineBreak, lineBreak, summary, lineBreak, lineBreak);
             message = string.Concat(summary, lineBreak, lineBreak);
 
-            foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-            {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                {
-                    message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, request, lineBreak, colWidth));
-                    //web3NFT.MetaData.Remove("{{{newnft}}}");
-                }
-            }
+            foreach (IWeb3NFT web3NFT in newlyMintedWeb3Nfts)
+                message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, request, lineBreak, colWidth));
 
             message = string.Concat(message, GenerateWeb4GeoNFTSummary(response.Result, lineBreak, colWidth));
 
@@ -3890,27 +3913,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return message;
         }
 
-        private string FormatSuccessMessage(OASISResult<IWeb4GeoSpatialNFT> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 40)
+        private string FormatSuccessMessage(OASISResult<IWeb4GeoSpatialNFT> response, IList<IWeb3NFT> newlyMintedWeb3Nfts, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 40)
         {
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully created & placed OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
             //string summary = $"Successfully created & placed OASIS Geo-NFT containing {response.SavedCount} Web3 NFT(s)";
-            string summary = response.SavedCount > 0 ? $"Successfully created & placed OASIS Geo-NFT containing {response.SavedCount} Web NFT(s)" : "No OASIS Geo-NFT's were placed!";
+            string summary = response.SavedCount > 0 ? $"Successfully created & placed Web4 Geo-NFT containing {newlyMintedWeb3Nfts.Count} Web3 NFT(s)" : "No Web4 Geo-NFT's were placed!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
                 lineBreak = "|";
                 message = string.Concat(summary, lineBreak);
 
-                foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-                {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                    {
-                        message = string.Concat(message, $"{summary} The meta data is stored on the GeoNFTMetaDataProvider {response.Result.GeoNFTMetaDataProvider.Name} with id {response.Result.Id} and was placed by the avatar with id {response.Result.PlacedByAvatarId}. The NFT was originally minted on the {web3NFT.OnChainProvider.Name} onchain provider with hash {web3NFT.MintTransactionHash} and title '{web3NFT.Title}' by the avatar with id {web3NFT.MintedByAvatarId} for the price of {web3NFT.Price} using OASIS Minting Account {web3NFT.OASISMintWalletAddress}. NFT Address: {web3NFT.NFTTokenAddress}. The OASIS metadata for the original NFT is stored on the {web3NFT.OffChainProvider.Name} offchain provider with the id {response.Result.OriginalWeb4OASISNFTId} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URL Holon Id: ", web3NFT.JSONMetaDataURLHolonId, ", Image URL: {web3NFT.ImageUrl}, Mint Date: {web3NFT.MintedOn}.");
-                        //web3NFT.MetaData.Remove("{{{newnft}}}");
-                    }
-                }
+                foreach (IWeb3NFT web3NFT in newlyMintedWeb3Nfts)
+                    message = string.Concat(message, $"{summary} The meta data is stored on the GeoNFTMetaDataProvider {response.Result.GeoNFTMetaDataProvider.Name} with id {response.Result.Id} and was placed by the avatar with id {response.Result.PlacedByAvatarId}. The NFT was originally minted on the {web3NFT.OnChainProvider.Name} onchain provider with hash {web3NFT.MintTransactionHash} and title '{web3NFT.Title}' by the avatar with id {web3NFT.MintedByAvatarId} for the price of {web3NFT.Price} using OASIS Minting Account {web3NFT.OASISMintWalletAddress}. NFT Address: {web3NFT.NFTTokenAddress}. The OASIS metadata for the original NFT is stored on the {web3NFT.OffChainProvider.Name} offchain provider with the id {response.Result.OriginalWeb4OASISNFTId} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URL Holon Id: ", web3NFT.JSONMetaDataURLHolonId, ", Image URL: {web3NFT.ImageUrl}, Mint Date: {web3NFT.MintedOn}.");
 
                 return message;
             }
@@ -3921,14 +3938,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             message = string.Concat(message, summary, lineBreak, lineBreak);
             message = string.Concat(message, $"ORIGINAL NFT INFO:{lineBreak}");
 
-            foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-            {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                {
-                    message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, null, lineBreak, colWidth));
-                    //web3NFT.MetaData.Remove("{{{newnft}}}");
-                }
-            }
+            foreach (IWeb3NFT web3NFT in newlyMintedWeb3Nfts)
+                message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, null, lineBreak, colWidth));
 
             message = string.Concat(message, lineBreak);
             message = string.Concat(message, GenerateWeb4GeoNFTSummary(response.Result, lineBreak, colWidth));
@@ -3939,12 +3950,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return message;
         }
 
-        private string FormatSuccessMessage(IImportWeb3NFTRequest request, OASISResult<IWeb4NFT> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
+        private string FormatSuccessMessage(IImportWeb3NFTRequest request, OASISResult<IWeb4NFT> response, IList<IWeb3NFT> importedWeb3NFTs, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
         {
             string lineBreak = "\n";
             string message = "";
             //string summary = $"Successfully imported {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
-            string summary = response.SavedCount > 0 ? $"Successfully imported {response.SavedCount} Web NFT(s)" : "No OASIS NFT's were imported!";
+            string summary = response.SavedCount > 0 ? $"Successfully imported {importedWeb3NFTs.Count} Web3 NFT(s)" : "No Web3 NFT's were imported!";
             //string summary = $"Successfully imported {response.SavedCount} Web3 NFT(s)";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
@@ -3952,14 +3963,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 lineBreak = "|";
                 message = string.Concat(summary, lineBreak);
 
-                foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-                {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                    {
-                        message = string.Concat(message, $"Web3 NFT OnChain Provider: {web3NFT.OnChainProvider.Name}, NFTTokenAddress {web3NFT.NFTTokenAddress}, title '{web3NFT.Title}', Imported By Avatar Id: {web3NFT.ImportedByAvatarId}. NFT minted using wallet address: {web3NFT.NFTMintedUsingWalletAddress}. Price: {web3NFT.Price}. The OASIS metadata is stored on the {web3NFT.OnChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Imported Date: ", web3NFT.ImportedOn, lineBreak);
-                        //web3NFT.MetaData.Remove("{{{newnft}}}");
-                    }
-                }
+                foreach (IWeb3NFT web3NFT in importedWeb3NFTs)
+                    message = string.Concat(message, $"Web3 NFT OnChain Provider: {web3NFT.OnChainProvider.Name}, NFTTokenAddress {web3NFT.NFTTokenAddress}, title '{web3NFT.Title}', Imported By Avatar Id: {web3NFT.ImportedByAvatarId}. NFT minted using wallet address: {web3NFT.NFTMintedUsingWalletAddress}. Price: {web3NFT.Price}. The OASIS metadata is stored on the {web3NFT.OnChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Imported Date: ", web3NFT.ImportedOn, lineBreak);
             }
 
             if (responseFormatType == ResponseFormatType.HTML)
@@ -3967,14 +3972,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             message = string.Concat(message, summary, lineBreak, lineBreak);
 
-            foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-            {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                {
-                    message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, lineBreak, colWidth));
-                    //web3NFT.MetaData.Remove("{{{newnft}}}");
-                }
-            }
+            foreach (IWeb3NFT web3NFT in importedWeb3NFTs)
+                message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, lineBreak, colWidth));
 
             if (response.IsWarning || response.IsError)
                 message = string.Concat(message, " Errors Occured:\n", OASISResultHelper.BuildInnerMessageError(response.InnerMessages));
@@ -3988,7 +3987,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string message = "";
             //string summary = $"Successfully imported the OASIS NFT containing {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
             //string summary = $"Successfully imported the OASIS NFT containing {response.SavedCount} Web3 NFT(s)";
-            string summary = response.SavedCount > 0 ? $"Successfully imported the OASIS NFT containing {response.SavedCount} Web NFT(s)" : "No OASIS NFT's were imported!";
+            string summary = response.SavedCount > 0 ? $"Successfully imported the Web4 NFT containing {response.Result.Web3NFTs.Count} Web3 NFT(s)" : "No Web4 NFT's were imported!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -3998,13 +3997,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 message = string.Concat(summary, lineBreak);
 
                 foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-                {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                    {
-                        message = string.Concat(message, $"Web3 NFT OnChain Provider: {web3NFT.OnChainProvider.Name}, NFTTokenAddress {web3NFT.NFTTokenAddress}, title '{web3NFT.Title}', Imported By Avatar Id: {web3NFT.ImportedByAvatarId}. NFT minted using wallet address: {web3NFT.NFTMintedUsingWalletAddress}. Price: {web3NFT.Price}. The OASIS metadata is stored on the {web3NFT.OnChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Imported Date: ", web3NFT.ImportedOn, lineBreak);
-                        //web3NFT.MetaData.Remove("{{{newnft}}}");
-                    }
-                }
+                    message = string.Concat(message, $"Web3 NFT OnChain Provider: {web3NFT.OnChainProvider.Name}, NFTTokenAddress {web3NFT.NFTTokenAddress}, title '{web3NFT.Title}', Imported By Avatar Id: {web3NFT.ImportedByAvatarId}. NFT minted using wallet address: {web3NFT.NFTMintedUsingWalletAddress}. Price: {web3NFT.Price}. The OASIS metadata is stored on the {web3NFT.OnChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Imported Date: ", web3NFT.ImportedOn, lineBreak);
 
                 return message;
             }
@@ -4015,13 +4008,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             message = string.Concat(message, summary, lineBreak, lineBreak);
 
             foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-            {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                {
-                    message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, lineBreak, colWidth));
-                    //web3NFT.MetaData.Remove("{{{newnft}}}");
-                }
-            }
+                message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, lineBreak, colWidth));
 
             if (response.IsWarning || response.IsError)
                 message = string.Concat(message, " Errors Occured:\n", OASISResultHelper.BuildInnerMessageError(response.InnerMessages));
@@ -4035,7 +4022,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string message = "";
             //string summary = $"Successfully imported the GeoNFT containing {response.SavedCount} Web3 NFT(s) & {response.ErrorCount} errored!";
             //string summary = $"Successfully imported the GeoNFT containing {response.SavedCount} Web3 NFT(s)";
-            string summary = response.SavedCount > 0 ? $"Successfully imported the GeoNFT containing {response.SavedCount} Web NFT(s)" : "No GeoNFT's were imported!";
+            string summary = response.SavedCount > 0 ? $"Successfully imported the Web4 GeoNFT containing {response.Result.Web3NFTs.Count} Web3 NFT(s)" : "No Web4 GeoNFT's were imported!";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -4043,13 +4030,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 message = string.Concat(summary, lineBreak);
 
                 foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-                {
-                    if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                    {
-                        message = string.Concat(message, $"Web3 NFT OnChain Provider: {web3NFT.OnChainProvider.Name}, NFTTokenAddress {web3NFT.NFTTokenAddress}, title '{web3NFT.Title}', Imported By Avatar Id: {web3NFT.ImportedByAvatarId}. NFT minted using wallet address: {web3NFT.NFTMintedUsingWalletAddress}. Price: {web3NFT.Price}. The OASIS metadata is stored on the {web3NFT.OnChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Imported Date: ", web3NFT.ImportedOn, lineBreak);
-                        //web3NFT.MetaData.Remove("{{{newnft}}}");
-                    }
-                }
+                    message = string.Concat(message, $"Web3 NFT OnChain Provider: {web3NFT.OnChainProvider.Name}, NFTTokenAddress {web3NFT.NFTTokenAddress}, title '{web3NFT.Title}', Imported By Avatar Id: {web3NFT.ImportedByAvatarId}. NFT minted using wallet address: {web3NFT.NFTMintedUsingWalletAddress}. Price: {web3NFT.Price}. The OASIS metadata is stored on the {web3NFT.OnChainProvider.Name} provider with the id {web3NFT.Id} and JSON URL {web3NFT.JSONMetaDataURL}. JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, ", Image URL: ", web3NFT.ImageUrl, ", Imported Date: ", web3NFT.ImportedOn, lineBreak);
 
                 return message;
             }
@@ -4061,13 +4042,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             message = string.Concat(message, summary, lineBreak, lineBreak);
 
             foreach (IWeb3NFT web3NFT in response.Result.Web3NFTs)
-            {
-                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
-                {
-                    message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, lineBreak, colWidth));
-                    //web3NFT.MetaData.Remove("{{{newnft}}}");
-                }
-            }
+                message = string.Concat(message, GenerateWeb3NFTSummary(web3NFT, lineBreak, colWidth));
 
             if (response.IsWarning || response.IsError)
                 message = string.Concat(message, " Errors Occured:\n", OASISResultHelper.BuildInnerMessageError(response.InnerMessages));
@@ -4098,6 +4073,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             return message;
         }
+
 
         private string GenerateWeb3NFTSummary(IWeb3NFT web3NFT, IMintWeb4NFTRequest request, string lineBreak, int colWidth)
         {
@@ -4332,7 +4308,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             web3NFT.SaleEndDate = request.SaleEndDate;
             web3NFT.Tags = request.Tags;
             web3NFT.MetaData = request.MetaData;
-            web3NFT.MetaData["{{{newnft}}}"] = "true";
+            //web3NFT.MetaData["{{{newnft}}}"] = "true";
 
             return web3NFT;
         }
