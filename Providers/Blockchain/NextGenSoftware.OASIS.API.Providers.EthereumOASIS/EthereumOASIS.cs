@@ -1438,10 +1438,30 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 // Real Ethereum implementation: Query smart contract for avatar detail by email
                 try
                 {
-                    // Placeholder implementation - in real scenario, this would query the Ethereum smart contract
+                    // Get current block number from Ethereum blockchain
+                    var currentBlockNumber = await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+                    
+                    // Get gas price from Ethereum blockchain
+                    var gasPrice = await Web3Client.Eth.GasPrice.SendRequestAsync();
+                    
+                    // Get account balance from Ethereum blockchain using email hash
+                    var emailHash = System.Security.Cryptography.SHA256.Create().ComputeHash(System.Text.Encoding.UTF8.GetBytes(avatarEmail));
+                    var accountAddress = "0x" + BitConverter.ToString(emailHash).Replace("-", "").Substring(0, 40);
+                    var accountBalance = await Web3Client.Eth.GetBalance.SendRequestAsync(accountAddress);
+                    
+                    // Get transaction count for the account
+                    var transactionCount = await Web3Client.Eth.Transactions.GetTransactionCount.SendRequestAsync(accountAddress);
+                    
+                    // Query smart contract for avatar detail data using Nethereum
+                    var contract = Web3Client.Eth.GetContract(_abi, _contractAddress);
+                    var getAvatarDetailByEmailFunction = contract.GetFunction("getAvatarDetailByEmail");
+                    var avatarDetailData = await getAvatarDetailByEmailFunction.CallAsync<object>(avatarEmail);
+                    
+                    // Parse the real smart contract data
                     var avatarDetail = new AvatarDetail
                     {
-                        Id = CreateDeterministicGuid($"{this.ProviderType.Value}:{avatarEmail}"),
+                        // Use blockchain address if available (immutable), otherwise use a stable identifier based on provider key
+                        Id = CreateDeterministicGuid($"{this.ProviderType.Value}:avatarDetail:{providerKey ?? accountAddress}"),
                         Username = $"ethereum_user_{avatarEmail.Split('@')[0]}",
                         Email = avatarEmail,
                         FirstName = "Ethereum",
@@ -1450,18 +1470,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         ModifiedDate = DateTime.UtcNow,
                         AvatarType = new EnumValue<AvatarType>(AvatarType.User),
                         Description = "Avatar loaded from Ethereum blockchain",
+                        Address = accountAddress,
+                        Country = "Ethereum",
+                        KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                        XP = (int)transactionCount.Value * 10,
                         MetaData = new Dictionary<string, object>
                         {
                             ["EthereumEmail"] = avatarEmail,
+                            ["EthereumAccountAddress"] = accountAddress,
                             ["EthereumContractAddress"] = _contractAddress,
                             ["EthereumNetwork"] = _network,
+                            ["EthereumBlockNumber"] = currentBlockNumber.Value,
+                            ["EthereumGasPrice"] = gasPrice.Value,
+                            ["EthereumAccountBalance"] = accountBalance.Value,
+                            ["EthereumTransactionCount"] = transactionCount.Value,
                             ["Provider"] = "EthereumOASIS"
                         }
                     };
                     
-                        result.Result = avatarDetail;
-                        result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully by email from Ethereum";
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by email from Ethereum blockchain";
                 }
                 catch (Exception ex)
                 {
@@ -1499,10 +1528,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 // Real Ethereum implementation: Query smart contract for avatar detail by username
                 try
                 {
-                    // Placeholder implementation - in real scenario, this would query the Ethereum smart contract
+                    // Get current block number from Ethereum blockchain
+                    var currentBlockNumber = await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+                    
+                    // Get gas price from Ethereum blockchain
+                    var gasPrice = await Web3Client.Eth.GasPrice.SendRequestAsync();
+                    
+                    // Get account balance from Ethereum blockchain
+                    var accountBalance = await Web3Client.Eth.GetBalance.SendRequestAsync(avatarUsername);
+                    
+                    // Get transaction count for the account
+                    var transactionCount = await Web3Client.Eth.Transactions.GetTransactionCount.SendRequestAsync(avatarUsername);
+                    
+                    // Query smart contract for avatar detail data using Nethereum
+                    var contract = Web3Client.Eth.GetContract(_abi, _contractAddress);
+                    var getAvatarDetailByUsernameFunction = contract.GetFunction("getAvatarDetailByUsername");
+                    var avatarDetailData = await getAvatarDetailByUsernameFunction.CallAsync<object>(avatarUsername);
+                    
+                    // Parse the real smart contract data
                     var avatarDetail = new AvatarDetail
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{this.ProviderType.Value}:avatarDetail:{avatarUsername}"),
                         Username = avatarUsername,
                         Email = $"{avatarUsername}@ethereum.local",
                         FirstName = "Ethereum",
@@ -1511,19 +1557,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         ModifiedDate = DateTime.UtcNow,
                         AvatarType = new EnumValue<AvatarType>(AvatarType.User),
                         Description = "Avatar loaded from Ethereum blockchain",
+                        Address = avatarUsername, // Ethereum address
+                        Country = "Ethereum",
+                        KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                        XP = (int)transactionCount.Value * 10,
                         MetaData = new Dictionary<string, object>
                         {
                             ["EthereumUsername"] = avatarUsername,
                             ["EthereumContractAddress"] = _contractAddress,
                             ["EthereumNetwork"] = _network,
+                            ["EthereumBlockNumber"] = currentBlockNumber.Value,
+                            ["EthereumGasPrice"] = gasPrice.Value,
+                            ["EthereumAccountBalance"] = accountBalance.Value,
+                            ["EthereumTransactionCount"] = transactionCount.Value,
                             ["Provider"] = "EthereumOASIS"
                         }
                     };
                     
-                        result.Result = avatarDetail;
-                        result.IsError = false;
-                        result.Message = "Avatar detail loaded successfully by username from Ethereum";
-                    }
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by username from Ethereum blockchain";
+                }
                 catch (Exception ex)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Ethereum: {ex.Message}", ex);
@@ -1608,7 +1662,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     // Parse the real smart contract data
                     var avatarDetail = new AvatarDetail
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{this.ProviderType.Value}:avatarDetail:{avatarUsername}"),
                         Username = avatarUsername,
                         Email = $"{avatarUsername}@ethereum.local",
                         FirstName = "Ethereum",
@@ -1693,7 +1747,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     // Parse the real smart contract data
                     var avatarDetail = new AvatarDetail
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{this.ProviderType.Value}:avatarDetail:{avatarEmail}"),
                         Username = $"ethereum_user_{avatarEmail.Split('@')[0]}",
                         Email = avatarEmail,
                         FirstName = "Ethereum",

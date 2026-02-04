@@ -718,19 +718,47 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProvider();
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
                     return result;
                 }
             }
-            OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe is not supported by Avalanche provider");
+
+            var avatarsResult = LoadAllAvatars();
+            if (avatarsResult.IsError || avatarsResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                return result;
+            }
+
+            var centerLat = geoLat / 1e6d;
+            var centerLng = geoLong / 1e6d;
+            var nearby = new List<IAvatar>();
+
+            foreach (var avatar in avatarsResult.Result)
+            {
+                if (avatar.MetaData != null &&
+                    avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                    avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                    double.TryParse(latObj?.ToString(), out var lat) &&
+                    double.TryParse(lngObj?.ToString(), out var lng))
+                {
+                    var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                    if (distance <= radiusInMeters)
+                        nearby.Add(avatar);
+                }
+            }
+
+            result.Result = nearby;
+            result.IsError = false;
+            result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
         }
         catch (Exception ex)
         {
             result.Exception = ex;
-            OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarsNearMe: {ex.Message}");
+            OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarsNearMe: {ex.Message}", ex);
         }
         return result;
     }
@@ -742,19 +770,47 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProvider();
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
                     return result;
                 }
             }
-            OASISErrorHandling.HandleError(ref result, "GetHolonsNearMe is not supported by Avalanche provider");
+
+            var holonsResult = LoadAllHolons(holonType, true, true, 0, 0, true, false, 0);
+            if (holonsResult.IsError || holonsResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                return result;
+            }
+
+            var centerLat = geoLat / 1e6d;
+            var centerLng = geoLong / 1e6d;
+            var nearby = new List<IHolon>();
+
+            foreach (var holon in holonsResult.Result)
+            {
+                if (holon.MetaData != null &&
+                    holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                    holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                    double.TryParse(latObj?.ToString(), out var lat) &&
+                    double.TryParse(lngObj?.ToString(), out var lng))
+                {
+                    var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                    if (distance <= radiusInMeters)
+                        nearby.Add(holon);
+                }
+            }
+
+            result.Result = nearby;
+            result.IsError = false;
+            result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
         }
         catch (Exception ex)
         {
             result.Exception = ex;
-            OASISErrorHandling.HandleError(ref result, $"Error in GetHolonsNearMe: {ex.Message}");
+            OASISErrorHandling.HandleError(ref result, $"Error in GetHolonsNearMe: {ex.Message}", ex);
         }
         return result;
     }
@@ -889,7 +945,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var avatarDetailData = await getAvatarDetailFunction.CallDeserializingToObjectAsync<AvatarDetailStruct>(i);
                         
                         var avatarDetail = new AvatarDetail();
-                        avatarDetail.Id = Guid.NewGuid();
+                        avatarDetail.Id = CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{avatarDetailData.EntityId}");
                         avatarDetail.Username = avatarDetailData.AvatarId;
                         avatarDetail.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -960,7 +1016,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<AvatarStruct>(i);
                         
                         var avatar = new Avatar();
-                        avatar.Id = Guid.NewGuid();
+                        avatar.Id = CreateDeterministicGuid($"{ProviderType.Value}:avatar:{avatarData.EntityId}");
                         avatar.Username = avatarData.AvatarId;
                         avatar.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1030,7 +1086,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1549,7 +1605,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                     var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(entityId);
                     
                     var holon = new Holon();
-                    holon.Id = Guid.NewGuid();
+                    holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                     holon.Name = holonData.HolonId;
                     holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                     {
@@ -1641,7 +1697,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1708,7 +1764,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1785,7 +1841,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1857,7 +1913,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -2285,7 +2341,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -3929,4 +3985,17 @@ file static class AvalancheContractHelper
             return new Web3NFT();
         }
     }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
 }

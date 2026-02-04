@@ -2962,7 +2962,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             var avatarDetail = new AvatarDetail
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
@@ -3004,7 +3004,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             var avatar = new Avatar
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
@@ -3040,7 +3040,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
             var nft = new Web3NFT
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Title = dataDict.GetValueOrDefault("title")?.ToString() ?? "Arbitrum NFT",
                 Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "NFT from Arbitrum blockchain",
                 ImageUrl = dataDict.GetValueOrDefault("imageUrl")?.ToString() ?? "",
@@ -3080,7 +3080,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             var holon = new Holon
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "",
                 Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
                 HolonType = Enum.TryParse<HolonType>(dataDict.GetValueOrDefault("holonType")?.ToString(), out var holonType) 
@@ -3721,7 +3721,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -4260,7 +4260,7 @@ file static class ArbitrumContractHelper
             
             var avatarDetail = new AvatarDetail
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
@@ -4302,7 +4302,7 @@ file static class ArbitrumContractHelper
             
             var avatar = new Avatar
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
@@ -4330,12 +4330,13 @@ file static class ArbitrumContractHelper
         try
         {
             // Real implementation for parsing Arbitrum NFT data
+            var tokenAddress = jsonElement.TryGetProperty("tokenAddress", out var ta) ? ta.GetString() : jsonElement.TryGetProperty("address", out var addr) ? addr.GetString() : "unknown";
             var nft = new Web3NFT
             {
-                Id = Guid.NewGuid(),
+                Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{tokenAddress}"),
                 Title = "Arbitrum NFT",
                 Description = "NFT from Arbitrum blockchain",
-                NFTTokenAddress = "0x0000000000000000000000000000000000000000",
+                NFTTokenAddress = tokenAddress,
                 OnChainProvider = new EnumValue<ProviderType>(ProviderType.ArbitrumOASIS),
                 //MetaData = new Dictionary<string, object>
                 //{
@@ -4366,7 +4367,7 @@ file static class ArbitrumContractHelper
             
             var holon = new Holon
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "",
                 Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
                 HolonType = Enum.TryParse<HolonType>(dataDict.GetValueOrDefault("holonType")?.ToString(), out var holonType) 
@@ -4390,6 +4391,19 @@ file static class ArbitrumContractHelper
             return null;
         }
     }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
 }
 
 // FunctionMessage classes for new Nethereum API

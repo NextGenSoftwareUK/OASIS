@@ -136,7 +136,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             if (NFT.MetaData == null)
                                 NFT.MetaData = new Dictionary<string, string>();
 
-                            NFT.MetaData["Web5STARNFTId"] = saveResult.Result.Id.ToString();
+                            if (NFT.MetaData.ContainsKey("Web5STARNFTId"))
+                                NFT.MetaData["Web5STARNFTId"] = string.Concat(NFT.MetaData["Web5STARNFTId"], ",", saveResult.Result.Id.ToString());
+                            else
+                                NFT.MetaData["Web5STARNFTId"] = saveResult.Result.Id.ToString();
+                            
                             OASISResult<IWeb4NFT> web4NFT = await NFTCommon.NFTManager.UpdateWeb4NFTAsync(new UpdateWeb4NFTRequest() { Id = NFT.Id, ModifiedByAvatarId = STAR.BeamedInAvatar.Id, MetaData = NFT.MetaData }, providerType: providerType);
 
                             if (!(web4NFT != null && web4NFT.Result != null && !web4NFT.IsError))
@@ -200,6 +204,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
+        //Delete WEB5 NFT. Also offers to delete the linked WEB4 NFT and it's child WEB3 NFT's.
         public override async Task<OASISResult<STARNFT>> DeleteAsync(string idOrName = "", bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARNFT> result = await base.DeleteAsync(idOrName, softDelete, providerType);
@@ -216,7 +221,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (nft != null)
                     {
                         //Need to delete the link from Web4 to Web5 in the web4 metadata here.
-                        nft.MetaData.Remove("Web5STARNFTId");
+                        //nft.MetaData.Remove("Web5STARNFTId");
+
+                        //Remove the id from the list of web5 ids in the web4 metadata.
+                        string ids = nft.MetaData["Web5STARNFTId"];
+                        string[] parts = ids.Split(",");
+                        string newList = "";
+
+                        foreach (string part in parts)
+                        {
+                            if (part != result.Result.Id.ToString())
+                                newList = string.Concat(newList, part, ",");
+                        }
+
+                        newList = newList.TrimEnd(',');
+
+                        if (string.IsNullOrEmpty(newList))
+                            nft.MetaData.Remove("Web5STARNFTId");
+                        else
+                            nft.MetaData["Web5STARNFTId"] = newList;
+
                         OASISResult<IWeb4NFT> web4NFT = await NFTCommon.NFTManager.UpdateWeb4NFTAsync(new UpdateWeb4NFTRequest() { Id = nft.Id, ModifiedByAvatarId = STAR.BeamedInAvatar.Id, MetaData = nft.MetaData }, providerType: providerType);
 
                         if (!(web4NFT != null && web4NFT.Result != null && !web4NFT.IsError))
@@ -278,23 +302,45 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (result.Result.MetaData != null && result.Result.MetaData.ContainsKey("Web5STARNFTId"))
                         {
-                            OASISResult<STARNFT> web5NFT = await STAR.STARAPI.NFTs.LoadAsync(STAR.BeamedInAvatar.Id, new Guid(result.Result.MetaData["Web5STARNFTId"].ToString()));
+                            string[] ids = result.Result.MetaData["Web5STARNFTId"].ToString().Split(",");
 
-                            if (web5NFT != null && web5NFT.Result != null && !web5NFT.IsError)
+                            foreach (string id in ids)
                             {
-                                web5NFT.Result.STARNETDNA.MetaData["WEB4 NFT"] = result.Result;
-                                OASISResult<STARNFT> saveWeb5NFT = await STAR.STARAPI.NFTs.UpdateAsync(STAR.BeamedInAvatar.Id, web5NFT.Result, true);
-
-                                if (saveWeb5NFT != null && saveWeb5NFT.Result != null && !saveWeb5NFT.IsError)
+                                CLIEngine.ShowWorkingMessage($"Updating WEB5 STAR GeoNFT {id}...");
+                                OASISResult<STARGeoNFT> web5NFT = await STAR.STARAPI.GeoNFTs.LoadAsync(STAR.BeamedInAvatar.Id, new Guid(id));
+                                if (web5NFT != null && web5NFT.Result != null && !web5NFT.IsError)
                                 {
-                                    UpdateWeb4AndWeb3NFTJSONFiles(result.Result, web5NFT.Result.STARNETDNA.SourcePath);
-                                    CLIEngine.ShowSuccessMessage(result.Message);
+                                    web5NFT.Result.STARNETDNA.MetaData["WEB4 NFT"] = result.Result;
+                                    OASISResult<STARGeoNFT> saveWeb5NFT = await STAR.STARAPI.GeoNFTs.UpdateAsync(STAR.BeamedInAvatar.Id, web5NFT.Result, true);
+                                    if (saveWeb5NFT != null && saveWeb5NFT.Result != null && !saveWeb5NFT.IsError)
+                                    {
+                                        UpdateWeb4AndWeb3NFTJSONFiles(result.Result, web5NFT.Result.STARNETDNA.SourcePath);
+                                        CLIEngine.ShowSuccessMessage($"WEB5 STAR GeoNFT {id} Successfully Updated.");
+                                    }
+                                    else
+                                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed updating WEB5 STAR GeoNFT {id} after reminting WEB4 GeoNFT. Reason: {saveWeb5NFT.Message}");
                                 }
                                 else
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed updating WEB5 STAR NFT after reminting WEB4 NFT. Reason: {saveWeb5NFT.Message}");
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed loading WEB5 STAR GeoNFT {id} to update after reminting WEB4 GeoNFT. Reason: {web5NFT.Message}");
                             }
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed loading WEB5 STAR NFT to update after reminting WEB4 NFT. Reason: {web5NFT.Message}");
+
+                            //OASISResult<STARNFT> web5NFT = await STAR.STARAPI.NFTs.LoadAsync(STAR.BeamedInAvatar.Id, new Guid(result.Result.MetaData["Web5STARNFTId"].ToString()));
+
+                            //if (web5NFT != null && web5NFT.Result != null && !web5NFT.IsError)
+                            //{
+                            //    web5NFT.Result.STARNETDNA.MetaData["WEB4 NFT"] = result.Result;
+                            //    OASISResult<STARNFT> saveWeb5NFT = await STAR.STARAPI.NFTs.UpdateAsync(STAR.BeamedInAvatar.Id, web5NFT.Result, true);
+
+                            //    if (saveWeb5NFT != null && saveWeb5NFT.Result != null && !saveWeb5NFT.IsError)
+                            //    {
+                            //        UpdateWeb4AndWeb3NFTJSONFiles(result.Result, web5NFT.Result.STARNETDNA.SourcePath);
+                            //        CLIEngine.ShowSuccessMessage(result.Message);
+                            //    }
+                            //    else
+                            //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed updating WEB5 STAR NFT after reminting WEB4 NFT. Reason: {saveWeb5NFT.Message}");
+                            //}
+                            //else
+                            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed loading WEB5 STAR NFT to update after reminting WEB4 NFT. Reason: {web5NFT.Message}");
                         }
                         else
                             CLIEngine.ShowSuccessMessage(result.Message);

@@ -133,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
-                        return response;
+                    return response;
                     }
                 }
 
@@ -195,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
-                        return response;
+                    return response;
                     }
                 }
 
@@ -249,7 +249,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
-                        return response;
+                    return response;
                     }
                 }
 
@@ -303,7 +303,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
-                        return response;
+                    return response;
                     }
                 }
 
@@ -357,7 +357,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
-                        return response;
+                    return response;
                     }
                 }
 
@@ -404,7 +404,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
-                        return response;
+                    return response;
                     }
                 }
 
@@ -449,7 +449,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
-                        return response;
+                    return response;
                     }
                 }
 
@@ -460,7 +460,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    response.Result = new Holon { Id = Guid.NewGuid() };
+                    response.Result = new Holon { Id = CreateDeterministicGuid($"{ProviderType.Value}:deleted:{providerKey}") };
                     response.Message = "Holon deleted from AWS successfully";
                 }
                 else
@@ -487,8 +487,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // AWS implementation for loading holons for parent
-                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load holons for parent from AWS DynamoDB
+                var queryUrl = $"/dynamodb/holons/parent/{id}";
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var holons = ParseAWSToHolons(content) ?? Enumerable.Empty<IHolon>();
+
+                    if (type != HolonType.All)
+                        holons = holons.Where(h => h.HolonType == type);
+
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = $"Loaded {holons.Count()} holons for parent from AWS";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons for parent from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -508,8 +536,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // AWS implementation for loading holons for parent by provider key
-                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync by provider key not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load holons for parent by provider key from AWS DynamoDB
+                var queryUrl = $"/dynamodb/holons/parent-key/{providerKey}";
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var holons = ParseAWSToHolons(content) ?? Enumerable.Empty<IHolon>();
+
+                    if (type != HolonType.All)
+                        holons = holons.Where(h => h.HolonType == type);
+
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = $"Loaded {holons.Count()} holons for parent (provider key) from AWS";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons for parent by provider key from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -529,8 +585,35 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // AWS implementation for loading holons by metadata
-                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                var queryUrl = $"/dynamodb/holons/metadata?key={Uri.EscapeDataString(metaKey)}&value={Uri.EscapeDataString(metaValue)}";
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var holons = ParseAWSToHolons(content) ?? Enumerable.Empty<IHolon>();
+
+                    if (type != HolonType.All)
+                        holons = holons.Where(h => h.HolonType == type);
+
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = $"Loaded {holons.Count()} holons by metadata from AWS";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons by metadata from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -550,8 +633,37 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // AWS implementation for loading holons by metadata pairs
-                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync by metadata pairs not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                var queryUrl = "/dynamodb/holons/search-metadata";
+                var payload = JsonSerializer.Serialize(metaKeyValuePairs);
+                var content = new StringContent(payload, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(queryUrl, content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var body = await httpResponse.Content.ReadAsStringAsync();
+                    var holons = ParseAWSToHolons(body) ?? Enumerable.Empty<IHolon>();
+
+                    if (type != HolonType.All)
+                        holons = holons.Where(h => h.HolonType == type);
+
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = $"Loaded {holons.Count()} holons by metadata pairs from AWS";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons by metadata pairs from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -571,8 +683,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // AWS implementation for saving multiple holons
-                OASISErrorHandling.HandleError(ref response, "SaveHolonsAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                if (holons == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Holons cannot be null");
+                    return response;
+                }
+
+                var savedHolons = new List<IHolon>();
+                foreach (var holon in holons)
+                {
+                    var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    if (!saveResult.IsError && saveResult.Result != null)
+                    {
+                        savedHolons.Add(saveResult.Result);
+                    }
+                    else if (!continueOnError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to save holon {holon.Id}: {saveResult.Message}");
+                        return response;
+                    }
+                }
+
+                response.Result = savedHolons;
+                response.IsError = false;
+                response.Message = $"Saved {savedHolons.Count} holons to AWS";
             }
             catch (Exception ex)
             {
@@ -599,11 +743,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
-                        return response;
+                    return response;
                     }
                 }
 
@@ -648,11 +792,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
-                        return response;
+                    return response;
                     }
                 }
 
@@ -866,8 +1010,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                // AWS implementation for loading all avatars
-                OASISErrorHandling.HandleError(ref response, "LoadAllAvatarsAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load all avatars from AWS DynamoDB
+                var queryUrl = "/dynamodb/avatars";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatars = ParseAWSToAvatars(content);
+                    if (avatars != null)
+                    {
+                        response.Result = avatars;
+                        response.IsError = false;
+                        response.Message = $"Loaded {avatars.Count()} avatars from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatars from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -887,8 +1062,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // AWS implementation for loading avatar by provider key
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByProviderKeyAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar from AWS DynamoDB by provider key
+                var queryUrl = $"/dynamodb/avatar/providerkey/{Uri.EscapeDataString(providerKey)}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatar = ParseAWSToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from AWS by provider key successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -908,8 +1114,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // AWS implementation for loading avatar by username
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByUsernameAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar from AWS DynamoDB by username
+                var queryUrl = $"/dynamodb/avatar/username/{Uri.EscapeDataString(avatarUsername)}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatar = ParseAWSToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from AWS by username successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -929,8 +1166,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // AWS implementation for loading avatar by email
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByEmailAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar from AWS DynamoDB by email
+                var queryUrl = $"/dynamodb/avatar/email/{Uri.EscapeDataString(avatarEmail)}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatar = ParseAWSToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from AWS by email successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -950,8 +1218,44 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // AWS implementation for loading avatar detail by ID
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar detail from AWS DynamoDB
+                var queryUrl = $"/dynamodb/avatardetail/{id}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(content, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    });
+                    
+                    if (avatarDetail != null)
+                    {
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -971,8 +1275,44 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // AWS implementation for loading avatar detail by email
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByEmailAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar detail from AWS DynamoDB by email
+                var queryUrl = $"/dynamodb/avatardetail/email/{Uri.EscapeDataString(avatarEmail)}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(content, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    });
+                    
+                    if (avatarDetail != null)
+                    {
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded from AWS by email successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -992,8 +1332,44 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // AWS implementation for loading avatar detail by username
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByUsernameAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar detail from AWS DynamoDB by username
+                var queryUrl = $"/dynamodb/avatardetail/username/{Uri.EscapeDataString(avatarUsername)}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(content, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    });
+                    
+                    if (avatarDetail != null)
+                    {
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded from AWS by username successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1013,8 +1389,44 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                // AWS implementation for loading all avatar details
-                OASISErrorHandling.HandleError(ref response, "LoadAllAvatarDetailsAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load all avatar details from AWS DynamoDB
+                var queryUrl = "/dynamodb/avatardetails";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarDetails = JsonSerializer.Deserialize<IEnumerable<AvatarDetail>>(content, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    });
+                    
+                    if (avatarDetails != null)
+                    {
+                        response.Result = avatarDetails;
+                        response.IsError = false;
+                        response.Message = $"Loaded {avatarDetails.Count()} avatar details from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar details from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1034,8 +1446,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // AWS implementation for saving avatar
-                OASISErrorHandling.HandleError(ref response, "SaveAvatarAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                if (Avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar cannot be null");
+                    return response;
+                }
+
+                // Save avatar to AWS DynamoDB
+                var queryUrl = "/dynamodb/avatar";
+                var awsJson = ConvertAvatarToAWS(Avatar);
+                
+                var content = new StringContent(awsJson, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(queryUrl, content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = Avatar;
+                    response.IsError = false;
+                    response.IsSaved = true;
+                    response.Message = "Avatar saved to AWS successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1055,8 +1499,45 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // AWS implementation for saving avatar detail
-                OASISErrorHandling.HandleError(ref response, "SaveAvatarDetailAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                if (Avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar detail cannot be null");
+                    return response;
+                }
+
+                // Save avatar detail to AWS DynamoDB
+                var queryUrl = "/dynamodb/avatardetail";
+                var awsJson = JsonSerializer.Serialize(Avatar, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                var content = new StringContent(awsJson, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(queryUrl, content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = Avatar;
+                    response.IsError = false;
+                    response.IsSaved = true;
+                    response.Message = "Avatar detail saved to AWS successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar detail to AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1076,8 +1557,34 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<bool>();
             try
             {
-                // AWS implementation for deleting avatar by ID
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Delete avatar from AWS DynamoDB
+                var queryUrl = $"/dynamodb/avatar/{id}";
+                if (softDelete)
+                {
+                    // For soft delete, update the record instead
+                    queryUrl += "?softDelete=true";
+                    var httpResponse = await _httpClient.PutAsync(queryUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
+                    response.Result = httpResponse.IsSuccessStatusCode;
+                    response.IsError = !httpResponse.IsSuccessStatusCode;
+                    response.Message = httpResponse.IsSuccessStatusCode ? "Avatar soft deleted from AWS successfully" : $"Failed to soft delete avatar: {httpResponse.StatusCode}";
+                }
+                else
+                {
+                    var httpResponse = await _httpClient.DeleteAsync(queryUrl);
+                    response.Result = httpResponse.IsSuccessStatusCode;
+                    response.IsError = !httpResponse.IsSuccessStatusCode;
+                    response.Message = httpResponse.IsSuccessStatusCode ? "Avatar deleted from AWS successfully" : $"Failed to delete avatar: {httpResponse.StatusCode}";
+                }
             }
             catch (Exception ex)
             {
@@ -1097,8 +1604,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<bool>();
             try
             {
-                // AWS implementation for deleting avatar by provider key
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync by provider key not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                var requestUrl = $"/dynamodb/avatar/provider-key/{providerKey}?softDelete={softDelete.ToString().ToLower()}";
+                var httpResponse = await _httpClient.DeleteAsync(requestUrl);
+
+                response.Result = httpResponse.IsSuccessStatusCode;
+                response.IsError = !httpResponse.IsSuccessStatusCode;
+                response.Message = httpResponse.IsSuccessStatusCode
+                    ? "Avatar deleted from AWS by provider key successfully"
+                    : $"Failed to delete avatar by provider key: {httpResponse.StatusCode}";
             }
             catch (Exception ex)
             {
@@ -1118,8 +1641,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<bool>();
             try
             {
-                // AWS implementation for deleting avatar by email
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmailAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                var requestUrl = $"/dynamodb/avatar/email/{Uri.EscapeDataString(avatarEmail)}?softDelete={softDelete.ToString().ToLower()}";
+                var httpResponse = await _httpClient.DeleteAsync(requestUrl);
+
+                response.Result = httpResponse.IsSuccessStatusCode;
+                response.IsError = !httpResponse.IsSuccessStatusCode;
+                response.Message = httpResponse.IsSuccessStatusCode
+                    ? "Avatar deleted from AWS by email successfully"
+                    : $"Failed to delete avatar by email: {httpResponse.StatusCode}";
             }
             catch (Exception ex)
             {
@@ -1139,8 +1678,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<bool>();
             try
             {
-                // AWS implementation for deleting avatar by username
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByUsernameAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                var requestUrl = $"/dynamodb/avatar/username/{Uri.EscapeDataString(avatarUsername)}?softDelete={softDelete.ToString().ToLower()}";
+                var httpResponse = await _httpClient.DeleteAsync(requestUrl);
+
+                response.Result = httpResponse.IsSuccessStatusCode;
+                response.IsError = !httpResponse.IsSuccessStatusCode;
+                response.Message = httpResponse.IsSuccessStatusCode
+                    ? "Avatar deleted from AWS by username successfully"
+                    : $"Failed to delete avatar by username: {httpResponse.StatusCode}";
             }
             catch (Exception ex)
             {
@@ -1164,8 +1719,98 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<ISearchResults>();
             try
             {
-                // AWS implementation for search
-                OASISErrorHandling.HandleError(ref response, "SearchAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // AWS implementation for search using DynamoDB query
+                var searchResults = new SearchResults();
+                
+                // Build search query parameters
+                var queryParams = new List<string>();
+                string searchQuery = null;
+                if (searchParams != null && searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                {
+                    // Extract search query from SearchGroups (similar to LocalFileOASIS)
+                    var firstGroup = searchParams.SearchGroups.FirstOrDefault();
+                    if (firstGroup is ISearchTextGroup textGroup && !string.IsNullOrWhiteSpace(textGroup.SearchQuery))
+                    {
+                        searchQuery = textGroup.SearchQuery;
+                    }
+                }
+                if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    queryParams.Add($"query={Uri.EscapeDataString(searchQuery)}");
+                }
+                if (version > 0)
+                {
+                    queryParams.Add($"version={version}");
+                }
+                
+                var queryString = string.Join("&", queryParams);
+                var searchUrl = $"/dynamodb/search?{queryString}";
+                
+                var httpResponse = await _httpClient.GetAsync(searchUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var searchData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (searchData != null)
+                    {
+                        // Parse avatars from search results
+                        if (searchData.ContainsKey("avatars") && searchData["avatars"] is JsonElement avatarsElement && avatarsElement.ValueKind == JsonValueKind.Array)
+                        {
+                            var avatars = new List<IAvatar>();
+                            foreach (var item in avatarsElement.EnumerateArray())
+                            {
+                                var avatarJson = item.GetRawText();
+                                var avatar = ParseAWSToAvatar(avatarJson);
+                                if (avatar != null)
+                                {
+                                    avatars.Add(avatar);
+                                }
+                            }
+                            searchResults.SearchResultAvatars = avatars;
+                        }
+                        
+                        // Parse holons from search results
+                        if (searchData.ContainsKey("holons") && searchData["holons"] is JsonElement holonsElement && holonsElement.ValueKind == JsonValueKind.Array)
+                        {
+                            var holons = new List<IHolon>();
+                            foreach (var item in holonsElement.EnumerateArray())
+                            {
+                                var holonJson = item.GetRawText();
+                                var holon = ParseAWSToHolon(holonJson);
+                                if (holon != null)
+                                {
+                                    holons.Add(holon);
+                                }
+                            }
+                            searchResults.SearchResultHolons = holons;
+                        }
+                        
+                        searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
+                        
+                        response.Result = searchResults;
+                        response.IsError = false;
+                        response.Message = $"Successfully searched AWS and found {searchResults.NumberOfResults} results";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize search results from AWS");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to search AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1190,8 +1835,43 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<bool>();
             try
             {
-                // AWS implementation for importing holons
-                OASISErrorHandling.HandleError(ref response, "ImportAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // AWS implementation for importing holons to DynamoDB
+                if (holons == null || !holons.Any())
+                {
+                    OASISErrorHandling.HandleError(ref response, "No holons provided for import");
+                    return response;
+                }
+
+                var holonsList = holons.ToList();
+                var importData = new
+                {
+                    holons = holonsList.Select(h => ConvertHolonToAWS(h)).ToList()
+                };
+
+                var importJson = JsonSerializer.Serialize(importData);
+                var content = new StringContent(importJson, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("/dynamodb/import", content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = $"Successfully imported {holonsList.Count} holons to AWS";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to import holons to AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1211,8 +1891,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // AWS implementation for exporting all data for avatar by ID
-                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByIdAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Export all holons for avatar from AWS DynamoDB
+                var queryUrl = $"/dynamodb/holons/avatar/{avatarId}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var holons = ParseAWSToHolons(content);
+                    if (holons != null)
+                    {
+                        response.Result = holons;
+                        response.IsError = false;
+                        response.Message = $"Exported {holons.Count()} holons for avatar {avatarId} from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to export data from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1229,18 +1940,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
+            // First load the avatar to get its ID
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+            if (avatarResult.IsError || avatarResult.Result == null)
             {
-                // AWS implementation for exporting all data for avatar by username
-                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByUsernameAsync not implemented for AWS provider");
+                var response = new OASISResult<IEnumerable<IHolon>>();
+                OASISErrorHandling.HandleError(ref response, $"Avatar with username {avatarUsername} not found");
+                return response;
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error exporting all data for avatar by username from AWS: {ex.Message}");
-            }
-            return response;
+
+            // Then export all data using the avatar ID
+            return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
@@ -1250,18 +1960,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
+            // First load the avatar to get its ID
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+            if (avatarResult.IsError || avatarResult.Result == null)
             {
-                // AWS implementation for exporting all data for avatar by email
-                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByEmailAsync not implemented for AWS provider");
+                var response = new OASISResult<IEnumerable<IHolon>>();
+                OASISErrorHandling.HandleError(ref response, $"Avatar with email {avatarEmailAddress} not found");
+                return response;
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error exporting all data for avatar by email from AWS: {ex.Message}");
-            }
-            return response;
+
+            // Then export all data using the avatar ID
+            return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
@@ -1274,8 +1983,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // AWS implementation for exporting all data
-                OASISErrorHandling.HandleError(ref response, "ExportAllAsync not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Export all holons from AWS DynamoDB
+                var queryUrl = "/dynamodb/holons";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var holons = ParseAWSToHolons(content);
+                    if (holons != null)
+                    {
+                        response.Result = holons;
+                        response.IsError = false;
+                        response.Message = $"Exported {holons.Count()} holons from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to export all data from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1301,8 +2041,32 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IPlayer>>();
             try
             {
-                // AWS implementation for getting players near me
-                OASISErrorHandling.HandleError(ref response, "GetPlayersNearMe not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Example AWS implementation using a custom geospatial endpoint
+                var queryUrl = "/net/players/near-me";
+                var httpResponse = _httpClient.GetAsync(queryUrl).Result;
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = httpResponse.Content.ReadAsStringAsync().Result;
+                    var players = ParseAWSToPlayers(content);
+                    response.Result = players;
+                    response.IsError = false;
+                    response.Message = "Retrieved players near me from AWS";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1317,8 +2081,35 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // AWS implementation for getting holons near me
-                OASISErrorHandling.HandleError(ref response, "GetHolonsNearMe not implemented for AWS provider");
+                if (!_isActivated)
+                {
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate AWS provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                var queryUrl = "/net/holons/near-me";
+                var httpResponse = _httpClient.GetAsync(queryUrl).Result;
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = httpResponse.Content.ReadAsStringAsync().Result;
+                    var holons = ParseAWSToHolons(content) ?? Enumerable.Empty<IHolon>();
+
+                    if (holonType != HolonType.All)
+                        holons = holons.Where(h => h.HolonType == holonType);
+
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = $"Retrieved {holons.Count()} holons near me from AWS";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from AWS: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -1335,6 +2126,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion
