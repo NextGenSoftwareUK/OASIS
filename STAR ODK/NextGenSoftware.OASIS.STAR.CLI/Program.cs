@@ -26,6 +26,9 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects.Game;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using System.IO;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
@@ -714,6 +717,133 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "quest":
                                     await ShowSubCommandAsync<Quest>(inputArgs, "quest", "quests", STARCLI.Quests.CreateAsync, STARCLI.Quests.UpdateAsync, STARCLI.Quests.DeleteAsync, STARCLI.Quests.DownloadAndInstallAsync, STARCLI.Quests.UninstallAsync, STARCLI.Quests.PublishAsync, STARCLI.Quests.UnpublishAsync, STARCLI.Quests.RepublishAsync, STARCLI.Quests.ActivateAsync, STARCLI.Quests.DeactivateAsync, STARCLI.Quests.ShowAsync, STARCLI.Quests.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Quests.ListAllAsync, STARCLI.Quests.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Quests.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Quests.SearchAsync, STARCLI.Quests.AddDependencyAsync, STARCLI.Quests.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    break;
+
+                                case "game":
+                                    {
+                                        if (inputArgs.Length > 1)
+                                        {
+                                            string subCommand = inputArgs[1].ToLower();
+                                            
+                                            // Game session management commands
+                                            if (subCommand == "start")
+                                            {
+                                                await ShowGameSessionCommandAsync(inputArgs, "start");
+                                            }
+                                            else if (subCommand == "end")
+                                            {
+                                                await ShowGameSessionCommandAsync(inputArgs, "end");
+                                            }
+                                            else if (subCommand == "load")
+                                            {
+                                                await ShowGameSessionCommandAsync(inputArgs, "load");
+                                            }
+                                            else if (subCommand == "unload")
+                                            {
+                                                await ShowGameSessionCommandAsync(inputArgs, "unload");
+                                            }
+                                            // Level management commands
+                                            else if (subCommand == "loadlevel")
+                                            {
+                                                await ShowGameLevelCommandAsync(inputArgs, "loadlevel");
+                                            }
+                                            else if (subCommand == "unloadlevel")
+                                            {
+                                                await ShowGameLevelCommandAsync(inputArgs, "unloadlevel");
+                                            }
+                                            else if (subCommand == "jumptolevel")
+                                            {
+                                                await ShowGameLevelCommandAsync(inputArgs, "jumptolevel");
+                                            }
+                                            else if (subCommand == "jumptopoint")
+                                            {
+                                                await ShowGameLevelCommandAsync(inputArgs, "jumptopoint");
+                                            }
+                                            // Area management commands
+                                            else if (subCommand == "loadarea")
+                                            {
+                                                await ShowGameAreaCommandAsync(inputArgs, "loadarea");
+                                            }
+                                            else if (subCommand == "unloadarea")
+                                            {
+                                                await ShowGameAreaCommandAsync(inputArgs, "unloadarea");
+                                            }
+                                            else if (subCommand == "jumptoarea")
+                                            {
+                                                await ShowGameAreaCommandAsync(inputArgs, "jumptoarea");
+                                            }
+                                            // UI commands
+                                            else if (subCommand == "showtitlescreen")
+                                            {
+                                                await ShowGameUICommandAsync(inputArgs, "showtitlescreen");
+                                            }
+                                            else if (subCommand == "showmainmenu")
+                                            {
+                                                await ShowGameUICommandAsync(inputArgs, "showmainmenu");
+                                            }
+                                            else if (subCommand == "showoptions")
+                                            {
+                                                await ShowGameUICommandAsync(inputArgs, "showoptions");
+                                            }
+                                            else if (subCommand == "showcredits")
+                                            {
+                                                await ShowGameUICommandAsync(inputArgs, "showcredits");
+                                            }
+                                            // Audio commands
+                                            else if (subCommand == "setmastervolume")
+                                            {
+                                                await ShowGameAudioCommandAsync(inputArgs, "setmastervolume");
+                                            }
+                                            else if (subCommand == "setvoicevolume")
+                                            {
+                                                await ShowGameAudioCommandAsync(inputArgs, "setvoicevolume");
+                                            }
+                                            else if (subCommand == "setsoundvolume")
+                                            {
+                                                await ShowGameAudioCommandAsync(inputArgs, "setsoundvolume");
+                                            }
+                                            else if (subCommand == "getmastervolume")
+                                            {
+                                                await ShowGameAudioCommandAsync(inputArgs, "getmastervolume");
+                                            }
+                                            else if (subCommand == "getvoicevolume")
+                                            {
+                                                await ShowGameAudioCommandAsync(inputArgs, "getvoicevolume");
+                                            }
+                                            else if (subCommand == "getsoundvolume")
+                                            {
+                                                await ShowGameAudioCommandAsync(inputArgs, "getsoundvolume");
+                                            }
+                                            // Video commands
+                                            else if (subCommand == "setvideosetting")
+                                            {
+                                                await ShowGameVideoCommandAsync(inputArgs, "setvideosetting");
+                                            }
+                                            else if (subCommand == "getvideosetting")
+                                            {
+                                                await ShowGameVideoCommandAsync(inputArgs, "getvideosetting");
+                                            }
+                                            // Input commands
+                                            else if (subCommand == "bindkeys")
+                                            {
+                                                await ShowGameInputCommandAsync(inputArgs, "bindkeys");
+                                            }
+                                            // Inventory commands
+                                            else if (subCommand == "inventory")
+                                            {
+                                                await ShowGameInventoryCommandAsync(inputArgs);
+                                            }
+                                            // Standard STARNET commands (create, update, delete, publish, etc.)
+                                            else
+                                            {
+                                                await ShowSubCommandAsync<Game>(inputArgs, "game", "games", STARCLI.Games.CreateAsync, STARCLI.Games.UpdateAsync, STARCLI.Games.DeleteAsync, STARCLI.Games.DownloadAndInstallAsync, STARCLI.Games.UninstallAsync, STARCLI.Games.PublishAsync, STARCLI.Games.UnpublishAsync, STARCLI.Games.RepublishAsync, STARCLI.Games.ActivateAsync, STARCLI.Games.DeactivateAsync, STARCLI.Games.ShowAsync, STARCLI.Games.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Games.ListAllAsync, STARCLI.Games.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Games.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Games.SearchAsync, STARCLI.Games.AddDependencyAsync, STARCLI.Games.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            await ShowSubCommandAsync<Game>(inputArgs, "game", "games", STARCLI.Games.CreateAsync, STARCLI.Games.UpdateAsync, STARCLI.Games.DeleteAsync, STARCLI.Games.DownloadAndInstallAsync, STARCLI.Games.UninstallAsync, STARCLI.Games.PublishAsync, STARCLI.Games.UnpublishAsync, STARCLI.Games.RepublishAsync, STARCLI.Games.ActivateAsync, STARCLI.Games.DeactivateAsync, STARCLI.Games.ShowAsync, STARCLI.Games.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Games.ListAllAsync, STARCLI.Games.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Games.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Games.SearchAsync, STARCLI.Games.AddDependencyAsync, STARCLI.Games.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                        }
+                                    }
                                     break;
 
                                 case "nft":
@@ -4700,6 +4830,648 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             catch (Exception ex)
             {
                 CLIEngine.ShowErrorMessage($"Error getting ONET topology: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Game Commands
+
+        private static async Task ShowGameSessionCommandAsync(string[] inputArgs, string command)
+        {
+            try
+            {
+                if (inputArgs.Length < 3)
+                {
+                    CLIEngine.ShowErrorMessage($"Usage: game {command} <gameId>");
+                    return;
+                }
+
+                if (!Guid.TryParse(inputArgs[2], out Guid gameId))
+                {
+                    CLIEngine.ShowErrorMessage("Invalid game ID. Please provide a valid GUID.");
+                    return;
+                }
+
+                var gameManager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.GameManager(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+                OASISResult<GameSession> result;
+
+                switch (command.ToLower())
+                {
+                    case "start":
+                        CLIEngine.ShowWorkingMessage($"Starting game session for game {gameId}...");
+                        result = await gameManager.StartGameAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!result.IsError && result.Result != null)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Game session started successfully. Session ID: {result.Result.Id}");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to start game session: {result.Message}");
+                        }
+                        break;
+
+                    case "end":
+                        CLIEngine.ShowWorkingMessage($"Ending game session for game {gameId}...");
+                        result = await gameManager.EndGameAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!result.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage("Game session ended successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to end game session: {result.Message}");
+                        }
+                        break;
+
+                    case "load":
+                        CLIEngine.ShowWorkingMessage($"Loading game {gameId}...");
+                        var loadResult = await gameManager.LoadGameAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!loadResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage("Game loaded successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to load game: {loadResult.Message}");
+                        }
+                        break;
+
+                    case "unload":
+                        CLIEngine.ShowWorkingMessage($"Unloading game {gameId}...");
+                        var unloadResult = await gameManager.UnloadGameAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!unloadResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage("Game unloaded successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to unload game: {unloadResult.Message}");
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error executing game session command: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowGameLevelCommandAsync(string[] inputArgs, string command)
+        {
+            try
+            {
+                if (inputArgs.Length < 4)
+                {
+                    CLIEngine.ShowErrorMessage($"Usage: game {command} <gameId> <level> [x] [y] [z]");
+                    return;
+                }
+
+                if (!Guid.TryParse(inputArgs[2], out Guid gameId))
+                {
+                    CLIEngine.ShowErrorMessage("Invalid game ID. Please provide a valid GUID.");
+                    return;
+                }
+
+                string level = inputArgs[3];
+                var gameManager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.GameManager(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+                OASISResult<bool> result;
+
+                switch (command.ToLower())
+                {
+                    case "loadlevel":
+                        CLIEngine.ShowWorkingMessage($"Loading level '{level}' for game {gameId}...");
+                        result = await gameManager.LoadLevelAsync(gameId, level, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!result.IsError && result.Result)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Level '{level}' loaded successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to load level: {result.Message}");
+                        }
+                        break;
+
+                    case "unloadlevel":
+                        CLIEngine.ShowWorkingMessage($"Unloading level '{level}' for game {gameId}...");
+                        result = await gameManager.UnloadLevelAsync(gameId, level, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!result.IsError && result.Result)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Level '{level}' unloaded successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to unload level: {result.Message}");
+                        }
+                        break;
+
+                    case "jumptolevel":
+                        CLIEngine.ShowWorkingMessage($"Jumping to level '{level}' for game {gameId}...");
+                        result = await gameManager.JumpToLevelAsync(gameId, level, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!result.IsError && result.Result)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Jumped to level '{level}' successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to jump to level: {result.Message}");
+                        }
+                        break;
+
+                    case "jumptopoint":
+                        if (inputArgs.Length < 7)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game jumptopoint <gameId> <level> <x> <y> <z>");
+                            return;
+                        }
+
+                        if (!float.TryParse(inputArgs[4], out float x) || !float.TryParse(inputArgs[5], out float y) || !float.TryParse(inputArgs[6], out float z))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid coordinates. Please provide valid float values for x, y, and z.");
+                            return;
+                        }
+
+                        CLIEngine.ShowWorkingMessage($"Jumping to point ({x}, {y}, {z}) in level '{level}' for game {gameId}...");
+                        result = await gameManager.JumpToPointInLevelAsync(gameId, level, x, y, z, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!result.IsError && result.Result)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Jumped to point ({x}, {y}, {z}) successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to jump to point: {result.Message}");
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error executing game level command: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowGameAreaCommandAsync(string[] inputArgs, string command)
+        {
+            try
+            {
+                var gameManager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.GameManager(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+                OASISResult<Guid> result;
+
+                switch (command.ToLower())
+                {
+                    case "loadarea":
+                        if (inputArgs.Length < 7)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game loadarea <gameId> <x> <y> <z> <radius>");
+                            return;
+                        }
+
+                        if (!Guid.TryParse(inputArgs[2], out Guid gameId) || 
+                            !float.TryParse(inputArgs[3], out float x) || 
+                            !float.TryParse(inputArgs[4], out float y) || 
+                            !float.TryParse(inputArgs[5], out float z) || 
+                            !float.TryParse(inputArgs[6], out float radius))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid parameters. Please provide valid GUID and float values.");
+                            return;
+                        }
+
+                        CLIEngine.ShowWorkingMessage($"Loading area at ({x}, {y}, {z}) with radius {radius} for game {gameId}...");
+                        result = await gameManager.LoadAreaAsync(gameId, x, y, z, radius, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!result.IsError && result.Result != Guid.Empty)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Area loaded successfully. Area ID: {result.Result}");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to load area: {result.Message}");
+                        }
+                        break;
+
+                    case "unloadarea":
+                        if (inputArgs.Length < 4)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game unloadarea <gameId> <areaId>");
+                            return;
+                        }
+
+                        if (!Guid.TryParse(inputArgs[2], out gameId) || !Guid.TryParse(inputArgs[3], out Guid areaId))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid game ID or area ID. Please provide valid GUIDs.");
+                            return;
+                        }
+
+                        CLIEngine.ShowWorkingMessage($"Unloading area {areaId} for game {gameId}...");
+                        var unloadResult = await gameManager.UnloadAreaAsync(gameId, areaId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!unloadResult.IsError && unloadResult.Result)
+                        {
+                            CLIEngine.ShowSuccessMessage("Area unloaded successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to unload area: {unloadResult.Message}");
+                        }
+                        break;
+
+                    case "jumptoarea":
+                        if (inputArgs.Length < 6)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game jumptoarea <gameId> <x> <y> <z>");
+                            return;
+                        }
+
+                        if (!Guid.TryParse(inputArgs[2], out gameId) || 
+                            !float.TryParse(inputArgs[3], out x) || 
+                            !float.TryParse(inputArgs[4], out y) || 
+                            !float.TryParse(inputArgs[5], out z))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid parameters. Please provide valid GUID and float values.");
+                            return;
+                        }
+
+                        CLIEngine.ShowWorkingMessage($"Jumping to area at ({x}, {y}, {z}) for game {gameId}...");
+                        var jumpResult = await gameManager.JumpToAreaAsync(gameId, x, y, z, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!jumpResult.IsError && jumpResult.Result)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Jumped to area successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to jump to area: {jumpResult.Message}");
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error executing game area command: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowGameUICommandAsync(string[] inputArgs, string command)
+        {
+            try
+            {
+                if (inputArgs.Length < 3)
+                {
+                    CLIEngine.ShowErrorMessage($"Usage: game {command} <gameId>");
+                    return;
+                }
+
+                if (!Guid.TryParse(inputArgs[2], out Guid gameId))
+                {
+                    CLIEngine.ShowErrorMessage("Invalid game ID. Please provide a valid GUID.");
+                    return;
+                }
+
+                var gameManager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.GameManager(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+                OASISResult<bool> result;
+
+                switch (command.ToLower())
+                {
+                    case "showtitlescreen":
+                        CLIEngine.ShowWorkingMessage($"Showing title screen for game {gameId}...");
+                        result = await gameManager.ShowTitleScreenAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        break;
+
+                    case "showmainmenu":
+                        CLIEngine.ShowWorkingMessage($"Showing main menu for game {gameId}...");
+                        result = await gameManager.ShowMainMenuAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        break;
+
+                    case "showoptions":
+                        CLIEngine.ShowWorkingMessage($"Showing options menu for game {gameId}...");
+                        result = await gameManager.ShowOptionsAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        break;
+
+                    case "showcredits":
+                        CLIEngine.ShowWorkingMessage($"Showing credits for game {gameId}...");
+                        result = await gameManager.ShowCreditsAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        break;
+                }
+
+                if (result != null)
+                {
+                    if (!result.IsError && result.Result)
+                    {
+                        CLIEngine.ShowSuccessMessage($"UI command executed successfully.");
+                    }
+                    else
+                    {
+                        CLIEngine.ShowErrorMessage($"Failed to execute UI command: {result.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error executing game UI command: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowGameAudioCommandAsync(string[] inputArgs, string command)
+        {
+            try
+            {
+                var gameManager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.GameManager(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+
+                switch (command.ToLower())
+                {
+                    case "setmastervolume":
+                    case "setvoicevolume":
+                    case "setsoundvolume":
+                        if (inputArgs.Length < 4)
+                        {
+                            CLIEngine.ShowErrorMessage($"Usage: game {command} <gameId> <volume> (0.0 - 1.0)");
+                            return;
+                        }
+
+                        if (!Guid.TryParse(inputArgs[2], out Guid gameId) || !float.TryParse(inputArgs[3], out float volume))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid game ID or volume. Please provide a valid GUID and volume (0.0 - 1.0).");
+                            return;
+                        }
+
+                        if (volume < 0.0f || volume > 1.0f)
+                        {
+                            CLIEngine.ShowErrorMessage("Volume must be between 0.0 and 1.0.");
+                            return;
+                        }
+
+                        OASISResult<bool> result;
+                        if (command.ToLower() == "setmastervolume")
+                        {
+                            CLIEngine.ShowWorkingMessage($"Setting master volume to {volume} for game {gameId}...");
+                            result = await gameManager.SetMasterVolumeAsync(gameId, volume, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        }
+                        else if (command.ToLower() == "setvoicevolume")
+                        {
+                            CLIEngine.ShowWorkingMessage($"Setting voice volume to {volume} for game {gameId}...");
+                            result = await gameManager.SetVoiceVolumeAsync(gameId, volume, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        }
+                        else
+                        {
+                            CLIEngine.ShowWorkingMessage($"Setting sound volume to {volume} for game {gameId}...");
+                            result = await gameManager.SetSoundVolumeAsync(gameId, volume, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        }
+
+                        if (!result.IsError && result.Result)
+                        {
+                            CLIEngine.ShowSuccessMessage("Volume set successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to set volume: {result.Message}");
+                        }
+                        break;
+
+                    case "getmastervolume":
+                    case "getvoicevolume":
+                    case "getsoundvolume":
+                        if (inputArgs.Length < 3)
+                        {
+                            CLIEngine.ShowErrorMessage($"Usage: game {command} <gameId>");
+                            return;
+                        }
+
+                        if (!Guid.TryParse(inputArgs[2], out gameId))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid game ID. Please provide a valid GUID.");
+                            return;
+                        }
+
+                        OASISResult<float> volumeResult;
+                        if (command.ToLower() == "getmastervolume")
+                        {
+                            volumeResult = await gameManager.GetMasterVolumeAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        }
+                        else if (command.ToLower() == "getvoicevolume")
+                        {
+                            volumeResult = await gameManager.GetVoiceVolumeAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        }
+                        else
+                        {
+                            volumeResult = await gameManager.GetSoundVolumeAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        }
+
+                        if (!volumeResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Current volume: {volumeResult.Result}");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to get volume: {volumeResult.Message}");
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error executing game audio command: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowGameVideoCommandAsync(string[] inputArgs, string command)
+        {
+            try
+            {
+                var gameManager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.GameManager(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+
+                switch (command.ToLower())
+                {
+                    case "setvideosetting":
+                        if (inputArgs.Length < 4)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game setvideosetting <gameId> <Low|Medium|High|Custom>");
+                            return;
+                        }
+
+                        if (!Guid.TryParse(inputArgs[2], out Guid gameId))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid game ID. Please provide a valid GUID.");
+                            return;
+                        }
+
+                        if (!Enum.TryParse<VideoSetting>(inputArgs[3], true, out VideoSetting videoSetting))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid video setting. Please use: Low, Medium, High, or Custom");
+                            return;
+                        }
+
+                        CLIEngine.ShowWorkingMessage($"Setting video setting to {videoSetting} for game {gameId}...");
+                        var result = await gameManager.SetVideoSettingAsync(gameId, videoSetting, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!result.IsError && result.Result)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Video setting set to {videoSetting} successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to set video setting: {result.Message}");
+                        }
+                        break;
+
+                    case "getvideosetting":
+                        if (inputArgs.Length < 3)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game getvideosetting <gameId>");
+                            return;
+                        }
+
+                        if (!Guid.TryParse(inputArgs[2], out gameId))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid game ID. Please provide a valid GUID.");
+                            return;
+                        }
+
+                        var getResult = await gameManager.GetVideoSettingAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!getResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Current video setting: {getResult.Result}");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to get video setting: {getResult.Message}");
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error executing game video command: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowGameInputCommandAsync(string[] inputArgs, string command)
+        {
+            try
+            {
+                if (command.ToLower() == "bindkeys")
+                {
+                    CLIEngine.ShowMessage("Key binding functionality coming soon...");
+                    CLIEngine.ShowMessage("This will allow you to configure key bindings for games.");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error executing game input command: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowGameInventoryCommandAsync(string[] inputArgs)
+        {
+            try
+            {
+                if (inputArgs.Length < 3)
+                {
+                    CLIEngine.ShowMessage("GAME INVENTORY SUBCOMMANDS:", ConsoleColor.Green);
+                    CLIEngine.ShowMessage("    inventory list              List all items in shared inventory", ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage("    inventory add <itemName>    Add item to shared inventory", ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage("    inventory remove <itemId>   Remove item from shared inventory", ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage("    inventory has <itemId>      Check if avatar has item by ID", ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage("    inventory hasbyname <name>  Check if avatar has item by name", ConsoleColor.Green, false);
+                    return;
+                }
+
+                var gameManager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.GameManager(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+                var avatarId = STAR.BeamedInAvatar?.Id ?? Guid.Empty;
+
+                switch (inputArgs[2].ToLower())
+                {
+                    case "list":
+                        CLIEngine.ShowWorkingMessage("Loading shared inventory...");
+                        var listResult = await gameManager.GetSharedAssetsAsync(avatarId);
+                        if (!listResult.IsError && listResult.Result != null)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Found {listResult.Result.Count} item(s) in shared inventory:");
+                            foreach (var item in listResult.Result)
+                            {
+                                CLIEngine.ShowMessage($"  • {item.Name} (ID: {item.Id})", ConsoleColor.White, false);
+                            }
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to load inventory: {listResult.Message}");
+                        }
+                        break;
+
+                    case "add":
+                        if (inputArgs.Length < 4)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game inventory add <itemName>");
+                            return;
+                        }
+                        CLIEngine.ShowMessage("Adding items to inventory via CLI coming soon. Use the API directly for now.");
+                        break;
+
+                    case "remove":
+                        if (inputArgs.Length < 4)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game inventory remove <itemId>");
+                            return;
+                        }
+                        if (!Guid.TryParse(inputArgs[3], out Guid itemId))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid item ID. Please provide a valid GUID.");
+                            return;
+                        }
+                        CLIEngine.ShowWorkingMessage($"Removing item {itemId} from inventory...");
+                        var removeResult = await gameManager.RemoveItemFromInventoryAsync(avatarId, itemId);
+                        if (!removeResult.IsError && removeResult.Result)
+                        {
+                            CLIEngine.ShowSuccessMessage("Item removed from inventory successfully.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to remove item: {removeResult.Message}");
+                        }
+                        break;
+
+                    case "has":
+                        if (inputArgs.Length < 4)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game inventory has <itemId>");
+                            return;
+                        }
+                        if (!Guid.TryParse(inputArgs[3], out itemId))
+                        {
+                            CLIEngine.ShowErrorMessage("Invalid item ID. Please provide a valid GUID.");
+                            return;
+                        }
+                        var hasResult = await gameManager.HasItemAsync(avatarId, itemId);
+                        if (!hasResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage(hasResult.Result ? "Avatar has this item." : "Avatar does not have this item.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to check item: {hasResult.Message}");
+                        }
+                        break;
+
+                    case "hasbyname":
+                        if (inputArgs.Length < 4)
+                        {
+                            CLIEngine.ShowErrorMessage("Usage: game inventory hasbyname <itemName>");
+                            return;
+                        }
+                        var hasByNameResult = await gameManager.HasItemByNameAsync(avatarId, inputArgs[3]);
+                        if (!hasByNameResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage(hasByNameResult.Result ? $"Avatar has item '{inputArgs[3]}'." : $"Avatar does not have item '{inputArgs[3]}'.");
+                        }
+                        else
+                        {
+                            CLIEngine.ShowErrorMessage($"Failed to check item: {hasByNameResult.Message}");
+                        }
+                        break;
+
+                    default:
+                        CLIEngine.ShowErrorMessage("Unknown inventory command.");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error executing game inventory command: {ex.Message}");
             }
         }
 

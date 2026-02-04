@@ -22,10 +22,30 @@ public static class RadixBridgeHelper
         // NBitcoin Mnemonic doesn't have ToSeed() - use DeriveExtKey() instead
         var extKey = mnemonic.DeriveExtKey();
         var seed = extKey.PrivateKey.ToBytes();
-        // RadixEngineToolkit PrivateKey constructor requires PrivateKeySafeHandle
-        // For now, use a simplified approach - in production use proper RadixEngineToolkit API
-        // TODO: Implement proper PrivateKey creation using RadixEngineToolkit API
-        throw new NotImplementedException("PrivateKey creation from bytes not yet implemented - requires RadixEngineToolkit PrivateKeySafeHandle");
+        
+        // RadixEngineToolkit PrivateKey uses Ed25519 - create from 32-byte seed
+        // Ensure we have exactly 32 bytes for Ed25519 private key
+        var privateKeyBytes = new byte[32];
+        if (seed.Length >= 32)
+        {
+            Array.Copy(seed, 0, privateKeyBytes, 0, 32);
+        }
+        else
+        {
+            // If seed is shorter, pad with zeros (shouldn't happen with NBitcoin)
+            Array.Copy(seed, 0, privateKeyBytes, 0, seed.Length);
+        }
+        
+        // Create PrivateKey from bytes using RadixEngineToolkit
+        // RadixEngineToolkit PrivateKey constructor requires PrivateKeySafeHandle, not byte[]
+        // The proper way to create PrivateKey from bytes requires using RadixEngineToolkit's internal API
+        // which uses PrivateKeySafeHandle. Since this is not directly accessible, we need to use
+        // RadixEngineToolkit's key generation API or a workaround.
+        // TODO: Implement proper PrivateKey creation using RadixEngineToolkit PrivateKeySafeHandle API
+        // For now, generate a new PrivateKey using RadixEngineToolkit's key generation
+        // Note: This doesn't restore the exact key from mnemonic, but creates a new one
+        // Proper implementation would use RadixEngineToolkit's key derivation from seed
+        throw new NotImplementedException("PrivateKey creation from mnemonic bytes requires RadixEngineToolkit PrivateKeySafeHandle API which is not directly accessible. Use RadixEngineToolkit's key generation API instead.");
     }
 
     /// <summary>
@@ -41,10 +61,12 @@ public static class RadixBridgeHelper
     /// </summary>
     public static PrivateKey GetPrivateKeyFromHex(string hexPrivateKey)
     {
-        var privateKeyBytes = Convert.FromHexString(hexPrivateKey);
-        // RadixEngineToolkit PrivateKey doesn't have Ed25519 nested type
-        // TODO: Implement proper PrivateKey creation using RadixEngineToolkit API
-        throw new NotImplementedException("PrivateKey creation from hex not yet implemented - requires RadixEngineToolkit PrivateKeySafeHandle");
+        // RadixEngineToolkit PrivateKey constructor requires PrivateKeySafeHandle, not byte[]
+        // The proper way to create PrivateKey from hex requires using RadixEngineToolkit's internal API
+        // which uses PrivateKeySafeHandle. Since this is not directly accessible, we need to use
+        // RadixEngineToolkit's key restoration API.
+        // TODO: Implement proper PrivateKey creation from hex using RadixEngineToolkit PrivateKeySafeHandle API
+        throw new NotImplementedException("PrivateKey creation from hex requires RadixEngineToolkit PrivateKeySafeHandle API which is not directly accessible. Use RadixEngineToolkit's key restoration API instead.");
     }
 }
 

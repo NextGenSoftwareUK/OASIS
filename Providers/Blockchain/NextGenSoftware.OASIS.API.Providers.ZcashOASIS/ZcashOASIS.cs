@@ -698,7 +698,46 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
             var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "SaveAvatarDetail not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Zcash provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                if (Avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail cannot be null");
+                    return result;
+                }
+
+                // Convert AvatarDetail to Holon and save to Zcash
+                var holon = ConvertAvatarDetailToHolon(Avatar);
+                var saveResult = await SaveHolonAsync(holon);
+                
+                if (!saveResult.IsError && saveResult.Result != null)
+                {
+                    // Convert back to AvatarDetail via Avatar
+                    var avatar = ConvertHolonToAvatar(saveResult.Result);
+                    var avatarDetail = ConvertAvatarToAvatarDetail(avatar);
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail saved successfully to Zcash";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar detail: {saveResult.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to Zcash: {ex.Message}", ex);
+            }
             return result;
         }
 
@@ -1538,7 +1577,36 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByEmail not yet implemented for Zcash provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Zcash provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load avatar by email first
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar not found: {avatarEmailAddress}");
+                    return result;
+                }
+
+                // Delegate to ExportAllDataForAvatarByIdAsync
+                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+                result.Result = exportResult.Result;
+                result.IsError = exportResult.IsError;
+                result.Message = exportResult.Message;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from Zcash: {ex.Message}", ex);
+            }
             return result;
         }
 

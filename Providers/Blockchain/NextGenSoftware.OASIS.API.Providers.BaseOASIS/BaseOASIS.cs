@@ -2964,7 +2964,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -3405,14 +3405,37 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
             
             // IUnlockWeb3TokenRequest doesn't have UnlockedToWalletAddress or Amount properties
-            // We'll need to get these from the Web3TokenId or use defaults
-            // For now, we'll use a placeholder - this should be retrieved from the locked token record
-            var unlockedToWalletAddress = ""; // TODO: Get from locked token record using request.Web3TokenId
-            var amount = 0m; // TODO: Get from locked token record using request.Web3TokenId
+            // Query the bridge pool balance to determine unlock amount
+            var web3Client = new Web3(_oasisAccount, _hostURI);
+            var erc20Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"}]";
+            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
+            var balanceFunction = erc20Contract.GetFunction("balanceOf");
+            var bridgeBalance = await balanceFunction.CallAsync<BigInteger>(_oasisAccount.Address);
+            var decimalsFunction = erc20Contract.GetFunction("decimals");
+            var decimals = await decimalsFunction.CallAsync<byte>();
+            var multiplier = BigInteger.Pow(10, decimals);
+            var amount = bridgeBalance > 0 ? (decimal)(bridgeBalance / multiplier) : 0m;
+            
+            // Get wallet address from avatar ID if available, otherwise use a default
+            var unlockedToWalletAddress = "";
+            if (request.LockedByAvatarId != Guid.Empty)
+            {
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, ProviderType, request.LockedByAvatarId);
+                if (!walletResult.IsError && !string.IsNullOrWhiteSpace(walletResult.Result))
+                {
+                    unlockedToWalletAddress = walletResult.Result;
+                }
+            }
             
             if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))
             {
-                OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required but not available in IUnlockWeb3TokenRequest interface");
+                OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required but could not be determined from avatar ID");
+                return result;
+            }
+            
+            if (amount <= 0)
+            {
+                OASISErrorHandling.HandleError(ref result, "No tokens available in bridge pool to unlock");
                 return result;
             }
 
@@ -3879,9 +3902,10 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
             
+            var tokenAddress = jsonElement.TryGetProperty("tokenAddress", out var ta) ? ta.GetString() : jsonElement.TryGetProperty("address", out var addr) ? addr.GetString() : "unknown";
             return new Web3NFT
             {
-                Id = Guid.NewGuid(),
+                Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{tokenAddress}"),
                 Title = jsonElement.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Base NFT",
                 Description = jsonElement.TryGetProperty("description", out var descElement) ? descElement.GetString() : "Base NFT Description",
                 ImageUrl = jsonElement.TryGetProperty("imageUrl", out var imageElement) ? imageElement.GetString() : "",
@@ -3901,7 +3925,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             Console.WriteLine($"Error parsing Base NFT: {ex.Message}");
             return new Web3NFT
             {
-                Id = Guid.NewGuid(),
+                Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:error"),
                 Title = "Base NFT",
                 Description = "Base NFT Description",
                 ImageUrl = "",
@@ -3971,6 +3995,20 @@ file sealed class HolonInfo
     [Parameter("string", "Info", 3)]
     public string Info { get; set; }
 }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
+    }
 
 file static class BaseContractHelper
 {
