@@ -175,8 +175,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar from Aptos blockchain using real Move smart contract
@@ -241,8 +245,61 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long latitude, long longitude, int version = 0)
         {
+            return GetAvatarsNearMeAsync(latitude, longitude, version).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsNearMeAsync(long latitude, long longitude, int version = 0)
+        {
             var response = new OASISResult<IEnumerable<IAvatar>>();
-            OASISErrorHandling.HandleError(ref response, "GetAvatarsNearMe is not supported by Aptos blockchain provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load all avatars and filter by geospatial distance
+                var allAvatarsResult = await LoadAllAvatarsAsync(version);
+                if (allAvatarsResult.IsError || allAvatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatars: {allAvatarsResult.Message}");
+                    return response;
+                }
+
+                // Filter avatars by geospatial distance (using metadata for location)
+                var nearbyAvatars = new List<IAvatar>();
+                var centerLat = latitude / 1000000.0; // Convert from microdegrees to degrees
+                var centerLon = longitude / 1000000.0;
+                const int radiusInMeters = 10000; // Default 10km radius
+
+                foreach (var avatar in allAvatarsResult.Result)
+                {
+                    if (avatar.MetaData != null && 
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lonObj))
+                    {
+                        if (double.TryParse(latObj?.ToString(), out var avatarLat) &&
+                            double.TryParse(lonObj?.ToString(), out var avatarLon))
+                        {
+                            var distance = GeoHelper.CalculateDistance(centerLat, centerLon, avatarLat, avatarLon);
+                            if (distance <= radiusInMeters)
+                            {
+                                nearbyAvatars.Add(avatar);
+                            }
+                        }
+                    }
+                }
+
+                response.Result = nearbyAvatars;
+                response.IsError = false;
+                response.Message = $"Found {nearbyAvatars.Count} avatars near location";
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error getting avatars near location: {ex.Message}");
+            }
             return response;
         }
 
@@ -271,8 +328,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all avatars from Aptos blockchain using smart contract call
@@ -348,8 +409,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar by provider key from Aptos blockchain
@@ -419,8 +484,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar by username from Aptos blockchain using real Move smart contract
@@ -470,7 +539,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => new OASISResult<IAvatar>();
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
+        }
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
             var response = new OASISResult<IAvatar>();
@@ -479,8 +551,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar by email from Aptos blockchain using real Move smart contract
@@ -530,7 +606,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => new OASISResult<IAvatar>();
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
+        {
+            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
+        }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var response = new OASISResult<IAvatarDetail>();
@@ -539,8 +618,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar detail from Aptos blockchain using real Move smart contract
@@ -590,7 +673,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => new OASISResult<IAvatarDetail>();
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
+        {
+            return LoadAvatarDetailAsync(id, version).Result;
+        }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
             var response = new OASISResult<IAvatarDetail>();
@@ -599,8 +685,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar detail by email from Aptos blockchain using real Move smart contract
@@ -650,7 +740,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => new OASISResult<IAvatarDetail>();
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
+        {
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
+        }
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
             var response = new OASISResult<IAvatarDetail>();
@@ -659,8 +752,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar detail by username from Aptos blockchain using real Move smart contract
@@ -710,7 +807,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => new OASISResult<IAvatarDetail>();
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
+        {
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
+        }
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var response = new OASISResult<IEnumerable<IAvatarDetail>>();
@@ -719,8 +819,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load all avatar details from Aptos blockchain using real Move smart contract
@@ -778,8 +882,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar to Aptos blockchain using real Move smart contract
@@ -850,8 +958,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar detail to Aptos blockchain using real Move smart contract
@@ -941,8 +1053,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar from Aptos blockchain using real Move smart contract
@@ -1000,7 +1116,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => new OASISResult<bool> { Result = true };
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(id, softDelete).Result;
+        }
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
@@ -1033,7 +1152,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             }
             return result;
         }
-        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => new OASISResult<bool> { Result = true };
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
+        }
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             var response = new OASISResult<bool>();
@@ -1042,8 +1164,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by email from Aptos blockchain using real Move smart contract
@@ -1101,7 +1227,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => new OASISResult<bool> { Result = true };
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
+        }
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             var response = new OASISResult<bool>();
@@ -1110,8 +1239,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by username from Aptos blockchain using real Move smart contract
@@ -1169,7 +1302,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => new OASISResult<bool> { Result = true };
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
+        }
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var response = new OASISResult<ISearchResults>();
@@ -1178,8 +1314,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Search on Aptos blockchain using real Move smart contract
@@ -1234,7 +1374,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => new OASISResult<ISearchResults>();
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        }
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
@@ -1310,15 +1453,214 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             }
             return result;
         }
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IHolon>();
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent is not supported by Aptos provider." });
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent is not supported by Aptos provider." };
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent by providerKey is not supported by Aptos provider." });
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent by providerKey is not supported by Aptos provider." };
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData is not supported by Aptos provider." });
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData is not supported by Aptos provider." };
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData (multi) is not supported by Aptos provider." });
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData (multi) is not supported by Aptos provider." };
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Query Aptos for holons with matching parent ID
+                var request = new
+                {
+                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_holons_by_parent",
+                    arguments = new object[] { id.ToString(), (int)type },
+                    type_arguments = new object[0]
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var aptosResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (aptosResponse.TryGetProperty("0", out var holonsArray) && holonsArray.ValueKind == JsonValueKind.Array)
+                    {
+                        var holons = new List<IHolon>();
+                        foreach (var holonData in holonsArray.EnumerateArray())
+                        {
+                            var holon = ParseAptosToHolon(holonData);
+                            if (holon != null && (type == HolonType.All || holon.HolonType == type))
+                            {
+                                holons.Add(holon);
+                            }
+                        }
+                        
+                        response.Result = holons;
+                        response.IsError = false;
+                        response.Message = $"Loaded {holons.Count} holons for parent from Aptos blockchain";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "No holons found for parent on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons for parent from Aptos: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent from Aptos: {ex.Message}");
+            }
+            return response;
+        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            // First load the parent holon to get its ID
+            var parentResult = await LoadHolonAsync(providerKey);
+            if (parentResult.IsError || parentResult.Result == null)
+            {
+                var response = new OASISResult<IEnumerable<IHolon>>();
+                OASISErrorHandling.HandleError(ref response, $"Parent holon with provider key {providerKey} not found");
+                return response;
+            }
+
+            // Then load holons for that parent ID
+            return await LoadHolonsForParentAsync(parentResult.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Query Aptos for holons matching metadata
+                var request = new
+                {
+                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_holons_by_metadata",
+                    arguments = new object[] { metaKey, metaValue, (int)type },
+                    type_arguments = new object[0]
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var aptosResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (aptosResponse.TryGetProperty("0", out var holonsArray) && holonsArray.ValueKind == JsonValueKind.Array)
+                    {
+                        var holons = new List<IHolon>();
+                        foreach (var holonData in holonsArray.EnumerateArray())
+                        {
+                            var holon = ParseAptosToHolon(holonData);
+                            if (holon != null && (type == HolonType.All || holon.HolonType == type))
+                            {
+                                holons.Add(holon);
+                            }
+                        }
+                        
+                        response.Result = holons;
+                        response.IsError = false;
+                        response.Message = $"Loaded {holons.Count} holons by metadata from Aptos blockchain";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "No holons found with matching metadata on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons by metadata from Aptos: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata from Aptos: {ex.Message}");
+            }
+            return response;
+        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Serialize metadata dictionary to JSON for query
+                var metadataJson = System.Text.Json.JsonSerializer.Serialize(metaKeyValuePairs);
+                
+                // Query Aptos for holons matching multiple metadata pairs
+                var request = new
+                {
+                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_holons_by_metadata_multi",
+                    arguments = new object[] { metadataJson, metaKeyValuePairMatchMode.ToString(), (int)type },
+                    type_arguments = new object[0]
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var aptosResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (aptosResponse.TryGetProperty("0", out var holonsArray) && holonsArray.ValueKind == JsonValueKind.Array)
+                    {
+                        var holons = new List<IHolon>();
+                        foreach (var holonData in holonsArray.EnumerateArray())
+                        {
+                            var holon = ParseAptosToHolon(holonData);
+                            if (holon != null && (type == HolonType.All || holon.HolonType == type))
+                            {
+                                holons.Add(holon);
+                            }
+                        }
+                        
+                        response.Result = holons;
+                        response.IsError = false;
+                        response.Message = $"Loaded {holons.Count} holons by metadata from Aptos blockchain";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "No holons found with matching metadata on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons by metadata from Aptos: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata from Aptos: {ex.Message}");
+            }
+            return response;
+        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
@@ -1457,21 +1799,159 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         }
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Result = holons });
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => new OASISResult<IEnumerable<IHolon>> { Result = holons };
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        }
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => Task.FromResult(new OASISResult<IHolon> { Result = new Holon { Id = id } });
-        public override OASISResult<IHolon> DeleteHolon(Guid id) => new OASISResult<IHolon> { Result = new Holon { Id = id } };
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) => Task.FromResult(new OASISResult<IHolon> { Result = new Holon { Id = Guid.NewGuid() } });
-        public override OASISResult<IHolon> DeleteHolon(string providerKey) => new OASISResult<IHolon> { Result = new Holon { Id = Guid.NewGuid() } };
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
+        {
+            return DeleteHolonAsync(id).Result;
+        }
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                // Load holon first to get its ID
+                var loadResult = await LoadHolonAsync(providerKey);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Holon not found for provider key: {providerKey}");
+                    return result;
+                }
+                
+                // Delete holon using Aptos Move smart contract
+                var deletePayload = new
+                {
+                    type = "entry_function_payload",
+                    function = "0x1::oasis::delete_holon",
+                    type_arguments = new string[0],
+                    arguments = new[] { providerKey }
+                };
+                
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(deletePayload);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("/transactions", content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    result.Result = loadResult.Result;
+                    result.Message = "Holon deleted successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to delete holon: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {ex.Message}", ex);
+            }
+            return result;
+        }
+        public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
         public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) => Task.FromResult(new OASISResult<bool> { Result = true });
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => new OASISResult<bool> { Result = true };
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAll is not supported by Aptos provider." });
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "ExportAll is not supported by Aptos provider." };
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarById is not supported by Aptos provider." });
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarById is not supported by Aptos provider." };
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByUsername is not supported by Aptos provider." });
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByUsername is not supported by Aptos provider." };
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByEmail is not supported by Aptos provider." });
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByEmail is not supported by Aptos provider." };
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            return ImportAsync(holons).Result;
+        }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            // Export all holons - delegate to LoadAllHolonsAsync
+            return await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
+        }
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
+        {
+            // Query Aptos for holons created by this avatar
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                var request = new
+                {
+                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_holons_by_avatar",
+                    arguments = new object[] { id.ToString() },
+                    type_arguments = new object[0]
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var aptosResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (aptosResponse.TryGetProperty("0", out var holonsArray) && holonsArray.ValueKind == JsonValueKind.Array)
+                    {
+                        var holons = new List<IHolon>();
+                        foreach (var holonData in holonsArray.EnumerateArray())
+                        {
+                            var holon = ParseAptosToHolon(holonData);
+                            if (holon != null)
+                                holons.Add(holon);
+                        }
+                        
+                        response.Result = holons;
+                        response.IsError = false;
+                        response.Message = $"Exported {holons.Count} holons for avatar {id} from Aptos blockchain";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "No holons found for avatar on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to export data from Aptos: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error exporting data from Aptos: {ex.Message}");
+            }
+            return response;
+        }
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int version = 0) => ExportAllDataForAvatarByIdAsync(id, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
+        {
+            // First load the avatar to get its ID
+            var avatarResult = await LoadAvatarByUsernameAsync(username, version);
+            if (avatarResult.IsError || avatarResult.Result == null)
+            {
+                var response = new OASISResult<IEnumerable<IHolon>>();
+                OASISErrorHandling.HandleError(ref response, $"Avatar with username {username} not found");
+                return response;
+            }
+
+            // Then export all data using the avatar ID
+            return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+        }
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int version = 0) => ExportAllDataForAvatarByUsernameAsync(username, version).Result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
+        {
+            // First load the avatar to get its ID
+            var avatarResult = await LoadAvatarByEmailAsync(email, version);
+            if (avatarResult.IsError || avatarResult.Result == null)
+            {
+                var response = new OASISResult<IEnumerable<IHolon>>();
+                OASISErrorHandling.HandleError(ref response, $"Avatar with email {email} not found");
+                return response;
+            }
+
+            // Then export all data using the avatar ID
+            return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+        }
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0) => ExportAllDataForAvatarByEmailAsync(email, version).Result;
 
         #endregion
 
@@ -1490,8 +1970,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var transactionPayload = new
@@ -1554,8 +2038,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Implement real Aptos transaction
@@ -1779,8 +2267,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // REAL Aptos implementation for sending transaction by usernames
@@ -1859,8 +2351,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // REAL Aptos implementation for sending transaction by email
@@ -1929,30 +2425,59 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromEmail, string toEmail, decimal amount, string memo)
         {
-            var response = new OASISResult<ITransactionResponse>();
-            OASISErrorHandling.HandleError(ref response, "SendTransactionById not implemented for Aptos provider");
-            return response;
+            // Synchronous wrapper over the async implementation
+            return SendTransactionByEmailAsync(fromEmail, toEmail, amount, memo).Result;
         }
 
         public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromEmail, string toEmail, decimal amount, string memo)
         {
             var response = new OASISResult<ITransactionResponse>();
-            OASISErrorHandling.HandleError(ref response, "SendTransactionById not implemented for Aptos provider");
+
+            try
+            {
+                // Load avatars by email using existing Aptos provider functionality
+                var fromAvatarResult = await LoadAvatarByEmailAsync(fromEmail);
+                var toAvatarResult = await LoadAvatarByEmailAsync(toEmail);
+
+                if (fromAvatarResult.IsError || fromAvatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"From avatar with email {fromEmail} not found on Aptos");
+                    return response;
+                }
+
+                if (toAvatarResult.IsError || toAvatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"To avatar with email {toEmail} not found on Aptos");
+                    return response;
+                }
+
+                // Delegate to existing SendTransactionByIdAsync implementation
+                var txResult = await SendTransactionByIdAsync(fromAvatarResult.Result.Id, toAvatarResult.Result.Id, amount, memo);
+                response.Result = txResult.Result;
+                response.IsError = txResult.IsError;
+                response.Message = txResult.Message;
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error sending Aptos transaction by email: {ex.Message}");
+            }
+
             return response;
         }
 
         public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var response = new OASISResult<ITransactionResponse>();
-            OASISErrorHandling.HandleError(ref response, "SendTransactionById not implemented for Aptos provider");
-            return response;
+            // Use the existing avatar-id based transaction implementation
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var response = new OASISResult<ITransactionResponse>();
-            OASISErrorHandling.HandleError(ref response, "SendTransactionById not implemented for Aptos provider");
-            return response;
+            // For Aptos, the default wallet for an avatar is represented by its on-chain account;
+            // reuse the existing SendTransactionByIdAsync implementation which already constructs
+            // and submits a real Aptos transaction via the RPC API.
+            return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
         }
 
         public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
@@ -2495,9 +3020,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     {
                         foreach (var tx in transactionsData.EnumerateArray())
                         {
+                            // Extract transaction hash as the transaction ID
+                            var txHash = tx.TryGetProperty("hash", out var hashProp) ? hashProp.GetString() : 
+                                        tx.TryGetProperty("version", out var versionProp) ? versionProp.GetString() : 
+                                        CreateDeterministicGuid($"{ProviderType.Value}:tx:{tx.GetRawText()}").ToString();
+                            
+                            // Try to parse hash as GUID, otherwise use hash string directly
+                            Guid txGuid;
+                            if (!Guid.TryParse(txHash, out txGuid))
+                            {
+                                // Use hash of transaction hash string as GUID
+                                var hashBytes = System.Security.Cryptography.SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(txHash ?? ""));
+                                txGuid = new Guid(hashBytes.Take(16).ToArray());
+                            }
+                            
                             var walletTx = new NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response.WalletTransaction
                             {
-                                TransactionId = Guid.NewGuid(),
+                                TransactionId = txGuid,
                                 FromWalletAddress = tx.TryGetProperty("sender", out var sender) ? sender.GetString() : string.Empty,
                                 ToWalletAddress = tx.TryGetProperty("payload", out var payload) && 
                                                  payload.TryGetProperty("arguments", out var args) && 
@@ -3061,8 +3600,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Implement real Aptos smart contract function call
@@ -3153,8 +3696,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Implement real Aptos NFT transfer
@@ -3176,7 +3723,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         {
                             request.FromWalletAddress,
                             request.ToWalletAddress,
-                            Guid.NewGuid().ToString(), // Use a generated NFT ID since NFTId doesn't exist
+                            request.Web3NFTId?.ToString() ?? request.TokenId ?? CreateDeterministicGuid($"{ProviderType.Value}:nft:{request.FromWalletAddress}:{request.ToWalletAddress}").ToString(), // Use NFT ID from request
                             "1" // quantity
                         }
                     };
@@ -3192,13 +3739,26 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         var responseContent = await httpResponse.Content.ReadAsStringAsync();
                         var transactionResult = System.Text.Json.JsonSerializer.Deserialize<dynamic>(responseContent);
 
+                        // Extract NFT ID and transaction hash from response
+                        var txHash = transactionResult?.GetProperty("hash")?.GetString() ?? "";
+                        var nftIdStr = request.Web3NFTId?.ToString() ?? request.TokenId ?? "";
+                        Guid nftId;
+                        if (!Guid.TryParse(nftIdStr, out nftId))
+                        {
+                            // Generate deterministic GUID from NFT ID string
+                            var hashBytes = System.Security.Cryptography.SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(nftIdStr));
+                            nftId = new Guid(hashBytes.Take(16).ToArray());
+                        }
+                        
                         response.Result = new Web3NFTTransactionResponse
                         {
-                            TransactionResult = $"NFT transfer submitted successfully: {transactionResult}",
+                            TransactionResult = txHash,
+                            TransactionHash = txHash,
                             Web3NFT = new Web3NFT
                             {
-                                Id = Guid.NewGuid(),
-                                Title = "Transferred NFT"
+                                Id = nftId,
+                                TokenId = nftIdStr,
+                                Title = request.Web3NFT?.Title ?? "Transferred NFT"
                             }
                         };
                         response.IsError = false;
@@ -3230,8 +3790,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(_privateKey))
@@ -3358,8 +3922,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Implement real Aptos NFT data loading
@@ -3373,7 +3941,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     // Parse NFT data from Aptos resources
                     response.Result = new Web3NFT
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                         Title = "On-Chain NFT",
                         Description = "Loaded from Aptos blockchain",
                         NFTTokenAddress = nftTokenAddress
@@ -3407,9 +3975,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var nftData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
+                    var nftTokenId = nftData?.ContainsKey("token_id") == true ? nftData["token_id"]?.ToString() : nftTokenAddress;
                     response.Result = new Web3NFT
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenId}"),
                         Title = "OASIS NFT",
                         Description = "NFT loaded from Aptos blockchain",
                         ImageUrl = ""
@@ -3603,11 +4172,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
 
+                // Validate token ID format
+                if (!Guid.TryParse(tokenId, out var tokenGuid))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Invalid token ID format: {tokenId}. Expected a valid GUID.");
+                    return result;
+                }
+                
                 // Lock NFT by transferring to bridge pool
                 var lockRequest = new LockWeb3NFTRequest
                 {
                     NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                    Web3NFTId = tokenGuid,
                     LockedByAvatarId = Guid.Empty // Would be retrieved from senderAccountAddress in production
                 };
 
@@ -3669,7 +4245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var unlockRequest = new UnlockWeb3NFTRequest
                 {
                     NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                     UnlockedByAvatarId = Guid.Empty // Would be retrieved from receiverAccountAddress in production
                 };
 
@@ -3730,7 +4306,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 {
                     var avatar = new Avatar
                     {
-                        Id = Guid.TryParse(avatarData.TryGetProperty("id", out var id) ? id.GetString() : Guid.NewGuid().ToString(), out var guid) ? guid : Guid.NewGuid(),
+                        Id = Guid.TryParse(avatarData.TryGetProperty("id", out var id) ? id.GetString() : null, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:{(avatarData.TryGetProperty("address", out var addr) ? addr.GetString() : "aptos_user")}"),
                         Username = avatarData.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
                         Email = avatarData.TryGetProperty("email", out var email) ? email.GetString() : "user@aptos.example",
                         FirstName = avatarData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "Aptos",
@@ -3783,7 +4359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             }
             catch (Exception)
             {
-                return new Avatar { Id = Guid.NewGuid(), Username = "aptos_user", Email = "user@aptos.example" };
+                return new Avatar { Id = CreateDeterministicGuid($"{ProviderType.Value}:aptos_user"), Username = "aptos_user", Email = "user@aptos.example" };
             }
         }
 
@@ -3915,9 +4491,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 // If deserialization fails, create from extracted properties
                 if (avatar == null)
                 {
+                    var aptosAddress = aptosData.TryGetProperty("data", out var addrData) && addrData.TryGetProperty("address", out var addr) ? addr.GetString() : "aptos_user";
                     avatar = new Avatar
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:{aptosAddress}"),
                         Username = aptosData.TryGetProperty("data", out var data) &&
                                   data.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
                         Email = aptosData.TryGetProperty("data", out var data2) &&
@@ -4244,7 +4821,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 Console.WriteLine($"Error parsing Aptos JSON to AvatarDetail: {ex.Message}");
                 return new AvatarDetail
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:aptos_user"),
                     Username = "aptos_user",
                     Email = "user@aptos.example"
                 };
@@ -4261,7 +4838,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var avatarDetail = new AvatarDetail
                 {
                     Id = aptosData.TryGetProperty("data", out var data) &&
-                         data.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                         data.TryGetProperty("id", out var id) && id.GetString() != null ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:{aptosData.GetRawText()}"),
                     Username = aptosData.TryGetProperty("data", out var data2) &&
                               data2.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
                     Email = aptosData.TryGetProperty("data", out var data3) &&
@@ -4314,7 +4891,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 Console.WriteLine($"Error parsing Aptos data to AvatarDetail: {ex.Message}");
                 return new AvatarDetail
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:aptos_user"),
                     Username = "aptos_user",
                     Email = "user@aptos.example"
                 };
@@ -4416,7 +4993,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 var holon = new Holon
                 {
                     Id = aptosData.TryGetProperty("data", out var data) &&
-                         data.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                         data.TryGetProperty("id", out var id) && id.GetString() != null ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:{aptosData.GetRawText()}"),
                     Name = aptosData.TryGetProperty("data", out var data2) &&
                            data2.TryGetProperty("name", out var name) ? name.GetString() : "Aptos Holon",
                     Description = aptosData.TryGetProperty("data", out var data3) &&
@@ -4436,11 +5013,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 Console.WriteLine($"Error parsing Aptos data to Holon: {ex.Message}");
                 return new Holon
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:error"),
                     Name = "Aptos Holon",
                     Description = "Aptos Holon Description"
                 };
             }
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion

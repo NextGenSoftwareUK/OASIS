@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.OASISBootLoader;
 
@@ -35,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private ZomeMetaDataDNAManager _zomesDNA = null;
         private HolonMetaDataDNAManager _holonsDNA = null;
         private PluginManager _plugins = null;
+        private GameManager _game = null;
         //private COSMICManager _cosmic = null;
 
         public STARAPI(STARDNA STARDNA, OASISAPI OASISAPI = null) 
@@ -193,6 +195,22 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 }
 
                 return _quests;
+            }
+        }
+
+        public GameManager Game
+        {
+            get
+            {
+                if (_game == null)
+                {
+                    if (OASISAPI.IsOASISBooted)
+                        _game = new GameManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Game property!");
+                }
+
+                return _game;
             }
         }
 

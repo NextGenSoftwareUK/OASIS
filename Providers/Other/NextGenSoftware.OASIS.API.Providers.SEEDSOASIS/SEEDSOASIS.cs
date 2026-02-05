@@ -586,10 +586,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             try
             {
                 // Extract basic information from SEEDS JSON response
+                var seedsAccount = ExtractSEEDSProperty(seedsJson, "account") ?? ExtractSEEDSProperty(seedsJson, "id") ?? "seeds_unknown";
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
-                    Username = ExtractSEEDSProperty(seedsJson, "account") ?? "seeds_user",
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{seedsAccount}"),
+                    Username = seedsAccount,
                     Email = ExtractSEEDSProperty(seedsJson, "email") ?? "user@seeds.example",
                     FirstName = ExtractSEEDSProperty(seedsJson, "first_name"),
                     LastName = ExtractSEEDSProperty(seedsJson, "last_name"),
@@ -711,8 +712,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "SEEDS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Use EOSIO SDK ChainAPI to read table rows instead of raw HTTP
@@ -753,8 +758,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "SEEDS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatars", "true", email, email, 1);
@@ -794,8 +803,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatars", "true", username, username, 1);
@@ -836,8 +849,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatars", "true", 0, -1, 1000);
@@ -884,8 +901,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatardetails", "true", id.ToString(), id.ToString(), 1);
@@ -925,8 +946,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatardetails", "true", email, email, 1);
@@ -966,8 +991,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatardetails", "true", username, username, 1);
@@ -1007,8 +1036,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 TableRows rows = await TelosOASIS.EOSIOOASIS.ChainAPI.GetTableRowsAsync(SEEDS_EOSIO_ACCOUNT_TEST, SEEDS_EOSIO_ACCOUNT_TEST, "avatardetails", "true", 0, -1, 1000);
@@ -1050,8 +1083,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "SEEDS provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Use EOSIO SDK to construct and push action rather than raw RPC
@@ -1100,8 +1137,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SEEDS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("upsertavatardetail", SEEDS_EOSIO_ACCOUNT_TEST, "active", SEEDS_EOSIO_ACCOUNT_TEST, new
@@ -1160,9 +1201,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return DeleteAvatarAsync(id, softDelete).Result;
         }
 
-        public Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            return Task.FromResult(new OASISResult<bool> { Message = "DeleteAvatarAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<bool> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.DeleteAvatarAsync(id, softDelete);
         }
 
         public OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true)
@@ -1170,9 +1215,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return DeleteAvatarByEmailAsync(email, softDelete).Result;
         }
 
-        public Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
         {
-            return Task.FromResult(new OASISResult<bool> { Message = "DeleteAvatarByEmailAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<bool> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.DeleteAvatarByEmailAsync(email, softDelete);
         }
 
         public OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true)
@@ -1180,9 +1229,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return DeleteAvatarByUsernameAsync(username, softDelete).Result;
         }
 
-        public Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
         {
-            return Task.FromResult(new OASISResult<bool> { Message = "DeleteAvatarByUsernameAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<bool> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.DeleteAvatarByUsernameAsync(username, softDelete);
         }
 
         public OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
@@ -1220,9 +1273,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDescription, webLink).Result;
         }
 
-        public Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
+        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
         {
-            return Task.FromResult(new OASISResult<KarmaAkashicRecord> { Message = "AddKarmaToAvatarAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<KarmaAkashicRecord> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDescription, webLink);
         }
 
         public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
@@ -1230,9 +1287,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDescription, webLink).Result;
         }
 
-        public Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
+        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
         {
-            return Task.FromResult(new OASISResult<KarmaAkashicRecord> { Message = "RemoveKarmaFromAvatarAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<KarmaAkashicRecord> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDescription, webLink);
         }
 
         public OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true)
@@ -1240,9 +1301,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, sendKarma).Result;
         }
 
-        public Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true)
+        public async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true)
         {
-            return Task.FromResult(new OASISResult<IHolon> { Message = "SaveHolonAsync is not supported yet by SEEDS provider." });
+            // SEEDSOASIS delegates storage operations to TelosOASIS
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IHolon> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, false);
         }
 
         public OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int continueOnError = 0, bool sendKarma = true, bool reloadChildren = true)
@@ -1250,9 +1316,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, continueOnError, sendKarma, reloadChildren).Result;
         }
 
-        public Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int continueOnError = 0, bool sendKarma = true, bool reloadChildren = true)
+        public async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int continueOnError = 0, bool sendKarma = true, bool reloadChildren = true)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "SaveHolonsAsync is not supported yet by SEEDS provider." });
+            // SEEDSOASIS delegates storage operations to TelosOASIS
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, continueOnError, false);
         }
 
         public OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1260,9 +1331,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, sendKarma, version).Result;
         }
 
-        public Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        public async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IHolon> { Message = "LoadHolonAsync is not supported yet by SEEDS provider." });
+            // SEEDSOASIS delegates storage operations to TelosOASIS
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IHolon> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, false, version);
         }
 
         public OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1280,9 +1356,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version).Result;
         }
 
-        public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParentAsync is not supported yet by SEEDS provider." });
+            // SEEDSOASIS delegates storage operations to TelosOASIS
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);
         }
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1300,9 +1381,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return LoadHolonsByMetaDataAsync(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version).Result;
         }
 
-        public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaDataAsync is not supported yet by SEEDS provider." });
+            // SEEDSOASIS delegates storage operations to TelosOASIS
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.LoadHolonsByMetaDataAsync(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);
         }
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1310,9 +1396,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return LoadHolonsByMetaDataAsync(metaData, matchMode, holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version).Result;
         }
 
-        public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaDataAsync with Dictionary is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.LoadHolonsByMetaDataAsync(metaData, matchMode, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);
         }
 
         public OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1320,9 +1410,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version).Result;
         }
 
-        public Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadAllHolonsAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);
         }
 
         public OASISResult<IHolon> DeleteHolon(Guid id)
@@ -1330,9 +1424,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return DeleteHolonAsync(id).Result;
         }
 
-        public Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        public async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            return Task.FromResult(new OASISResult<IHolon> { Message = "DeleteHolonAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IHolon> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.DeleteHolonAsync(id);
         }
 
         public OASISResult<IHolon> DeleteHolon(string providerKey)
@@ -1350,9 +1448,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return ImportAsync(holons).Result;
         }
 
-        public Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        public async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            return Task.FromResult(new OASISResult<bool> { Message = "ImportAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<bool> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.ImportAsync(holons);
         }
 
         public OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int version = 0)
@@ -1360,9 +1462,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return ExportAllDataForAvatarByIdAsync(id, version).Result;
         }
 
-        public Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByIdAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.ExportAllDataForAvatarByIdAsync(id, version);
         }
 
         public OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int version = 0)
@@ -1370,9 +1476,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return ExportAllDataForAvatarByUsernameAsync(username, version).Result;
         }
 
-        public Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByUsernameAsync is not supported yet by SEEDS provider." });
+            if (TelosOASIS == null)
+            {
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "TelosOASIS provider not initialized" };
+            }
+            return await TelosOASIS.ExportAllDataForAvatarByUsernameAsync(username, version);
         }
 
         public OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0)
@@ -1382,107 +1492,39 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-
-            try
+            if (TelosOASIS == null)
             {
-                // SEEDS doesn't support data export in the traditional sense
-                // Return empty collection as SEEDS is primarily for data storage, not export
-                result.Result = new List<IHolon>();
-                result.IsError = true;
-                result.Message = "SEEDS provider does not support data export operations";
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "TelosOASIS provider not initialized" };
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar {email}: {ex.Message}", ex);
-            }
-
-            return result;
+            return await TelosOASIS.ExportAllDataForAvatarByEmailAsync(email, version);
         }
 
         public OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                // SEEDS doesn't support data export in the traditional sense
-                result.Result = new List<IHolon>();
-                result.IsError = true;
-                result.Message = "SEEDS provider does not support data export operations";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting all data: {ex.Message}", ex);
-            }
-
-            return result;
+            return ExportAllAsync(version).Result;
         }
 
         public async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-
-            try
+            if (TelosOASIS == null)
             {
-                // SEEDS doesn't support data export in the traditional sense
-                result.Result = new List<IHolon>();
-                result.IsError = true;
-                result.Message = "SEEDS provider does not support data export operations";
+                return new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = "TelosOASIS provider not initialized" };
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting all data: {ex.Message}", ex);
-            }
-
-            return result;
+            return await TelosOASIS.ExportAllAsync(version);
         }
 
         public async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            var result = new OASISResult<ISearchResults>();
-
-            try
+            if (TelosOASIS == null)
             {
-                // SEEDS doesn't support advanced search functionality
-                // Return empty search results
-                result.Result = new SearchResults
-                {
-                    SearchResultHolons = new List<IHolon>(),
-                    NumberOfResults = 0
-                };
-                result.IsError = true;
-                result.Message = "SEEDS provider does not support search operations";
+                return new OASISResult<ISearchResults> { IsError = true, Message = "TelosOASIS provider not initialized" };
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error performing search: {ex.Message}", ex);
-            }
-
-            return result;
+            return await TelosOASIS.SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version);
         }
 
         OASISResult<ISearchResults> IOASISStorageProvider.Search(ISearchParams searchParams, bool loadChildren, bool recursive, int maxChildDepth, bool continueOnError, int version)
         {
-            var result = new OASISResult<ISearchResults>();
-
-            try
-            {
-                // SEEDS doesn't support advanced search functionality
-                result.Result = new SearchResults
-                {
-                    SearchResultHolons = new List<IHolon>(),
-                    NumberOfResults = 0
-                };
-                result.IsError = true;
-                result.Message = "SEEDS provider does not support search operations";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error performing search: {ex.Message}", ex);
-            }
-
-            return result;
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
         public event EventDelegates.StorageProviderError OnStorageProviderError;
@@ -1494,9 +1536,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         {
             try
             {
+                var seedsAccount = seedsData.TryGetProperty("account", out var account) ? account.GetString() : seedsData.TryGetProperty("id", out var idProp) ? idProp.GetString() : "unknown";
                 var avatar = new Avatar
                 {
-                    Id = seedsData.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                    Id = seedsData.TryGetProperty("id", out var id) && Guid.TryParse(id.GetString(), out var parsedId) ? parsedId : CreateDeterministicGuid($"{ProviderType.Value}:{seedsAccount}"),
                     Username = seedsData.TryGetProperty("username", out var username) ? username.GetString() : "seeds_user",
                     Email = seedsData.TryGetProperty("email", out var email) ? email.GetString() : "user@seeds.example",
                     FirstName = seedsData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "SEEDS",
@@ -1528,7 +1571,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 Console.WriteLine($"Error parsing SEEDS data to Avatar: {ex.Message}");
                 return new Avatar
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:seeds_error"),
                     Username = "seeds_user",
                     Email = "user@seeds.example"
                 };
@@ -1542,9 +1585,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         {
             try
             {
+                var seedsAccount = seedsData.TryGetProperty("account", out var account) ? account.GetString() : seedsData.TryGetProperty("id", out var idProp) ? idProp.GetString() : "unknown";
                 var avatarDetail = new AvatarDetail
                 {
-                    Id = seedsData.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                    Id = seedsData.TryGetProperty("id", out var id) && Guid.TryParse(id.GetString(), out var parsedId) ? parsedId : CreateDeterministicGuid($"{ProviderType.Value}:{seedsAccount}"),
                     Username = seedsData.TryGetProperty("username", out var username) ? username.GetString() : "seeds_user",
                     Email = seedsData.TryGetProperty("email", out var email) ? email.GetString() : "user@seeds.example",
                     Karma = seedsData.TryGetProperty("karma", out var karma) ? karma.GetInt64() : 0,
@@ -1575,7 +1619,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 Console.WriteLine($"Error parsing SEEDS data to AvatarDetail: {ex.Message}");
                 return new AvatarDetail
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:seeds_error"),
                     Username = "seeds_user",
                     Email = "user@seeds.example"
                 };

@@ -808,7 +808,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in DeleteAsync. Reason: ";
-            OASISResult<T1> loadResult = await LoadAsync(id, avatarId, version, providerType: providerType);
+            OASISResult<T1> loadResult = await LoadAsync(avatarId, id, version, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await DeleteAsync(avatarId, loadResult.Result, version, softDelete, deleteDownload, deleteInstall, providerType);
@@ -822,7 +822,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in Delete. Reason: ";
-            OASISResult<T1> loadResult = Load(id, avatarId, version, providerType: providerType);
+            OASISResult<T1> loadResult = Load(avatarId, id, version, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = Delete(avatarId, loadResult.Result, version, softDelete, deleteDownload, deleteInstall, providerType);
@@ -2858,6 +2858,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
+                if (!Directory.Exists(fullDownloadPath))
+                    Directory.CreateDirectory(fullDownloadPath);
+
                 if (!fullDownloadPath.Contains(string.Concat(".", STARNETHolonFileExtention)))
                     fullDownloadPath = Path.Combine(fullDownloadPath, string.Concat(holon.Name, "_v", holon.STARNETDNA.Version, ".", STARNETHolonFileExtention));
 
@@ -3449,6 +3452,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         STARNETDNA = (T4)STARNETHolonLoadResult.Result.STARNETDNA;
                         STARNETHolon = STARNETHolonLoadResult.Result;
 
+                        if (!Directory.Exists(fullInstallPath))
+                            Directory.CreateDirectory(fullInstallPath);
+
                         if (createSTARNETHolonDirectory)
                             fullInstallPath = Path.Combine(fullInstallPath, string.Concat(STARNETDNAResult.Result.Name, "_v", STARNETDNAResult.Result.Version));
 
@@ -3456,7 +3462,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             Directory.Delete(fullInstallPath, true);
 
                         OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { STARNETDNA = STARNETDNAResult.Result, Status = STARNETHolonInstallStatus.Installing });
+
+                        //if (!Directory.Exists(fullInstallPath))
+                        //    Directory.CreateDirectory(fullInstallPath);
+
                         Directory.Move(tempPath, fullInstallPath);
+
                         OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                         if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)

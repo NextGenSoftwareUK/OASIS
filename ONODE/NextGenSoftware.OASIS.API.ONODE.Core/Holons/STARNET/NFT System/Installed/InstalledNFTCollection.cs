@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class InstalledNFTCollection : InstalledSTARNETHolon, IInstalledNFTCollection
     {
-        public InstalledNFTCollection() : base("NFTCollectionDNAJSON")
+        public InstalledNFTCollection() : base("STARNFTCollectionDNAJSON")
         {
             this.HolonType = HolonType.InstalledNFTCollection;
         }

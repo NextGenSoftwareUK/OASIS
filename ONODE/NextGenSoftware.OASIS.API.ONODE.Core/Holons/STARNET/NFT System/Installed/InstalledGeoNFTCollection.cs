@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
     public class InstalledGeoNFTCollection : InstalledSTARNETHolon, IInstalledGeoNFTCollection
     {
-        public InstalledGeoNFTCollection() : base("GeoNFTCollectionDNAJSON")
+        public InstalledGeoNFTCollection() : base("STARGeoNFTCollectionDNAJSON")
         {
             this.HolonType = HolonType.InstalledGeoNFTCollection;
         }

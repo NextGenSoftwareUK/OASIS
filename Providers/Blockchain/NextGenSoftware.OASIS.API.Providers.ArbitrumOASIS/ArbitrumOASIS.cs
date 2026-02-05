@@ -72,6 +72,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         this.ProviderType = new(Core.Enums.ProviderType.ArbitrumOASIS);
         this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
@@ -174,8 +175,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by provider key first
@@ -262,8 +267,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by provider key first
@@ -312,8 +321,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first
@@ -362,8 +375,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username first
@@ -468,8 +485,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holon by provider key first
@@ -528,8 +549,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first
@@ -578,8 +603,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by ID first
@@ -628,8 +657,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username first
@@ -678,8 +711,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get all holons from Arbitrum
@@ -721,8 +758,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             var avatarsResult = LoadAllAvatars();
@@ -766,8 +807,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             var holonsResult = LoadAllHolons(Type);
@@ -816,8 +861,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             var importedCount = 0;
@@ -855,8 +904,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Real Arbitrum implementation: Load avatar details directly from Arbitrum smart contract
@@ -969,8 +1022,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Real Arbitrum smart contract query for all holons
@@ -1085,8 +1142,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Real Arbitrum smart contract query for avatar by email
@@ -1144,8 +1205,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query avatar by provider key from Arbitrum smart contract
@@ -1190,8 +1255,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query avatar by username from Arbitrum smart contract
@@ -1287,8 +1356,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first
@@ -1361,8 +1434,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username first
@@ -1485,8 +1562,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query holon by provider key from Arbitrum smart contract
@@ -1556,8 +1637,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query holons for parent from Arbitrum smart contract
@@ -1599,8 +1684,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query holons for parent by provider key from Arbitrum smart contract
@@ -1652,8 +1741,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query holons by metadata from Arbitrum smart contract
@@ -1700,8 +1793,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query holons by multiple metadata pairs from Arbitrum smart contract
@@ -2104,8 +2201,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Search avatars and holons from Arbitrum smart contract
@@ -2173,8 +2274,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Ensure the configured account matches the requested from address
@@ -2266,8 +2371,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for emails using WalletHelper
@@ -2309,8 +2418,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for emails using WalletHelper
@@ -2362,8 +2475,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for avatars using WalletHelper
@@ -2405,8 +2522,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for avatars using WalletHelper
@@ -2490,8 +2611,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for usernames using WalletHelper
@@ -2785,8 +2910,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load NFT data from Arbitrum smart contract
@@ -2833,7 +2962,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             var avatarDetail = new AvatarDetail
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
@@ -2875,7 +3004,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             var avatar = new Avatar
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
@@ -2911,7 +3040,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
             var nft = new Web3NFT
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Title = dataDict.GetValueOrDefault("title")?.ToString() ?? "Arbitrum NFT",
                 Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "NFT from Arbitrum blockchain",
                 ImageUrl = dataDict.GetValueOrDefault("imageUrl")?.ToString() ?? "",
@@ -2921,12 +3050,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 MintedOn = dataDict.ContainsKey("mintedOn") ? DateTime.Parse(dataDict["mintedOn"].ToString()) : DateTime.UtcNow,
                 ImportedOn = DateTime.UtcNow,
                 OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArbitrumOASIS),
-                MetaData = new Dictionary<string, object>
-                {
-                    ["ArbitrumData"] = nftData,
-                    ["ParsedAt"] = DateTime.UtcNow,
-                    ["Provider"] = "ArbitrumOASIS"
-                }
+                //MetaData = new Dictionary<string, string>
+                //{
+                //    ["ArbitrumData"] = nftData,
+                //    ["ParsedAt"] = DateTime.UtcNow,
+                //    ["Provider"] = "ArbitrumOASIS"
+                //}
             };
 
             return nft;
@@ -2951,7 +3080,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             var holon = new Holon
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "",
                 Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
                 HolonType = Enum.TryParse<HolonType>(dataDict.GetValueOrDefault("holonType")?.ToString(), out var holonType) 
@@ -3592,7 +3721,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -3730,8 +3859,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Generate a new Ethereum/Arbitrum account
@@ -3762,8 +3895,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             if (string.IsNullOrWhiteSpace(seedPhrase))
@@ -4123,7 +4260,7 @@ file static class ArbitrumContractHelper
             
             var avatarDetail = new AvatarDetail
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
@@ -4165,7 +4302,7 @@ file static class ArbitrumContractHelper
             
             var avatar = new Avatar
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
@@ -4193,18 +4330,19 @@ file static class ArbitrumContractHelper
         try
         {
             // Real implementation for parsing Arbitrum NFT data
+            var tokenAddress = jsonElement.TryGetProperty("tokenAddress", out var ta) ? ta.GetString() : jsonElement.TryGetProperty("address", out var addr) ? addr.GetString() : "unknown";
             var nft = new Web3NFT
             {
-                Id = Guid.NewGuid(),
+                Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{tokenAddress}"),
                 Title = "Arbitrum NFT",
                 Description = "NFT from Arbitrum blockchain",
-                NFTTokenAddress = "0x0000000000000000000000000000000000000000",
+                NFTTokenAddress = tokenAddress,
                 OnChainProvider = new EnumValue<ProviderType>(ProviderType.ArbitrumOASIS),
-                MetaData = new Dictionary<string, object>
-                {
-                    ["ArbitrumData"] = nftData,
-                    ["ParsedAt"] = DateTime.Now
-                }
+                //MetaData = new Dictionary<string, object>
+                //{
+                //    ["ArbitrumData"] = nftData,
+                //    ["ParsedAt"] = DateTime.Now
+                //}
             };
             
             return nft;
@@ -4229,7 +4367,7 @@ file static class ArbitrumContractHelper
             
             var holon = new Holon
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "",
                 Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
                 HolonType = Enum.TryParse<HolonType>(dataDict.GetValueOrDefault("holonType")?.ToString(), out var holonType) 
@@ -4253,6 +4391,19 @@ file static class ArbitrumContractHelper
             return null;
         }
     }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
 }
 
 // FunctionMessage classes for new Nethereum API

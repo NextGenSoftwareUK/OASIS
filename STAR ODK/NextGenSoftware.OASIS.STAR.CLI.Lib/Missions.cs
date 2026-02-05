@@ -55,11 +55,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
 
                             Console.WriteLine("");
-                            OASISResult<Mission> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "Chapter", idOrNameOfDependency: chapterId.ToString(), providerType: providerType);
+                            OASISResult<Mission> addResult = await AddDependencyAsync(parentSTARNETDNA: result.Result.STARNETDNA, dependencyType: "Chapter", idOrNameOfDependency: chapterId.ToString(), providerType: providerType);
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another Chapter?"));
                     }
 
+                    Console.WriteLine();
                     if (CLIEngine.GetConfirmation("Do you want to add any Quest's to this Mission now?"))
                     {
                         do
@@ -75,11 +76,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
 
                             Console.WriteLine("");
-                            OASISResult<Mission> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: questId.ToString(), providerType: providerType);
+                            OASISResult<Mission> addResult = await AddDependencyAsync(parentSTARNETDNA: result.Result.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: questId.ToString(), providerType: providerType);
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another Quest?"));
                     }
 
+                    Console.WriteLine();
                     await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
                 }
             }

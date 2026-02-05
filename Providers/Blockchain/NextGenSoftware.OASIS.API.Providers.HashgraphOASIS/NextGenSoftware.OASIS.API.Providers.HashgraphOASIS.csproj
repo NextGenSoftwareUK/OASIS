@@ -45,4 +45,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Chaos.NaCl.Standard" Version="*" />
+  </ItemGroup>
+
 </Project>
