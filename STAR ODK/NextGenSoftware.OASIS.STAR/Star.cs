@@ -2989,7 +2989,9 @@ namespace NextGenSoftware.OASIS.STAR
                                 }
                                 else
                                 {
-                                    line = line.Replace("{CELESTIALBODY}", string.Concat(oAppNameSpace.ToPascalCase() , ".", celestialBodyName.ToPascalCase())).Replace("//CelestialBodyOnly:", "");
+                                    //line = line.Replace("{CELESTIALBODY}", string.Concat(oAppNameSpace.ToPascalCase() , ".", celestialBodyName.ToPascalCase())).Replace("//CelestialBodyOnly:", "");
+                                    //line = line.Replace("{CELESTIALBODY}", string.Concat(oAppNameSpace, ".", celestialBodyName.ToPascalCase())).Replace("//CelestialBodyOnly:", "");
+                                    line = line.Replace("{CELESTIALBODY}", string.Concat(celestialBodyName.ToPascalCase())).Replace("//CelestialBodyOnly:", "");
                                     line = line.Replace("{CELESTIALBODYVAR}", celestialBodyName.ToCamelCase()).Replace("//CelestialBodyOnly:", "");
 
                                     if (line.Contains("ZomesAndHolonsOnly"))

@@ -13,7 +13,6 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
-
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class QuestManager : QuestManagerBase<Quest, DownloadedQuest, InstalledQuest, QuestDNA>, IQuestManager
@@ -66,25 +65,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "QuestDNAJSON")
         { }
 
-        public async Task<OASISResult<IQuest>> CreateQuestForMissionAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, checkIfSourcePathExists, providerType);
-        }
+        //public override async Task<OASISResult<Quest>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, ISTARNETCreateOptions<Quest, STARNETDNA> createOptions = null, ProviderType providerType = ProviderType.Default)
+        //{
 
-        public OASISResult<IQuest> CreateQuestForMission(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, checkIfSourcePathExists, providerType);
-        }
 
-        public async Task<OASISResult<IQuest>> CreateSubQuestForQuestAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, checkIfSourcePathExists, providerType);
-        }
+        //    OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, holonSubType, fullPathToSourceFolder, createOptions, providerType);
+        //    //{
+        //        //CheckIfSourcePathExists = checkIfSourcePathExists,
+        //        //STARNETHolon = new Quest
+        //        //{
+        //        //    QuestType = questType,
+        //        //    ParentMissionId = parentMissionId,
+        //        //    ParentQuestId = parentQuestId
+        //        //}
+        //    //}, providerType);
 
-        public OASISResult<IQuest> CreateSubQuestForQuest(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, checkIfSourcePathExists, providerType);
-        }
+
+
+        //    //OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
+        //    //OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
+        //    //return result;
+
+
+        //    //return base.CreateAsync(avatarId, name, description, holonSubType, fullPathToSourceFolder, createOptions, providerType);
+        //}
+
+        //public async Task<OASISResult<IQuest>> CreateQuestForMissionAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, checkIfSourcePathExists, providerType);
+        //}
+
+        //public OASISResult<IQuest> CreateQuestForMission(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, checkIfSourcePathExists, providerType);
+        //}
+
+        //public async Task<OASISResult<IQuest>> CreateSubQuestForQuestAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, checkIfSourcePathExists, providerType);
+        //}
+
+        //public OASISResult<IQuest> CreateSubQuestForQuest(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, checkIfSourcePathExists, providerType);
+        //}
 
         public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForMissionAsync(Guid missionId, ProviderType providerType = ProviderType.Default)
         {
@@ -411,6 +435,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //    return result;
         //}
 
+        //TODO: Need to show this on STAR CLI ASAP! ;-)
         public async Task<OASISResult<IQuest>> GetCurentSubQuestForQuestAsync(Guid avatarId, Guid questId, ProviderType providerType)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
@@ -441,6 +466,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        //TODO: Need to show this on STAR CLI ASAP! ;-)
         public OASISResult<IQuest> GetCurentSubQuestForQuest(Guid avatarId, Guid questId, ProviderType providerType)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
@@ -494,57 +520,57 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return new OASISResult<IQuest>();
         }
 
-        private async Task<OASISResult<IQuest>> CreateQuestInternalAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, new Objects.STARNETCreateOptions<Quest, STARNETDNA>()
-            {
-                CheckIfSourcePathExists = checkIfSourcePathExists,
-                STARNETHolon = new Quest
-                {
-                    QuestType = questType,
-                    ParentMissionId = parentMissionId,
-                    ParentQuestId = parentQuestId
-                }
-            }, providerType);
+        //private async Task<OASISResult<IQuest>> CreateQuestInternalAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, new Objects.STARNETCreateOptions<Quest, STARNETDNA>()
+        //    {
+        //        CheckIfSourcePathExists = checkIfSourcePathExists,
+        //        STARNETHolon = new Quest
+        //        {
+        //            QuestType = questType,
+        //            ParentMissionId = parentMissionId,
+        //            ParentQuestId = parentQuestId
+        //        }
+        //    }, providerType);
            
 
-            //OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, null, null, new Dictionary<string, object>()
-            //{
-            //    //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
-            //    //{ "ParentMissionId", parentMissionId.ToString() },
-            //    //{ "ParentQuestId", parentQuestId.ToString() }
-            //}, new Quest
-            //{
-            //    QuestType = questType,
-            //    ParentMissionId = parentMissionId,
-            //    ParentQuestId = parentQuestId
-            //}, null, checkIfSourcePathExists,
-            //providerType);
+        //    //OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, null, null, new Dictionary<string, object>()
+        //    //{
+        //    //    //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
+        //    //    //{ "ParentMissionId", parentMissionId.ToString() },
+        //    //    //{ "ParentQuestId", parentQuestId.ToString() }
+        //    //}, new Quest
+        //    //{
+        //    //    QuestType = questType,
+        //    //    ParentMissionId = parentMissionId,
+        //    //    ParentQuestId = parentQuestId
+        //    //}, null, checkIfSourcePathExists,
+        //    //providerType);
 
-            OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
-            return result;
-        }
+        //    OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
+        //    return result;
+        //}
 
-        private OASISResult<IQuest> CreateQuestInternal(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<Quest> createResult = base.Create(avatarId, name, description, questType, fullPathToQuest, new Dictionary<string, object>()
-            {
-                //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
-                //{ "ParentMissionId", parentMissionId.ToString() },
-                //{ "ParentQuestId", parentQuestId.ToString() }
-            }, new Quest
-            {
-                QuestType = questType,
-                ParentMissionId = parentMissionId,
-                ParentQuestId = parentQuestId
-            }, null, checkIfSourcePathExists,
-           providerType);
+        //private OASISResult<IQuest> CreateQuestInternal(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<Quest> createResult = base.Create(avatarId, name, description, questType, fullPathToQuest, new Dictionary<string, object>()
+        //    {
+        //        //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
+        //        //{ "ParentMissionId", parentMissionId.ToString() },
+        //        //{ "ParentQuestId", parentQuestId.ToString() }
+        //    }, new Quest
+        //    {
+        //        QuestType = questType,
+        //        ParentMissionId = parentMissionId,
+        //        ParentQuestId = parentQuestId
+        //    }, null, checkIfSourcePathExists,
+        //   providerType);
 
-            OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
-            return result;
-        }
+        //    OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
+        //    return result;
+        //}
 
         private OASISResult<IQuest> UpdateQuest(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, bool updateDNAJSONFile = true, ProviderType providerType = ProviderType.Default)
         {

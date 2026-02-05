@@ -12,8 +12,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public required string OwnerPrivateKey { get; init; } //TODO: Not sure if we need these?
         public required string OwnerSeedPhrase { get; init; } //TODO: Not sure if we need these?
         public string NFTTokenAddress { get; set; }
-        public bool WaitTillNFTBurnt { get; set; }
-        public int WaitForNFTToBurnInSeconds { get; set; }
-        public int AttemptToBurnEveryXSeconds { get; set; }
+        public bool WaitTillNFTBurnt { get; set; } = true;
+        public int WaitForNFTToBurnInSeconds { get; set; } = 60;
+        public int AttemptToBurnEveryXSeconds { get; set; } = 3;
     }
 }

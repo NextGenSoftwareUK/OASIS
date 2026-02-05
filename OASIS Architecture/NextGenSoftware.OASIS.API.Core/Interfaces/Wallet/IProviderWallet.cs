@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
     public interface IProviderWallet : IHolonBase //TODO: Do not extend IHolonBase because adds lots of stuff we dont need for wallets! ;-) Unless there is any use have a wallet also a holon? Maybe?
     {
+        public Guid AvatarId { get; set; }
         public Guid WalletId { get; set; }
 
         public string Name { get; set; }

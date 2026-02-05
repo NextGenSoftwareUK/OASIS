@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests
 {
     public class MintTokenRequestBase : IMintTokenRequestBase
     {
-        public Dictionary<string, object> MetaData { get; set; }
+        public Dictionary<string, string> MetaData { get; set; }
         public List<string> Tags { get; set; }
         public string Symbol { get; set; }
         public Guid MintedByAvatarId { get; set; }
