@@ -1000,8 +1000,73 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                // Neo4j implementation for loading all avatar details
-                OASISErrorHandling.HandleError(ref response, "LoadAllAvatarDetailsAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for loading all avatar details
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"
+                        MATCH (a:AvatarDetail)
+                        RETURN a.Id as Id, a.Username as Username, a.Email as Email, 
+                               a.CreatedDate as CreatedDate, a.ModifiedDate as ModifiedDate,
+                               a.Description as Description, a.IsActive as IsActive, 
+                               a.Karma as Karma, a.Level as Level, a.XP as XP, 
+                               a.Model3D as Model3D, a.UmaJson as UmaJson,
+                               a.Portrait as Portrait, a.Town as Town, a.County as County,
+                               a.DOB as DOB, a.Address as Address, a.Country as Country,
+                               a.Postcode as Postcode, a.Landline as Landline, a.Mobile as Mobile,
+                               a.FavouriteColour as FavouriteColour, a.STARCLIColour as STARCLIColour";
+
+                    var result = await session.RunAsync(query);
+                    var records = await result.ToListAsync();
+                    var avatarDetails = new List<IAvatarDetail>();
+
+                    foreach (var record in records)
+                    {
+                        try
+                        {
+                            var avatarDetail = new AvatarDetail
+                            {
+                                Id = Guid.Parse(record["Id"].As<string>()),
+                                Username = record["Username"].As<string>(),
+                                Email = record["Email"].As<string>(),
+                                CreatedDate = record["CreatedDate"].As<DateTime>(),
+                                ModifiedDate = record["ModifiedDate"].As<DateTime>(),
+                                Description = record["Description"].As<string>(),
+                                IsActive = record["IsActive"].As<bool>(),
+                                Karma = record["Karma"].As<long>(),
+                                XP = record["XP"].As<int>(),
+                                Model3D = record["Model3D"].As<string>(),
+                                UmaJson = record["UmaJson"].As<string>(),
+                                Portrait = record["Portrait"].As<string>(),
+                                Town = record["Town"].As<string>(),
+                                County = record["County"].As<string>(),
+                                DOB = record["DOB"].As<DateTime>(),
+                                Address = record["Address"].As<string>(),
+                                Country = record["Country"].As<string>(),
+                                Postcode = record["Postcode"].As<string>(),
+                                Landline = record["Landline"].As<string>(),
+                                Mobile = record["Mobile"].As<string>(),
+                                FavouriteColour = (ConsoleColor)record["FavouriteColour"].As<int>(),
+                                STARCLIColour = (ConsoleColor)record["STARCLIColour"].As<int>()
+                            };
+                            avatarDetails.Add(avatarDetail);
+                        }
+                        catch
+                        {
+                            // Skip invalid records
+                            continue;
+                        }
+                    }
+
+                    response.Result = avatarDetails;
+                    response.IsError = false;
+                    response.Message = $"Loaded {avatarDetails.Count} avatar details from Neo4j successfully";
+                }
             }
             catch (Exception ex)
             {
@@ -1209,8 +1274,34 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<bool>();
             try
             {
-                // Neo4j implementation for deleting avatar by provider key
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync by provider key not implemented for Neo4j provider");
+                // REAL Neo4j implementation for deleting avatar by provider key
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                var query = softDelete 
+                    ? "MATCH (a:Avatar {ProviderKey: $providerKey}) SET a.IsDeleted = true, a.DeletedDate = datetime() RETURN a"
+                    : "MATCH (a:Avatar {ProviderKey: $providerKey}) DETACH DELETE a RETURN a";
+                var parameters = new { providerKey };
+                
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.RunAsync(query, parameters);
+                    var record = await result.SingleAsync();
+                    
+                    if (record != null)
+                    {
+                        response.Result = true;
+                        response.IsError = false;
+                        response.Message = $"Avatar deleted successfully from Neo4j {(softDelete ? "(soft delete)" : "(hard delete)")}";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1230,8 +1321,32 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<bool>();
             try
             {
-                // Neo4j implementation for deleting avatar by email
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmailAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for deleting avatar by email
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                var query = "MATCH (a:Avatar {Email: $email}) DETACH DELETE a RETURN a";
+                var parameters = new { email = avatarEmail };
+                
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.RunAsync(query, parameters);
+                    var record = await result.SingleAsync();
+                    
+                    if (record != null)
+                    {
+                        response.Result = true;
+                        response.IsError = false;
+                        response.Message = "Avatar deleted successfully from Neo4j by email";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1251,8 +1366,32 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<bool>();
             try
             {
-                // Neo4j implementation for deleting avatar by username
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByUsernameAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for deleting avatar by username
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                var query = "MATCH (a:Avatar {Username: $username}) DETACH DELETE a RETURN a";
+                var parameters = new { username = avatarUsername };
+                
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.RunAsync(query, parameters);
+                    var record = await result.SingleAsync();
+                    
+                    if (record != null)
+                    {
+                        response.Result = true;
+                        response.IsError = false;
+                        response.Message = "Avatar deleted successfully from Neo4j by username";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1515,18 +1654,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
+            // First load the parent holon to get its ID
+            var parentResult = await LoadHolonAsync(providerKey, false, false, 0, continueOnError, loadChildrenFromProvider, version);
+            if (parentResult.IsError || parentResult.Result == null)
             {
-                // Neo4j implementation for loading holons for parent by provider key
-                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync by provider key not implemented for Neo4j provider");
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsError = true,
+                    Message = $"Failed to load parent holon by provider key: {parentResult.Message}"
+                };
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent by provider key from Neo4j: {ex.Message}");
-            }
-            return response;
+
+            // Then load children using the parent ID
+            return await LoadHolonsForParentAsync(parentResult.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1536,18 +1676,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                // Neo4j implementation for loading holons by metadata
-                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync not implemented for Neo4j provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata from Neo4j: {ex.Message}");
-            }
-            return response;
+            // Convert single key-value pair to dictionary and use the main method
+            var metaKeyValuePairs = new Dictionary<string, string> { { metaKey, metaValue } };
+            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.ExactMatch, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1560,8 +1691,75 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // Neo4j implementation for loading holons by metadata pairs
-                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync with pairs not implemented for Neo4j provider");
+                // REAL Neo4j implementation for loading holons by metadata pairs
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                // Build WHERE clause for metadata matching
+                var whereClauses = new List<string>();
+                foreach (var kvp in metaKeyValuePairs)
+                {
+                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.ExactMatch)
+                    {
+                        whereClauses.Add($"h.MetaData.`{kvp.Key}` = $metaValue_{kvp.Key}");
+                    }
+                    else
+                    {
+                        whereClauses.Add($"h.MetaData.`{kvp.Key}` CONTAINS $metaValue_{kvp.Key}");
+                    }
+                }
+
+                var typeFilter = type == HolonType.All ? "" : " AND h.HolonType = $holonType";
+                var query = $"MATCH (h:Holon) WHERE {string.Join(" AND ", whereClauses)}{typeFilter} RETURN h";
+                
+                var parameters = new Dictionary<string, object>();
+                foreach (var kvp in metaKeyValuePairs)
+                {
+                    parameters[$"metaValue_{kvp.Key}"] = kvp.Value;
+                }
+                if (type != HolonType.All)
+                {
+                    parameters["holonType"] = type.ToString();
+                }
+                
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.RunAsync(query, parameters);
+                    var records = await result.ToListAsync();
+                    
+                    var holons = new List<IHolon>();
+                    foreach (var record in records)
+                    {
+                        var node = record["h"].As<Neo4j.Driver.INode>();
+                        var holon = new Holon 
+                        { 
+                            Id = Guid.Parse(node["Id"].As<string>()),
+                            Name = node["Name"].As<string>(),
+                            Description = node["Description"].As<string>(),
+                            HolonType = Enum.Parse<HolonType>(node["HolonType"].As<string>()),
+                            CreatedDate = node["CreatedDate"].As<DateTime>(),
+                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
+                        };
+                        
+                        // Load children recursively if requested
+                        if (loadChildren && recursive && (maxChildDepth == 0 || curentChildDepth < maxChildDepth))
+                        {
+                            var childrenResult = await LoadHolonsForParentAsync(holon.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth + 1, continueOnError, loadChildrenFromProvider, version);
+                            if (!childrenResult.IsError && childrenResult.Result != null)
+                            {
+                                holon.Children = childrenResult.Result.ToList();
+                            }
+                        }
+                        holons.Add(holon);
+                    }
+                    
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = $"Successfully loaded {holons.Count} holons by metadata from Neo4j";
+                }
             }
             catch (Exception ex)
             {
@@ -1818,8 +2016,40 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IHolon>();
             try
             {
-                // Neo4j implementation for deleting holon by provider key
-                OASISErrorHandling.HandleError(ref response, "DeleteHolonAsync by provider key not implemented for Neo4j provider");
+                // REAL Neo4j implementation for deleting holon by provider key
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                // First load the holon to return it
+                var loadResult = await LoadHolonAsync(providerKey, false, false, 0, true, false, 0);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon: {loadResult.Message}");
+                    return response;
+                }
+
+                var query = "MATCH (h:Holon {ProviderKey: $providerKey}) DETACH DELETE h RETURN h";
+                var parameters = new { providerKey };
+                
+                using (var session = _driver.AsyncSession())
+                {
+                    var result = await session.RunAsync(query, parameters);
+                    var record = await result.SingleAsync();
+                    
+                    if (record != null)
+                    {
+                        response.Result = loadResult.Result;
+                        response.IsError = false;
+                        response.Message = "Holon deleted successfully from Neo4j by provider key";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Holon not found in Neo4j database");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1843,8 +2073,32 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<bool>();
             try
             {
-                // Neo4j implementation for importing holons
-                OASISErrorHandling.HandleError(ref response, "ImportAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for importing holons
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                if (holons == null || !holons.Any())
+                {
+                    OASISErrorHandling.HandleError(ref response, "Holons collection cannot be null or empty");
+                    return response;
+                }
+
+                // Use SaveHolonsAsync to import holons (it already handles batch saving)
+                var saveResult = await SaveHolonsAsync(holons, true, true, 0, 0, true, false);
+                
+                if (!saveResult.IsError && saveResult.Result != null)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = $"Successfully imported {saveResult.Result.Count()} holons to Neo4j";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to import holons: {saveResult.Message}");
+                }
             }
             catch (Exception ex)
             {
@@ -1864,8 +2118,64 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // Neo4j implementation for exporting all data for avatar by ID
-                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByIdAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for exporting all data for avatar by ID
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                using (var session = _driver.AsyncSession())
+                {
+                    // Query all holons related to the avatar (directly or through relationships)
+                    var query = @"
+                        MATCH (a:Avatar {Id: $avatarId})
+                        OPTIONAL MATCH (a)-[*]-(h:Holon)
+                        WITH COLLECT(DISTINCT h) as holons
+                        UNWIND holons as holon
+                        WHERE holon IS NOT NULL
+                        RETURN holon.Id as Id, holon.Name as Name, holon.Description as Description,
+                               holon.HolonType as HolonType, holon.CreatedDate as CreatedDate,
+                               holon.ModifiedDate as ModifiedDate, holon.ProviderKey as ProviderKey,
+                               holon.ParentHolonId as ParentHolonId";
+
+                    var result = await session.RunAsync(query, new { avatarId = avatarId.ToString() });
+                    var records = await result.ToListAsync();
+                    var holons = new List<IHolon>();
+
+                    foreach (var record in records)
+                    {
+                        try
+                        {
+                            var holon = new Holon
+                            {
+                                Id = Guid.Parse(record["Id"].As<string>()),
+                                Name = record["Name"].As<string>(),
+                                Description = record["Description"].As<string>(),
+                                HolonType = Enum.Parse<HolonType>(record["HolonType"].As<string>()),
+                                CreatedDate = record["CreatedDate"].As<DateTime>(),
+                                ModifiedDate = record["ModifiedDate"].As<DateTime>(),
+                                ProviderKey = record["ProviderKey"].As<string>()
+                            };
+                            
+                            if (record["ParentHolonId"] != null && !record["ParentHolonId"].IsNull)
+                            {
+                                holon.ParentHolonId = Guid.Parse(record["ParentHolonId"].As<string>());
+                            }
+                            
+                            holons.Add(holon);
+                        }
+                        catch
+                        {
+                            // Skip invalid records
+                            continue;
+                        }
+                    }
+
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = $"Exported {holons.Count} holons for avatar {avatarId} from Neo4j successfully";
+                }
             }
             catch (Exception ex)
             {
@@ -1885,8 +2195,26 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // Neo4j implementation for exporting all data for avatar by username
-                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByUsernameAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for exporting all data for avatar by username
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                // First load the avatar to get the ID
+                var avatarResult = await LoadAvatarAsync(avatarUsername, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Avatar with username {avatarUsername} not found");
+                    return response;
+                }
+
+                // Then export all data using the avatar ID
+                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+                response.Result = exportResult.Result;
+                response.IsError = exportResult.IsError;
+                response.Message = exportResult.Message;
             }
             catch (Exception ex)
             {
@@ -1906,8 +2234,26 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // Neo4j implementation for exporting all data for avatar by email
-                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByEmailAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for exporting all data for avatar by email
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                // First load the avatar to get the ID
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Avatar with email {avatarEmailAddress} not found");
+                    return response;
+                }
+
+                // Then export all data using the avatar ID
+                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+                response.Result = exportResult.Result;
+                response.IsError = exportResult.IsError;
+                response.Message = exportResult.Message;
             }
             catch (Exception ex)
             {
@@ -1927,8 +2273,60 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                // Neo4j implementation for exporting all data
-                OASISErrorHandling.HandleError(ref response, "ExportAllAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for exporting all data
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                using (var session = _driver.AsyncSession())
+                {
+                    // Query all holons in the database
+                    var query = @"
+                        MATCH (h:Holon)
+                        RETURN h.Id as Id, h.Name as Name, h.Description as Description,
+                               h.HolonType as HolonType, h.CreatedDate as CreatedDate,
+                               h.ModifiedDate as ModifiedDate, h.ProviderKey as ProviderKey,
+                               h.ParentHolonId as ParentHolonId";
+
+                    var result = await session.RunAsync(query);
+                    var records = await result.ToListAsync();
+                    var holons = new List<IHolon>();
+
+                    foreach (var record in records)
+                    {
+                        try
+                        {
+                            var holon = new Holon
+                            {
+                                Id = Guid.Parse(record["Id"].As<string>()),
+                                Name = record["Name"].As<string>(),
+                                Description = record["Description"].As<string>(),
+                                HolonType = Enum.Parse<HolonType>(record["HolonType"].As<string>()),
+                                CreatedDate = record["CreatedDate"].As<DateTime>(),
+                                ModifiedDate = record["ModifiedDate"].As<DateTime>(),
+                                ProviderKey = record["ProviderKey"].As<string>()
+                            };
+                            
+                            if (record["ParentHolonId"] != null && !record["ParentHolonId"].IsNull)
+                            {
+                                holon.ParentHolonId = Guid.Parse(record["ParentHolonId"].As<string>());
+                            }
+                            
+                            holons.Add(holon);
+                        }
+                        catch
+                        {
+                            // Skip invalid records
+                            continue;
+                        }
+                    }
+
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = $"Exported {holons.Count} holons from Neo4j successfully";
+                }
             }
             catch (Exception ex)
             {

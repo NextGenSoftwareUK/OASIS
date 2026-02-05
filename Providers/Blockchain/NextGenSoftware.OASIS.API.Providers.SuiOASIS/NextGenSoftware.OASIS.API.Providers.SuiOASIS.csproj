@@ -45,6 +45,12 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Chaos.NaCl.Standard" Version="*" />
+    <PackageReference Include="Isopoh.Cryptography.Blake2b" Version="*" />
+    <PackageReference Include="Isopoh.Cryptography.SecureArray" Version="*" />
+  </ItemGroup>
+
 </Project>
 
 

@@ -166,8 +166,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Neo4j provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -213,8 +217,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Neo4j provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -1346,7 +1354,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 var session = Driver.AsyncSession(WithDatabase);
 
                 if (Avatar.AvatarId == Guid.Empty)
-                    Avatar.AvatarId = Guid.NewGuid();
+                {
+                    var providerKey = Avatar.ProviderUniqueStorageKey?.GetValueOrDefault(Core.Enums.ProviderType.Neo4jOASIS) 
+                        ?? Avatar.ProviderUniqueStorageKey?.Values?.FirstOrDefault()
+                        ?? Avatar.Username 
+                        ?? $"Neo4jOASIS:{Avatar.CreatedDate.Ticks}";
+                    Avatar.AvatarId = CreateDeterministicGuid($"{Core.Enums.ProviderType.Neo4jOASIS}:{providerKey}");
+                }
 
                 Avatar.CreatedProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
                 var avatarList = await session.ReadTransactionAsync(async transaction =>
@@ -1525,7 +1539,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 var session = Driver.AsyncSession(WithDatabase);
 
                 if (AvatarDetail.Id == Guid.Empty)
-                    AvatarDetail.Id = Guid.NewGuid();
+                {
+                    var providerKey = AvatarDetail.ProviderUniqueStorageKey?.GetValueOrDefault(Core.Enums.ProviderType.Neo4jOASIS) 
+                        ?? AvatarDetail.ProviderUniqueStorageKey?.Values?.FirstOrDefault()
+                        ?? AvatarDetail.Username 
+                        ?? $"Neo4jOASIS:{AvatarDetail.CreatedDate.Ticks}";
+                    AvatarDetail.Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.Neo4jOASIS}:{providerKey}");
+                }
 
                 AvatarDetail.CreatedProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
                 var avatarList = await session.ReadTransactionAsync(async transaction =>
@@ -2878,8 +2898,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j Aura provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search using Neo4j Aura database
@@ -2907,29 +2931,18 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     {
                         foreach (var holon in holonsResult.Result)
                         {
-                            // TODO: Implement proper search result creation
-                            // searchResults.Add(new SearchResult
-                            // {
-                            //     ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.Storage),
-                            //     ProviderType = new EnumValue<ProviderType>(ProviderType.Neo4jOASIS),
-                            //     Id = holon.Id,
-                            //     Name = holon.Name,
-                            //     Description = holon.Description,
-                            //     Result = holon,
-                            //     IsError = false
-                            // });
+                            // Real Neo4j implementation: Add holon to search results
+                            searchResults.SearchResultHolons.Add(holon);
                         }
                     }
                 }
                 
-                result.Result = new SearchResults
-                {
-                    // Results = searchResults,
-                    // TotalResults = searchResults.Count,
-                    // IsError = false
-                };
+                // Set total results count
+                searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
+                
+                result.Result = searchResults;
                 result.IsError = false;
-                result.Message = $"Successfully searched Neo4j Aura database and found results";
+                result.Message = $"Successfully searched Neo4j Aura database and found {searchResults.NumberOfResults} results";
             }
             catch (Exception ex)
             {
@@ -2950,8 +2963,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j Aura provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var importedCount = 0;
@@ -2989,8 +3006,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j Aura provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons for avatar from Neo4j Aura
@@ -3024,8 +3045,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j Aura provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username first
@@ -3074,8 +3099,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j Aura provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by email first
@@ -3164,8 +3193,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j Aura provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons by metadata from Neo4j Aura database
@@ -3220,8 +3253,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j Aura provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons by multiple metadata pairs from Neo4j Aura database
@@ -3282,6 +3319,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
     }
 

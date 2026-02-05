@@ -151,11 +151,13 @@ private const string Starknet = "STARKNET";
                                   (fromToken == Eth && toToken == Sol) ||
                                   (fromToken == Zec && toToken == Sol) ||
                                   (fromToken == Sol && toToken == Zec);
-            
+
+            isSupportedPair = true; //TODO: Not sure why we need to check if its a supported pair?!
+
             if (isSupportedPair)
             {
                 // Get source account address (this would come from user's virtual account in a real implementation)
-                string sourceAccountAddress = request.UserId.ToString(); // Placeholder
+                string sourceAccountAddress = request.FromAddress;
                 string sourcePrivateKey = string.Empty; // This would be securely retrieved
 
                 // Check balance
@@ -173,7 +175,8 @@ private const string Starknet = "STARKNET";
                         Guid.NewGuid(),
                         "Insufficient funds for bridge operation"
                     );
-                    result.IsError = false;
+                    result.IsError = true;
+                    result.Message = result.Result.Message;
                     return result;
                 }
 

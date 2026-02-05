@@ -93,11 +93,11 @@
 //            this.ProviderName = "OptimismOASIS";
 //            this.ProviderDescription = "Optimism Provider - Ethereum Layer 2 scaling solution";
 //            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OptimismOASIS);
-//            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-
-//            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
 //            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+//            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+//            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+//            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+//            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
 //            _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
 //            _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
@@ -288,7 +288,7 @@
 //                response.Result = nearby;
 //                response.IsError = false;
 //                response.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
-                
+
 //                {
 //                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from Optimism blockchain: {httpResponse.StatusCode}");
 //                }
@@ -341,11 +341,11 @@
 //                            nearby.Add(holon);
 //                    }
 
-//                else
-//                {
-//                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Optimism blockchain: {httpResponse.StatusCode}");
+//                    else
+//                    {
+//                        OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Optimism blockchain: {httpResponse.StatusCode}");
+//                    }
 //                }
-//            }
 //            }
 //            catch (Exception ex)
 //            {
@@ -719,7 +719,7 @@
 
 //                // Use contract address or default NFT contract
 //                var nftContractAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-                
+
 //                // ERC-721 mint function ABI (assuming contract has mint function)
 //                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""mint"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
 //                var erc721Contract = web3.Eth.GetContract(erc721Abi, nftContractAddress);
@@ -972,7 +972,7 @@
 //                    response.Result = avatar;
 //                    response.IsError = false;
 //                    response.Message = $"Avatar saved to Optimism successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
 //                    // Store transaction hash in avatar metadata
 //                    avatar.ProviderMetaData[Core.Enums.ProviderType.OptimismOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
 //                    avatar.ProviderMetaData[Core.Enums.ProviderType.OptimismOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -2272,214 +2272,214 @@
 
 //        #endregion
 
-//    // NFT-specific lock/unlock methods
-//    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
-//    {
-//        return LockNFTAsync(request).Result;
-//    }
-
-//    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
-//    {
-//        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-//        try
+//        // NFT-specific lock/unlock methods
+//        public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
 //        {
-//            if (!_isActivated || _web3Client == null)
-//            {
-//                OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
-//                return result;
-//            }
-
-//            var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-//            var sendRequest = new SendWeb3NFTRequest
-//            {
-//                FromNFTTokenAddress = request.NFTTokenAddress,
-//                FromWalletAddress = string.Empty,
-//                ToWalletAddress = bridgePoolAddress,
-//                TokenAddress = request.NFTTokenAddress,
-//                TokenId = request.Web3NFTId.ToString(),
-//                Amount = 1
-//            };
-
-//            var sendResult = await SendNFTAsync(sendRequest);
-//            if (sendResult.IsError || sendResult.Result == null)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
-//                return result;
-//            }
-
-//            result.IsError = false;
-//            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+//            return LockNFTAsync(request).Result;
 //        }
-//        catch (Exception ex)
+
+//        public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
 //        {
-//            OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+//            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+//            try
+//            {
+//                if (!_isActivated || _web3Client == null)
+//                {
+//                    OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
+//                    return result;
+//                }
+
+//                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+//                var sendRequest = new SendWeb3NFTRequest
+//                {
+//                    FromNFTTokenAddress = request.NFTTokenAddress,
+//                    FromWalletAddress = string.Empty,
+//                    ToWalletAddress = bridgePoolAddress,
+//                    TokenAddress = request.NFTTokenAddress,
+//                    TokenId = request.Web3NFTId.ToString(),
+//                    Amount = 1
+//                };
+
+//                var sendResult = await SendNFTAsync(sendRequest);
+//                if (sendResult.IsError || sendResult.Result == null)
+//                {
+//                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
+//                    return result;
+//                }
+
+//                result.IsError = false;
+//                result.Result.TransactionResult = sendResult.Result.TransactionResult;
+//            }
+//            catch (Exception ex)
+//            {
+//                OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+//            }
+//            return result;
 //        }
-//        return result;
-//    }
 
-//    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
-//    {
-//        return UnlockNFTAsync(request).Result;
-//    }
-
-//    public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
-//    {
-//        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-//        try
+//        public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
 //        {
-//            if (!_isActivated || _web3Client == null)
-//            {
-//                OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
-//                return result;
-//            }
-
-//            var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-//            var sendRequest = new SendWeb3NFTRequest
-//            {
-//                FromNFTTokenAddress = request.NFTTokenAddress,
-//                FromWalletAddress = bridgePoolAddress,
-//                ToWalletAddress = string.Empty,
-//                TokenAddress = request.NFTTokenAddress,
-//                TokenId = request.Web3NFTId.ToString(),
-//                Amount = 1
-//            };
-
-//            var sendResult = await SendNFTAsync(sendRequest);
-//            if (sendResult.IsError || sendResult.Result == null)
-//            {
-//                OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
-//                return result;
-//            }
-
-//            result.IsError = false;
-//            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+//            return UnlockNFTAsync(request).Result;
 //        }
-//        catch (Exception ex)
+
+//        public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
 //        {
-//            OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
+//            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+//            try
+//            {
+//                if (!_isActivated || _web3Client == null)
+//                {
+//                    OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
+//                    return result;
+//                }
+
+//                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+//                var sendRequest = new SendWeb3NFTRequest
+//                {
+//                    FromNFTTokenAddress = request.NFTTokenAddress,
+//                    FromWalletAddress = bridgePoolAddress,
+//                    ToWalletAddress = string.Empty,
+//                    TokenAddress = request.NFTTokenAddress,
+//                    TokenId = request.Web3NFTId.ToString(),
+//                    Amount = 1
+//                };
+
+//                var sendResult = await SendNFTAsync(sendRequest);
+//                if (sendResult.IsError || sendResult.Result == null)
+//                {
+//                    OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
+//                    return result;
+//                }
+
+//                result.IsError = false;
+//                result.Result.TransactionResult = sendResult.Result.TransactionResult;
+//            }
+//            catch (Exception ex)
+//            {
+//                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
+//            }
+//            return result;
 //        }
-//        return result;
-//    }
 
-//    // NFT Bridge Methods
-//    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
-//    {
-//        var result = new OASISResult<BridgeTransactionResponse>();
-//        try
+//        // NFT Bridge Methods
+//        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
 //        {
-//            if (!_isActivated || _web3Client == null)
+//            var result = new OASISResult<BridgeTransactionResponse>();
+//            try
 //            {
-//                OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
-//                return result;
+//                if (!_isActivated || _web3Client == null)
+//                {
+//                    OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
+//                    return result;
+//                }
+
+//                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) ||
+//                    string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+//                {
+//                    OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
+//                    return result;
+//                }
+
+//                var lockRequest = new LockWeb3NFTRequest
+//                {
+//                    NFTTokenAddress = nftTokenAddress,
+//                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+//                    LockedByAvatarId = Guid.Empty
+//                };
+
+//                var lockResult = await LockNFTAsync(lockRequest);
+//                if (lockResult.IsError || lockResult.Result == null)
+//                {
+//                    result.Result = new BridgeTransactionResponse
+//                    {
+//                        TransactionId = string.Empty,
+//                        IsSuccessful = false,
+//                        ErrorMessage = lockResult.Message,
+//                        Status = BridgeTransactionStatus.Canceled
+//                    };
+//                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
+//                    return result;
+//                }
+
+//                result.Result = new BridgeTransactionResponse
+//                {
+//                    TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
+//                    IsSuccessful = !lockResult.IsError,
+//                    Status = BridgeTransactionStatus.Pending
+//                };
+//                result.IsError = false;
 //            }
-
-//            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
-//                string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+//            catch (Exception ex)
 //            {
-//                OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
-//                return result;
-//            }
-
-//            var lockRequest = new LockWeb3NFTRequest
-//            {
-//                NFTTokenAddress = nftTokenAddress,
-//                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
-//                LockedByAvatarId = Guid.Empty
-//            };
-
-//            var lockResult = await LockNFTAsync(lockRequest);
-//            if (lockResult.IsError || lockResult.Result == null)
-//            {
+//                OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
 //                result.Result = new BridgeTransactionResponse
 //                {
 //                    TransactionId = string.Empty,
 //                    IsSuccessful = false,
-//                    ErrorMessage = lockResult.Message,
+//                    ErrorMessage = ex.Message,
 //                    Status = BridgeTransactionStatus.Canceled
 //                };
-//                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-//                return result;
 //            }
-
-//            result.Result = new BridgeTransactionResponse
-//            {
-//                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-//                IsSuccessful = !lockResult.IsError,
-//                Status = BridgeTransactionStatus.Pending
-//            };
-//            result.IsError = false;
+//            return result;
 //        }
-//        catch (Exception ex)
+
+//        public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
 //        {
-//            OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
-//            result.Result = new BridgeTransactionResponse
+//            var result = new OASISResult<BridgeTransactionResponse>();
+//            try
 //            {
-//                TransactionId = string.Empty,
-//                IsSuccessful = false,
-//                ErrorMessage = ex.Message,
-//                Status = BridgeTransactionStatus.Canceled
-//            };
-//        }
-//        return result;
-//    }
+//                if (!_isActivated || _web3Client == null)
+//                {
+//                    OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
+//                    return result;
+//                }
 
-//    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
-//    {
-//        var result = new OASISResult<BridgeTransactionResponse>();
-//        try
-//        {
-//            if (!_isActivated || _web3Client == null)
-//            {
-//                OASISErrorHandling.HandleError(ref result, "Optimism provider is not activated");
-//                return result;
+//                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+//                {
+//                    OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
+//                    return result;
+//                }
+
+//                var mintRequest = new MintWeb3NFTRequest
+//                {
+//                    SendToAddressAfterMinting = receiverAccountAddress,
+//                };
+
+//                var mintResult = await MintNFTAsync(mintRequest);
+//                if (mintResult.IsError || mintResult.Result == null)
+//                {
+//                    result.Result = new BridgeTransactionResponse
+//                    {
+//                        TransactionId = string.Empty,
+//                        IsSuccessful = false,
+//                        ErrorMessage = mintResult.Message,
+//                        Status = BridgeTransactionStatus.Canceled
+//                    };
+//                    OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
+//                    return result;
+//                }
+
+//                result.Result = new BridgeTransactionResponse
+//                {
+//                    TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
+//                    IsSuccessful = !mintResult.IsError,
+//                    Status = BridgeTransactionStatus.Pending
+//                };
+//                result.IsError = false;
 //            }
-
-//            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+//            catch (Exception ex)
 //            {
-//                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-//                return result;
-//            }
-
-//            var mintRequest = new MintWeb3NFTRequest
-//            {
-//                SendToAddressAfterMinting = receiverAccountAddress,
-//            };
-
-//            var mintResult = await MintNFTAsync(mintRequest);
-//            if (mintResult.IsError || mintResult.Result == null)
-//            {
+//                OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
 //                result.Result = new BridgeTransactionResponse
 //                {
 //                    TransactionId = string.Empty,
 //                    IsSuccessful = false,
-//                    ErrorMessage = mintResult.Message,
+//                    ErrorMessage = ex.Message,
 //                    Status = BridgeTransactionStatus.Canceled
 //                };
-//                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-//                return result;
 //            }
-
-//            result.Result = new BridgeTransactionResponse
-//            {
-//                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-//                IsSuccessful = !mintResult.IsError,
-//                Status = BridgeTransactionStatus.Pending
-//            };
-//            result.IsError = false;
+//            return result;
 //        }
-//        catch (Exception ex)
-//        {
-//            OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-//            result.Result = new BridgeTransactionResponse
-//            {
-//                TransactionId = string.Empty,
-//                IsSuccessful = false,
-//                ErrorMessage = ex.Message,
-//                Status = BridgeTransactionStatus.Canceled
-//            };
-//        }
-//        return result;
-//    }
 
 //        #region Bridge Methods (IOASISBlockchainStorageProvider)
 
@@ -2723,7 +2723,7 @@
 //                    return result;
 //                }
 
-//                if (request == null || string.IsNullOrWhiteSpace(request.FromTokenAddress) || 
+//                if (request == null || string.IsNullOrWhiteSpace(request.FromTokenAddress) ||
 //                    string.IsNullOrWhiteSpace(request.ToWalletAddress))
 //                {
 //                    OASISErrorHandling.HandleError(ref result, "Token address and to wallet address are required");
@@ -2736,7 +2736,7 @@
 //                    privateKey = request.OwnerPrivateKey;
 //                else if (request is SendWeb3TokenRequest sendRequest && !string.IsNullOrWhiteSpace(sendRequest.FromWalletPrivateKey))
 //                    privateKey = sendRequest.FromWalletPrivateKey;
-                
+
 //                if (string.IsNullOrWhiteSpace(privateKey))
 //                {
 //                    OASISErrorHandling.HandleError(ref result, "Private key is required (OwnerPrivateKey or FromWalletPrivateKey)");
@@ -2755,11 +2755,11 @@
 //                var amountBigInt = new BigInteger(request.Amount * (decimal)multiplier);
 //                var transferFunction = erc20Contract.GetFunction("transfer");
 //                var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
-//                    senderAccount.Address, 
-//                    new HexBigInteger(21000), 
-//                    null, 
-//                    null, 
-//                    request.ToWalletAddress, 
+//                    senderAccount.Address,
+//                    new HexBigInteger(21000),
+//                    null,
+//                    null,
+//                    request.ToWalletAddress,
 //                    amountBigInt);
 
 //                result.Result = new TransactionResponse
@@ -2792,7 +2792,7 @@
 //                    return result;
 //                }
 
-//                if (request == null || request.MetaData == null || 
+//                if (request == null || request.MetaData == null ||
 //                    !request.MetaData.ContainsKey("TokenAddress") || string.IsNullOrWhiteSpace(request.MetaData["TokenAddress"]?.ToString()) ||
 //                    !request.MetaData.ContainsKey("MintToWalletAddress") || string.IsNullOrWhiteSpace(request.MetaData["MintToWalletAddress"]?.ToString()))
 //                {
@@ -2808,7 +2808,7 @@
 //                string privateKey = null;
 //                if (request.MetaData?.ContainsKey("OwnerPrivateKey") == true && !string.IsNullOrWhiteSpace(request.MetaData["OwnerPrivateKey"]?.ToString()))
 //                    privateKey = request.MetaData["OwnerPrivateKey"].ToString();
-                
+
 //                if (string.IsNullOrWhiteSpace(privateKey))
 //                {
 //                    OASISErrorHandling.HandleError(ref result, "Private key is required in MetaData (OwnerPrivateKey)");
@@ -2864,7 +2864,7 @@
 //                    return result;
 //                }
 
-//                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
+//                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) ||
 //                    string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
 //                {
 //                    OASISErrorHandling.HandleError(ref result, "Token address and owner private key are required");
@@ -2934,11 +2934,11 @@
 //                    OASISErrorHandling.HandleError(ref result, "Token address and from wallet private key are required");
 //                    return result;
 //                }
-                
+
 //                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
 //                var senderAccount = new Account(request.FromWalletPrivateKey);
 //                var web3Client = new Web3(senderAccount, _rpcEndpoint);
-                
+
 //                // Use ERC20 transfer to lock tokens in bridge pool
 //                var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"}]";
 //                var contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
@@ -2952,7 +2952,7 @@
 //                    null,
 //                    bridgePoolAddress,
 //                    balance);
-                
+
 //                result.Result = new TransactionResponse
 //                {
 //                    TransactionResult = receipt.TransactionHash
@@ -2995,19 +2995,19 @@
 //                    OASISErrorHandling.HandleError(ref result, "Token address is required");
 //                    return result;
 //                }
-                
+
 //                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
 //                var unlockedToWalletAddress = ""; // TODO: Get from locked token record using request.Web3TokenId
-                
+
 //                if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))
 //                {
 //                    OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required but not available");
 //                    return result;
 //                }
-                
+
 //                var bridgeAccount = new Account(_chainPrivateKey ?? "");
 //                var web3Client = new Web3(bridgeAccount, _rpcEndpoint);
-                
+
 //                // Use ERC20 transfer to unlock tokens from bridge pool
 //                var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"}]";
 //                var contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
@@ -3021,7 +3021,7 @@
 //                    null,
 //                    unlockedToWalletAddress,
 //                    balance);
-                
+
 //                result.Result = new TransactionResponse
 //                {
 //                    TransactionResult = receipt.TransactionHash
@@ -3095,7 +3095,7 @@
 
 //                // Get transaction history using Optimism RPC API (real implementation)
 //                var transactions = new List<IWalletTransaction>();
-                
+
 //                // Use Optimism RPC to get transaction history
 //                var rpcRequest = new
 //                {
@@ -3104,22 +3104,22 @@
 //                    method = "eth_getTransactionCount",
 //                    @params = new[] { request.WalletAddress, "latest" }
 //                };
-                
+
 //                var jsonContent = JsonSerializer.Serialize(rpcRequest);
 //                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 //                var httpResponse = await _httpClient.PostAsync("", content);
-                
+
 //                if (httpResponse.IsSuccessStatusCode)
 //                {
 //                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
 //                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
+
 //                    // Query transaction history using Optimism block explorer API or RPC
 //                    // In production, use Optimism's block explorer API or indexer service
-//                    var txCount = rpcResponse.TryGetProperty("result", out var resultProp) 
-//                        ? Convert.ToInt64(resultProp.GetString().Replace("0x", ""), 16) 
+//                    var txCount = rpcResponse.TryGetProperty("result", out var resultProp)
+//                        ? Convert.ToInt64(resultProp.GetString().Replace("0x", ""), 16)
 //                        : 0;
-                    
+
 //                    // For now, return empty list as Optimism requires external indexer for full transaction history
 //                    // Real implementation would use Optimism's indexer API or The Graph
 //                    result.Result = transactions;

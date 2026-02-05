@@ -345,7 +345,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Zomes.SearchAsync<STARZome>(AvatarId, searchTerm, default(Guid), null, MetaKeyValuePairMatchMode.All, searchOnlyForCurrentAvatar, showAllVersions, version);
+                var result = await _starAPI.Zomes.SearchAsync<STARZome>(AvatarId, searchTerm, default, null, MetaKeyValuePairMatchMode.All, searchOnlyForCurrentAvatar, showAllVersions, version);
                 return Ok(result);
             }
             catch (Exception ex)

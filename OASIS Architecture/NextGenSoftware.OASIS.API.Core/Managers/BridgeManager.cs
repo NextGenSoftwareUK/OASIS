@@ -314,30 +314,53 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
         {
+            OASISResult<decimal> result = new OASISResult<decimal>();
+
             // Use GetBalanceAsync instead of redundant GetAccountBalanceAsync
             var request = new GetWeb3WalletBalanceRequest
             {
                 WalletAddress = accountAddress
             };
-            var balanceResult = await _provider.GetBalanceAsync(request);
-            
-            // Convert double to decimal for bridge compatibility
-            if (balanceResult.IsError || balanceResult.Result == null)
+
+            if (_provider != null)
             {
+                if (!_provider.IsProviderActivated)
+                {
+                    var activateResult = await _provider.ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        return new OASISResult<decimal>
+                        {
+                            IsError = true,
+                            Message = $"Failed to activate provider {_provider.ProviderType.Name}: {activateResult.Message}"
+                        };
+                    }
+                }
+
+                var balanceResult = await _provider.GetBalanceAsync(request);
+
+                // Convert double to decimal for bridge compatibility
+                if (balanceResult.IsError || balanceResult.Result == null)
+                {
+                    return new OASISResult<decimal>
+                    {
+                        IsError = balanceResult.IsError,
+                        Message = balanceResult.Message,
+                        DetailedMessage = balanceResult.DetailedMessage
+                    };
+                }
+
                 return new OASISResult<decimal>
                 {
-                    IsError = balanceResult.IsError,
-                    Message = balanceResult.Message,
-                    DetailedMessage = balanceResult.DetailedMessage
+                    Result = (decimal)balanceResult.Result,
+                    IsError = false,
+                    Message = balanceResult.Message
                 };
             }
-            
-            return new OASISResult<decimal>
-            {
-                Result = (decimal)balanceResult.Result,
-                IsError = false,
-                Message = balanceResult.Message
-            };
+            else
+                OASISErrorHandling.HandleError(ref result, "Provider is null.");
+
+            return result;
         }
 
         public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)

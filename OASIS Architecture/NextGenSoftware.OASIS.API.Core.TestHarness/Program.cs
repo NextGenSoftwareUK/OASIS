@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+//using NextGenSoftware.OASIS.API.Native.EndPoint; // Commented out - namespace not found
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
@@ -37,8 +38,8 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
             //OASISAPI.Initialize("OASIS_DNA_Override.json");
             //OASISAPI.BootOASIS();
 
-            OASISAPI OASISAPI = new OASISAPI();
-            await OASISAPI.BootOASISAsync();
+            // Boot OASIS using OASISBootLoader directly
+            await OASISBootLoader.OASISBootLoader.BootOASISAsync("OASIS_DNA.json");
 
             // Test Base Wallet Creation
             Console.WriteLine("\n=== Testing Base Wallet Creation ===\n");
@@ -73,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
 
             //   await newAvatar.KarmaEarntAsync(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
-            OASISResult<IAvatar> savedAvatar = await OASISAPI.Avatars.SaveAvatarAsync(newAvatar);
+            OASISResult<IAvatar> savedAvatar = await AvatarManager.Instance.SaveAvatarAsync(newAvatar);
             //IAvatar savedAvatar = await AvatarManager.SaveAvatarAsync(newAvatar);
 
             if (!savedAvatar.IsError && savedAvatar.Result != null)
@@ -94,7 +95,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
             Console.WriteLine("\nLoading Avatar...");
             //IAvatar Avatar = await AvatarManager.LoadAvatarAsync("dellams", "1234");
-            OASISResult<IAvatar> avatarResult = await OASISAPI.Avatars.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
 
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
