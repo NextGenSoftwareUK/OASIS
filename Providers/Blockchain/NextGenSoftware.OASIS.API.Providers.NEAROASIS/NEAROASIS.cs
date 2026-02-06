@@ -3442,7 +3442,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 {
                     return null;
                 }
-                return keysResult.Result.First();
+                var providerKey = keysResult.Result.First();
+                return providerKey?.PrivateKey;
             }
             catch
             {
@@ -3636,20 +3637,35 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         {
             try
             {
-                // Try to get from OASIS DNA first
-                // TODO: Fix OASISDNA.OASIS.Storage access
-                // if (OASISDNA?.OASIS?.Storage?.NEAR?.PublicKey != null)
-                // {
-                //     return OASISDNA.OASIS.Storage.NEAR.PublicKey;
-                // }
+                // Try to get from KeyManager first
+                if (KeyManager.Instance != null)
+                {
+                    var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(
+                        Guid.Empty, // Use default avatar or get from context
+                        Core.Enums.ProviderType.NEAROASIS);
+                    
+                    if (keysResult != null && keysResult.Any() && !string.IsNullOrWhiteSpace(keysResult.First().PublicKey))
+                    {
+                        return keysResult.First().PublicKey;
+                    }
+                }
 
                 // Get from wallet manager
-                // TODO: Fix WalletManager.GetWalletAsync
-                // var walletResult = await WalletManager.GetWalletAsync();
-                // if (!walletResult.IsError && walletResult.Result != null)
-                // {
-                //     return walletResult.Result.PublicKey ?? await DerivePublicKeyFromPrivateKeyAsync(await GetPrivateKeyForAccountAsync(accountId));
-                // }
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
+                    Guid.Empty, // Use default avatar or get from context
+                    Core.Enums.ProviderType.NEAROASIS);
+                
+                if (!walletResult.IsError && walletResult.Result != null && !string.IsNullOrWhiteSpace(walletResult.Result.PublicKey))
+                {
+                    return walletResult.Result.PublicKey;
+                }
+
+                // Derive from private key if available
+                var privateKey = await GetPrivateKeyForAccountAsync(accountId);
+                if (!string.IsNullOrWhiteSpace(privateKey))
+                {
+                    return await DerivePublicKeyFromPrivateKeyAsync(privateKey);
+                }
 
                 // Generate new key pair if none exists
                 var keyPair = await GenerateNEARKeyPairAsync();
