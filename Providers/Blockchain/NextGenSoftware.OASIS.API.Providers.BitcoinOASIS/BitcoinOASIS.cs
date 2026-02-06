@@ -48,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         private readonly string _rpcEndpoint;
         private readonly string _network;
         private readonly string _privateKey;
+        private string _contractAddress;
         private bool _isActivated;
         private WalletManager _walletManager;
 
@@ -1675,7 +1676,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
@@ -1703,7 +1704,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
@@ -3024,7 +3025,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     {
                         TransactionId = string.Empty,
                         IsSuccessful = false,
-                        ErrorMessage = "Failed to create transaction",
+                        ErrorMessage = "Failed to create Bitcoin transaction",
                         Status = BridgeTransactionStatus.Canceled
                     };
                     OASISErrorHandling.HandleError(ref result, "Failed to create Bitcoin transaction");
@@ -3032,7 +3033,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
                 result.Result = new BridgeTransactionResponse
                 {
                     TransactionId = string.Empty,
@@ -3085,7 +3086,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     var txHash = resultElement.GetString();
                     result.Result = new BridgeTransactionResponse
                     {
-                        TransactionId = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N"),
+                        TransactionId = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{receiverAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N"),
                         IsSuccessful = true,
                         Status = BridgeTransactionStatus.Pending
                     };
@@ -3177,6 +3178,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         #endregion
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return Guid.Empty;
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
     }
 
     public class BitcoinTransactionResponse : ITransactionResponse

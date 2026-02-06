@@ -14,6 +14,7 @@ const metricsRoutes = require('./metricsRoutes');
 const healthRoutes = require('./healthRoutes');
 const webhookRoutes = require('./webhookRoutes');
 const watiRoutes = require('./watiRoutes');
+const oasisRoutes = require('./oasisRoutes');
 const authenticateUser = require('../middleware/authMiddleware.js');
 const authorizeUser = require('../middleware/authorizationMiddleware.js');
 const {
@@ -38,5 +39,6 @@ router.use('/api', driverSignalRoutes);
 router.use('/api/metrics', metricsRoutes);
 router.use('/api/admin', authorizeUser(['admin']), adminRoutes);
 router.use('/api', authenticateUser, uploadRoutes);
+router.use('/api/oasis', authenticateUser, oasisRoutes);
 
 module.exports = router;

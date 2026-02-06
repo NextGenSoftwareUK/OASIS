@@ -1,3 +1,6 @@
+// Fix for Node.js v25 compatibility - must be first
+require('./polyfill');
+
 require('dotenv').config({ path: './config/.env' });
 const express = require('express');
 const cors = require('cors');

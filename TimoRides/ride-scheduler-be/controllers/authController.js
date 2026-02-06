@@ -9,6 +9,7 @@ const fs = require('fs');
 const ejs = require('ejs');
 const appRoot = require('app-root-path');
 const sendConfirmationEmail = require('../utils/sendEmailUtil');
+const oasisService = require('../services/oasisService');
 
 const {
   generateAccessToken,
@@ -52,6 +53,26 @@ async function login(req, res) {
       ...exposeUserData
     } = user.toObject();
 
+    // Fetch OASIS Karma if avatar exists
+    let oasisData = null;
+    if (user.oasisAvatarId) {
+      try {
+        const karma = await oasisService.getAvatarKarma(user.oasisAvatarId);
+        oasisData = {
+          avatarId: user.oasisAvatarId,
+          karma: karma || user.oasisKarma || 0,
+          verified: user.oasisVerified || false,
+        };
+      } catch (error) {
+        console.error('Failed to fetch OASIS karma:', error.message);
+        oasisData = {
+          avatarId: user.oasisAvatarId,
+          karma: user.oasisKarma || 0,
+          verified: user.oasisVerified || false,
+        };
+      }
+    }
+
     // Return tokens to the client
     res.json({
       accessToken,
@@ -59,6 +80,7 @@ async function login(req, res) {
       id: _id,
       ...exposeUserData,
       wallet: parseFloat(exposeUserData.wallet.toString()),
+      oasis: oasisData,
     });
   } catch (error) {
     console.error('Error in login:', error);
@@ -143,6 +165,24 @@ async function signup(req, res) {
             });
 
       await newUser.save();
+
+      // Create OASIS avatar (async, don't block signup)
+      oasisService.getOrCreateAvatar({
+        email,
+        password,
+        fullName,
+        role: userType,
+      }).then(async (avatar) => {
+        if (avatar && avatar.id) {
+          newUser.oasisAvatarId = avatar.id;
+          newUser.oasisKarma = 0; // Start with 0 karma
+          newUser.oasisVerified = false; // Will be verified after email confirmation
+          await newUser.save();
+          console.log(`✅ OASIS avatar created for ${email}: ${avatar.id}`);
+        }
+      }).catch((error) => {
+        console.error('OASIS avatar creation failed (non-blocking):', error.message);
+      });
 
       //  Generate Token
       const verificationToken = generateVerificationToken(email);

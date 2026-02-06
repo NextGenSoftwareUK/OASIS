@@ -63,6 +63,15 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public bool IsVersionControlEnabled { get; set; }
 
+    private static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return Guid.Empty;
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
+    }
+
     //public Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
     //{
     //    this.ProviderName = "Web3CoreOASISBaseProvider";

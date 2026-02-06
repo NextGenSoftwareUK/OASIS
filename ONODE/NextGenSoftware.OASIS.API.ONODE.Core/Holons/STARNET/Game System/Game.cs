@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Objects.Game;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
     /// Represents a game in the STARNET system
     /// Games can be created, published, downloaded, and installed like other STARNET holons
     /// </summary>
-    public class Game : STARNETHolon, IGame, ISTARNETHolon
+    public class Game : STARNETHolon, NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons.IGame
     {
         public Game() : base("GameDNAJSON")
         {
@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public GameType GameType { get; set; }
 
         [CustomOASISProperty()]
-        public string Version { get; set; }
+        public string GameVersion { get; set; }
 
         [CustomOASISProperty()]
         public string Developer { get; set; }

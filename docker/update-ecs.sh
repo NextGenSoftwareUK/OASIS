@@ -82,11 +82,15 @@ NEW_TASK_DEF=$(echo $TASK_DEF | jq --arg IMAGE "$NEW_IMAGE" '.containerDefinitio
 
 # Register new task definition
 echo -e "${YELLOW}📋 Step 3: Registering new task definition...${NC}"
-NEW_TASK_DEF_ARN=$(echo $NEW_TASK_DEF | aws ecs register-task-definition \
+# Use temporary file to avoid JSON parsing issues with stdin
+TEMP_TASK_DEF="/tmp/new-task-def-$(date +%s).json"
+echo $NEW_TASK_DEF > $TEMP_TASK_DEF
+NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
     --region ${AWS_REGION} \
-    --cli-input-json file:///dev/stdin \
+    --cli-input-json file://$TEMP_TASK_DEF \
     --query 'taskDefinition.taskDefinitionArn' \
     --output text)
+rm -f $TEMP_TASK_DEF
 
 if [ -z "$NEW_TASK_DEF_ARN" ]; then
     echo -e "${RED}❌ Failed to register new task definition${NC}"

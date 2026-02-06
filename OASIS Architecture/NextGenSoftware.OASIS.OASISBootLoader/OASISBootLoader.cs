@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -1155,10 +1156,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             string rpcEndpoint = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.RpcEndpoint ?? "https://mainnet.base.org";
                             string chainPrivateKey = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.ChainPrivateKey ?? "";
                             string contractAddress = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.ContractAddress ?? "";
+                            string chainIdStr = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.ChainId ?? "8453";
+                            BigInteger chainId = chainIdStr.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+                                ? BigInteger.Parse(chainIdStr.Substring(2), NumberStyles.HexNumber)
+                                : BigInteger.Parse(chainIdStr, CultureInfo.InvariantCulture);
                             
                             LoggingManager.Log($"DEBUG: BaseOASIS config - RpcEndpoint: {rpcEndpoint}, ChainPrivateKey: {(string.IsNullOrEmpty(chainPrivateKey) ? "empty" : "set")}, ContractAddress: {(string.IsNullOrEmpty(contractAddress) ? "empty" : "set")}", LogType.Info);
                             
-                            var baseProvider = new BaseOASIS(rpcEndpoint, chainPrivateKey, contractAddress);
+                            var baseProvider = new BaseOASIS(rpcEndpoint, chainPrivateKey, chainId, contractAddress);
                             baseProvider.OnStorageProviderError += BaseOASIS_StorageProviderError;
                             result.Result = baseProvider;
                             LoggingManager.Log($"DEBUG: BaseOASIS created. ProviderType.Value = {baseProvider.ProviderType?.Value}, ProviderType.Name = {baseProvider.ProviderType?.Name}, result.Result is null = {result.Result == null}", LogType.Info);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     Title = $"Agent Reputation - {agentCard?.Name ?? agentId.ToString()}",
                     Description = description ?? $"Reputation NFT for agent with score: {reputationScore}",
                     ImageUrl = imageUrl ?? "https://oasisplatform.io/images/agent-reputation-nft.png",
-                    MetaData = metadata,
+                    MetaData = metadata != null ? new Dictionary<string, string>(metadata.ToDictionary(k => k.Key, v => v.Value?.ToString() ?? "")) : new Dictionary<string, string>(),
                     NumberToMint = 1,
                     StoreNFTMetaDataOnChain = false,
                     OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
@@ -158,7 +159,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     Title = $"Service Completion Certificate - {serviceName}",
                     Description = description ?? $"Certificate for completing service: {serviceName}",
                     ImageUrl = imageUrl ?? "https://oasisplatform.io/images/service-certificate-nft.png",
-                    MetaData = metadata,
+                    MetaData = metadata != null ? new Dictionary<string, string>(metadata.ToDictionary(k => k.Key, v => v.Value?.ToString() ?? "")) : new Dictionary<string, string>(),
                     NumberToMint = 1,
                     StoreNFTMetaDataOnChain = false,
                     OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
@@ -234,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     Title = $"Achievement Badge - {achievementName}",
                     Description = achievementDescription,
                     ImageUrl = imageUrl ?? "https://oasisplatform.io/images/achievement-badge-nft.png",
-                    MetaData = metadata,
+                    MetaData = metadata != null ? new Dictionary<string, string>(metadata.ToDictionary(k => k.Key, v => v.Value?.ToString() ?? "")) : new Dictionary<string, string>(),
                     NumberToMint = 1,
                     StoreNFTMetaDataOnChain = false,
                     OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
@@ -361,7 +362,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     ImageUrl = imageUrl,
                     Price = price,
                     Symbol = symbol ?? "AGENTNFT",
-                    MetaData = nftMetadata,
+                    MetaData = nftMetadata != null ? new Dictionary<string, string>(nftMetadata.ToDictionary(k => k.Key, v => v.Value?.ToString() ?? "")) : new Dictionary<string, string>(),
                     OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
                     OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                     SendToAvatarAfterMintingId = currentOwnerId.Value,

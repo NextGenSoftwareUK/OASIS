@@ -1009,7 +1009,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             // Delete avatar from Solana program
             // Real Solana implementation: Load avatar first to get provider key, then delete
-            var avatarResult = await LoadAvatarAsync(id, version);
+            var avatarResult = await LoadAvatarAsync(id);
             if (avatarResult.IsError || avatarResult.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, $"Avatar not found for deletion: {avatarResult.Message}");
@@ -1246,10 +1246,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                         try
                         {
                             // Parse account data to check if it's a holon with matching ID
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Length > 0)
+                            var accountDataString = GetAccountDataAsString(account.Account.Data);
+                            if (!string.IsNullOrEmpty(accountDataString))
                             {
-                                var accountDataString = Encoding.UTF8.GetString(accountData);
                                 var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
                                 
                                 if (holonDto != null && holonDto.Id == id)
@@ -1728,19 +1727,18 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                     {
                         try
                         {
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Length > 0)
+                            var accountDataString = GetAccountDataAsString(account.Account.Data);
+                            if (!string.IsNullOrEmpty(accountDataString))
                             {
-                                var accountDataString = Encoding.UTF8.GetString(accountData);
-                                
+                                var searchQuery = (searchParams?.SearchGroups?.FirstOrDefault() as SearchTextGroup)?.SearchQuery;
                                 // Try parsing as avatar
                                 try
                                 {
                                     var avatarDto = JsonConvert.DeserializeObject<SolanaAvatarDto>(accountDataString);
-                                    if (avatarDto != null && !string.IsNullOrEmpty(searchParams.SearchQuery))
+                                    if (avatarDto != null && !string.IsNullOrEmpty(searchQuery))
                                     {
-                                        if (avatarDto.UserName?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true ||
-                                            avatarDto.Email?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                                        if (avatarDto.UserName?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true ||
+                                            avatarDto.Email?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true)
                                         {
                                             var avatar = avatarDto.GetAvatar();
                                             if (avatar != null) matchingAvatars.Add(avatar);
@@ -1753,10 +1751,10 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 try
                                 {
                                     var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
-                                    if (holonDto != null && !string.IsNullOrEmpty(searchParams.SearchQuery))
+                                    if (holonDto != null && !string.IsNullOrEmpty(searchQuery))
                                     {
-                                        if (holonDto.Name?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true ||
-                                            holonDto.Description?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
+                                        if (holonDto.Name?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true ||
+                                            holonDto.Description?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true)
                                         {
                                             holonDto.PublicKey = account.PublicKey;
                                             holonDto.AccountInfo = account.Account;
@@ -1889,7 +1887,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
@@ -1940,7 +1938,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
@@ -2383,24 +2381,13 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                     {
                         try
                         {
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Length > 0)
+                            var accountDataString = GetAccountDataAsString(account.Account.Data);
+                            if (!string.IsNullOrEmpty(accountDataString))
                             {
-                                var accountDataString = Encoding.UTF8.GetString(accountData);
                                 var holonDto = JsonConvert.DeserializeObject<SolanaHolonDto>(accountDataString);
-                                
-                                if (holonDto != null && holonDto.CreatedByAvatarId == avatarId)
-                                {
-                                    holonDto.PublicKey = account.PublicKey;
-                                    holonDto.AccountInfo = account.Account;
-                                    holonDto.Lamports = account.Account.Lamports;
-                                    
-                                    var holon = holonDto.GetHolon();
-                                    if (holon != null)
-                                    {
-                                        holons.Add(holon);
-                                    }
-                                }
+                                var holon = holonDto?.GetHolon();
+                                if (holon != null && holon.CreatedByAvatarId == avatarId)
+                                    holons.Add(holon);
                             }
                         }
                         catch (Exception ex)
@@ -2890,10 +2877,11 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 = await _solanaService.MintNftAsync(transaction as MintWeb3NFTRequest);
 
             if (solanaNftTransactionResult.IsError ||
+                solanaNftTransactionResult.Result == null ||
                 string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
             {
                 OASISErrorHandling.HandleError(ref result,
-                    solanaNftTransactionResult.Message,
+                    solanaNftTransactionResult.Message ?? "Solana mint returned no result or transaction hash.",
                     solanaNftTransactionResult.Exception);
                 return result;
             }
@@ -3150,6 +3138,58 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
+    /// <summary>
+    /// Get SPL token balance for a wallet's associated token account (ATA) for a given mint.
+    /// Uses mainnet RPC when rpcUrl is provided; otherwise uses the provider's default RPC.
+    /// </summary>
+    /// <param name="walletAddress">Owner wallet public key (base58).</param>
+    /// <param name="mintAddress">Token mint public key (base58).</param>
+    /// <param name="rpcUrl">Optional RPC URL (e.g. mainnet); when null/empty uses default connection.</param>
+    /// <returns>Balance as decimal (amount / 10^decimals), or 0 if no ATA or error.</returns>
+    public async Task<OASISResult<decimal>> GetSplTokenBalanceAsync(string walletAddress, string mintAddress, string rpcUrl = null)
+    {
+        var result = new OASISResult<decimal>();
+        result.Result = 0;
+        if (string.IsNullOrWhiteSpace(walletAddress) || string.IsNullOrWhiteSpace(mintAddress))
+        {
+            OASISErrorHandling.HandleError(ref result, "Wallet address and mint address are required.");
+            return result;
+        }
+
+        try
+        {
+            var client = string.IsNullOrWhiteSpace(rpcUrl) ? _rpcClient : ClientFactory.GetClient(rpcUrl.Trim());
+            var ownerPubkey = new PublicKey(walletAddress.Trim());
+            var mintPubkey = new PublicKey(mintAddress.Trim());
+            var ata = DeriveAssociatedTokenAccount(ownerPubkey, mintPubkey);
+
+            var balanceResult = await client.GetTokenAccountBalanceAsync(ata).ConfigureAwait(false);
+            if (balanceResult.WasSuccessful && balanceResult.Result?.Value != null)
+            {
+                var val = balanceResult.Result.Value;
+                var amount = val.AmountUlong;
+                var decimals = val.Decimals;
+                result.Result = decimals > 0 ? (decimal)amount / (decimal)Math.Pow(10, decimals) : (decimal)amount;
+                result.IsError = false;
+            }
+            else if (!balanceResult.WasSuccessful && (balanceResult.Reason?.Contains("could not find") == true || balanceResult.Reason?.Contains("Account does not exist") == true))
+            {
+                result.Result = 0;
+                result.IsError = false;
+            }
+            else if (!balanceResult.WasSuccessful)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Token balance lookup failed: {balanceResult.Reason}");
+            }
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result, $"GetSplTokenBalanceAsync error: {e.Message}", e);
+        }
+
+        return result;
+    }
+
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
         string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
         int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
@@ -3181,25 +3221,20 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                     {
                         try
                         {
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Length > 0)
+                            var accountDataString = GetAccountDataAsString(account.Account.Data);
+                            if (!string.IsNullOrEmpty(accountDataString))
                             {
-                                var accountDataString = Encoding.UTF8.GetString(accountData);
                                 var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
-                                
                                 if (holonDto != null)
                                 {
                                     holonDto.PublicKey = account.PublicKey;
                                     holonDto.AccountInfo = account.Account;
                                     holonDto.Lamports = account.Account.Lamports;
-                                    
                                     var holon = holonDto.GetHolon();
-                                    if (holon != null && holon.MetaData != null && 
+                                    if (holon != null && holon.MetaData != null &&
                                         holon.MetaData.ContainsKey(metaKey) &&
                                         holon.MetaData[metaKey]?.ToString()?.Equals(metaValue, StringComparison.OrdinalIgnoreCase) == true)
-                                    {
                                         holons.Add(holon);
-                                    }
                                 }
                             }
                         }
@@ -3267,18 +3302,15 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                     {
                         try
                         {
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Length > 0)
+                            var accountDataString = GetAccountDataAsString(account.Account.Data);
+                            if (!string.IsNullOrEmpty(accountDataString))
                             {
-                                var accountDataString = Encoding.UTF8.GetString(accountData);
                                 var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
-                                
                                 if (holonDto != null)
                                 {
                                     holonDto.PublicKey = account.PublicKey;
                                     holonDto.AccountInfo = account.Account;
                                     holonDto.Lamports = account.Account.Lamports;
-                                    
                                     var holon = holonDto.GetHolon();
                                     if (holon != null && holon.MetaData != null)
                                     {
@@ -4595,19 +4627,36 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             return false;
         }
+    }
 
-        /// <summary>
-        /// Creates a deterministic GUID from input string using SHA-256 hash
-        /// </summary>
-        private static Guid CreateDeterministicGuid(string input)
+    /// <summary>
+    /// Converts Solana Account.Data (List&lt;string&gt; base64 or byte[]) to UTF-8 string.
+    /// </summary>
+    private static string GetAccountDataAsString(object data)
+    {
+        if (data == null) return null;
+        byte[] bytes = null;
+        if (data is List<string> list && list.Count > 0)
         {
-            if (string.IsNullOrWhiteSpace(input))
-                return Guid.Empty;
-
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return new Guid(bytes.Take(16).ToArray());
+            try { bytes = list.SelectMany(s => Convert.FromBase64String(s ?? "")).ToArray(); }
+            catch { return null; }
         }
+        else if (data is byte[] b && b.Length > 0)
+            bytes = b;
+        return bytes != null && bytes.Length > 0 ? Encoding.UTF8.GetString(bytes) : null;
+    }
+
+    /// <summary>
+    /// Creates a deterministic GUID from input string using SHA-256 hash
+    /// </summary>
+    private static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return Guid.Empty;
+
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
     }
     #endregion
 }

@@ -414,10 +414,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                         var nft = new Web3NFT
                         {
                             NFTTokenAddress = nftTokenAddress,
-                            Name = nftData.TryGetProperty("name", out var name) ? name.GetString() : "",
+                            Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "",
                             Description = nftData.TryGetProperty("description", out var desc) ? desc.GetString() : "",
-                            Image = nftData.TryGetProperty("image", out var img) ? img.GetString() : "",
-                            ExternalUrl = nftData.TryGetProperty("external_url", out var extUrl) ? extUrl.GetString() : ""
+                            ImageUrl = nftData.TryGetProperty("image", out var img) ? img.GetString() : ""
                         };
 
                         response.Result = nft;
@@ -1303,7 +1302,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                 if (softDelete)
                 {
                     // For soft delete, update the avatar with a deleted flag
-                    avatarResult.Result.IsDeleted = true;
                     avatarResult.Result.DeletedDate = DateTime.UtcNow;
                     var saveResult = await SaveAvatarAsync(avatarResult.Result);
                     response.Result = !saveResult.IsError;
@@ -1360,7 +1358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                 }
 
                 // First load the holon to return it
-                var loadResult = await LoadHolon(id, false, true, 0, false, false, 0);
+                var loadResult = await LoadHolonAsync(id, false, true, 0, false, false, 0);
                 if (loadResult.IsError || loadResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref response, $"Holon with ID {id} not found");
@@ -1982,7 +1980,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         {
             // Convert single metadata key-value pair to dictionary and delegate to the dictionary version
             var metaKeyValuePairs = new Dictionary<string, string> { { metaData, value } };
-            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.And, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.All, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)

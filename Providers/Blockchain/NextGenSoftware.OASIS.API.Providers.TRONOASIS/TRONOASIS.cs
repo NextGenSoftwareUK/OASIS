@@ -232,7 +232,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                 if (accountInfo != null)
                 {
-                    var avatar = ParseTRONToAvatar(accountInfo, CreateDeterministicGuid($"{ProviderType.Value}:{providerKey}"));
+                    var avatar = ParseTRONToAvatar(accountInfo, CreateDeterministicGuid($"{ProviderType.Value}:{avatarEmail}"));
                     if (avatar != null)
                     {
                         response.Result = avatar;
@@ -922,7 +922,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
             try
@@ -975,12 +975,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public async Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
             try
@@ -1012,7 +1012,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonByMetaDataAsync(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
@@ -1089,7 +1089,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -1123,7 +1123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonsForParentByCustomKeyAsync(customKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
@@ -1664,7 +1664,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
@@ -1715,7 +1715,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");

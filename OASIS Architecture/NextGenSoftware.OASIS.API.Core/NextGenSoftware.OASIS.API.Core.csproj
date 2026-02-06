@@ -59,6 +59,7 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj" />
   </ItemGroup>
 
   

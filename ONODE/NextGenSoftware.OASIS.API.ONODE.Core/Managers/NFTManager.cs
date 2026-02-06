@@ -3164,10 +3164,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 //Ensure MetaData is initialized in both request and web3Request
                 if (request.MetaData == null)
-                    request.MetaData = new Dictionary<string, object>();
+                    request.MetaData = new Dictionary<string, string>();
                 
                 if (web3Request.MetaData == null)
-                    web3Request.MetaData = new Dictionary<string, object>();
+                    web3Request.MetaData = new Dictionary<string, string>();
 
                 //Add web3 metadata to web4 (if any keys already exist then web3 overrides web4).
                 if (web3Request.NFTMetaDataMergeStrategy == NFTMetaDataMergeStrategy.Replace)
@@ -3890,13 +3890,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         IHolon webNFTHolon = null;
                         List<IWeb3NFT> newlyMintedNFTs = new List<IWeb3NFT>();
 
-                        //Temp remove the metadata so its not persisted on the Web4 NFT Holon.
-                        foreach (IWeb3NFT web3NFT in existingWeb4NFT.Web3NFTs)
+                        // Temp remove the metadata so its not persisted on the Web4 NFT Holon.
+                        // When existingWeb4NFT is null (new mint), use result.Result.Web3NFTs; otherwise use existingWeb4NFT.Web3NFTs.
+                        var web3List = existingWeb4NFT?.Web3NFTs ?? result.Result?.Web3NFTs;
+                        if (web3List != null)
                         {
-                            if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
+                            foreach (IWeb3NFT web3NFT in web3List)
                             {
-                                newlyMintedNFTs.Add(web3NFT);
-                                web3NFT.MetaData.Remove("{{{newnft}}}");
+                                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
+                                {
+                                    newlyMintedNFTs.Add(web3NFT);
+                                    web3NFT.MetaData.Remove("{{{newnft}}}");
+                                }
                             }
                         }
 
@@ -3921,17 +3926,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         //TODO: Do we want to still save the holon even if none of it's child web3 NFT's minted?!
                         if (result.SavedCount > 0)
                         {
-                            saveHolonResult = await Data.SaveHolonAsync(webNFTHolon, originalWeb4Request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
-
-                            if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            if (webNFTHolon != null)
                             {
-                                result.IsError = result.SavedCount == 0;
-                                result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
+                                saveHolonResult = await Data.SaveHolonAsync(webNFTHolon, originalWeb4Request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
+
+                                if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                                {
+                                    result.IsError = result.SavedCount == 0;
+                                    result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
+                                }
+                                else
+                                {
+                                    result.Result = null;
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB4 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                                }
                             }
                             else
                             {
-                                result.Result = null;
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB4 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                                result.IsError = result.SavedCount == 0;
+                                result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                             }
                         }
                         else
@@ -3940,7 +3953,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                         }
 
-                        result.Result.NewlyMintedWeb3NFTs = newlyMintedNFTs; //Used for returning the newly minted web3 nfts only (not persisted). Currently only used for the MintAndPlaceGeoNFT functions.
+                        if (result.Result != null)
+                            result.Result.NewlyMintedWeb3NFTs = newlyMintedNFTs; //Used for returning the newly minted web3 nfts only (not persisted). Currently only used for the MintAndPlaceGeoNFT functions.
                     }
                 }
                 else
@@ -3948,6 +3962,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} The ImageUrl is null!");
+
+            // Ensure we never return success with null result (e.g. mint failed or provider returned no data)
+            if (result.Result == null && !result.IsError)
+            {
+                result.IsError = true;
+                result.Message = string.IsNullOrEmpty(result.Message)
+                    ? "Mint did not complete. No NFT was created. Check that the NFT provider (e.g. Solana) is activated and has sufficient SOL for transaction fees, and that JSONMetaDataURL is valid."
+                    : result.Message;
+            }
 
             return result;
         }
@@ -4424,7 +4447,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             web3NFT.Tags = request.Tags;
             // Initialize MetaData if null
             if (web3NFT.MetaData == null)
-                web3NFT.MetaData = new Dictionary<string, object>();
+                web3NFT.MetaData = new Dictionary<string, string>();
 
             if (request.MetaData != null)
             {
@@ -4434,7 +4457,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
             }
 
-            web3NFT.MetaData["{{{newnft}}}"] = true;
+            web3NFT.MetaData["{{{newnft}}}"] = "true";
 
             return web3NFT;
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
@@ -224,7 +224,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");

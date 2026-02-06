@@ -1476,7 +1476,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     var avatarDetail = new AvatarDetail
                     {
                         // Use blockchain address if available (immutable), otherwise use a stable identifier based on provider key
-                        Id = CreateDeterministicGuid($"{this.ProviderType.Value}:avatarDetail:{providerKey ?? accountAddress}"),
+                        Id = CreateDeterministicGuid($"{this.ProviderType.Value}:avatarDetail:{accountAddress}"),
                         Username = $"ethereum_user_{avatarEmail.Split('@')[0]}",
                         Email = avatarEmail,
                         FirstName = "Ethereum",
@@ -3301,7 +3301,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var ethereumAddress = dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("account")?.ToString() ?? email;
                 var avatar = new Avatar
                 {
-                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{this.ProviderType.Value}:{ethereumAddress}"),
+                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.EthereumOASIS}:{ethereumAddress}"),
                     Username = dataDict.GetValueOrDefault("username")?.ToString() ?? $"ethereum_user_{email}",
                     Email = dataDict.GetValueOrDefault("email")?.ToString() ?? email,
                     FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "Ethereum",

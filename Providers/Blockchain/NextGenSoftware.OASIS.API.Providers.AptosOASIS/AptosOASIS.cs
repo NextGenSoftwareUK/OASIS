@@ -3723,7 +3723,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         {
                             request.FromWalletAddress,
                             request.ToWalletAddress,
-                            request.Web3NFTId?.ToString() ?? request.TokenId ?? CreateDeterministicGuid($"{ProviderType.Value}:nft:{request.FromWalletAddress}:{request.ToWalletAddress}").ToString(), // Use NFT ID from request
+                            request.TokenId ?? CreateDeterministicGuid($"{ProviderType.Value}:nft:{request.FromWalletAddress}:{request.ToWalletAddress}").ToString(), // Use token ID from request
                             "1" // quantity
                         }
                     };
@@ -3741,7 +3741,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
                         // Extract NFT ID and transaction hash from response
                         var txHash = transactionResult?.GetProperty("hash")?.GetString() ?? "";
-                        var nftIdStr = request.Web3NFTId?.ToString() ?? request.TokenId ?? "";
+                        var nftIdStr = request.TokenId ?? "";
                         Guid nftId;
                         if (!Guid.TryParse(nftIdStr, out nftId))
                         {
@@ -3753,12 +3753,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         response.Result = new Web3NFTTransactionResponse
                         {
                             TransactionResult = txHash,
-                            TransactionHash = txHash,
                             Web3NFT = new Web3NFT
                             {
                                 Id = nftId,
-                                TokenId = nftIdStr,
-                                Title = request.Web3NFT?.Title ?? "Transferred NFT"
+                                NFTTokenAddress = nftIdStr,
+                                Title = "Transferred NFT"
                             }
                         };
                         response.IsError = false;
@@ -3790,7 +3789,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
@@ -3922,7 +3921,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
