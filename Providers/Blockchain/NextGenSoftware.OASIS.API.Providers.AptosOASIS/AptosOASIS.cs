@@ -305,15 +305,84 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe(long latitude, long longitude, int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IPlayer>>();
-            OASISErrorHandling.HandleError(ref response, "GetPlayersNearMe is not supported by Aptos blockchain provider");
-            return response;
+            // Players are avatars, so get avatars and convert to players
+            var avatarsResult = GetAvatarsNearMe(latitude, longitude, version);
+            if (avatarsResult.IsError || avatarsResult.Result == null)
+            {
+                return new OASISResult<IEnumerable<IPlayer>>
+                {
+                    IsError = avatarsResult.IsError,
+                    Message = avatarsResult.Message
+                };
+            }
+            
+            // Convert avatars to players
+            var players = avatarsResult.Result.Where(a => a is IPlayer).Cast<IPlayer>().ToList();
+            return new OASISResult<IEnumerable<IPlayer>>
+            {
+                Result = players,
+                IsError = false,
+                Message = $"Found {players.Count} players near location"
+            };
         }
 
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long latitude, long longitude, int version = 0, HolonType holonType = HolonType.All)
         {
+            return GetHolonsNearMeAsync(latitude, longitude, holonType, version).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(long latitude, long longitude, HolonType type, int version = 0)
+        {
             var response = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref response, "GetHolonsNearMe is not supported by Aptos blockchain provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load all holons and filter by geospatial distance
+                var allHolonsResult = await LoadAllHolonsAsync(type, version);
+                if (allHolonsResult.IsError || allHolonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons: {allHolonsResult.Message}");
+                    return response;
+                }
+
+                // Filter holons by geospatial distance (using metadata for location)
+                var nearbyHolons = new List<IHolon>();
+                var centerLat = latitude / 1000000.0; // Convert from microdegrees to degrees
+                var centerLon = longitude / 1000000.0;
+                const int radiusInMeters = 10000; // Default 10km radius
+
+                foreach (var holon in allHolonsResult.Result)
+                {
+                    if (holon.MetaData != null && 
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lonObj))
+                    {
+                        if (double.TryParse(latObj?.ToString(), out var holonLat) &&
+                            double.TryParse(lonObj?.ToString(), out var holonLon))
+                        {
+                            var distance = GeoHelper.CalculateDistance(centerLat, centerLon, holonLat, holonLon);
+                            if (distance <= radiusInMeters)
+                            {
+                                nearbyHolons.Add(holon);
+                            }
+                        }
+                    }
+                }
+
+                response.Result = nearbyHolons;
+                response.IsError = false;
+                response.Message = $"Found {nearbyHolons.Count} holons near location";
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error getting holons near location: {ex.Message}");
+            }
             return response;
         }
 
