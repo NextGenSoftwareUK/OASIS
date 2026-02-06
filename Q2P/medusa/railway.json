@@ -1,0 +1,9 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "buildCommand": "pnpm install && NODE_ENV=production pnpm run build && cd .medusa/server && pnpm install --prod"
+  },
+  "deploy": {
+    "startCommand": "pnpm run start"
+  }
+}
