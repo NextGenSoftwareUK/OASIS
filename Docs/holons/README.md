@@ -10,6 +10,7 @@ This folder contains all documentation related to OASIS's holonic architectureâ€
 
 | Document | Description |
 |----------|-------------|
+| **[HOLONIC_ARCHITECTURE_WHITEPAPER.md](./HOLONIC_ARCHITECTURE_WHITEPAPER.md)** | **Academic whitepaper (peer-review style): holon model, Web2/Web3, interoperability, persistence, scalability, inference use; code-grounded; for integration (e.g. Hitchhikers)** |
 | [HOLONIC_ARCHITECTURE_OVERVIEW.md](./HOLONIC_ARCHITECTURE_OVERVIEW.md) | Core technical overview of holonic architecture |
 | [HOLONIC_EFFICIENCY_ANALYSIS.md](./HOLONIC_EFFICIENCY_ANALYSIS.md) | Quantitative efficiency analysis at scale |
 | [HOLONIC_ARCHITECTURE_SAVINGS_STATISTICS.md](./HOLONIC_ARCHITECTURE_SAVINGS_STATISTICS.md) | Cost savings statistics and comparisons |

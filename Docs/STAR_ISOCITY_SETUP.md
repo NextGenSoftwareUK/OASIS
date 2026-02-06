@@ -66,6 +66,20 @@ IsoCity runs without STAR; save/load uses browser local storage by default.
 
 ---
 
+## 4.1 Implemented in OASIS_CLEAN/IsoCity
+
+The STAR adapter is implemented in the cloned IsoCity under `IsoCity/`:
+
+- **`src/lib/starClient.ts`** — STAR API client.
+- **GameContext** — List/save/load branch to STAR when `?onode=...&token=...` (or env) present; `createNewStarCity()` creates a world and starts empty city.
+- **Settings panel** — "Saved Cities (OASIS)" and "New OASIS city" when STAR config present.
+
+**Run with STAR:** Start ONODE, get JWT from `POST /api/avatar/authenticate`, then open IsoCity with  
+`http://localhost:3000?onode=http://localhost:5003&token=YOUR_JWT`  
+and use Settings → Saved Cities (OASIS).
+
+---
+
 ## 5. Launcher (minimal)
 
 1. User logs in: `POST /api/avatar/authenticate` → JWT + avatar id.

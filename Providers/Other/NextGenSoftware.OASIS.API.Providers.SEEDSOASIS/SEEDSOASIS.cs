@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
@@ -79,6 +79,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
                 return _keyManager;
             }
+        }
+
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         public SEEDSOASIS(TelosOASIS.TelosOASIS telosOASIS)

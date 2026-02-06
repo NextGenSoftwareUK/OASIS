@@ -75,7 +75,7 @@ Existing today:
 
 ---
 
-### Phase 2: Smoother UX and ownership model
+### Phase 2: Smoother UX and ownership model (done)
 
 - **World–avatar association:** Ensure every world holon is stored with a clear “owner” (e.g. `CreatedByAvatarId` or parent to avatar’s “worlds” holon) so “my worlds” is a simple query.
 - **Naming:** Let user rename a city (update world holon `name` via Data API or `PATCH /api/world/{id}`).

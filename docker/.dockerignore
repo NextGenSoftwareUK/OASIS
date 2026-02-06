@@ -173,3 +173,5 @@ coverage/
 # Exclude holochain-client-csharp (not needed for ONODE WebAPI)
 holochain-client-csharp/
 
+# Exclude Holochain provider (has dependencies on holochain-client-csharp)
+Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/

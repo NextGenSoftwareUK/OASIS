@@ -61,6 +61,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions>(
                 Configuration.GetSection(NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions.SectionName));
             services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ITokenMetadataByMintService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TokenMetadataByMintService>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ISolanaSplTokenBalanceService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SolanaSplTokenBalanceService>();
             services.AddSingleton<TelegramNftMintFlowService>();
             services.AddSingleton<WorldService>();
             services.AddSingleton<ISubscriptionStore, SubscriptionStoreMongoDb>();

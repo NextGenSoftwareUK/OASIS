@@ -706,10 +706,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet("get-avatar-detail-by-id/{id:guid}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id)
         {
+            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
         }
 
@@ -722,7 +724,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet("get-avatar-detail-by-id/{id:guid}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id, ProviderType providerType, bool setGlobally = false)
         {
