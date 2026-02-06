@@ -30,6 +30,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Utilities;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using Newtonsoft.Json;
 using NextGenSoftware.Utilities.ExtentionMethods;
 using System.Linq;
@@ -1473,7 +1474,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                         break;
                 }
 
-                //TODO: Need to apply this to Mongo & IPFS, etc too...
+                // Note: Child saving logic is provider-specific. For cross-provider persistence, use ProviderManager to save to multiple providers.
                 if ((saveChildren && !recursive && currentChildDepth == 0) || saveChildren && recursive &&
                     currentChildDepth >= 0 &&
                     (maxChildDepth == 0 || (maxChildDepth > 0 && currentChildDepth <= maxChildDepth)))
@@ -2620,41 +2621,233 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return ExportAllAsync(version).Result;
     }
 
-    //OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId,
-    //    Guid toAvatarId, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    {
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
+    }
 
-    //Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTransactionByIdAsync(
-    //    Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        var errorMessageTemplate = "Error occurred in SendTransactionByIdAsync (with token) method in SolanaOASIS while sending transaction. Reason: ";
 
-    //Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(
-    //    string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+        try
+        {
+            // Get wallet addresses for avatars
+            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.SolanaOASIS);
+            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.SolanaOASIS);
 
-    //OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendTransactionByUsername(
-    //    string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+            if (fromWalletResult.IsError || toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                return result;
+            }
 
-    //Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(
-    //    string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+            // If token is provided, use SPL token transfer; otherwise use native SOL transfer
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                // Use SPL token transfer via TokenProgram
+                var fromPublicKey = new PublicKey(fromWalletResult.Result.WalletAddress);
+                var toPublicKey = new PublicKey(toWalletResult.Result.WalletAddress);
+                var tokenMint = new PublicKey(token);
+                
+                // Convert amount to lamports (SPL tokens use their own decimals, but we'll use 9 for consistency)
+                var tokenAmount = (ulong)(amount * 1_000_000_000m);
+                
+                // Get associated token accounts
+                var fromTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPublicKey, tokenMint);
+                var toTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPublicKey, tokenMint);
+                
+                // Build token transfer transaction
+                var blockHashResult = await _rpcClient.GetLatestBlockHashAsync();
+                if (!blockHashResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get latest block hash: {blockHashResult.Reason}");
+                    return result;
+                }
+                
+                var transferInstruction = TokenProgram.Transfer(
+                    fromTokenAccount,
+                    toTokenAccount,
+                    tokenAmount,
+                    fromPublicKey);
+                
+                byte[] tx = new TransactionBuilder()
+                    .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                    .SetFeePayer(fromPublicKey)
+                    .AddInstruction(transferInstruction)
+                    .Build(_oasisSolanaAccount);
+                
+                var sendResult = await _rpcClient.SendTransactionAsync(tx);
+                if (!sendResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction: {sendResult.Reason}");
+                    return result;
+                }
+                
+                result.Result = new TransactionResponse { TransactionResult = sendResult.Result };
+                result.IsError = false;
+                result.Message = "Token transaction sent successfully";
+            }
+            else
+            {
+                // Use native SOL transfer (delegate to existing method)
+                result = await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessageTemplate}{ex.Message}", ex);
+        }
+        
+        return result;
+    }
 
-    //OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail,
-    //    string toAvatarEmail, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        var errorMessageTemplate = "Error occurred in SendTransactionByUsernameAsync (with token) method in SolanaOASIS while sending transaction. Reason: ";
+
+        try
+        {
+            // Get wallet addresses for avatars by username
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, fromAvatarUsername);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, toAvatarUsername);
+
+            if (string.IsNullOrWhiteSpace(fromWalletResult) || string.IsNullOrWhiteSpace(toWalletResult))
+            {
+                OASISErrorHandling.HandleError(ref result, "Error getting wallet addresses for avatars");
+                return result;
+            }
+
+            // If token is provided, use SPL token transfer; otherwise use native SOL transfer
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                var fromPublicKey = new PublicKey(fromWalletResult);
+                var toPublicKey = new PublicKey(toWalletResult);
+                var tokenMint = new PublicKey(token);
+                var tokenAmount = (ulong)(amount * 1_000_000_000m);
+                
+                var fromTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPublicKey, tokenMint);
+                var toTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPublicKey, tokenMint);
+                
+                var blockHashResult = await _rpcClient.GetLatestBlockHashAsync();
+                if (!blockHashResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get latest block hash: {blockHashResult.Reason}");
+                    return result;
+                }
+                
+                var transferInstruction = TokenProgram.Transfer(fromTokenAccount, toTokenAccount, tokenAmount, fromPublicKey);
+                
+                byte[] tx = new TransactionBuilder()
+                    .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                    .SetFeePayer(fromPublicKey)
+                    .AddInstruction(transferInstruction)
+                    .Build(_oasisSolanaAccount);
+                
+                var sendResult = await _rpcClient.SendTransactionAsync(tx);
+                if (!sendResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction: {sendResult.Reason}");
+                    return result;
+                }
+                
+                result.Result = new TransactionResponse { TransactionResult = sendResult.Result };
+                result.IsError = false;
+                result.Message = "Token transaction sent successfully";
+            }
+            else
+            {
+                // Use native SOL transfer (delegate to existing method)
+                result = await SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount);
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessageTemplate}{ex.Message}", ex);
+        }
+        
+        return result;
+    }
+
+    public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    {
+        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
+    }
+
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        var errorMessageTemplate = "Error occurred in SendTransactionByEmailAsync (with token) method in SolanaOASIS while sending transaction. Reason: ";
+
+        try
+        {
+            // Get wallet addresses for avatars by email
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, fromAvatarEmail);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, toAvatarEmail);
+
+            if (string.IsNullOrWhiteSpace(fromWalletResult) || string.IsNullOrWhiteSpace(toWalletResult))
+            {
+                OASISErrorHandling.HandleError(ref result, "Error getting wallet addresses for avatars");
+                return result;
+            }
+
+            // If token is provided, use SPL token transfer; otherwise use native SOL transfer
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                var fromPublicKey = new PublicKey(fromWalletResult);
+                var toPublicKey = new PublicKey(toWalletResult);
+                var tokenMint = new PublicKey(token);
+                var tokenAmount = (ulong)(amount * 1_000_000_000m);
+                
+                var fromTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPublicKey, tokenMint);
+                var toTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPublicKey, tokenMint);
+                
+                var blockHashResult = await _rpcClient.GetLatestBlockHashAsync();
+                if (!blockHashResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get latest block hash: {blockHashResult.Reason}");
+                    return result;
+                }
+                
+                var transferInstruction = TokenProgram.Transfer(fromTokenAccount, toTokenAccount, tokenAmount, fromPublicKey);
+                
+                byte[] tx = new TransactionBuilder()
+                    .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                    .SetFeePayer(fromPublicKey)
+                    .AddInstruction(transferInstruction)
+                    .Build(_oasisSolanaAccount);
+                
+                var sendResult = await _rpcClient.SendTransactionAsync(tx);
+                if (!sendResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction: {sendResult.Reason}");
+                    return result;
+                }
+                
+                result.Result = new TransactionResponse { TransactionResult = sendResult.Result };
+                result.IsError = false;
+                result.Message = "Token transaction sent successfully";
+            }
+            else
+            {
+                // Use native SOL transfer (delegate to existing method)
+                result = await SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount);
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessageTemplate}{ex.Message}", ex);
+        }
+        
+        return result;
+    }
+
+    public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    {
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
+    }
 
     public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest transation)
     {
@@ -3940,7 +4133,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             var lockRequest = new LockWeb3TokenRequest
             {
                 FromWalletPrivateKey = senderPrivateKey,
-                FromWalletAddress = senderAccountAddress, //TODO: Needed?
+                FromWalletAddress = senderAccountAddress, // Required for transaction tracking and validation
                 Amount = amount,
                 TokenAddress = string.Empty // Empty for native SOL
             };
