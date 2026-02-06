@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -139,6 +139,15 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         _chainId = chainId;
         _contractAddress = contractAddress;
         _httpClient = new HttpClient();
+    }
+
+    private static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return Guid.Empty;
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
     }
 
     public bool IsVersionControlEnabled { get; set; }
@@ -822,7 +831,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
@@ -3985,17 +3994,4 @@ file static class AvalancheContractHelper
             return new Web3NFT();
         }
     }
-
-        /// <summary>
-        /// Creates a deterministic GUID from input string using SHA-256 hash
-        /// </summary>
-        private static Guid CreateDeterministicGuid(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-                return Guid.Empty;
-
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return new Guid(bytes.Take(16).ToArray());
-        }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -2782,7 +2782,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             var content = await nftData.Content.ReadAsStringAsync();
-            var nft = ParseBaseToNFT(content);
+            var nft = ParseBaseToNFT(content, ProviderType.Value);
             result.Result = nft;
             result.IsError = false;
             result.Message = "NFT data loaded successfully from Base";
@@ -3418,9 +3418,9 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             
             // Get wallet address from avatar ID if available, otherwise use a default
             var unlockedToWalletAddress = "";
-            if (request.LockedByAvatarId != Guid.Empty)
+            if (request.UnlockedByAvatarId != Guid.Empty)
             {
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, ProviderType, request.LockedByAvatarId);
+                var walletResult = await NextGenSoftware.OASIS.API.Core.Helpers.WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, ProviderType.Value, request.UnlockedByAvatarId);
                 if (!walletResult.IsError && !string.IsNullOrWhiteSpace(walletResult.Result))
                 {
                     unlockedToWalletAddress = walletResult.Result;
@@ -3896,7 +3896,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         }
     }
 
-    private static IWeb3NFT ParseBaseToNFT(string content)
+    private static IWeb3NFT ParseBaseToNFT(string content, Core.Enums.ProviderType providerType)
     {
         try
         {
@@ -3905,7 +3905,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var tokenAddress = jsonElement.TryGetProperty("tokenAddress", out var ta) ? ta.GetString() : jsonElement.TryGetProperty("address", out var addr) ? addr.GetString() : "unknown";
             return new Web3NFT
             {
-                Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{tokenAddress}"),
+                Id = CreateDeterministicGuid($"{providerType}:nft:{tokenAddress}"),
                 Title = jsonElement.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Base NFT",
                 Description = jsonElement.TryGetProperty("description", out var descElement) ? descElement.GetString() : "Base NFT Description",
                 ImageUrl = jsonElement.TryGetProperty("imageUrl", out var imageElement) ? imageElement.GetString() : "",
@@ -3925,7 +3925,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             Console.WriteLine($"Error parsing Base NFT: {ex.Message}");
             return new Web3NFT
             {
-                Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:error"),
+                Id = CreateDeterministicGuid($"{providerType}:nft:error"),
                 Title = "Base NFT",
                 Description = "Base NFT Description",
                 ImageUrl = "",
@@ -3940,6 +3940,15 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 }
             };
         }
+    }
+
+    private static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return Guid.Empty;
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
     }
 
     #endregion
@@ -3995,20 +4004,6 @@ file sealed class HolonInfo
     [Parameter("string", "Info", 3)]
     public string Info { get; set; }
 }
-
-        /// <summary>
-        /// Creates a deterministic GUID from input string using SHA-256 hash
-        /// </summary>
-        private static Guid CreateDeterministicGuid(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-                return Guid.Empty;
-
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return new Guid(bytes.Take(16).ToArray());
-        }
-    }
 
 file static class BaseContractHelper
 {

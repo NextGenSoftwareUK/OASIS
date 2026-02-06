@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -1234,7 +1234,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
@@ -1285,7 +1285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
@@ -2891,7 +2891,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         {
                             var transaction = new WalletTransaction
                             {
-                                TransactionId = txElement.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:tx:{txElement.TryGetProperty("hash", out var hash) ? hash.GetString() : txElement.TryGetProperty("from", out var from) ? from.GetString() : "unknown"}"),
+                                TransactionId = txElement.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:tx:{(txElement.TryGetProperty("hash", out var hash) ? hash.GetString() : (txElement.TryGetProperty("from", out var fromVal) ? fromVal.GetString() : "unknown"))}"),
                                 FromWalletAddress = txElement.TryGetProperty("from", out var from) ? from.GetString() : "",
                                 ToWalletAddress = txElement.TryGetProperty("to", out var to) ? to.GetString() : "",
                                 Amount = txElement.TryGetProperty("amount", out var amount) ? (double)amount.GetDecimal() : 0.0,

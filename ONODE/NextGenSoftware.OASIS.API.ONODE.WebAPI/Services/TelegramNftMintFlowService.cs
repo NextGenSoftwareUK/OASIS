@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -22,10 +24,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     /// <summary>
     /// Handles the NFT mint wizard flow inside Telegram: /mint → image → title → symbol → description → wallet → confirm → mint.
+    /// State is keyed by (chatId, userId) so multiple users in a group can each run their own flow. In groups we never ask for password (DM only).
     /// </summary>
     public class TelegramNftMintFlowService
     {
-        private readonly ConcurrentDictionary<long, NftMintFlowState> _state = new ConcurrentDictionary<long, NftMintFlowState>();
+        private readonly ConcurrentDictionary<(long ChatId, long UserId), NftMintFlowState> _state = new ConcurrentDictionary<(long, long), NftMintFlowState>();
+        /// <summary>Telegram user id → OASIS avatar id. Set when user logs in via DM; used so they can mint as their avatar in groups without typing password.</summary>
+        private readonly ConcurrentDictionary<long, Guid> _userIdToAvatarId = new ConcurrentDictionary<long, Guid>();
         private readonly HttpClient _httpClient;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ITokenMetadataByMintService _tokenMetadataByMintService;
@@ -62,25 +67,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
             var chatId = update.Message.Chat.Id;
             var user = update.Message.From;
+            var chat = update.Message.Chat;
             var text = (update.Message.Text ?? "").Trim();
             var hasPhoto = update.Message.Photo != null && update.Message.Photo.Count > 0;
             var hasDocument = update.Message.Document != null && IsImageOrGifDocument(update.Message.Document);
             var hasAnimation = update.Message.Animation != null;
 
+            var stateKey = StateKey(chatId, user?.Id);
+            var isGroup = IsGroupChat(chat);
+
             // Commands
             if (text.Equals("/mint", StringComparison.OrdinalIgnoreCase) || text.Equals("/start mint", StringComparison.OrdinalIgnoreCase))
             {
                 StartFlow(chatId, user?.Id);
+                // Pre-auth: if they logged in before in a private chat, use cached avatar so they can complete in group without password
+                if (user?.Id != null && _userIdToAvatarId.TryGetValue(user.Id, out var cachedAvatarId) && _state.TryGetValue(stateKey, out var newState))
+                {
+                    newState.UserAvatarId = cachedAvatarId;
+                    newState.Step = NftMintFlowStep.Image;
+                    return "✅ You're logged in.\n\n🎨 Send a **photo** or **GIF**, or paste a **Solscan token URL** or **mint address** to use that token's image and metadata. Type `skip` for a placeholder.\n\nType /logout to mint as the bot instead.";
+                }
+                if (isGroup)
+                    return "🔐 **OASIS login** (optional)\n\nIn groups you can type `skip` to mint as the bot.\nTo mint as your OASIS avatar, open me in a **private chat** (tap my name → Start) and log in there first; then you can /mint here as your avatar.\n\nType /cancel anytime to cancel.";
                 return "🔐 **OASIS login** (optional)\n\nSend your OASIS **username** to mint as your avatar, or type `skip` to mint as the bot.\n\nType /cancel anytime to cancel.";
+            }
+
+            if (text.Equals("/logout", StringComparison.OrdinalIgnoreCase))
+            {
+                if (user?.Id != null)
+                    _userIdToAvatarId.TryRemove(user.Id, out _);
+                ClearFlow(chatId, user?.Id);
+                return "Logged out. Use /mint to start again.";
             }
 
             if (text.Equals("/cancel", StringComparison.OrdinalIgnoreCase))
             {
-                ClearFlow(chatId);
+                ClearFlow(chatId, user?.Id);
                 return "Cancelled.";
             }
 
-            if (!_state.TryGetValue(chatId, out var state))
+            if (!_state.TryGetValue(stateKey, out var state))
                 return "Use /mint to start creating an NFT.";
 
             // Step: OASIS login (username)
@@ -89,19 +115,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 if (text.Equals("skip", StringComparison.OrdinalIgnoreCase))
                 {
                     state.UserAvatarId = null;
-                state.Step = NftMintFlowStep.Image;
-                return "🎨 **Create NFT**\n\nSend a **photo** or **GIF**, or paste a **Solscan token URL** (e.g. https://solscan.io/token/...) or **mint address** to use that token's image and metadata.\n\nType `skip` for a placeholder.";
+                    state.Step = NftMintFlowStep.Image;
+                    return "🎨 **Create NFT**\n\nSend a **photo** or **GIF**, or paste a **Solscan token URL** (e.g. https://solscan.io/token/...) or **mint address** to use that token's image and metadata.\n\nType `skip` for a placeholder.";
                 }
                 if (string.IsNullOrWhiteSpace(text))
                     return "Send your OASIS **username**, or type `skip` to mint as the bot.";
+                // In groups we never ask for password (everyone can see messages)
+                if (isGroup)
+                    return "To mint as your OASIS avatar, open me in a **private chat** (tap my name → Start) and log in there. Here, type `skip` to mint as the bot.";
                 state.OasisUsername = text.Trim();
                 state.Step = NftMintFlowStep.OasisPassword;
                 return "Send your OASIS **password** (you can type `skip` in the previous step next time to mint as the bot).";
             }
 
-            // Step: OASIS password
+            // Step: OASIS password (only in private chat; in group we should not be here)
             if (state.Step == NftMintFlowStep.OasisPassword)
             {
+                if (isGroup)
+                    return "For security, don't send your password here. Open me in a **private chat** to log in. Here, type /cancel then `skip` to mint as the bot.";
                 if (string.IsNullOrWhiteSpace(text))
                     return "Please send your OASIS **password**.";
                 var authResult = await Program.AvatarManager.AuthenticateAsync(
@@ -122,7 +153,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 state.UserAvatarId = authResult.Result.Id;
                 state.OasisUsername = null; // clear from state after use
                 state.Step = NftMintFlowStep.Image;
-                return "✅ Logged in as your OASIS avatar.\n\n🎨 Send a **photo** or **GIF**, or paste a **Solscan token URL** or **mint address** to use that token's image and metadata. Type `skip` for a placeholder.";
+                // Cache so they can /mint in groups as their avatar without typing password again
+                if (user?.Id != null)
+                    _userIdToAvatarId[user.Id] = authResult.Result.Id;
+                return "✅ Logged in as your OASIS avatar. You can now use /mint in groups as your avatar too (no password needed there).\n\n🎨 Send a **photo** or **GIF**, or paste a **Solscan token URL** or **mint address** to use that token's image and metadata. Type `skip` for a placeholder.";
             }
 
             // Step: Image
@@ -239,7 +273,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 await SendMessageAsync(chatId, "📤 **Uploading metadata to IPFS...**").ConfigureAwait(false);
                 await SendMintingMessageAsync(chatId).ConfigureAwait(false);
                 var result = await MintNftAsync(state).ConfigureAwait(false);
-                ClearFlow(chatId);
+                ClearFlow(chatId, user?.Id);
                 return result;
             }
 
@@ -266,14 +300,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return null;
         }
 
-        private void StartFlow(long chatId, long? userId)
+        private static (long, long) StateKey(long chatId, long? userId)
         {
-            _state[chatId] = new NftMintFlowState { ChatId = chatId, UserId = userId, Step = NftMintFlowStep.OasisLogin };
+            // Private chat: chatId equals user id. Group: chatId is group id, userId is sender.
+            return (chatId, userId ?? chatId);
         }
 
-        private void ClearFlow(long chatId)
+        private static bool IsGroupChat(TelegramChat chat)
         {
-            _state.TryRemove(chatId, out _);
+            return chat?.Type == "group" || chat?.Type == "supergroup";
+        }
+
+        private void StartFlow(long chatId, long? userId)
+        {
+            var key = StateKey(chatId, userId);
+            _state[key] = new NftMintFlowState { ChatId = chatId, UserId = userId, Step = NftMintFlowStep.OasisLogin };
+        }
+
+        private void ClearFlow(long chatId, long? userId)
+        {
+            _state.TryRemove(StateKey(chatId, userId), out _);
         }
 
         private async Task<(string url, string contentType)> DownloadPhotoAndUploadToPinataAsync(System.Collections.Generic.List<TelegramPhotoSize> photoSizes, long chatId)
@@ -544,7 +590,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 StoreNFTMetaDataOnChain = false,
                 WaitTillNFTMinted = true,
                 WaitTillNFTSent = true,
-                MetaData = state.MetaData
+                MetaData = state.MetaData != null ? new Dictionary<string, string>(state.MetaData.ToDictionary(k => k.Key, v => v.Value?.ToString() ?? "")) : new Dictionary<string, string>()
             };
 
             try

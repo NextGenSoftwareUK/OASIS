@@ -1,6 +1,8 @@
 const Booking = require('../models/bookingModal');
 const GlobalSettings = require('../models/globalSettingsModal');
 const { recordAuditLog } = require('./auditLogService');
+const oasisService = require('./oasisService');
+const Driver = require('../models/driverModel');
 
 const PAYMENT_METHODS = ['cash', 'wallet', 'card', 'mobile_money'];
 const PAYMENT_TRANSITIONS = {
@@ -162,6 +164,29 @@ async function acceptBooking(bookingId, driverId, meta = {}) {
   booking.trxId = meta.trxId || booking.trxId;
 
   await booking.save();
+
+  // Award small Karma for accepting ride (async, non-blocking)
+  try {
+    const Driver = require('../models/driverModel');
+    const driver = await Driver.findById(driverId);
+    if (driver && driver.oasisAvatarId) {
+      const karmaDelta = 2; // Award 2 Karma points for accepting a ride
+      oasisService.updateAvatarKarma(
+        driver.oasisAvatarId,
+        karmaDelta,
+        `Accepted ride: ${booking.trxId || booking.id}`
+      ).then(async (result) => {
+        if (result) {
+          driver.oasisKarma = (driver.oasisKarma || 0) + karmaDelta;
+          await driver.save();
+        }
+      }).catch((error) => {
+        console.error('OASIS Karma update failed (non-blocking):', error.message);
+      });
+    }
+  } catch (error) {
+    // Non-blocking
+  }
   await recordAuditLog({
     booking: { id: booking.id, status: booking.status },
     action: 'booking.accepted',
@@ -256,6 +281,32 @@ async function completeRide(bookingId, driverId, options = {}) {
   });
 
   await booking.save();
+
+  // Update OASIS Karma for driver (async, non-blocking)
+  try {
+    const driver = await Driver.findById(driverId);
+    if (driver && driver.oasisAvatarId) {
+      const karmaDelta = 5; // Award 5 Karma points for completing a ride
+      oasisService.updateAvatarKarma(
+        driver.oasisAvatarId,
+        karmaDelta,
+        `Completed ride: ${booking.trxId || booking.id}`
+      ).then(async (result) => {
+        if (result) {
+          // Update local Karma cache
+          driver.oasisKarma = (driver.oasisKarma || 0) + karmaDelta;
+          await driver.save();
+          console.log(`✅ OASIS Karma updated for driver ${driverId}: +${karmaDelta} (Total: ${driver.oasisKarma})`);
+        }
+      }).catch((error) => {
+        console.error('OASIS Karma update failed (non-blocking):', error.message);
+      });
+    }
+  } catch (error) {
+    console.error('Error updating OASIS Karma:', error.message);
+    // Non-blocking, continue with ride completion
+  }
+
   await recordAuditLog({
     booking: { id: booking.id, status: booking.status },
     action: 'booking.completed',

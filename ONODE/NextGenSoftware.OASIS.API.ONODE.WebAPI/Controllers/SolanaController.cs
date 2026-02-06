@@ -1,8 +1,11 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
@@ -17,10 +20,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class SolanaController : OASISControllerBase
     {
         private readonly ISolanaService _solanaService;
+        private readonly ISolanaSplTokenBalanceService _splTokenBalanceService;
 
-        public SolanaController(ISolanaService solanaService)
+        public SolanaController(ISolanaService solanaService, ISolanaSplTokenBalanceService splTokenBalanceService)
         {
             _solanaService = solanaService;
+            _splTokenBalanceService = splTokenBalanceService;
         }
 
         /// <summary>
@@ -46,6 +51,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<SendTransactionResult>> SendTransaction([FromBody] SendTransactionRequest request)
         {
             return await _solanaService.SendTransaction(request);
+        }
+
+        /// <summary>
+        /// Get SPL token balance for a wallet's associated token account (ATA) for a given mint.
+        /// Uses mainnet RPC when configured in OASIS_DNA (SolanaOASIS.MainnetConnectionString).
+        /// AllowAnonymous so the Telegram bot (or other callers) can gate actions by token balance without auth.
+        /// </summary>
+        /// <param name="wallet">Owner wallet public key (base58).</param>
+        /// <param name="mint">Token mint public key (base58).</param>
+        /// <returns>Balance as decimal (human-readable amount).</returns>
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("spl-token-balance")]
+        [ProducesResponseType(typeof(OASISResult<decimal>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISResult<decimal>> GetSplTokenBalance([FromQuery] string wallet, [FromQuery] string mint)
+        {
+            return await _splTokenBalanceService.GetBalanceAsync(wallet, mint).ConfigureAwait(false);
         }
     }
 }

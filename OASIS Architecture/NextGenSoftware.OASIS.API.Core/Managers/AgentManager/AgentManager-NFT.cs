@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ImageUrl = imageUrl,
                     Price = price,
                     Symbol = symbol ?? "AGENTNFT",
-                    MetaData = nftMetadata,
+                    MetaData = nftMetadata == null ? new Dictionary<string, string>() : ToStringMetaData(nftMetadata),
                     OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
                     OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                     SendToAvatarAfterMintingId = currentOwnerId.Value,
@@ -138,6 +138,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 OASISErrorHandling.HandleError(ref result, $"Error minting agent NFT: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private static Dictionary<string, string> ToStringMetaData(Dictionary<string, object> meta)
+        {
+            if (meta == null) return new Dictionary<string, string>();
+            var outDict = new Dictionary<string, string>();
+            foreach (var kv in meta)
+                outDict[kv.Key] = kv.Value == null ? "" : (kv.Value is string s ? s : JsonConvert.SerializeObject(kv.Value));
+            return outDict;
         }
 
         /// <summary>

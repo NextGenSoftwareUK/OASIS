@@ -6,6 +6,5 @@ global using NextGenSoftware.OASIS.Common;
 global using NextGenSoftware.OASIS.API.Core.Enums;
 global using NextGenSoftware.OASIS.API.Core.Holons;
 global using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-global using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
-global using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-global using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+global using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+global using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;

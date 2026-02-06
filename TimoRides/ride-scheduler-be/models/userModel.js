@@ -105,6 +105,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+
+    // OASIS Integration fields
+    oasisAvatarId: {
+      type: String,
+      default: null,
+    },
+    oasisKarma: {
+      type: Number,
+      default: 0,
+    },
+    oasisVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

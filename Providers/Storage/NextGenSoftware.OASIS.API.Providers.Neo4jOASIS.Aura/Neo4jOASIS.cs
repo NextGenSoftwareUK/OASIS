@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Text;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -166,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j provider: {activateResult.Message}");
@@ -217,7 +218,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j provider: {activateResult.Message}");
