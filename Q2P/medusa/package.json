@@ -15,7 +15,7 @@
   "scripts": {
     "build": "medusa build",
     "seed": "medusa exec ./src/scripts/seed.ts",
-    "start": "node scripts/wait-for-db.js && medusa start",
+    "start": "node scripts/wait-for-db.js && node scripts/ensure-admin-build.js && (cd .medusa/server && NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm exec medusa start)",
     "dev": "medusa develop",
     "test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
     "test:integration:modules": "TEST_TYPE=integration:modules NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --forceExit",
