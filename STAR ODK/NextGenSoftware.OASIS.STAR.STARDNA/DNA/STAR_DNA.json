@@ -99,6 +99,12 @@
     "DefaultQuestsDownloadedPath": "Quests\\Downloaded",
     "DefaultQuestsInstalledPath": "Quests\\Installed",
 
+    //Games support cross-game interoperability, shared inventory, avatar SSO, karma scores, NFTs, and keycards.
+    "DefaultGamesSourcePath": "Games\\Source",
+    "DefaultGamesPublishedPath": "Games\\Published",
+    "DefaultGamesDownloadedPath": "Games\\Downloaded",
+    "DefaultGamesInstalledPath": "Games\\Installed",
+
     //OASIS NFTs (wrap around all types of web3 NFTs and form an abstraction layer to convert between standards and chains) are Non-Fungible Tokens that can be used to represent unique items, assets or collectibles in the Omniverse/OASIS/Our World.
     "DefaultNFTsSourcePath": "NFTs\\Source",
     "DefaultNFTsPublishedPath": "NFTs\\Published",

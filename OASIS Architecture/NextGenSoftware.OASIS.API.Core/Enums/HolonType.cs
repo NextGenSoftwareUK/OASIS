@@ -1,4 +1,4 @@
-﻿
+
 namespace NextGenSoftware.OASIS.API.Core.Enums
 
 { //TODO: Need to make this list dynamic ASAP so people can add to it and we can use AI to holonize the entire planet for every single type of thing and object there is! ;-)
@@ -12,6 +12,9 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Mission,
         Chapter,
         Quest,
+        Game,
+        GameSession,
+        GameArea,
         InventoryItem,
         Park,
         Building,
@@ -84,6 +87,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         DownloadedChapter,
         DownloadedMission,
         DownloadedQuest,
+        DownloadedGame,
         DownloadedNFT,
         DownloadedNFTCollection,
         DownloadedGeoNFT,
@@ -106,6 +110,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         InstalledChapter,
         InstalledMission,
         InstalledQuest,
+        InstalledGame,
         InstalledNFT,
         InstalledNFTCollection,
         InstalledGeoNFT,

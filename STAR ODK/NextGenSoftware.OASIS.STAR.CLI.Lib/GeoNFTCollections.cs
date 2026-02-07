@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultGeoNFTCollectionsInstalledPath, "DefaultGeoNFTCollectionsInstalledPath", DEFAULT_FIELD_LENGTH)
         { }
 
-        public override async Task<OASISResult<STARGeoNFTCollection>> CreateAsync(ISTARNETCreateOptions<STARGeoNFTCollection, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARGeoNFTCollection>> CreateAsync(ISTARNETCreateOptions<STARGeoNFTCollection, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARGeoNFTCollection> result = new OASISResult<STARGeoNFTCollection>();
             OASISResult<IWeb4GeoNFTCollection> geoNFTCollectionResult = null;
@@ -95,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             GeoNFTCollectionId = geoNFTCollection.Id
                         }
-                    }, holonSubType, showHeaderAndInro, providerType);
+                    }, holonSubType, showHeaderAndInro, providerType: providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
-                            geoNFTCollection.MetaData["Web5STARGeoNFTCollectionId"] = saveResult.Result.Id;
+                            geoNFTCollection.MetaData["Web5STARGeoNFTCollectionId"] = saveResult.Result.Id.ToString();
                             OASISResult<IWeb4GeoNFTCollection> web4GeoNFTCollection = await NFTCommon.NFTManager.UpdateWeb4GeoNFTCollectionAsync(new UpdateWeb4GeoNFTCollectionRequest() { Id = geoNFTCollection.Id, ModifiedBy = STAR.BeamedInAvatar.Id, MetaData = geoNFTCollection.MetaData }, providerType: providerType);
 
                             if (!(web4GeoNFTCollection != null && web4GeoNFTCollection.Result != null && !web4GeoNFTCollection.IsError))
@@ -324,7 +324,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (result != null && result.Result != null && !result.IsError)
                     {
                         CLIEngine.ShowSuccessMessage("WEB4 OASIS GeoNFT Collection Successfully Updated.");
-                        result = await NFTCommon.UpdateSTARNETHolonAsync("Web5STARGeoNFTCollectionId", "GeoNFTCollection", STARNETManager, result.Result.MetaData, result, providerType);
+
+                        foreach (Guid id in result.Result.ParentWeb5GeoNFTCollectionIds)
+                        {
+                            result = await NFTCommon.UpdateSTARNETHolonAsync(id, "GeoNFTCollection", STARNETManager, result, providerType);
+
+                            var starNFTResult = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, id, providerType: providerType);
+
+                            if (starNFTResult != null && starNFTResult.Result != null && !starNFTResult.IsError)
+                                NFTCommon.UpdateWeb4AndWeb3NFTJSONFiles(result.Result, starNFTResult.Result.STARNETDNA.SourcePath);
+                        }
                     }
                     else
                     {
@@ -454,7 +463,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
             {
                 CLIEngine.ShowSuccessMessage("WEB4 GeoNFT Collection Successfully Deleted.");
-                collection = await NFTCommon.DeleteAllSTARNETVersionsAsync("Web5STARGeoNFTCollectionId", STARNETManager, collection.Result.MetaData, collection, providerType);
+
+                foreach (Guid id in collection.Result.ParentWeb5GeoNFTCollectionIds)
+                    collection = await NFTCommon.DeleteAllSTARNETVersionsAsync(id, STARNETManager, collection, providerType);
             }
             else
             {
@@ -489,7 +500,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching WEB4 GeoNFT Collection's...");
-            ListWeb4GeoNFTCollections(await NFTCommon.NFTManager.SearchWeb4GeoNFTCollectionsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
+            ListWeb4GeoNFTCollections(await NFTCommon.NFTManager.SearchWeb4GeoNFTCollectionsAsync(searchTerm, STAR.BeamedInAvatar.Id, null, MetaKeyValuePairMatchMode.All, !showForAllAvatars, providerType));
         }
 
         private async Task<OASISResult<IWeb4GeoNFTCollection>> FindWeb4GeoNFTCollectionAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 GeoNFT Collection", ProviderType providerType = ProviderType.Default)
@@ -554,7 +565,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb4GeoNFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4GeoNFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb4GeoNFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4GeoNFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, null, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -701,7 +712,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(collection.ThumbnailUrl) ? collection.ThumbnailUrl : "None", displayFieldLength);
             TagHelper.ShowTags(collection.Tags, displayFieldLength);
 
-            Dictionary<string, object> metaData = collection.MetaData;
+            Dictionary<string, string> metaData = collection.MetaData;
 
             //Temp remove internal metaData.
             collection.MetaData.Remove("Image");

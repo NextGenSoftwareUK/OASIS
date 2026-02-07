@@ -299,3 +299,16 @@ NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/react-app/yarn.lock
 /ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS_DNA.json
 /STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/OASIS_DNA.json
 /temp.json
+
+# Deployment files (sensitive - never commit!)
+.env
+.env.local
+.env.*.local
+deployed-addresses.json
+hardhat.config.js
+scripts/.env
+scripts/deployed-addresses.json
+*.key
+*.pem
+*private*
+*secret*

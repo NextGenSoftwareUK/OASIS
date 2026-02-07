@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public KotlinInteropProvider()
         {
-            _loadedScripts = new Dictionary<string, string>();
+            _loadedScripts = new Dictionary<string, KotlinLibraryInfo>();
         }
 
         public Task<OASISResult<bool>> InitializeAsync()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -38,6 +38,7 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
@@ -179,8 +180,11 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         _isActivated = false;
         this.ProviderType = new(Core.Enums.ProviderType.BaseOASIS);
         this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
-        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
 
     public bool IsVersionControlEnabled { get; set; }
@@ -275,8 +279,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Delete avatar directly by provider key without loading first
@@ -362,8 +370,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first
@@ -412,8 +424,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Delete avatar directly by username without loading first
@@ -463,8 +479,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holon by provider key first
@@ -891,8 +911,15 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var playerElement in playersArray.EnumerateArray())
                     {
-                        var player = System.Text.Json.JsonSerializer.Deserialize<Player>(playerElement.GetRawText());
-                        players.Add(player);
+                        var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(playerElement.GetRawText());
+                        // Avatar implements IHolon, and IPlayer extends IHolon, so we can cast through IHolon
+                        if (avatar is IHolon holon)
+                        {
+                            // Create a Player-like object by wrapping the Avatar
+                            // Since there's no Player class, we'll use the Avatar as IHolon and cast to IPlayer
+                            // Note: This assumes IPlayer is compatible with IHolon
+                            players.Add((IPlayer)(object)holon);
+                        }
                     }
                 }
 
@@ -1219,8 +1246,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email from Base blockchain
@@ -1263,8 +1294,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by provider key from Base blockchain
@@ -1315,8 +1350,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username from Base blockchain
@@ -1418,8 +1457,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar detail by email from Base blockchain
@@ -1470,8 +1513,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar detail by username from Base blockchain
@@ -1572,8 +1619,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holon by provider key from Base blockchain
@@ -1649,8 +1700,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons for parent from Base blockchain
@@ -1691,8 +1746,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons for parent by provider key from Base blockchain
@@ -1743,8 +1802,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons by metadata from Base blockchain
@@ -1790,8 +1853,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons by multiple metadata pairs from Base blockchain
@@ -2197,8 +2264,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Search avatars and holons using Base blockchain
@@ -2322,8 +2393,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for both avatars
@@ -2379,8 +2454,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for both avatars
@@ -2463,8 +2542,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for both avatars
@@ -2547,8 +2630,6 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 transaction.TokenId,
-                transaction.FromProvider.Value.ToString(),
-                transaction.ToProvider.Value.ToString(),
                 transaction.Amount,
                 transaction.MemoText
             );
@@ -2562,8 +2643,6 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 transaction.TokenId,
-                transaction.FromProvider.Value.ToString(),
-                transaction.ToProvider.Value.ToString(),
                 transaction.Amount,
                 transaction.MemoText
             );
@@ -2576,7 +2655,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
             IWeb3NFTTransactionResponse response = new Web3NFTTransactionResponse
             {
-                OASISNFT = new Web4NFT()
+                Web3NFT = new Web3NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2646,7 +2725,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
             IWeb3NFTTransactionResponse response = new Web3NFTTransactionResponse
             {
-                OASISNFT = new Web4NFT()
+                Web3NFT = new Web3NFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2686,8 +2765,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load NFT data from Base blockchain
@@ -2881,7 +2964,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : BaseContractHelper.CreateDeterministicGuid($"{this.ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -3120,35 +3203,46 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
-                string.IsNullOrWhiteSpace(request.MintToWalletAddress))
+            if (request == null || request.MetaData == null || 
+                !request.MetaData.ContainsKey("TokenAddress") || string.IsNullOrWhiteSpace(request.MetaData["TokenAddress"]?.ToString()) ||
+                !request.MetaData.ContainsKey("MintToWalletAddress") || string.IsNullOrWhiteSpace(request.MetaData["MintToWalletAddress"]?.ToString()))
             {
                 OASISErrorHandling.HandleError(ref result, "Token address and mint to wallet address are required");
                 return result;
             }
 
-            // Get private key from request or use OASIS account
+            // Get private key from request MetaData or use OASIS account
             string privateKey = _chainPrivateKey;
-            if (request is MintWeb3TokenRequest mintRequest && !string.IsNullOrWhiteSpace(mintRequest.OwnerPrivateKey))
-                privateKey = mintRequest.OwnerPrivateKey;
+            if (request.MetaData?.ContainsKey("OwnerPrivateKey") == true && !string.IsNullOrWhiteSpace(request.MetaData["OwnerPrivateKey"]?.ToString()))
+                privateKey = request.MetaData["OwnerPrivateKey"].ToString();
 
             var senderAccount = new Account(privateKey);
             var web3Client = new Web3(senderAccount, _hostURI);
 
             // ERC20 mint function ABI
             var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"type\":\"function\"}]";
-            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
+            var tokenAddress = request.MetaData?.ContainsKey("TokenAddress") == true ? request.MetaData["TokenAddress"]?.ToString() : null;
+            var mintToWalletAddress = request.MetaData?.ContainsKey("MintToWalletAddress") == true ? request.MetaData["MintToWalletAddress"]?.ToString() : null;
+            var amount = request.MetaData?.ContainsKey("Amount") == true && decimal.TryParse(request.MetaData["Amount"]?.ToString(), out var amt) ? amt : 0m;
+            
+            if (string.IsNullOrWhiteSpace(tokenAddress) || string.IsNullOrWhiteSpace(mintToWalletAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Token address and mint to wallet address are required in MetaData");
+                return result;
+            }
+            
+            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, tokenAddress);
             var decimalsFunction = erc20Contract.GetFunction("decimals");
             var decimals = await decimalsFunction.CallAsync<byte>();
             var multiplier = BigInteger.Pow(10, decimals);
-            var amountBigInt = new BigInteger(request.Amount * (decimal)multiplier);
+            var amountBigInt = new BigInteger(amount * (decimal)multiplier);
             var mintFunction = erc20Contract.GetFunction("mint");
             var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
                 senderAccount.Address, 
                 new HexBigInteger(600000), 
                 null, 
                 null, 
-                request.MintToWalletAddress, 
+                mintToWalletAddress, 
                 amountBigInt);
 
             if (receipt.HasErrors() == true)
@@ -3187,13 +3281,13 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
-                string.IsNullOrWhiteSpace(request.FromWalletPrivateKey))
+                string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
             {
-                OASISErrorHandling.HandleError(ref result, "Token address and from wallet private key are required");
+                OASISErrorHandling.HandleError(ref result, "Token address and owner private key are required");
                 return result;
             }
 
-            var senderAccount = new Account(request.FromWalletPrivateKey);
+            var senderAccount = new Account(request.OwnerPrivateKey);
             var web3Client = new Web3(senderAccount, _hostURI);
 
             // ERC20 burn function ABI
@@ -3202,7 +3296,10 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var decimalsFunction = erc20Contract.GetFunction("decimals");
             var decimals = await decimalsFunction.CallAsync<byte>();
             var multiplier = BigInteger.Pow(10, decimals);
-            var amountBigInt = new BigInteger(request.Amount * (decimal)multiplier);
+            // IBurnWeb3TokenRequest doesn't have Amount property, so we'll burn the full balance
+            var balanceFunction = erc20Contract.GetFunction("balanceOf");
+            var balance = await balanceFunction.CallAsync<BigInteger>(senderAccount.Address);
+            var amountBigInt = balance;
             var burnFunction = erc20Contract.GetFunction("burn");
             var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
                 senderAccount.Address, 
@@ -3254,12 +3351,24 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Lock token by transferring to bridge pool (OASIS account)
+            // ILockWeb3TokenRequest doesn't have Amount property, so we'll lock the full balance
+            var web3Client = new Web3(new Account(request.FromWalletPrivateKey), _hostURI);
+            var erc20Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"}]";
+            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
+            var balanceFunction = erc20Contract.GetFunction("balanceOf");
+            var account = new Account(request.FromWalletPrivateKey);
+            var balance = await balanceFunction.CallAsync<BigInteger>(account.Address);
+            var decimalsFunction = erc20Contract.GetFunction("decimals");
+            var decimals = await decimalsFunction.CallAsync<byte>();
+            var multiplier = BigInteger.Pow(10, decimals);
+            var amount = (decimal)(balance / multiplier);
+            
             var sendRequest = new SendWeb3TokenRequest
             {
                 FromTokenAddress = request.TokenAddress,
                 FromWalletPrivateKey = request.FromWalletPrivateKey,
                 ToWalletAddress = _oasisAccount.Address,
-                Amount = request.Amount
+                Amount = amount
             };
 
             return await SendTokenAsync(sendRequest);
@@ -3289,10 +3398,44 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
-                string.IsNullOrWhiteSpace(request.UnlockedToWalletAddress))
+            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
             {
-                OASISErrorHandling.HandleError(ref result, "Token address and unlocked to wallet address are required");
+                OASISErrorHandling.HandleError(ref result, "Token address is required");
+                return result;
+            }
+            
+            // IUnlockWeb3TokenRequest doesn't have UnlockedToWalletAddress or Amount properties
+            // Query the bridge pool balance to determine unlock amount
+            var web3Client = new Web3(_oasisAccount, _hostURI);
+            var erc20Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"}]";
+            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
+            var balanceFunction = erc20Contract.GetFunction("balanceOf");
+            var bridgeBalance = await balanceFunction.CallAsync<BigInteger>(_oasisAccount.Address);
+            var decimalsFunction = erc20Contract.GetFunction("decimals");
+            var decimals = await decimalsFunction.CallAsync<byte>();
+            var multiplier = BigInteger.Pow(10, decimals);
+            var amount = bridgeBalance > 0 ? (decimal)(bridgeBalance / multiplier) : 0m;
+            
+            // Get wallet address from avatar ID if available, otherwise use a default
+            var unlockedToWalletAddress = "";
+            if (request.UnlockedByAvatarId != Guid.Empty)
+            {
+                var walletResult = await NextGenSoftware.OASIS.API.Core.Helpers.WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, this.ProviderType.Value, request.UnlockedByAvatarId);
+                if (!walletResult.IsError && !string.IsNullOrWhiteSpace(walletResult.Result))
+                {
+                    unlockedToWalletAddress = walletResult.Result;
+                }
+            }
+            
+            if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required but could not be determined from avatar ID");
+                return result;
+            }
+            
+            if (amount <= 0)
+            {
+                OASISErrorHandling.HandleError(ref result, "No tokens available in bridge pool to unlock");
                 return result;
             }
 
@@ -3301,8 +3444,8 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             {
                 FromTokenAddress = request.TokenAddress,
                 FromWalletPrivateKey = _chainPrivateKey, // OASIS account private key
-                ToWalletAddress = request.UnlockedToWalletAddress,
-                Amount = request.Amount
+                ToWalletAddress = unlockedToWalletAddress,
+                Amount = amount
             };
 
             return await SendTokenAsync(sendRequest);
@@ -3385,12 +3528,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
     {
-        return GenerateKeyPairAsync(request).Result;
+        return GenerateKeyPairAsync().Result;
     }
 
-    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
     {
         var result = new OASISResult<IKeyPairAndWallet>();
         try
@@ -3407,12 +3550,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var publicKey = ecKey.GetPubKey();
             var address = ecKey.GetPublicAddress();
 
-            var keyPair = new KeyPairAndWallet
+            //TODO: Replace KeyHelper with Base specific implementation.
+            var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+            if (keyPair != null)
             {
-                PrivateKey = privateKey,
-                PublicKey = publicKey.ToHex(),
-                WalletAddressLegacy = address
-            };
+                keyPair.PrivateKey = privateKey;
+                keyPair.PublicKey = publicKey.ToHex();
+                keyPair.WalletAddressLegacy = address;
+            }
 
             result.Result = keyPair;
             result.IsError = false;
@@ -3654,6 +3799,150 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
     }
 
     #endregion
+
+    #region Helper Methods
+
+    /// <summary>
+    /// Parse Base blockchain response to list of Holon objects
+    /// </summary>
+    private IEnumerable<IHolon> ParseBaseToHolons(JsonElement jsonElement)
+    {
+        try
+        {
+            var holons = new List<IHolon>();
+
+            if (jsonElement.TryGetProperty("result", out var result) &&
+                result.TryGetProperty("rows", out var rows) &&
+                rows.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var row in rows.EnumerateArray())
+                {
+                    var holon = ParseBaseToHolon(row);
+                    if (holon != null)
+                        holons.Add(holon);
+                }
+            }
+            else if (jsonElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var element in jsonElement.EnumerateArray())
+                {
+                    var holon = ParseBaseToHolon(element);
+                    if (holon != null)
+                        holons.Add(holon);
+                }
+            }
+
+            return holons;
+        }
+        catch (Exception)
+        {
+            return new List<IHolon>();
+        }
+    }
+
+    /// <summary>
+    /// Parse Base blockchain response to Holon object
+    /// </summary>
+    private IHolon ParseBaseToHolon(JsonElement baseData)
+    {
+        try
+        {
+            var holon = new Holon();
+
+            if (baseData.TryGetProperty("id", out var id))
+                holon.Id = Guid.TryParse(id.GetString(), out var guid) ? guid : Guid.NewGuid();
+
+            if (baseData.TryGetProperty("name", out var name))
+                holon.Name = name.GetString();
+
+            if (baseData.TryGetProperty("description", out var description))
+                holon.Description = description.GetString();
+
+            if (baseData.TryGetProperty("holon_type", out var holonType) || baseData.TryGetProperty("holonType", out holonType))
+            {
+                if (Enum.TryParse<HolonType>(holonType.GetString(), out var type))
+                    holon.HolonType = type;
+            }
+
+            return holon;
+        }
+        catch (Exception)
+        {
+            return new Holon();
+        }
+    }
+
+    /// <summary>
+    /// Parse Base transaction response to TransactionResponse object
+    /// </summary>
+    private TransactionResponse ParseBaseToTransactionResponse(string content)
+    {
+        try
+        {
+            var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
+
+            return new TransactionResponse
+            {
+                TransactionResult = jsonElement.TryGetProperty("transactionHash", out var hashElement) ? hashElement.GetString() : ""
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing Base transaction response: {ex.Message}");
+            return new TransactionResponse
+            {
+                TransactionResult = ""
+            };
+        }
+    }
+
+    private static IWeb3NFT ParseBaseToNFT(string content)
+    {
+        try
+        {
+            var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
+            
+            var tokenAddress = jsonElement.TryGetProperty("tokenAddress", out var ta) ? ta.GetString() : jsonElement.TryGetProperty("address", out var addr) ? addr.GetString() : "unknown";
+            return new Web3NFT
+            {
+                Id = BaseContractHelper.CreateDeterministicGuid($"{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.BaseOASIS}:nft:{tokenAddress}"),
+                Title = jsonElement.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Base NFT",
+                Description = jsonElement.TryGetProperty("description", out var descElement) ? descElement.GetString() : "Base NFT Description",
+                ImageUrl = jsonElement.TryGetProperty("imageUrl", out var imageElement) ? imageElement.GetString() : "",
+                JSONMetaDataURL = jsonElement.TryGetProperty("metadataUrl", out var metadataElement) ? metadataElement.GetString() : "",
+                NFTTokenAddress = jsonElement.TryGetProperty("contractAddress", out var contractElement) ? contractElement.GetString() : "",
+                MintedOn = DateTime.UtcNow,
+                ModifiedOn = DateTime.UtcNow,
+                MetaData = new Dictionary<string, string>
+                {
+                    { "BaseContent", content },
+                    { "ProviderType", "BaseOASIS" }
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing Base NFT: {ex.Message}");
+            return new Web3NFT
+            {
+                Id = BaseContractHelper.CreateDeterministicGuid($"{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.BaseOASIS}:nft:error"),
+                Title = "Base NFT",
+                Description = "Base NFT Description",
+                ImageUrl = "",
+                JSONMetaDataURL = "",
+                NFTTokenAddress = "",
+                MintedOn = DateTime.UtcNow,
+                ModifiedOn = DateTime.UtcNow,
+                MetaData = new Dictionary<string, string>
+                {
+                    { "BaseContent", content },
+                    { "ProviderType", "BaseOASIS" }
+                }
+            };
+        }
+    }
+
+    #endregion
 }
 
 [Function(BaseContractHelper.GetAvatarDetailByIdFuncName, typeof(GetAvatarDetailByIdFunction))]
@@ -3709,6 +3998,18 @@ file sealed class HolonInfo
 
 file static class BaseContractHelper
 {
+    /// <summary>
+    /// Creates a deterministic GUID from input string using SHA-256 hash
+    /// </summary>
+    public static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return Guid.Empty;
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
+    }
+
     public const string CreateAvatarFuncName = "CreateAvatar";
     public const string CreateAvatarDetailFuncName = "CreateAvatarDetail";
     public const string CreateHolonFuncName = "CreateHolon";
@@ -3727,202 +4028,4 @@ file static class BaseContractHelper
     public const string SendNftFuncName = "sendNFT";
     public const string MintFuncName = "mint";
     public const string Abi = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"ERC721IncorrectOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"ERC721InsufficientApproval\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"approver\",\"type\":\"address\"}],\"name\":\"ERC721InvalidApprover\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"ERC721InvalidOperator\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"ERC721InvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"}],\"name\":\"ERC721InvalidReceiver\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"ERC721InvalidSender\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"ERC721NonexistentToken\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"approved\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\"}],\"name\":\"ApprovalForAll\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"avatarId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"CreateAvatar\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"avatarId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"CreateAvatarDetail\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"holonId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"CreateHolon\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"DeleteAvatar\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"DeleteAvatarDetail\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"DeleteHolon\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"GetAvatarById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"EntityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"AvatarId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"Info\",\"type\":\"string\"}],\"internalType\":\"structAvatar\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"GetAvatarDetailById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"EntityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"AvatarId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"Info\",\"type\":\"string\"}],\"internalType\":\"structAvatarDetail\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GetAvatarDetailsCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GetAvatarsCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"GetHolonById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"EntityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"HolonId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"Info\",\"type\":\"string\"}],\"internalType\":\"structHolon\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GetHolonsCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"UpdateAvatar\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"UpdateAvatarDetail\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"UpdateHolon\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"getApproved\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"getTransferHistory\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"fromWalletAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"toWalletAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"fromProviderType\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"toProviderType\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"memoText\",\"type\":\"string\"}],\"internalType\":\"structBaseOASIS.NFTTransfer[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"isApprovedForAll\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"metadataUri\",\"type\":\"string\"}],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nextTokenId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"nftMetadata\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"metadataUri\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"nftTransfers\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"fromWalletAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"toWalletAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"fromProviderType\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"toProviderType\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"memoText\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"ownerOf\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"safeTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"safeTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"fromWalletAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"toWalletAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"fromProviderType\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"toProviderType\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"memoText\",\"type\":\"string\"}],\"name\":\"sendNFT\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\"}],\"name\":\"setApprovalForAll\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenURI\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]";
-
-    private static List<IHolon> ParseBaseToHolons(System.Text.Json.JsonElement jsonElement)
-    {
-        var holons = new List<IHolon>();
-        
-        try
-        {
-            if (jsonElement.ValueKind == System.Text.Json.JsonValueKind.Array)
-            {
-                foreach (var item in jsonElement.EnumerateArray())
-                {
-                    if (item.TryGetProperty("EntityId", out var entityIdElement) &&
-                        item.TryGetProperty("HolonId", out var holonIdElement) &&
-                        item.TryGetProperty("Info", out var infoElement))
-                    {
-                        var holon = new Holon
-                        {
-                            Id = Guid.NewGuid(),
-                            ProviderUniqueStorageKey = new Dictionary<ProviderType, string> { { ProviderType.BaseOASIS, entityIdElement.GetUInt64().ToString() } },
-                            Name = holonIdElement.GetString() ?? "Base Holon",
-                            Description = infoElement.GetString() ?? "Base Holon Description",
-                            CreatedDate = DateTime.UtcNow,
-                            ModifiedDate = DateTime.UtcNow,
-                            CreatedByAvatarId = Guid.Empty,
-                            ModifiedByAvatarId = Guid.Empty,
-                            Version = 1,
-                            IsActive = true,
-                            IsChanged = false,
-                            IsNewHolon = false,
-                            IsSaving = false,
-                            IsLoading = false,
-                            IsDeleted = false,
-                            IsError = false,
-                            ErrorMessage = null,
-                            ParentHolonId = Guid.Empty,
-                            ParentOmniverseId = Guid.Empty,
-                            ParentMultiverseId = Guid.Empty,
-                            ParentUniverseId = Guid.Empty,
-                            ParentDimensionId = Guid.Empty,
-                            ParentGalaxyClusterId = Guid.Empty,
-                            ParentGalaxyId = Guid.Empty,
-                            ParentSolarSystemId = Guid.Empty,
-                            ParentPlanetId = Guid.Empty,
-                            ParentMoonId = Guid.Empty,
-                            ParentStarId = Guid.Empty,
-                            ParentZomeId = Guid.Empty,
-                            HolonType = HolonType.Holon,
-                            DimensionLevel = 0,
-                            SubDimensionLevel = 0,
-                            MetaData = new Dictionary<string, object>
-                            {
-                                { "BaseEntityId", entityIdElement.GetUInt64() },
-                                { "BaseHolonId", holonIdElement.GetString() },
-                                { "BaseInfo", infoElement.GetString() }
-                            }
-                        };
-                        
-                        holons.Add(holon);
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            // Log error but continue processing
-            Console.WriteLine($"Error parsing Base holons: {ex.Message}");
-        }
-        
-        return holons;
-    }
-
-    private static ITransactionResponse ParseBaseToTransactionResponse(string content)
-    {
-        try
-        {
-            var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
-            
-            return new TransactionResponse
-            {
-                TransactionHash = jsonElement.TryGetProperty("transactionHash", out var hashElement) ? hashElement.GetString() : "",
-                From = jsonElement.TryGetProperty("from", out var fromElement) ? fromElement.GetString() : "",
-                To = jsonElement.TryGetProperty("to", out var toElement) ? toElement.GetString() : "",
-                Amount = jsonElement.TryGetProperty("amount", out var amountElement) ? amountElement.GetDecimal() : 0,
-                GasUsed = jsonElement.TryGetProperty("gasUsed", out var gasElement) ? gasElement.GetUInt64() : 0,
-                BlockNumber = jsonElement.TryGetProperty("blockNumber", out var blockElement) ? blockElement.GetUInt64() : 0,
-                Status = jsonElement.TryGetProperty("status", out var statusElement) ? statusElement.GetString() : "success"
-            };
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error parsing Base transaction response: {ex.Message}");
-            return new TransactionResponse
-            {
-                TransactionHash = "",
-                From = "",
-                To = "",
-                Amount = 0,
-                GasUsed = 0,
-                BlockNumber = 0,
-                Status = "error"
-            };
-        }
-    }
-
-    private static IWeb3NFT ParseBaseToNFT(string content)
-    {
-        try
-        {
-            var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
-            
-            return new Web4NFT
-            {
-                Id = Guid.NewGuid(),
-                TokenId = jsonElement.TryGetProperty("tokenId", out var tokenIdElement) ? tokenIdElement.GetString() : "",
-                Name = jsonElement.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Base NFT",
-                Description = jsonElement.TryGetProperty("description", out var descElement) ? descElement.GetString() : "Base NFT Description",
-                ImageUrl = jsonElement.TryGetProperty("imageUrl", out var imageElement) ? imageElement.GetString() : "",
-                MetadataUrl = jsonElement.TryGetProperty("metadataUrl", out var metadataElement) ? metadataElement.GetString() : "",
-                Owner = jsonElement.TryGetProperty("owner", out var ownerElement) ? ownerElement.GetString() : "",
-                ContractAddress = jsonElement.TryGetProperty("contractAddress", out var contractElement) ? contractElement.GetString() : "",
-                CreatedDate = DateTime.UtcNow,
-                ModifiedDate = DateTime.UtcNow,
-                IsActive = true,
-                IsChanged = false,
-                IsNewHolon = false,
-                IsSaving = false,
-                IsLoading = false,
-                IsDeleted = false,
-                IsError = false,
-                ErrorMessage = null,
-                ParentHolonId = Guid.Empty,
-                ParentOmniverseId = Guid.Empty,
-                ParentMultiverseId = Guid.Empty,
-                ParentUniverseId = Guid.Empty,
-                ParentDimensionId = Guid.Empty,
-                ParentGalaxyClusterId = Guid.Empty,
-                ParentGalaxyId = Guid.Empty,
-                ParentSolarSystemId = Guid.Empty,
-                ParentPlanetId = Guid.Empty,
-                ParentMoonId = Guid.Empty,
-                ParentStarId = Guid.Empty,
-                ParentZomeId = Guid.Empty,
-                HolonType = HolonType.NFT,
-                DimensionLevel = 0,
-                SubDimensionLevel = 0,
-                MetaData = new Dictionary<string, object>
-                {
-                    { "BaseContent", content },
-                    { "ProviderType", "BaseOASIS" }
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error parsing Base NFT: {ex.Message}");
-            return new Web4NFT
-            {
-                Id = Guid.NewGuid(),
-                TokenId = "",
-                Name = "Base NFT",
-                Description = "Base NFT Description",
-                ImageUrl = "",
-                MetadataUrl = "",
-                Owner = "",
-                ContractAddress = "",
-                CreatedDate = DateTime.UtcNow,
-                ModifiedDate = DateTime.UtcNow,
-                IsActive = true,
-                IsChanged = false,
-                IsNewHolon = false,
-                IsSaving = false,
-                IsLoading = false,
-                IsDeleted = false,
-                IsError = false,
-                ErrorMessage = null,
-                ParentHolonId = Guid.Empty,
-                ParentOmniverseId = Guid.Empty,
-                ParentMultiverseId = Guid.Empty,
-                ParentUniverseId = Guid.Empty,
-                ParentDimensionId = Guid.Empty,
-                ParentGalaxyClusterId = Guid.Empty,
-                ParentGalaxyId = Guid.Empty,
-                ParentSolarSystemId = Guid.Empty,
-                ParentPlanetId = Guid.Empty,
-                ParentMoonId = Guid.Empty,
-                ParentStarId = Guid.Empty,
-                ParentZomeId = Guid.Empty,
-                HolonType = HolonType.NFT,
-                DimensionLevel = 0,
-                SubDimensionLevel = 0,
-                MetaData = new Dictionary<string, object>
-                {
-                    { "BaseContent", content },
-                    { "ProviderType", "BaseOASIS" }
-                }
-            };
-        }
-    }
 }

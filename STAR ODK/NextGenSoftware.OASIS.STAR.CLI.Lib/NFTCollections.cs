@@ -1,4 +1,4 @@
-﻿using ADRaffy.ENSNormalize;
+using ADRaffy.ENSNormalize;
 using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //        CLIEngine.ShowErrorMessage("No NFT Found For That Id!");
         //}
 
-        public override async Task<OASISResult<STARNFTCollection>> CreateAsync(ISTARNETCreateOptions<STARNFTCollection, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARNFTCollection>> CreateAsync(ISTARNETCreateOptions<STARNFTCollection, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARNFTCollection> result = new OASISResult<STARNFTCollection>();
             OASISResult<IWeb4NFTCollection> collectionResult = null;
@@ -105,7 +105,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             NFTCollectionId = collection.Id
                         }
-                    }, holonSubType, showHeaderAndInro, providerType);
+                    }, holonSubType, showHeaderAndInro, providerType: providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
@@ -114,7 +114,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                         {
-                            collection.MetaData["Web5STARGeoNFTId"] = saveResult.Result.Id;
+                            collection.MetaData["Web5STARGeoNFTId"] = saveResult.Result.Id.ToString();
                             OASISResult<IWeb4NFTCollection> web4NFTCollection = await NFTCommon.NFTManager.UpdateWeb4NFTCollectionAsync(new UpdateWeb4NFTCollectionRequest() { Id = collection.Id, ModifiedBy = STAR.BeamedInAvatar.Id, MetaData = collection.MetaData }, providerType: providerType);
 
                             if (!(web4NFTCollection != null && web4NFTCollection.Result != null && !web4NFTCollection.IsError))
@@ -301,7 +301,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (result != null && result.Result != null && !result.IsError)
                     {
                         CLIEngine.ShowSuccessMessage("WEB4 OASIS NFT Collection Successfully Updated.");
-                        result = await NFTCommon.UpdateSTARNETHolonAsync("Web5STARNFTCollectionId", "NFTCollection", STARNETManager, result.Result.MetaData, result, providerType);
+
+                        foreach (Guid id in result.Result.ParentWeb5NFTCollectionIds)
+                        {
+                            result = await NFTCommon.UpdateSTARNETHolonAsync(id, "NFTCollection", STARNETManager, result, providerType);
+
+                            var starNFTResult = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, id, providerType: providerType);
+
+                            if (starNFTResult != null && starNFTResult.Result != null && !starNFTResult.IsError)
+                                NFTCommon.UpdateWeb4AndWeb3NFTJSONFiles(result.Result, starNFTResult.Result.STARNETDNA.SourcePath);
+                        }
                     }
                     else
                     {
@@ -437,7 +446,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
             {
                 CLIEngine.ShowSuccessMessage("WEB4 NFT Collection Successfully Deleted.");
-                collection = await NFTCommon.DeleteAllSTARNETVersionsAsync("Web5STARNFTCollectionId", STARNETManager, collection.Result.MetaData, collection, providerType);
+
+                foreach (Guid id in collection.Result.ParentWeb5NFTCollectionIds)
+                    collection = await NFTCommon.DeleteAllSTARNETVersionsAsync(id, STARNETManager, collection, providerType);
             }
             else
             {
@@ -472,7 +483,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching WEB4 NFT Collection's...");
-            ListWeb4NFTCollections(await NFTCommon.NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
+            ListWeb4NFTCollections(await NFTCommon.NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, STAR.BeamedInAvatar.Id, null, MetaKeyValuePairMatchMode.All, !showForAllAvatars, providerType));
         }
 
         private async Task<OASISResult<IWeb4NFTCollection>> FindWeb4NFTCollectionAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 NFT Collection", ProviderType providerType = ProviderType.Default)
@@ -537,7 +548,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IWeb4NFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4NFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb4NFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4NFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, null, MetaKeyValuePairMatchMode.All, showOnlyForCurrentAvatar, providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -684,7 +695,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(collection.ThumbnailUrl) ? collection.ThumbnailUrl : "None", displayFieldLength);
             TagHelper.ShowTags(collection.Tags, displayFieldLength);
 
-            Dictionary<string, object> metaData = collection.MetaData;
+            Dictionary<string, string> metaData = collection.MetaData;
 
             //Temp remove internal metaData.
             collection.MetaData.Remove("Image");
