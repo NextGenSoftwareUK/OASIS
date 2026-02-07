@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
@@ -6,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
     public class Web4NFT : NFTBase, IWeb4NFT
     {
-        //public IList<IWeb3NFT> Web3NFTs { get; set; } = new List<IWeb3NFT>();
+        public IList<Guid> ParentWeb5NFTIds { get; set; } = new List<Guid>();
         public IList<Web3NFT> Web3NFTs { get; set; } = new List<Web3NFT>();
 
         /// <summary>

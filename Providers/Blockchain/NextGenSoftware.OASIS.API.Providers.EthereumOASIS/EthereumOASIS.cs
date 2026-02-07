@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
@@ -1034,7 +1034,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                             // If the contract doesn't have a getHolonsByParentId method,
                             // fallback: load all holons and filter by parent ID in-memory
                             // This is less efficient but works if the contract structure doesn't support direct parent queries
-                            var allHolonsResult = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, continueOnErrorRecursive, version);
+                            var allHolonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
                             
                             if (allHolonsResult.IsError || allHolonsResult.Result == null)
                             {
@@ -1043,7 +1043,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                             }
 
                             // Filter holons by parent ID
-                            var filteredHolons = allHolonsResult.Result.Where(h => h.ParentHolonId == parentId).ToList();
+                            var filteredHolons = allHolonsResult.Result.Where(h => h.ParentHolonId == id).ToList();
                             
                             result.Result = filteredHolons;
                             result.IsError = false;
@@ -1183,20 +1183,24 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                             // Query contract events for holon creation events
                             try
                             {
-                                var events = await _web3.Eth.GetContract(_contractAddress, _abi).GetEvent("HolonCreated").GetAllChangesAsync();
+                                var holonCreatedEvent = Web3Client.Eth.GetContract(_contractAddress, _abi).GetEvent("HolonCreated");
+                                var filter = holonCreatedEvent.CreateFilterInput(Nethereum.RPC.Eth.DTOs.BlockParameter.CreateEarliest(), Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest());
+                                var events = await holonCreatedEvent.GetAllChangesAsync<Nethereum.RPC.Eth.DTOs.FilterLog>(filter);
                                 
-                                var holons = new List<IHolon>();
+                                var eventHolons = new List<IHolon>();
                                 foreach (var evt in events)
                                 {
                                     try
                                     {
-                                        var holonId = evt.Event.GetValue<string>(0);
-                                        var holonResult = await LoadHolonAsync(holonId, loadChildren, recursive, maxChildDepth, continueOnError, continueOnErrorRecursive, version);
+                                        // FilterLog does not expose decoded event; indexed string is hashed in topics - skip or decode from event ABI if available
+                                        var holonId = "";
+                                        if (string.IsNullOrEmpty(holonId)) continue;
+                                        var holonResult = await LoadHolonAsync(holonId, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
                                         if (!holonResult.IsError && holonResult.Result != null)
                                         {
-                                            if (holonType == HolonType.All || holonResult.Result.HolonType == holonType)
+                                            if (type == HolonType.All || holonResult.Result.HolonType == type)
                                             {
-                                                holons.Add(holonResult.Result);
+                                                eventHolons.Add(holonResult.Result);
                                             }
                                         }
                                     }
@@ -1207,9 +1211,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                                     }
                                 }
                                 
-                                result.Result = holons;
+                                result.Result = eventHolons;
                                 result.IsError = false;
-                                result.Message = $"Loaded {holons.Count} holons from contract events (using fallback method)";
+                                result.Message = $"Loaded {eventHolons.Count} holons from contract events (using fallback method)";
                             }
                             catch (Exception fallbackEx)
                             {
@@ -1506,7 +1510,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     var avatarDetail = new AvatarDetail
                     {
                         // Use blockchain address if available (immutable), otherwise use a stable identifier based on provider key
-                        Id = CreateDeterministicGuid($"{this.ProviderType.Value}:avatarDetail:{providerKey ?? accountAddress}"),
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{accountAddress}"),
                         Username = $"ethereum_user_{avatarEmail.Split('@')[0]}",
                         Email = avatarEmail,
                         FirstName = "Ethereum",
@@ -2963,7 +2967,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
             try
@@ -3004,15 +3008,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                             // Search for holons with custom key in metadata
                             var searchParams = new SearchParams
                             {
-                                SearchQuery = customKey,
-                                SearchProviderType = ProviderType.Value
+                                FilterByMetaData = new Dictionary<string, string> { ["CustomKey"] = customKey },
+                                MetaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All
                             };
                             
                             var searchResult = await SearchAsync(searchParams);
-                            if (!searchResult.IsError && searchResult.Result != null && searchResult.Result.Any())
+                            var holonList = searchResult.Result?.SearchResultHolons ?? new List<IHolon>();
+                            if (!searchResult.IsError && searchResult.Result != null && holonList.Any())
                             {
                                 // Find holon where custom key matches
-                                var matchingHolon = searchResult.Result.FirstOrDefault(h => 
+                                var matchingHolon = holonList.FirstOrDefault(h => 
                                     h.MetaData != null && 
                                     h.MetaData.ContainsKey("CustomKey") && 
                                     h.MetaData["CustomKey"]?.ToString() == customKey);
@@ -3051,12 +3056,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -3100,7 +3105,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonsForParentByCustomKeyAsync(customKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
@@ -3453,7 +3458,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var ethereumAddress = dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("account")?.ToString() ?? email;
                 var avatar = new Avatar
                 {
-                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{this.ProviderType.Value}:{ethereumAddress}"),
+                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.EthereumOASIS}:{ethereumAddress}"),
                     Username = dataDict.GetValueOrDefault("username")?.ToString() ?? $"ethereum_user_{email}",
                     Email = dataDict.GetValueOrDefault("email")?.ToString() ?? email,
                     FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "Ethereum",

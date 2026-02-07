@@ -26,6 +26,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using System.Text.Json.Serialization;
@@ -35,7 +37,9 @@ using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
+using Nethereum.Hex.HexConvertors.Extensions;
 using System.Numerics;
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
 {
@@ -90,10 +94,11 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
         public string ParentId { get; set; }
     }
     /// <summary>
-    /// Optimism Provider for OASIS
-    /// Implements Optimism Layer 2 blockchain integration for Ethereum scaling
+    /// Legacy Optimism provider implementation using a chain-specific contract and custom Nethereum logic.
+    /// This class is kept only for reference and backward compatibility and is no longer used by OASIS at runtime.
+    /// The new OptimismOASIS provider below delegates all logic to the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
     /// </summary>
-    public class OptimismOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public class OptimismOASIS_Legacy : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
@@ -105,6 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
         private Web3 _web3Client;
         private Account _account;
         private Contract _contract;
+        private KeyManager _keyManager;
 
         public WalletManager WalletManager
         {
@@ -134,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
         /// <param name="rpcEndpoint">Optimism RPC endpoint URL</param>
         /// <param name="chainId">Optimism chain ID</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public OptimismOASIS(string rpcEndpoint = "https://mainnet.optimism.io", string chainId = "10", string privateKey = "", string contractAddress = "")
+        public OptimismOASIS_Legacy(string rpcEndpoint = "https://mainnet.optimism.io", string chainId = "10", string privateKey = "", string contractAddress = "")
         {
             this.ProviderName = "OptimismOASIS";
             this.ProviderDescription = "Optimism Provider - Ethereum Layer 2 scaling solution";
@@ -332,12 +338,9 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 }
 
                 response.Result = nearby;
+                response.Result = nearby;
                 response.IsError = false;
                 response.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
-
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from Optimism blockchain: {httpResponse.StatusCode}");
-                }
             }
             catch (Exception ex)
             {
@@ -386,12 +389,10 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                         if (distance <= radiusInMeters)
                             nearby.Add(holon);
                     }
-
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Optimism blockchain: {httpResponse.StatusCode}");
-                    }
                 }
+                response.Result = nearby;
+                response.IsError = false;
+                response.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
@@ -557,6 +558,36 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
 
         #region IOASISBlockchainStorageProvider
 
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            try
+            {
+                var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+                var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+                var publicKey = ecKey.GetPublicAddress();
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
+                {
+                    keyPair.PrivateKey = privateKey;
+                    keyPair.PublicKey = publicKey;
+                    keyPair.WalletAddressLegacy = publicKey;
+                }
+                result.Result = keyPair;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
+            }
+            return result;
+        }
+
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
@@ -712,7 +743,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 }
 
                 result.Result.TransactionResult = receipt.TransactionHash;
-                result.Result.SendNFTTransactionResult = receipt.TransactionHash;
+                if (result.Result is Web3NFTTransactionResponse concreteResponse)
+                    concreteResponse.SendNFTTransactionResult = receipt.TransactionHash;
                 result.Result.Web3NFT = new Web3NFT
                 {
                     NFTTokenAddress = transaction.TokenAddress,
@@ -843,8 +875,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
 
                 var nft = new Web3NFT
                 {
-                    NFTTokenAddress = nftTokenAddress,
-                    TokenId = tokenId.ToString()
+                    NFTTokenAddress = nftTokenAddress
                 };
 
                 result.Result = nft;
@@ -898,12 +929,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 var erc721Contract = web3.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
                 var burnFunction = erc721Contract.GetFunction("burn");
 
-                // Token ID would need to be retrieved from the NFT record
-                var tokenId = BigInteger.Zero;
-                if (request.Web3NFT != null && !string.IsNullOrWhiteSpace(request.Web3NFT.TokenId))
-                {
-                    tokenId = BigInteger.Parse(request.Web3NFT.TokenId);
-                }
+                // Token ID: use Web3NFTId converted to BigInteger for burn (or pass on-chain token id via metadata if needed)
+                var tokenId = request.Web3NFTId != Guid.Empty ? new BigInteger(request.Web3NFTId.ToByteArray().Take(16).ToArray()) : BigInteger.Zero;
 
                 var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
                     senderAccount.Address,
@@ -921,8 +948,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 result.Result.TransactionResult = receipt.TransactionHash;
                 result.Result.Web3NFT = new Web3NFT
                 {
-                    NFTTokenAddress = request.NFTTokenAddress,
-                    TokenId = tokenId.ToString()
+                    NFTTokenAddress = request.NFTTokenAddress
                 };
                 result.IsError = false;
                 result.Message = $"NFT burned successfully on Optimism. Transaction hash: {receipt.TransactionHash}";
@@ -1051,7 +1077,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
 
                 // Real Optimism implementation: Store AvatarDetail in Avatar's metadata
                 // Since the contract doesn't have separate AvatarDetail functions, we store it in the Avatar's metadata
-                var avatarId = avatarDetail.AvatarId != Guid.Empty ? avatarDetail.AvatarId.ToString() : avatarDetail.Id.ToString();
+                var avatarId = avatarDetail.Id != Guid.Empty ? avatarDetail.Id.ToString() : Guid.Empty.ToString();
                 
                 // First, get the existing avatar to preserve its data
                 var getAvatarFunction = _contract.GetFunction("getAvatar");
@@ -1089,9 +1115,9 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                     avatarId,
                     existingAvatar?.Username ?? avatarDetail.Username ?? "",
                     existingAvatar?.Email ?? avatarDetail.Email ?? "",
-                    existingAvatar?.FirstName ?? avatarDetail.FirstName ?? "",
-                    existingAvatar?.LastName ?? avatarDetail.LastName ?? "",
-                    existingAvatar?.AvatarType ?? avatarDetail.AvatarType?.Value.ToString() ?? "User",
+                    existingAvatar?.FirstName ?? (avatarDetail as AvatarDetail)?.FirstName ?? "",
+                    existingAvatar?.LastName ?? (avatarDetail as AvatarDetail)?.LastName ?? "",
+                    existingAvatar?.AvatarType ?? (avatarDetail as AvatarDetail)?.AvatarType?.Value.ToString() ?? "User",
                     mergedMetadata
                 );
 
@@ -1103,9 +1129,9 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                     avatarId,
                     existingAvatar?.Username ?? avatarDetail.Username ?? "",
                     existingAvatar?.Email ?? avatarDetail.Email ?? "",
-                    existingAvatar?.FirstName ?? avatarDetail.FirstName ?? "",
-                    existingAvatar?.LastName ?? avatarDetail.LastName ?? "",
-                    existingAvatar?.AvatarType ?? avatarDetail.AvatarType?.Value.ToString() ?? "User",
+                    existingAvatar?.FirstName ?? (avatarDetail as AvatarDetail)?.FirstName ?? "",
+                    existingAvatar?.LastName ?? (avatarDetail as AvatarDetail)?.LastName ?? "",
+                    existingAvatar?.AvatarType ?? (avatarDetail as AvatarDetail)?.AvatarType?.Value.ToString() ?? "User",
                     mergedMetadata
                 );
 
@@ -1804,7 +1830,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                         Id = id,
                         Name = holonData.Name,
                         Description = holonData.Description,
-                        HolonType = new EnumValue<HolonType>(Enum.Parse<HolonType>(holonData.HolonType))
+                        HolonType = Enum.Parse<HolonType>(holonData.HolonType)
                     };
 
                     // Parse metadata if available
@@ -1948,7 +1974,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                                 Id = Guid.Parse(holonId),
                                 Name = holonData.Name,
                                 Description = holonData.Description,
-                                HolonType = new EnumValue<HolonType>(Enum.Parse<HolonType>(holonData.HolonType)),
+                                HolonType = Enum.Parse<HolonType>(holonData.HolonType),
                                 ParentHolonId = id
                             };
 
@@ -1963,7 +1989,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                             }
 
                             // Filter by type if specified
-                            if (type == HolonType.All || holon.HolonType.Value == type)
+                            if (type == HolonType.All || holon.HolonType == type)
                             {
                                 // Load children if requested
                                 if (loadChildren && (maxChildDepth == 0 || curentChildDepth < maxChildDepth))
@@ -2177,7 +2203,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                                     Id = Guid.Parse(holonId),
                                     Name = holonData.Name,
                                     Description = holonData.Description,
-                                    HolonType = new EnumValue<HolonType>(Enum.Parse<HolonType>(holonData.HolonType)),
+                                    HolonType = Enum.Parse<HolonType>(holonData.HolonType),
                                     MetaData = metadata
                                 };
 
@@ -2188,7 +2214,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                                 }
 
                                 // Filter by type if specified
-                                if (type == HolonType.All || holon.HolonType.Value == type)
+                                if (type == HolonType.All || holon.HolonType == type)
                                 {
                                     // Load children if requested
                                     if (loadChildren && (maxChildDepth == 0 || curentChildDepth < maxChildDepth))
@@ -2303,7 +2329,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                     holonId = holonId,
                     name = holon.Name ?? "",
                     description = holon.Description ?? "",
-                    holonType = holon.HolonType?.Value.ToString() ?? "All",
+                    holonType = holon.HolonType.ToString(),
                     metadata = JsonSerializer.Serialize(holon.MetaData ?? new Dictionary<string, object>()),
                     parentId = holon.ParentHolonId != Guid.Empty ? holon.ParentHolonId.ToString() : ""
                 };
@@ -2318,7 +2344,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 }
                 catch { }
 
-                ContractFunction function;
+                Nethereum.Contracts.Function function;
                 if (holonExists)
                 {
                     // Update existing holon
@@ -2612,7 +2638,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                                     Id = Guid.Parse(holonId),
                                     Name = holonData.Name,
                                     Description = holonData.Description,
-                                    HolonType = new EnumValue<HolonType>(Enum.Parse<HolonType>(holonData.HolonType))
+                                    HolonType = Enum.Parse<HolonType>(holonData.HolonType)
                                 };
 
                                 if (!string.IsNullOrEmpty(holonData.Metadata))
@@ -3186,10 +3212,13 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                     return result;
                 }
 
-                var wallet = new Nethereum.HdWallet.Wallet(seedPhrase, null);
-                var account = wallet.GetAccount(0);
-
-                result.Result = (account.Address, account.PrivateKey);
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to restore/generate account");
+                    return result;
+                }
+                result.Result = (keyPair.WalletAddressLegacy ?? keyPair.PublicKey, keyPair.PrivateKey);
                 result.IsError = false;
                 result.Message = "Optimism account restored successfully.";
             }
@@ -3643,7 +3672,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                     return result;
                 }
 
-                var bridgeAccount = new Account(_chainPrivateKey ?? "");
+                var bridgeAccount = new Account(_privateKey ?? "");
                 var web3Client = new Web3(bridgeAccount, _rpcEndpoint);
 
                 // Use ERC20 transfer to unlock tokens from bridge pool
@@ -3778,6 +3807,35 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// OptimismOASIS provider using the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
+    /// All Avatar, AvatarDetail, and Holon operations are handled by the base provider.
+    /// </summary>
+    public sealed class OptimismOASIS : Web3CoreOASISBaseProvider,
+        IOASISDBStorageProvider,
+        IOASISNETProvider,
+        IOASISSuperStar,
+        IOASISBlockchainStorageProvider,
+        IOASISNFTProvider
+    {
+        public OptimismOASIS(
+            string hostUri = "https://mainnet.optimism.io",
+            string chainPrivateKey = "",
+            string contractAddress = "")
+            : base(hostUri, chainPrivateKey, contractAddress)
+        {
+            ProviderName = "OptimismOASIS";
+            ProviderDescription = "Optimism Provider - Ethereum Layer 2 using Web3Core";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OptimismOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+        }
     }
 }
 

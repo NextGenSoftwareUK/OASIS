@@ -39,6 +39,7 @@ using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
 using System.Numerics;
 using Nethereum.ABI.FunctionEncoding.Attributes;
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 {
@@ -131,10 +132,11 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
     }
 
     /// <summary>
-    /// Fantom Provider for OASIS
-    /// Implements Fantom Opera blockchain integration for high-performance smart contracts
+    /// Legacy Fantom provider implementation using a chain-specific contract and custom Nethereum logic.
+    /// This class is kept only for reference and backward compatibility and is no longer used by OASIS at runtime.
+    /// The new FantomOASIS provider below delegates all logic to the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
     /// </summary>
-    public class FantomOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public class FantomOASIS_Legacy : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
@@ -159,12 +161,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         }
 
         /// <summary>
-        /// Initializes a new instance of the FantomOASIS provider
+        /// Initializes a new instance of the legacy FantomOASIS provider.
         /// </summary>
         /// <param name="rpcEndpoint">Fantom RPC endpoint URL</param>
         /// <param name="chainId">Fantom chain ID (250 for mainnet, 4002 for testnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public FantomOASIS(string rpcEndpoint = "https://rpc.ftm.tools", string chainId = "250", string privateKey = "", string contractAddress = "0x0000000000000000000000000000000000000000")
+        public FantomOASIS_Legacy(string rpcEndpoint = "https://rpc.ftm.tools", string chainId = "250", string privateKey = "", string contractAddress = "0x0000000000000000000000000000000000000000")
         {
             this.ProviderName = "FantomOASIS";
             this.ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain";
@@ -541,6 +543,36 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         #endregion
 
         #region IOASISBlockchainStorageProvider
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            try
+            {
+                var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+                var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+                var publicKey = ecKey.GetPublicAddress();
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
+                {
+                    keyPair.PrivateKey = privateKey;
+                    keyPair.PublicKey = publicKey;
+                    keyPair.WalletAddressLegacy = publicKey;
+                }
+                result.Result = keyPair;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
+            }
+            return result;
+        }
 
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
@@ -1080,14 +1112,15 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 }
 
                 // Real Fantom implementation: Save avatar detail to smart contract
+                var ad = avatarDetail as AvatarDetail;
                 var avatarDetailData = new
                 {
-                    avatarId = avatarDetail.AvatarId.ToString(),
+                    avatarId = avatarDetail.Id.ToString(),
                     username = avatarDetail.Username,
                     email = avatarDetail.Email,
-                    firstName = avatarDetail.FirstName,
-                    lastName = avatarDetail.LastName,
-                    avatarType = avatarDetail.AvatarType?.Value.ToString() ?? "",
+                    firstName = ad?.FirstName ?? "",
+                    lastName = ad?.LastName ?? "",
+                    avatarType = ad?.AvatarType?.Value.ToString() ?? "",
                     metadata = JsonSerializer.Serialize(avatarDetail.MetaData)
                 };
 
@@ -1379,7 +1412,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                                 Id = Guid.Parse(holonId),
                                 Name = holonData.Name,
                                 Description = holonData.Description,
-                                HolonType = new EnumValue<HolonType>(Enum.Parse<HolonType>(holonData.HolonType))
+                                HolonType = Enum.Parse<HolonType>(holonData.HolonType)
                             };
 
                             if (!string.IsNullOrEmpty(holonData.Metadata))
@@ -1397,7 +1430,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                             }
 
                             // Filter by type if specified
-                            if (type == HolonType.All || holon.HolonType.Value == type)
+                            if (type == HolonType.All || holon.HolonType == type)
                             {
                                 holons.Add(holon);
                             }
@@ -2100,7 +2133,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     holonId = holonId,
                     name = holon.Name ?? "",
                     description = holon.Description ?? "",
-                    holonType = holon.HolonType?.Value.ToString() ?? "All",
+                    holonType = holon.HolonType.ToString() ?? "All",
                     metadata = JsonSerializer.Serialize(holon.MetaData ?? new Dictionary<string, object>()),
                     parentId = holon.ParentHolonId != Guid.Empty ? holon.ParentHolonId.ToString() : ""
                 };
@@ -2115,7 +2148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 }
                 catch { }
 
-                ContractFunction function;
+                Nethereum.Contracts.Function function;
                 if (holonExists)
                 {
                     // Update existing holon
@@ -2457,7 +2490,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                                         Id = Guid.Parse(holonId),
                                         Name = holonData.Name,
                                         Description = holonData.Description,
-                                        HolonType = new EnumValue<HolonType>(Enum.Parse<HolonType>(holonData.HolonType))
+                                        HolonType = Enum.Parse<HolonType>(holonData.HolonType)
                                     };
 
                                     if (!string.IsNullOrEmpty(holonData.Metadata))
@@ -3357,9 +3390,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     try
                     {
                         // Query OASIS storage for the locked token record
-                        var tokenResult = await OASISResultHelper.WrapAsync(() =>
-                            OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider()
-                            .Result.LoadHolonAsync(request.Web3TokenId));
+                        var providerResult = ProviderManager.Instance == null
+                            ? new OASISResult<IOASISStorageProvider> { IsError = true, Message = "ProviderManager not initialized" }
+                            : await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(global::NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
+                        var tokenResult = providerResult.IsError || providerResult.Result == null
+                            ? new OASISResult<IHolon> { IsError = true, Message = providerResult.Message }
+                            : await providerResult.Result.LoadHolonAsync(request.Web3TokenId);
 
                         if (!tokenResult.IsError && tokenResult.Result != null)
                         {
@@ -3475,7 +3511,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 // Get Fantom transactions via Nethereum
                 var transactions = new List<IWalletTransaction>();
                 var blockNumber = await _web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
-                var limit = request.Limit > 0 ? request.Limit : 10;
+                var limit = 10;
 
                 for (var i = 0; i < limit && blockNumber.Value > 0; i++)
                 {
@@ -3532,18 +3568,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                // Generate Fantom key pair using Nethereum Account (EVM-compatible)
-                // Fantom uses Ethereum-compatible key generation (secp256k1)
-                var account = Nethereum.Web3.Accounts.Account.GenerateAccount();
-
-                // Create KeyPairAndWallet using KeyHelper but override with Fantom-specific values from Nethereum
+                // Generate Fantom key pair using KeyHelper (EVM-compatible secp256k1)
                 var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = account.PrivateKey;
-                    keyPair.PublicKey = account.PublicKey;
-                    keyPair.WalletAddressLegacy = account.Address; // Fantom address (EVM-compatible)
-                }
 
                 result.Result = keyPair;
                 result.IsError = false;
@@ -3566,6 +3592,35 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         #endregion
 
+    }
+
+    /// <summary>
+    /// FantomOASIS provider using the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
+    /// All Avatar, AvatarDetail, and Holon operations are handled by the base provider.
+    /// </summary>
+    public sealed class FantomOASIS : Web3CoreOASISBaseProvider,
+        IOASISDBStorageProvider,
+        IOASISNETProvider,
+        IOASISSuperStar,
+        IOASISBlockchainStorageProvider,
+        IOASISNFTProvider
+    {
+        public FantomOASIS(
+            string hostUri = "https://rpc.ftm.tools",
+            string chainPrivateKey = "",
+            string contractAddress = "")
+            : base(hostUri, chainPrivateKey, contractAddress)
+        {
+            ProviderName = "FantomOASIS";
+            ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain using Web3Core";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FantomOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Data;
 using System.Collections.Generic;
@@ -1228,7 +1228,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate IPFS provider: {activateResult.Message}");
@@ -1279,7 +1279,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate IPFS provider: {activateResult.Message}");

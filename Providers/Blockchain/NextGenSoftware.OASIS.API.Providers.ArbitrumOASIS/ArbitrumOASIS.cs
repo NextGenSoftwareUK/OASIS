@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -48,12 +47,25 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.Utilities.ExtentionMethods;
 using static NextGenSoftware.Utilities.KeyHelper;
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 
+/// <summary>
+/// Arbitrum provider (current live deployment). Uses chain-specific contract and Nethereum.
+/// When the generic Web3Core contract is deployed to Arbitrum, use <see cref="ArbitrumOASIS_Web3Core"/> instead.
+/// </summary>
 public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
+    private static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return Guid.Empty;
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
+    }
+
     private readonly string _hostURI;
     private readonly string _chainPrivateKey;
     private readonly BigInteger _chainId;
@@ -758,7 +770,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProviderAsync().Result;
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
@@ -807,7 +819,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProviderAsync().Result;
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Arbitrum provider: {activateResult.Message}");
@@ -1600,12 +1612,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         return LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IHolon>();
         try
@@ -1642,8 +1654,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 {
                     var searchParams = new SearchParams
                     {
-                        SearchQuery = customKey,
-                        SearchProviderType = ProviderType.Value
+                        FilterByMetaData = new Dictionary<string, string> { ["CustomKey"] = customKey },
+                        MetaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All
                     };
                     
                     var searchResult = await SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version);
@@ -1798,12 +1810,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         return LoadHolonsForParentByCustomKeyAsync(customKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IEnumerable<IHolon>>();
         try
@@ -3075,7 +3087,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             var avatarDetail = new AvatarDetail
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.ArbitrumOASIS}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
@@ -3117,7 +3129,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             var avatar = new Avatar
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.ArbitrumOASIS}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
@@ -3153,7 +3165,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
             var nft = new Web3NFT
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.ArbitrumOASIS}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Title = dataDict.GetValueOrDefault("title")?.ToString() ?? "Arbitrum NFT",
                 Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "NFT from Arbitrum blockchain",
                 ImageUrl = dataDict.GetValueOrDefault("imageUrl")?.ToString() ?? "",
@@ -3193,7 +3205,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             var holon = new Holon
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.ArbitrumOASIS}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "",
                 Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
                 HolonType = Enum.TryParse<HolonType>(dataDict.GetValueOrDefault("holonType")?.ToString(), out var holonType) 
@@ -3834,7 +3846,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{Core.Enums.ProviderType.ArbitrumOASIS}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -4373,7 +4385,7 @@ file static class ArbitrumContractHelper
             
             var avatarDetail = new AvatarDetail
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.ArbitrumOASIS}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
@@ -4415,7 +4427,7 @@ file static class ArbitrumContractHelper
             
             var avatar = new Avatar
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.ArbitrumOASIS}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
                 Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
                 CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
@@ -4442,15 +4454,17 @@ file static class ArbitrumContractHelper
     {
         try
         {
-            // Real implementation for parsing Arbitrum NFT data
-            var tokenAddress = jsonElement.TryGetProperty("tokenAddress", out var ta) ? ta.GetString() : jsonElement.TryGetProperty("address", out var addr) ? addr.GetString() : "unknown";
+            if (nftData == null) return null;
+            var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(nftData.ToString());
+            if (dataDict == null) return null;
+            var tokenAddress = dataDict.GetValueOrDefault("tokenAddress")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("tokenAddress")?.ToString() ?? "unknown";
             var nft = new Web3NFT
             {
-                Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{tokenAddress}"),
-                Title = "Arbitrum NFT",
-                Description = "NFT from Arbitrum blockchain",
+                Id = dataDict.ContainsKey("id") && Guid.TryParse(dataDict["id"]?.ToString(), out var idGuid) ? idGuid : CreateDeterministicGuid($"{Core.Enums.ProviderType.ArbitrumOASIS}:nft:{tokenAddress}"),
+                Title = dataDict.GetValueOrDefault("title")?.ToString() ?? "Arbitrum NFT",
+                Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "NFT from Arbitrum blockchain",
                 NFTTokenAddress = tokenAddress,
-                OnChainProvider = new EnumValue<ProviderType>(ProviderType.ArbitrumOASIS),
+                OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArbitrumOASIS),
                 //MetaData = new Dictionary<string, object>
                 //{
                 //    ["ArbitrumData"] = nftData,
@@ -4480,7 +4494,7 @@ file static class ArbitrumContractHelper
             
             var holon = new Holon
             {
-                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.ArbitrumOASIS}:avatarDetail:{dataDict.GetValueOrDefault("providerKey")?.ToString() ?? dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("id")?.ToString() ?? "unknown"}"),
                 Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "",
                 Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
                 HolonType = Enum.TryParse<HolonType>(dataDict.GetValueOrDefault("holonType")?.ToString(), out var holonType) 
@@ -4504,19 +4518,6 @@ file static class ArbitrumContractHelper
             return null;
         }
     }
-
-        /// <summary>
-        /// Creates a deterministic GUID from input string using SHA-256 hash
-        /// </summary>
-        private static Guid CreateDeterministicGuid(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-                return Guid.Empty;
-
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return new Guid(bytes.Take(16).ToArray());
-        }
 }
 
 // FunctionMessage classes for new Nethereum API
@@ -4544,6 +4545,35 @@ public class GetHolonByIdyIdFunction : FunctionMessage
 {
     [Parameter("uint256", "id", 1)]
     public uint Id { get; set; }
+}
+
+/// <summary>
+/// Lightweight Arbitrum provider using Web3CoreOASISBaseProvider and the generic Web3Core contract.
+/// Use this once the generic Web3CoreOASIS.sol contract is deployed to Arbitrum. Until then, use <see cref="ArbitrumOASIS"/> (live/deployed).
+/// </summary>
+public sealed class ArbitrumOASIS_Web3Core : Web3CoreOASISBaseProvider,
+    IOASISDBStorageProvider,
+    IOASISNETProvider,
+    IOASISSuperStar,
+    IOASISBlockchainStorageProvider,
+    IOASISNFTProvider
+{
+    public ArbitrumOASIS_Web3Core(
+        string hostUri = "https://arb1.arbitrum.io/rpc",
+        string chainPrivateKey = "",
+        string contractAddress = "")
+        : base(hostUri, chainPrivateKey, contractAddress)
+    {
+        ProviderName = "ArbitrumOASIS";
+        ProviderDescription = "Arbitrum Provider - Ethereum Layer 2 scaling solution using Web3Core";
+        ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArbitrumOASIS);
+        ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+    }
 }
 
 

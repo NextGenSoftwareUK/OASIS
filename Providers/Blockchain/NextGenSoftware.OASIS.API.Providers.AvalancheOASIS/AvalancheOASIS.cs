@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -45,9 +45,15 @@ using System.IO;
 using System.Text;
 
 
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
+
 namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
 
-public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
+/// <summary>
+/// Legacy Avalanche provider using chain-specific contract and custom Nethereum logic.
+/// Kept for reference and backward compatibility. The main <see cref="AvalancheOASIS"/> uses Web3CoreOASISBaseProvider.
+/// </summary>
+public sealed class AvalancheOASIS_Legacy : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
     private readonly string _hostURI;
     private readonly string _chainPrivateKey;
@@ -122,10 +128,10 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
     private object _nextGenSoftwareOasisService;
     private object _avalancheClient;
 
-    public AvalancheOASIS(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
+    public AvalancheOASIS_Legacy(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
     {
-        this.ProviderName = "AvalancheOASIS";
-        this.ProviderDescription = "Avalanche Provider";
+        this.ProviderName = "AvalancheOASIS_Legacy";
+        this.ProviderDescription = "Avalanche Provider (Legacy)";
         this.ProviderType = new(Core.Enums.ProviderType.AvalancheOASIS);
         this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
@@ -822,7 +828,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProviderAsync().Result;
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
@@ -945,7 +951,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var avatarDetailData = await getAvatarDetailFunction.CallDeserializingToObjectAsync<AvatarDetailStruct>(i);
                         
                         var avatarDetail = new AvatarDetail();
-                        avatarDetail.Id = CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{avatarDetailData.EntityId}");
+                        avatarDetail.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{avatarDetailData.EntityId}");
                         avatarDetail.Username = avatarDetailData.AvatarId;
                         avatarDetail.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1016,7 +1022,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<AvatarStruct>(i);
                         
                         var avatar = new Avatar();
-                        avatar.Id = CreateDeterministicGuid($"{ProviderType.Value}:avatar:{avatarData.EntityId}");
+                        avatar.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:avatar:{avatarData.EntityId}");
                         avatar.Username = avatarData.AvatarId;
                         avatar.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1086,7 +1092,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1605,7 +1611,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                     var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(entityId);
                     
                     var holon = new Holon();
-                    holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
+                    holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                     holon.Name = holonData.HolonId;
                     holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                     {
@@ -1634,12 +1640,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         return LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IHolon>();
         try
@@ -1676,8 +1682,8 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                 {
                     var searchParams = new SearchParams
                     {
-                        SearchQuery = customKey,
-                        SearchProviderType = ProviderType.Value
+                        FilterByMetaData = new Dictionary<string, string> { ["CustomKey"] = customKey },
+                        MetaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All
                     };
                     
                     var searchResult = await SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version);
@@ -1771,7 +1777,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1838,7 +1844,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1872,12 +1878,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         return LoadHolonsForParentByCustomKeyAsync(customKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IEnumerable<IHolon>>();
         try
@@ -1954,7 +1960,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -2026,7 +2032,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -2454,7 +2460,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -4099,16 +4105,45 @@ file static class AvalancheContractHelper
         }
     }
 
-        /// <summary>
-        /// Creates a deterministic GUID from input string using SHA-256 hash
-        /// </summary>
-        private static Guid CreateDeterministicGuid(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-                return Guid.Empty;
+    /// <summary>
+    /// Creates a deterministic GUID from input string using SHA-256 hash
+    /// </summary>
+    public static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return Guid.Empty;
 
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return new Guid(bytes.Take(16).ToArray());
-        }
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
+    }
+}
+
+/// <summary>
+/// AvalancheOASIS provider using the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
+/// All Avatar, AvatarDetail, and Holon operations are handled by the base provider.
+/// </summary>
+public sealed class AvalancheOASIS : Web3CoreOASISBaseProvider,
+    IOASISDBStorageProvider,
+    IOASISNETProvider,
+    IOASISSuperStar,
+    IOASISBlockchainStorageProvider,
+    IOASISNFTProvider
+{
+    public AvalancheOASIS(
+        string hostUri = "https://api.avax.network/ext/bc/C/rpc",
+        string chainPrivateKey = "",
+        string contractAddress = "")
+        : base(hostUri, chainPrivateKey, contractAddress)
+    {
+        ProviderName = "AvalancheOASIS";
+        ProviderDescription = "Avalanche Provider - EVM-compatible using Web3Core";
+        ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AvalancheOASIS);
+        ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+    }
 }

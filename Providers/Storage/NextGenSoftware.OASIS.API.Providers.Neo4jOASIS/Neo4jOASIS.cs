@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -1282,7 +1282,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 }
 
                 var query = softDelete 
-                    ? "MATCH (a:Avatar {ProviderKey: $providerKey}) SET a.IsDeleted = true, a.DeletedDate = datetime() RETURN a"
+                    ? "MATCH (a:Avatar {ProviderKey: $providerKey}) SET a.DeletedDate = datetime() RETURN a"
                     : "MATCH (a:Avatar {ProviderKey: $providerKey}) DETACH DELETE a RETURN a";
                 var parameters = new { providerKey };
                 

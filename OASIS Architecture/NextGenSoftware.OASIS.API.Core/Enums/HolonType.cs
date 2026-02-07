@@ -1,4 +1,4 @@
-﻿
+
 namespace NextGenSoftware.OASIS.API.Core.Enums
 
 { //TODO: Need to make this list dynamic ASAP so people can add to it and we can use AI to holonize the entire planet for every single type of thing and object there is! ;-)
@@ -13,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Chapter,
         Quest,
         Game,
+        GameSession,
+        GameArea,
         InventoryItem,
         Park,
         Building,

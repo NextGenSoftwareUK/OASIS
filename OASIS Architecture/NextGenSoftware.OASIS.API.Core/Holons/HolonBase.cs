@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -78,9 +78,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         
         public HolonType HolonType { get; set; }
         public bool IsActive { get; set; }
-
-
-
+        /// <summary>Derived from DeletedDate; true when soft-deleted. Set only via Delete methods (DeletedDate/DeletedByAvatarId).</summary>
+        public bool IsDeleted => DeletedDate != DateTime.MinValue;
 
         //TODO: TEMP MOVED FROM HOLON TILL REFACTOR CODEBASE.
         public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
