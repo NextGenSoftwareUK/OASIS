@@ -41,6 +41,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public bool SupportsCrossGameInterop { get; set; } = true;
 
         [CustomOASISProperty()]
+        public bool SupportsCrossGameQuests { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsSharedInventory { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsAvatarSSO { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsKarmaScores { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsNFTs { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsKeycards { get; set; }
+
+        [CustomOASISProperty()]
         public Dictionary<string, object> GameSettings { get; set; } = new Dictionary<string, object>();
 
         // Game session management (stored in metadata for active sessions)

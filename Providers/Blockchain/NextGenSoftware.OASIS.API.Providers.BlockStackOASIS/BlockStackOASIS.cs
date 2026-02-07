@@ -24,6 +24,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
@@ -38,7 +40,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
     public class BlockStackOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider, IOASISNETProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private readonly BlockStackClient _blockStackClient;
-        
+        private readonly string _contractAddress;
+
         public BlockStackOASIS(string contractAddress = null)
         {
             this.ProviderName = "BlockStackOASIS";
@@ -361,22 +364,40 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarResult = await LoadAvatarAsync(id, version);
-                if (!avatarResult.IsError && avatarResult.Result != null)
+                if (!IsProviderActivated)
                 {
-                    var detail = new AvatarDetail();
-                    detail.Id = avatarResult.Result.Id;
-                    detail.Username = avatarResult.Result.Username;
-                    detail.Email = avatarResult.Result.Email;
-                    detail.CreatedDate = avatarResult.Result.CreatedDate;
-                    detail.ModifiedDate = avatarResult.Result.ModifiedDate;
-                    result.Result = detail;
-                    result.Message = "Avatar detail loaded from BlockStack successfully";
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate BlockStack provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
-                else
+                // Load avatar detail as a separate object from Gaia (avatar-detail.json), not derived from avatar
+                var userDirectories = await _blockStackClient.ListUserDirectoriesAsync();
+                if (userDirectories != null && userDirectories.Count > 0)
                 {
-                    OASISErrorHandling.HandleError(ref result, avatarResult.Message ?? "Avatar not found for detail load.");
+                    foreach (var userDir in userDirectories)
+                    {
+                        try
+                        {
+                            var detailData = await _blockStackClient.GetFileAsync($"{userDir}/avatar-detail.json");
+                            if (detailData != null && detailData.ContainsKey("id"))
+                            {
+                                var idStr = detailData["id"]?.ToString();
+                                if (!string.IsNullOrWhiteSpace(idStr) && Guid.TryParse(idStr, out var detailId) && detailId == id)
+                                {
+                                    result.Result = MapDictToAvatarDetail(detailData);
+                                    result.IsError = false;
+                                    result.Message = "Avatar detail loaded from BlockStack successfully";
+                                    return result;
+                                }
+                            }
+                        }
+                        catch { continue; }
+                    }
                 }
+                OASISErrorHandling.HandleError(ref result, "Avatar detail not found for id.");
             }
             catch (Exception ex)
             {
@@ -396,20 +417,40 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
-                if (!avatarResult.IsError && avatarResult.Result != null)
+                if (!IsProviderActivated)
                 {
-                    var detail = new AvatarDetail();
-                    detail.Id = avatarResult.Result.Id;
-                    detail.Username = avatarResult.Result.Username;
-                    detail.Email = avatarResult.Result.Email;
-                    detail.CreatedDate = avatarResult.Result.CreatedDate;
-                    detail.ModifiedDate = avatarResult.Result.ModifiedDate;
-                    result.Result = detail;
-                    result.Message = "Avatar detail loaded by email from BlockStack successfully";
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate BlockStack provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
-                else
-                    OASISErrorHandling.HandleError(ref result, avatarResult.Message ?? "Avatar not found by email for detail load.");
+                // Load avatar detail as a separate object from Gaia (avatar-detail.json)
+                var userDirectories = await _blockStackClient.ListUserDirectoriesAsync();
+                if (userDirectories != null && userDirectories.Count > 0)
+                {
+                    foreach (var userDir in userDirectories)
+                    {
+                        try
+                        {
+                            var detailData = await _blockStackClient.GetFileAsync($"{userDir}/avatar-detail.json");
+                            if (detailData != null && detailData.ContainsKey("email"))
+                            {
+                                var email = detailData["email"]?.ToString();
+                                if (string.Equals(email, avatarEmail, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    result.Result = MapDictToAvatarDetail(detailData);
+                                    result.IsError = false;
+                                    result.Message = "Avatar detail loaded by email from BlockStack successfully";
+                                    return result;
+                                }
+                            }
+                        }
+                        catch { continue; }
+                    }
+                }
+                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email.");
             }
             catch (Exception ex)
             {
@@ -429,20 +470,25 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
-                if (!avatarResult.IsError && avatarResult.Result != null)
+                if (!IsProviderActivated)
                 {
-                    var detail = new AvatarDetail();
-                    detail.Id = avatarResult.Result.Id;
-                    detail.Username = avatarResult.Result.Username;
-                    detail.Email = avatarResult.Result.Email;
-                    detail.CreatedDate = avatarResult.Result.CreatedDate;
-                    detail.ModifiedDate = avatarResult.Result.ModifiedDate;
-                    result.Result = detail;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate BlockStack provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                // Load avatar detail as a separate object from Gaia (avatar-detail.json), not derived from avatar
+                var detailData = await _blockStackClient.GetFileAsync($"{avatarUsername}/avatar-detail.json");
+                if (detailData != null && detailData.Count > 0 && detailData.ContainsKey("id"))
+                {
+                    result.Result = MapDictToAvatarDetail(detailData);
+                    result.IsError = false;
                     result.Message = "Avatar detail loaded by username from BlockStack successfully";
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, avatarResult.Message ?? "Avatar not found by username for detail load.");
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found by username.");
             }
             catch (Exception ex)
             {
@@ -551,26 +597,47 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            var avatars = await LoadAllAvatarsAsync(version);
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            if (!avatars.IsError && avatars.Result != null)
+            try
             {
-                var list = new List<IAvatarDetail>();
-                foreach (var a in avatars.Result)
+                if (!IsProviderActivated)
                 {
-                    var detail = new AvatarDetail();
-                    detail.Id = a.Id;
-                    detail.Username = a.Username;
-                    detail.Email = a.Email;
-                    detail.CreatedDate = a.CreatedDate;
-                    detail.ModifiedDate = a.ModifiedDate;
-                    list.Add(detail);
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate BlockStack provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                // Load all avatar details as separate objects from Gaia (avatar-detail.json per dir), not derived from avatars
+                var list = new List<IAvatarDetail>();
+                var userDirectories = await _blockStackClient.ListUserDirectoriesAsync();
+                if (userDirectories != null && userDirectories.Count > 0)
+                {
+                    foreach (var userDir in userDirectories)
+                    {
+                        try
+                        {
+                            var detailData = await _blockStackClient.GetFileAsync($"{userDir}/avatar-detail.json");
+                            if (detailData != null && detailData.ContainsKey("id"))
+                            {
+                                var detail = MapDictToAvatarDetail(detailData);
+                                if (detail != null)
+                                    list.Add(detail);
+                            }
+                        }
+                        catch { continue; }
+                    }
                 }
                 result.Result = list;
-                result.Message = avatars.Message?.Replace("avatars", "avatar details");
-                return result;
+                result.IsError = false;
+                result.Message = $"Avatar details loaded successfully from BlockStack ({list.Count} details)";
             }
-            OASISErrorHandling.HandleError(ref result, avatars.Message ?? "Unable to load avatar details.");
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from BlockStack: {ex.Message}");
+            }
             return result;
         }
 
@@ -657,8 +724,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
-                // Persist avatar detail as a separate JSON document in Gaia
-                var userDir = $"avatar_{avatarDetail.Username ?? avatarDetail.Id.ToString()}";
+                // Persist avatar detail as a separate JSON document in Gaia (same path key as avatar: username)
+                var userDir = avatarDetail.Username ?? avatarDetail.Id.ToString();
                 var filePath = $"{userDir}/avatar-detail.json";
 
                 var data = new Dictionary<string, object>
@@ -692,6 +759,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
+        private static IAvatarDetail MapDictToAvatarDetail(Dictionary<string, object> detailData)
+        {
+            if (detailData == null || !detailData.ContainsKey("id")) return null;
+            var idStr = detailData["id"]?.ToString();
+            if (string.IsNullOrWhiteSpace(idStr) || !Guid.TryParse(idStr, out var id)) return null;
+            return new AvatarDetail
+            {
+                Id = id,
+                Username = detailData.GetValueOrDefault("username")?.ToString(),
+                Email = detailData.GetValueOrDefault("email")?.ToString(),
+                CreatedDate = DateTime.TryParse(detailData.GetValueOrDefault("createdDate")?.ToString(), out var cd) ? cd : DateTime.UtcNow,
+                ModifiedDate = DateTime.TryParse(detailData.GetValueOrDefault("modifiedDate")?.ToString(), out var md) ? md : DateTime.UtcNow
+            };
+        }
+
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
@@ -716,13 +798,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 }
 
                 // Delete avatar from BlockStack Gaia storage
-                var userDir = $"avatar_{loadResult.Result.Username ?? id.ToString()}";
+                var userDir = loadResult.Result.Username ?? id.ToString();
                 var filePath = $"{userDir}/avatar.json";
                 var deleteResult = await _blockStackClient.DeleteFileAsync(filePath);
                 
                 if (deleteResult)
                 {
-                    // Also delete avatar detail if it exists
+                    // Also delete avatar detail (separate object) if it exists
                     var detailPath = $"{userDir}/avatar-detail.json";
                     await _blockStackClient.DeleteFileAsync(detailPath);
 
@@ -2220,7 +2302,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate BlockStack provider: {activateResult.Message}");
@@ -2321,7 +2403,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate BlockStack provider: {activateResult.Message}");
@@ -2402,7 +2484,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate BlockStack provider: {activateResult.Message}");
@@ -2481,7 +2563,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 {
                     // For STX transfers, use token transfer
                     // For SIP-010 tokens, use contract call to transfer function
-                    var contractAddress = request.TokenAddress ?? "STX"; // Default to STX
+                    var contractAddress = request.FromTokenAddress ?? "STX"; // Default to STX
                     
                     var transferPayload = new
                     {
@@ -2493,7 +2575,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                             request.FromWalletAddress ?? "",
                             request.ToWalletAddress
                         },
-                        amount = contractAddress == "STX" ? request.Amount : null,
+                        amount = contractAddress == "STX" ? request.Amount : (decimal?)null,
                         from = request.FromWalletAddress ?? "",
                         to = request.ToWalletAddress
                     };
@@ -2547,11 +2629,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     }
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
+                var tokenAddress = request?.MetaData?.GetValueOrDefault("TokenAddress") ?? request?.Symbol ?? "";
+                if (request == null || string.IsNullOrWhiteSpace(tokenAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Invalid token mint request");
                     return result;
                 }
+
+                var mintAmount = request.MetaData?.GetValueOrDefault("Amount");
+                var toWallet = request.MetaData?.GetValueOrDefault("ToWalletAddress") ?? "";
+                if (string.IsNullOrEmpty(mintAmount)) mintAmount = "0";
 
                 // BlockStack/Stacks uses SIP-010 fungible token standard for minting
                 var stacksApiUrl = "https://api.stacks.co/v2/transactions";
@@ -2559,12 +2646,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 {
                     var mintPayload = new
                     {
-                        contract_address = request.TokenAddress,
+                        contract_address = tokenAddress,
                         function_name = "mint",
                         function_args = new[]
                         {
-                            request.Amount.ToString(),
-                            request.ToWalletAddress ?? ""
+                            mintAmount,
+                            toWallet
                         }
                     };
                     
@@ -2623,6 +2710,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
+                var burnAmount = "0"; // IBurnWeb3TokenRequest does not expose Amount; extend interface if provider-specific amount is needed
+                var fromWallet = request.OwnerPublicKey ?? "";
+
                 // BlockStack/Stacks uses SIP-010 fungible token standard for burning
                 var stacksApiUrl = "https://api.stacks.co/v2/transactions";
                 using (var httpClient = new HttpClient())
@@ -2633,8 +2723,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                         function_name = "burn",
                         function_args = new[]
                         {
-                            request.Amount.ToString(),
-                            request.FromWalletAddress ?? ""
+                            burnAmount,
+                            fromWallet
                         }
                     };
                     
@@ -2697,10 +2787,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 var lockContractAddress = _contractAddress ?? "SP000000000000000000002Q6VF78"; // Default lock contract
                 var sendRequest = new SendWeb3TokenRequest
                 {
-                    TokenAddress = request.TokenAddress,
+                    FromTokenAddress = request.TokenAddress,
                     FromWalletAddress = request.FromWalletAddress ?? "",
                     ToWalletAddress = lockContractAddress,
-                    Amount = request.Amount
+                    Amount = 0
                 };
 
                 var sendResult = await SendTokenAsync(sendRequest);
@@ -2760,8 +2850,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                         function_args = new[]
                         {
                             request.TokenAddress,
-                            request.Amount.ToString(),
-                            request.ToWalletAddress ?? ""
+                            "0",
+                            ""
                         }
                     };
                     
@@ -2896,8 +2986,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 var stacksApiUrl = "https://api.stacks.co/extended/v1";
                 using (var httpClient = new HttpClient())
                 {
-                    var limit = request.Limit > 0 ? request.Limit : 50;
-                    var offset = request.Offset > 0 ? request.Offset : 0;
+                    var limit = 50;
+                    var offset = 0;
                     var response = await httpClient.GetAsync($"{stacksApiUrl}/address/{request.WalletAddress}/transactions?limit={limit}&offset={offset}");
                     
                     if (response.IsSuccessStatusCode)
@@ -2922,8 +3012,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                                              transfer.TryGetProperty("amount", out var amount) ? 
                                              double.Parse(amount.GetString()) : 0,
                                     Description = tx.TryGetProperty("tx_status", out var status) ? status.GetString() : "Stacks transaction",
-                                    TransactionType = TransactionType.Send,
-                                    TransactionCategory = TransactionCategory.Transfer
+                                    TransactionType = TransactionType.Debit,
+                                    TransactionCategory = TransactionCategory.Other
                                 };
                                 transactions.Add(walletTx);
                             }
@@ -2976,11 +3066,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 // Stacks uses a different address encoding, but for now we'll use the Bitcoin address
                 var stacksAddress = $"SP{address.Substring(1)}"; // Simplified conversion
 
-                result.Result = new KeyPairAndWallet
+                result.Result = new KeyHelper.KeyPairAndWallet
                 {
                     PrivateKey = privateKey,
                     PublicKey = publicKey,
-                    WalletAddress = stacksAddress
+                    WalletAddressLegacy = stacksAddress,
+                    WalletAddressSegwitP2SH = stacksAddress
                 };
                 result.IsError = false;
                 result.Message = "Key pair generated successfully for BlockStack Stacks blockchain";
@@ -3078,7 +3169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
                 // BlockStack/Stacks blockchain uses SIP-009 NFT standard
                 // Send NFT via Stacks blockchain RPC API
-                if (request == null || string.IsNullOrWhiteSpace(request.ToAvatarId.ToString()))
+                if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Invalid NFT send request");
                     return result;
@@ -3092,8 +3183,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     using (var httpClient = new HttpClient())
                     {
                         // Get NFT contract address and token ID from request
-                        var contractAddress = request.NFTTokenAddress ?? "";
-                        var tokenId = request.Web3NFTId.ToString();
+                        var contractAddress = request.FromNFTTokenAddress ?? request.TokenAddress ?? "";
+                        var tokenId = request.TokenId ?? "";
                         
                         // Construct Stacks transaction payload for NFT transfer
                         var transferPayload = new
@@ -3103,8 +3194,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                             function_args = new[]
                             {
                                 tokenId,
-                                request.FromAvatarId.ToString(),
-                                request.ToAvatarId.ToString()
+                                request.FromWalletAddress ?? "",
+                                request.ToWalletAddress
                             }
                         };
                         
@@ -3124,9 +3215,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                             
                             result.Result = new Web3NFTTransactionResponse
                             {
-                                TransactionHash = txId,
-                                IsSuccessful = !string.IsNullOrEmpty(txId),
-                                Message = $"NFT transfer transaction submitted: {txId}"
+                                TransactionResult = txId,
+                                SendNFTTransactionResult = txId
                             };
                             result.Message = "NFT transfer transaction submitted successfully";
                         }
@@ -3171,7 +3261,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
                 // BlockStack/Stacks blockchain uses SIP-009 NFT standard
                 // Mint NFT via Stacks blockchain RPC API
-                if (request == null || string.IsNullOrWhiteSpace(request.MintToAvatarId.ToString()))
+                var sendToAvatarId = request?.SendToAvatarAfterMintingId ?? Guid.Empty;
+                if (request == null || sendToAvatarId == Guid.Empty)
                 {
                     OASISErrorHandling.HandleError(ref result, "Invalid NFT mint request");
                     return result;
@@ -3184,8 +3275,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     var stacksApiUrl = "https://api.stacks.co/v2/transactions";
                     using (var httpClient = new HttpClient())
                     {
-                        // Get NFT contract address from request
-                        var contractAddress = request.NFTTokenAddress ?? "";
+                        // Get NFT contract address from request (from meta or base)
+                        var contractAddress = request.MetaData?.GetValueOrDefault("NFTTokenAddress") ?? "";
                         
                         // Construct Stacks transaction payload for NFT minting
                         var mintPayload = new
@@ -3194,7 +3285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                             function_name = "mint",
                             function_args = new[]
                             {
-                                request.MintToAvatarId.ToString()
+                                sendToAvatarId.ToString()
                             }
                         };
                         
@@ -3214,9 +3305,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                             
                             result.Result = new Web3NFTTransactionResponse
                             {
-                                TransactionHash = txId,
-                                IsSuccessful = !string.IsNullOrEmpty(txId),
-                                Message = $"NFT mint transaction submitted: {txId}"
+                                TransactionResult = txId,
+                                SendNFTTransactionResult = txId
                             };
                             result.Message = "NFT mint transaction submitted successfully";
                         }
@@ -3384,10 +3474,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                         
                         result.Result = new BridgeTransactionResponse
                         {
-                            TransactionHash = txData.TryGetProperty("txid", out var txid) ? txid.GetString() : "",
-                            Status = BridgeTransactionStatus.Pending,
-                            SourceProvider = ProviderType.Value,
-                            DestinationProvider = ProviderType.Value // Will be set by bridge manager
+                            TransactionId = txData.TryGetProperty("txid", out var txid) ? txid.GetString() ?? "" : "",
+                            Status = BridgeTransactionStatus.Pending
                         };
                         result.IsError = false;
                         result.Message = "NFT withdrawal initiated successfully via Stacks blockchain";
@@ -3457,10 +3545,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                         
                         result.Result = new BridgeTransactionResponse
                         {
-                            TransactionHash = txData.TryGetProperty("txid", out var txid) ? txid.GetString() : "",
-                            Status = BridgeTransactionStatus.Completed,
-                            SourceProvider = ProviderType.Value,
-                            DestinationProvider = ProviderType.Value
+                            TransactionId = txData.TryGetProperty("txid", out var txid) ? txid.GetString() ?? "" : "",
+                            Status = BridgeTransactionStatus.Completed
                         };
                         result.IsError = false;
                         result.Message = "NFT deposit completed successfully via Stacks blockchain";
@@ -3605,7 +3691,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                                         var nft = new Web3NFT
                                         {
                                             NFTTokenAddress = evt.TryGetProperty("contract_address", out var contract) ? contract.GetString() : "",
-                                            TransactionHash = hash,
+                                            MintTransactionHash = hash,
                                             OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.BlockStackOASIS)
                                         };
                                         
@@ -3655,7 +3741,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 }
 
                 // Use avatar's wallet address or provider key to load NFTs
-                var walletAddress = avatarResult.Result.Wallet?.FirstOrDefault()?.Address ?? avatarResult.Result.ProviderKey;
+                var walletAddress = avatarResult.Result.ProviderWallets != null && ProviderType != null && avatarResult.Result.ProviderWallets.TryGetValue(ProviderType.Value, out var wallets) && wallets?.Count > 0
+                    ? wallets.FirstOrDefault()?.WalletAddress ?? ""
+                    : (avatarResult.Result.ProviderUniqueStorageKey != null && ProviderType != null && avatarResult.Result.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value, out var key) ? key : "");
                 if (string.IsNullOrEmpty(walletAddress))
                 {
                     OASISErrorHandling.HandleError(ref response, $"Avatar {avatarId} does not have a wallet address or provider key");
@@ -3761,7 +3849,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 }
 
                 // Use avatar's wallet address or provider key to load GeoNFTs
-                var walletAddress = avatarResult.Result.Wallet?.FirstOrDefault()?.Address ?? avatarResult.Result.ProviderKey;
+                var walletAddress = avatarResult.Result.ProviderWallets != null && ProviderType != null && avatarResult.Result.ProviderWallets.TryGetValue(ProviderType.Value, out var wallets) && wallets?.Count > 0
+                    ? wallets.FirstOrDefault()?.WalletAddress ?? ""
+                    : (avatarResult.Result.ProviderUniqueStorageKey != null && ProviderType != null && avatarResult.Result.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value, out var key) ? key : "");
                 if (string.IsNullOrEmpty(walletAddress))
                 {
                     OASISErrorHandling.HandleError(ref response, $"Avatar {avatarId} does not have a wallet address or provider key");
@@ -3881,18 +3971,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 // Create new Geo NFT if not loaded
                 if (geoNFT == null)
                 {
-                    geoNFT = new Web4GeoSpatialNFT
+                    geoNFT = new Web4OASISGeoSpatialNFT
                     {
                         Id = Guid.NewGuid(),
-                        Latitude = request.Lat / 1000000.0, // Convert from microdegrees to degrees
-                        Longitude = request.Long / 1000000.0,
-                        Altitude = 0 // Altitude not in base interface
+                        Lat = request.Lat,
+                        Long = request.Long
                     };
                 }
                 else
                 {
-                    geoNFT.Latitude = request.Lat / 1000000.0;
-                    geoNFT.Longitude = request.Long / 1000000.0;
+                    geoNFT.Lat = request.Lat;
+                    geoNFT.Long = request.Long;
                 }
                 
                 // Store Geo NFT in Gaia storage with location-based path
@@ -3942,11 +4031,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 // First mint the NFT on Stacks blockchain
                 var mintRequest = new MintWeb3NFTRequest
                 {
-                    MintToAvatarId = request.MintToAvatarId,
-                    NFTTokenAddress = request.NFTTokenAddress ?? "",
-                    Metadata = request.Metadata
+                    SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                    MetaData = request.MetaData ?? new Dictionary<string, string>()
                 };
-                
+                if (request.MetaData != null && request.MetaData.TryGetValue("NFTTokenAddress", out var nftAddr))
+                    mintRequest.MetaData["NFTTokenAddress"] = nftAddr;
+
                 var mintResult = await MintNFTAsync(mintRequest);
                 if (mintResult.IsError || mintResult.Result == null)
                 {
@@ -3954,14 +4044,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
-                // Create Geo NFT with minted transaction hash
-                var geoNFT = new Web4GeoSpatialNFT
+                // Create Geo NFT
+                var geoNFT = new Web4OASISGeoSpatialNFT
                 {
                     Id = Guid.NewGuid(),
-                    Latitude = request.Lat / 1000000.0, // Convert from microdegrees to degrees
-                    Longitude = request.Long / 1000000.0,
-                    Altitude = 0,
-                    TransactionHash = mintResult.Result.TransactionHash
+                    Lat = request.Lat,
+                    Long = request.Long
                 };
 
                 // Then place it at the geospatial location
@@ -3970,7 +4058,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     OriginalWeb4OASISNFTId = geoNFT.Id,
                     Lat = request.Lat,
                     Long = request.Long,
-                    PlacedByAvatarId = request.MintToAvatarId,
+                    PlacedByAvatarId = request.PlacedByAvatarId,
                     GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider
                 };
                 
@@ -3980,9 +4068,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     OASISErrorHandling.HandleError(ref result, $"Failed to place Geo NFT: {placeResult.Message}");
                     return result;
                 }
-
-                // Update Geo NFT with mint transaction hash
-                placeResult.Result.TransactionHash = mintResult.Result.TransactionHash;
                 
                 result.Result = placeResult.Result;
                 result.IsError = false;
@@ -4060,12 +4145,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                             {
                                 var nft = new Web3NFT
                                 {
-                                    TokenId = stacksNftData.GetValueOrDefault("token_id")?.ToString() ?? "",
-                                    TokenAddress = nftTokenAddress,
-                                    Name = stacksNftData.GetValueOrDefault("name")?.ToString() ?? "",
+                                    Id = Guid.TryParse(stacksNftData.GetValueOrDefault("token_id")?.ToString(), out var tid) ? tid : Guid.NewGuid(),
+                                    NFTTokenAddress = nftTokenAddress,
+                                    Title = stacksNftData.GetValueOrDefault("name")?.ToString() ?? "",
                                     Description = stacksNftData.GetValueOrDefault("description")?.ToString() ?? "",
-                                    ImageUrl = stacksNftData.GetValueOrDefault("image_url")?.ToString() ?? "",
-                                    ExternalUrl = stacksNftData.GetValueOrDefault("external_url")?.ToString() ?? ""
+                                    ImageUrl = stacksNftData.GetValueOrDefault("image_url")?.ToString() ?? ""
                                 };
                                 
                                 result.Result = nft;

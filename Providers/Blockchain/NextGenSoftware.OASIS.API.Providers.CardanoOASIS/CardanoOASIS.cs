@@ -488,10 +488,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
                             var metadataString = jsonMeta.GetString();
                             if (metadataString.Contains(id.ToString()))
                             {
-                                var avatar = ParseCardanoToAvatar(metadataString);
-                                if (avatar != null)
+                                var avatarDetail = ParseCardanoToAvatarDetail(metadataString);
+                                if (avatarDetail != null && avatarDetail.Id == id)
                                 {
-                                    response.Result = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
+                                    response.Result = avatarDetail;
                                     response.IsError = false;
                                     response.Message = "Avatar detail loaded from Cardano successfully";
                                     return response;
@@ -905,6 +905,37 @@ private IAvatar ParseCardanoToAvatar(string cardanoJson)
         // If JSON deserialization fails, try to extract basic info
         return CreateAvatarFromCardano(cardanoJson);
     }
+}
+
+/// <summary>
+/// Parse Cardano metadata to AvatarDetail (separate from Avatar; do not build from Avatar).
+/// </summary>
+private IAvatarDetail ParseCardanoToAvatarDetail(string cardanoJson)
+{
+    try
+    {
+        var detail = System.Text.Json.JsonSerializer.Deserialize<AvatarDetail>(cardanoJson, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        });
+        if (detail != null && detail.Id != Guid.Empty) return detail;
+    }
+    catch { }
+    try
+    {
+        var stakeAddress = ExtractCardanoProperty(cardanoJson, "stake_address") ?? ExtractCardanoProperty(cardanoJson, "address") ?? "cardano_user";
+        var id = CreateDeterministicGuid($"{ProviderType.Value}:{stakeAddress}");
+        return new AvatarDetail
+        {
+            Id = id,
+            Username = stakeAddress,
+            Email = ExtractCardanoProperty(cardanoJson, "email") ?? "",
+            FirstName = ExtractCardanoProperty(cardanoJson, "first_name") ?? "",
+            LastName = ExtractCardanoProperty(cardanoJson, "last_name") ?? ""
+        };
+    }
+    catch { return null; }
 }
 
 /// <summary>
