@@ -2632,17 +2632,20 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, fromAvatarEmail);
             var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, toAvatarEmail);
 
-            if (string.IsNullOrWhiteSpace(fromWalletResult) || string.IsNullOrWhiteSpace(toWalletResult))
+            if (fromWalletResult.IsError || toWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result) || string.IsNullOrWhiteSpace(toWalletResult.Result))
             {
                 OASISErrorHandling.HandleError(ref result, "Error getting wallet addresses for avatars");
                 return result;
             }
 
+            var fromWallet = fromWalletResult.Result;
+            var toWallet = toWalletResult.Result;
+
             // If token is provided, use SPL token transfer; otherwise use native SOL transfer
             if (!string.IsNullOrWhiteSpace(token))
             {
-                var fromPublicKey = new PublicKey(fromWalletResult);
-                var toPublicKey = new PublicKey(toWalletResult);
+                var fromPublicKey = new PublicKey(fromWallet);
+                var toPublicKey = new PublicKey(toWallet);
                 var tokenMint = new PublicKey(token);
                 var tokenAmount = (ulong)(amount * 1_000_000_000m);
                 

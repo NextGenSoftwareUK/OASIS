@@ -524,7 +524,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     if (rpcResponse.TryGetProperty("result", out var result))
                     {
                         var avatarData = JsonSerializer.Deserialize<AvatarDetail>(result.GetString());
-                        response.Result = avatarData as IAvatarDetail;
+                        response.Result = avatarData;
                         response.IsError = false;
                         response.Message = "Avatar detail loaded from Polkadot successfully";
                     }
@@ -2521,30 +2521,26 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            // First load the avatar by username, then create avatar detail
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
-            if (!avatarResult.IsError && avatarResult.Result != null)
+            // Load avatar details as separate objects from chain, then find by username
+            var allResult = await LoadAllAvatarDetailsAsync(version);
+            if (allResult.IsError || allResult.Result == null)
             {
                 var response = new OASISResult<IAvatarDetail>();
-                var avatarDetail = new AvatarDetail
-                {
-                    Id = avatarResult.Result.Id,
-                    Username = avatarResult.Result.Username,
-                    Email = avatarResult.Result.Email,
-                    CreatedDate = avatarResult.Result.CreatedDate,
-                    ModifiedDate = avatarResult.Result.ModifiedDate
-                };
-                response.Result = avatarDetail;
+                OASISErrorHandling.HandleError(ref response, allResult.Message ?? "Avatar details not loaded");
+                return response;
+            }
+            var match = allResult.Result.FirstOrDefault(d => string.Equals(d.Username, avatarUsername, StringComparison.OrdinalIgnoreCase));
+            if (match != null)
+            {
+                var response = new OASISResult<IAvatarDetail>();
+                response.Result = match;
                 response.IsError = false;
                 response.Message = "Avatar detail loaded from Polkadot by username successfully";
                 return response;
             }
-            else
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                OASISErrorHandling.HandleError(ref response, avatarResult.Message ?? "Avatar not found by username for detail load");
-                return response;
-            }
+            var notFound = new OASISResult<IAvatarDetail>();
+            OASISErrorHandling.HandleError(ref notFound, "Avatar detail not found by username");
+            return notFound;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
@@ -2554,30 +2550,26 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            // First load the avatar by email, then create avatar detail
-            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
-            if (!avatarResult.IsError && avatarResult.Result != null)
+            // Load avatar details as separate objects from chain, then find by email
+            var allResult = await LoadAllAvatarDetailsAsync(version);
+            if (allResult.IsError || allResult.Result == null)
             {
                 var response = new OASISResult<IAvatarDetail>();
-                var avatarDetail = new AvatarDetail
-                {
-                    Id = avatarResult.Result.Id,
-                    Username = avatarResult.Result.Username,
-                    Email = avatarResult.Result.Email,
-                    CreatedDate = avatarResult.Result.CreatedDate,
-                    ModifiedDate = avatarResult.Result.ModifiedDate
-                };
-                response.Result = avatarDetail;
+                OASISErrorHandling.HandleError(ref response, allResult.Message ?? "Avatar details not loaded");
+                return response;
+            }
+            var match = allResult.Result.FirstOrDefault(d => string.Equals(d.Email, avatarEmail, StringComparison.OrdinalIgnoreCase));
+            if (match != null)
+            {
+                var response = new OASISResult<IAvatarDetail>();
+                response.Result = match;
                 response.IsError = false;
                 response.Message = "Avatar detail loaded from Polkadot by email successfully";
                 return response;
             }
-            else
-            {
-                var response = new OASISResult<IAvatarDetail>();
-                OASISErrorHandling.HandleError(ref response, avatarResult.Message ?? "Avatar not found by email for detail load");
-                return response;
-            }
+            var notFound = new OASISResult<IAvatarDetail>();
+            OASISErrorHandling.HandleError(ref notFound, "Avatar detail not found by email");
+            return notFound;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)

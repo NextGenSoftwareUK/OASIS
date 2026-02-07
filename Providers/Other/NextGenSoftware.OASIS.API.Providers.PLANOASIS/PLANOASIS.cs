@@ -1565,7 +1565,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
@@ -1619,7 +1619,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");

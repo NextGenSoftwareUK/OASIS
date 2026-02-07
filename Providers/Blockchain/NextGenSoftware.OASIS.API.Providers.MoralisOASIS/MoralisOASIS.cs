@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -735,23 +735,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Load all avatars, then convert to avatar details
+                // Load avatar details as separate entities (do not build from Avatar)
                 var avatarsResult = await LoadAllAvatarsAsync(version);
                 if (avatarsResult.IsError || avatarsResult.Result == null)
                 {
                     return new OASISResult<IEnumerable<IAvatarDetail>>(new List<IAvatarDetail>()) { Message = "No avatars found" };
                 }
-                
-                var avatarDetails = avatarsResult.Result.Select(avatar => new AvatarDetail
+                var avatarDetails = new List<IAvatarDetail>();
+                foreach (var avatar in avatarsResult.Result)
                 {
-                    Id = avatar.Id,
-                    Username = avatar.Username,
-                    Email = avatar.Email,
-                    FirstName = avatar.FirstName,
-                    LastName = avatar.LastName,
-                    Version = version
-                }).Cast<IAvatarDetail>().ToList();
-                
+                    var detailResult = await LoadAvatarDetailAsync(avatar.Id, version);
+                    if (!detailResult.IsError && detailResult.Result != null)
+                        avatarDetails.Add(detailResult.Result);
+                }
                 return new OASISResult<IEnumerable<IAvatarDetail>>(avatarDetails) { Message = $"Loaded {avatarDetails.Count} avatar details from Moralis Web3 API" };
             }
             catch (Exception ex)

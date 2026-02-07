@@ -19,7 +19,9 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Repositories;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Infrastructure.Services.Zcash;
 using NextGenSoftware.OASIS.API.Providers.ZcashOASIS.Models;
@@ -494,16 +496,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                     }
                 }
 
-                // Load avatar first, then get detail
-                var avatarResult = await LoadAvatarAsync(id, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
+                // Load avatar detail as separate object (holon with HolonType.AvatarDetail)
+                var holonResult = await LoadHolonAsync($"avatar-detail:{id}");
+                if (holonResult.IsError || holonResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found");
                     return result;
                 }
 
-                // Convert avatar to avatar detail
-                var avatarDetail = ConvertAvatarToAvatarDetail(avatarResult.Result);
+                var avatarDetail = ConvertHolonToAvatarDetail(holonResult.Result);
                 result.Result = avatarDetail;
                 result.IsError = false;
                 result.Message = "Avatar detail loaded successfully from Zcash";
@@ -535,16 +536,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                     }
                 }
 
-                // Load avatar by email first, then get detail
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
+                // Load avatar detail as separate object (HolonType.AvatarDetail)
+                var holonsResult = await LoadHolonsByMetaDataAsync("Email", avatarEmail, HolonType.AvatarDetail);
+                if (holonsResult.IsError || holonsResult.Result == null || !holonsResult.Result.Any())
                 {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email");
                     return result;
                 }
 
-                // Convert avatar to avatar detail
-                var avatarDetail = ConvertAvatarToAvatarDetail(avatarResult.Result);
+                var avatarDetail = ConvertHolonToAvatarDetail(holonsResult.Result.First());
                 result.Result = avatarDetail;
                 result.IsError = false;
                 result.Message = "Avatar detail loaded successfully from Zcash by email";
@@ -576,16 +576,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                     }
                 }
 
-                // Load avatar by username first, then get detail
-                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
+                // Load avatar detail as separate object (HolonType.AvatarDetail)
+                var holonsResult = await LoadHolonsByMetaDataAsync("Username", avatarUsername, HolonType.AvatarDetail);
+                if (holonsResult.IsError || holonsResult.Result == null || !holonsResult.Result.Any())
                 {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found by username");
                     return result;
                 }
 
-                // Convert avatar to avatar detail
-                var avatarDetail = ConvertAvatarToAvatarDetail(avatarResult.Result);
+                var avatarDetail = ConvertHolonToAvatarDetail(holonsResult.Result.First());
                 result.Result = avatarDetail;
                 result.IsError = false;
                 result.Message = "Avatar detail loaded successfully from Zcash by username";
@@ -618,19 +617,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 }
 
                 // Load all avatars, then convert to details
-                var avatarsResult = await LoadAllAvatarsAsync(version);
-                if (avatarsResult.IsError || avatarsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
-                    return result;
-                }
-
+                // Load avatar details as separate objects (holons with HolonType.AvatarDetail)
+                var holonsResult = await LoadAllHolonsAsync(HolonType.AvatarDetail);
                 var avatarDetails = new List<IAvatarDetail>();
-                foreach (var avatar in avatarsResult.Result)
+                if (!holonsResult.IsError && holonsResult.Result != null)
                 {
-                    var detail = ConvertAvatarToAvatarDetail(avatar);
-                    if (detail != null)
-                        avatarDetails.Add(detail);
+                    foreach (var holon in holonsResult.Result)
+                    {
+                        var detail = ConvertHolonToAvatarDetail(holon);
+                        if (detail != null)
+                            avatarDetails.Add(detail);
+                    }
                 }
 
                 result.Result = avatarDetails;
@@ -695,7 +692,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
             return SaveAvatarAsync(Avatar).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
             var result = new OASISResult<IAvatarDetail>();
             try
@@ -710,22 +707,19 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                     }
                 }
 
-                if (Avatar == null)
+                if (avatarDetail == null)
                 {
                     OASISErrorHandling.HandleError(ref result, "Avatar detail cannot be null");
                     return result;
                 }
 
-                // Convert AvatarDetail to Holon and save to Zcash
-                var holon = ConvertAvatarDetailToHolon(Avatar);
+                // AvatarDetail is stored separately from Avatar: save as holon (HolonType.AvatarDetail)
+                var holon = ConvertAvatarDetailToHolon(avatarDetail);
                 var saveResult = await SaveHolonAsync(holon);
                 
                 if (!saveResult.IsError && saveResult.Result != null)
                 {
-                    // Convert back to AvatarDetail via Avatar
-                    var avatar = ConvertHolonToAvatar(saveResult.Result);
-                    var avatarDetail = ConvertAvatarToAvatarDetail(avatar);
-                    result.Result = avatarDetail;
+                    result.Result = ConvertHolonToAvatarDetail(saveResult.Result) ?? avatarDetail;
                     result.IsError = false;
                     result.Message = "Avatar detail saved successfully to Zcash";
                 }
@@ -741,9 +735,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
             return result;
         }
 
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {
-            return SaveAvatarDetailAsync(Avatar).Result;
+            return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -2016,7 +2010,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Zcash provider: {activateResult.Message}");
@@ -2067,7 +2061,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             if (!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
+                var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                 if (activateResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to activate Zcash provider: {activateResult.Message}");
@@ -2201,6 +2195,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 {
                     OASISErrorHandling.HandleError(ref result, "Failed to generate key pair for Zcash account");
                 }
+                return result;
             }
             catch (Exception ex)
             {
@@ -2431,14 +2426,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 Id = avatarDetail.Id,
                 Name = avatarDetail.Username,
                 Description = avatarDetail.Email,
-                HolonType = HolonType.Avatar
+                HolonType = HolonType.AvatarDetail,
+                IsActive = avatarDetail.IsActive
             };
+            if (holon.ProviderUniqueStorageKey == null)
+                holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ZcashOASIS] = $"avatar-detail:{avatarDetail.Id}";
 
-            // Store avatar detail data in metadata
+            // Store all avatar detail properties in metadata so loading as holon maps back the full object
             holon.MetaData = new Dictionary<string, object>
             {
                 ["Username"] = avatarDetail.Username ?? "",
                 ["Email"] = avatarDetail.Email ?? "",
+                ["Title"] = avatarDetail.Title ?? "",
+                ["FirstName"] = avatarDetail.FirstName ?? "",
+                ["LastName"] = avatarDetail.LastName ?? "",
+                ["Description"] = avatarDetail.Description ?? "",
                 ["Karma"] = avatarDetail.Karma,
                 ["XP"] = avatarDetail.XP,
                 ["Model3D"] = avatarDetail.Model3D ?? "",
@@ -2453,10 +2456,40 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 ["Landline"] = avatarDetail.Landline ?? "",
                 ["Mobile"] = avatarDetail.Mobile ?? "",
                 ["FavouriteColour"] = (int)avatarDetail.FavouriteColour,
-                ["STARCLIColour"] = (int)avatarDetail.STARCLIColour
+                ["STARCLIColour"] = (int)avatarDetail.STARCLIColour,
+                ["AvatarType"] = avatarDetail.AvatarType?.Value != null ? (int)avatarDetail.AvatarType.Value : (int)Core.Enums.AvatarType.User
             };
 
+            // Store nested objects as JSON so loading avatar-detail holon restores full object
+            var jsonSettings = new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, NullValueHandling = NullValueHandling.Ignore };
+            TrySetMetaDataJson(holon.MetaData, "GiftsJson", avatarDetail.Gifts, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "AchievementsJson", avatarDetail.Achievements, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "GeneKeysJson", avatarDetail.GeneKeys, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "SpellsJson", avatarDetail.Spells, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "InventoryJson", avatarDetail.Inventory, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "KarmaAkashicRecordsJson", avatarDetail.KarmaAkashicRecords, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "HeartRateDataJson", avatarDetail.HeartRateData, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "DimensionLevelIdsJson", avatarDetail.DimensionLevelIds, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "DimensionLevelsJson", avatarDetail.DimensionLevels, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "StatsJson", avatarDetail.Stats, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "ChakrasJson", avatarDetail.Chakras, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "AuraJson", avatarDetail.Aura, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "SkillsJson", avatarDetail.Skills, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "AttributesJson", avatarDetail.Attributes, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "SuperPowersJson", avatarDetail.SuperPowers, jsonSettings);
+            TrySetMetaDataJson(holon.MetaData, "HumanDesignJson", avatarDetail.HumanDesign, jsonSettings);
+
             return holon;
+        }
+
+        private static void TrySetMetaDataJson(Dictionary<string, object> metaData, string key, object value, JsonSerializerSettings settings)
+        {
+            if (value == null) return;
+            try
+            {
+                metaData[key] = JsonConvert.SerializeObject(value, settings);
+            }
+            catch { /* skip if non-serializable */ }
         }
 
         /// <summary>
@@ -2492,53 +2525,103 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
         }
 
         /// <summary>
-        /// Convert avatar to avatar detail
+        /// Convert holon (stored from AvatarDetail) to IAvatarDetail. Avatar detail is a separate object.
+        /// </summary>
+        /// <summary>
+        /// Parse provider's stored AvatarDetail (stored as holon with HolonType.AvatarDetail) to IAvatarDetail.
+        /// Avatar and AvatarDetail are separate; this maps the stored holon representation to the detail object.
+        /// </summary>
+        private IAvatarDetail ConvertHolonToAvatarDetail(IHolon holon)
+        {
+            if (holon == null) return null;
+            var detail = new AvatarDetail
+            {
+                Id = holon.Id,
+                Username = holon.Name,
+                Email = holon.Description,
+                CreatedDate = holon.CreatedDate,
+                ModifiedDate = holon.ModifiedDate,
+                IsActive = holon.IsActive
+            };
+            if (holon.MetaData != null)
+            {
+                object v;
+                if (holon.MetaData.TryGetValue("Title", out v)) detail.Title = v?.ToString();
+                if (holon.MetaData.TryGetValue("FirstName", out v)) detail.FirstName = v?.ToString();
+                if (holon.MetaData.TryGetValue("LastName", out v)) detail.LastName = v?.ToString();
+                if (holon.MetaData.TryGetValue("Description", out v)) detail.Description = v?.ToString();
+                if (holon.MetaData.TryGetValue("Karma", out v) && long.TryParse(v?.ToString(), out var karmaValue))
+                    detail.Karma = karmaValue;
+                if (holon.MetaData.TryGetValue("XP", out v) && int.TryParse(v?.ToString(), out var xpValue))
+                    detail.XP = xpValue;
+                if (holon.MetaData.TryGetValue("Model3D", out v)) detail.Model3D = v?.ToString();
+                if (holon.MetaData.TryGetValue("UmaJson", out v)) detail.UmaJson = v?.ToString();
+                if (holon.MetaData.TryGetValue("Portrait", out v)) detail.Portrait = v?.ToString();
+                if (holon.MetaData.TryGetValue("Town", out v)) detail.Town = v?.ToString();
+                if (holon.MetaData.TryGetValue("County", out v)) detail.County = v?.ToString();
+                if (holon.MetaData.TryGetValue("Address", out v)) detail.Address = v?.ToString();
+                if (holon.MetaData.TryGetValue("Country", out v)) detail.Country = v?.ToString();
+                if (holon.MetaData.TryGetValue("Postcode", out v)) detail.Postcode = v?.ToString();
+                if (holon.MetaData.TryGetValue("Landline", out v)) detail.Landline = v?.ToString();
+                if (holon.MetaData.TryGetValue("Mobile", out v)) detail.Mobile = v?.ToString();
+                if (holon.MetaData.TryGetValue("DOB", out v) && DateTime.TryParse(v?.ToString(), out var dob)) detail.DOB = dob;
+                if (holon.MetaData.TryGetValue("FavouriteColour", out v) && int.TryParse(v?.ToString(), out var fc)) detail.FavouriteColour = (ConsoleColor)fc;
+                if (holon.MetaData.TryGetValue("STARCLIColour", out v) && int.TryParse(v?.ToString(), out var sc)) detail.STARCLIColour = (ConsoleColor)sc;
+                if (holon.MetaData.TryGetValue("AvatarType", out v) && int.TryParse(v?.ToString(), out var at) && Enum.IsDefined(typeof(Core.Enums.AvatarType), at))
+                    detail.AvatarType = new EnumValue<Core.Enums.AvatarType>((Core.Enums.AvatarType)at);
+                // Restore nested objects from JSON
+                TryGetMetaDataJsonList<Objects.AvatarGift>(holon.MetaData, "GiftsJson", out var gifts); if (gifts != null) detail.Gifts = new List<IAvatarGift>(gifts);
+                TryGetMetaDataJsonList<Objects.Achievement>(holon.MetaData, "AchievementsJson", out var achievements); if (achievements != null) detail.Achievements = new List<IAchievement>(achievements);
+                TryGetMetaDataJsonList<Objects.GeneKey>(holon.MetaData, "GeneKeysJson", out var geneKeys); if (geneKeys != null) detail.GeneKeys = new List<IGeneKey>(geneKeys);
+                TryGetMetaDataJsonList<Objects.Spell>(holon.MetaData, "SpellsJson", out var spells); if (spells != null) detail.Spells = new List<ISpell>(spells);
+                TryGetMetaDataJsonList<Objects.InventoryItem>(holon.MetaData, "InventoryJson", out var inventory); if (inventory != null) detail.Inventory = new List<IInventoryItem>(inventory);
+                TryGetMetaDataJsonList<KarmaAkashicRecord>(holon.MetaData, "KarmaAkashicRecordsJson", out var karmaRecords); if (karmaRecords != null) detail.KarmaAkashicRecords = new List<IKarmaAkashicRecord>(karmaRecords);
+                TryGetMetaDataJsonList<HeartRateEntry>(holon.MetaData, "HeartRateDataJson", out var heartRate); if (heartRate != null) detail.HeartRateData = new List<IHeartRateEntry>(heartRate);
+                TryGetMetaDataJson<Dictionary<DimensionLevel, Guid>>(holon.MetaData, "DimensionLevelIdsJson", out var dimIds); if (dimIds != null) detail.DimensionLevelIds = dimIds;
+                TryGetMetaDataJson<Dictionary<DimensionLevel, Holon>>(holon.MetaData, "DimensionLevelsJson", out var dimLevels); if (dimLevels != null) detail.DimensionLevels = new Dictionary<DimensionLevel, IHolon>(dimLevels);
+                TryGetMetaDataJson<Objects.AvatarStats>(holon.MetaData, "StatsJson", out var stats); if (stats != null) detail.Stats = stats;
+                TryGetMetaDataJson<Objects.AvatarChakras>(holon.MetaData, "ChakrasJson", out var chakras); if (chakras != null) detail.Chakras = chakras;
+                TryGetMetaDataJson<Objects.AvatarAura>(holon.MetaData, "AuraJson", out var aura); if (aura != null) detail.Aura = aura;
+                TryGetMetaDataJson<Objects.AvatarSkills>(holon.MetaData, "SkillsJson", out var skills); if (skills != null) detail.Skills = skills;
+                TryGetMetaDataJson<Objects.AvatarAttributes>(holon.MetaData, "AttributesJson", out var attributes); if (attributes != null) detail.Attributes = attributes;
+                TryGetMetaDataJson<Objects.AvatarSuperPowers>(holon.MetaData, "SuperPowersJson", out var superPowers); if (superPowers != null) detail.SuperPowers = superPowers;
+                TryGetMetaDataJson<Objects.HumanDesign>(holon.MetaData, "HumanDesignJson", out var humanDesign); if (humanDesign != null) detail.HumanDesign = humanDesign;
+            }
+            return detail;
+        }
+
+        private static void TryGetMetaDataJson<T>(Dictionary<string, object> metaData, string key, out T value)
+        {
+            value = default;
+            if (metaData == null || !metaData.TryGetValue(key, out var v) || v == null) return;
+            try { value = JsonConvert.DeserializeObject<T>(v.ToString()); } catch { }
+        }
+
+        private static void TryGetMetaDataJsonList<T>(Dictionary<string, object> metaData, string key, out List<T> value)
+        {
+            value = null;
+            if (metaData == null || !metaData.TryGetValue(key, out var v) || v == null) return;
+            try { value = JsonConvert.DeserializeObject<List<T>>(v.ToString()); } catch { }
+        }
+
+        /// <summary>
+        /// Get avatar detail by avatar id (used when loading from another provider e.g. AvatarManager fallback).
+        /// Avatar and AvatarDetail are separate: do not build AvatarDetail from Avatar.
         /// </summary>
         private IAvatarDetail ConvertAvatarToAvatarDetail(IAvatar avatar)
         {
             if (avatar == null) return null;
 
-            // Use AvatarManager to load full detail
             try
             {
                 var detailResult = AvatarManager.Instance.LoadAvatarDetail(avatar.Id);
                 if (!detailResult.IsError && detailResult.Result != null)
                     return detailResult.Result;
             }
-            catch
-            {
-                // Fallback: create basic avatar detail from avatar
-            }
+            catch { }
 
-            // Create basic avatar detail from avatar
-            var detail = new AvatarDetail
-            {
-                Id = avatar.Id,
-                Username = avatar.Username,
-                Email = avatar.Email
-            };
-            
-            // Get Karma and XP from metadata or AvatarDetail
-            if (avatar is AvatarDetail avatarDetail)
-            {
-                detail.Karma = avatarDetail.Karma;
-                detail.XP = avatarDetail.XP;
-            }
-            else if (avatar.MetaData != null)
-            {
-                if (avatar.MetaData.TryGetValue("Karma", out var karma) && long.TryParse(karma?.ToString(), out var karmaValue))
-                    detail.Karma = karmaValue;
-                if (avatar.MetaData.TryGetValue("XP", out var xp) && long.TryParse(xp?.ToString(), out var xpValue))
-                    detail.XP = (int)xpValue;
-            }
-
-            // Copy metadata if available
-            if (avatar.MetaData != null)
-            {
-                detail.MetaData = new Dictionary<string, object>(avatar.MetaData);
-            }
-
-            return detail;
+            // Do not build AvatarDetail from Avatar; return null if separate detail not found
+            return null;
         }
 
         /// <summary>

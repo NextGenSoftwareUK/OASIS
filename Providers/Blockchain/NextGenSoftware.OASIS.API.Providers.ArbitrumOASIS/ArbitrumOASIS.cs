@@ -1376,55 +1376,23 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 }
             }
 
-            // Load avatar by email first
-            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
-            if (avatarResult.IsError)
+            // Load avatar details as separate objects from contract, then find by email
+            var allResult = await LoadAllAvatarDetailsAsync(version);
+            if (allResult.IsError || allResult.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                OASISErrorHandling.HandleError(ref result, allResult.Message ?? "Avatar details not loaded");
                 return result;
             }
-
-            if (avatarResult.Result != null)
+            var match = allResult.Result.FirstOrDefault(d => string.Equals(d.Email, avatarEmail, StringComparison.OrdinalIgnoreCase));
+            if (match != null)
             {
-                // Create avatar detail from avatar
-                var avatarDetail = new AvatarDetail
-                {
-                    Id = avatarResult.Result.Id,
-                    // AvatarId = avatarResult.Result.Id,
-                    Username = avatarResult.Result.Username,
-                    Email = avatarResult.Result.Email,
-                    FirstName = avatarResult.Result.FirstName,
-                    LastName = avatarResult.Result.LastName,
-                    CreatedDate = avatarResult.Result.CreatedDate,
-                    ModifiedDate = avatarResult.Result.ModifiedDate,
-                    // Address = avatarResult.Result.Address,
-                    // Country = avatarResult.Result.Country,
-                    // Postcode = avatarResult.Result.Postcode,
-                    // Mobile = avatarResult.Result.Mobile, // Not available on IAvatar
-                    // Landline = avatarResult.Result.Landline, // Not available on IAvatar
-                    Title = avatarResult.Result.Title,
-                    // DOB = avatarResult.Result.DOB, // Not available on IAvatar
-                    AvatarType = avatarResult.Result.AvatarType,
-                    // KarmaAkashicRecords = avatarResult.Result.KarmaAkashicRecords, // Not available on IAvatar
-                    // Level = avatarResult.Result.Level, // Not available on IAvatar
-                    // XP = avatarResult.Result.XP, // Not available on IAvatar
-                    // HP = avatarResult.Result.HP, // Not available on IAvatar
-                    // Mana = avatarResult.Result.Mana, // Not available on IAvatar
-                    // Stamina = avatarResult.Result.Stamina, // Not available on IAvatar
-                    // Description = avatarResult.Result.Description, // Not available on IAvatar
-                    // Website = avatarResult.Result.Website, // Not available on IAvatar
-                    // Language = avatarResult.Result.Language, // Not available on IAvatar
-                    // ProviderWallets = avatarResult.Result.ProviderWallets // Not available on AvatarDetail,
-                    // CustomData = avatarResult.Result.CustomData // Not available on IAvatar
-                };
-
-                result.Result = avatarDetail;
+                result.Result = match;
                 result.IsError = false;
                 result.Message = "Avatar detail loaded successfully by email from Arbitrum";
             }
             else
             {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email");
             }
         }
         catch (Exception ex)
@@ -1454,55 +1422,23 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 }
             }
 
-            // Load avatar by username first
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatarResult.IsError)
+            // Load avatar details as separate objects from contract, then find by username
+            var allResult = await LoadAllAvatarDetailsAsync(version);
+            if (allResult.IsError || allResult.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                OASISErrorHandling.HandleError(ref result, allResult.Message ?? "Avatar details not loaded");
                 return result;
             }
-
-            if (avatarResult.Result != null)
+            var match = allResult.Result.FirstOrDefault(d => string.Equals(d.Username, avatarUsername, StringComparison.OrdinalIgnoreCase));
+            if (match != null)
             {
-                // Create avatar detail from avatar
-                var avatarDetail = new AvatarDetail
-                {
-                    Id = avatarResult.Result.Id,
-                    // AvatarId = avatarResult.Result.Id,
-                    Username = avatarResult.Result.Username,
-                    Email = avatarResult.Result.Email,
-                    FirstName = avatarResult.Result.FirstName,
-                    LastName = avatarResult.Result.LastName,
-                    CreatedDate = avatarResult.Result.CreatedDate,
-                    ModifiedDate = avatarResult.Result.ModifiedDate,
-                    // Address = avatarResult.Result.Address,
-                    // Country = avatarResult.Result.Country,
-                    // Postcode = avatarResult.Result.Postcode,
-                    // Mobile = avatarResult.Result.Mobile, // Not available on IAvatar
-                    // Landline = avatarResult.Result.Landline, // Not available on IAvatar
-                    Title = avatarResult.Result.Title,
-                    // DOB = avatarResult.Result.DOB, // Not available on IAvatar
-                    AvatarType = avatarResult.Result.AvatarType,
-                    // KarmaAkashicRecords = avatarResult.Result.KarmaAkashicRecords, // Not available on IAvatar
-                    // Level = avatarResult.Result.Level, // Not available on IAvatar
-                    // XP = avatarResult.Result.XP, // Not available on IAvatar
-                    // HP = avatarResult.Result.HP, // Not available on IAvatar
-                    // Mana = avatarResult.Result.Mana, // Not available on IAvatar
-                    // Stamina = avatarResult.Result.Stamina, // Not available on IAvatar
-                    // Description = avatarResult.Result.Description, // Not available on IAvatar
-                    // Website = avatarResult.Result.Website, // Not available on IAvatar
-                    // Language = avatarResult.Result.Language, // Not available on IAvatar
-                    // ProviderWallets = avatarResult.Result.ProviderWallets // Not available on AvatarDetail,
-                    // CustomData = avatarResult.Result.CustomData // Not available on IAvatar
-                };
-
-                result.Result = avatarDetail;
+                result.Result = match;
                 result.IsError = false;
                 result.Message = "Avatar detail loaded successfully by username from Arbitrum";
             }
             else
             {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by username");
             }
         }
         catch (Exception ex)
@@ -4351,6 +4287,14 @@ file sealed class GetHolonsByMetaDataPairsFunction : FunctionMessage
 
 file static class ArbitrumContractHelper
 {
+    private static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return Guid.Empty;
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
+    }
+
     public const string CreateAvatarFuncName = "CreateAvatar";
     public const string CreateAvatarDetailFuncName = "CreateAvatarDetail";
     public const string CreateHolonFuncName = "CreateHolon";
