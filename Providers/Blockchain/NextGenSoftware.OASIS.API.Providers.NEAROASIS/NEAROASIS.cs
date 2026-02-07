@@ -4275,19 +4275,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     return result;
                 }
 
-                // Lock token by transferring to bridge pool
+                // Lock token by transferring to bridge pool (one NFT – no amount)
                 var bridgePoolAddress = _contractAddress ?? "bridge.oasispool.near";
-                
-                // ILockWeb3TokenRequest doesn't have Amount in interface, but LockWeb3TokenRequest class does
-                var lockRequest = request as LockWeb3TokenRequest;
-                var amount = lockRequest?.Amount ?? 1m;
-                
                 var sendRequest = new SendWeb3TokenRequest
                 {
                     FromTokenAddress = request.TokenAddress,
                     OwnerPrivateKey = request.FromWalletPrivateKey,
                     ToWalletAddress = bridgePoolAddress,
-                    Amount = amount
+                    Amount = 1m
                 };
 
                 return await SendTokenAsync(sendRequest);

@@ -1212,7 +1212,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                         @params = new
                         {
                             parentId = id.ToString(),
-                            holonType = holonType.Value.ToString(),
+                            holonType = holonType.ToString(),
                             version = version
                         }
                     };
@@ -1357,7 +1357,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                         {
                             metaKey = metaData,
                             metaValue = value,
-                            holonType = holonType.Value.ToString(),
+                            holonType = holonType.ToString(),
                             version = version
                         }
                     };
@@ -1442,7 +1442,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                         {
                             metaData = JsonSerializer.Serialize(metaData),
                             matchMode = matchMode.ToString(),
-                            holonType = holonType.Value.ToString(),
+                            holonType = holonType.ToString(),
                             version = version
                         }
                     };
@@ -1539,7 +1539,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                         abi = GetOASISContractABI(),
                         @params = new
                         {
-                            holonType = holonType.Value.ToString(),
+                            holonType = holonType.ToString(),
                             version = version
                         }
                     };
@@ -1980,29 +1980,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                 var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, false, version);
                 if (!allHolonsResult.IsError && allHolonsResult.Result != null)
                 {
+                    var searchQuery = searchParams.SearchGroups?.OfType<ISearchTextGroup>().FirstOrDefault()?.SearchQuery ?? "";
                     foreach (var holon in allHolonsResult.Result)
                     {
                         bool matches = false;
                         
-                        // Search by name
-                        if (!string.IsNullOrEmpty(searchParams.SearchQuery) && 
-                            holon.Name?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                        {
+                        if (!string.IsNullOrEmpty(searchQuery) && 
+                            holon.Name?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true)
                             matches = true;
-                        }
                         
-                        // Search by description
-                        if (!matches && !string.IsNullOrEmpty(searchParams.SearchQuery) && 
-                            holon.Description?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                        {
+                        if (!matches && !string.IsNullOrEmpty(searchQuery) && 
+                            holon.Description?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true)
                             matches = true;
-                        }
 
-                        // Search by metadata
-                        if (!matches && holon.MetaData != null && searchParams.SearchQuery != null)
-                        {
-                            matches = holon.MetaData.Values.Any(v => v?.ToString()?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true);
-                        }
+                        if (!matches && holon.MetaData != null && searchQuery != null)
+                            matches = holon.MetaData.Values.Any(v => v?.ToString()?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true);
 
                         if (matches)
                         {
@@ -2015,44 +2007,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                 var allAvatarsResult = await LoadAllAvatarsAsync(version);
                 if (!allAvatarsResult.IsError && allAvatarsResult.Result != null)
                 {
+                    var searchQueryAvatars = searchParams.SearchGroups?.OfType<ISearchTextGroup>().FirstOrDefault()?.SearchQuery ?? "";
                     foreach (var avatar in allAvatarsResult.Result)
                     {
                         bool matches = false;
                         
-                        // Search by username
-                        if (!string.IsNullOrEmpty(searchParams.SearchQuery) && 
-                            avatar.Username?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                        {
+                        if (!string.IsNullOrEmpty(searchQueryAvatars) && 
+                            avatar.Username?.Contains(searchQueryAvatars, StringComparison.OrdinalIgnoreCase) == true)
                             matches = true;
-                        }
                         
-                        // Search by email
-                        if (!matches && !string.IsNullOrEmpty(searchParams.SearchQuery) && 
-                            avatar.Email?.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                        {
+                        if (!matches && !string.IsNullOrEmpty(searchQueryAvatars) && 
+                            avatar.Email?.Contains(searchQueryAvatars, StringComparison.OrdinalIgnoreCase) == true)
                             matches = true;
-                        }
 
-                        // Search by name
-                        if (!matches && !string.IsNullOrEmpty(searchParams.SearchQuery))
+                        if (!matches && !string.IsNullOrEmpty(searchQueryAvatars))
                         {
-                            var fullName = $"{avatar.FirstName} {avatar.LastName}".Trim();
-                            if (fullName.Contains(searchParams.SearchQuery, StringComparison.OrdinalIgnoreCase))
-                            {
+                            var avatarDetail = avatar as AvatarDetail;
+                            var fullName = $"{avatarDetail?.FirstName} {avatarDetail?.LastName}".Trim();
+                            if (fullName.Contains(searchQueryAvatars, StringComparison.OrdinalIgnoreCase))
                                 matches = true;
-                            }
                         }
 
                         if (matches)
-                        {
                             matchingAvatars.Add(avatar);
-                        }
                     }
                 }
 
-                searchResults.Holons = matchingHolons;
-                searchResults.Avatars = matchingAvatars;
-                searchResults.SearchQuery = searchParams.SearchQuery;
+                searchResults.SearchResultHolons = matchingHolons;
+                searchResults.SearchResultAvatars = matchingAvatars;
 
                 result.Result = searchResults;
                 result.IsError = false;
@@ -2205,9 +2187,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                             var avatarLat = Convert.ToDouble(avatar.MetaData["Latitude"]);
                             var avatarLon = Convert.ToDouble(avatar.MetaData["Longitude"]);
                             
-                            // Calculate distance using Haversine formula
-                            var distance = CalculateDistance(centerLat, centerLon, avatarLat, avatarLon);
-                            if (distance <= radiusKm)
+                            // Calculate distance using Haversine (GeoHelper returns meters)
+                            var distanceMeters = GeoHelper.CalculateDistance(centerLat, centerLon, avatarLat, avatarLon);
+                            if (distanceMeters <= radius)
                             {
                                 nearbyAvatars.Add(avatar);
                             }
@@ -2270,9 +2252,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
                             var holonLat = Convert.ToDouble(holon.MetaData["Latitude"]);
                             var holonLon = Convert.ToDouble(holon.MetaData["Longitude"]);
                             
-                            // Calculate distance using Haversine formula
-                            var distance = CalculateDistance(centerLat, centerLon, holonLat, holonLon);
-                            if (distance <= radiusKm)
+                            // Calculate distance using Haversine (GeoHelper returns meters)
+                            var distanceMeters = GeoHelper.CalculateDistance(centerLat, centerLon, holonLat, holonLon);
+                            if (distanceMeters <= radius)
                             {
                                 nearbyHolons.Add(holon);
                             }

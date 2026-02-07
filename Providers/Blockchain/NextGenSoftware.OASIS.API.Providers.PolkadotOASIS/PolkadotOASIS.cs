@@ -719,7 +719,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
@@ -769,7 +769,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
@@ -961,14 +961,18 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                         var nftJson = Convert.FromBase64String(result.GetString());
                         var nftData = JsonSerializer.Deserialize<JsonElement>(Encoding.UTF8.GetString(nftJson));
                         
+                        var imgStr = nftData.TryGetProperty("image", out var imgEl) ? imgEl.GetString() : null;
                         var nft = new Web3NFT
                         {
                             NFTTokenAddress = nftTokenAddress,
-                            Name = nftData.TryGetProperty("name", out var name) ? name.GetString() : "",
+                            Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "",
                             Description = nftData.TryGetProperty("description", out var desc) ? desc.GetString() : "",
-                            Image = nftData.TryGetProperty("image", out var img) ? img.GetString() : "",
-                            ExternalUrl = nftData.TryGetProperty("external_url", out var extUrl) ? extUrl.GetString() : ""
+                            ImageUrl = imgStr ?? "",
+                            Image = !string.IsNullOrEmpty(imgStr) ? System.Text.Encoding.UTF8.GetBytes(imgStr) : null
                         };
+                        if (nft.MetaData == null) nft.MetaData = new Dictionary<string, string>();
+                        if (nftData.TryGetProperty("external_url", out var extUrl))
+                            nft.MetaData["external_url"] = extUrl.GetString() ?? "";
 
                         response.Result = nft;
                         response.IsError = false;
@@ -1421,7 +1425,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 if (string.IsNullOrEmpty(_contractAddress))
                 {
                     // No contract configured - delegate to ProviderManager as fallback
-                    return await HolonManager.Instance.LoadHolonAsync(id, loadChildren, continueOnError, maxChildren, recurseChildren, loadDetail, maxDepth);
+                    return await HolonManager.Instance.LoadHolonAsync(id, loadChildren, recurseChildren, maxChildren, continueOnError, loadDetail, HolonType.All, maxDepth, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
                 }
 
                 // Query holon from Polkadot blockchain using smart contract call
@@ -1506,7 +1510,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 if (string.IsNullOrEmpty(_contractAddress))
                 {
                     // No contract configured - delegate to ProviderManager as fallback
-                    return await HolonManager.Instance.LoadHolonAsync(providerKey, loadChildren, continueOnError, maxChildren, recurseChildren, loadDetail, maxDepth);
+                    return await HolonManager.Instance.LoadHolonAsync(providerKey, loadChildren, recurseChildren, maxChildren, continueOnError, loadDetail, HolonType.All, maxDepth, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
                 }
 
                 // Query holon from Polkadot blockchain using smart contract call by provider key
@@ -1709,7 +1713,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 if (string.IsNullOrEmpty(_contractAddress))
                 {
                     // No contract configured - delegate to ProviderManager as fallback
-                    return await HolonManager.Instance.LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                    return await HolonManager.Instance.LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, curentChildDepth, HolonType.All, version, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
                 }
 
                 // Query holons by metadata from Polkadot blockchain using smart contract call
@@ -1768,7 +1772,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
@@ -1881,10 +1885,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                                 dest = _contractAddress,
                                 value = "0x0",
                                 gasLimit = "0x100000",
-                                storageDepositLimit = null,
+                                storageDepositLimit = (object)null,
                                 input = "0x" + System.Convert.ToHexString(Encoding.UTF8.GetBytes("get_all_holons"))
                             },
-                            null // block hash (null = latest)
+                            (string)null // block hash (null = latest)
                         }
                     };
 
@@ -2127,7 +2131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 if (string.IsNullOrEmpty(_contractAddress))
                 {
                     // No contract configured - delegate to ProviderManager as fallback
-                    var deleteResult = await HolonManager.Instance.DeleteHolonAsync(id);
+                    var deleteResult = await HolonManager.Instance.DeleteHolonAsync(id, Guid.Empty, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
                     if (!deleteResult.IsError)
                     {
                         response.Result = loadResult.Result;
@@ -2470,18 +2474,18 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
                 // Save avatar detail to Polkadot smart contract
                 var avatarDetailJson = ConvertAvatarDetailToPolkadot(avatar);
-                var txResult = await CreatePolkadotTransaction("Oasis_saveAvatarDetail", avatarDetailJson);
+                var txHash = await CreatePolkadotTransaction("Oasis_saveAvatarDetail", avatarDetailJson);
                 
-                if (!txResult.IsError)
+                if (!string.IsNullOrEmpty(txHash))
                 {
                     response.Result = avatar;
                     response.IsError = false;
                     response.IsSaved = true;
-                    response.Message = $"Avatar detail saved successfully to Polkadot: {txResult.Result}";
+                    response.Message = $"Avatar detail saved successfully to Polkadot: {txHash}";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar detail to Polkadot: {txResult.Message}");
+                    OASISErrorHandling.HandleError(ref response, "Failed to save avatar detail to Polkadot");
                 }
             }
             catch (Exception ex)
@@ -3703,9 +3707,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 // SR25519 public key derivation: publicKey = privateKey * G (where G is the generator point)
                 // Simplified implementation using SHA512 (in production, use proper SR25519 library like Substrate.NetApi)
                 using var sha512 = System.Security.Cryptography.SHA512.Create();
-                var hash = sha512.ComputeHash(privateKeyBytes);
+                var pubKeyHash = sha512.ComputeHash(privateKeyBytes);
                 var publicKeyBytes = new byte[32];
-                Array.Copy(hash, 0, publicKeyBytes, 0, 32);
+                Array.Copy(pubKeyHash, 0, publicKeyBytes, 0, 32);
                 var publicKey = Convert.ToBase64String(publicKeyBytes);
 
                 result.Result = (publicKey, privateKey);

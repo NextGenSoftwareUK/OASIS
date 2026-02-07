@@ -3832,10 +3832,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     return result;
                 }
 
-                // Lock token by transferring to bridge pool
+                // Lock one NFT/token by transferring to bridge pool
                 var bridgePoolAddress = EOSAccountName ?? "oasispool";
-                // Get amount from concrete class if available, otherwise use default
-                var lockAmount = (request as LockWeb3TokenRequest)?.Amount ?? 1m;
+                var lockAmount = 1m; // One NFT/token per request
 
                 // Get from address from KeyManager
                 var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, request.LockedByAvatarId);
