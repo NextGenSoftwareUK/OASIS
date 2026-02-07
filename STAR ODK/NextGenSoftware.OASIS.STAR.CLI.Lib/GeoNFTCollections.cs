@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -324,7 +324,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (result != null && result.Result != null && !result.IsError)
                     {
                         CLIEngine.ShowSuccessMessage("WEB4 OASIS GeoNFT Collection Successfully Updated.");
-                        result = await NFTCommon.UpdateSTARNETHolonAsync("Web5STARGeoNFTCollectionId", "GeoNFTCollection", STARNETManager, result.Result.MetaData, result, providerType);
+
+                        foreach (Guid id in result.Result.ParentWeb5GeoNFTCollectionIds)
+                        {
+                            result = await NFTCommon.UpdateSTARNETHolonAsync(id, "GeoNFTCollection", STARNETManager, result, providerType);
+
+                            var starNFTResult = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, id, providerType: providerType);
+
+                            if (starNFTResult != null && starNFTResult.Result != null && !starNFTResult.IsError)
+                                NFTCommon.UpdateWeb4AndWeb3NFTJSONFiles(result.Result, starNFTResult.Result.STARNETDNA.SourcePath);
+                        }
                     }
                     else
                     {
@@ -454,7 +463,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
             {
                 CLIEngine.ShowSuccessMessage("WEB4 GeoNFT Collection Successfully Deleted.");
-                collection = await NFTCommon.DeleteAllSTARNETVersionsAsync("Web5STARGeoNFTCollectionId", STARNETManager, collection.Result.MetaData, collection, providerType);
+
+                foreach (Guid id in collection.Result.ParentWeb5GeoNFTCollectionIds)
+                    collection = await NFTCommon.DeleteAllSTARNETVersionsAsync(id, STARNETManager, collection, providerType);
             }
             else
             {

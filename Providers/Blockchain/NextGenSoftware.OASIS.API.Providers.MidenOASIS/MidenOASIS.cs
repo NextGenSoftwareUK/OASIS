@@ -719,11 +719,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
                     return result;
                 }
 
-                // Lock token by creating a private note in the bridge pool
+                // Lock one NFT/token by creating a private note in the bridge pool
                 var bridgePoolAddress = _bridgeService.GetBridgePoolAddress();
-                // ILockWeb3TokenRequest has FromWalletAddress directly, but Amount might be in concrete class
-                var amount = (request as LockWeb3TokenRequest)?.Amount ?? 0m;
                 var fromWalletAddress = request.FromWalletAddress ?? string.Empty;
+                var amount = 1m; // One NFT/token per request
 
                 var lockResult = await _midenService.LockOnMidenAsync(
                     bridgePoolAddress,

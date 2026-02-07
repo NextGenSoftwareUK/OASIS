@@ -605,11 +605,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
+                        CLIEngine.ShowSuccessMessage("WEB4 OASIS GeoNFT Successfully Updated.");
+
                         if (result != null && result.Result != null && !result.IsError && result.Result.ParentWeb5NFTIds != null && result.Result.ParentWeb5NFTIds.Count > 0)
                         {
                             foreach (Guid id in result.Result.ParentWeb5NFTIds)
                             {
-                                CLIEngine.ShowSuccessMessage("WEB4 OASIS GeoNFT Successfully Updated.");
                                 result = await NFTCommon.UpdateSTARNETHolonAsync(id, "GeoNFT", STARNETManager, result, providerType);
 
                                 var starNFTResult = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, id, providerType: providerType);

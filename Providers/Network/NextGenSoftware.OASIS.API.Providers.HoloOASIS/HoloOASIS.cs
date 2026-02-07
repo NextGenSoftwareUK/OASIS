@@ -2689,16 +2689,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     }
                 }
 
-                // Lock token by transferring to bridge pool account on Holochain
+                // Lock token by transferring to bridge pool account on Holochain (one NFT – no amount)
                 var bridgePoolAccount = "holo-pool";
-                // Cast to concrete type to access Amount property if available
-                var lockRequest = request as LockWeb3TokenRequest;
-                var amount = lockRequest?.Amount ?? 1m;
                 var tokenLock = new
                 {
                     from = request.FromWalletAddress,
                     to = bridgePoolAccount,
-                    amount = amount,
+                    amount = 1m,
                     symbol = "HOT",
                     timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
                 };
