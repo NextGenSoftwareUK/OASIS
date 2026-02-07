@@ -1,16 +1,25 @@
 using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.Game
 {
     /// <summary>
-    /// Represents an active game session with state and settings
+    /// Represents an active game session with state and settings.
+    /// Extends Holon so it is a first-class holon in the OASIS (everything is a holon).
     /// </summary>
-    public class GameSession : IHolon
+    public class GameSession : Holon
     {
-        public Guid Id { get; set; }
+        public GameSession() : base(HolonType.GameSession)
+        {
+        }
+
+        public GameSession(Guid id) : base(id)
+        {
+            HolonType = HolonType.GameSession;
+        }
+
         public Guid GameId { get; set; }
         public Guid AvatarId { get; set; }
         public GameState State { get; set; }
@@ -24,21 +33,5 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Game
         public VideoSetting VideoSetting { get; set; } = VideoSetting.Medium;
         public Dictionary<string, string> KeyBindings { get; set; } = new Dictionary<string, string>();
         public Dictionary<string, object> GameData { get; set; } = new Dictionary<string, object>();
-        
-        // IHolon implementation
-        public int Version { get; set; }
-        public Guid CreatedByAvatarId { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public Guid ModifiedByAvatarId { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public DateTime DeletedDate { get; set; }
-        public int VersionId { get; set; }
-        public bool IsActive1 { get; set; }
-        public string PreviousVersionId { get; set; }
-        public string ProviderMetaData { get; set; }
-        public string MetaData { get; set; }
-        public string MetaData2 { get; set; }
-        public HolonType HolonType { get; set; }
     }
 }
-

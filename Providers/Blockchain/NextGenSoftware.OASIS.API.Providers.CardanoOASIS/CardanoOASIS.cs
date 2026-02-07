@@ -2969,9 +2969,9 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
                         Guid.Empty, // Use default avatar or get from context
                         Core.Enums.ProviderType.CardanoOASIS);
                     
-                    if (keysResult != null && keysResult.Any() && !string.IsNullOrWhiteSpace(keysResult.First().PrivateKey))
+                    if (keysResult != null && !keysResult.IsError && keysResult.Result != null && keysResult.Result.Any() && !string.IsNullOrWhiteSpace(keysResult.Result.First()))
                     {
-                        return keysResult.First().PrivateKey;
+                        return keysResult.Result.First();
                     }
                 }
             }
@@ -2996,11 +2996,7 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
                     var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(
                         Guid.Empty, // Use default avatar or get from context
                         Core.Enums.ProviderType.CardanoOASIS);
-                    
-                    if (keysResult != null && keysResult.Any() && !string.IsNullOrWhiteSpace(keysResult.First().PublicKey))
-                    {
-                        return keysResult.First().PublicKey;
-                    }
+                    // GetProviderPrivateKeysForAvatarById returns private keys only; public key is derived below
                 }
 
                 // Derive public key from private key
@@ -4447,9 +4443,12 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
                     try
                     {
                         // Query OASIS storage for the locked token record
-                        var tokenResult = await OASISResultHelper.WrapAsync(() =>
-                            OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProvider()
-                            .Result.LoadHolonAsync(request.Web3TokenId));
+                        var providerResult = ProviderManager.Instance == null
+                            ? new OASISResult<IOASISStorageProvider> { IsError = true, Message = "ProviderManager not initialized" }
+                            : await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(global::NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
+                        OASISResult<IHolon> tokenResult = providerResult.IsError || providerResult.Result == null
+                            ? new OASISResult<IHolon> { IsError = true, Message = providerResult.Message }
+                            : await providerResult.Result.LoadHolonAsync(request.Web3TokenId);
 
                         if (!tokenResult.IsError && tokenResult.Result != null)
                         {

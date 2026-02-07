@@ -3059,7 +3059,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Web3CoreOASISBaseProviderHelper.CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -4472,7 +4472,7 @@ file static class Web3CoreOASISBaseProviderHelper
         /// <summary>
         /// Creates a deterministic GUID from input string using SHA-256 hash
         /// </summary>
-        private static Guid CreateDeterministicGuid(string input)
+        public static Guid CreateDeterministicGuid(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
                 return Guid.Empty;

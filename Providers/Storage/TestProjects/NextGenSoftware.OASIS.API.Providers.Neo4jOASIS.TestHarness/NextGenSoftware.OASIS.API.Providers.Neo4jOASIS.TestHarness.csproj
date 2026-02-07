@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj" />
   </ItemGroup>
 
 </Project>
