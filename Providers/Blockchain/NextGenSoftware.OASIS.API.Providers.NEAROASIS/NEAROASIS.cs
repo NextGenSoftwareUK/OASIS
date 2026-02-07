@@ -671,7 +671,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     if (rpcResponse.TryGetProperty("result", out var result))
                     {
                         var avatarData = JsonSerializer.Deserialize<AvatarDetail>(result.GetProperty("result").GetString());
-                        response.Result = avatarData as IAvatarDetail;
+                        response.Result = avatarData;
                         response.IsError = false;
                         response.Message = "Avatar detail loaded from NEAR successfully";
                     }
@@ -2333,7 +2333,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
@@ -2416,7 +2416,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
@@ -2841,7 +2841,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
@@ -3438,12 +3438,11 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 var keyManager = KeyManager.Instance;
                 var avatarId = CreateDeterministicGuid($"{ProviderType.Value}:{accountId}");
                 var keysResult = keyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.NEAROASIS);
-                if (keysResult.IsError || !keysResult.Result.Any())
+                if (keysResult.IsError || keysResult.Result == null || !keysResult.Result.Any())
                 {
                     return null;
                 }
-                var providerKey = keysResult.Result.First();
-                return providerKey?.PrivateKey;
+                return keysResult.Result.First();
             }
             catch
             {
@@ -3644,9 +3643,11 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                         Guid.Empty, // Use default avatar or get from context
                         Core.Enums.ProviderType.NEAROASIS);
                     
-                    if (keysResult != null && keysResult.Any() && !string.IsNullOrWhiteSpace(keysResult.First().PublicKey))
+                    if (keysResult != null && !keysResult.IsError && keysResult.Result != null && keysResult.Result.Any())
                     {
-                        return keysResult.First().PublicKey;
+                        var firstPrivateKey = keysResult.Result.First();
+                        if (!string.IsNullOrWhiteSpace(firstPrivateKey))
+                            return await DerivePublicKeyFromPrivateKeyAsync(firstPrivateKey);
                     }
                 }
 
@@ -4993,7 +4994,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                             tx.TryGetProperty("hash", out var txHashEl) ? txHashEl.GetString() : "";
 
                 // If txHash is null, create deterministic hash from transaction parameters
-                var finalTxHash = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N");
+                var finalTxHash = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{bridgePoolAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N");
                 
                 result.Result = new BridgeTransactionResponse
                 {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -42,11 +42,11 @@ using NextGenSoftware.OASIS.API.Providers.BNBChainOASIS;
 using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
 using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
-using NextGenSoftware.OASIS.API.Providers.TONOASIS;
-using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
-using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
-using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
-using NextGenSoftware.OASIS.API.Providers.XRPLOASIS;
+//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
+//using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
+//using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
+//using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
+//using NextGenSoftware.OASIS.API.Providers.XRPLOASIS;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Utilities;
 //using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
@@ -1100,14 +1100,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.AvalancheOASIS:
                         {
-                            var chainIdHex = OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainId ?? "0x0";
-                            var chainId = chainIdHex.StartsWith("0x") 
-                                ? BigInteger.Parse(chainIdHex.Substring(2), System.Globalization.NumberStyles.HexNumber)
-                                : BigInteger.Parse(chainIdHex);
                             var avalancheProvider = new AvalancheOASIS(
                                 OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint ?? "https://api.avax.network/ext/bc/C/rpc",
                                 OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainPrivateKey ?? "",
-                                chainId,
                                 OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ContractAddress ?? "");
                             avalancheProvider.OnStorageProviderError += AvalancheOASIS_StorageProviderError;
                             result.Result = avalancheProvider;

@@ -498,7 +498,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 var avatarsResult = await LoadAllAvatarsAsync(version);
                 if (avatarsResult.IsError || avatarsResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, avatarsResult.Message ?? "Failed to load avatars for avatar detail projection.");
+                    OASISErrorHandling.HandleError(ref result, avatarsResult.Message ?? "Failed to load avatars for avatar details.");
                     return result;
                 }
 
@@ -506,16 +506,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 foreach (var avatar in avatarsResult.Result)
                 {
                     if (avatar == null) continue;
-                    details.Add(new AvatarDetail
-                    {
-                        Id = avatar.Id,
-                        Username = avatar.Username,
-                        Email = avatar.Email,
-                        CreatedDate = avatar.CreatedDate,
-                        ModifiedDate = avatar.ModifiedDate
-                    });
+                    var detailResult = await LoadAvatarDetailAsync(avatar.Id, version);
+                    if (!detailResult.IsError && detailResult.Result != null)
+                        details.Add(detailResult.Result);
                 }
-
                 result.Result = details;
                 result.IsError = false;
                 result.Message = $"Loaded {details.Count} avatar details from Hashgraph.";

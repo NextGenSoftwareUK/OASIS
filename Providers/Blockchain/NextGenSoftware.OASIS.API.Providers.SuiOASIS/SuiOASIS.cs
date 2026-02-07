@@ -851,24 +851,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                     }
                 }
 
-                // Load all avatars first, then create avatar details from them
+                // Load avatar details as separate entities (do not build from Avatar)
                 var allAvatarsResult = await LoadAllAvatarsAsync(version);
                 if (!allAvatarsResult.IsError && allAvatarsResult.Result != null)
                 {
                     var avatarDetails = new List<IAvatarDetail>();
                     foreach (var avatar in allAvatarsResult.Result)
                     {
-                        var avatarDetail = new AvatarDetail
-                        {
-                            Id = avatar.Id,
-                            Username = avatar.Username,
-                            Email = avatar.Email,
-                            CreatedDate = avatar.CreatedDate,
-                            ModifiedDate = avatar.ModifiedDate
-                        };
-                        avatarDetails.Add(avatarDetail);
+                        var detailResult = await LoadAvatarDetailAsync(avatar.Id, version);
+                        if (!detailResult.IsError && detailResult.Result != null)
+                            avatarDetails.Add(detailResult.Result);
                     }
-
                     response.Result = avatarDetails;
                     response.IsError = false;
                     response.Message = $"Loaded {avatarDetails.Count} avatar details from Sui successfully";

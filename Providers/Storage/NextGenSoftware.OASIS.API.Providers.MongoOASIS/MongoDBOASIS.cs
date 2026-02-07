@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -902,7 +902,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                             double distance = NextGenSoftware.OASIS.API.Core.Helpers.GeoHelper.CalculateDistance(geoLat, geoLong, avatarLat, avatarLong);
                             if (distance <= radiusInMeters)
                             {
-                                nearbyAvatars.Add(holon as IAvatar);
+                                nearbyAvatars.Add(new Avatar
+                                {
+                                    Id = holon.Id,
+                                    Username = holon.MetaData?.ContainsKey("Username") == true ? holon.MetaData["Username"]?.ToString() : holon.Name,
+                                    Email = holon.MetaData?.ContainsKey("Email") == true ? holon.MetaData["Email"]?.ToString() : null,
+                                    CreatedDate = holon.CreatedDate,
+                                    ModifiedDate = holon.ModifiedDate
+                                });
                             }
                         }
                     }

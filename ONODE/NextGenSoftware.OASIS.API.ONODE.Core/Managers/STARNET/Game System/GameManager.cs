@@ -7,7 +7,9 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Game;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -1284,7 +1286,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     q.MetaData != null && 
                     q.MetaData.ContainsKey("CrossGame") && 
                     Convert.ToBoolean(q.MetaData["CrossGame"])
-                ).ToList() ?? new List<IQuestBase>();
+                ).Cast<IQuestBase>().ToList() ?? new List<IQuestBase>();
 
                 result.Result = crossGameQuests;
                 result.Message = "Cross-game quests retrieved successfully";
@@ -1322,7 +1324,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                result.Result = karmaResult.Result?.Karma ?? 0;
+                result.Result = (int)karmaResult.Result;
                 result.Message = "Karma retrieved successfully";
             }
             catch (Exception ex)
