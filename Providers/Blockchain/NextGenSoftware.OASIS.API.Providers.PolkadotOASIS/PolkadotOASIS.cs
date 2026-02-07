@@ -1799,31 +1799,132 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                         return response;
                     }
                 }
-                // Load all holons from Polkadot blockchain
-                var queryUrl = type == HolonType.All ? "/api/v1/holons" : $"/api/v1/holons?type={type}";
 
-                var httpResponse = await _httpClient.GetAsync(queryUrl);
-                if (httpResponse.IsSuccessStatusCode)
+                // Check if smart contract is configured
+                if (string.IsNullOrEmpty(_contractAddress))
                 {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var holons = ParsePolkadotToHolons(content);
-                    if (type != HolonType.All)
+                    // No contract configured - query chain state using Substrate RPC
+                    // Use state_queryStorage to query all holons stored on-chain
+                    var queryRequest = new
                     {
-                        holons = holons.Where(h => h.HolonType == type);
+                        id = 1,
+                        jsonrpc = "2.0",
+                        method = "state_queryStorage",
+                        @params = new object[]
+                        {
+                            new[] { new { key = "0x" } }, // Query all storage keys (simplified - in production, use proper storage key prefixes)
+                            null // block hash (null = latest)
+                        }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(queryRequest);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var httpResponse = await _httpClient.PostAsync("", content);
+
+                    if (httpResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                        var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                        if (rpcResponse.TryGetProperty("result", out var result) && result.ValueKind == JsonValueKind.Array)
+                        {
+                            var holons = new List<IHolon>();
+                            foreach (var item in result.EnumerateArray())
+                            {
+                                if (item.TryGetProperty("value", out var value))
+                                {
+                                    // Decode the storage value (hex-encoded)
+                                    var holonData = value.GetString();
+                                    if (!string.IsNullOrEmpty(holonData))
+                                    {
+                                        // Parse holon from chain storage
+                                        var holon = ParsePolkadotStorageToHolon(holonData);
+                                        if (holon != null && (type == HolonType.All || holon.HolonType == type))
+                                        {
+                                            holons.Add(holon);
+                                        }
+                                    }
+                                }
+                            }
+
+                            response.Result = holons;
+                            response.IsError = false;
+                            response.Message = $"Loaded {holons.Count} holons from Polkadot blockchain";
+                        }
+                        else
+                        {
+                            // Fallback: return empty list if no holons found
+                            response.Result = new List<IHolon>();
+                            response.IsError = false;
+                            response.Message = "No holons found on Polkadot blockchain";
+                        }
                     }
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = $"Loaded {holons.Count()} holons from Polkadot blockchain";
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to query Polkadot chain state: {httpResponse.StatusCode}");
+                    }
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons from Polkadot blockchain: {httpResponse.StatusCode}");
+                    // Contract is configured - query holons from smart contract
+                    var contractQueryRequest = new
+                    {
+                        id = 1,
+                        jsonrpc = "2.0",
+                        method = "state_call",
+                        @params = new object[]
+                        {
+                            "Contracts",
+                            "call",
+                            new
+                            {
+                                dest = _contractAddress,
+                                value = "0x0",
+                                gasLimit = "0x100000",
+                                storageDepositLimit = null,
+                                input = "0x" + System.Convert.ToHexString(Encoding.UTF8.GetBytes("get_all_holons"))
+                            },
+                            null // block hash (null = latest)
+                        }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(contractQueryRequest);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var httpResponse = await _httpClient.PostAsync("", content);
+
+                    if (httpResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                        var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                        if (rpcResponse.TryGetProperty("result", out var result))
+                        {
+                            var resultData = result.GetProperty("data").GetString();
+                            // Decode the contract call result
+                            var holons = ParsePolkadotToHolons(resultData);
+                            if (type != HolonType.All)
+                            {
+                                holons = holons.Where(h => h.HolonType == type);
+                            }
+                            response.Result = holons;
+                            response.IsError = false;
+                            response.Message = $"Loaded {holons.Count()} holons from Polkadot smart contract";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref response, "Failed to parse contract call result");
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to call Polkadot smart contract: {httpResponse.StatusCode}");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllHolonsAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllHolonsAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -2410,7 +2511,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         {
             // Convert single metadata key-value pair to dictionary and delegate to the dictionary version
             var metaKeyValuePairs = new Dictionary<string, string> { { metaData, value } };
-            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.And, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.All, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
@@ -3872,6 +3973,44 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             catch
             {
                 return new List<IHolon>();
+            }
+        }
+
+        /// <summary>
+        /// Parse Polkadot chain storage (hex-encoded) to Holon object
+        /// </summary>
+        private IHolon ParsePolkadotStorageToHolon(string hexStorageData)
+        {
+            try
+            {
+                // Decode hex-encoded storage data
+                if (string.IsNullOrEmpty(hexStorageData) || !hexStorageData.StartsWith("0x"))
+                {
+                    return null;
+                }
+
+                // Remove "0x" prefix and decode
+                var hexBytes = hexStorageData.Substring(2);
+                var bytes = new byte[hexBytes.Length / 2];
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    bytes[i] = Convert.ToByte(hexBytes.Substring(i * 2, 2), 16);
+                }
+
+                // Try to decode as UTF-8 JSON string
+                var jsonString = Encoding.UTF8.GetString(bytes).Trim('\0');
+                if (string.IsNullOrWhiteSpace(jsonString))
+                {
+                    return null;
+                }
+
+                // Parse as JSON and create holon
+                return ParsePolkadotToHolon(jsonString);
+            }
+            catch
+            {
+                // If parsing fails, return null
+                return null;
             }
         }
 

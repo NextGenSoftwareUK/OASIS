@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
@@ -937,9 +937,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 if (result.IsError) return result;
 
                 var lookup = await FindPinnedHolonByIdAsync(id);
-                if (lookup.IsError) return lookup;
+                if (lookup.IsError)
+                {
+                    result.IsError = lookup.IsError;
+                    result.Message = lookup.Message;
+                    result.Exception = lookup.Exception;
+                    return result;
+                }
 
-                if (lookup.Result == null || string.IsNullOrWhiteSpace(lookup.Result.PinHash) || lookup.Result.Holon == null)
+                if (string.IsNullOrWhiteSpace(lookup.Result.PinHash) || lookup.Result.Holon == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Holon with ID {id} not found in Pinata.");
                     return result;
@@ -1149,7 +1155,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Pinata provider: {activateResult.Message}");
@@ -1200,7 +1206,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Pinata provider: {activateResult.Message}");

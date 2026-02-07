@@ -1205,8 +1205,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
                 if (softDelete)
                 {
-                    // For soft delete, update the avatar with a deleted flag
-                    avatarResult.Result.IsDeleted = true;
+                    // For soft delete, set DeletedDate (IsDeleted is derived from it)
                     avatarResult.Result.DeletedDate = DateTime.UtcNow;
                     var saveResult = await SaveAvatarAsync(avatarResult.Result);
                     result.Result = !saveResult.IsError;
@@ -1733,7 +1732,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         {
             // Convert single metadata key-value pair to dictionary and delegate to the dictionary version
             var metaKeyValuePairs = new Dictionary<string, string> { { metaKey, metaValue } };
-            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.And, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.All, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1764,7 +1763,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     {
                         if (holon.MetaData == null) return false;
                         
-                        if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.And)
+                        if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
                         {
                             return metaKeyValuePairs.All(kvp => 
                                 holon.MetaData.ContainsKey(kvp.Key) && 

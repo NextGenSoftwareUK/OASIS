@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
@@ -1602,7 +1602,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
@@ -1653,7 +1653,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
@@ -2918,7 +2918,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 }
 
                 // Generate seed phrase for ThreeFold using immutable identifier (provider key or account ID)
-                var immutableId = request?.ProviderKey ?? keyPairResult.Result?.PublicKey ?? request?.Email ?? request?.Username ?? "unknown";
+                var immutableId = keyPairResult.Result?.PublicKey ?? "unknown";
                 var seedPhrase = CreateDeterministicGuid($"{ProviderType.Value}:seed:{immutableId}").ToString();
 
                 result.Result = (keyPairResult.Result.PublicKey, keyPairResult.Result.PrivateKey, seedPhrase);

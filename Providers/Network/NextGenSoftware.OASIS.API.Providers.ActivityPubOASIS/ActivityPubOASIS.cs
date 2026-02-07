@@ -1268,7 +1268,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1322,7 +1322,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1623,7 +1623,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         {
             // Convert single key-value pair to dictionary and use the main method
             var metaKeyValuePairs = new Dictionary<string, string> { { metaKey, metaValue } };
-            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.ExactMatch, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.All, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1666,7 +1666,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                             if (holon != null)
                             {
                                 // Filter by metadata match mode
-                                bool matches = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.ExactMatch
+                                bool matches = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
                                     ? metaKeyValuePairs.All(kvp => holon.MetaData.ContainsKey(kvp.Key) && holon.MetaData[kvp.Key]?.ToString() == kvp.Value)
                                     : metaKeyValuePairs.Any(kvp => holon.MetaData.ContainsKey(kvp.Key) && holon.MetaData[kvp.Key]?.ToString()?.Contains(kvp.Value) == true);
                                 
@@ -1960,9 +1960,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 };
 
                 // Add metadata from ActivityPub status
-                if (status.TryGetProperty("id", out var id))
+                if (status.TryGetProperty("id", out var idProp))
                 {
-                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_id"] = id.GetString() };
+                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_id"] = idProp.GetString() };
                 }
                 if (status.TryGetProperty("url", out var url))
                 {
