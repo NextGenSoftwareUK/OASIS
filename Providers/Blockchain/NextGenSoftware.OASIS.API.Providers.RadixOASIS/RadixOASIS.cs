@@ -284,13 +284,14 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
+            // Like other providers: token address from MetaData or config, mint-to from MetaData or wallet
+            var tokenAddress = request?.MetaData?.GetValueOrDefault("TokenAddress") ?? _config.OasisBlueprintAddress ?? "";
+            if (string.IsNullOrWhiteSpace(tokenAddress))
             {
-                OASISErrorHandling.HandleError(ref result, "Token address is required");
+                OASISErrorHandling.HandleError(ref result, "Token address is required (set in request.MetaData[\"TokenAddress\"] or config)");
                 return result;
             }
 
-            // Get wallet for signing
             var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
                 request.MintedByAvatarId != Guid.Empty ? request.MintedByAvatarId : Guid.NewGuid(), 
                 ProviderType.Value);
@@ -299,6 +300,9 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet for minting");
                 return result;
             }
+
+            var mintAmount = request.Amount;
+            var mintToAddress = request?.MetaData?.GetValueOrDefault("ToWalletAddress") ?? walletResult.Result.WalletAddress;
 
             // Build transaction manifest for token minting
             var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
@@ -309,12 +313,12 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                     new
                     {
                         kind = "CallMethod",
-                        componentAddress = request.TokenAddress,
+                        componentAddress = tokenAddress,
                         methodName = "mint",
                         args = new[]
                         {
-                            new { kind = "Decimal", value = request.Amount.ToString() },
-                            new { kind = "Address", value = request.ToWalletAddress ?? walletResult.Result.WalletAddress }
+                            new { kind = "Decimal", value = mintAmount.ToString() },
+                            new { kind = "Address", value = mintToAddress }
                         }
                     }
                 },
@@ -406,7 +410,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Build transaction manifest for token burning
+            // Burn ONE NFT at TokenAddress (NFTTokenAddress) – no amount, single NFT
             var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
             var manifest = new
             {
@@ -419,8 +423,8 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                         methodName = "burn",
                         args = new[]
                         {
-                            new { kind = "Decimal", value = request.Amount.ToString() },
-                            new { kind = "Address", value = request.FromWalletAddress ?? walletResult.Result.WalletAddress }
+                            new { kind = "NonFungibleLocalId", value = "1" },
+                            new { kind = "Address", value = walletResult.Result.WalletAddress }
                         }
                     }
                 },
@@ -502,10 +506,10 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Lock tokens by transferring to a lock contract or using lock function
+            // Lock ONE NFT at TokenAddress (NFTTokenAddress) – no amount, single NFT
             var lockContractAddress = _config.OasisBlueprintAddress ?? request.TokenAddress;
-            
-            // Get wallet for signing
+            var fromWalletAddress = request.FromWalletAddress;
+
             var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
                 request.LockedByAvatarId != Guid.Empty ? request.LockedByAvatarId : Guid.NewGuid(), 
                 ProviderType.Value);
@@ -515,7 +519,9 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Build transaction manifest for token locking
+            if (string.IsNullOrWhiteSpace(fromWalletAddress))
+                fromWalletAddress = walletResult.Result.WalletAddress;
+
             var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
             var manifest = new
             {
@@ -529,8 +535,8 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                         args = new[]
                         {
                             new { kind = "Address", value = request.TokenAddress },
-                            new { kind = "Decimal", value = request.Amount.ToString() },
-                            new { kind = "Address", value = request.FromWalletAddress ?? walletResult.Result.WalletAddress }
+                            new { kind = "NonFungibleLocalId", value = "1" },
+                            new { kind = "Address", value = fromWalletAddress }
                         }
                     }
                 },
@@ -612,10 +618,9 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Unlock tokens by calling unlock function on lock contract
+            // Unlock ONE NFT at TokenAddress (NFTTokenAddress) – no amount, single NFT
             var lockContractAddress = _config.OasisBlueprintAddress ?? request.TokenAddress;
-            
-            // Get wallet for signing
+
             var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
                 request.UnlockedByAvatarId != Guid.Empty ? request.UnlockedByAvatarId : Guid.NewGuid(), 
                 ProviderType.Value);
@@ -625,7 +630,6 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Build transaction manifest for token unlocking
             var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
             var manifest = new
             {
@@ -639,8 +643,8 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                         args = new[]
                         {
                             new { kind = "Address", value = request.TokenAddress },
-                            new { kind = "Decimal", value = request.Amount.ToString() },
-                            new { kind = "Address", value = request.ToWalletAddress ?? walletResult.Result.WalletAddress }
+                            new { kind = "NonFungibleLocalId", value = "1" },
+                            new { kind = "Address", value = walletResult.Result.WalletAddress }
                         }
                     }
                 },
@@ -1064,7 +1068,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAvatarByEmailAsync(email, version);
+                return await AvatarManager.Instance.LoadAvatarByEmailAsync(email, false, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
             // Query avatar by email from Radix OASIS blueprint component using Gateway API

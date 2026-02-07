@@ -1,4 +1,4 @@
-﻿using ADRaffy.ENSNormalize;
+using ADRaffy.ENSNormalize;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -15,7 +15,9 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
 using NextGenSoftware.Utilities;
+using Newtonsoft.Json;
 using Solnet.Rpc.Models;
+using System.IO;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -1362,6 +1364,71 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         private void DisplayProperty(string heading, string value, int displayFieldLength, bool displayColon = true)
         {
             CLIEngine.DisplayProperty(heading, value, displayFieldLength, displayColon);
+        }
+
+        /// <summary>
+        /// Writes WEB4 and WEB3 NFT JSON files to the given path (used by NFTCollections and GeoNFTCollections).
+        /// </summary>
+        public static OASISResult<bool> UpdateWeb4AndWeb3NFTJSONFiles(IWeb4NFT NFT, string path)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                File.WriteAllText(Path.Combine(path, $"WEB4_NFT_{NFT.Id}.json"), JsonConvert.SerializeObject(NFT));
+                if (!string.IsNullOrEmpty(NFT.JSONMetaData))
+                    File.WriteAllText(Path.Combine(path, $"WEB4_JSONMetaData_{NFT.Id}.json"), NFT.JSONMetaData);
+                if (NFT.Web3NFTs != null)
+                {
+                    foreach (IWeb3NFT web3Nft in NFT.Web3NFTs)
+                    {
+                        File.WriteAllText(Path.Combine(path, $"WEB3_NFT_{web3Nft.Id}.json"), JsonConvert.SerializeObject(web3Nft));
+                        if (!string.IsNullOrEmpty(web3Nft.JSONMetaData))
+                            File.WriteAllText(Path.Combine(path, $"WEB3_JSONMetaData_{web3Nft.Id}.json"), web3Nft.JSONMetaData);
+                    }
+                }
+                result.Result = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 and WEB3 NFT JSON files. Reason: {e.Message}");
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Writes WEB4 NFT Collection JSON to the given path (used by NFTCollections).
+        /// </summary>
+        public static OASISResult<bool> UpdateWeb4AndWeb3NFTJSONFiles(IWeb4NFTCollection collection, string path)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                File.WriteAllText(Path.Combine(path, $"WEB4_NFT_Collection_{collection.Id}.json"), JsonConvert.SerializeObject(collection));
+                result.Result = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 NFT Collection JSON files. Reason: {e.Message}");
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Writes WEB4 Geo NFT Collection JSON to the given path (used by GeoNFTCollections).
+        /// </summary>
+        public static OASISResult<bool> UpdateWeb4AndWeb3NFTJSONFiles(IWeb4GeoNFTCollection collection, string path)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                File.WriteAllText(Path.Combine(path, $"WEB4_GeoNFT_Collection_{collection.Id}.json"), JsonConvert.SerializeObject(collection));
+                result.Result = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 Geo NFT Collection JSON files. Reason: {e.Message}");
+            }
+            return result;
         }
     }
 }

@@ -3981,8 +3981,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             var lockRequest = new LockWeb3TokenRequest
             {
                 FromWalletPrivateKey = senderPrivateKey,
-                FromWalletAddress = senderAccountAddress, // Required for transaction tracking and validation
-                Amount = amount,
+                FromWalletAddress = senderAccountAddress,
                 TokenAddress = string.Empty // Empty for native SOL
             };
 

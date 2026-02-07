@@ -2433,14 +2433,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
             holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ZcashOASIS] = $"avatar-detail:{avatarDetail.Id}";
 
-            // Store all avatar detail properties in metadata so loading as holon maps back the full object
+            var detailConcrete = avatarDetail as AvatarDetail;
             holon.MetaData = new Dictionary<string, object>
             {
                 ["Username"] = avatarDetail.Username ?? "",
                 ["Email"] = avatarDetail.Email ?? "",
-                ["Title"] = avatarDetail.Title ?? "",
-                ["FirstName"] = avatarDetail.FirstName ?? "",
-                ["LastName"] = avatarDetail.LastName ?? "",
+                ["Title"] = detailConcrete?.Title ?? "",
+                ["FirstName"] = detailConcrete?.FirstName ?? "",
+                ["LastName"] = detailConcrete?.LastName ?? "",
                 ["Description"] = avatarDetail.Description ?? "",
                 ["Karma"] = avatarDetail.Karma,
                 ["XP"] = avatarDetail.XP,
@@ -2457,7 +2457,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 ["Mobile"] = avatarDetail.Mobile ?? "",
                 ["FavouriteColour"] = (int)avatarDetail.FavouriteColour,
                 ["STARCLIColour"] = (int)avatarDetail.STARCLIColour,
-                ["AvatarType"] = avatarDetail.AvatarType?.Value != null ? (int)avatarDetail.AvatarType.Value : (int)Core.Enums.AvatarType.User
+                ["AvatarType"] = detailConcrete?.AvatarType?.Value != null ? (int)detailConcrete.AvatarType.Value : (int)Core.Enums.AvatarType.User
             };
 
             // Store nested objects as JSON so loading avatar-detail holon restores full object
@@ -2569,23 +2569,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ZcashOASIS
                 if (holon.MetaData.TryGetValue("STARCLIColour", out v) && int.TryParse(v?.ToString(), out var sc)) detail.STARCLIColour = (ConsoleColor)sc;
                 if (holon.MetaData.TryGetValue("AvatarType", out v) && int.TryParse(v?.ToString(), out var at) && Enum.IsDefined(typeof(Core.Enums.AvatarType), at))
                     detail.AvatarType = new EnumValue<Core.Enums.AvatarType>((Core.Enums.AvatarType)at);
-                // Restore nested objects from JSON
-                TryGetMetaDataJsonList<Objects.AvatarGift>(holon.MetaData, "GiftsJson", out var gifts); if (gifts != null) detail.Gifts = new List<IAvatarGift>(gifts);
-                TryGetMetaDataJsonList<Objects.Achievement>(holon.MetaData, "AchievementsJson", out var achievements); if (achievements != null) detail.Achievements = new List<IAchievement>(achievements);
-                TryGetMetaDataJsonList<Objects.GeneKey>(holon.MetaData, "GeneKeysJson", out var geneKeys); if (geneKeys != null) detail.GeneKeys = new List<IGeneKey>(geneKeys);
-                TryGetMetaDataJsonList<Objects.Spell>(holon.MetaData, "SpellsJson", out var spells); if (spells != null) detail.Spells = new List<ISpell>(spells);
-                TryGetMetaDataJsonList<Objects.InventoryItem>(holon.MetaData, "InventoryJson", out var inventory); if (inventory != null) detail.Inventory = new List<IInventoryItem>(inventory);
+                // Restore nested objects from JSON (types from NextGenSoftware.OASIS.API.Core.Objects / Objects.Avatar)
+                TryGetMetaDataJsonList<AvatarGift>(holon.MetaData, "GiftsJson", out var gifts); if (gifts != null) detail.Gifts = new List<IAvatarGift>(gifts);
+                TryGetMetaDataJsonList<Achievement>(holon.MetaData, "AchievementsJson", out var achievements); if (achievements != null) detail.Achievements = new List<IAchievement>(achievements);
+                TryGetMetaDataJsonList<GeneKey>(holon.MetaData, "GeneKeysJson", out var geneKeys); if (geneKeys != null) detail.GeneKeys = new List<IGeneKey>(geneKeys);
+                TryGetMetaDataJsonList<Spell>(holon.MetaData, "SpellsJson", out var spells); if (spells != null) detail.Spells = new List<ISpell>(spells);
+                TryGetMetaDataJsonList<InventoryItem>(holon.MetaData, "InventoryJson", out var inventory); if (inventory != null) detail.Inventory = new List<IInventoryItem>(inventory);
                 TryGetMetaDataJsonList<KarmaAkashicRecord>(holon.MetaData, "KarmaAkashicRecordsJson", out var karmaRecords); if (karmaRecords != null) detail.KarmaAkashicRecords = new List<IKarmaAkashicRecord>(karmaRecords);
                 TryGetMetaDataJsonList<HeartRateEntry>(holon.MetaData, "HeartRateDataJson", out var heartRate); if (heartRate != null) detail.HeartRateData = new List<IHeartRateEntry>(heartRate);
                 TryGetMetaDataJson<Dictionary<DimensionLevel, Guid>>(holon.MetaData, "DimensionLevelIdsJson", out var dimIds); if (dimIds != null) detail.DimensionLevelIds = dimIds;
-                TryGetMetaDataJson<Dictionary<DimensionLevel, Holon>>(holon.MetaData, "DimensionLevelsJson", out var dimLevels); if (dimLevels != null) detail.DimensionLevels = new Dictionary<DimensionLevel, IHolon>(dimLevels);
-                TryGetMetaDataJson<Objects.AvatarStats>(holon.MetaData, "StatsJson", out var stats); if (stats != null) detail.Stats = stats;
-                TryGetMetaDataJson<Objects.AvatarChakras>(holon.MetaData, "ChakrasJson", out var chakras); if (chakras != null) detail.Chakras = chakras;
-                TryGetMetaDataJson<Objects.AvatarAura>(holon.MetaData, "AuraJson", out var aura); if (aura != null) detail.Aura = aura;
-                TryGetMetaDataJson<Objects.AvatarSkills>(holon.MetaData, "SkillsJson", out var skills); if (skills != null) detail.Skills = skills;
-                TryGetMetaDataJson<Objects.AvatarAttributes>(holon.MetaData, "AttributesJson", out var attributes); if (attributes != null) detail.Attributes = attributes;
-                TryGetMetaDataJson<Objects.AvatarSuperPowers>(holon.MetaData, "SuperPowersJson", out var superPowers); if (superPowers != null) detail.SuperPowers = superPowers;
-                TryGetMetaDataJson<Objects.HumanDesign>(holon.MetaData, "HumanDesignJson", out var humanDesign); if (humanDesign != null) detail.HumanDesign = humanDesign;
+                TryGetMetaDataJson<Dictionary<DimensionLevel, Holon>>(holon.MetaData, "DimensionLevelsJson", out var dimLevels); if (dimLevels != null) detail.DimensionLevels = dimLevels.ToDictionary(k => k.Key, v => (IHolon)v.Value);
+                TryGetMetaDataJson<AvatarStats>(holon.MetaData, "StatsJson", out var stats); if (stats != null) detail.Stats = stats;
+                TryGetMetaDataJson<AvatarChakras>(holon.MetaData, "ChakrasJson", out var chakras); if (chakras != null) detail.Chakras = chakras;
+                TryGetMetaDataJson<AvatarAura>(holon.MetaData, "AuraJson", out var aura); if (aura != null) detail.Aura = aura;
+                TryGetMetaDataJson<AvatarSkills>(holon.MetaData, "SkillsJson", out var skills); if (skills != null) detail.Skills = skills;
+                TryGetMetaDataJson<AvatarAttributes>(holon.MetaData, "AttributesJson", out var attributes); if (attributes != null) detail.Attributes = attributes;
+                TryGetMetaDataJson<AvatarSuperPowers>(holon.MetaData, "SuperPowersJson", out var superPowers); if (superPowers != null) detail.SuperPowers = superPowers;
+                TryGetMetaDataJson<HumanDesign>(holon.MetaData, "HumanDesignJson", out var humanDesign); if (humanDesign != null) detail.HumanDesign = humanDesign;
             }
             return detail;
         }
