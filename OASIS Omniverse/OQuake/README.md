@@ -25,6 +25,7 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
 | [RELEASE_NOTES.md](RELEASE_NOTES.md) | Version history and release notes |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
 | [LICENSE](LICENSE) | License summary and link to GPL-2.0 |
+| [FILES_AND_VERSIONS.md](FILES_AND_VERSIONS.md) | Full file list and why there are multiple version files |
 
 ## Files in this folder
 
