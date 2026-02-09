@@ -1,5 +1,6 @@
 @echo off
-REM Run OQuake with Steam basedir. If already built, just launches; otherwise builds first.
+REM Run OQuake. OQuake is based on vkQuake - credit: https://github.com/Novum/vkQuake (GPL-2.0). See CREDITS_AND_LICENSE.md.
+REM If already built, just launches; otherwise builds first.
 REM Edit OQUAKE_BASEDIR below if your Quake is installed elsewhere.
 REM Edit VKQUAKE_SRC if vkQuake is not at C:\Source\vkQuake.
 

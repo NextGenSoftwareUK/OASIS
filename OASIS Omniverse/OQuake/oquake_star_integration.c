@@ -12,6 +12,7 @@
 
 #include "quakedef.h"
 #include "oquake_star_integration.h"
+#include "oquake_version.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -61,7 +62,18 @@ void OQuake_STAR_Init(void) {
         printf("OQuake STAR API: Set STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID for cross-game keys.\n");
     }
     Cmd_AddCommand("star", OQuake_STAR_Console_f);
-    Con_Printf("OQuake (STAR API) - type 'star' in console for STAR commands.\n");
+    /* OASIS / OQuake loading splash - same professional style as ODOOM */
+    Con_Printf("\n");
+    Con_Printf("  ================================================\n");
+    Con_Printf("            O A S I S   O Q U A K E\n");
+    Con_Printf("  ================================================\n");
+    Con_Printf("\n");
+    Con_Printf("  " OQUAKE_VERSION_STR "\n");
+    Con_Printf("  STAR API - Enabling full interoperable games across the OASIS Omniverse!\n");
+    Con_Printf("  Type 'star' in console for STAR commands.\n");
+    Con_Printf("\n");
+    Con_Printf("  Welcome to OQuake!\n");
+    Con_Printf("\n");
 }
 
 void OQuake_STAR_Cleanup(void) {
@@ -100,7 +112,9 @@ int OQuake_STAR_CheckDoorAccess(const char* door_targetname, const char* require
 void OQuake_STAR_Console_f(void) {
     int argc = Cmd_Argc();
     if (argc < 2) {
-        Con_Printf("STAR API console commands (OQuake integration):\n");
+        Con_Printf("\n");
+        Con_Printf("STAR API console commands (OQuake):\n");
+        Con_Printf("\n");
         Con_Printf("  star version        - Show integration and API status\n");
         Con_Printf("  star status         - Show init state and last error\n");
         Con_Printf("  star inventory      - List items in STAR inventory\n");
@@ -108,8 +122,9 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star add <item> [desc] [type] - Add item\n");
         Con_Printf("  star use <item> [context]     - Use item\n");
         Con_Printf("  star pickup keycard <silver|gold> - Add OQuake key (convenience)\n");
-        Con_Printf("  star beamin   - Log in / authenticate (STAR_USERNAME/PASSWORD or API key)\n");
+        Con_Printf("  star beamin   - Log in (STAR_USERNAME/PASSWORD or API key)\n");
         Con_Printf("  star beamout  - Log out / disconnect from STAR\n");
+        Con_Printf("\n");
         return;
     }
     const char* sub = Cmd_Argv(1);
