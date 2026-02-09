@@ -97,3 +97,134 @@ if (Test-Path $sharedSbarCpp) {
     if ($sbarChanged) { Set-Content $sharedSbarCpp $content -NoNewline; $changes += "shared_sbar" }
 }
 
+# 4. Launcher about.txt: fix Release notes (UZDoom entries) and prepend ODOOM entry from global version
+$aboutPath = "$src\wadsrc\static\about.txt"
+if (Test-Path $aboutPath) {
+    $lines = Get-Content $aboutPath
+    $releaseIdx = -1
+    $nextSectionIdx = $lines.Count
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -eq "# Release notes" -or $lines[$i] -eq "# Version history") { $releaseIdx = $i; break }
+    }
+    if ($releaseIdx -ge 0) {
+        for ($j = $releaseIdx + 1; $j -lt $lines.Count; $j++) {
+            if ($lines[$j] -match '^# ') { $nextSectionIdx = $j; break }
+        }
+        $releaseBlock = ($lines[($releaseIdx + 1)..($nextSectionIdx - 1)] -join "`r`n")
+        $releaseBlock = $releaseBlock -replace 'ODOOM version', 'UZDoom version'
+        $odoomEntry = "ODOOM version $versionDisplay, released (OASIS build)`r`n`r`nFirst release of ODOOM. UZDoom-based port with OASIS STAR API integration for cross-game features in the OASIS Omniverse. Supports keycard sharing with OQuake, STAR inventory, and interoperable games. By NextGen World Ltd.`r`n`r`n---`r`n`r`n"
+        $newReleaseBlock = $odoomEntry + $releaseBlock
+        $before = $lines[0..$releaseIdx] -join "`r`n"
+        $after = if ($nextSectionIdx -lt $lines.Count) { "`r`n" + ($lines[$nextSectionIdx..($lines.Count - 1)] -join "`r`n") } else { "" }
+        $aboutContent = $before + "`r`n" + $newReleaseBlock + $after
+        Set-Content -Path $aboutPath -Value $aboutContent -NoNewline
+    }
+} else {
+    if (Test-Path (Join-Path $odoomRoot "about.txt")) {
+        Copy-Item -Path (Join-Path $odoomRoot "about.txt") -Destination $aboutPath -Force
+    }
+}
+
+# 5. Editor button: add centre button between Play and Exit in launcher button bar
+$widgetsDest = "$src\src\widgets"
+$lbbH = "$widgetsDest\launcherbuttonbar.h"
+$lbbCpp = "$widgetsDest\launcherbuttonbar.cpp"
+$lwH = "$src\src\widgets\launcherwindow.h"
+$lwCpp = "$src\src\widgets\launcherwindow.cpp"
+
+# Restore launcher widget files from git so we always patch from a clean state (fixes any prior broken patch).
+$widgetsToRestore = @("$widgetsDest\launcherwindow.cpp", "$widgetsDest\launcherwindow.h", "$widgetsDest\launcherbuttonbar.cpp", "$widgetsDest\launcherbuttonbar.h")
+$anyExist = $false
+foreach ($f in $widgetsToRestore) { if (Test-Path $f) { $anyExist = $true; break } }
+if ($anyExist) {
+    $prevDir = Get-Location
+    try {
+        Set-Location -LiteralPath $src
+        $gitOk = $false
+        try { $null = git rev-parse --is-inside-work-tree 2>$null; $gitOk = $true } catch {}
+        if ($gitOk) {
+            $srcRoot = $src.TrimEnd("\", "/")
+            foreach ($f in $widgetsToRestore) {
+                if (Test-Path -LiteralPath $f) {
+                    $rel = $f.Replace($srcRoot, "").Replace("\", "/").TrimStart("/")
+                    $null = git checkout -- $rel 2>$null
+                }
+            }
+        }
+    } finally { Set-Location -LiteralPath $prevDir.Path }
+}
+
+if ((Test-Path $lbbH) -and (Test-Path $lbbCpp)) {
+    if (-not (Select-String -Path $lbbH -Pattern "EditorButton" -Quiet)) {
+        $hContent = Get-Content $lbbH -Raw
+        $hContent = $hContent -replace '(void OnExitButtonClicked\(\);)', "`$1`r`n void OnEditorButtonClicked();"
+        $hContent = $hContent -replace '(PushButton\* ExitButton = nullptr;)', "`$1`r`n PushButton* EditorButton = nullptr;"
+        Set-Content -Path $lbbH -Value $hContent -NoNewline
+    }
+    if (-not (Select-String -Path $lbbCpp -Pattern "EditorButton" -Quiet)) {
+        $cppContent = Get-Content $lbbCpp -Raw
+        $cppContent = $cppContent -replace '(ExitButton = new PushButton\(this\);)', "`$1`r`n EditorButton = new PushButton(this);"
+        $cppContent = $cppContent -replace '(ExitButton->OnClick = \[=\]\(\) \{ OnExitButtonClicked\(\); \};)', "`$1`r`n EditorButton->OnClick = [=]() { OnEditorButtonClicked(); };"
+        $cppContent = $cppContent -replace '(ExitButton->SetText\(GStrings\.GetString\("PICKER_EXIT"\)\);)', "`$1`r`n EditorButton->SetText(`"Editor`");"
+        $cppContent = $cppContent -replace '(return 20\.0 \+ std::max\(PlayButton->GetPreferredHeight\(\), ExitButton->GetPreferredHeight\(\)\);)', "return 20.0 + std::max(PlayButton->GetPreferredHeight(), std::max(ExitButton->GetPreferredHeight(), EditorButton->GetPreferredHeight()));"
+        $cppContent = $cppContent -replace '(ExitButton->SetFrameGeometry\(GetWidth\(\) - 20\.0 - 120\.0, 10\.0, 120\.0, PlayButton->GetPreferredHeight\(\)\);)', "ExitButton->SetFrameGeometry(GetWidth() - 20.0 - 120.0, 10.0, 120.0, ExitButton->GetPreferredHeight());`r`n EditorButton->SetFrameGeometry((GetWidth() - 120.0) * 0.5, 10.0, 120.0, EditorButton->GetPreferredHeight());"
+        $cppContent = $cppContent -replace '(void LauncherButtonbar::OnExitButtonClicked\(\)\s+\{\s+GetLauncher\(\)->Exit\(\);\s+\})', "`$1`r`n`r`nvoid LauncherButtonbar::OnEditorButtonClicked()`r`n{`r`n GetLauncher()->OnEditorButtonClicked();`r`n}"
+        Set-Content -Path $lbbCpp -Value $cppContent -NoNewline
+    }
+}
+
+if ((Test-Path $lwH) -and (Test-Path $lwCpp)) {
+    # Ensure NOMINMAX is defined before windows.h so std::max (e.g. SetFrameGeometry) is not broken
+    $lwRaw = [System.IO.File]::ReadAllText($lwCpp)
+    if ($lwRaw -match '#include\s+<windows\.h>' -and $lwRaw -notmatch 'NOMINMAX') {
+        $lwRaw = $lwRaw -replace '(#ifdef _WIN32\s*\r?\n)\s*#include\s+<windows\.h>', "`$1#define NOMINMAX`r`n#include <windows.h>"
+        [System.IO.File]::WriteAllText($lwCpp, $lwRaw)
+    }
+    if (-not (Select-String -Path $lwH -Pattern "OnEditorButtonClicked" -Quiet)) {
+        $hContent = Get-Content $lwH -Raw
+        $hContent = $hContent -replace '(void Exit\(\);)', "`$1`r`n void OnEditorButtonClicked();"
+        Set-Content -Path $lwH -Value $hContent -NoNewline
+    }
+    $editorLaunchLines = @(
+        '',
+        'void LauncherWindow::OnEditorButtonClicked()',
+        '{',
+        '#ifdef _WIN32',
+        '	wchar_t path[MAX_PATH];',
+        '	if (GetModuleFileNameW(NULL, path, MAX_PATH) == 0) return;',
+        '	std::wstring exePath(path);',
+        '	size_t lastSlash = exePath.find_last_of(L"\\/");',
+        '	if (lastSlash == std::wstring::npos) return;',
+        '	std::wstring dir = exePath.substr(0, lastSlash + 1);',
+        '	std::wstring builder = dir + L"Editor\\Builder.exe";',
+        '	ShellExecuteW(NULL, L"open", builder.c_str(), NULL, dir.c_str(), SW_SHOW);',
+        '#else',
+        '	(void)0;',
+        '#endif',
+        '}',
+        ''
+    )
+    $hasLaunchCode = Select-String -Path $lwCpp -Pattern "GetModuleFileNameW|Editor\\\\Builder" -Quiet
+    $hasEditorButton = Select-String -Path $lwCpp -Pattern "OnEditorButtonClicked" -Quiet
+    $hasPlaceholder = Select-String -Path $lwCpp -Pattern "placeholder for map" -Quiet
+    if (-not $hasEditorButton) {
+        $raw = [System.IO.File]::ReadAllText($lwCpp)
+        $hasWindowsInclude = $raw -match "#include\s+<windows\.h>"
+        $block = "`r`nvoid LauncherWindow::OnEditorButtonClicked()`r`n{`r`n#ifdef _WIN32`r`n`twchar_t path[MAX_PATH];`r`n`tif (GetModuleFileNameW(NULL, path, MAX_PATH) == 0) return;`r`n`tstd::wstring exePath(path);`r`n`tsize_t lastSlash = exePath.find_last_of(L`"\\\\/`");`r`n`tif (lastSlash == std::wstring::npos) return;`r`n`tstd::wstring dir = exePath.substr(0, lastSlash + 1);`r`n`tstd::wstring builder = dir + L`"Editor\\\\Builder.exe`";`r`n`tShellExecuteW(NULL, L`"open`", builder.c_str(), NULL, dir.c_str(), SW_SHOW);`r`n#else`r`n`t(void)0;`r`n#endif`r`n}`r`n`r`n"
+        if (-not $hasLaunchCode -and -not $hasWindowsInclude) {
+            $raw = $raw -replace '(#include\s+"version\.h")', "`$1`r`n#ifdef _WIN32`r`n#define NOMINMAX`r`n#include <windows.h>`r`n#include <string>`r`n#endif"
+        }
+        $marker = "void LauncherWindow::UpdateLanguage()"
+        $idx = $raw.IndexOf($marker)
+        if ($idx -ge 0) {
+            $raw = $raw.Insert($idx, $block)
+            [System.IO.File]::WriteAllText($lwCpp, $raw)
+        }
+    } elseif ($hasPlaceholder -and -not $hasLaunchCode) {
+        $cppContent = Get-Content $lwCpp -Raw
+        $cppContent = $cppContent -replace 'void LauncherWindow::OnEditorButtonClicked\(\)\s*\{\s*// Editor button: placeholder[^}]*\}', ($editorLaunchLines -join "`r`n")
+        $cppContent = $cppContent -replace '(#include "version\.h")', "`$1`r`n#ifdef _WIN32`r`n#define NOMINMAX`r`n#include <windows.h>`r`n#include <string>`r`n#endif"
+        Set-Content -Path $lwCpp -Value $cppContent -NoNewline
+    }
+}
+
