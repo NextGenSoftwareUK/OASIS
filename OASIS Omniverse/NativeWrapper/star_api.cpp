@@ -12,6 +12,8 @@
 #include <mutex>
 #include <cstring>
 #include <cstdlib>
+#include <algorithm>
+
 
 #ifdef _WIN32
     #include <windows.h>

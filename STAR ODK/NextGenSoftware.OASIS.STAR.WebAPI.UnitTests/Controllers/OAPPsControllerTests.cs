@@ -1,25 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
-using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class OAPPsControllerTests
     {
-        private readonly Mock<ILogger<OAPPsController>> _mockLogger;
         private readonly OAPPsController _controller;
 
         public OAPPsControllerTests()
         {
-            _mockLogger = new Mock<ILogger<OAPPsController>>();
             _controller = new OAPPsController();
         }
 
@@ -52,12 +44,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public async Task CreateOAPP_WithValidOAPP_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockOAPP = new Mock<IOAPP>();
-            mockOAPP.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockOAPP.Setup(x => x.Name).Returns("Test OAPP");
+            var oapp = new OAPP { Id = Guid.NewGuid(), Name = "Test OAPP" };
 
             // Act
-            var result = await _controller.CreateOAPP(mockOAPP.Object);
+            var result = await _controller.CreateOAPP(oapp);
 
             // Assert
             result.Should().NotBeNull();
@@ -69,12 +59,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockOAPP = new Mock<IOAPP>();
-            mockOAPP.Setup(x => x.Id).Returns(id);
-            mockOAPP.Setup(x => x.Name).Returns("Updated OAPP");
+            var oapp = new OAPP { Id = id, Name = "Updated OAPP" };
 
             // Act
-            var result = await _controller.UpdateOAPP(id, mockOAPP.Object);
+            var result = await _controller.UpdateOAPP(id, oapp);
 
             // Assert
             result.Should().NotBeNull();

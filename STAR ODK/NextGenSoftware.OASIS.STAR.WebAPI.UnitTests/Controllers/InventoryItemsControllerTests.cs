@@ -1,25 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
-using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class InventoryItemsControllerTests
     {
-        private readonly Mock<ILogger<InventoryItemsController>> _mockLogger;
         private readonly InventoryItemsController _controller;
 
         public InventoryItemsControllerTests()
         {
-            _mockLogger = new Mock<ILogger<InventoryItemsController>>();
             _controller = new InventoryItemsController();
         }
 
@@ -52,12 +44,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public async Task CreateInventoryItem_WithValidItem_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockItem = new Mock<IInventoryItem>();
-            mockItem.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockItem.Setup(x => x.Name).Returns("Test Inventory Item");
+            var item = new InventoryItem { Id = Guid.NewGuid(), Name = "Test Inventory Item" };
 
             // Act
-            var result = await _controller.CreateInventoryItem(mockItem.Object);
+            var result = await _controller.CreateInventoryItem(item);
 
             // Assert
             result.Should().NotBeNull();
@@ -69,12 +59,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockItem = new Mock<IInventoryItem>();
-            mockItem.Setup(x => x.Id).Returns(id);
-            mockItem.Setup(x => x.Name).Returns("Updated Inventory Item");
+            var item = new InventoryItem { Id = id, Name = "Updated Inventory Item" };
 
             // Act
-            var result = await _controller.UpdateInventoryItem(id, mockItem.Object);
+            var result = await _controller.UpdateInventoryItem(id, item);
 
             // Assert
             result.Should().NotBeNull();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using System.Threading.Tasks;
 using Nethereum.Web3;
@@ -498,24 +498,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness
         private static async Task ExecuteSendTransaction(string contractAddress)
         {
             var ethereumOasis = new EthereumOASIS(_chainUrl, _chainPrivateKey, _chainId, contractAddress);
-
-            var walletTransactionRequest = new WalletTransaction()
-            {
-                ToWalletAddress = "0x13f022d72158410433cbd66f5dd8bf6d2d129924",
-                Amount = 0.01m,
-                ProviderType = ProviderType.EthereumOASIS,
-                Date = DateTime.Now
-            };
-            
+            const string toAddress = "0x13f022d72158410433cbd66f5dd8bf6d2d129924";
+            const decimal amount = 0.01m;
+            var account = new Nethereum.Web3.Accounts.Account(_chainPrivateKey, _chainId);
+            var fromAddress = account.Address;
             Console.WriteLine("Sending transaction started...");
-            var sendTransactionResult = await ethereumOasis.SendTransactionAsync(walletTransactionRequest);
+            var sendTransactionResult = await ethereumOasis.SendTransactionAsync(fromAddress, toAddress, amount, "EthereumOASIS TestHarness");
             if (sendTransactionResult.IsError)
             {
                 Console.WriteLine($"Transaction performing failed! Reason: {sendTransactionResult.Message}");
                 return;
             }
-            
-            Console.WriteLine($"Transaction completed successfully! Transaction hash: {sendTransactionResult.Result}");
+            Console.WriteLine($"Transaction completed successfully! Transaction hash: {sendTransactionResult.Result?.TransactionResult}");
         }
         
         private static async Task Main(string[] args)

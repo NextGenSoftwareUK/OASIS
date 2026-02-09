@@ -4,6 +4,7 @@ using Moq;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
@@ -14,12 +15,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class NFTsControllerTests
     {
-        private readonly Mock<ILogger<NFTsController>> _mockLogger;
         private readonly NFTsController _controller;
 
         public NFTsControllerTests()
         {
-            _mockLogger = new Mock<ILogger<NFTsController>>();
             _controller = new NFTsController();
         }
 
@@ -52,12 +51,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public async Task CreateNFT_WithValidNFT_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockNFT = new Mock<INFT>();
-            mockNFT.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockNFT.Setup(x => x.Name).Returns("Test NFT");
+            var nft = new STARNFT { Id = Guid.NewGuid(), Name = "Test NFT" };
 
             // Act
-            var result = await _controller.CreateNFT(mockNFT.Object);
+            var result = await _controller.CreateNFT(nft);
 
             // Assert
             result.Should().NotBeNull();
@@ -69,12 +66,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockNFT = new Mock<INFT>();
-            mockNFT.Setup(x => x.Id).Returns(id);
-            mockNFT.Setup(x => x.Name).Returns("Updated NFT");
+            var nft = new STARNFT { Id = id, Name = "Updated NFT" };
 
             // Act
-            var result = await _controller.UpdateNFT(id, mockNFT.Object);
+            var result = await _controller.UpdateNFT(id, nft);
 
             // Assert
             result.Should().NotBeNull();
