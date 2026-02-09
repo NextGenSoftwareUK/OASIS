@@ -1,16 +1,13 @@
 @echo off
-REM OQuake - OASIS STAR API build. OQuake is based on vkQuake. Full credit: https://github.com/Novum/vkQuake (GPL-2.0). See CREDITS_AND_LICENSE.md.
-REM Single script: build star_api (if needed), copy OQuake integration to quake-rerelease-qc.
-REM   BUILD_OQUAKE.bat       = copy integration + star_api to Quake tree
-REM   BUILD_OQUAKE.bat run   = same, then launch OQuake engine (if QUAKE_ENGINE_EXE set)
-REM Edit QUAKE_SRC if your QuakeC source is not at C:\Source\quake-rerelease-qc
-REM Edit QUAKE_ENGINE_EXE to point to your OQuake-built engine exe to use "run".
+setlocal EnableDelayedExpansion
+REM OQuake - vkQuake + OASIS STAR API. Credit: Novum/vkQuake (GPL-2.0). See CREDITS_AND_LICENSE.md.
+REM Usage: BUILD_OQUAKE.bat [ run ]
+REM   (none) = prompt clean/incremental, then copy, patch, build
+REM   run    = incremental build then launch (no prompt)
 
 set "QUAKE_SRC=C:\Source\quake-rerelease-qc"
-set "QUAKE_ENGINE_EXE="
-REM Optional: set to vkQuake source to clone and build (recommended engine - see ENGINE_RECOMMENDATION.md)
 set "VKQUAKE_SRC=C:\Source\vkQuake"
-
+set "QUAKE_ENGINE_EXE="
 set "HERE=%~dp0"
 set "DOOM_FOLDER=%HERE%..\Doom"
 set "NATIVEWRAPPER=%HERE%..\NativeWrapper"
@@ -18,135 +15,109 @@ set "OQUAKE_INTEGRATION=%HERE%"
 set "NW_BUILD=%NATIVEWRAPPER%\build"
 set "NW_RELEASE=%NW_BUILD%\Release"
 
-REM ---------- 1. Ensure star_api is available (Doom folder or NativeWrapper build) ----------
+REM Generate OQuake version from OQuake/oquake_version.txt
+if exist "%OQUAKE_INTEGRATION%generate_oquake_version.ps1" powershell -NoProfile -ExecutionPolicy Bypass -File "%OQUAKE_INTEGRATION%generate_oquake_version.ps1" -Root "%OQUAKE_INTEGRATION%"
+set "VERSION_DISPLAY=1.0 (Build 1)"
+if exist "%OQUAKE_INTEGRATION%version_display.txt" for /f "usebackq delims=" %%a in ("%OQUAKE_INTEGRATION%version_display.txt") do set "VERSION_DISPLAY=%%a"
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$v=$env:VERSION_DISPLAY; if(-not $v){$v='1.0 (Build 1)'}; $w=60; function c($s){$p=[math]::Max(0,[int](($w-$s.Length)/2)); '  '+(' '*$p)+$s}; Write-Host ''; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('O A S I S   O Q U A K E  v'+$v)) -ForegroundColor Cyan; Write-Host (c('By NextGen World Ltd')) -ForegroundColor DarkGray; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('Enabling full interoperable games across the OASIS Omniverse!')) -ForegroundColor DarkMagenta; Write-Host ''"
+
+set "DO_FULL_CLEAN=0"
+if /i not "%~1"=="run" (
+    echo.
+    set /p "BUILD_CHOICE=  Full clean/rebuild (C) or incremental build (I)? [I]: "
+)
+if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
+if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
+
+REM --- STAR API ---
 set "STAR_DLL="
 set "STAR_LIB="
-if exist "%DOOM_FOLDER%\star_api.dll" (
-    set "STAR_DLL=%DOOM_FOLDER%\star_api.dll"
-    set "STAR_LIB=%DOOM_FOLDER%\star_api.lib"
-)
-if not defined STAR_DLL if exist "%NW_RELEASE%\star_api.dll" (
-    set "STAR_DLL=%NW_RELEASE%\star_api.dll"
-    set "STAR_LIB=%NW_RELEASE%\star_api.lib"
-)
+if exist "%DOOM_FOLDER%\star_api.dll" set "STAR_DLL=%DOOM_FOLDER%\star_api.dll" & set "STAR_LIB=%DOOM_FOLDER%\star_api.lib"
+if not defined STAR_DLL if exist "%NW_RELEASE%\star_api.dll" set "STAR_DLL=%NW_RELEASE%\star_api.dll" & set "STAR_LIB=%NW_RELEASE%\star_api.lib"
 
 if not defined STAR_DLL (
-    echo star_api not found. Building NativeWrapper...
-    if not exist "%NATIVEWRAPPER%\star_api.h" (
-        echo NativeWrapper not found at: %NATIVEWRAPPER%
-        pause
-        exit /b 1
-    )
+    echo [STAR API] Building NativeWrapper...
+    if not exist "%NATIVEWRAPPER%\star_api.h" (echo NativeWrapper not found: %NATIVEWRAPPER% & pause & exit /b 1)
     if not exist "%NW_BUILD%" mkdir "%NW_BUILD%"
     cd /d "%NW_BUILD%"
     cmake .. -G "Visual Studio 17 2022" -A x64
-    if errorlevel 1 (
-        echo NativeWrapper CMake failed. Try "Visual Studio 16 2019" if you don't have VS 2022.
-        pause
-        exit /b 1
-    )
+    if errorlevel 1 (echo CMake failed. Try VS 2019 if needed. & pause & exit /b 1)
     cmake --build . --config Release
-    if errorlevel 1 (
-        echo NativeWrapper build failed.
-        pause
-        exit /b 1
-    )
+    if errorlevel 1 (echo Build failed. & pause & exit /b 1)
     cd /d "%~dp0"
     set "STAR_DLL=%NW_RELEASE%\star_api.dll"
     set "STAR_LIB=%NW_RELEASE%\star_api.lib"
-    if not exist "%STAR_DLL%" (
-        echo star_api.dll still missing after build.
-        pause
-        exit /b 1
-    )
-    echo Copying star_api to Doom folder for ODOOM/OQuake...
-    copy /Y "%STAR_DLL%" "%DOOM_FOLDER%\star_api.dll"
-    copy /Y "%STAR_LIB%" "%DOOM_FOLDER%\star_api.lib"
+    if not exist "%STAR_DLL%" (echo star_api.dll missing after build. & pause & exit /b 1)
+    copy /Y "%STAR_DLL%" "%DOOM_FOLDER%\star_api.dll" >nul
+    copy /Y "%STAR_LIB%" "%DOOM_FOLDER%\star_api.lib" >nul
+    echo [STAR API] Ready.
 )
 
-if not exist "%NATIVEWRAPPER%\star_api.h" (
-    echo star_api.h not found at: %NATIVEWRAPPER%
-    pause
-    exit /b 1
-)
+if not exist "%NATIVEWRAPPER%\star_api.h" (echo star_api.h not found: %NATIVEWRAPPER% & pause & exit /b 1)
 
-REM ---------- 2. Copy OQuake integration to Quake tree ----------
-if not exist "%QUAKE_SRC%" (
-    echo Quake source not found at: %QUAKE_SRC%
-    echo Edit QUAKE_SRC at the top of this script.
-    pause
-    exit /b 1
-)
+REM --- QuakeC tree ---
+if not exist "%QUAKE_SRC%" (echo Quake source not found: %QUAKE_SRC% & echo Edit QUAKE_SRC at top of script. & pause & exit /b 1)
 
-echo === Copying OQuake integration to %QUAKE_SRC% ===
-copy /Y "%OQUAKE_INTEGRATION%oquake_star_integration.c" "%QUAKE_SRC%\"
-copy /Y "%OQUAKE_INTEGRATION%oquake_star_integration.h" "%QUAKE_SRC%\"
-copy /Y "%OQUAKE_INTEGRATION%oquake_version.h" "%QUAKE_SRC%\"
-copy /Y "%OQUAKE_INTEGRATION%WINDOWS_INTEGRATION.md" "%QUAKE_SRC%\"
-copy /Y "%OQUAKE_INTEGRATION%engine_oquake_hooks.c.example" "%QUAKE_SRC%\"
-copy /Y "%NATIVEWRAPPER%\star_api.h" "%QUAKE_SRC%\"
-copy /Y "%STAR_DLL%" "%QUAKE_SRC%\star_api.dll"
-copy /Y "%STAR_LIB%" "%QUAKE_SRC%\star_api.lib"
+echo.
+echo [OQuake] Installing...
+copy /Y "%OQUAKE_INTEGRATION%oquake_star_integration.c" "%QUAKE_SRC%\" >nul
+copy /Y "%OQUAKE_INTEGRATION%oquake_star_integration.h" "%QUAKE_SRC%\" >nul
+copy /Y "%OQUAKE_INTEGRATION%oquake_version.h" "%QUAKE_SRC%\" >nul
+copy /Y "%OQUAKE_INTEGRATION%WINDOWS_INTEGRATION.md" "%QUAKE_SRC%\" >nul
+copy /Y "%OQUAKE_INTEGRATION%engine_oquake_hooks.c.example" "%QUAKE_SRC%\" >nul
+copy /Y "%NATIVEWRAPPER%\star_api.h" "%QUAKE_SRC%\" >nul
+copy /Y "%STAR_DLL%" "%QUAKE_SRC%\star_api.dll" >nul
+copy /Y "%STAR_LIB%" "%QUAKE_SRC%\star_api.lib" >nul
+echo   %QUAKE_SRC%
 
-REM ---------- 3. Optional: clone and build vkQuake (recommended engine) ----------
-if defined VKQUAKE_SRC call :do_vkquake
-goto :done_vkquake
+REM --- vkQuake: apply + build ---
+if not defined VKQUAKE_SRC goto :done
+if not exist "%VKQUAKE_SRC%\Quake\pr_ext.c" goto :done
 
-:do_vkquake
-if not exist "%VKQUAKE_SRC%" (
-    echo vkQuake source not found - cloning from GitHub
-    git clone --depth 1 https://github.com/Novum/vkQuake.git "%VKQUAKE_SRC%"
-    if errorlevel 1 echo Git clone failed - clone vkQuake manually to %VKQUAKE_SRC%
-)
-if not exist "%VKQUAKE_SRC%\Quake\pr_ext.c" goto :eof
-echo/
-echo === Ensuring OQuake/STAR files in vkQuake Quake folder ===
+echo.
+echo [OQuake] Patching vkQuake source...
 set "APPLY_PS1=%OQUAKE_INTEGRATION%vkquake_oquake\apply_oquake_to_vkquake.ps1"
 if exist "%APPLY_PS1%" powershell -NoProfile -ExecutionPolicy Bypass -File "%APPLY_PS1%" -VkQuakeSrc "%VKQUAKE_SRC%"
-copy /Y "%STAR_DLL%" "%VKQUAKE_SRC%\Quake\star_api.dll"
-copy /Y "%STAR_LIB%" "%VKQUAKE_SRC%\Quake\star_api.lib"
-echo/
-echo === Building OQuake (vkQuake + STAR API) ===
-REM Vulkan SDK: installer sets VULKAN_SDK; if not set, try default path (current cmd may not have new env after install)
+copy /Y "%STAR_DLL%" "%VKQUAKE_SRC%\Quake\star_api.dll" >nul
+copy /Y "%STAR_LIB%" "%VKQUAKE_SRC%\Quake\star_api.lib" >nul
+
+echo.
+if "%DO_FULL_CLEAN%"=="1" if defined VKQUAKE_SRC (
+    echo [OQuake] Full clean...
+    if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake" rmdir /s /q "%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake" & echo   Build-vkQuake removed
+    if exist "%VKQUAKE_SRC%\Windows\VisualStudio\x64" rmdir /s /q "%VKQUAKE_SRC%\Windows\VisualStudio\x64" & echo   x64 removed
+    if exist "%VKQUAKE_SRC%\build" rmdir /s /q "%VKQUAKE_SRC%\build" & echo   build removed
+)
+echo [OQuake] Building engine...
 if not defined VULKAN_SDK (
-    if exist "C:\VulkanSDK\" (
-        for /f "delims=" %%D in ('dir /b /ad /o-n "C:\VulkanSDK\*" 2^>nul') do (
-            if exist "C:\VulkanSDK\%%D\Include\vulkan\vulkan.h" (
-                set "VULKAN_SDK=C:\VulkanSDK\%%D"
-                goto :vulkan_found
-            )
-        )
+    if exist "C:\VulkanSDK\" for /f "delims=" %%D in ('dir /b /ad /o-n "C:\VulkanSDK\*" 2^>nul') do (
+        if exist "C:\VulkanSDK\%%D\Include\vulkan\vulkan.h" set "VULKAN_SDK=C:\VulkanSDK\%%D" & goto :vulkan_ok
     )
     if exist "C:\VulkanSDK\1.3.296.0\Include\vulkan\vulkan.h" set "VULKAN_SDK=C:\VulkanSDK\1.3.296.0"
     if exist "C:\VulkanSDK\1.3.250.0\Include\vulkan\vulkan.h" set "VULKAN_SDK=C:\VulkanSDK\1.3.250.0"
 )
-:vulkan_found
-if defined VULKAN_SDK (
-    echo Vulkan SDK: %VULKAN_SDK%
-) else (
-    echo WARNING: VULKAN_SDK is not set and no Vulkan SDK found in C:\VulkanSDK\
-    echo After installing Vulkan SDK, close this window and open a NEW command prompt, then run BUILD_OQUAKE.bat again.
-    echo Or set VULKAN_SDK manually, e.g. set VULKAN_SDK=C:\VulkanSDK\1.3.296.0
-    echo Download: https://vulkan.lunarg.com/sdk/home
+:vulkan_ok
+if not defined VULKAN_SDK (
+    echo Vulkan SDK not found. Install from https://vulkan.lunarg.com/sdk/home and restart this script.
+    pause
+    exit /b 1
 )
+
 set "VKQUAKE_EXE="
-if not exist "%VKQUAKE_SRC%\Windows\VisualStudio\vkquake.sln" goto :meson_check
-where msbuild >nul 2>nul
-if not errorlevel 1 goto :do_msbuild
-REM MSBuild not in PATH - find VsDevCmd and run it at top level (no parentheses) to avoid quoting issues
-echo MSBuild not in PATH - loading Visual Studio environment...
+if not exist "%VKQUAKE_SRC%\Windows\VisualStudio\vkquake.sln" goto :meson
 set "VSDEVCMD="
-if exist "%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
-if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat"
-if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
-if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\VsDevCmd.bat"
-if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat"
-if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\VsDevCmd.bat"
-if defined VSDEVCMD call "%VSDEVCMD%" -arch=amd64
-if not defined VSDEVCMD echo VsDevCmd.bat not found. Install Visual Studio or run from Developer Command Prompt.
-:do_msbuild
-where msbuild >nul 2>nul
-if errorlevel 1 goto :no_msbuild
+where msbuild >nul 2>nul || (
+    if exist "%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
+    if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\VsDevCmd.bat"
+    if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat"
+)
+if defined VSDEVCMD call "!VSDEVCMD!" -arch=amd64
+where msbuild >nul 2>nul || (
+    echo MSBuild not in PATH. Open "Developer Command Prompt for VS" or "x64 Native Tools Command Prompt" and run this script again.
+    pause
+    exit /b 1
+)
 msbuild "%VKQUAKE_SRC%\Windows\VisualStudio\vkquake.sln" /p:Configuration=Release /p:Platform=x64 /v:m
 if not errorlevel 1 (
     if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe"
@@ -154,71 +125,56 @@ if not errorlevel 1 (
     if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe"
     if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\build\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\build\Release\vkquake.exe"
 ) else (
-    echo MSBuild failed. Run in Developer Command Prompt for full errors.
-    echo   cd /d "%VKQUAKE_SRC%\Windows\VisualStudio"
-    echo   msbuild vkquake.sln /p:Configuration=Release /p:Platform=x64
+    echo Build failed. Run from Developer Command Prompt for details.
+    pause
+    exit /b 1
 )
-goto :after_vs_build
-:no_msbuild
-echo MSBuild not in PATH. Open "Developer Command Prompt for VS 2022" and run BUILD_OQUAKE.bat from there.
-:after_vs_build
-:meson_check
-if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\meson.build" (
-    where meson >nul 2>nul
-    if not errorlevel 1 (
-        cd /d "%VKQUAKE_SRC%"
-        if not exist build mkdir build
-        meson setup build --buildtype=release
-        if not errorlevel 1 (
-            ninja -C build
-            if not errorlevel 1 if exist "%VKQUAKE_SRC%\build\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\build\vkquake.exe"
-        )
-        cd /d "%~dp0"
-    )
-)
-if defined VKQUAKE_EXE (
-    for %%A in ("%VKQUAKE_EXE%") do copy /Y "%STAR_DLL%" "%%~dpA"
-    set "QUAKE_ENGINE_EXE=%VKQUAKE_EXE%"
-    echo OQuake built - %VKQUAKE_EXE%
-    echo star_api.dll next to exe - use -game to point to quake-rerelease-qc progs for cross-game keys
-    if not exist "%OQUAKE_INTEGRATION%\build" mkdir "%OQUAKE_INTEGRATION%\build"
-    copy /Y "%VKQUAKE_EXE%" "%OQUAKE_INTEGRATION%\build\OQUAKE.exe"
-    copy /Y "%STAR_DLL%" "%OQUAKE_INTEGRATION%\build\star_api.dll"
-    for %%A in ("%VKQUAKE_EXE%") do for %%D in ("%%~dpA*.dll") do copy /Y "%%D" "%OQUAKE_INTEGRATION%\build\"
-    echo Copied OQUAKE.exe and all DLLs to %OQUAKE_INTEGRATION%\build\
-) else (
-    echo OQuake/vkQuake build failed.
-    echo - If you just installed Vulkan SDK: close this window, open a NEW command prompt, run BUILD_OQUAKE.bat again.
-    echo - Build from "Developer Command Prompt for VS 2022" so MSBuild and Vulkan are found.
-    echo - To see the real error: cd "%VKQUAKE_SRC%\Windows\VisualStudio" then run: msbuild vkquake.sln /p:Configuration=Release /p:Platform=x64
-)
-goto :eof
+goto :copy_out
 
-:done_vkquake
-echo/
-echo === Done ===
-echo   OQuake files and star_api are in: %QUAKE_SRC%
-if defined QUAKE_ENGINE_EXE (
-    echo   Engine built - use %~nx0 run to launch %QUAKE_ENGINE_EXE%
-    echo   Game data: put id1 with pak0.pak and pak1.pak and gfx.wad in exe folder, or use -basedir path
-) else (
-    echo   To build vkQuake automatically, set VKQUAKE_SRC=C:\Source\vkQuake and run again.
-    echo   See ENGINE_RECOMMENDATION.md for why vkQuake is recommended
+:meson
+if not exist "%VKQUAKE_SRC%\meson.build" goto :done
+where meson >nul 2>nul
+if errorlevel 1 goto :done
+cd /d "%VKQUAKE_SRC%"
+if not exist build mkdir build
+meson setup build --buildtype=release
+if not errorlevel 1 ninja -C build
+if not errorlevel 1 if exist "%VKQUAKE_SRC%\build\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\build\vkquake.exe"
+cd /d "%~dp0"
+goto :copy_out
+
+:copy_out
+if defined VKQUAKE_EXE (
+    for %%A in ("%VKQUAKE_EXE%") do copy /Y "%STAR_DLL%" "%%~dpA" >nul
+    set "QUAKE_ENGINE_EXE=%VKQUAKE_EXE%"
+    if not exist "%OQUAKE_INTEGRATION%\build" mkdir "%OQUAKE_INTEGRATION%\build"
+    copy /Y "%VKQUAKE_EXE%" "%OQUAKE_INTEGRATION%\build\OQUAKE.exe" >nul
+    copy /Y "%STAR_DLL%" "%OQUAKE_INTEGRATION%\build\star_api.dll" >nul
+    for %%A in ("%VKQUAKE_EXE%") do for %%D in ("%%~dpA*.dll") do copy /Y "%%D" "%OQUAKE_INTEGRATION%\build\" >nul
+    echo   Output: %OQUAKE_INTEGRATION%\build\OQUAKE.exe
 )
-echo   OQuake at VKQUAKE_SRC has STAR builtins - use quake-rerelease-qc progs for cross-game keys with ODOOM
-echo   Set STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID for cross-game keys
-echo/
+
+goto :done
+
+:done
+echo.
+echo ---
+if defined QUAKE_ENGINE_EXE (
+    echo OQuake ready. Use "BUILD_OQUAKE.bat run" to launch.
+    echo Game data: id1 with pak0.pak, pak1.pak, gfx.wad in exe folder or -basedir.
+) else if not "%~1"=="clean" (
+    echo To build engine: set VKQUAKE_SRC at top ^(e.g. C:\Source\vkQuake^) and run again.
+)
+echo Cross-game keys: set STAR_USERNAME / STAR_PASSWORD or STAR_API_KEY / STAR_AVATAR_ID
+echo ---
 
 if /i "%~1"=="run" (
     if defined QUAKE_ENGINE_EXE if exist "%QUAKE_ENGINE_EXE%" (
-        echo Launching OQuake - %QUAKE_ENGINE_EXE%
+        echo Launching OQuake...
         start "" "%QUAKE_ENGINE_EXE%"
     ) else (
-        echo To auto-launch, set QUAKE_ENGINE_EXE at the top of this script to your engine exe
-        echo Opening Quake folder
+        echo Set QUAKE_ENGINE_EXE or build first. Opening Quake folder.
         start "" "%QUAKE_SRC%"
     )
-) else (
-    echo To copy and run when QUAKE_ENGINE_EXE is set, use %~nx0 run
 )
 pause

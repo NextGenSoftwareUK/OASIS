@@ -65,7 +65,8 @@ void OQuake_STAR_Init(void) {
     /* OASIS / OQuake loading splash - same professional style as ODOOM */
     Con_Printf("\n");
     Con_Printf("  ================================================\n");
-    Con_Printf("            O A S I S   O Q U A K E\n");
+    Con_Printf("            O A S I S   O Q U A K E  " OQUAKE_VERSION " (Build " OQUAKE_BUILD ")\n");
+    Con_Printf("               By NextGen World Ltd\n");
     Con_Printf("  ================================================\n");
     Con_Printf("\n");
     Con_Printf("  " OQUAKE_VERSION_STR "\n");
