@@ -36,8 +36,8 @@ if (-not $foundDir) {
     return
 }
 
-Write-Host "[ODOOM] Copying BuilderNative and same-folder DLLs from $foundDir into build\Editor..."
+Write-Host "[ODOOM] Installing Editor..."
 Get-ChildItem -Path $foundDir -Filter "*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $EditorDir -Force
 }
-Write-Host "[ODOOM] Done. Builder should now be able to open maps." -ForegroundColor Green
+Write-Host "[ODOOM] READY PLAYER ONE." -ForegroundColor Green
