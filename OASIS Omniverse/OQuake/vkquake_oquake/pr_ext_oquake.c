@@ -1,9 +1,9 @@
 /**
- * vkQuake OQuake extension builtins
+ * OQuake extension builtins
  *
  * Provides PF_ wrappers for OQuake STAR API so QuakeC can call
  * OQuake_OnKeyPickup and OQuake_CheckDoorAccess (ex_OQuake_OnKeyPickup,
- * ex_OQuake_CheckDoorAccess). Add this file to vkQuake's build and register
+ * ex_OQuake_CheckDoorAccess). Add this file to the OQuake build and register
  * these builtins in pr_ext.c's extension table.
  *
  * QuakeC (defs.qc):

@@ -1,5 +1,5 @@
 # Apply ODOOM branding patches to UZDoom source (version.h, startscreen.cpp, shared_sbar.cpp).
-# Run from BUILD_UZDOOM_STAR.bat with: powershell -ExecutionPolicy Bypass -File "%~dp0apply_odoom_branding.ps1" -UZDOOM_SRC "C:\Source\UZDoom"
+# Run from BUILD ODOOM.bat with: powershell -ExecutionPolicy Bypass -File "%~dp0apply_odoom_branding.ps1" -UZDOOM_SRC "C:\Source\UZDoom"
 param([Parameter(Mandatory=$true)][string]$UZDOOM_SRC)
 
 $src = $UZDOOM_SRC.TrimEnd('\')

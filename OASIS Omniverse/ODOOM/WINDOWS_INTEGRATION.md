@@ -1,6 +1,10 @@
-# Windows Integration Guide: STAR API in UZDoom
+# Windows Integration Guide: STAR API in ODOOM
 
-This guide covers integrating the OASIS STAR API into **UZDoom** (a GZDoom fork). UZDoom uses a native Windows/SDL2 stack with proper sound, music, and mouse handling, so you avoid the issues common with the older Linux Doom port (sound, music, mouse).
+This guide covers integrating the OASIS STAR API into **ODOOM** (UZDoom-based, a GZDoom fork). ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handling, so you avoid the issues common with the older Linux Doom port (sound, music, mouse).
+
+## Credits and license
+
+**ODOOM is a fork of UZDoom.** Full credit goes to the [UZDoom](https://github.com/UZDoom/UZDoom) project. UZDoom is licensed under the [GNU General Public License v3.0](https://github.com/UZDoom/UZDoom/blob/trunk/LICENSE). When you build or distribute ODOOM, you must comply with UZDoom’s license and give appropriate credit. See **[CREDITS_AND_LICENSE.md](CREDITS_AND_LICENSE.md)** in this folder for details.
 
 ## Prerequisites
 
@@ -14,36 +18,36 @@ This guide covers integrating the OASIS STAR API into **UZDoom** (a GZDoom fork)
 
 **No wrapper build** – the script uses the existing `star_api.dll` and `star_api.lib` from `OASIS Omniverse\Doom\` (same build used for the other Doom port). `star_api.h` is taken from `NativeWrapper`.
 
-From the OASIS repo, in `OASIS Omniverse\UZDoom\`, run the single script:
+From the OASIS repo, in `OASIS Omniverse\ODOOM\`, run the single script:
 
 ```batch
-BUILD_UZDOOM_STAR.bat
+BUILD ODOOM.bat
 ```
-Build only. When it finishes, run `uzdoom.exe` from `UZDoom\build\Release\` yourself.
+Build only. When it finishes, **ODOOM.exe** and DLLs are in `OASIS Omniverse\ODOOM\build\`. Put your WAD there and run **ODOOM.exe**.
 
-To **build and launch** UZDoom in one go:
+To **build and launch** ODOOM in one go:
 ```batch
-BUILD_UZDOOM_STAR.bat run
+BUILD ODOOM.bat run
 ```
 
-The script: copies integration files into UZDoom `src`, configures UZDoom with STAR (header from NativeWrapper, lib/dll from Doom folder), builds UZDoom, and copies `star_api.dll` next to the executable. If your UZDoom clone is not at `C:\Source\UZDoom`, edit the `UZDOOM_SRC` variable at the top of `BUILD_UZDOOM_STAR.bat`. CMake and Visual Studio must be in PATH (or run from **Developer Command Prompt for VS 2022**).
+The script: copies integration files into the UZDoom source `src`, configures with STAR (header from NativeWrapper, lib/dll from Doom folder), builds, and copies the exe as **ODOOM.exe** plus DLLs to `ODOOM\build\`. If your UZDoom clone is not at `C:\Source\UZDoom`, edit the `UZDOOM_SRC` variable at the top of `BUILD ODOOM.bat`. CMake and Visual Studio must be in PATH (or run from **Developer Command Prompt for VS 2022**).
 
 ### ODOOM branding (name and version)
 
 When building with STAR, the script also applies **ODOOM** branding and build/version so it appears in:
 
-- **Loading screen** – header shows “ODOOM” and version (e.g. “ODOOM 1.0 (Build 1)”).
+- **Loading screen** – header shows “ODOOM” and version (e.g. “ODOOM 1.0 (Build 1) (UZDoom x.x.x)”).
 - **Window title** – uses the same name/version where the engine shows the game name.
-- **In-game HUD** – bottom-right shows “ODOOM” and version.
-- **Console / startup** – first line printed is “ODOOM version …” and the `-version` flag shows ODOOM.
+- **In-game HUD** – bottom-right shows “ODOOM” and version with UZDoom in brackets (e.g. “ODOOM 1.0 (Build 1) (UZDoom 1.2.3)”).
+- **Console** – at startup (and when you type `star`) you see the OASIS ODOOM banner and “Welcome to ODOOM!”; the `-version` flag shows ODOOM.
 
-The script copies `odoom_branding.h` into UZDoom `src` and runs `apply_odoom_branding.ps1` to patch `version.h`, `common/startscreen/startscreen.cpp`, and `g_statusbar/shared_sbar.cpp` if not already patched. To change the displayed version or build number, edit `OASIS Omniverse\UZDoom\odoom_branding.h` (ODOOM_VERSION and ODOOM_BUILD) before running the build script.
+The script copies `odoom_branding.h` into UZDoom `src` and runs `apply_odoom_branding.ps1` to patch `version.h`, `common/startscreen/startscreen.cpp`, and `g_statusbar/shared_sbar.cpp` if not already patched. To change the displayed version or build number, edit `OASIS Omniverse\ODOOM\odoom_branding.h` (ODOOM_VERSION and ODOOM_BUILD) before running the build script.
 
 ### OASIS banner (launcher and loading screen)
 
-When `oasis_banner.png` is present in `OASIS Omniverse\UZDoom\`, the build script copies it into UZDoom’s wadsrc so that the **launcher** (splash/game select) and the **in-game loading screen** both use the OASIS banner (`ui/banner-light.png`, `ui/banner-dark.png`, and `bootlogo.png`). After a full build that includes the game data (uzdoom.pk3), the OASIS graphic will appear there.
+When `oasis_banner.png` is present in `OASIS Omniverse\ODOOM\`, the build script copies it into UZDoom’s wadsrc so that the **launcher** (splash/game select) and the **in-game loading screen** both use the OASIS banner (`ui/banner-light.png`, `ui/banner-dark.png`, and `bootlogo.png`). After a full build that includes the game data (uzdoom.pk3), the OASIS graphic will appear there.
 
-**To use it:** Put your OASIS banner at `OASIS Omniverse\UZDoom\oasis_banner.png`, then run `BUILD_UZDOOM_STAR.bat`. The script copies the banner into UZDoom’s wadsrc and runs the full build (including packing uzdoom.pk3), so the new banner appears after that single run.
+**To use it:** Put your OASIS banner at `OASIS Omniverse\ODOOM\oasis_banner.png`, then run `BUILD ODOOM.bat`. The script copies the banner into UZDoom’s wadsrc and runs the full build (including packing uzdoom.pk3), so the new banner appears after that single run.
 
 **Banner size:** The UZDoom/GZDoom launcher and menu system use a **320×200** base resolution (classic Doom). If your banner is too large and overflows the launcher:
 
@@ -102,7 +106,7 @@ When `oasis_banner.png` is present in `OASIS Omniverse\UZDoom\`, the build scrip
 
 Use the existing build from the other Doom port: `OASIS Omniverse\Doom\` should already contain `star_api.dll` and `star_api.lib`. The header `star_api.h` is in `OASIS Omniverse\NativeWrapper\`. No need to build the wrapper again.
 
-### Step 2: Integration files in UZDoom
+### Step 2: Integration files in ODOOM source (UZDoom)
 
 The integration files are:
 
@@ -111,12 +115,12 @@ The integration files are:
 
 They should live in your UZDoom **src** folder (e.g. `C:\Source\UZDoom\src\`). If you are syncing from the OASIS repo, copy them from:
 
-- `OASIS-master\OASIS Omniverse\UZDoom\uzdoom_star_integration.cpp` → `UZDoom\src\`
-- `OASIS-master\OASIS Omniverse\UZDoom\uzdoom_star_integration.h` → `UZDoom\src\`
+- `OASIS-master\OASIS Omniverse\ODOOM\uzdoom_star_integration.cpp` → `UZDoom\src\`
+- `OASIS-master\OASIS Omniverse\ODOOM\uzdoom_star_integration.h` → `UZDoom\src\`
 
 The UZDoom source tree already has the hooks in `d_main.cpp`, `p_interaction.cpp`, and `gamedata/a_keys.cpp` guarded by `#ifdef OASIS_STAR_API`.
 
-### Step 3: Configure UZDoom with STAR API
+### Step 3: Configure ODOOM with STAR API
 
 From your UZDoom repo root:
 
@@ -132,13 +136,13 @@ cmake .. -G "Visual Studio 17 2022" -A x64 `
 
 `STAR_API_DIR` = path to NativeWrapper (for `star_api.h`). `STAR_API_LIB_DIR` = path to Doom folder (for pre-built `star_api.lib`). Use forward slashes.
 
-### Step 4: Build UZDoom
+### Step 4: Build ODOOM
 
 ```powershell
 cmake --build . --config Release
 ```
 
-The executable will be in `build\Release\uzdoom.exe` (or the name set by `ZDOOM_EXE_NAME`).
+The executable will be in `build\Release\uzdoom.exe`. The `BUILD ODOOM.bat` script copies it as **ODOOM.exe** to `OASIS Omniverse\ODOOM\build\`.
 
 ### Step 5: Deploy star_api.dll
 
@@ -150,7 +154,7 @@ copy "C:\Source\OASIS-master\OASIS Omniverse\Doom\star_api.dll" "C:\Source\UZDoo
 
 ### Step 6: Environment variables (optional)
 
-To use the STAR API (SSO or API key), set before running UZDoom:
+To use the STAR API (SSO or API key), set before running ODOOM:
 
 **SSO (recommended):**
 
@@ -168,8 +172,8 @@ $env:STAR_AVATAR_ID = "your_avatar_id"
 
 ### Step 7: Run and test
 
-1. Put your WAD (e.g. `doom2.wad`) in the same folder as `uzdoom.exe` or where UZDoom expects it.
-2. Run `uzdoom.exe`.
+1. Put your WAD (e.g. `doom2.wad`) in the same folder as **ODOOM.exe** (e.g. `OASIS Omniverse\ODOOM\build\`) or where the engine expects it.
+2. Run **ODOOM.exe** (or use `BUILD & RUN ODOOM.bat` to build and launch).
 3. In the console you should see either:
    - `STAR API: Authenticated via SSO. Cross-game features enabled.` or
    - `STAR API: No authentication configured...` if env vars are not set.
@@ -178,7 +182,7 @@ $env:STAR_AVATAR_ID = "your_avatar_id"
 
 ## Building without STAR API
 
-Omit the STAR options to build a normal UZDoom with no STAR code:
+Omit the STAR options to build a normal UZDoom (no ODOOM/STAR) with no STAR code:
 
 ```powershell
 cmake .. -G "Visual Studio 17 2022" -A x64
@@ -192,11 +196,11 @@ No `OASIS_STAR_API` or `STAR_API_DIR`; the STAR hooks are compiled out.
   Use pre-built wrapper: set `STAR_API_LIB_DIR` to the Doom folder (`OASIS Omniverse\Doom`) that contains `star_api.lib` and `star_api.dll`. Set `STAR_API_DIR` to the NativeWrapper folder (for `star_api.h`).
 
 - **star_api.dll missing at runtime**  
-  Copy `star_api.dll` from `OASIS Omniverse\Doom\` to the same directory as `uzdoom.exe`.
+  Copy `star_api.dll` from `OASIS Omniverse\Doom\` to the same directory as `ODOOM.exe`.
 
 - **No sound or music / “Sound init failed”**  
-  UZDoom uses **OpenAL Soft** for audio. You need **soft_oal.dll** (64-bit) in the same folder as `uzdoom.exe`.  
-  - Download from: [OpenAL Soft binaries](https://openal-soft.org/openal-binaries/) — use the **Win64** build, then copy **soft_oal.dll** from the `bin` folder into `UZDoom\build\Release\` (or wherever `uzdoom.exe` is).  
+  ODOOM uses **OpenAL Soft** for audio. You need **soft_oal.dll** (64-bit) in the same folder as `ODOOM.exe`.  
+  - Download from: [OpenAL Soft binaries](https://openal-soft.org/openal-binaries/) — use the **Win64** build, then copy **soft_oal.dll** from the `bin` folder into `UZDoom\build\Release\` (or wherever `ODOOM.exe` is).  
   - The game will now print a clearer reason if sound fails (e.g. “soft_oal.dll not found” or “OpenAL device could not be opened”).
 
 - **STAR API: Failed to initialize**  
@@ -205,6 +209,7 @@ No `OASIS_STAR_API` or `STAR_API_DIR`; the STAR hooks are compiled out.
 ## Summary
 
 - STAR integration is **optional** and enabled only when `OASIS_STAR_API=ON` and `STAR_API_DIR` is set.
-- Keycard pickups in UZDoom are reported to the STAR API; door/lock checks can use cross-game inventory (including **OQuake** silver_key/gold_key for red/blue/yellow doors).
+- Keycard pickups in ODOOM are reported to the STAR API; door/lock checks can use cross-game inventory (including **OQuake** silver_key/gold_key for red/blue/yellow doors).
 - UZDoom’s Windows port should give you correct sound, music, and mouse behavior compared to the older Linux Doom port.
-- **ODOOM (UZDoom) is the supported Doom port** for STAR; use `BUILD_ODOOM.bat` or `BUILD_UZDOOM_STAR.bat` for one-click build and run.
+- **ODOOM (UZDoom) is the supported Doom port** for STAR; use **BUILD ODOOM.bat** to build (output: **ODOOM.exe** in `ODOOM\build\`) or **BUILD & RUN ODOOM.bat** to build and launch.
+- **Credits:** ODOOM is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) (GPL-3.0). See **CREDITS_AND_LICENSE.md** in this folder.
