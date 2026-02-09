@@ -2,6 +2,12 @@
 
 This guide is for integrating the OASIS STAR API into your Quake fork so that **OQuake** can share keys with **ODOOM**: keys collected in Doom open doors in Quake and vice versa.
 
+## Credits and license
+
+**OQuake is based on vkQuake.** Full credit goes to the [vkQuake](https://github.com/Novum/vkQuake) project (Novum). vkQuake is licensed under the GNU General Public License v2.0 (GPL-2.0). When you build or distribute OQuake, you must comply with vkQuake’s license and give appropriate credit. See **[CREDITS_AND_LICENSE.md](CREDITS_AND_LICENSE.md)** in this folder for details.
+
+**Loading / splash screen:** OQuake shows an **OASIS / OQuake** text splash in the console at startup (like ODOOM). A graphic splash image (**`oasis_splash.png`**) is provided in this folder for use as a loading screen in vkQuake; see **vkquake_oquake\VKQUAKE_OQUAKE_INTEGRATION.md** section 7 for how to integrate it.
+
 **Quake source (QuakeC):** `C:\Source\quake-rerelease-qc`  
 **OQuake integration files:** This folder (`OASIS Omniverse\OQuake`).
 
@@ -115,3 +121,5 @@ Add `oquake_star_integration.c` and `pr_ext_oquake.c` to the engine project. Lin
 - **MSBuild not in PATH:** Open **Developer Command Prompt for VS 2022** and run BUILD_OQUAKE.bat from there.
 - **No cross-game keys:** Ensure STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID are set and init succeeds.
 - **gfx.wad / id1:** Use `-basedir` to point to your Steam Quake install or copy id1 and gfx.wad next to the exe.
+
+**Credits:** OQuake is based on [vkQuake](https://github.com/Novum/vkQuake) (Novum, GPL-2.0). See **CREDITS_AND_LICENSE.md** in this folder.

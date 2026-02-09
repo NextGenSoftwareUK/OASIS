@@ -2,6 +2,8 @@
 
 OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **ODOOM** can open doors in Quake and vice versa (cross-game keys).
 
+**OQuake is based on vkQuake.** Full credit to [vkQuake](https://github.com/Novum/vkQuake) (Novum). vkQuake is GPL-2.0. See **[CREDITS_AND_LICENSE.md](CREDITS_AND_LICENSE.md)** for credits and license obligations.
+
 ## Quick start
 
 1. **Build and copy integration:** From the OASIS repo root run:

@@ -1,10 +1,8 @@
 @echo off
+REM OQuake - OASIS STAR API build. OQuake is based on vkQuake. Full credit: https://github.com/Novum/vkQuake (GPL-2.0). See CREDITS_AND_LICENSE.md.
 REM Single script: build star_api (if needed), copy OQuake integration to quake-rerelease-qc.
-REM Same style as BUILD_ODOOM.bat / BUILD_UZDOOM_STAR.bat.
-REM
 REM   BUILD_OQUAKE.bat       = copy integration + star_api to Quake tree
 REM   BUILD_OQUAKE.bat run   = same, then launch OQuake engine (if QUAKE_ENGINE_EXE set)
-REM
 REM Edit QUAKE_SRC if your QuakeC source is not at C:\Source\quake-rerelease-qc
 REM Edit QUAKE_ENGINE_EXE to point to your OQuake-built engine exe to use "run".
 
