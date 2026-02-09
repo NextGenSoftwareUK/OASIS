@@ -27,6 +27,7 @@ ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handl
 | [RELEASE_NOTES.md](RELEASE_NOTES.md) | Version history and release notes |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
 | [LICENSE](LICENSE) | License summary and link to GPL-3.0 |
+| [FILES_AND_VERSIONS.md](FILES_AND_VERSIONS.md) | Full file list and why there are multiple version files |
 
 ## Version
 
