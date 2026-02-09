@@ -41,7 +41,7 @@ When building with STAR, the script also applies **ODOOM** branding and build/ve
 - **In-game HUD** – bottom-right shows “ODOOM” and version with UZDoom in brackets (e.g. “ODOOM 1.0 (Build 1) (UZDoom 1.2.3)”).
 - **Console** – at startup (and when you type `star`) you see the OASIS ODOOM banner and “Welcome to ODOOM!”; the `-version` flag shows ODOOM.
 
-The script copies `odoom_branding.h` into UZDoom `src` and runs `apply_odoom_branding.ps1` to patch `version.h`, `common/startscreen/startscreen.cpp`, and `g_statusbar/shared_sbar.cpp` if not already patched. To change the displayed version or build number, edit `OASIS Omniverse\ODOOM\odoom_branding.h` (ODOOM_VERSION and ODOOM_BUILD) before running the build script.
+The script copies `odoom_branding.h` and `odoom_version_generated.h` into UZDoom `src` and runs `apply_odoom_branding.ps1` to patch `version.h`, `common/startscreen/startscreen.cpp`, and `g_statusbar/shared_sbar.cpp` if not already patched. **To change ODOOM's version or build number**, edit **`OASIS Omniverse\ODOOM\odoom_version.txt`** (line 1 = version, line 2 = build). The build script regenerates the header from this file.
 
 ### OASIS banner (launcher and loading screen)
 

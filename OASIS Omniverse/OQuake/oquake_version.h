@@ -1,5 +1,5 @@
 /**
- * OQuake version for OASIS STAR API builds.
+ * OQuake version - generated from oquake_version.txt. Do not edit.
  */
 #ifndef OQUAKE_VERSION_H
 #define OQUAKE_VERSION_H

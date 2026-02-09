@@ -23,7 +23,7 @@ Copy these into `VKQUAKE_SRC/Quake/` (from OASIS Omniverse):
 |------|--------|
 | `oquake_star_integration.c` | `OQuake/oquake_star_integration.c` |
 | `oquake_star_integration.h` | `OQuake/oquake_star_integration.h` |
-| `oquake_version.h` | `OQuake/oquake_version.h` |
+| `oquake_version.h` | `OQuake/oquake_version.h` (generated from **`OQuake/oquake_version.txt`** – OQuake's version source; run build or `generate_oquake_version.ps1` to regenerate) |
 | `star_api.h` | `NativeWrapper/star_api.h` |
 | `pr_ext_oquake.c` | `OQuake/vkquake_oquake/pr_ext_oquake.c` |
 
@@ -118,7 +118,9 @@ The **bottom-right of the console** (and the `version` command) in vkQuake shows
 1. Add `#include "oquake_version.h"` after `#include "quakedef.h"`.
 2. Change `pr_engine` so its default is `OQUAKE_VERSION_STR " (" ENGINE_NAME_AND_VER ")"`, which displays e.g. **OQuake 1.0 (Build 1) (vkQuake 1.10.0)**.
 
-After the script patches host.c, do a **full Rebuild** (Clean Solution, then Build) so `host.c` is recompiled—otherwise the exe may still show "vkQuake" in the bottom-right. After rebuilding, the bottom-right will show e.g. **OQuake 1.0 (Build 1) (vkQuake 1.10.0)**. No manual host.c edits are needed unless the script fails (e.g. vkQuake layout changed).
+When you run **BUILD_OQUAKE.bat**, you’re asked at the start: **Full clean/rebuild (C) or incremental build (I)? [I]**. Choose **C** for a full rebuild (e.g. so the console version shows “OQuake 1.0 (Build 1) (vkQuake …)”); choose **I** or press Enter for a faster incremental build. The apply script also clears the build cache when it patches host.c so the next build picks up the new version string. After a full rebuild, the bottom-right of the console (and the `version` command) will show e.g. **OQuake 1.0 (Build 1) (vkQuake 1.10.0)**.
+
+No manual host.c edits are needed unless the script fails (e.g. vkQuake layout changed).
 
 ### Manual patch (if needed)
 
