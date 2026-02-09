@@ -132,29 +132,39 @@ if defined VULKAN_SDK (
     echo Download: https://vulkan.lunarg.com/sdk/home
 )
 set "VKQUAKE_EXE="
-if exist "%VKQUAKE_SRC%\Windows\VisualStudio\vkquake.sln" (
-    where msbuild >nul 2>nul
-    if errorlevel 1 (
-        echo MSBuild not in PATH. Open "Developer Command Prompt for VS 2022" and run BUILD_OQUAKE.bat from there.
-    )
-    if not errorlevel 1 (
-        msbuild "%VKQUAKE_SRC%\Windows\VisualStudio\vkquake.sln" /p:Configuration=Release /p:Platform=x64 /v:m
-        if not errorlevel 1 (
-            if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe"
-            if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\Windows\VisualStudio\x64\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\x64\Release\vkquake.exe"
-            if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe"
-            if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\build\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\build\Release\vkquake.exe"
-        ) else (
-            echo MSBuild failed. Run this in a NEW prompt to see full errors:
-            echo   Use "Developer Command Prompt for VS" or "x64 Native Tools Command Prompt"
-            echo   cd /d "%VKQUAKE_SRC%\Windows\VisualStudio"
-            echo   msbuild vkquake.sln /p:Configuration=Release /p:Platform=x64
-            echo Ensure VULKAN_SDK is set in that prompt, e.g. set VULKAN_SDK=C:\VulkanSDK\1.3.296.0
-        )
-    ) else (
-        echo MSBuild not in PATH. Open "Developer Command Prompt for VS 2022" and run BUILD_OQUAKE.bat from there.
-    )
+if not exist "%VKQUAKE_SRC%\Windows\VisualStudio\vkquake.sln" goto :meson_check
+where msbuild >nul 2>nul
+if not errorlevel 1 goto :do_msbuild
+REM MSBuild not in PATH - find VsDevCmd and run it at top level (no parentheses) to avoid quoting issues
+echo MSBuild not in PATH - loading Visual Studio environment...
+set "VSDEVCMD="
+if exist "%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
+if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat"
+if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
+if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\VsDevCmd.bat"
+if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat"
+if not defined VSDEVCMD if exist "%ProgramFiles%\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\VsDevCmd.bat" set "VSDEVCMD=%ProgramFiles%\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\VsDevCmd.bat"
+if defined VSDEVCMD call "%VSDEVCMD%" -arch=amd64
+if not defined VSDEVCMD echo VsDevCmd.bat not found. Install Visual Studio or run from Developer Command Prompt.
+:do_msbuild
+where msbuild >nul 2>nul
+if errorlevel 1 goto :no_msbuild
+msbuild "%VKQUAKE_SRC%\Windows\VisualStudio\vkquake.sln" /p:Configuration=Release /p:Platform=x64 /v:m
+if not errorlevel 1 (
+    if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe"
+    if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\Windows\VisualStudio\x64\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\x64\Release\vkquake.exe"
+    if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe"
+    if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\build\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\build\Release\vkquake.exe"
+) else (
+    echo MSBuild failed. Run in Developer Command Prompt for full errors.
+    echo   cd /d "%VKQUAKE_SRC%\Windows\VisualStudio"
+    echo   msbuild vkquake.sln /p:Configuration=Release /p:Platform=x64
 )
+goto :after_vs_build
+:no_msbuild
+echo MSBuild not in PATH. Open "Developer Command Prompt for VS 2022" and run BUILD_OQUAKE.bat from there.
+:after_vs_build
+:meson_check
 if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\meson.build" (
     where meson >nul 2>nul
     if not errorlevel 1 (
@@ -176,7 +186,8 @@ if defined VKQUAKE_EXE (
     if not exist "%OQUAKE_INTEGRATION%\build" mkdir "%OQUAKE_INTEGRATION%\build"
     copy /Y "%VKQUAKE_EXE%" "%OQUAKE_INTEGRATION%\build\OQUAKE.exe"
     copy /Y "%STAR_DLL%" "%OQUAKE_INTEGRATION%\build\star_api.dll"
-    echo Copied OQUAKE.exe and star_api.dll to %OQUAKE_INTEGRATION%\build\
+    for %%A in ("%VKQUAKE_EXE%") do for %%D in ("%%~dpA*.dll") do copy /Y "%%D" "%OQUAKE_INTEGRATION%\build\"
+    echo Copied OQUAKE.exe and all DLLs to %OQUAKE_INTEGRATION%\build\
 ) else (
     echo OQuake/vkQuake build failed.
     echo - If you just installed Vulkan SDK: close this window, open a NEW command prompt, run BUILD_OQUAKE.bat again.

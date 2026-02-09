@@ -25,6 +25,7 @@ void OQuake_STAR_Init(void);
 void OQuake_STAR_Cleanup(void);
 void OQuake_STAR_OnKeyPickup(const char* key_name);
 int  OQuake_STAR_CheckDoorAccess(const char* door_targetname, const char* required_key_name);
+void OQuake_STAR_Console_f(void); /* in-game console "star" command - registered by Init */
 
 #ifdef __cplusplus
 }
