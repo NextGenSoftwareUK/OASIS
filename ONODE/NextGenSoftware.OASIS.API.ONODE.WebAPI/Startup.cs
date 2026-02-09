@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -55,7 +56,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // services.AddDbContext<DataContext>();
             //services.AddCors(); //Needed twice? It is below too...
             services.AddControllers(x => x.Filters.Add(typeof(ServiceExceptionInterceptor)))
-                .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+                .AddJsonOptions(x =>
+            {
+                x.JsonSerializerOptions.IgnoreNullValues = true;
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            });
             services.AddHttpClient();
             services.AddHttpClient("Pinata", c => c.Timeout = TimeSpan.FromSeconds(45));
             services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions>(
@@ -64,6 +69,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ISolanaSplTokenBalanceService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SolanaSplTokenBalanceService>();
             services.AddSingleton<TelegramNftMintFlowService>();
             services.AddSingleton<WorldService>();
+            services.AddSingleton<QuestRegistryService>();
+            services.AddSingleton<QuestProofService>();
             services.AddSingleton<ISubscriptionStore, SubscriptionStoreMongoDb>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
