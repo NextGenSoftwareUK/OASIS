@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
@@ -27,7 +28,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public async Task GetAllQuests_ShouldReturnOASISResult()
         {
             // Act
-            var result = await _controller.GetAllQuests();
+            var result = await _controller.GetAllIQuests();
 
             // Assert
             result.Should().NotBeNull();
@@ -41,7 +42,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
             var id = Guid.NewGuid();
 
             // Act
-            var result = await _controller.GetQuest(id);
+            var result = await _controller.GetIQuest(id);
 
             // Assert
             result.Should().NotBeNull();
@@ -57,7 +58,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
             mockQuest.Setup(x => x.Name).Returns("Test Quest");
 
             // Act
-            var result = await _controller.CreateQuest(mockQuest.Object);
+            var result = await _controller.CreateIQuest(mockQuest.Object);
 
             // Assert
             result.Should().NotBeNull();
@@ -74,7 +75,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
             mockQuest.Setup(x => x.Name).Returns("Updated Quest");
 
             // Act
-            var result = await _controller.UpdateQuest(id, mockQuest.Object);
+            var result = await _controller.UpdateIQuest(id, mockQuest.Object);
 
             // Assert
             result.Should().NotBeNull();
@@ -88,7 +89,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
             var id = Guid.NewGuid();
 
             // Act
-            var result = await _controller.DeleteQuest(id);
+            var result = await _controller.DeleteIQuest(id);
 
             // Assert
             result.Should().NotBeNull();

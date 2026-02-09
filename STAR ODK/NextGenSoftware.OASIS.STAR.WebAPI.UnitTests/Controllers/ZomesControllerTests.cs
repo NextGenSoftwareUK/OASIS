@@ -1,25 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
-using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class ZomesControllerTests
     {
-        private readonly Mock<ILogger<ZomesController>> _mockLogger;
         private readonly ZomesController _controller;
 
         public ZomesControllerTests()
         {
-            _mockLogger = new Mock<ILogger<ZomesController>>();
             _controller = new ZomesController();
         }
 
@@ -52,12 +44,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public async Task CreateZome_WithValidZome_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockZome = new Mock<IZome>();
-            mockZome.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockZome.Setup(x => x.Name).Returns("Test Zome");
+            var zome = new STARZome { Id = Guid.NewGuid(), Name = "Test Zome" };
 
             // Act
-            var result = await _controller.CreateZome(mockZome.Object);
+            var result = await _controller.CreateZome(zome);
 
             // Assert
             result.Should().NotBeNull();
@@ -69,12 +59,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockZome = new Mock<IZome>();
-            mockZome.Setup(x => x.Id).Returns(id);
-            mockZome.Setup(x => x.Name).Returns("Updated Zome");
+            var zome = new STARZome { Id = id, Name = "Updated Zome" };
 
             // Act
-            var result = await _controller.UpdateZome(id, mockZome.Object);
+            var result = await _controller.UpdateZome(id, zome);
 
             // Assert
             result.Should().NotBeNull();

@@ -4,6 +4,7 @@ using Moq;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
@@ -14,12 +15,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class ChaptersControllerTests
     {
-        private readonly Mock<ILogger<ChaptersController>> _mockLogger;
         private readonly ChaptersController _controller;
 
         public ChaptersControllerTests()
         {
-            _mockLogger = new Mock<ILogger<ChaptersController>>();
             _controller = new ChaptersController();
         }
 
@@ -52,12 +51,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public async Task CreateChapter_WithValidChapter_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockChapter = new Mock<IChapter>();
-            mockChapter.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockChapter.Setup(x => x.Name).Returns("Test Chapter");
+            var chapter = new Chapter { Id = Guid.NewGuid(), Name = "Test Chapter" };
 
             // Act
-            var result = await _controller.CreateChapter(mockChapter.Object);
+            var result = await _controller.CreateChapter(chapter);
 
             // Assert
             result.Should().NotBeNull();
@@ -69,12 +66,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockChapter = new Mock<IChapter>();
-            mockChapter.Setup(x => x.Id).Returns(id);
-            mockChapter.Setup(x => x.Name).Returns("Updated Chapter");
+            var chapter = new Chapter { Id = id, Name = "Updated Chapter" };
 
             // Act
-            var result = await _controller.UpdateChapter(id, mockChapter.Object);
+            var result = await _controller.UpdateChapter(id, chapter);
 
             // Assert
             result.Should().NotBeNull();

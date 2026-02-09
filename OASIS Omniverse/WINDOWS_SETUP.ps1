@@ -25,7 +25,7 @@ if (-not (Test-Path $OasisPath)) {
 if ($BuildWrapper) {
     Write-Host "Step 1: Building Native Wrapper..." -ForegroundColor Cyan
     
-    $wrapperPath = Join-Path $OasisPath "Game Integration\NativeWrapper"
+    $wrapperPath = Join-Path $OasisPath "OASIS Omniverse\NativeWrapper"
     $buildPath = Join-Path $wrapperPath "build"
     
     if (-not (Test-Path $wrapperPath)) {

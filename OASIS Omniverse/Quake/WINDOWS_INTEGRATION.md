@@ -1,6 +1,8 @@
 # Windows Integration Guide for Quake Fork
 
-This guide is specifically for integrating the OASIS STAR API into your Quake fork located at `C:\Source\quake-rerelease-qc`.
+**For the OQuake-branded integration and cross-game keys with ODOOM**, see **`OQuake/WINDOWS_INTEGRATION.md`** and use the files in **`OQuake/`** with Quake source at `C:\Source\quake-rerelease-qc`.
+
+This guide is the legacy Quake integration. It is specifically for integrating the OASIS STAR API into your Quake fork located at `C:\Source\quake-rerelease-qc`.
 
 ## Prerequisites
 

@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness;
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness;
 
 internal static class TestData
 {
@@ -127,7 +127,7 @@ internal static class Program
         };
 
         WriteInfo($"Minting NFT: {mintNftRequest.Title}...");
-        OASISResult<IWeb3NFTTransactionRespone> mintNftResult = await solanaOasis.MintNFTAsync(mintNftRequest);
+        OASISResult<IWeb3NFTTransactionResponse> mintNftResult = await solanaOasis.MintNFTAsync(mintNftRequest);
         if (mintNftResult.IsError)
         {
             WriteError($"MintNFTAsync Error: {mintNftResult.Message}");
@@ -163,7 +163,7 @@ internal static class Program
 
 
         // Before using, update with new data!
-        Web3NFTWalletTransactionRequest request = new Web3NFTWalletTransactionRequest()
+        SendWeb3NFTRequest request = new SendWeb3NFTRequest()
         {
             FromWalletAddress = TestData.PublicKey.Key,
             TokenAddress = "13V6P1dJ3femi13d3gTEot6G6VpR9VHPS6SY8GzvDZPL",
@@ -171,7 +171,7 @@ internal static class Program
             ToWalletAddress = "FXD4ebDGGDG3L345MD2DYRQ4rxhuswJFZ1o3EASsQxhS"
         };
 
-        OASISResult<IWeb3NFTTransactionRespone> response = await solanaOasis.SendNFTAsync(request);
+        OASISResult<IWeb3NFTTransactionResponse> response = await solanaOasis.SendNFTAsync(request);
 
         if (response.IsError)
         {

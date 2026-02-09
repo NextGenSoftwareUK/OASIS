@@ -1,0 +1,2 @@
+OQuake (Quake + OASIS STAR API) – cross-game keys with ODOOM.
+See README.md and WINDOWS_INTEGRATION.md for setup and build.
