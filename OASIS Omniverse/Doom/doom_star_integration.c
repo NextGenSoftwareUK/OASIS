@@ -110,27 +110,36 @@ void Doom_STAR_OnKeycardPickup(int keycard_type) {
     }
 }
 
+/* Quake key names for cross-game: keys collected in OQuake can open ODOOM doors */
+#define QUAKE_ITEM_SILVER_KEY "silver_key"
+#define QUAKE_ITEM_GOLD_KEY   "gold_key"
+
 bool Doom_STAR_CheckDoorAccess(int door_line, int required_key) {
     if (!g_star_initialized) {
-        // If STAR API not initialized, fall back to local check only
-        return false;  // Let Doom's normal door logic handle it
+        return false;  /* Let Doom's normal door logic handle it */
     }
-    
-    // First check local Doom inventory
-    // (This would be done by Doom's normal keycard checking)
-    
-    // Then check cross-game inventory
+
+    /* 1) Check Doom keycard in cross-game inventory */
     const char* required_keycard = GetKeycardName(required_key);
-    if (required_keycard) {
-        // Check if player has this keycard from any game
-        if (star_api_has_item(required_keycard)) {
-            printf("STAR API: Door opened using cross-game keycard: %s\n", required_keycard);
-            star_api_use_item(required_keycard, "doom_door");
-            return true;
-        }
+    if (required_keycard && star_api_has_item(required_keycard)) {
+        printf("STAR API: Door opened using cross-game keycard: %s\n", required_keycard);
+        star_api_use_item(required_keycard, "doom_door");
+        return true;
     }
-    
-    return false;  // Let Doom's normal logic handle it
+
+    /* 2) Check OQuake keys: silver_key -> red (1), gold_key -> blue (2) or yellow (3) */
+    if (required_key == 1 && star_api_has_item(QUAKE_ITEM_SILVER_KEY)) {
+        printf("STAR API: Door opened using OQuake silver key (red door).\n");
+        star_api_use_item(QUAKE_ITEM_SILVER_KEY, "doom_door");
+        return true;
+    }
+    if ((required_key == 2 || required_key == 3) && star_api_has_item(QUAKE_ITEM_GOLD_KEY)) {
+        printf("STAR API: Door opened using OQuake gold key.\n");
+        star_api_use_item(QUAKE_ITEM_GOLD_KEY, "doom_door");
+        return true;
+    }
+
+    return false;
 }
 
 void Doom_STAR_OnItemPickup(const char* item_name, const char* item_description) {

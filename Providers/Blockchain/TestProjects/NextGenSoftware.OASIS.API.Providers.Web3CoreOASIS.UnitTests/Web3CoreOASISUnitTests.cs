@@ -1,18 +1,18 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using PolygonOASISProvider = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests
 {
     [TestClass]
     public class Web3CoreOASISProviderTests
     {
-        private PolygonOASIS _provider;
+        private PolygonOASISProvider _provider;
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new PolygonOASIS("http://localhost:8545", "", "0x0000000000000000000000000000000000000000");
+            _provider = new PolygonOASISProvider("http://localhost:8545", "", "0x0000000000000000000000000000000000000000");
         }
 
         [TestMethod]

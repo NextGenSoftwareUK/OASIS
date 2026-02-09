@@ -86,9 +86,9 @@ diff --git a/linuxdoom-1.10/Makefile b/linuxdoom-1.10/Makefile
 @@ -1,5 +1,8 @@
  CC=gcc
  CFLAGS=-Wall -O2
-+STAR_API_DIR=../../Game\ Integration/NativeWrapper
-+LIBS=-L$(STAR_API_DIR)/build -lstar_api
-+CFLAGS+=-I$(STAR_API_DIR) -I../../Game\ Integration/Doom
++STAR_API_DIR=../../OASIS Omniverse/NativeWrapper
++LIBS=-L$(STAR_API_DIR)/build/Release -lstar_api
++CFLAGS+=-I$(STAR_API_DIR) -I../../OASIS Omniverse/Doom
  
  OBJS= d_main.o d_net.o g_game.o p_doors.o p_enemy.o p_floor.o \
        p_inter.o p_lights.o p_map.o p_maputl.o p_mobj.o p_plats.o \
