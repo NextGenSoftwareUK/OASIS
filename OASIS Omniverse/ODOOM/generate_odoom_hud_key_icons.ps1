@@ -89,3 +89,4 @@ Draw-KeyIcon -Path (Join-Path $OutputDir "OQKSI2.png") -Metal "silver" -Width 24
 # Larger HUD panel copies
 Draw-KeyIcon -Path (Join-Path $OutputDir "OQKGI1.png") -Metal "gold" -Width 24 -Height 12
 Draw-KeyIcon -Path (Join-Path $OutputDir "OQKSI1.png") -Metal "silver" -Width 24 -Height 12
+
