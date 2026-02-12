@@ -11,6 +11,7 @@ $startscreenCpp = "$src\src\common\startscreen\startscreen.cpp"
 $sharedSbarCpp = "$src\src\g_statusbar\shared_sbar.cpp"
 $zscriptTxt = "$src\wadsrc\static\zscript.txt"
 $doomItemsMapinfo = "$src\wadsrc\static\mapinfo\doomitems.txt"
+$commonMapinfo = "$src\wadsrc\static\mapinfo\common.txt"
 
 $odoomRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 if (Test-Path (Join-Path $odoomRoot "generate_odoom_version.ps1")) {
@@ -127,25 +128,43 @@ if (Test-Path $aboutPath) {
     }
 }
 
-# 5. Register ODOOM OQUAKE key actors in ZScript compile list
+# 5. Register ODOOM OQUAKE actors in ZScript compile list
 if (Test-Path $zscriptTxt) {
     $content = Get-Content $zscriptTxt -Raw
     if (-not ($content -match 'zscript/actors/doom/odoom_oquake_keys\.zs')) {
         $content = $content -replace '(#include "zscript/actors/doom/doomkeys\.zs")', "`$1`r`n#include `"zscript/actors/doom/odoom_oquake_keys.zs`""
-        Set-Content -Path $zscriptTxt -Value $content -NoNewline
     }
+    if (-not ($content -match 'zscript/actors/doom/odoom_oquake_items\.zs')) {
+        $content = $content -replace '(#include "zscript/actors/doom/odoom_oquake_keys\.zs")', "`$1`r`n#include `"zscript/actors/doom/odoom_oquake_items.zs`""
+    }
+    if (-not ($content -match 'zscript/ui/statusbar/odoom_inventory_popup\.zs')) {
+        $content = $content -replace '(#include "zscript/ui/statusbar/doom_sbar\.zs")', "`$1`r`n#include `"zscript/ui/statusbar/odoom_inventory_popup.zs`""
+    }
+    Set-Content -Path $zscriptTxt -Value $content -NoNewline
 }
 
-# 6. Register DoomEdNums for OQUAKE key thing ids in Doom mapinfo
+# 6. Register ODOOM inventory event handler in MAPINFO gameinfo
+if (Test-Path $commonMapinfo) {
+    $content = Get-Content $commonMapinfo -Raw
+    if (-not ($content -match 'AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"')) {
+        $content = $content -replace '(Gameinfo\s*\{[\s\S]*?)(\r?\n\})', "`$1`r`n`tAddEventHandlers = `"OASISInventoryOverlayHandler`"`$2"
+    }
+    Set-Content -Path $commonMapinfo -Value $content -NoNewline
+}
+
+# 7. Register DoomEdNums for OQUAKE thing ids in Doom mapinfo
 if (Test-Path $doomItemsMapinfo) {
     $content = Get-Content $doomItemsMapinfo -Raw
     if (-not ($content -match '5005\s*=\s*OQGoldKey')) {
         $content = $content -replace '(\r?\n\}\s*)$', "`r`n  5005 = OQGoldKey`r`n  5013 = OQSilverKey`$1"
-        Set-Content -Path $doomItemsMapinfo -Value $content -NoNewline
     }
+    if (-not ($content -match '5201\s*=\s*OQShotgun')) {
+        $content = $content -replace '(\r?\n\}\s*)$', "`r`n  5201 = OQShotgun`r`n  5202 = OQSuperShotgun`r`n  5203 = OQNailgun`r`n  5204 = OQSuperNailgun`r`n  5205 = OQGrenadeLauncher`r`n  5206 = OQRocketLauncher`r`n  5207 = OQThunderbolt`r`n  5208 = OQNails`r`n  5209 = OQShells`r`n  5210 = OQRockets`r`n  5211 = OQCells`r`n  5212 = OQHealth`r`n  5213 = OQHealthSmall`r`n  5214 = OQArmorGreen`r`n  5215 = OQArmorYellow`r`n  5216 = OQArmorMega`r`n  3010 = OQMonsterDog`r`n  3011 = OQMonsterZombie`r`n  5302 = OQMonsterDemon`r`n  5303 = OQMonsterShambler`r`n  5304 = OQMonsterGrunt`r`n  5305 = OQMonsterFish`r`n  5309 = OQMonsterOgre`r`n  5366 = OQMonsterEnforcer`r`n  5368 = OQMonsterSpawn`r`n  5369 = OQMonsterKnight`$1"
+    }
+    Set-Content -Path $doomItemsMapinfo -Value $content -NoNewline
 }
 
-# 7. Editor button: add centre button between Play and Exit in launcher button bar
+# 8. Editor button: add centre button between Play and Exit in launcher button bar
 $widgetsDest = "$src\src\widgets"
 $lbbH = "$widgetsDest\launcherbuttonbar.h"
 $lbbCpp = "$widgetsDest\launcherbuttonbar.cpp"

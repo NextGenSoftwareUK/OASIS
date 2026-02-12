@@ -4,10 +4,9 @@
 
 `#name OASIS STAR - Place selected asset at cursor`;
 
-`#description Place any ODOOM or OQUAKE asset at mouse (keycards, monsters, weapons, health, ammo). Choose game and asset from the dialog. OQUAKE assets are placed as their Doom-equivalent thing for use in ODOOM maps.`;
+`#description Place any ODOOM or OQUAKE asset at mouse (keycards, monsters, weapons, health, ammo). Choose game first, then choose an asset filtered by game.`;
 
-// Build flat list: "ODOOM|category|id|name" -> doomThingType
-// OQUAKE keys use cross-mapping; other OQUAKE use doom equivalent below
+// Build flat list: "GAME|category|id|name" -> thingType
 var ASSETS = [
     ["ODOOM", "key", "blue_keycard", "Blue Keycard", 5],
     ["ODOOM", "key", "red_keycard", "Red Keycard", 13],
@@ -49,47 +48,70 @@ var ASSETS = [
     ["ODOOM", "monster", "arachnotron", "Arachnotron", 67],
     ["ODOOM", "monster", "spider_mastermind", "Spider Mastermind", 7],
     ["ODOOM", "monster", "cyberdemon", "Cyberdemon", 16],
-    ["OQUAKE", "key", "silver_key", "Silver Key (→Red)", 13],
-    ["OQUAKE", "key", "gold_key", "Gold Key (→Blue)", 5],
-    ["OQUAKE", "weapon", "shotgun", "Shotgun (→Doom)", 2001],
-    ["OQUAKE", "weapon", "supershotgun", "Super Shotgun (→Doom)", 2001],
-    ["OQUAKE", "weapon", "nailgun", "Nailgun (→Doom)", 2002],
-    ["OQUAKE", "weapon", "supernailgun", "Super Nailgun (→Doom)", 2002],
-    ["OQUAKE", "weapon", "grenadelauncher", "Grenade Launcher (→Doom)", 2003],
-    ["OQUAKE", "weapon", "rocketlauncher", "Rocket Launcher (→Doom)", 2003],
-    ["OQUAKE", "weapon", "lightning", "Thunderbolt (→Doom)", 2004],
-    ["OQUAKE", "ammo", "shells", "Shells (→Doom)", 2008],
-    ["OQUAKE", "ammo", "spikes", "Nails (→Doom)", 2007],
-    ["OQUAKE", "ammo", "rockets", "Rockets (→Doom)", 2010],
-    ["OQUAKE", "ammo", "cells", "Cells (→Doom)", 2047],
-    ["OQUAKE", "health", "health", "Health (→Doom)", 2011],
-    ["OQUAKE", "health", "health_small", "Small Health (→Doom)", 2012],
-    ["OQUAKE", "health", "armor1", "Green Armor (→Doom)", 2015],
-    ["OQUAKE", "health", "armor2", "Yellow Armor (→Doom)", 2016],
-    ["OQUAKE", "health", "armorInv", "Mega Armor (→Doom)", 2013],
-    ["OQUAKE", "monster", "grunt", "Grunt (→Doom)", 3004],
-    ["OQUAKE", "monster", "ogre", "Ogre (→Doom)", 9],
-    ["OQUAKE", "monster", "demon", "Demon (→Doom)", 3002],
-    ["OQUAKE", "monster", "dog", "Rottweiler (→Doom)", 3002],
-    ["OQUAKE", "monster", "shambler", "Shambler (→Doom)", 3003],
-    ["OQUAKE", "monster", "zombie", "Zombie (→Doom)", 3004],
-    ["OQUAKE", "monster", "hell_knight", "Hell Knight (→Doom)", 69],
-    ["OQUAKE", "monster", "enforcer", "Enforcer (→Doom)", 66],
-    ["OQUAKE", "monster", "fish", "Fish (→Doom)", 3005],
-    ["OQUAKE", "monster", "spawn", "Spawn (→Doom)", 68]
+    ["OQUAKE", "key", "silver_key", "Silver Key", 5013],
+    ["OQUAKE", "key", "gold_key", "Gold Key", 5005],
+    ["OQUAKE", "weapon", "shotgun", "Shotgun", 5201],
+    ["OQUAKE", "weapon", "supershotgun", "Super Shotgun", 5202],
+    ["OQUAKE", "weapon", "nailgun", "Nailgun", 5203],
+    ["OQUAKE", "weapon", "supernailgun", "Super Nailgun", 5204],
+    ["OQUAKE", "weapon", "grenadelauncher", "Grenade Launcher", 5205],
+    ["OQUAKE", "weapon", "rocketlauncher", "Rocket Launcher", 5206],
+    ["OQUAKE", "weapon", "lightning", "Thunderbolt", 5207],
+    ["OQUAKE", "ammo", "shells", "Shells", 5209],
+    ["OQUAKE", "ammo", "spikes", "Nails", 5208],
+    ["OQUAKE", "ammo", "rockets", "Rockets", 5210],
+    ["OQUAKE", "ammo", "cells", "Cells", 5211],
+    ["OQUAKE", "health", "health", "Health", 5212],
+    ["OQUAKE", "health", "health_small", "Small Health", 5213],
+    ["OQUAKE", "health", "armor1", "Green Armor", 5214],
+    ["OQUAKE", "health", "armor2", "Yellow Armor", 5215],
+    ["OQUAKE", "health", "armorInv", "Mega Armor", 5216],
+    ["OQUAKE", "monster", "grunt", "Grunt", 5304],
+    ["OQUAKE", "monster", "ogre", "Ogre", 5309],
+    ["OQUAKE", "monster", "demon", "Demon", 5302],
+    ["OQUAKE", "monster", "dog", "Rottweiler", 3010],
+    ["OQUAKE", "monster", "shambler", "Shambler", 5303],
+    ["OQUAKE", "monster", "zombie", "Zombie", 3011],
+    ["OQUAKE", "monster", "hell_knight", "Hell Knight", 5369],
+    ["OQUAKE", "monster", "enforcer", "Enforcer", 5366],
+    ["OQUAKE", "monster", "fish", "Fish", 5305],
+    ["OQUAKE", "monster", "spawn", "Spawn", 5368]
 ];
 
-var choiceList = ASSETS.map(function(a) { return a[0] + " – " + a[3]; });
-var q = new UDB.QueryOptions();
-q.addOption("asset", "Asset to place", 0, choiceList[0], choiceList);
-if (!q.query()) return;
-var idx = choiceList.indexOf(q.options.asset);
+var gameList = ["ODOOM", "OQUAKE"];
+var qGame = new UDB.QueryOptions();
+qGame.addOption("game", "Game", 0, gameList[0], gameList);
+if (!qGame.query()) return;
+
+var selectedGame = qGame.options.game;
+if (typeof selectedGame === "string" && /^[0-9]+$/.test(selectedGame))
+    selectedGame = gameList[parseInt(selectedGame, 10)] || gameList[0];
+if (typeof selectedGame === "number")
+    selectedGame = gameList[selectedGame] || gameList[0];
+if (gameList.indexOf(selectedGame) < 0)
+    selectedGame = gameList[0];
+
+var filtered = ASSETS.filter(function(a) { return a[0] === selectedGame; });
+if (filtered.length === 0) { UDB.log("OASIS STAR: No assets found for " + selectedGame + "."); return; }
+
+var choiceList = filtered.map(function(a) { return a[3] + " (" + a[4] + ")"; });
+var qAsset = new UDB.QueryOptions();
+qAsset.addOption("asset", "Asset to place", 0, choiceList[0], choiceList);
+if (!qAsset.query()) return;
+var idx = -1;
+if (typeof qAsset.options.asset === "string" && /^[0-9]+$/.test(qAsset.options.asset)) {
+    idx = parseInt(qAsset.options.asset, 10);
+} else if (typeof qAsset.options.asset === "number") {
+    idx = qAsset.options.asset;
+} else {
+    idx = choiceList.indexOf(qAsset.options.asset);
+}
 if (idx < 0) { UDB.log("OASIS STAR: Invalid selection."); return; }
-var row = ASSETS[idx];
-var doomType = row[4];
+var row = filtered[idx];
+var thingType = row[4];
 if (typeof UDB.setPendingStarPlacement !== "function") {
     UDB.log("OASIS STAR: setPendingStarPlacement not available. Update UDBScript plugin.");
     return;
 }
-UDB.setPendingStarPlacement(doomType, row[3]);
-UDB.log("OASIS STAR: Selected " + row[3] + " (type " + doomType + "). Click on the map to place.");
+UDB.setPendingStarPlacement(thingType, row[3]);
+UDB.log("OASIS STAR: Selected " + row[3] + " (" + selectedGame + ", type " + thingType + "). Click on the map to place.");
