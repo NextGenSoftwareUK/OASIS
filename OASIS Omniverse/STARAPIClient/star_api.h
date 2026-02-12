@@ -15,7 +15,7 @@ extern "C" {
 #include <stddef.h>
 
 typedef struct {
-    /* WEB5 STAR API base URI */
+    /* WEB5 STAR API base URI (maps to C# Web5StarApiBaseUrl) */
     const char* base_url;
     const char* api_key;
     const char* avatar_id;

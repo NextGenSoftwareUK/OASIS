@@ -4,9 +4,11 @@ This project ports the C++ WEB5 STAR API wrapper to C# while preserving the same
 
 ## API URI Configuration
 
-- `BaseUrl` = WEB5 STAR API base URI (inventory, quests, STAR-side NFT endpoints).
-- `OasisApiBaseUrl` = WEB4 OASIS API base URI (avatar authentication + NFT mint).
-- `OasisApiBaseUrl` can also be provided via environment variable `OASIS_WEB4_API_BASE_URL`.
+- WEB5 STAR API URI:
+  - `Web5StarApiBaseUrl`
+- WEB4 OASIS API URI:
+  - `Web4OasisApiBaseUrl`
+- WEB4 URI can also be provided via environment variable `OASIS_WEB4_API_BASE_URL`.
 - Native C/C++ callers can set WEB4 URI at runtime with `star_api_set_oasis_base_url(...)`.
 
 ## Binary Compatibility

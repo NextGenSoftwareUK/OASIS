@@ -22,9 +22,9 @@ public enum StarApiResultCode
 public sealed class StarApiConfig
 {
     // WEB5 STAR API base URI (for STAR gameplay/inventory/quest endpoints).
-    public string BaseUrl { get; init; } = string.Empty;
+    public string Web5StarApiBaseUrl { get; init; } = string.Empty;
     // WEB4 OASIS API base URI (for avatar auth and NFT mint endpoints). Optional.
-    public string? OasisApiBaseUrl { get; init; }
+    public string? Web4OasisApiBaseUrl { get; init; }
     public string? ApiKey { get; init; }
     public string? AvatarId { get; init; }
     public int TimeoutSeconds { get; init; } = 30;
@@ -115,17 +115,19 @@ public sealed class StarApiClient : IDisposable
 
     public OASISResult<bool> Init(StarApiConfig config)
     {
-        if (config is null || string.IsNullOrWhiteSpace(config.BaseUrl))
+        var web5BaseUrl = config?.Web5StarApiBaseUrl;
+        if (config is null || string.IsNullOrWhiteSpace(web5BaseUrl))
             return Fail<bool>("Invalid configuration.", StarApiResultCode.InvalidParam);
 
-        if (!Uri.TryCreate(config.BaseUrl.TrimEnd('/'), UriKind.Absolute, out var baseUri))
-            return Fail<bool>("BaseUrl must be a valid absolute URL.", StarApiResultCode.InvalidParam);
+        if (!Uri.TryCreate(web5BaseUrl.TrimEnd('/'), UriKind.Absolute, out var baseUri))
+            return Fail<bool>("Web5StarApiBaseUrl must be a valid absolute URL.", StarApiResultCode.InvalidParam);
 
         var timeout = config.TimeoutSeconds > 0 ? config.TimeoutSeconds : 30;
         var normalizedBaseUrl = baseUri.ToString().TrimEnd('/');
-        var oasisBaseUrl = string.IsNullOrWhiteSpace(config.OasisApiBaseUrl)
-            ? (Environment.GetEnvironmentVariable("OASIS_WEB4_API_BASE_URL") ?? normalizedBaseUrl)
-            : config.OasisApiBaseUrl!.TrimEnd('/');
+        var oasisBaseUrl = FirstNonEmpty(
+            config.Web4OasisApiBaseUrl,
+            Environment.GetEnvironmentVariable("OASIS_WEB4_API_BASE_URL"),
+            normalizedBaseUrl)!.TrimEnd('/');
         var apiIndex = oasisBaseUrl.IndexOf("/api", StringComparison.OrdinalIgnoreCase);
         if (apiIndex >= 0)
             oasisBaseUrl = oasisBaseUrl[..apiIndex];
@@ -228,12 +230,12 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "API key authentication configured.");
     }
 
-    public OASISResult<bool> SetOasisApiBaseUrl(string oasisApiBaseUrl)
+    public OASISResult<bool> SetWeb4OasisApiBaseUrl(string web4OasisApiBaseUrl)
     {
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        if (string.IsNullOrWhiteSpace(oasisApiBaseUrl) || !Uri.TryCreate(oasisApiBaseUrl.TrimEnd('/'), UriKind.Absolute, out var uri))
+        if (string.IsNullOrWhiteSpace(web4OasisApiBaseUrl) || !Uri.TryCreate(web4OasisApiBaseUrl.TrimEnd('/'), UriKind.Absolute, out var uri))
             return FailAndCallback<bool>("A valid OASIS WEB4 API base URL is required.", StarApiResultCode.InvalidParam);
 
         var normalized = uri.ToString().TrimEnd('/');
@@ -246,6 +248,26 @@ public sealed class StarApiClient : IDisposable
 
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "WEB4 OASIS API base URL updated.");
+    }
+
+    public OASISResult<bool> SetWeb5StarApiBaseUrl(string web5StarApiBaseUrl)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        if (string.IsNullOrWhiteSpace(web5StarApiBaseUrl) || !Uri.TryCreate(web5StarApiBaseUrl.TrimEnd('/'), UriKind.Absolute, out var uri))
+            return FailAndCallback<bool>("A valid WEB5 STAR API base URL is required.", StarApiResultCode.InvalidParam);
+
+        var normalized = uri.ToString().TrimEnd('/');
+        lock (_stateLock)
+        {
+            _baseApiUrl = normalized;
+            if (_httpClient is not null)
+                _httpClient.BaseAddress = new Uri(normalized + "/");
+        }
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(true, StarApiResultCode.Success, "WEB5 STAR API base URL updated.");
     }
 
     public async Task<OASISResult<StarAvatarProfile>> GetCurrentAvatarAsync(CancellationToken cancellationToken = default)
@@ -1156,6 +1178,17 @@ public sealed class StarApiClient : IDisposable
         return false;
     }
 
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        for (var i = 0; i < values.Length; i++)
+        {
+            if (!string.IsNullOrWhiteSpace(values[i]))
+                return values[i];
+        }
+
+        return null;
+    }
+
     private void StartWorkers()
     {
         StartAddItemWorker();
@@ -1746,7 +1779,7 @@ public static unsafe class StarApiExports
 
         var managedConfig = new StarApiConfig
         {
-            BaseUrl = PtrToString(config->base_url) ?? string.Empty,
+            Web5StarApiBaseUrl = PtrToString(config->base_url) ?? string.Empty,
             ApiKey = PtrToString(config->api_key),
             AvatarId = PtrToString(config->avatar_id),
             TimeoutSeconds = config->timeout_seconds
@@ -2003,7 +2036,7 @@ public static unsafe class StarApiExports
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var result = client.SetOasisApiBaseUrl(PtrToString(oasisBaseUrl) ?? string.Empty);
+        var result = client.SetWeb4OasisApiBaseUrl(PtrToString(oasisBaseUrl) ?? string.Empty);
         return (int)FinalizeResult(result);
     }
 
