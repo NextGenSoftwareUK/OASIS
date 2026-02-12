@@ -65,99 +65,107 @@ try {
         $h = $bmp.Height
         Write-Host ("[sprite] Working bitmap: {0}x{1}" -f $w, $h)
 
-        # Estimate border background color
-        $sumR = 0; $sumG = 0; $sumB = 0; $count = 0
-        for ($x = 0; $x -lt $w; $x++) {
-            $ct = $bmp.GetPixel($x, 0)
-            $cb = $bmp.GetPixel($x, $h - 1)
-            $sumR += $ct.R + $cb.R
-            $sumG += $ct.G + $cb.G
-            $sumB += $ct.B + $cb.B
-            $count += 2
-        }
-        for ($y = 1; $y -lt ($h - 1); $y++) {
-            $cl = $bmp.GetPixel(0, $y)
-            $cr = $bmp.GetPixel($w - 1, $y)
-            $sumR += $cl.R + $cr.R
-            $sumG += $cl.G + $cr.G
-            $sumB += $cl.B + $cr.B
-            $count += 2
-        }
-
-        if ($count -gt 0) {
-            $bgR = [int]($sumR / $count)
-            $bgG = [int]($sumG / $count)
-            $bgB = [int]($sumB / $count)
-        } else {
-            $bgR = 0; $bgG = 0; $bgB = 0
-        }
-        Write-Host ("[sprite] Border color estimate: R={0} G={1} B={2}" -f $bgR, $bgG, $bgB)
-
-        # Flood-fill transparent from edges based on border color distance
-        $tol = 42
-        Write-Host ("[sprite] Flood-fill begin (tol={0})..." -f $tol)
-        $visited = New-Object 'bool[,]' $w, $h
-        $q = New-Object 'System.Collections.Generic.Queue[System.Drawing.Point]'
-        $enqueue = {
-            param([int]$xx, [int]$yy)
-            if ($xx -lt 0 -or $yy -lt 0 -or $xx -ge $w -or $yy -ge $h) { return }
-            if ($visited[$xx, $yy]) { return }
-            $visited[$xx, $yy] = $true
-            $q.Enqueue([System.Drawing.Point]::new($xx, $yy))
-        }
-
-        for ($x = 0; $x -lt $w; $x++) { & $enqueue $x 0; & $enqueue $x ($h - 1) }
-        for ($y = 1; $y -lt ($h - 1); $y++) { & $enqueue 0 $y; & $enqueue ($w - 1) $y }
-
-        $ffSteps = 0
-        while ($q.Count -gt 0) {
-            $p = $q.Dequeue()
-            $c = $bmp.GetPixel($p.X, $p.Y)
-            if ($c.A -eq 0) { continue }
-            $dist = [Math]::Abs($c.R - $bgR) + [Math]::Abs($c.G - $bgG) + [Math]::Abs($c.B - $bgB)
-            if ($dist -gt $tol) { continue }
-            $bmp.SetPixel($p.X, $p.Y, [System.Drawing.Color]::FromArgb(0, $c.R, $c.G, $c.B))
-            & $enqueue ($p.X - 1) $p.Y
-            & $enqueue ($p.X + 1) $p.Y
-            & $enqueue $p.X ($p.Y - 1)
-            & $enqueue $p.X ($p.Y + 1)
-            $ffSteps++
-            if (($ffSteps % 20000) -eq 0) {
-                Write-Host ("[sprite] Flood-fill progress: processed={0} queue={1}" -f $ffSteps, $q.Count)
-            }
-        }
-        Write-Host ("[sprite] Flood-fill done: processed={0}" -f $ffSteps)
-
-        # Normalize alpha to ensure true transparency reaches 0
-        $minA = 255
-        $maxA = 0
-        Write-Host "[sprite] Alpha scan begin..."
-        for ($y = 0; $y -lt $h; $y++) {
+        $isCompactKeySprite = ($PadBottom -le 0 -and $MaxWidth -gt 0 -and $MaxWidth -le 18 -and $MaxHeight -gt 0 -and $MaxHeight -le 24)
+        if ($isCompactKeySprite) {
+            # Estimate border background color
+            $sumR = 0; $sumG = 0; $sumB = 0; $count = 0
             for ($x = 0; $x -lt $w; $x++) {
-                $a = $bmp.GetPixel($x, $y).A
-                if ($a -lt $minA) { $minA = $a }
-                if ($a -gt $maxA) { $maxA = $a }
+                $ct = $bmp.GetPixel($x, 0)
+                $cb = $bmp.GetPixel($x, $h - 1)
+                $sumR += $ct.R + $cb.R
+                $sumG += $ct.G + $cb.G
+                $sumB += $ct.B + $cb.B
+                $count += 2
             }
-        }
-        Write-Host ("[sprite] Alpha range: min={0} max={1}" -f $minA, $maxA)
+            for ($y = 1; $y -lt ($h - 1); $y++) {
+                $cl = $bmp.GetPixel(0, $y)
+                $cr = $bmp.GetPixel($w - 1, $y)
+                $sumR += $cl.R + $cr.R
+                $sumG += $cl.G + $cr.G
+                $sumB += $cl.B + $cr.B
+                $count += 2
+            }
 
-        if ($minA -gt 0 -and $maxA -gt $minA) {
-            $den = $maxA - $minA
-            Write-Host "[sprite] Alpha normalization begin..."
+            if ($count -gt 0) {
+                $bgR = [int]($sumR / $count)
+                $bgG = [int]($sumG / $count)
+                $bgB = [int]($sumB / $count)
+            } else {
+                $bgR = 0; $bgG = 0; $bgB = 0
+            }
+            Write-Host ("[sprite] Key cleanup enabled. Border color estimate: R={0} G={1} B={2}" -f $bgR, $bgG, $bgB)
+
+            # Flood-fill transparent from edges based on border color distance
+            $tol = 42
+            Write-Host ("[sprite] Flood-fill begin (tol={0})..." -f $tol)
+            $visited = New-Object 'bool[,]' $w, $h
+            $q = New-Object 'System.Collections.Generic.Queue[System.Drawing.Point]'
+            $enqueue = {
+                param([int]$xx, [int]$yy)
+                if ($xx -lt 0 -or $yy -lt 0 -or $xx -ge $w -or $yy -ge $h) { return }
+                if ($visited[$xx, $yy]) { return }
+                $visited[$xx, $yy] = $true
+                $q.Enqueue([System.Drawing.Point]::new($xx, $yy))
+            }
+
+            for ($x = 0; $x -lt $w; $x++) { & $enqueue $x 0; & $enqueue $x ($h - 1) }
+            for ($y = 1; $y -lt ($h - 1); $y++) { & $enqueue 0 $y; & $enqueue ($w - 1) $y }
+
+            $ffSteps = 0
+            while ($q.Count -gt 0) {
+                $p = $q.Dequeue()
+                $c = $bmp.GetPixel($p.X, $p.Y)
+                if ($c.A -eq 0) { continue }
+                $dist = [Math]::Abs($c.R - $bgR) + [Math]::Abs($c.G - $bgG) + [Math]::Abs($c.B - $bgB)
+                if ($dist -gt $tol) { continue }
+                $bmp.SetPixel($p.X, $p.Y, [System.Drawing.Color]::FromArgb(0, $c.R, $c.G, $c.B))
+                & $enqueue ($p.X - 1) $p.Y
+                & $enqueue ($p.X + 1) $p.Y
+                & $enqueue $p.X ($p.Y - 1)
+                & $enqueue $p.X ($p.Y + 1)
+                $ffSteps++
+            }
+            Write-Host ("[sprite] Flood-fill done: processed={0}" -f $ffSteps)
+
+            # Normalize alpha to ensure true transparency reaches 0
+            $minA = 255
+            $maxA = 0
+            Write-Host "[sprite] Alpha scan begin..."
+            for ($y = 0; $y -lt $h; $y++) {
+                for ($x = 0; $x -lt $w; $x++) {
+                    $a = $bmp.GetPixel($x, $y).A
+                    if ($a -lt $minA) { $minA = $a }
+                    if ($a -gt $maxA) { $maxA = $a }
+                }
+            }
+            Write-Host ("[sprite] Alpha range: min={0} max={1}" -f $minA, $maxA)
+
+            if ($minA -gt 0 -and $maxA -gt $minA) {
+                $den = $maxA - $minA
+                Write-Host "[sprite] Alpha normalization begin..."
+                for ($y = 0; $y -lt $h; $y++) {
+                    for ($x = 0; $x -lt $w; $x++) {
+                        $c = $bmp.GetPixel($x, $y)
+                        $na = [int](($c.A - $minA) * 255 / $den)
+                        if ($na -lt 8) { $na = 0 }
+                        $bmp.SetPixel($x, $y, [System.Drawing.Color]::FromArgb($na, $c.R, $c.G, $c.B))
+                    }
+                }
+                Write-Host "[sprite] Alpha normalization done."
+            } else {
+                Write-Host "[sprite] Alpha normalization skipped."
+            }
+        } else {
+            Write-Host "[sprite] Non-key sprite path: skipping key-only background/alpha cleanup."
+            Write-Host "[sprite] Non-key sprite path: forcing opaque alpha for visibility."
             for ($y = 0; $y -lt $h; $y++) {
                 for ($x = 0; $x -lt $w; $x++) {
                     $c = $bmp.GetPixel($x, $y)
-                    $na = [int](($c.A - $minA) * 255 / $den)
-                    if ($na -lt 8) { $na = 0 }
-                    $bmp.SetPixel($x, $y, [System.Drawing.Color]::FromArgb($na, $c.R, $c.G, $c.B))
-                }
-                if (($y % 64) -eq 0 -and $h -gt 128) {
-                    Write-Host ("[sprite] Alpha normalization row {0}/{1}" -f $y, $h)
+                    if ($c.A -ne 255) {
+                        $bmp.SetPixel($x, $y, [System.Drawing.Color]::FromArgb(255, $c.R, $c.G, $c.B))
+                    }
                 }
             }
-            Write-Host "[sprite] Alpha normalization done."
-        } else {
-            Write-Host "[sprite] Alpha normalization skipped."
         }
 
         if ($PadBottom -gt 0) {

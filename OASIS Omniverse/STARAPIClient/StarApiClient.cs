@@ -50,6 +50,7 @@ public sealed class StarAvatarProfile
 
 public sealed class StarQuestObjective
 {
+    public string Id { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public string GameSource { get; init; } = string.Empty;
     public string ItemRequired { get; init; } = string.Empty;
@@ -99,6 +100,9 @@ public sealed class StarApiClient : IDisposable
     private readonly SemaphoreSlim _useItemSignal = new(0);
     private readonly SemaphoreSlim _questObjectiveSignal = new(0);
     private readonly object _jobLock = new();
+    private int _activeAddItemJobs;
+    private int _activeUseItemJobs;
+    private int _activeQuestObjectiveJobs;
     private CancellationTokenSource? _jobCts;
     private Task? _jobWorker;
     private CancellationTokenSource? _useItemJobCts;
@@ -190,6 +194,41 @@ public sealed class StarApiClient : IDisposable
             if (auth is null)
                 return FailAndCallback<bool>("Authentication response did not include avatar data.", StarApiResultCode.ApiError);
 
+            // Keep local WEB5 STAR API session state in sync after WEB4 OASIS authentication.
+            // Some local controllers resolve avatar context from their own auth flow.
+            try
+            {
+                var web5AuthResponse = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/authenticate", payload, cancellationToken).ConfigureAwait(false);
+                if (!web5AuthResponse.IsError)
+                {
+                    var web5Parsed = ParseEnvelopeOrPayload(web5AuthResponse.Result, out var web5ResultElement, out _, out _);
+                    if (web5Parsed)
+                    {
+                        var web5Auth = ParseAvatarAuthResponse(web5ResultElement);
+                        if (web5Auth is not null)
+                        {
+                            if (string.IsNullOrWhiteSpace(auth.JwtToken) && !string.IsNullOrWhiteSpace(web5Auth.JwtToken))
+                                auth.JwtToken = web5Auth.JwtToken;
+                            if (string.IsNullOrWhiteSpace(auth.RefreshToken) && !string.IsNullOrWhiteSpace(web5Auth.RefreshToken))
+                                auth.RefreshToken = web5Auth.RefreshToken;
+                            if (auth.Id == Guid.Empty && web5Auth.Id != Guid.Empty)
+                                auth.Id = web5Auth.Id;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Best effort only: WEB4 auth remains the source of truth.
+            }
+
+            if (auth.Id == Guid.Empty)
+            {
+                var jwtAvatarId = ExtractAvatarIdFromJwt(auth.JwtToken);
+                if (jwtAvatarId != Guid.Empty)
+                    auth.Id = jwtAvatarId;
+            }
+
             lock (_stateLock)
             {
                 _jwtToken = auth.JwtToken;
@@ -262,8 +301,6 @@ public sealed class StarApiClient : IDisposable
         lock (_stateLock)
         {
             _baseApiUrl = normalized;
-            if (_httpClient is not null)
-                _httpClient.BaseAddress = new Uri(normalized + "/");
         }
 
         InvokeCallback(StarApiResultCode.Success);
@@ -275,9 +312,20 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized())
             return FailAndCallback<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var response = await SendRawAsync(HttpMethod.Get, $"{_oasisBaseUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
+        {
+            lock (_stateLock)
+            {
+                if (Guid.TryParse(_avatarId, out var cachedId) && cachedId != Guid.Empty)
+                {
+                    InvokeCallback(StarApiResultCode.Success);
+                    return Success(new StarAvatarProfile { Id = cachedId }, StarApiResultCode.Success, "Avatar resolved from authenticated session.");
+                }
+            }
+
             return FailAndCallback<StarAvatarProfile>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
@@ -440,7 +488,7 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        while ((!_pendingAddItemJobs.IsEmpty || GetInFlightAddItemCount() > 0) && !cancellationToken.IsCancellationRequested)
+        while ((!_pendingAddItemJobs.IsEmpty || Volatile.Read(ref _activeAddItemJobs) > 0) && !cancellationToken.IsCancellationRequested)
             await Task.Delay(20, cancellationToken).ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested)
@@ -464,7 +512,7 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteStartObject();
                 writer.WriteString("Name", itemName);
                 writer.WriteString("Description", $"{description} | Source: {gameSource}");
-                writer.WriteString("HolonType", "InventoryItem");
+                writer.WriteNumber("HolonType", 11);
                 writer.WritePropertyName("MetaData");
                 writer.WriteStartObject();
                 writer.WriteString("GameSource", gameSource);
@@ -475,7 +523,7 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteEndObject();
             });
 
-            var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/inventoryitems", payload, cancellationToken).ConfigureAwait(false);
+            var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory", payload, cancellationToken).ConfigureAwait(false);
             if (response.IsError)
                 return FailAndCallback<StarItem>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
@@ -529,7 +577,7 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        while ((!_pendingUseItemJobs.IsEmpty || IsWorkerRunning(_useItemJobWorker)) && !cancellationToken.IsCancellationRequested)
+        while ((!_pendingUseItemJobs.IsEmpty || Volatile.Read(ref _activeUseItemJobs) > 0) && !cancellationToken.IsCancellationRequested)
             await Task.Delay(20, cancellationToken).ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested)
@@ -628,7 +676,7 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        while ((!_pendingQuestObjectiveJobs.IsEmpty || IsWorkerRunning(_questObjectiveJobWorker)) && !cancellationToken.IsCancellationRequested)
+        while ((!_pendingQuestObjectiveJobs.IsEmpty || Volatile.Read(ref _activeQuestObjectiveJobs) > 0) && !cancellationToken.IsCancellationRequested)
             await Task.Delay(20, cancellationToken).ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested)
@@ -695,22 +743,14 @@ public sealed class StarApiClient : IDisposable
             writer.WriteStartObject();
             writer.WriteString("Name", questName);
             writer.WriteString("Description", description);
-            writer.WriteString("Type", "CrossGame");
-            writer.WritePropertyName("Objectives");
-            writer.WriteStartArray();
-            foreach (var objective in objectives)
-            {
-                writer.WriteStartObject();
-                writer.WriteString("Description", objective.Description);
-                writer.WriteString("GameSource", objective.GameSource);
-                writer.WriteString("ItemRequired", objective.ItemRequired);
-                writer.WriteBoolean("IsCompleted", objective.IsCompleted);
-                writer.WriteEndObject();
-            }
-            writer.WriteEndArray();
+            writer.WriteNumber("HolonSubType", 7);
+            writer.WriteString("SourceFolderPath", string.Empty);
+            writer.WritePropertyName("CreateOptions");
+            writer.WriteNullValue();
             writer.WritePropertyName("MetaData");
             writer.WriteStartObject();
             writer.WriteBoolean("CrossGameQuest", true);
+            writer.WriteString("QuestType", "CrossGame");
             writer.WritePropertyName("Games");
             writer.WriteStartArray();
             foreach (var game in games)
@@ -720,7 +760,7 @@ public sealed class StarApiClient : IDisposable
             writer.WriteEndObject();
         });
 
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/missions", payload, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/create", payload, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
@@ -922,7 +962,7 @@ public sealed class StarApiClient : IDisposable
                 return Success(_avatarId!, StarApiResultCode.Success, "Avatar ID already available.");
         }
 
-        var response = await SendRawAsync(HttpMethod.Get, $"{_oasisBaseUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             return new OASISResult<string>
@@ -1083,11 +1123,27 @@ public sealed class StarApiClient : IDisposable
             return null;
 
         Guid.TryParse(GetStringProperty(element, "Id"), out var id);
+        var jwt = GetStringProperty(element, "JwtToken");
+        var refresh = GetStringProperty(element, "RefreshToken");
+
+        if (id != Guid.Empty || !string.IsNullOrWhiteSpace(jwt) || !string.IsNullOrWhiteSpace(refresh))
+        {
+            return new AvatarAuthResponse
+            {
+                Id = id,
+                JwtToken = jwt,
+                RefreshToken = refresh
+            };
+        }
+
+        if (TryGetProperty(element, "Result", out var nested) && nested.ValueKind == JsonValueKind.Object)
+            return ParseAvatarAuthResponse(nested);
+
         return new AvatarAuthResponse
         {
             Id = id,
-            JwtToken = GetStringProperty(element, "JwtToken"),
-            RefreshToken = GetStringProperty(element, "RefreshToken")
+            JwtToken = jwt,
+            RefreshToken = refresh
         };
     }
 
@@ -1114,6 +1170,38 @@ public sealed class StarApiClient : IDisposable
             return element.GetString();
 
         return null;
+    }
+
+    private static Guid ExtractAvatarIdFromJwt(string? jwtToken)
+    {
+        if (string.IsNullOrWhiteSpace(jwtToken))
+            return Guid.Empty;
+
+        var parts = jwtToken.Split('.');
+        if (parts.Length < 2)
+            return Guid.Empty;
+
+        try
+        {
+            var payload = parts[1].Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+            }
+
+            var bytes = Convert.FromBase64String(payload);
+            using var doc = JsonDocument.Parse(bytes);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                return Guid.Empty;
+
+            var id = GetStringProperty(doc.RootElement, "id") ?? GetStringProperty(doc.RootElement, "Id");
+            return Guid.TryParse(id, out var guid) ? guid : Guid.Empty;
+        }
+        catch
+        {
+            return Guid.Empty;
+        }
     }
 
     private string ExtractMeta(Dictionary<string, JsonElement>? metadata, string key, string fallback)
@@ -1383,8 +1471,16 @@ public sealed class StarApiClient : IDisposable
                     continue;
                 }
 
-                var result = await AddItemCoreAsync(job.ItemName, job.Description, job.GameSource, job.ItemType, job.CancellationToken).ConfigureAwait(false);
-                job.Completion.TrySetResult(result);
+                Interlocked.Increment(ref _activeAddItemJobs);
+                try
+                {
+                    var result = await AddItemCoreAsync(job.ItemName, job.Description, job.GameSource, job.ItemType, job.CancellationToken).ConfigureAwait(false);
+                    job.Completion.TrySetResult(result);
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _activeAddItemJobs);
+                }
             }
         }
     }
@@ -1434,8 +1530,16 @@ public sealed class StarApiClient : IDisposable
                     continue;
                 }
 
-                var result = await UseItemCoreAsync(job.ItemName, job.Context, job.CancellationToken).ConfigureAwait(false);
-                job.Completion.TrySetResult(result);
+                Interlocked.Increment(ref _activeUseItemJobs);
+                try
+                {
+                    var result = await UseItemCoreAsync(job.ItemName, job.Context, job.CancellationToken).ConfigureAwait(false);
+                    job.Completion.TrySetResult(result);
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _activeUseItemJobs);
+                }
             }
         }
     }
@@ -1485,21 +1589,18 @@ public sealed class StarApiClient : IDisposable
                     continue;
                 }
 
-                var result = await CompleteQuestObjectiveCoreAsync(job.QuestId, job.ObjectiveId, job.GameSource, job.CancellationToken).ConfigureAwait(false);
-                job.Completion.TrySetResult(result);
+                Interlocked.Increment(ref _activeQuestObjectiveJobs);
+                try
+                {
+                    var result = await CompleteQuestObjectiveCoreAsync(job.QuestId, job.ObjectiveId, job.GameSource, job.CancellationToken).ConfigureAwait(false);
+                    job.Completion.TrySetResult(result);
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _activeQuestObjectiveJobs);
+                }
             }
         }
-    }
-
-    private static bool IsWorkerRunning(Task? worker)
-    {
-        return worker is { IsCompleted: false };
-    }
-
-    private int GetInFlightAddItemCount()
-    {
-        lock (_jobLock)
-            return _jobWorker is { IsCompleted: false } ? 1 : 0;
     }
 
     private static StarAvatarProfile? ParseAvatarProfile(JsonElement element)
@@ -1539,6 +1640,7 @@ public sealed class StarApiClient : IDisposable
                 {
                     objectives.Add(new StarQuestObjective
                     {
+                        Id = GetStringProperty(objective, "Id") ?? string.Empty,
                         Description = GetStringProperty(objective, "Description") ?? string.Empty,
                         GameSource = GetStringProperty(objective, "GameSource") ?? string.Empty,
                         ItemRequired = GetStringProperty(objective, "ItemRequired") ?? string.Empty,

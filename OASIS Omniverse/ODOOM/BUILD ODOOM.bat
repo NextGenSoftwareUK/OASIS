@@ -1,8 +1,32 @@
 @echo off
+setlocal EnableExtensions
 REM ODOOM - UZDoom + OASIS STAR API. Credit: UZDoom (GPL-3.0). See CREDITS_AND_LICENSE.md.
-REM Usage: BUILD ODOOM.bat [ run ]
+REM Usage: BUILD ODOOM.bat [ run ] [ nosprites ]
 REM   (none) = prompt clean/incremental, then copy, branding, build
 REM   run    = incremental build then launch (no prompt)
+REM   nosprites = skip sprite/icon regeneration for faster builds
+
+if /i "%~1"=="__logrun" (
+    shift
+    goto :main
+)
+
+REM Keep interactive mode fully visible/responsive.
+REM Auto-log wrapping is enabled for non-interactive "run" mode.
+if /i not "%~1"=="run" goto :main
+
+set "ODOOM_LOG_DIR=%~dp0build_logs"
+if not exist "%ODOOM_LOG_DIR%" mkdir "%ODOOM_LOG_DIR%"
+for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss"') do set "ODOOM_LOG_TS=%%I"
+set "ODOOM_BUILD_LOG=%ODOOM_LOG_DIR%\odoom_build_%ODOOM_LOG_TS%.log"
+echo [ODOOM][INFO] Writing build log to: "%ODOOM_BUILD_LOG%"
+call "%~f0" __logrun %* > "%ODOOM_BUILD_LOG%" 2>&1
+set "ODOOM_BUILD_EXIT=%ERRORLEVEL%"
+type "%ODOOM_BUILD_LOG%"
+echo [ODOOM][INFO] Build log saved: "%ODOOM_BUILD_LOG%"
+exit /b %ODOOM_BUILD_EXIT%
+
+:main
 
 set "UZDOOM_SRC=C:\Source\UZDoom"
 set "HERE=%~dp0"
@@ -22,12 +46,30 @@ if exist "%ODOOM_INTEGRATION%version_display.txt" for /f "usebackq delims=" %%a 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$v=$env:VERSION_DISPLAY; if(-not $v){$v='1.0 (Build 1)'}; $w=60; function c($s){$p=[math]::Max(0,[int](($w-$s.Length)/2)); '  '+(' '*$p)+$s}; Write-Host ''; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('O A S I S   O D O O M  v'+$v)) -ForegroundColor Cyan; Write-Host (c('By NextGen World Ltd')) -ForegroundColor DarkGray; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('Enabling full interoperable games across the OASIS Omniverse!')) -ForegroundColor DarkMagenta; Write-Host ''"
 
 set "DO_FULL_CLEAN=0"
+set "DO_SPRITE_REGEN=1"
+set "SKIP_SPRITE_PROMPT=0"
+set "OQ_MONSTER_PAD=0"
 if /i not "%~1"=="run" (
     echo.
     set /p "BUILD_CHOICE=  Full clean/rebuild (C) or incremental build (I)? [I]: "
 )
 if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
 if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
+if /i "%~1"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
+if /i "%~2"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
+if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" (
+    echo.
+    set /p "SPRITE_CHOICE=  Regenerate sprites/icons this build (Y/N)? [Y]: "
+    if not defined SPRITE_CHOICE set "SPRITE_CHOICE=Y"
+    if /i "%SPRITE_CHOICE%"=="N" set "DO_SPRITE_REGEN=0"
+    if /i "%SPRITE_CHOICE%"=="NO" set "DO_SPRITE_REGEN=0"
+)
+if "%DO_SPRITE_REGEN%"=="0" (
+    if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" set "DO_SPRITE_REGEN=1"
+    if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW1A0.png" set "DO_SPRITE_REGEN=1"
+    if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM1A0.png" set "DO_SPRITE_REGEN=1"
+    if "%DO_SPRITE_REGEN%"=="1" echo [ODOOM][NOTE] Required OQ runtime sprites missing in UZDoom; enabling sprite/icon regeneration automatically.
+)
 
 REM --- Prerequisites ---
 if not exist "%UZDOOM_SRC%\src\d_main.cpp" (
@@ -76,22 +118,22 @@ copy /Y "%ODOOM_INTEGRATION%odoom_oquake_items.zs" "%UZDOOM_SRC%\wadsrc\static\z
 copy /Y "%ODOOM_INTEGRATION%odoom_inventory_popup.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\ui\statusbar\odoom_inventory_popup.zs" >nul
 if not exist "%UZDOOM_SRC%\wadsrc\static\sprites" mkdir "%UZDOOM_SRC%\wadsrc\static\sprites"
 if not exist "%UZDOOM_SRC%\wadsrc\static\graphics" mkdir "%UZDOOM_SRC%\wadsrc\static\graphics"
-if exist "%OASIS_SPRITES_SRC%\5005.png" (
-    echo [ODOOM][STEP] Regenerating OQ gold key sprites...
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5005.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" -MaxWidth 18 -MaxHeight 24
-    echo [ODOOM][DONE] OQ gold key sprite generation complete.
-    copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGB0.png" >nul
- ) else (
-    echo [ODOOM][NOTE] Sprite step skipped: gold key source 5005.png not found in %OASIS_SPRITES_SRC%.
-)
-if exist "%OASIS_SPRITES_SRC%\5013.png" (
-    echo [ODOOM][STEP] Regenerating OQ silver key sprites... (start %DATE% %TIME%)
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5013.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" -MaxWidth 18 -MaxHeight 24
-    echo [ODOOM][DONE] OQ silver key sprite generation complete. (end %DATE% %TIME%)
-    copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSB0.png" >nul
- ) else (
-    echo [ODOOM][NOTE] Sprite step skipped: silver key source 5013.png not found in %OASIS_SPRITES_SRC%.
-)
+if "%DO_SPRITE_REGEN%"=="1" goto :regen_sprites
+echo [ODOOM][NOTE] Sprite/icon regeneration disabled (nosprites mode).
+goto :after_sprites
+
+:regen_sprites
+if exist "%OASIS_SPRITES_SRC%\5005.png" echo [ODOOM][STEP] Regenerating OQ gold key sprites...
+if exist "%OASIS_SPRITES_SRC%\5005.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5005.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" -MaxWidth 18 -MaxHeight 24
+if exist "%OASIS_SPRITES_SRC%\5005.png" echo [ODOOM][DONE] OQ gold key sprite generation complete.
+if exist "%OASIS_SPRITES_SRC%\5005.png" copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGB0.png" >nul
+if not exist "%OASIS_SPRITES_SRC%\5005.png" echo [ODOOM][NOTE] Sprite step skipped: gold key source 5005.png not found in %OASIS_SPRITES_SRC%.
+
+if exist "%OASIS_SPRITES_SRC%\5013.png" echo [ODOOM][STEP] Regenerating OQ silver key sprites... start: %DATE% %TIME%
+if exist "%OASIS_SPRITES_SRC%\5013.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5013.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" -MaxWidth 18 -MaxHeight 24
+if exist "%OASIS_SPRITES_SRC%\5013.png" echo [ODOOM][DONE] OQ silver key sprite generation complete. end: %DATE% %TIME%
+if exist "%OASIS_SPRITES_SRC%\5013.png" copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSB0.png" >nul
+if not exist "%OASIS_SPRITES_SRC%\5013.png" echo [ODOOM][NOTE] Sprite step skipped: silver key source 5013.png not found in %OASIS_SPRITES_SRC%.
 
 REM Non-key OQUAKE sprites (runtime actors/items/monsters)
 if exist "%OASIS_SPRITES_SRC%\5201.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5201.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW1A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom 18
@@ -113,19 +155,45 @@ if exist "%OASIS_SPRITES_SRC%\5214.png" powershell -NoProfile -ExecutionPolicy B
 if exist "%OASIS_SPRITES_SRC%\5215.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5215.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH4A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom 18
 if exist "%OASIS_SPRITES_SRC%\5216.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5216.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH5A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom 18
 
-if exist "%OASIS_SPRITES_SRC%\3010.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\3010.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM1A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
-if exist "%OASIS_SPRITES_SRC%\3011.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\3011.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM2A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
-if exist "%OASIS_SPRITES_SRC%\5302.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5302.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM3A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
-if exist "%OASIS_SPRITES_SRC%\5303.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5303.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM4A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
-if exist "%OASIS_SPRITES_SRC%\5304.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5304.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM5A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
-if exist "%OASIS_SPRITES_SRC%\5305.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5305.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM6A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
-if exist "%OASIS_SPRITES_SRC%\5309.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5309.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM7A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
-if exist "%OASIS_SPRITES_SRC%\5366.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5366.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM8A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
-if exist "%OASIS_SPRITES_SRC%\5368.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5368.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM9A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
-if exist "%OASIS_SPRITES_SRC%\5369.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5369.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQMAA0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom 36
+if exist "%OASIS_SPRITES_SRC%\3010.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\3010.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM1A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
+if exist "%OASIS_SPRITES_SRC%\3011.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\3011.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM2A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
+if exist "%OASIS_SPRITES_SRC%\5302.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5302.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM3A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
+if exist "%OASIS_SPRITES_SRC%\5303.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5303.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM4A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
+if exist "%OASIS_SPRITES_SRC%\5304.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5304.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM5A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
+if exist "%OASIS_SPRITES_SRC%\5305.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5305.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM6A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
+if exist "%OASIS_SPRITES_SRC%\5309.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5309.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM7A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
+if exist "%OASIS_SPRITES_SRC%\5366.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5366.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM8A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
+if exist "%OASIS_SPRITES_SRC%\5368.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5368.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQM9A0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
+if exist "%OASIS_SPRITES_SRC%\5369.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5369.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQMAA0.png" -MaxWidth 64 -MaxHeight 64 -PadBottom %OQ_MONSTER_PAD%
 
 echo [ODOOM][STEP] Generating OQ HUD key icons...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%generate_odoom_hud_key_icons.ps1" -OutputDir "%UZDOOM_SRC%\wadsrc\static\graphics"
+
+:after_sprites
+echo [ODOOM][STEP] Verifying required OQ runtime sprites...
+set "REQ_OQ_MISSING=0"
+set "OQW_COUNT=0"
+set "OQH_COUNT=0"
+set "OQM_COUNT=0"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" echo [ODOOM][ERROR] Missing required sprite: OQKGA0.png & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" echo [ODOOM][ERROR] Missing required sprite: OQKSA0.png & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW1A0.png" echo [ODOOM][ERROR] Missing required sprite: OQW1A0.png & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQH1A0.png" echo [ODOOM][ERROR] Missing required sprite: OQH1A0.png & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM1A0.png" echo [ODOOM][ERROR] Missing required sprite: OQM1A0.png & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQMAA0.png" echo [ODOOM][ERROR] Missing required sprite: OQMAA0.png & set "REQ_OQ_MISSING=1"
+for %%I in ("%UZDOOM_SRC%\wadsrc\static\sprites\OQW*A0.png") do set /a OQW_COUNT+=1
+for %%I in ("%UZDOOM_SRC%\wadsrc\static\sprites\OQH*A0.png") do set /a OQH_COUNT+=1
+for %%I in ("%UZDOOM_SRC%\wadsrc\static\sprites\OQM*A0.png") do set /a OQM_COUNT+=1
+if not defined OQW_COUNT set "OQW_COUNT=0"
+if not defined OQH_COUNT set "OQH_COUNT=0"
+if not defined OQM_COUNT set "OQM_COUNT=0"
+echo [ODOOM][INFO] Sprite counts: OQW=%OQW_COUNT% OQH=%OQH_COUNT% OQM=%OQM_COUNT%
+if "%REQ_OQ_MISSING%"=="1" (
+    echo [ODOOM][ERROR] Required OQ sprites are missing. Re-run with sprite regeneration enabled.
+    pause
+    exit /b 1
+)
+echo [ODOOM][DONE] OQ runtime sprite verification passed.
 if exist "%ODOOM_INTEGRATION%odoom_version_generated.h" copy /Y "%ODOOM_INTEGRATION%odoom_version_generated.h" "%UZDOOM_SRC%\src\odoom_version_generated.h" >nul
 powershell -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%apply_odoom_branding.ps1" -UZDOOM_SRC "%UZDOOM_SRC%"
 if exist "%ODOOM_INTEGRATION%oasis_banner.png" (
