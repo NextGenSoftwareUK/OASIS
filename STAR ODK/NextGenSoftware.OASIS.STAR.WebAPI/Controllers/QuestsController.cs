@@ -965,7 +965,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.Quest;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<Quest, STARNETDNA> CreateOptions { get; set; } = null;
+        public ISTARNETCreateOptions<Quest, STARNETDNA>? CreateOptions { get; set; } = null;
     }
 
     public class EditQuestRequest

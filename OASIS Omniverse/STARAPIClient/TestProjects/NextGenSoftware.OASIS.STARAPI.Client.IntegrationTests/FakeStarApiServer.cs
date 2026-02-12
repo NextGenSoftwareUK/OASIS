@@ -33,6 +33,24 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
         return _routeHits.TryGetValue(key, out var count) && count > 0;
     }
 
+    public int HitCount(string method, string path)
+    {
+        var key = $"{method.ToUpperInvariant()} {NormalizePath(path)}";
+        return _routeHits.TryGetValue(key, out var count) ? count : 0;
+    }
+
+    public bool WasHitWithPathPrefix(string method, string pathPrefix)
+    {
+        var prefix = $"{method.ToUpperInvariant()} {NormalizePath(pathPrefix)}";
+        foreach (var key in _routeHits.Keys)
+        {
+            if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
     public ValueTask DisposeAsync()
     {
         _cts.Cancel();
@@ -138,7 +156,7 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "POST" && path == "/api/inventoryitems")
+            if (method == "POST" && (path == "/api/inventoryitems" || path == "/api/avatar/inventory"))
             {
                 var body = await ReadBodyAsync(request).ConfigureAwait(false);
                 using var doc = JsonDocument.Parse(body);
@@ -202,6 +220,12 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
             }
 
             if (method == "POST" && path == "/api/missions")
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path == "/api/quests/create")
             {
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
                 return;
