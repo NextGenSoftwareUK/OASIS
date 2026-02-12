@@ -615,7 +615,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.InventoryItem;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<InventoryItem, STARNETDNA> CreateOptions { get; set; } = null;
+        public ISTARNETCreateOptions<InventoryItem, STARNETDNA>? CreateOptions { get; set; } = null;
     }
 
     public class EditInventoryItemRequest

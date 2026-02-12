@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -21,14 +22,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class AvatarController : STARControllerBase
     {
         private readonly HttpClient _httpClient;
+        private readonly string _web4OasisApiBaseUrl;
 
         /// <summary>
         /// Creates a new instance of <see cref="AvatarController"/>.
         /// </summary>
         /// <param name="httpClient">HTTP client used to call WEB4 OASIS API endpoints.</param>
-        public AvatarController(HttpClient httpClient)
+        public AvatarController(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
+            _web4OasisApiBaseUrl =
+                configuration["Web4OasisApiBaseUrl"] ??
+                configuration["WEB4_OASIS_API_BASE_URL"] ??
+                "http://localhost:5003";
         }
 
         /// <summary>
@@ -53,36 +59,61 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 };
 
                 var json = JsonConvert.SerializeObject(authenticateRequest);
-                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                var candidates = new[] { _web4OasisApiBaseUrl, "http://localhost:5003", "https://localhost:5002" }
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(x => x.TrimEnd('/'))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
 
-                // TODO: Make this configurable - get from appsettings.json
-                var response = await _httpClient.PostAsync("https://localhost:5002/api/avatar/authenticate", content);
+                HttpResponseMessage? response = null;
+                Exception? lastException = null;
+                foreach (var baseUrl in candidates)
+                {
+                    try
+                    {
+                        using var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                        response = await _httpClient.PostAsync($"{baseUrl}/api/avatar/authenticate", content);
+                        if (response.IsSuccessStatusCode)
+                            break;
+                    }
+                    catch (Exception ex)
+                    {
+                        lastException = ex;
+                    }
+                }
+
+                if (response is null && lastException is not null)
+                    throw lastException;
+                if (response is null)
+                    throw new InvalidOperationException("Unable to reach WEB4 OASIS API authenticate endpoint.");
                 
+                var responseContent = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var authResult = JsonConvert.DeserializeObject<OASISResult<AuthenticateResponse>>(responseContent);
-                    
-                    if (!authResult.IsError && authResult.Result != null)
+                    var jwtToken = ExtractStringFromJson(responseContent, "jwtToken");
+                    if (!string.IsNullOrWhiteSpace(jwtToken))
+                        Response.Headers["Authorization"] = $"Bearer {jwtToken}";
+
+                    return new ContentResult
                     {
-                        // Set the JWT token in the response headers for the client to use
-                        Response.Headers["Authorization"] = $"Bearer {authResult.Result.JwtToken}";
-                        
-                        return Ok(authResult);
-                    }
-                    else
-                    {
-                        return BadRequest(authResult);
-                    }
+                        StatusCode = StatusCodes.Status200OK,
+                        ContentType = "application/json",
+                        Content = responseContent
+                    };
                 }
-                else
+
+                return new ContentResult
                 {
-                    return BadRequest(new OASISResult<string>
-                    {
-                        IsError = true,
-                        Message = $"Authentication failed with status: {response.StatusCode}"
-                    });
-                }
+                    StatusCode = (int)response.StatusCode,
+                    ContentType = "application/json",
+                    Content = string.IsNullOrWhiteSpace(responseContent)
+                        ? JsonConvert.SerializeObject(new OASISResult<string>
+                        {
+                            IsError = true,
+                            Message = $"Authentication failed with status: {response.StatusCode}"
+                        })
+                        : responseContent
+                };
             }
             catch (Exception ex)
             {
@@ -92,6 +123,52 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Message = $"Error during authentication: {ex.Message}"
                 });
             }
+        }
+
+        private static string? ExtractStringFromJson(string json, string propertyName)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                return ExtractStringRecursive(doc.RootElement, propertyName);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string? ExtractStringRecursive(System.Text.Json.JsonElement element, string propertyName)
+        {
+            if (element.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase) &&
+                        property.Value.ValueKind == System.Text.Json.JsonValueKind.String)
+                    {
+                        return property.Value.GetString();
+                    }
+
+                    var nested = ExtractStringRecursive(property.Value, propertyName);
+                    if (!string.IsNullOrWhiteSpace(nested))
+                        return nested;
+                }
+            }
+            else if (element.ValueKind == System.Text.Json.JsonValueKind.Array)
+            {
+                foreach (var item in element.EnumerateArray())
+                {
+                    var nested = ExtractStringRecursive(item, propertyName);
+                    if (!string.IsNullOrWhiteSpace(nested))
+                        return nested;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

@@ -46,9 +46,11 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
 
         var auth = await client.AuthenticateAsync("integration-user", "integration-password");
         Assert.False(auth.IsError);
+        Assert.True(string.IsNullOrWhiteSpace(auth.ErrorCode) || auth.ErrorCode == "0");
 
         var currentAvatar = await client.GetCurrentAvatarAsync();
         Assert.False(currentAvatar.IsError);
+        Assert.Equal("11111111-1111-1111-1111-111111111111", currentAvatar.Result!.Id.ToString());
         Assert.Equal("integration_user", currentAvatar.Result!.Username);
 
         var added = await client.AddItemAsync("Red Keycard", "Collected in room 101", "Doom", "KeyItem");
@@ -72,6 +74,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var inventory = await client.GetInventoryAsync();
         Assert.False(inventory.IsError);
         Assert.True(inventory.Result!.Count >= 4);
+        Assert.Contains(inventory.Result, x => string.Equals(x.Name, "Red Keycard", StringComparison.OrdinalIgnoreCase));
 
         var useBlue = await client.UseItemAsync("Blue Keycard", "door_a");
         Assert.False(useBlue.IsError);
@@ -99,6 +102,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var activeQuests = await client.GetActiveQuestsAsync();
         Assert.False(activeQuests.IsError);
         Assert.NotEmpty(activeQuests.Result!);
+        Assert.Equal("quest-001", activeQuests.Result![0].Id);
+        Assert.NotEmpty(activeQuests.Result[0].Objectives);
 
         var bossNft = await client.CreateBossNftAsync("CyberDemon", "Boss drop", "Doom", "{\"hp\":1000}");
         Assert.False(bossNft.IsError);
@@ -110,6 +115,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var nftCollection = await client.GetNftCollectionAsync();
         Assert.False(nftCollection.IsError);
         Assert.NotEmpty(nftCollection.Result!);
+        Assert.Equal("nft-001", nftCollection.Result![0].Id);
 
         var lastError = client.GetLastError();
         Assert.False(lastError.IsError);
@@ -119,19 +125,22 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
 
         Assert.True(callbackCodes.Count > 0);
         Assert.True(_web4Server.WasHit("POST", "/api/avatar/authenticate"));
-        Assert.True(_web4Server.WasHit("GET", "/api/avatar/current"));
         Assert.True(_web4Server.WasHit("POST", "/api/nft/mint-nft"));
+        Assert.True(_web5Server.WasHit("GET", "/api/avatar/current"));
         Assert.True(_web5Server.WasHit("GET", "/api/avatar/inventory"));
-        Assert.True(_web5Server.WasHit("POST", "/api/inventoryitems"));
-        Assert.True(_web5Server.WasHit("DELETE", "/api/avatar/inventory/" + added.Result!.Id));
+        Assert.True(_web5Server.WasHit("POST", "/api/avatar/inventory"));
+        Assert.True(_web5Server.WasHitWithPathPrefix("DELETE", "/api/avatar/inventory/"));
         Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/start"));
         Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/objectives/obj-1/complete"));
         Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/objectives/obj-2/complete"));
         Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/complete"));
-        Assert.True(_web5Server.WasHit("POST", "/api/missions"));
+        Assert.True(_web5Server.WasHit("POST", "/api/quests/create"));
         Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress"));
         Assert.True(_web5Server.WasHit("POST", "/api/nfts/nft-001/activate"));
         Assert.True(_web5Server.WasHit("GET", "/api/nfts/load-all-for-avatar"));
+        Assert.True(_web5Server.HitCount("POST", "/api/avatar/inventory") >= 4);
+        Assert.True(_web5Server.HitCount("GET", "/api/avatar/inventory") >= 3);
+        Assert.True(_web5Server.HitCount("POST", "/api/quests/quest-main/objectives/obj-2/complete") >= 1);
     }
 }
 

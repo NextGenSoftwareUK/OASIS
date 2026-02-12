@@ -143,7 +143,7 @@ if (Test-Path $zscriptTxt) {
     Set-Content -Path $zscriptTxt -Value $content -NoNewline
 }
 
-# 6. Register ODOOM inventory event handler in MAPINFO gameinfo
+# 6. Register ODOOM inventory event handler in MAPINFO gameinfo (safe mode: no UI input interception)
 if (Test-Path $commonMapinfo) {
     $content = Get-Content $commonMapinfo -Raw
     if (-not ($content -match 'AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"')) {

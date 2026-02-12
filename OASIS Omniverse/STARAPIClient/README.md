@@ -71,6 +71,70 @@ If `cl.exe` is not on PATH, use the helper below. It discovers Visual Studio C++
 powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/compile_smoke_test_with_msvc.ps1" -Run
 ```
 
+## Unit + Integration + Harness (one click)
+
+Run the full WEB5 STAR API client validation suite:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/run_star_api_test_suite.ps1"
+```
+
+Optional parameters:
+
+- `-SkipHarness` to run only Unit + Integration tests.
+- `-KillStaleTestHosts` defaults to `true` (recommended). Set `-KillStaleTestHosts:$false` to disable.
+- `-HarnessMode fake|real-local|real-live`:
+  - `fake` = use in-process fake WEB5/WEB4 APIs (default)
+  - `real-local` = spin up local `STAR.WebAPI` + `ONODE.WebAPI` processes for harness, then stop them after run
+  - `real-live` = target live endpoints (defaults to `https://oasisweb4.one/star/api` for WEB5 and `https://oasisweb4.one/api` for WEB4, both normalized to base URI)
+- `-Web5StarApiBaseUrl` / `-Web4OasisApiBaseUrl` to override target endpoints for `real-local` or `real-live`.
+- `-RealLiveWeb5StarApiBaseUrl` / `-RealLiveWeb4OasisApiBaseUrl` to override default live endpoints in `real-live` mode.
+- `-Username` / `-Password` / `-ApiKey` / `-AvatarId` for harness auth flows.
+
+Standardized test artifacts are written to:
+
+- `OASIS Omniverse/STARAPIClient/TestResults/Unit` (TRX + JUnit)
+- `OASIS Omniverse/STARAPIClient/TestResults/Integration` (TRX + JUnit)
+- `OASIS Omniverse/STARAPIClient/TestResults/Harness` (JUnit)
+
+## Start local WEB4 + WEB5 APIs (ODOOM/OQUAKE)
+
+Use this helper to start local APIs for game integration testing:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/start_local_web4_and_web5_apis.ps1"
+```
+
+Behavior:
+
+- Starts **WEB4 OASIS API first**, waits until ready, then starts **WEB5 STAR API**.
+- Uses sequential startup by design to reduce heavy startup contention on local machines.
+- Keeps both APIs running until Ctrl+C (or use `-NoWait` to return immediately).
+
+Stop APIs started by the helper:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/stop_local_web4_and_web5_apis.ps1"
+```
+
+Optional fallback stop by known local ports:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/stop_local_web4_and_web5_apis.ps1" -UsePortFallback
+```
+
+Fake server implementation locations:
+
+- Integration test fake server: `OASIS Omniverse/STARAPIClient/TestProjects/NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests/FakeStarApiServer.cs`
+- Harness fake server: `OASIS Omniverse/STARAPIClient/TestProjects/NextGenSoftware.OASIS.STARAPI.Client.TestHarness/FakeHarnessApiServer.cs`
+
+Harness runtime config env vars:
+
+- `STARAPI_HARNESS_MODE` (`fake`, `real-local`, `real-live`)
+- `STARAPI_HARNESS_USE_FAKE_SERVER` (legacy compatibility switch)
+- `STARAPI_WEB5_BASE_URL` / `STARAPI_WEB4_BASE_URL`
+- `STARAPI_HARNESS_JUNIT_PATH`
+
 ## Usage patterns (direct vs queued)
 
 Use direct calls for low-frequency actions:
