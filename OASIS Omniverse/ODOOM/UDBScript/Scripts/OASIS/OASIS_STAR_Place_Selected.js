@@ -87,12 +87,9 @@ var idx = choiceList.indexOf(q.options.asset);
 if (idx < 0) { UDB.log("OASIS STAR: Invalid selection."); return; }
 var row = ASSETS[idx];
 var doomType = row[4];
-var pos = UDB.Map.mousePosition;
-if (!pos) { UDB.log("OASIS STAR: Click in map view first, then run this script again."); return; }
-var t = UDB.Map.createThing(pos, doomType);
-if (UDB.Map.isUDMF) {
-    t.flags.skill1 = t.flags.skill2 = t.flags.skill3 = t.flags.skill4 = t.flags.skill5 = true;
-} else {
-    t.flags['1'] = t.flags['2'] = t.flags['4'] = true;
+if (typeof UDB.setPendingStarPlacement !== "function") {
+    UDB.log("OASIS STAR: setPendingStarPlacement not available. Update UDBScript plugin.");
+    return;
 }
-UDB.log("OASIS STAR: Placed " + row[3] + " (type " + doomType + ") at cursor.");
+UDB.setPendingStarPlacement(doomType, row[3]);
+UDB.log("OASIS STAR: Selected " + row[3] + " (type " + doomType + "). Click on the map to place.");

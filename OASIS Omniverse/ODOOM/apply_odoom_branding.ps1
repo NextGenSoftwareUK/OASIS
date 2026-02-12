@@ -9,6 +9,8 @@ $src = $UZDOOM_SRC.TrimEnd('\')
 $versionH = "$src\src\version.h"
 $startscreenCpp = "$src\src\common\startscreen\startscreen.cpp"
 $sharedSbarCpp = "$src\src\g_statusbar\shared_sbar.cpp"
+$zscriptTxt = "$src\wadsrc\static\zscript.txt"
+$doomItemsMapinfo = "$src\wadsrc\static\mapinfo\doomitems.txt"
 
 $odoomRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 if (Test-Path (Join-Path $odoomRoot "generate_odoom_version.ps1")) {
@@ -125,7 +127,25 @@ if (Test-Path $aboutPath) {
     }
 }
 
-# 5. Editor button: add centre button between Play and Exit in launcher button bar
+# 5. Register ODOOM OQUAKE key actors in ZScript compile list
+if (Test-Path $zscriptTxt) {
+    $content = Get-Content $zscriptTxt -Raw
+    if (-not ($content -match 'zscript/actors/doom/odoom_oquake_keys\.zs')) {
+        $content = $content -replace '(#include "zscript/actors/doom/doomkeys\.zs")', "`$1`r`n#include `"zscript/actors/doom/odoom_oquake_keys.zs`""
+        Set-Content -Path $zscriptTxt -Value $content -NoNewline
+    }
+}
+
+# 6. Register DoomEdNums for OQUAKE key thing ids in Doom mapinfo
+if (Test-Path $doomItemsMapinfo) {
+    $content = Get-Content $doomItemsMapinfo -Raw
+    if (-not ($content -match '5005\s*=\s*OQGoldKey')) {
+        $content = $content -replace '(\r?\n\}\s*)$', "`r`n  5005 = OQGoldKey`r`n  5013 = OQSilverKey`$1"
+        Set-Content -Path $doomItemsMapinfo -Value $content -NoNewline
+    }
+}
+
+# 7. Editor button: add centre button between Play and Exit in launcher button bar
 $widgetsDest = "$src\src\widgets"
 $lbbH = "$widgetsDest\launcherbuttonbar.h"
 $lbbCpp = "$widgetsDest\launcherbuttonbar.cpp"

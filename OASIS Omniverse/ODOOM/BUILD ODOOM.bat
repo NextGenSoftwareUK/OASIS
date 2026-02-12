@@ -9,6 +9,10 @@ set "HERE=%~dp0"
 set "DOOM_FOLDER=%HERE%..\Doom"
 set "NATIVEWRAPPER=%HERE%..\NativeWrapper"
 set "ODOOM_INTEGRATION=%HERE%"
+set "ULTIMATE_DOOM_BUILDER_BUILD=C:\Source\UltimateDoomBuilder\Build"
+set "ULTIMATE_DOOM_BUILDER_ASSETS=C:\Source\UltimateDoomBuilder\Assets\Common\UDBScript\Scripts\OASIS\Sprites"
+set "OASIS_SPRITES_SRC=%ULTIMATE_DOOM_BUILDER_BUILD%\UDBScript\Scripts\OASIS\Sprites"
+if exist "%ULTIMATE_DOOM_BUILDER_ASSETS%\5005.png" set "OASIS_SPRITES_SRC=%ULTIMATE_DOOM_BUILDER_ASSETS%"
 
 REM Generate ODOOM version from ODOOM/odoom_version.txt
 if exist "%ODOOM_INTEGRATION%generate_odoom_version.ps1" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%generate_odoom_version.ps1" -Root "%ODOOM_INTEGRATION%"
@@ -65,9 +69,29 @@ set "CMAKE_PYTHON_ARG=-DPython3_EXECUTABLE=%PYTHON3_EXE%"
 
 echo.
 echo [ODOOM] Installing...
+echo [ODOOM] OASIS sprite source: %OASIS_SPRITES_SRC%
 copy /Y "%ODOOM_INTEGRATION%uzdoom_star_integration.cpp" "%UZDOOM_SRC%\src\uzdoom_star_integration.cpp" >nul
 copy /Y "%ODOOM_INTEGRATION%uzdoom_star_integration.h" "%UZDOOM_SRC%\src\uzdoom_star_integration.h" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_branding.h" "%UZDOOM_SRC%\src\odoom_branding.h" >nul
+copy /Y "%ODOOM_INTEGRATION%odoom_oquake_keys.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_keys.zs" >nul
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites" mkdir "%UZDOOM_SRC%\wadsrc\static\sprites"
+if not exist "%UZDOOM_SRC%\wadsrc\static\graphics" mkdir "%UZDOOM_SRC%\wadsrc\static\graphics"
+if exist "%OASIS_SPRITES_SRC%\5005.png" (
+    echo [ODOOM] Regenerating OQ gold key sprites...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5005.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" -MaxWidth 18 -MaxHeight 24
+    copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGB0.png" >nul
+ ) else (
+    echo [ODOOM] Warning: 5005.png not found under %OASIS_SPRITES_SRC%; OQ gold key sprite may be missing.
+)
+if exist "%OASIS_SPRITES_SRC%\5013.png" (
+    echo [ODOOM] Regenerating OQ silver key sprites...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5013.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" -MaxWidth 18 -MaxHeight 24
+    copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSB0.png" >nul
+ ) else (
+    echo [ODOOM] Warning: 5013.png not found under %OASIS_SPRITES_SRC%; OQ silver key sprite may be missing.
+)
+echo [ODOOM] Generating OQ HUD key icons...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%generate_odoom_hud_key_icons.ps1" -OutputDir "%UZDOOM_SRC%\wadsrc\static\graphics"
 if exist "%ODOOM_INTEGRATION%odoom_version_generated.h" copy /Y "%ODOOM_INTEGRATION%odoom_version_generated.h" "%UZDOOM_SRC%\src\odoom_version_generated.h" >nul
 powershell -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%apply_odoom_branding.ps1" -UZDOOM_SRC "%UZDOOM_SRC%"
 if exist "%ODOOM_INTEGRATION%oasis_banner.png" (
@@ -105,7 +129,6 @@ copy /Y "%DOOM_FOLDER%\star_api.dll" "%ODOOM_INTEGRATION%build\star_api.dll" >nu
 if exist "%ODOOM_INTEGRATION%build\uzdoom.exe" del "%ODOOM_INTEGRATION%build\uzdoom.exe"
 if exist "%ODOOM_INTEGRATION%soft_oal.dll" copy /Y "%ODOOM_INTEGRATION%soft_oal.dll" "%ODOOM_INTEGRATION%build\soft_oal.dll" >nul
 
-set "ULTIMATE_DOOM_BUILDER_BUILD=C:\Source\UltimateDoomBuilder\Build"
 if not exist "%ODOOM_INTEGRATION%build\Editor" mkdir "%ODOOM_INTEGRATION%build\Editor"
 if not exist "%ODOOM_INTEGRATION%build\Editor\Builder.exe" (
     if exist "%ULTIMATE_DOOM_BUILDER_BUILD%\Builder.exe" (
