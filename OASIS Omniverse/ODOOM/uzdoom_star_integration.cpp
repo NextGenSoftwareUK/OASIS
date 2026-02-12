@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <cstdarg>
 
 /* ODOOM (UZDoom) headers for key detection */
 #include "gamedata/a_keys.h"
@@ -25,6 +26,113 @@
 
 static star_api_config_t g_star_config;
 static bool g_star_initialized = false;
+static bool g_star_client_ready = false;
+static bool g_star_debug_logging = true;
+static bool g_star_logged_runtime_auth_failure = false;
+static bool g_star_logged_missing_auth_config = false;
+static const int STAR_PICKUP_OQUAKE_GOLD_KEY = 5005;
+static const int STAR_PICKUP_OQUAKE_SILVER_KEY = 5013;
+
+static void StarLogInfo(const char* fmt, ...) {
+	char msg[1024];
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
+	std::printf("STAR API: %s\n", msg);
+	Printf(PRINT_NONOTIFY, TEXTCOLOR_GREEN "STAR API: %s\n", msg);
+}
+
+static void StarLogError(const char* fmt, ...) {
+	char msg[1024];
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, args);
+	va_end(args);
+	std::printf("STAR API ERROR: %s\n", msg);
+	Printf(PRINT_NONOTIFY, TEXTCOLOR_RED "STAR API ERROR: %s\n", msg);
+}
+
+static void StarLogRuntimeAuthFailureOnce(const char* reason) {
+	if (g_star_logged_runtime_auth_failure) return;
+	g_star_logged_runtime_auth_failure = true;
+	StarLogError("Not authenticated. STAR sync disabled until beam-in succeeds. Reason: %s", reason ? reason : "(unknown)");
+}
+
+static bool HasValue(const char* s) {
+	return s && s[0] != '\0';
+}
+
+static bool StarTryInitializeAndAuthenticate(bool verbose) {
+	const bool logVerbose = verbose;
+	if (g_star_initialized) return true;
+
+	g_star_config.base_url = "https://star-api.oasisplatform.world/api";
+	g_star_config.api_key = getenv("STAR_API_KEY");
+	g_star_config.avatar_id = getenv("STAR_AVATAR_ID");
+	g_star_config.timeout_seconds = 10;
+	if (logVerbose) {
+		StarLogInfo(
+			"Init/auth start (base_url=%s, has_api_key=%s, has_avatar_id=%s, has_username=%s, has_password=%s)",
+			g_star_config.base_url ? g_star_config.base_url : "(null)",
+			HasValue(g_star_config.api_key) ? "yes" : "no",
+			HasValue(g_star_config.avatar_id) ? "yes" : "no",
+			HasValue(getenv("STAR_USERNAME")) ? "yes" : "no",
+			HasValue(getenv("STAR_PASSWORD")) ? "yes" : "no"
+		);
+	}
+
+	if (!g_star_client_ready) {
+		if (logVerbose) StarLogInfo("Calling star_api_init...");
+		star_api_result_t init_result = star_api_init(&g_star_config);
+		if (init_result != STAR_API_SUCCESS) {
+			if (logVerbose) StarLogError("star_api_init failed: %s", star_api_get_last_error());
+			return false;
+		}
+		g_star_client_ready = true;
+		if (logVerbose) StarLogInfo("star_api_init succeeded (interop DLL/API ready).");
+	}
+
+	const char* username = getenv("STAR_USERNAME");
+	const char* password = getenv("STAR_PASSWORD");
+	if (HasValue(username) && HasValue(password)) {
+		if (logVerbose) StarLogInfo("Beaming in... authenticating avatar via SSO.");
+		star_api_result_t auth = star_api_authenticate(username, password);
+		if (auth == STAR_API_SUCCESS) {
+			g_star_initialized = true;
+			g_star_logged_runtime_auth_failure = false;
+			g_star_logged_missing_auth_config = false;
+			if (logVerbose) StarLogInfo("Beam-in successful (SSO). Cross-game features enabled.");
+			return true;
+		}
+		if (logVerbose) StarLogError("Beam-in failed (SSO): %s", star_api_get_last_error());
+	}
+
+	// API key + avatar mode: verify we can access inventory for this avatar.
+	if (HasValue(g_star_config.api_key) && HasValue(g_star_config.avatar_id)) {
+		if (logVerbose) StarLogInfo("Beaming in... verifying API key/avatar via star_api_get_inventory.");
+		star_item_list_t* list = nullptr;
+		star_api_result_t inv = star_api_get_inventory(&list);
+		if (inv == STAR_API_SUCCESS) {
+			g_star_initialized = true;
+			g_star_logged_runtime_auth_failure = false;
+			g_star_logged_missing_auth_config = false;
+			size_t count = list ? list->count : 0;
+			if (list) star_api_free_item_list(list);
+			if (logVerbose) StarLogInfo("Beam-in successful (API key/avatar). Inventory items=%zu. Cross-game features enabled.", count);
+			return true;
+		}
+		if (list) star_api_free_item_list(list);
+		if (logVerbose) StarLogError("Beam-in failed (API key/avatar verify): %s", star_api_get_last_error());
+		return false;
+	}
+
+	if (logVerbose && !g_star_logged_missing_auth_config) {
+		g_star_logged_missing_auth_config = true;
+		StarLogError("No authentication configured. Set STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID.");
+	}
+	return false;
+}
 
 static const char* GetKeycardName(int keynum) {
 	switch (keynum) {
@@ -47,36 +155,8 @@ static const char* GetKeycardDescription(int keynum) {
 }
 
 void UZDoom_STAR_Init(void) {
-	g_star_config.base_url = "https://star-api.oasisplatform.world/api";
-	g_star_config.api_key = getenv("STAR_API_KEY");
-	g_star_config.avatar_id = getenv("STAR_AVATAR_ID");
-	g_star_config.timeout_seconds = 10;
-
-	star_api_result_t result = star_api_init(&g_star_config);
-	if (result != STAR_API_SUCCESS) {
-		std::printf("STAR API: Failed to initialize: %s\n", star_api_get_last_error());
-		return;
-	}
-
-	const char* username = getenv("STAR_USERNAME");
-	const char* password = getenv("STAR_PASSWORD");
-
-	if (username && password) {
-		result = star_api_authenticate(username, password);
-		if (result == STAR_API_SUCCESS) {
-			g_star_initialized = true;
-			std::printf("STAR API: Authenticated via SSO. Cross-game features enabled.\n");
-			return;
-		}
-		std::printf("STAR API: SSO authentication failed: %s\n", star_api_get_last_error());
-	}
-
-	if (g_star_config.api_key && g_star_config.avatar_id) {
-		g_star_initialized = true;
-		std::printf("STAR API: Initialized with API key. Cross-game features enabled.\n");
-	} else {
-		std::printf("STAR API: No authentication configured. Set STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID.\n");
-	}
+	StarLogInfo("STAR bootstrap: Beaming in...");
+	StarTryInitializeAndAuthenticate(true);
 
 	/* OASIS / ODOOM welcome splash in console (same style as OQuake) */
 	Printf("\n");
@@ -94,15 +174,34 @@ void UZDoom_STAR_Init(void) {
 }
 
 void UZDoom_STAR_Cleanup(void) {
-	if (g_star_initialized) {
+	if (g_star_client_ready) {
 		star_api_cleanup();
+		g_star_client_ready = false;
 		g_star_initialized = false;
-		std::printf("STAR API: Cleaned up.\n");
+		StarLogInfo("Cleaned up STAR API client.");
 	}
 }
 
 int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
-	if (!special || !g_star_initialized) return 0;
+	if (!special) return 0;
+	if (!StarTryInitializeAndAuthenticate(false)) {
+		StarLogRuntimeAuthFailureOnce(star_api_get_last_error());
+		return 0;
+	}
+
+	// OQUAKE runtime key actors in ODOOM: report exact shared-key ids.
+	static PClassActor* oqGoldKeyClass = nullptr;
+	static PClassActor* oqSilverKeyClass = nullptr;
+	if (!oqGoldKeyClass) oqGoldKeyClass = PClass::FindActor("OQGoldKey");
+	if (!oqSilverKeyClass) oqSilverKeyClass = PClass::FindActor("OQSilverKey");
+	if (oqGoldKeyClass && special->IsKindOf(oqGoldKeyClass)) {
+		StarLogInfo("Pickup detected: OQGoldKey (id=%d).", STAR_PICKUP_OQUAKE_GOLD_KEY);
+		return STAR_PICKUP_OQUAKE_GOLD_KEY;
+	}
+	if (oqSilverKeyClass && special->IsKindOf(oqSilverKeyClass)) {
+		StarLogInfo("Pickup detected: OQSilverKey (id=%d).", STAR_PICKUP_OQUAKE_SILVER_KEY);
+		return STAR_PICKUP_OQUAKE_SILVER_KEY;
+	}
 
 	auto kt = PClass::FindActor(NAME_Key);
 	if (!kt || !special->IsKindOf(kt)) return 0;
@@ -112,51 +211,61 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 
 	int keynum = def->special1;
 	if (keynum <= 0 || keynum > 4) return 0;
+	StarLogInfo("Pickup detected: Doom key special1=%d.", keynum);
 
 	return keynum;
 }
 
 void UZDoom_STAR_PostTouchSpecial(int keynum) {
-	if (!g_star_initialized || keynum <= 0 || keynum > 4) return;
+	if (keynum <= 0) return;
+	if (!StarTryInitializeAndAuthenticate(false)) {
+		StarLogRuntimeAuthFailureOnce(star_api_get_last_error());
+		return;
+	}
 
-	const char* name = GetKeycardName(keynum);
-	const char* desc = GetKeycardDescription(keynum);
-	if (!name) return;
+	const char* name = nullptr;
+	const char* desc = nullptr;
+	if (keynum == STAR_PICKUP_OQUAKE_GOLD_KEY) {
+		name = "gold_key";
+		desc = "Gold key - Opens gold doors in OQuake";
+	} else if (keynum == STAR_PICKUP_OQUAKE_SILVER_KEY) {
+		name = "silver_key";
+		desc = "Silver key - Opens silver doors in OQuake";
+	} else if (keynum >= 1 && keynum <= 4) {
+		name = GetKeycardName(keynum);
+		desc = GetKeycardDescription(keynum);
+	}
+	if (!name || !desc) return;
 
+	StarLogInfo("Calling star_api_add_item(name=%s, game=ODOOM, type=KeyItem)...", name);
 	star_api_result_t result = star_api_add_item(name, desc, "ODOOM", "KeyItem");
 	if (result == STAR_API_SUCCESS) {
-		std::printf("STAR API: Added %s to cross-game inventory.\n", name);
+		StarLogInfo("star_api_add_item success: %s added to shared inventory.", name);
 	} else {
-		std::printf("STAR API: Failed to add %s: %s\n", name, star_api_get_last_error());
+		StarLogError("star_api_add_item failed for %s: %s", name, star_api_get_last_error());
 	}
 }
 
-/* OQuake key names: keys collected in OQuake can open ODOOM doors */
-static const char* const OQUAKE_SILVER_KEY = "silver_key";
-static const char* const OQUAKE_GOLD_KEY  = "gold_key";
-
 int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
-	if (!g_star_initialized || !owner || keynum <= 0) return 0;
+	if (!owner || keynum <= 0) return 0;
+	if (!StarTryInitializeAndAuthenticate(false)) {
+		StarLogRuntimeAuthFailureOnce(star_api_get_last_error());
+		return 0;
+	}
 
 	/* 1) Check Doom keycard in cross-game inventory */
 	const char* keyname = GetKeycardName(keynum);
 	if (keyname && star_api_has_item(keyname)) {
-		std::printf("STAR API: Door opened using cross-game keycard: %s\n", keyname);
-		star_api_use_item(keyname, "odoom_door");
+		StarLogInfo("Door access granted via shared inventory key: %s", keyname);
+		bool used = star_api_use_item(keyname, "odoom_door");
+		if (!used) {
+			StarLogError("star_api_use_item failed for %s: %s", keyname, star_api_get_last_error());
+		}
 		return 1;
 	}
 
-	/* 2) Check OQuake keys: silver_key -> red (1), gold_key -> blue (2) or yellow (3) */
-	if (keynum == 1 && star_api_has_item(OQUAKE_SILVER_KEY)) {
-		std::printf("STAR API: Door opened using OQuake silver key (red door).\n");
-		star_api_use_item(OQUAKE_SILVER_KEY, "odoom_door");
-		return 1;
-	}
-	if ((keynum == 2 || keynum == 3) && star_api_has_item(OQUAKE_GOLD_KEY)) {
-		std::printf("STAR API: Door opened using OQuake gold key.\n");
-		star_api_use_item(OQUAKE_GOLD_KEY, "odoom_door");
-		return 1;
-	}
+	// IMPORTANT: OQuake keys are intentionally NOT valid for ODOOM doors.
+	// Gold/silver keys only open their matching doors in OQuake.
 
 	return 0;
 }
@@ -188,6 +297,7 @@ CCMD(star)
 		Printf("  star bossnft <name> [desc]   - Create boss NFT\n");
 		Printf("  star deploynft <nft_id> <game> [loc] - Deploy boss NFT\n");
 		Printf("  star pickup keycard <red|blue|yellow|skull> - Add keycard (convenience)\n");
+		Printf("  star debug on|off|status - Toggle STAR debug logging in console\n");
 		Printf("  star beamin   - Log in / authenticate (uses STAR_USERNAME/PASSWORD or API key)\n");
 		Printf("  star beamout  - Log out / disconnect from STAR\n");
 		Printf("\n");
@@ -220,7 +330,28 @@ CCMD(star)
 	}
 	if (strcmp(sub, "status") == 0) {
 		Printf("STAR API initialized: %s\n", StarInitialized() ? "yes" : "no");
+		Printf("STAR API client ready: %s\n", g_star_client_ready ? "yes" : "no");
+		Printf("STAR debug logging: %s\n", g_star_debug_logging ? "on" : "off");
 		Printf("Last error: %s\n", star_api_get_last_error());
+		return;
+	}
+	if (strcmp(sub, "debug") == 0) {
+		if (argv.argc() < 3 || strcmp(argv[2], "status") == 0) {
+			Printf("STAR debug logging is %s\n", g_star_debug_logging ? "on" : "off");
+			Printf("Usage: star debug on|off|status\n");
+			return;
+		}
+		if (strcmp(argv[2], "on") == 0) {
+			g_star_debug_logging = true;
+			StarLogInfo("Debug logging enabled.");
+			return;
+		}
+		if (strcmp(argv[2], "off") == 0) {
+			g_star_debug_logging = false;
+			Printf("STAR API: Debug logging disabled.\n");
+			return;
+		}
+		Printf("Unknown debug option: %s. Use on|off|status.\n", argv[2]);
 		return;
 	}
 	if (strcmp(sub, "inventory") == 0) {
@@ -309,41 +440,21 @@ CCMD(star)
 			Printf("Already logged in. Use 'star beamout' to log out first.\n");
 			return;
 		}
-		g_star_config.base_url = "https://star-api.oasisplatform.world/api";
-		g_star_config.api_key = getenv("STAR_API_KEY");
-		g_star_config.avatar_id = getenv("STAR_AVATAR_ID");
-		g_star_config.timeout_seconds = 10;
-		star_api_result_t r = star_api_init(&g_star_config);
-		if (r != STAR_API_SUCCESS) {
-			Printf("Beamin (login) failed - init: %s\n", star_api_get_last_error());
+		StarLogInfo("Beaming in...");
+		if (StarTryInitializeAndAuthenticate(true)) {
+			Printf("Beam-in successful. Cross-game features enabled.\n");
 			return;
 		}
-		const char* username = getenv("STAR_USERNAME");
-		const char* password = getenv("STAR_PASSWORD");
-		if (username && password) {
-			r = star_api_authenticate(username, password);
-			if (r == STAR_API_SUCCESS) {
-				g_star_initialized = true;
-				Printf("Logged in (beamin) via SSO. Cross-game features enabled.\n");
-				return;
-			}
-			Printf("Beamin (SSO) failed: %s\n", star_api_get_last_error());
-			return;
-		}
-		if (g_star_config.api_key && g_star_config.avatar_id) {
-			g_star_initialized = true;
-			Printf("Logged in (beamin) with API key. Cross-game features enabled.\n");
-			return;
-		}
-		Printf("Beamin failed: set STAR_USERNAME and STAR_PASSWORD, or STAR_API_KEY and STAR_AVATAR_ID.\n");
+		Printf("Beam-in failed: %s\n", star_api_get_last_error());
 		return;
 	}
 	if (strcmp(sub, "beamout") == 0) {
-		if (!StarInitialized()) {
+		if (!StarInitialized() && !g_star_client_ready) {
 			Printf("Not logged in. Use 'star beamin' to log in.\n");
 			return;
 		}
 		star_api_cleanup();
+		g_star_client_ready = false;
 		g_star_initialized = false;
 		Printf("Logged out (beamout). Use 'star beamin' to log in again.\n");
 		return;
