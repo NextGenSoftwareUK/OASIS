@@ -9,13 +9,15 @@ static void on_star_callback(star_api_result_t result, void* user_data)
 
 int main(void)
 {
-    printf("STAR API smoke test starting...\n");
+    printf("WEB5 STAR API smoke test starting...\n");
 
     star_api_config_t config;
     config.base_url = "http://127.0.0.1:65535/api";
     config.api_key = "SMOKE_TEST_KEY";
     config.avatar_id = "00000000-0000-0000-0000-000000000000";
     config.timeout_seconds = 2;
+    /* Optional WEB4 OASIS API URI for avatar auth + NFT mint routes. */
+    (void)star_api_set_oasis_base_url("http://127.0.0.1:65535");
 
     star_api_set_callback(on_star_callback, NULL);
 
@@ -46,7 +48,7 @@ int main(void)
     }
 
     star_api_cleanup();
-    printf("STAR API smoke test completed.\n");
+    printf("WEB5 STAR API smoke test completed.\n");
     return 0;
 }
 
