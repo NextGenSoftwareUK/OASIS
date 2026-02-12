@@ -24,6 +24,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class QuestsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private QuestManager CreateQuestManager() => new QuestManager(AvatarId, new STARDNA());
 
         /// <summary>
         /// Retrieves all quests in the system.
@@ -755,6 +756,66 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Starts a quest for the authenticated avatar.
+        /// </summary>
+        [HttpPost("{id}/start")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> StartQuest(Guid id, [FromBody] string startNotes = null)
+        {
+            try
+            {
+                var result = await CreateQuestManager().StartQuestAsync(AvatarId, id, startNotes);
+                if (result.IsError)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error starting quest: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Completes an objective (sub-quest) for a quest.
+        /// </summary>
+        [HttpPost("{id}/objectives/{objectiveId}/complete")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CompleteQuestObjective(Guid id, Guid objectiveId, [FromBody] CompleteQuestObjectiveRequest request = null)
+        {
+            try
+            {
+                var result = await CreateQuestManager().CompleteQuestObjectiveAsync(
+                    AvatarId,
+                    id,
+                    objectiveId,
+                    request?.GameSource,
+                    request?.CompletionNotes);
+
+                if (result.IsError)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error completing quest objective: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
         /// Completes a quest for the authenticated avatar.
         /// </summary>
         /// <param name="id">The unique identifier of the quest to complete.</param>
@@ -769,14 +830,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement quest completion logic
-                // This would involve updating quest status, awarding rewards, etc.
-                var result = new OASISResult<bool>
-                {
-                    Result = true,
-                    IsError = false,
-                    Message = "Quest completed successfully"
-                };
+                var result = await CreateQuestManager().CompleteQuestAsync(AvatarId, id, completionNotes);
+                if (result.IsError)
+                    return BadRequest(result);
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -805,13 +862,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement quest leaderboard logic
+                var managerResult = await CreateQuestManager().GetQuestLeaderboardAsync(id, limit);
                 var result = new OASISResult<IEnumerable<QuestLeaderboard>>
                 {
-                    Result = new List<QuestLeaderboard>(),
-                    IsError = false,
-                    Message = "Quest leaderboard retrieved successfully"
+                    Result = managerResult.Result,
+                    IsError = managerResult.IsError,
+                    Message = managerResult.Message,
+                    ErrorCode = managerResult.ErrorCode,
+                    Exception = managerResult.Exception
                 };
+
+                if (result.IsError)
+                    return BadRequest(result);
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -839,13 +902,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement quest rewards logic
+                var managerResult = await CreateQuestManager().GetQuestRewardsAsync(id);
                 var result = new OASISResult<IEnumerable<QuestReward>>
                 {
-                    Result = new List<QuestReward>(),
-                    IsError = false,
-                    Message = "Quest rewards retrieved successfully"
+                    Result = managerResult.Result,
+                    IsError = managerResult.IsError,
+                    Message = managerResult.Message,
+                    ErrorCode = managerResult.ErrorCode,
+                    Exception = managerResult.Exception
                 };
+
+                if (result.IsError)
+                    return BadRequest(result);
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -872,21 +941,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement quest statistics logic
-                var stats = new Dictionary<string, object>
-                {
-                    ["totalQuests"] = 0,
-                    ["completedQuests"] = 0,
-                    ["activeQuests"] = 0,
-                    ["totalRewards"] = 0
-                };
+                var result = await CreateQuestManager().GetQuestStatsAsync(AvatarId);
+                if (result.IsError)
+                    return BadRequest(result);
 
-                var result = new OASISResult<Dictionary<string, object>>
-                {
-                    Result = stats,
-                    IsError = false,
-                    Message = "Quest statistics retrieved successfully"
-                };
                 return Ok(result);
             }
             catch (Exception ex)
@@ -913,5 +971,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class EditQuestRequest
     {
         public STARNETDNA NewDNA { get; set; } = null;
+    }
+
+    public class CompleteQuestObjectiveRequest
+    {
+        public string GameSource { get; set; } = "";
+        public string CompletionNotes { get; set; } = "";
     }
 }

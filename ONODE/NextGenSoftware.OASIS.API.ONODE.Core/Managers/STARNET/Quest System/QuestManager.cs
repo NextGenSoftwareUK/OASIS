@@ -611,6 +611,140 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
+        /// Starts a quest for the specified avatar.
+        /// </summary>
+        public async Task<OASISResult<bool>> StartQuestAsync(Guid avatarId, Guid questId, string startNotes = null)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occurred in QuestManager.StartQuestAsync. Reason:";
+
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest not found or could not be loaded. Reason: {questResult.Message}");
+                    return result;
+                }
+
+                var quest = questResult.Result;
+                if (quest.Status == QuestStatus.Completed)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest is already completed.");
+                    return result;
+                }
+
+                quest.Status = QuestStatus.InProgress;
+                quest.StartedBy = avatarId;
+                if (quest.StartedOn == DateTime.MinValue)
+                    quest.StartedOn = DateTime.UtcNow;
+
+                if (!string.IsNullOrWhiteSpace(startNotes))
+                    quest.CompletionNotes = startNotes;
+
+                var updateResult = await UpdateAsync(avatarId, quest);
+                if (updateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save started quest. Reason: {updateResult.Message}");
+                    return result;
+                }
+
+                await UpdateQuestStatisticsAsync(avatarId);
+                result.Result = true;
+                result.Message = "Quest started successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occurred. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Completes a quest objective (represented by a sub-quest entry) for the specified avatar.
+        /// </summary>
+        public async Task<OASISResult<bool>> CompleteQuestObjectiveAsync(Guid avatarId, Guid questId, Guid objectiveId, string gameSource = null, string completionNotes = null)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occurred in QuestManager.CompleteQuestObjectiveAsync. Reason:";
+
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest not found or could not be loaded. Reason: {questResult.Message}");
+                    return result;
+                }
+
+                var quest = questResult.Result;
+                quest.Status = quest.Status == QuestStatus.NotStarted ? QuestStatus.InProgress : quest.Status;
+                if (quest.StartedOn == DateTime.MinValue)
+                    quest.StartedOn = DateTime.UtcNow;
+                quest.StartedBy = quest.StartedBy == Guid.Empty ? avatarId : quest.StartedBy;
+
+                if (quest.Quests == null || quest.Quests.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest has no objectives to complete.");
+                    return result;
+                }
+
+                var objective = quest.Quests.FirstOrDefault(x => x.Id == objectiveId);
+                if (objective == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Objective {objectiveId} was not found for quest {questId}.");
+                    return result;
+                }
+
+                objective.Status = QuestStatus.Completed;
+                objective.CompletedOn = DateTime.UtcNow;
+                objective.CompletedBy = avatarId;
+                objective.StartedBy = objective.StartedBy == Guid.Empty ? avatarId : objective.StartedBy;
+                if (objective.StartedOn == DateTime.MinValue)
+                    objective.StartedOn = DateTime.UtcNow;
+
+                if (!string.IsNullOrWhiteSpace(completionNotes))
+                    objective.CompletionNotes = completionNotes;
+
+                if (!string.IsNullOrWhiteSpace(gameSource))
+                    objective.Requirements = objective.Requirements?.Append($"CompletedFrom:{gameSource}").Distinct().ToList() ?? new List<string> { $"CompletedFrom:{gameSource}" };
+
+                if (quest.Quests.All(x => x.Status == QuestStatus.Completed))
+                {
+                    quest.Status = QuestStatus.Completed;
+                    quest.CompletedOn = DateTime.UtcNow;
+                    quest.CompletedBy = avatarId;
+                    if (!string.IsNullOrWhiteSpace(completionNotes))
+                        quest.CompletionNotes = completionNotes;
+                }
+                else
+                {
+                    quest.Status = QuestStatus.InProgress;
+                }
+
+                var updateResult = await UpdateAsync(avatarId, quest);
+                if (updateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save objective completion. Reason: {updateResult.Message}");
+                    return result;
+                }
+
+                await UpdateQuestStatisticsAsync(avatarId);
+                result.Result = true;
+                result.Message = quest.Status == QuestStatus.Completed
+                    ? "Quest objective completed and quest is now complete."
+                    : "Quest objective completed successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occurred. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Completes a quest for the specified avatar
         /// </summary>
         /// <param name="avatarId">The avatar completing the quest</param>
