@@ -7,6 +7,7 @@ hotkeys (Tools → Preferences → Controls).
 
 SCRIPTS
 -------
+  OASIS_STAR_Place_Selected.js      Pick asset from dialog, then click map to place (requires UDB.setPendingStarPlacement).
   OASIS_STAR_Place_At_Cursor.js     Place any Doom thing at mouse (edit THING_TYPE).
   OASIS_STAR_Place_ODOOM_Key.js     Place keycards/skulls (edit WHICH: red, blue, yellow, skull_*).
   OASIS_STAR_Place_ODOOM_Monster.js Place monsters (edit MONSTER_ID).

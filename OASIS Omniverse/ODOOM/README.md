@@ -35,7 +35,7 @@ Version and build number are set in **odoom_version.txt** (line 1 = version, lin
 
 ## Cross-game keys
 
-- ODOOM **red_keycard** ↔ OQuake **silver_key**
-- ODOOM **blue/yellow keycard** ↔ OQuake **gold_key**
+- OQuake **gold_key** and **silver_key** are shared to STAR inventory from ODOOM pickups.
+- OQuake **gold_key** and **silver_key** are OQuake-only door keys (they do not unlock ODOOM doors).
 
 See [WINDOWS_INTEGRATION.md](WINDOWS_INTEGRATION.md) for STAR API setup and in-game console commands (`star version`, `star inventory`, etc.).
