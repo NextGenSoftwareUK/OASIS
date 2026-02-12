@@ -14,7 +14,7 @@ $dllPath = Join-Path $publishDir "star_api.dll"
 $libPath = Join-Path $nativeDir "star_api.lib"
 $headerPath = Join-Path $scriptDir "star_api.h"
 
-Write-Host "Publishing NativeAOT STAR API wrapper..."
+Write-Host "Publishing NativeAOT WEB5 STAR API wrapper..."
 dotnet publish $projectPath -c Release -r $Runtime -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 
 if (!(Test-Path $dllPath)) { throw "Missing output: $dllPath" }
@@ -33,7 +33,7 @@ foreach ($target in $targets)
     $resolvedTarget = [System.IO.Path]::GetFullPath($target)
     if (Test-Path $resolvedTarget)
     {
-        Write-Host "Deploying STAR wrapper artifacts to $resolvedTarget"
+        Write-Host "Deploying WEB5 STAR API wrapper artifacts to $resolvedTarget"
         Copy-Item $dllPath (Join-Path $resolvedTarget "star_api.dll") -Force
         Copy-Item $libPath (Join-Path $resolvedTarget "star_api.lib") -Force
         Copy-Item $headerPath (Join-Path $resolvedTarget "star_api.h") -Force
@@ -79,5 +79,5 @@ if ($RunSmokeTest)
     }
 }
 
-Write-Host "STAR wrapper publish/deploy complete."
+Write-Host "WEB5 STAR API wrapper publish/deploy complete."
 

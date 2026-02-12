@@ -1,5 +1,5 @@
 /**
- * OASIS STAR API - C/C++ Wrapper for Game Integration
+ * OASIS WEB5 STAR API - C/C++ Wrapper for Game Integration
  * Native ABI compatible header for STARAPIClient NativeAOT exports.
  */
 
@@ -15,6 +15,7 @@ extern "C" {
 #include <stddef.h>
 
 typedef struct {
+    /* WEB5 STAR API base URI */
     const char* base_url;
     const char* api_key;
     const char* avatar_id;
@@ -48,6 +49,8 @@ typedef void (*star_api_callback_t)(star_api_result_t result, void* user_data);
 
 star_api_result_t star_api_init(const star_api_config_t* config);
 star_api_result_t star_api_authenticate(const char* username, const char* password);
+/* Set WEB4 OASIS API base URI (used for avatar auth + NFT mint endpoints). */
+star_api_result_t star_api_set_oasis_base_url(const char* oasis_base_url);
 void star_api_cleanup(void);
 bool star_api_has_item(const char* item_name);
 star_api_result_t star_api_get_inventory(star_item_list_t** item_list);
