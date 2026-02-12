@@ -500,112 +500,64 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
 
         try
         {
-            RequestResult<ResponseValue<AccountInfo>> accountInfoResult = await rpcClient.GetAccountInfoAsync(
-                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(
-                    new PublicKey(mintNftRequest.ToWalletAddress),
-                    new PublicKey(mintNftRequest.TokenAddress)));
+            var fromPubkey = new PublicKey(mintNftRequest.FromWalletAddress);
+            var toPubkey = new PublicKey(mintNftRequest.ToWalletAddress);
+            var mintPubkey = new PublicKey(mintNftRequest.TokenAddress);
 
-            bool needsCreateTokenAccount = false;
+            // Check if recipient already has an Associated Token Account for this mint
+            var toAta = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPubkey, mintPubkey);
+            RequestResult<ResponseValue<AccountInfo>> accountInfoResult = await rpcClient.GetAccountInfoAsync(toAta);
 
-            if (!accountInfoResult.WasSuccessful || accountInfoResult.Result == null ||
-                accountInfoResult.Result.Value == null)
-            {
-                needsCreateTokenAccount = true;
-            }
-            else
-            {
-                List<string> data = accountInfoResult.Result.Value.Data;
-                if (data == null || data.Count == 0)
-                {
-                    needsCreateTokenAccount = true;
-                }
-            }
+            bool needsCreateTokenAccount = !accountInfoResult.WasSuccessful || accountInfoResult.Result?.Value == null
+                || accountInfoResult.Result.Value.Data == null || accountInfoResult.Result.Value.Data.Count == 0;
 
-            if (needsCreateTokenAccount)
-            {
-                RequestResult<ResponseValue<LatestBlockHash>> createAccountBlockHashResult =
-                    await rpcClient.GetLatestBlockHashAsync();
-                if (!createAccountBlockHashResult.WasSuccessful)
-                {
-                    return new OASISResult<SendTransactionResult>
-                    {
-                        IsError = true,
-                        Message = "Failed to get latest block hash for account creation: " +
-                                  createAccountBlockHashResult.Reason
-                    };
-                }
-
-                TransactionInstruction createAccountTransaction =
-                    AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
-                        new PublicKey(mintNftRequest.FromWalletAddress),
-                        new PublicKey(mintNftRequest.ToWalletAddress),
-                        new PublicKey(mintNftRequest.TokenAddress));
-
-                byte[] createAccountTxBytes = new TransactionBuilder()
-                    .SetRecentBlockHash(createAccountBlockHashResult.Result.Value.Blockhash)
-                    .SetFeePayer(new PublicKey(mintNftRequest.FromWalletAddress))
-                    .AddInstruction(createAccountTransaction)
-                    .Build(oasisAccount);
-
-                RequestResult<string> sendCreateAccountResult = await rpcClient.SendTransactionAsync(
-                    createAccountTxBytes,
-                    skipPreflight: false,
-                    commitment: Commitment.Confirmed);
-
-                if (!sendCreateAccountResult.WasSuccessful)
-                {
-                    return new OASISResult<SendTransactionResult>
-                    {
-                        IsError = true,
-                        Message = "Failed to create associated token account: " + sendCreateAccountResult.Reason
-                    };
-                }
-            }
-
-            RequestResult<ResponseValue<LatestBlockHash>> transferBlockHashResult =
-                await rpcClient.GetLatestBlockHashAsync();
-            if (!transferBlockHashResult.WasSuccessful)
+            // Single block hash for the whole transaction
+            RequestResult<ResponseValue<LatestBlockHash>> blockHashResult = await rpcClient.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
             {
                 return new OASISResult<SendTransactionResult>
                 {
                     IsError = true,
-                    Message = "Failed to get latest block hash for transfer: " + transferBlockHashResult.Reason
+                    Message = "Failed to get latest block hash: " + blockHashResult.Reason
                 };
             }
 
-            TransactionInstruction transferTransaction = TokenProgram.Transfer(
-                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(
-                    new PublicKey(mintNftRequest.FromWalletAddress),
-                    new PublicKey(mintNftRequest.TokenAddress)),
-                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(
-                    new PublicKey(mintNftRequest.ToWalletAddress),
-                    new PublicKey(mintNftRequest.TokenAddress)),
+            var builder = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(fromPubkey);
+
+            // If recipient has no ATA, create it and transfer in the SAME transaction (atomic)
+            if (needsCreateTokenAccount)
+            {
+                builder = builder
+                    .AddInstruction(AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
+                        fromPubkey, toPubkey, mintPubkey));
+            }
+
+            // Transfer: from OASIS ATA to recipient ATA
+            var transferInstruction = TokenProgram.Transfer(
+                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPubkey, mintPubkey),
+                toAta,
                 (ulong)mintNftRequest.Amount,
-                new PublicKey(mintNftRequest.FromWalletAddress));
+                fromPubkey);
+            builder = builder.AddInstruction(transferInstruction);
 
-            byte[] transferTxBytes = new TransactionBuilder()
-                .SetRecentBlockHash(transferBlockHashResult.Result.Value.Blockhash)
-                .SetFeePayer(new PublicKey(mintNftRequest.FromWalletAddress))
-                .AddInstruction(transferTransaction)
-                .Build(oasisAccount);
+            byte[] txBytes = builder.Build(oasisAccount);
 
-            RequestResult<string> sendTransferResult = await rpcClient.SendTransactionAsync(
-                transferTxBytes,
+            RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(
+                txBytes,
                 skipPreflight: false,
                 commitment: Commitment.Confirmed);
 
-            if (!sendTransferResult.WasSuccessful)
+            if (!sendResult.WasSuccessful)
             {
                 response.IsError = true;
-                response.Message = sendTransferResult.Reason;
+                response.Message = sendResult.Reason ?? "Send NFT transaction failed.";
                 return response;
             }
 
             response.IsError = false;
-            response.Result = new SendTransactionResult
-            {
-                TransactionHash = sendTransferResult.Result
-            };
+            response.Result = new SendTransactionResult { TransactionHash = sendResult.Result };
         }
         catch (Exception ex)
         {
@@ -614,7 +566,6 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         }
         finally
         {
-            // Restore the original Console.Out
             Console.SetOut(originalConsoleOut);
         }
 
