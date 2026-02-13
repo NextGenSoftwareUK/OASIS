@@ -10,6 +10,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Service
 
 public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : ISolanaService
 {
+    /// <summary>Token-2022 (Token Extensions) program ID. When a mint is owned by this program, use it for ATA creation and transfer.</summary>
+    private static readonly PublicKey Token2022ProgramId = new("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+
     private const uint SellerFeeBasisPoints = 500;
     private const byte CreatorShare = 100;
     private const string Solana = "Solana";
@@ -500,112 +503,116 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
 
         try
         {
-            RequestResult<ResponseValue<AccountInfo>> accountInfoResult = await rpcClient.GetAccountInfoAsync(
-                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(
-                    new PublicKey(mintNftRequest.ToWalletAddress),
-                    new PublicKey(mintNftRequest.TokenAddress)));
+            var fromPubkey = new PublicKey(mintNftRequest.FromWalletAddress);
+            var toPubkey = new PublicKey(mintNftRequest.ToWalletAddress);
+            var mintPubkey = new PublicKey(mintNftRequest.TokenAddress);
 
-            bool needsCreateTokenAccount = false;
-
-            if (!accountInfoResult.WasSuccessful || accountInfoResult.Result == null ||
-                accountInfoResult.Result.Value == null)
+            // Determine if this mint is Token-2022 (incorrect program id causes "Error processing Instruction 0: incorrect program id for instruction")
+            bool useToken2022 = false;
+            var mintAccountResult = await rpcClient.GetAccountInfoAsync(mintPubkey);
+            if (mintAccountResult.WasSuccessful && mintAccountResult.Result?.Value?.Owner != null)
             {
-                needsCreateTokenAccount = true;
-            }
-            else
-            {
-                List<string> data = accountInfoResult.Result.Value.Data;
-                if (data == null || data.Count == 0)
-                {
-                    needsCreateTokenAccount = true;
-                }
+                var owner = mintAccountResult.Result.Value.Owner;
+                useToken2022 = string.Equals(owner, Token2022ProgramId.Key, StringComparison.Ordinal);
             }
 
-            if (needsCreateTokenAccount)
-            {
-                RequestResult<ResponseValue<LatestBlockHash>> createAccountBlockHashResult =
-                    await rpcClient.GetLatestBlockHashAsync();
-                if (!createAccountBlockHashResult.WasSuccessful)
-                {
-                    return new OASISResult<SendTransactionResult>
-                    {
-                        IsError = true,
-                        Message = "Failed to get latest block hash for account creation: " +
-                                  createAccountBlockHashResult.Reason
-                    };
-                }
+            // Derive ATAs using the same token program as the mint (Token-2022 mints use a different ATA address)
+            PublicKey toAta = useToken2022
+                ? DeriveAssociatedTokenAccount(toPubkey, mintPubkey, Token2022ProgramId)
+                : AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPubkey, mintPubkey);
+            PublicKey fromAta = useToken2022
+                ? DeriveAssociatedTokenAccount(fromPubkey, mintPubkey, Token2022ProgramId)
+                : AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPubkey, mintPubkey);
 
-                TransactionInstruction createAccountTransaction =
-                    AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
-                        new PublicKey(mintNftRequest.FromWalletAddress),
-                        new PublicKey(mintNftRequest.ToWalletAddress),
-                        new PublicKey(mintNftRequest.TokenAddress));
+            // Diagnostic: so you can verify on Solscan that the NFT landed in this ATA (Phantom may not show it)
+            Console.WriteLine($"=== SOLANA SEND: Mint owner = {(useToken2022 ? "Token-2022" : "Legacy SPL")}, Recipient ATA = {toAta?.Key ?? "(null)"} ===");
 
-                byte[] createAccountTxBytes = new TransactionBuilder()
-                    .SetRecentBlockHash(createAccountBlockHashResult.Result.Value.Blockhash)
-                    .SetFeePayer(new PublicKey(mintNftRequest.FromWalletAddress))
-                    .AddInstruction(createAccountTransaction)
-                    .Build(oasisAccount);
+            RequestResult<ResponseValue<AccountInfo>> accountInfoResult = await rpcClient.GetAccountInfoAsync(toAta);
+            bool needsCreateTokenAccount = !accountInfoResult.WasSuccessful || accountInfoResult.Result?.Value == null
+                || accountInfoResult.Result.Value.Data == null || accountInfoResult.Result.Value.Data.Count == 0;
 
-                RequestResult<string> sendCreateAccountResult = await rpcClient.SendTransactionAsync(
-                    createAccountTxBytes,
-                    skipPreflight: false,
-                    commitment: Commitment.Confirmed);
-
-                if (!sendCreateAccountResult.WasSuccessful)
-                {
-                    return new OASISResult<SendTransactionResult>
-                    {
-                        IsError = true,
-                        Message = "Failed to create associated token account: " + sendCreateAccountResult.Reason
-                    };
-                }
-            }
-
-            RequestResult<ResponseValue<LatestBlockHash>> transferBlockHashResult =
-                await rpcClient.GetLatestBlockHashAsync();
-            if (!transferBlockHashResult.WasSuccessful)
+            // Single block hash for the whole transaction
+            RequestResult<ResponseValue<LatestBlockHash>> blockHashResult = await rpcClient.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
             {
                 return new OASISResult<SendTransactionResult>
                 {
                     IsError = true,
-                    Message = "Failed to get latest block hash for transfer: " + transferBlockHashResult.Reason
+                    Message = "Failed to get latest block hash: " + blockHashResult.Reason
                 };
             }
 
-            TransactionInstruction transferTransaction = TokenProgram.Transfer(
-                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(
-                    new PublicKey(mintNftRequest.FromWalletAddress),
-                    new PublicKey(mintNftRequest.TokenAddress)),
-                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(
-                    new PublicKey(mintNftRequest.ToWalletAddress),
-                    new PublicKey(mintNftRequest.TokenAddress)),
-                (ulong)mintNftRequest.Amount,
-                new PublicKey(mintNftRequest.FromWalletAddress));
+            var builder = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(fromPubkey);
 
-            byte[] transferTxBytes = new TransactionBuilder()
-                .SetRecentBlockHash(transferBlockHashResult.Result.Value.Blockhash)
-                .SetFeePayer(new PublicKey(mintNftRequest.FromWalletAddress))
-                .AddInstruction(transferTransaction)
-                .Build(oasisAccount);
+            // If recipient has no ATA, create it and transfer in the SAME transaction (atomic)
+            if (needsCreateTokenAccount)
+            {
+                TransactionInstruction createAtaInstruction = useToken2022
+                    ? CreateAssociatedTokenAccountInstruction(fromPubkey, toPubkey, mintPubkey, Token2022ProgramId)
+                    : AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(fromPubkey, toPubkey, mintPubkey);
+                if (createAtaInstruction != null)
+                    builder = builder.AddInstruction(createAtaInstruction);
+            }
 
-            RequestResult<string> sendTransferResult = await rpcClient.SendTransactionAsync(
-                transferTxBytes,
+            // Transfer: from OASIS ATA to recipient ATA (use same token program as mint)
+            TransactionInstruction transferInstruction = useToken2022
+                ? CreateTransferInstruction(fromAta, toAta, (ulong)mintNftRequest.Amount, fromPubkey, Token2022ProgramId)
+                : TokenProgram.Transfer(fromAta, toAta, (ulong)mintNftRequest.Amount, fromPubkey);
+            builder = builder.AddInstruction(transferInstruction);
+
+            byte[] txBytes = builder.Build(oasisAccount);
+
+            RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(
+                txBytes,
                 skipPreflight: false,
                 commitment: Commitment.Confirmed);
 
-            if (!sendTransferResult.WasSuccessful)
+            if (!sendResult.WasSuccessful)
             {
                 response.IsError = true;
-                response.Message = sendTransferResult.Reason;
+                response.Message = sendResult.Reason ?? "Send NFT transaction failed.";
+                return response;
+            }
+
+            string txSignature = sendResult.Result;
+
+            // Verify the transaction actually succeeded on-chain (don't claim success if it failed after submit)
+            bool confirmedSuccess = false;
+            const int maxConfirmAttempts = 8;
+            const int confirmDelayMs = 2000;
+            for (int i = 0; i < maxConfirmAttempts; i++)
+            {
+                await Task.Delay(confirmDelayMs);
+                var txResult = await rpcClient.GetTransactionAsync(txSignature, Commitment.Confirmed);
+                if (!txResult.WasSuccessful || txResult.Result == null)
+                    continue;
+                var tx = txResult.Result;
+                if (tx.Meta != null && tx.Meta.Error != null)
+                {
+                    string errMsg = tx.Meta.Error.ToString();
+                    string logs = tx.Meta.LogMessages != null ? string.Join("; ", tx.Meta.LogMessages.Take(15)) : "";
+                    response.IsError = true;
+                    response.Message = $"Send NFT transaction failed on-chain: {errMsg}. Logs: {logs}";
+                    return response;
+                }
+                if (tx.Meta != null && tx.Meta.Error == null)
+                {
+                    confirmedSuccess = true;
+                    break;
+                }
+            }
+
+            if (!confirmedSuccess)
+            {
+                response.IsError = true;
+                response.Message = $"Send transaction could not be confirmed in time. Check status: {txSignature} (may still confirm later).";
                 return response;
             }
 
             response.IsError = false;
-            response.Result = new SendTransactionResult
-            {
-                TransactionHash = sendTransferResult.Result
-            };
+            response.Result = new SendTransactionResult { TransactionHash = txSignature };
         }
         catch (Exception ex)
         {
@@ -614,13 +621,61 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         }
         finally
         {
-            // Restore the original Console.Out
             Console.SetOut(originalConsoleOut);
         }
 
         return response;
     }
 
+    /// <summary>Derive associated token account address for a given token program (legacy or Token-2022).</summary>
+    private static PublicKey DeriveAssociatedTokenAccount(PublicKey owner, PublicKey mint, PublicKey tokenProgramId)
+    {
+        var seeds = new List<byte[]> { owner.KeyBytes, tokenProgramId.KeyBytes, mint.KeyBytes };
+        return PublicKey.TryCreateProgramAddress(seeds, AssociatedTokenAccountProgram.ProgramIdKey, out var ata)
+            ? ata
+            : null;
+    }
+
+    /// <summary>Build CreateAssociatedTokenAccount instruction for Token-2022 (same as ATA program but with token program id in keys).</summary>
+    private static TransactionInstruction CreateAssociatedTokenAccountInstruction(PublicKey payer, PublicKey owner, PublicKey mint, PublicKey tokenProgramId)
+    {
+        var associatedTokenAddress = DeriveAssociatedTokenAccount(owner, mint, tokenProgramId);
+        if (associatedTokenAddress == null) return null;
+        var keys = new List<AccountMeta>
+        {
+            AccountMeta.Writable(payer, true),
+            AccountMeta.Writable(associatedTokenAddress, false),
+            AccountMeta.ReadOnly(owner, false),
+            AccountMeta.ReadOnly(mint, false),
+            AccountMeta.ReadOnly(SystemProgram.ProgramIdKey, false),
+            AccountMeta.ReadOnly(tokenProgramId, false),
+            AccountMeta.ReadOnly(SysVars.RentKey, false)
+        };
+        return new TransactionInstruction
+        {
+            ProgramId = AssociatedTokenAccountProgram.ProgramIdKey.KeyBytes,
+            Keys = keys,
+            Data = Array.Empty<byte>()
+        };
+    }
+
+    /// <summary>Build Transfer instruction for a given token program (legacy or Token-2022). Same layout as SPL Token Transfer.</summary>
+    private static TransactionInstruction CreateTransferInstruction(PublicKey source, PublicKey destination, ulong amount, PublicKey authority, PublicKey tokenProgramId)
+    {
+        var data = new List<byte> { 3 }; // SPL Token instruction index: Transfer = 3
+        data.AddRange(BitConverter.GetBytes(amount));
+        return new TransactionInstruction
+        {
+            ProgramId = tokenProgramId.KeyBytes,
+            Keys = new List<AccountMeta>
+            {
+                AccountMeta.Writable(source, false),
+                AccountMeta.Writable(destination, false),
+                AccountMeta.ReadOnly(authority, true)
+            },
+            Data = data.ToArray()
+        };
+    }
 
     private OASISResult<MintNftResult> SuccessResult(MintNftResult result)
     {

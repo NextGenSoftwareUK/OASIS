@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
@@ -59,6 +60,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 // Get avatar from session (set by JWT middleware)
                 var avatar = context.Items["Avatar"] as IAvatar;
                 if (avatar == null)
+                {
+                    await _next(context);
+                    return;
+                }
+
+                // Wizard (admin) avatars bypass subscription and credits checks
+                if (avatar.AvatarType != null && avatar.AvatarType.Value == AvatarType.Wizard)
                 {
                     await _next(context);
                     return;
@@ -151,6 +159,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 "/api/auth",
                 "/api/avatar/signin",
                 "/api/avatar/signup",
+                "/api/avatar/authenticate",
                 "/api/subscription",
                 "/swagger",
                 "/favicon.ico"

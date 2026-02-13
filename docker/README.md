@@ -2,12 +2,17 @@
 
 This folder contains all Docker-related files for building and deploying the OASIS API.
 
+**Production API URL:** `https://api.oasisweb4.com` (configured in OASIS_DNA.json as `OASISAPIURL` and in Swagger/Postman links in Startup).
+
 ## 📁 Files
 
-- **Dockerfile** - Main production Dockerfile for building the OASIS API
+- **Dockerfile** - Main production Dockerfile for building the OASIS API (ONODE)
+- **Dockerfile.star** - Dockerfile for building the STAR API (Missions, Quests, GeoNFTs, etc.)
 - **.dockerignore** - Files and directories to exclude from Docker build context
 - **docker-compose.yml** - Docker Compose configuration for local development
-- **build.sh** - Script to build Docker image locally for testing
+- **build.sh** - Script to build OASIS API (ONODE) Docker image locally
+- **PRE_BUILD.md** - Pre-flight checklist and build/run commands
+- **build-star.sh** - Script to build STAR API Docker image locally
 - **deploy.sh** - Script to build and push Docker image to AWS ECR
 - **update-ecs.sh** - Script to update AWS ECS service with new image
 - **COMPARISON.md** - Comparison between previous working image and current setup
@@ -18,7 +23,7 @@ This folder contains all Docker-related files for building and deploying the OAS
 ### Build Locally
 
 ```bash
-cd /Volumes/Storage\ 3/OASIS_CLEAN
+cd /path/to/OASIS_CLEAN   # repo root
 ./docker/build.sh
 ```
 
@@ -30,18 +35,25 @@ This will build the Docker image with tag `oasis-api:latest`.
 # Using Docker directly
 docker run -p 5003:80 oasis-api:latest
 
-# Or using Docker Compose
+# Or using Docker Compose (both ONODE and STAR API)
 docker-compose up
 ```
 
 Then access:
-- API: http://localhost:5003
-- Swagger: http://localhost:5003/swagger
+- OASIS API (ONODE): http://localhost:5003 | Swagger: http://localhost:5003/swagger
+- STAR API: http://localhost:50564 | Health: http://localhost:50564/api/health | Swagger: http://localhost:50564/swagger
+
+### Build STAR API Only
+
+```bash
+./docker/build-star.sh
+docker run -p 50564:80 star-api:latest
+```
 
 ### Build and Deploy to AWS ECR
 
 ```bash
-cd /Volumes/Storage\ 3/OASIS_CLEAN
+cd /path/to/OASIS_CLEAN   # repo root
 ./docker/deploy.sh
 ```
 
@@ -67,7 +79,7 @@ cd /Volumes/Storage\ 3/OASIS_CLEAN
 
 ### Health Check
 
-- **Endpoint**: `/swagger/index.html`
+- **Endpoint**: `/api/health`
 - **Interval**: 30s
 - **Timeout**: 10s
 - **Retries**: 3

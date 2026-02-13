@@ -1,13 +1,24 @@
 # Production Dockerfile for OASIS API ONODE WebAPI
 # Based on working image: sha256:96a7bd158ecb (mainnet-update tag)
 # Optimized for AWS ECS Fargate deployment
-# Updated for .NET 8.0 and latest build fixes
+# Updated for .NET 8.0 and latest build fixes (EnumValue BSON fix, MongoDB health check)
+
+ARG OASIS_API_VERSION=4.4.4
+ARG BUILD_DATE
+ARG VCS_REF
 
 # Use the official .NET 8 runtime as base image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+ARG OASIS_API_VERSION=4.4.4
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
+
+LABEL org.opencontainers.image.title="OASIS API ONODE WebAPI" \
+      org.opencontainers.image.version="${OASIS_API_VERSION}" \
+      org.opencontainers.image.description="OASIS API ONODE WebAPI - avatars, NFTs, MongoDB, health" \
+      org.opencontainers.image.vendor="NextGen Software" \
+      oasis.api.version="${OASIS_API_VERSION}"
 
 # Install curl for health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
@@ -76,6 +87,9 @@ RUN cd /src && \
         ln -s /src/NextGenSoftware-Libraries ../NextGenSoftware-Libraries; \
     fi
 
+# Clear Libraries obj/bin to avoid "file already exists" when same project is referenced via symlink and /src path
+RUN rm -rf /src/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/*/obj /src/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/*/bin 2>/dev/null || true
+
 # Restore dependencies from project file directly (avoids solution file path issues)
 # This will automatically restore all dependencies including all 30+ providers
 WORKDIR "/src/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
@@ -101,8 +115,8 @@ WORKDIR /app
 # Copy published application
 COPY --from=publish /app/publish .
 
-# OASIS_DNA.json should be included in the published output if it exists in the project
-# If not present, configuration can be provided via environment variables in ECS task definition
+# OASIS_DNA.json is taken from ONODE/.../WebAPI/OASIS_DNA.json at build time (CopyToOutputDirectory in csproj).
+# Keep that file in sync with OASIS Architecture/.../DNA/OASIS_DNA.json when updating MongoDB or other config for ECS.
 
 # Set environment variables (can be overridden by ECS task definition or docker-compose)
 ENV ASPNETCORE_ENVIRONMENT=Production
@@ -110,7 +124,7 @@ ENV ASPNETCORE_URLS=http://+:80
 
 # Health check - use Swagger endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:80/swagger/index.html || exit 1
+  CMD curl -f http://localhost:80/api/health || exit 1
 
 ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONODE.WebAPI.dll"]
 

@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram;
 using NextGenSoftware.OASIS.Common;
@@ -41,7 +41,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private const int TelegramTimeoutSeconds = 20;
         private const int MaxRetries = 3;
         private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(1);
-        private static readonly string DefaultMintingGifUrl = "https://media.tenor.com/sbH2izFboncAAAAM/pink-panther-walk.gif";
+        private const string BuiltInMintingVideoPath = "/minting/witness-the-jpeg-miracle.mp4";
+        private static readonly string FallbackMintingGifUrl = "https://media.tenor.com/sbH2izFboncAAAAM/pink-panther-walk.gif"; // Fallback when built-in video unreachable (e.g. localhost); override with MintingGifUrl or MintingGifUrls in config
 
         public TelegramNftMintFlowService(
             IHttpClientFactory httpClientFactory,
@@ -280,6 +281,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return null;
         }
 
+        /// <summary>Extract IPFS hash from a URL like https://gateway.pinata.cloud/ipfs/Qm... or https://ipfs.io/ipfs/Qm...</summary>
+        private static bool TryGetIpfsHash(string url, out string hash)
+        {
+            hash = null;
+            if (string.IsNullOrWhiteSpace(url)) return false;
+            var match = Regex.Match(url, @"/ipfs/(Qm[A-HJ-NP-Za-km-z1-9]+)");
+            if (match.Success)
+            {
+                hash = match.Groups[1].Value;
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>Extract Solana mint from Solscan URL or raw mint address (base58, 32-44 chars).</summary>
         private static string TryExtractMintFromText(string text)
         {
@@ -477,26 +492,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         }
 
         /// <summary>
-        /// Upload Metaplex-style NFT metadata JSON to Pinata so Solana metadata URI points to name, symbol, description, image.
-        /// Uses full Metaplex schema (name, symbol, description, image, attributes, properties with category) so Solscan/wallets display correctly.
+        /// Upload Metaplex-style NFT metadata JSON to Pinata for marketplace/Phantom compatibility.
+        /// Follows Metaplex standard: name, description, image, category (required); symbol, external_url, attributes, properties, seller_fee_basis_points (optional).
+        /// Uses ipfs.io for the image URL when we have an IPFS hash so Solscan and other indexers that prefer that gateway can load the image.
         /// </summary>
         private async Task<string> UploadMetadataJsonToPinataAsync(string name, string symbol, string description, string imageUrl, string imageContentType = "image/png")
         {
-            var image = imageUrl ?? "https://via.placeholder.com/512/000000/FFFFFF?text=OASIS+NFT";
+            var rawImage = imageUrl ?? "https://via.placeholder.com/512/000000/FFFFFF?text=OASIS+NFT";
+            // Prefer ipfs.io for the image field so Solscan/explorers that use it can display the image (same content, different gateway)
+            var image = TryGetIpfsHash(rawImage, out var hash) ? $"https://ipfs.io/ipfs/{hash}" : rawImage;
             var metadata = new
             {
                 name = name ?? "Telegram NFT",
                 symbol = symbol ?? "TNFT",
-                description = description ?? "",
+                description = (description ?? "").Trim().Length > 0 ? description : "Minted via OASIS",
                 image = image,
-                external_url = "",
+                external_url = (string)null,
+                category = "image", // Metaplex required; helps Phantom/marketplaces display correctly
+                seller_fee_basis_points = 500,
                 attributes = Array.Empty<object>(),
                 properties = new
                 {
                     category = "image",
                     files = new[]
                     {
-                        new { uri = image, type = imageContentType ?? "image/png" }
+                        new { uri = rawImage, type = imageContentType ?? "image/png" }
                     }
                 }
             };
@@ -539,30 +559,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return null;
         }
 
+        /// <summary>
+        /// Web3-only mint + send: calls Solana provider directly (no NFTManager, no Web4/MongoDB).
+        /// Provider mints with OASIS wallet and sends to state.SendToWalletAddress in one flow.
+        /// </summary>
         private async Task<string> MintNftAsync(NftMintFlowState state)
         {
-            Guid mintingAvatarId;
-            if (state.UserAvatarId.HasValue && state.UserAvatarId.Value != Guid.Empty)
-                mintingAvatarId = state.UserAvatarId.Value;
-            else if (!string.IsNullOrEmpty(_options.BotAvatarId) && Guid.TryParse(_options.BotAvatarId, out var botAvatarId))
-                mintingAvatarId = botAvatarId;
-            else
-            {
-                _logger?.LogWarning("[TelegramNftMint] No user avatar and BotAvatarId not configured or invalid");
-                return "❌ Mint failed: no avatar configured (log in with OASIS or set BotAvatarId).";
-            }
-
             var title = state.Title ?? "Telegram NFT";
             var symbol = state.Symbol ?? "TNFT";
             var description = state.Description ?? "";
             var imageUrl = state.ImageUrl ?? "https://via.placeholder.com/512/000000/FFFFFF?text=OASIS+NFT";
-
             var imageContentType = state.ImageContentType ?? "image/png";
+
             string jsonMetaDataUrl;
             if (!string.IsNullOrEmpty(state.JsonMetaDataUrl))
-            {
                 jsonMetaDataUrl = state.JsonMetaDataUrl;
-            }
             else
             {
                 jsonMetaDataUrl = await UploadMetadataJsonToPinataAsync(title, symbol, description, imageUrl, imageContentType).ConfigureAwait(false);
@@ -573,30 +584,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 }
             }
 
-            var request = new MintWeb4NFTRequest
+            var providerResult = new NFTManager(Guid.Empty).GetNFTProvider(ProviderType.SolanaOASIS);
+            if (providerResult?.Result == null || providerResult.IsError)
             {
-                MintedByAvatarId = mintingAvatarId,
+                _logger?.LogWarning("[TelegramNftMint] Solana provider not available: {Message}", providerResult?.Message);
+                return "❌ Mint failed: Solana provider not available. Try again later.";
+            }
+
+            var mintRequest = new MintWeb3NFTRequest
+            {
                 Title = title,
                 Symbol = symbol,
-                Description = description,
-                ImageUrl = imageUrl,
                 JSONMetaDataURL = jsonMetaDataUrl,
-                SendToAddressAfterMinting = state.SendToWalletAddress,
-                NumberToMint = 1,
-                OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
-                OffChainProvider = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),
-                NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType.ExternalJSONURL),
-                NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType.SPL),
-                StoreNFTMetaDataOnChain = false,
-                WaitTillNFTMinted = true,
-                WaitTillNFTSent = true,
-                MetaData = state.MetaData != null ? new Dictionary<string, string>(state.MetaData.ToDictionary(k => k.Key, v => v.Value?.ToString() ?? "")) : new Dictionary<string, string>()
+                SendToAddressAfterMinting = state.SendToWalletAddress
             };
 
             try
             {
-                var nftManager = new NFTManager(mintingAvatarId);
-                var result = await nftManager.MintNftAsync(request, false, ResponseFormatType.SimpleText).ConfigureAwait(false);
+                var result = await providerResult.Result.MintNFTAsync(mintRequest).ConfigureAwait(false);
 
                 if (result.IsError)
                 {
@@ -604,12 +609,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     return $"❌ Mint failed: {result.Message}";
                 }
 
-                var web3 = result.Result?.Web3NFTs?.Count > 0 ? result.Result.Web3NFTs[0] : null;
-                var txHash = web3?.MintTransactionHash ?? "";
-                var nftAddress = web3?.NFTTokenAddress ?? "";
+                var txHash = result.Result?.TransactionResult ?? result.Result?.Web3NFT?.MintTransactionHash ?? "";
+                var nftAddress = result.Result?.Web3NFT?.NFTTokenAddress ?? "";
                 var cluster = string.IsNullOrEmpty(_options.SolanaCluster) ? "devnet" : _options.SolanaCluster;
                 var txLink = $"https://solscan.io/tx/{txHash}?cluster={cluster}";
-                var nftLink = $"https://solscan.io/account/{nftAddress}?cluster={cluster}";
+                var nftLink = string.IsNullOrEmpty(nftAddress) ? txLink : $"https://solscan.io/account/{nftAddress}?cluster={cluster}";
                 return $"✅ **NFT minted!**\n\n🔗 [View transaction]({txLink})\n📍 [View NFT]({nftLink})\n\nCheck your Solana wallet.";
             }
             catch (Exception ex)
@@ -640,14 +644,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
         }
 
+        /// <summary>Pick animation URL: random from MintingGifUrls if set, else MintingGifUrl, else built-in video (when OasisApiBaseUrl set), else fallback GIF.</summary>
+        private static string GetMintingGifUrl(TelegramNftMintOptions options)
+        {
+            var urls = options?.MintingGifUrls;
+            if (urls != null && urls.Length > 0)
+            {
+                var nonEmpty = urls.Where(u => !string.IsNullOrWhiteSpace(u)).ToArray();
+                if (nonEmpty.Length > 0)
+                    return nonEmpty[System.Random.Shared.Next(nonEmpty.Length)];
+            }
+            if (!string.IsNullOrEmpty(options?.MintingGifUrl))
+                return options.MintingGifUrl;
+            var baseUrl = options?.OasisApiBaseUrl?.Trim();
+            if (!string.IsNullOrEmpty(baseUrl))
+            {
+                // Telegram's servers cannot fetch localhost; use fallback GIF so the animation loads
+                if (baseUrl.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    baseUrl.IndexOf("127.0.0.1", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return FallbackMintingGifUrl;
+                return baseUrl.TrimEnd('/') + BuiltInMintingVideoPath;
+            }
+            return FallbackMintingGifUrl;
+        }
+
         /// <summary>
-        /// Send "Minting..." message with Pink Panther (or configured) GIF before the actual mint.
+        /// Send "Minting..." message with configured GIF (or default) before the actual mint.
+        /// Uses MintingGifUrls (random one) if set, else MintingGifUrl, else default.
         /// </summary>
         private async Task SendMintingMessageAsync(long chatId)
         {
             if (string.IsNullOrEmpty(_options.BotToken))
                 return;
-            var gifUrl = !string.IsNullOrEmpty(_options.MintingGifUrl) ? _options.MintingGifUrl : DefaultMintingGifUrl;
+            var gifUrl = GetMintingGifUrl(_options);
             var url = $"https://api.telegram.org/bot{_options.BotToken}/sendAnimation";
             var payload = new { chat_id = chatId, animation = gifUrl, caption = "🪙 **Minting your NFT...**\n\nOne moment please.", parse_mode = "Markdown" };
             var json = JsonSerializer.Serialize(payload);

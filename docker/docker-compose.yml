@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # OASIS API Web API
+  # OASIS API Web API (ONODE)
   oasis-api:
     build:
       context: ..
@@ -15,7 +15,26 @@ services:
     networks:
       - oasis-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/swagger/index.html"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # OASIS STAR API (Missions, Quests, GeoNFTs, etc.)
+  star-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.star
+    ports:
+      - "50564:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
