@@ -75,7 +75,7 @@ temp-oasis-repo/
 AssetRail/
 contract_verification_package/
 Archived/
-A2A/
+SERV/
 BillionsHealed/
 Demos/
 Quantum Street/
@@ -129,7 +129,6 @@ OASIS Architecture/NextGenSoftware.OASIS.Common.UnitTests/
 
 # Other projects not needed for ONODE WebAPI
 NextGenSoftware.OASIS.API.FrontEnd/
-NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/
 NextGenSoftware.OASIS.API.Core.ARC.Membrane/
 NextGenSoftware.OASIS.API.Core.Apollo.Client/
 NextGenSoftware.OASIS.API.Core.Apollo.Server/
