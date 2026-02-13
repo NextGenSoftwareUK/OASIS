@@ -1,6 +1,8 @@
 using NextGenSoftware.OASIS.STAR.DNA;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -155,7 +157,75 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.Use(async (context, next) =>
+{
+    if (context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
+    {
+        var authHeader = authHeaderValue.ToString();
+        if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            var token = authHeader["Bearer ".Length..].Trim();
+            var avatarId = ParseAvatarIdFromJwt(token);
+            if (avatarId != Guid.Empty)
+            {
+                try
+                {
+                    var avatar = AvatarManager.Instance.LoadAvatar(avatarId);
+                    if (avatar is not null)
+                        context.Items["Avatar"] = avatar;
+                }
+                catch
+                {
+                    // Best-effort context hydration for local API routes.
+                }
+            }
+        }
+    }
+
+    await next();
+});
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static Guid ParseAvatarIdFromJwt(string? token)
+{
+    if (string.IsNullOrWhiteSpace(token))
+        return Guid.Empty;
+
+    var parts = token.Split('.');
+    if (parts.Length < 2)
+        return Guid.Empty;
+
+    try
+    {
+        var payload = parts[1].Replace('-', '+').Replace('_', '/');
+        switch (payload.Length % 4)
+        {
+            case 2: payload += "=="; break;
+            case 3: payload += "="; break;
+        }
+
+        var bytes = Convert.FromBase64String(payload);
+        using var doc = JsonDocument.Parse(bytes);
+        if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            return Guid.Empty;
+
+        foreach (var property in doc.RootElement.EnumerateObject())
+        {
+            if ((string.Equals(property.Name, "id", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(property.Name, "avatarId", StringComparison.OrdinalIgnoreCase)) &&
+                property.Value.ValueKind == JsonValueKind.String &&
+                Guid.TryParse(property.Value.GetString(), out var parsed))
+            {
+                return parsed;
+            }
+        }
+    }
+    catch
+    {
+    }
+
+    return Guid.Empty;
+}
