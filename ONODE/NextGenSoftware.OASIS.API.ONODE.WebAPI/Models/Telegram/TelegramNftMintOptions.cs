@@ -28,8 +28,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram
         /// <summary>Solana cluster for Solscan links: "devnet" or "mainnet-beta". Default devnet.</summary>
         public string SolanaCluster { get; set; } = "devnet";
 
-        /// <summary>Optional GIF URL shown while minting (e.g. Pink Panther). If empty, default is used.</summary>
+        /// <summary>Optional GIF URL shown while minting (e.g. SAINT branding). If empty, default is used.</summary>
         public string MintingGifUrl { get; set; }
+
+        /// <summary>Optional list of GIF URLs; one is chosen at random each mint. Overrides MintingGifUrl when set.</summary>
+        public string[] MintingGifUrls { get; set; }
 
         /// <summary>Base URL of this API (e.g. https://your-domain.com) for calling metadata-by-mint when user pastes a Solscan token link. If empty, memecoin import uses request host.</summary>
         public string OasisApiBaseUrl { get; set; }
