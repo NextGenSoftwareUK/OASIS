@@ -11,7 +11,7 @@
 | File | What changed |
 |------|----------------|
 | `Providers/.../SOLANAOASIS/SolanaOasis.cs` | Send-after-mint re-enabled, .Key fix, logging, console restore |
-| `Providers/.../SOLANAOASIS/Infrastructure/Services/Solana/SolanaService.cs` | **SendNftAsync:** create ATA + transfer in **one transaction** (was two); single block hash, atomic |
+| `Providers/.../SOLANAOASIS/Infrastructure/Services/Solana/SolanaService.cs` | **SendNftAsync:** create ATA + transfer in **one transaction** (was two); single block hash, atomic; **Token-2022 support:** detect mint owner, use Token-2022 program for ATA derivation/creation and transfer when mint is Token-2022 |
 | `ONODE/.../Core/Managers/NFTManager.cs` | Send-after-mint logging only (no behavior change for Solana; send is in provider) |
 | `ONODE/Docs/REVERT_NFT_SEND_AFTER_MINT.md` | Original revert doc (partially outdated; see below for full revert) |
 | `ONODE/Docs/NFT_MINT_AND_SEND_FLOW.md` | Flow documentation only (no code revert needed) |
@@ -35,6 +35,25 @@
 
 **Send fix (SolanaService.SendNftAsync):** Create-ATA and transfer are now in **one transaction** when the recipient has no ATA (single atomic tx instead of two). This avoids the "invalid account data" / "incorrect program id" / "Provided owner is not allowed" failures that occurred with two separate transactions.
 
+**On-chain verification (key fix for “NFT not appearing”):** We no longer report “Send NFT SUCCEEDED” just because the RPC accepted the transaction. After sending, we **wait for confirmation** (poll `GetTransaction`) and only return success when the transaction is **confirmed with no on-chain error**. If the transaction fails on-chain (e.g. “Provided owner is not allowed”, “incorrect program id”), we now return **failure** with the real error and logs, so you see why the NFT didn’t arrive.
+
+**Token-2022 support (fix for “incorrect program id for instruction”):** When the mint is owned by the Token-2022 program (`TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`), we now (1) fetch the mint account and detect Token-2022 by owner; (2) derive ATAs using Token-2022 (PDA seeds: owner, tokenProgramId, mint); (3) build CreateAssociatedTokenAccount with Token-2022 in the token-program key slot; (4) build Transfer with Token-2022 program ID. Legacy SPL Token mints continue to use the legacy Token program. This fixes the provider send failing with “Error processing Instruction 0: incorrect program id for instruction” when Metaplex/Solana mints use Token-2022.
+
+---
+
+## Why "Send NFT SUCCEEDED" but the NFT doesn't show in the wallet
+
+**The logs do not show the NFT "in the wallet"** — they only show that the API submitted the send transaction and that it was **confirmed on-chain with no error**. So the transfer did succeed on the Solana network the API is using.
+
+**Most likely cause: network mismatch.** The Solana provider uses the RPC URL from `OASIS_DNA.json` → `SolanaOASIS.ConnectionString`. In the repo that is set to **Solana devnet** (e.g. `https://devnet.helius-rpc.com/...`). So the NFT is minted and sent **on devnet**. If the user's wallet (Phantom, etc.) is set to **mainnet**, they will not see the NFT.
+
+**What to do:**
+1. **Verify the send on-chain:** Open the send tx hash in Solscan and choose **Devnet**: `https://solscan.io/tx/<TX_SIGNATURE>?cluster=devnet` — confirm the transfer goes to the expected recipient address.
+2. **See the NFT in the wallet:** In Phantom (or your wallet), switch the network to **Devnet** (Settings → Developer settings → Change network). Then refresh or re-open the wallet; the NFT should appear at the recipient address.
+3. **Use mainnet instead:** To mint and send on mainnet, set `SolanaOASIS.ConnectionString` in `OASIS_DNA.json` to a **mainnet** RPC URL (and fund the OASIS wallet with mainnet SOL).
+
+**Other possibilities:** (a) Recipient address in the request is different from the wallet the user is checking. (b) Token-2022: some wallets require enabling "Token-2022" or "Token Extensions" to display those NFTs.
+
 ---
 
 ## 4. SolanaService.cs – SendNftAsync single-transaction fix (what changed)
@@ -46,6 +65,22 @@
 - **After:** One transaction: get a single block hash, then build one tx that optionally includes CreateAssociatedTokenAccount (if recipient has no ATA) plus Transfer. Single `SendTransactionAsync` call. Create and transfer are atomic.
 
 **Revert (if needed):** Restore the previous two-transaction flow: first tx = CreateAssociatedTokenAccount only (when `needsCreateTokenAccount`); second tx = TokenProgram.Transfer only. Use two separate `GetLatestBlockHashAsync` and two `SendTransactionAsync` calls as in the original code. The git history on this file (before the single-tx edit) has the exact prior implementation.
+
+---
+
+## 4b. SolanaService.cs – Token-2022 support (SendNftAsync)
+
+**Path:** same file as §4.
+
+**Behavior change:**
+- Before sending, we call `GetAccountInfoAsync(mintPubkey)` and check `Result.Value.Owner`. If it equals the Token-2022 program id (`TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`), we set `useToken2022 = true`.
+- We derive `toAta` and `fromAta` with the appropriate token program: for Token-2022 we use `DeriveAssociatedTokenAccount(owner, mint, Token2022ProgramId)` (PDA seeds: owner, tokenProgramId, mint; program: ATA program). For legacy we keep `AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPubkey, mintPubkey)`.
+- When creating the recipient’s ATA, we use `CreateAssociatedTokenAccountInstruction(payer, owner, mint, Token2022ProgramId)` for Token-2022 (same keys as standard ATA but token program key = Token-2022). For legacy we keep `AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(...)`.
+- For transfer we use `CreateTransferInstruction(fromAta, toAta, amount, fromPubkey, Token2022ProgramId)` for Token-2022 (same layout as SPL Transfer, program id = Token-2022). For legacy we keep `TokenProgram.Transfer(...)`.
+
+**Helpers added:** `DeriveAssociatedTokenAccount(owner, mint, tokenProgramId)`, `CreateAssociatedTokenAccountInstruction(payer, owner, mint, tokenProgramId)`, `CreateTransferInstruction(source, destination, amount, authority, tokenProgramId)`.
+
+**Revert (if needed):** Remove the `Token2022ProgramId` constant; remove the mint-owner fetch and `useToken2022`; always use `AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount` and `TokenProgram.Transfer`; remove the three helper methods.
 
 ---
 
