@@ -26,6 +26,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 
         public async Task Invoke(HttpContext context)
         {
+            // Skip JWT validation for login endpoint so auth never returns 401 due to missing/expired token in header
+            var path = context.Request.Path.Value ?? "";
+            if (path.Contains("/api/avatar/authenticate", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(context.Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+            {
+                await _next(context);
+                return;
+            }
+
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             if (token != null)
                 await AttachAccountToContext(context, token);

@@ -25,6 +25,7 @@ using Solnet.Rpc.Builders;
 using Solnet.Rpc.Models;
 using Solnet.Rpc.Utilities;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
@@ -2840,6 +2841,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         ArgumentNullException.ThrowIfNull(transaction);
 
         OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
+        var savedConsoleOut = Console.Out; // SolanaService.MintNftAsync sets Console to NullTextWriter before returning; restore so our send logs appear
 
         try
         {
@@ -2876,6 +2878,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             OASISResult<MintNftResult> solanaNftTransactionResult
                 = await _solanaService.MintNftAsync(transaction as MintWeb3NFTRequest);
 
+            Console.SetOut(savedConsoleOut); // Restore so send-after-mint logs are visible (SolanaService redirects to NullTextWriter)
+
             if (solanaNftTransactionResult.IsError ||
                 solanaNftTransactionResult.Result == null ||
                 string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
@@ -2893,7 +2897,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             {
                 MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash,
                 NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount,
-                OASISMintWalletAddress = _oasisSolanaAccount.PublicKey,
+                OASISMintWalletAddress = _oasisSolanaAccount.PublicKey.Key,
                 JSONMetaDataURL = transaction.JSONMetaDataURL,
                 Symbol = transaction.Symbol
             };
@@ -2908,28 +2912,38 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             //    Web4OASISNFT = (Web4OASISNFT)oasisNFT.Result;
             //}
 
-            //This is now handled by NFTManager! ;-)
-            //if (!string.IsNullOrEmpty(transaction.SendToAddressAfterMinting))
-            //{
-            //    OASISResult<IWeb4NFTTransactionRespone> sendNftResult = await SendNFTAsync(new NFTWalletTransactionRequest()
-            //    {
-            //        FromWalletAddress = _oasisSolanaAccount.PublicKey,
-            //        ToWalletAddress = transaction.SendToAddressAfterMinting,
-            //        TokenAddress = solanaNftTransactionResult.Result.MintAccount,
-            //        Amount = 1
-            //    });
-            //    if (sendNftResult.IsError)
-            //    {
-            //        OASISErrorHandling.HandleWarning(ref result,
-            //            $"Error occured sending minted NFT to {transaction.SendToAddressAfterMinting}. Reason: {sendNftResult.Message}");
-            //    }
-            //    else
-            //        result.Result.SendNFTTransactionResult = sendNftResult.Result.TransactionResult;
-            //}
+            // Send NFT to user wallet after mint (provider does it so we don't depend on NFTManager build).
+            Console.WriteLine($"=== SOLANA PROVIDER: SendToAddressAfterMinting = {(string.IsNullOrEmpty(transaction.SendToAddressAfterMinting) ? "(empty - send will be skipped)" : transaction.SendToAddressAfterMinting)} ===");
+            if (!string.IsNullOrEmpty(transaction.SendToAddressAfterMinting))
+            {
+                var sendRequest = new SendWeb3NFTRequest
+                {
+                    FromWalletAddress = _oasisSolanaAccount.PublicKey.Key,
+                    ToWalletAddress = transaction.SendToAddressAfterMinting,
+                    TokenAddress = solanaNftTransactionResult.Result.MintAccount,
+                    Amount = 1
+                };
+                Console.WriteLine($"=== SOLANA PROVIDER: Sending NFT to {sendRequest.ToWalletAddress} (mint: {sendRequest.TokenAddress}) ===");
+                OASISResult<IWeb3NFTTransactionResponse> sendNftResult = await SendNFTAsync(sendRequest);
+                if (sendNftResult.IsError)
+                {
+                    Console.WriteLine($"=== SOLANA PROVIDER: Send NFT FAILED. Reason: {sendNftResult.Message} ===");
+                    OASISErrorHandling.HandleWarning(ref result,
+                        $"Error occured sending minted NFT to {transaction.SendToAddressAfterMinting}. Reason: {sendNftResult.Message}");
+                }
+                else if (sendNftResult.Result != null && !string.IsNullOrEmpty(sendNftResult.Result.TransactionResult) && result.Result is Web3NFTTransactionResponse web3Response)
+                {
+                    string sendTxHash = sendNftResult.Result.TransactionResult;
+                    web3Response.SendNFTTransactionResult = sendTxHash;
+                    Web3NFT.SendNFTTransactionHash = sendTxHash; // So NFTManager skips its redundant send
+                    Console.WriteLine($"=== SOLANA PROVIDER: Send NFT SUCCEEDED. TxHash: {sendTxHash} ===");
+                }
+                else
+                    Console.WriteLine($"=== SOLANA PROVIDER: Send NFT returned no tx hash (Result null or empty) ===");
+            }
 
             result.Result.Web3NFT = Web3NFT;
             result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
-           
         }
         catch (Exception e)
         {
