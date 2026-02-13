@@ -134,6 +134,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await NFTManager.LoadAllWeb4NFTsForAvatarAsync(avatarId);
         }
 
+        /// <summary>
+        /// Loads all Web4 NFTs for an avatar by querying every provider in the AutoFailOver list (MongoDB, Pinata, LocalFile, etc.).
+        /// Use this to find NFTs that may be stored in different off-chain index locations.
+        /// </summary>
+        [Authorize]
+        [HttpGet]
+        [Route("load-all-nfts-for_avatar-from-all-providers/{avatarId}")]
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForAvatarFromAllProvidersAsync(Guid avatarId)
+        {
+            return await NFTManager.LoadAllWeb4NFTsForAvatarFromAllProvidersAsync(avatarId);
+        }
+
         [Authorize]
         [HttpGet]
         [Route("load-all-nfts-for_avatar/{avatarId}/{providerType}/{setGlobally}")]
@@ -149,6 +161,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForMintAddressAsync(string mintWalletAddress)
         {
             return await NFTManager.LoadAllWeb4NFTsForMintAddressAsync(mintWalletAddress);
+        }
+
+        /// <summary>
+        /// Loads all Web4 NFTs for a mint address by querying every provider in the AutoFailOver list.
+        /// </summary>
+        [Authorize]
+        [HttpGet]
+        [Route("load-all-nfts-for-mint-wallet-address-from-all-providers/{mintWalletAddress}")]
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForMintAddressFromAllProvidersAsync(string mintWalletAddress)
+        {
+            return await NFTManager.LoadAllWeb4NFTsForMintAddressFromAllProvidersAsync(mintWalletAddress);
         }
 
         [Authorize]
