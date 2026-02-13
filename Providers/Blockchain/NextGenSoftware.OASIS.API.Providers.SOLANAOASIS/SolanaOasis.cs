@@ -2933,8 +2933,10 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 }
                 else if (sendNftResult.Result != null && !string.IsNullOrEmpty(sendNftResult.Result.TransactionResult) && result.Result is Web3NFTTransactionResponse web3Response)
                 {
-                    web3Response.SendNFTTransactionResult = sendNftResult.Result.TransactionResult;
-                    Console.WriteLine($"=== SOLANA PROVIDER: Send NFT SUCCEEDED. TxHash: {sendNftResult.Result.TransactionResult} ===");
+                    string sendTxHash = sendNftResult.Result.TransactionResult;
+                    web3Response.SendNFTTransactionResult = sendTxHash;
+                    Web3NFT.SendNFTTransactionHash = sendTxHash; // So NFTManager skips its redundant send
+                    Console.WriteLine($"=== SOLANA PROVIDER: Send NFT SUCCEEDED. TxHash: {sendTxHash} ===");
                 }
                 else
                     Console.WriteLine($"=== SOLANA PROVIDER: Send NFT returned no tx hash (Result null or empty) ===");
