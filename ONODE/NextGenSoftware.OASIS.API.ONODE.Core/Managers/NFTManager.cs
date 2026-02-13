@@ -24,6 +24,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
@@ -388,7 +389,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     if (request.Web3NFTs == null)
                         request.Web3NFTs = new List<IMintWeb3NFTRequest>();
 
-                    for (int i = 0; i <= (request.NumberToMint - request.Web3NFTs.Count) + 1; i++)
+                    int countToAdd = request.NumberToMint - request.Web3NFTs.Count;
+                    for (int i = 0; i < countToAdd; i++)
                         request.Web3NFTs.Add(new MintWeb3NFTRequest());
                 }
 
@@ -3860,6 +3862,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                     currentWeb3NFT.NFTTokenAddress = mintResult.Result.Web3NFT.NFTTokenAddress;
                                 }
 
+                                // If provider already sent (e.g. Solana send-after-mint), copy send tx hash so we skip redundant send
+                                if (mintResult.Result is Web3NFTTransactionResponse txResp && !string.IsNullOrEmpty(txResp.SendNFTTransactionResult))
+                                    currentWeb3NFT.SendNFTTransactionHash = txResp.SendNFTTransactionResult;
+
                                 if (jsonSaveResult != null)
                                 {
                                     currentWeb3NFT.JSONMetaDataURLHolonId = jsonSaveResult.Result.Id;
@@ -3949,7 +3955,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     Console.WriteLine($"OASISMintWalletAddress: {(string.IsNullOrEmpty(currentWeb3NFT.OASISMintWalletAddress) ? "(empty)" : currentWeb3NFT.OASISMintWalletAddress)}");
                     Console.WriteLine($"=== END SEND-AFTER-MINT CHECK ===");
 
-                    if (!string.IsNullOrEmpty(currentWeb3NFT.MintTransactionHash) && !currentWeb3NFT.MintTransactionHash.ToLower().Contains("error") && !string.IsNullOrEmpty(sendToAddress))
+                    // Skip send if provider already sent (e.g. Solana provider send-after-mint); avoids "Provided owner is not allowed" retries
+                    bool providerAlreadySent = !string.IsNullOrEmpty(currentWeb3NFT.SendNFTTransactionHash)
+                        && !currentWeb3NFT.SendNFTTransactionHash.Contains("Error", StringComparison.OrdinalIgnoreCase)
+                        && !currentWeb3NFT.SendNFTTransactionHash.Contains("aborting", StringComparison.OrdinalIgnoreCase);
+
+                    if (providerAlreadySent)
+                        Console.WriteLine($"=== NFT MANAGER: Send skipped - provider already sent. TxHash: {currentWeb3NFT.SendNFTTransactionHash} ===");
+
+                    if (!string.IsNullOrEmpty(currentWeb3NFT.MintTransactionHash) && !currentWeb3NFT.MintTransactionHash.ToLower().Contains("error") && !string.IsNullOrEmpty(sendToAddress) && !providerAlreadySent)
                     {
                         // Validate required fields before sending
                         if (string.IsNullOrEmpty(currentWeb3NFT.NFTTokenAddress))
@@ -3967,10 +3981,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             Console.WriteLine($"=== NFT MANAGER: Sending NFT to {sendToAddress} ===");
                             bool attemptingToSend = true;
                             startTime = DateTime.Now;
+                            const int maxSendAttempts = 3; // Avoid endless retries and rate limiting when provider already sent
+                            int sendAttempts = 0;
                             CLIEngine.SupressConsoleLogging = true;
 
                             do
                             {
+                                sendAttempts++;
                                 try
                                 {
                                     OASISResult<IWeb3NFTTransactionResponse> sendResult = await nftProviderResult.Result.SendNFTAsync(new SendWeb3NFTRequest()
@@ -4007,9 +4024,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                 {
                                     OASISErrorHandling.HandleError(ref result, mintErrorMessage);
 
-                                    if (!mergedRequest.WaitTillNFTSent)
+                                    if (!mergedRequest.WaitTillNFTSent || sendAttempts >= maxSendAttempts)
                                     {
-                                        currentWeb3NFT.SendNFTTransactionHash = $"{mintErrorMessage}. WaitTillNFTSent is false so aborting! ";
+                                        currentWeb3NFT.SendNFTTransactionHash = sendAttempts >= maxSendAttempts
+                                            ? $"{mintErrorMessage} (stopped after {maxSendAttempts} attempts; provider may have already sent.)"
+                                            : $"{mintErrorMessage}. WaitTillNFTSent is false so aborting! ";
                                         break;
                                     }
 
@@ -4031,7 +4050,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             CLIEngine.SupressConsoleLogging = false;
                         }
                     }
-                    else if (!string.IsNullOrEmpty(sendToAddress))
+                    else if (!string.IsNullOrEmpty(sendToAddress) && !providerAlreadySent)
                     {
                         Console.WriteLine($"=== NFT MANAGER: Send not attempted - mint hash missing or error, or required fields empty. See SEND-AFTER-MINT CHECK above. ===");
                     }
