@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         private static StatsManager _statsManager;
 
         //public static bool IsDevEnviroment = false;
-        //public static string LIVE_OASISAPI = "https://oasisweb4.one"; //"https://api.oasisweb4.one/api";
+        //public static string LIVE_OASISAPI = "https://api.oasisweb4.com"; //"https://api.api.oasisweb4.com/api";
         //public static string DEV_OASISAPI = "https://localhost:3000"; //"http://localhost:5000/api";
 
         //public static string CURRENT_OASISAPI
