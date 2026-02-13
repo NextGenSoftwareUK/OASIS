@@ -15,7 +15,7 @@ internal static class Program
     {
         var harnessMode = GetEnv("STARAPI_HARNESS_MODE", "fake").Trim().ToLowerInvariant();
         _realLocalBypassEnabled = harnessMode == "real-local" &&
-                                  GetEnv("STARAPI_REAL_LOCAL_BYPASS", "true").Equals("true", StringComparison.OrdinalIgnoreCase);
+                                  GetEnv("STARAPI_REAL_LOCAL_BYPASS", "false").Equals("true", StringComparison.OrdinalIgnoreCase);
         var useFakeServer = harnessMode == "fake" ||
                             GetEnv("STARAPI_HARNESS_USE_FAKE_SERVER", "true").Equals("true", StringComparison.OrdinalIgnoreCase);
         var web5BaseUrl = GetEnv("STARAPI_WEB5_BASE_URL", "http://localhost:5055");

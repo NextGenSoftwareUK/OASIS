@@ -66,7 +66,24 @@ try {
         Write-Host ("[sprite] Working bitmap: {0}x{1}" -f $w, $h)
 
         $isCompactKeySprite = ($PadBottom -le 0 -and $MaxWidth -gt 0 -and $MaxWidth -le 18 -and $MaxHeight -gt 0 -and $MaxHeight -le 24)
-        if ($isCompactKeySprite) {
+        $hasTrueTransparency = $false
+        $minAProbe = 255
+        for ($y = 0; $y -lt $h; $y++) {
+            for ($x = 0; $x -lt $w; $x++) {
+                $a = $bmp.GetPixel($x, $y).A
+                if ($a -lt $minAProbe) { $minAProbe = $a }
+                if ($a -eq 0) { $hasTrueTransparency = $true; break }
+            }
+            if ($hasTrueTransparency) { break }
+        }
+
+        $needsEdgeBackgroundCleanup = $isCompactKeySprite -or (-not $isCompactKeySprite -and -not $hasTrueTransparency)
+        if ($needsEdgeBackgroundCleanup) {
+            if ($isCompactKeySprite) {
+                Write-Host "[sprite] Key cleanup enabled."
+            } else {
+                Write-Host ("[sprite] Non-key cleanup enabled (no true transparency detected, minAlpha={0})." -f $minAProbe)
+            }
             # Estimate border background color
             $sumR = 0; $sumG = 0; $sumB = 0; $count = 0
             for ($x = 0; $x -lt $w; $x++) {
@@ -93,10 +110,10 @@ try {
             } else {
                 $bgR = 0; $bgG = 0; $bgB = 0
             }
-            Write-Host ("[sprite] Key cleanup enabled. Border color estimate: R={0} G={1} B={2}" -f $bgR, $bgG, $bgB)
+            Write-Host ("[sprite] Edge cleanup border color estimate: R={0} G={1} B={2}" -f $bgR, $bgG, $bgB)
 
             # Flood-fill transparent from edges based on border color distance
-            $tol = 42
+            $tol = if ($isCompactKeySprite) { 42 } else { 52 }
             Write-Host ("[sprite] Flood-fill begin (tol={0})..." -f $tol)
             $visited = New-Object 'bool[,]' $w, $h
             $q = New-Object 'System.Collections.Generic.Queue[System.Drawing.Point]'
@@ -140,7 +157,7 @@ try {
             }
             Write-Host ("[sprite] Alpha range: min={0} max={1}" -f $minA, $maxA)
 
-            if ($minA -gt 0 -and $maxA -gt $minA) {
+            if ($isCompactKeySprite -and $minA -gt 0 -and $maxA -gt $minA) {
                 $den = $maxA - $minA
                 Write-Host "[sprite] Alpha normalization begin..."
                 for ($y = 0; $y -lt $h; $y++) {
@@ -152,20 +169,21 @@ try {
                     }
                 }
                 Write-Host "[sprite] Alpha normalization done."
+            } elseif (-not $isCompactKeySprite) {
+                Write-Host "[sprite] Non-key alpha finalize: making remaining foreground pixels fully opaque."
+                for ($y = 0; $y -lt $h; $y++) {
+                    for ($x = 0; $x -lt $w; $x++) {
+                        $c = $bmp.GetPixel($x, $y)
+                        if ($c.A -gt 0 -and $c.A -lt 255) {
+                            $bmp.SetPixel($x, $y, [System.Drawing.Color]::FromArgb(255, $c.R, $c.G, $c.B))
+                        }
+                    }
+                }
             } else {
                 Write-Host "[sprite] Alpha normalization skipped."
             }
         } else {
-            Write-Host "[sprite] Non-key sprite path: skipping key-only background/alpha cleanup."
-            Write-Host "[sprite] Non-key sprite path: forcing opaque alpha for visibility."
-            for ($y = 0; $y -lt $h; $y++) {
-                for ($x = 0; $x -lt $w; $x++) {
-                    $c = $bmp.GetPixel($x, $y)
-                    if ($c.A -ne 255) {
-                        $bmp.SetPixel($x, $y, [System.Drawing.Color]::FromArgb(255, $c.R, $c.G, $c.B))
-                    }
-                }
-            }
+            Write-Host "[sprite] Existing transparency detected; preserving source alpha."
         }
 
         if ($PadBottom -gt 0) {
