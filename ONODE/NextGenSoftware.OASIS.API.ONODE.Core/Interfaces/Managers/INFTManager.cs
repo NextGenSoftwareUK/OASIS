@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -69,8 +69,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsAsync(ProviderType providerType = ProviderType.Default);
         OASISResult<IEnumerable<IWeb4NFT>> LoadAllWeb4NFTsForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForAvatarFromAllProvidersAsync(Guid avatarId);
         OASISResult<IEnumerable<IWeb4NFT>> LoadAllWeb4NFTsForMintAddress(string mintWalletAddress, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForMintAddressAsync(string mintWalletAddress, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForMintAddressFromAllProvidersAsync(string mintWalletAddress);
         Task<OASISResult<IList<IWeb4GeoSpatialNFT>>> LoadChildWeb4GeoNFTsForNFTCollectionAsync(List<string> Web4GeoNFTIds, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IList<IWeb4NFT>>> LoadChildWeb4NFTsForNFTCollectionAsync(List<string> Web4NFTIds, ProviderType providerType = ProviderType.Default);
         OASISResult<IWeb3NFT> LoadWeb3Nft(Guid id, ProviderType providerType = ProviderType.Default);
