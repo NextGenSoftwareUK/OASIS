@@ -3775,13 +3775,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         IHolon webNFTHolon = null;
                         List<IWeb3NFT> newlyMintedNFTs = new List<IWeb3NFT>();
 
-                        //Temp remove the metadata so its not persisted on the Web4 NFT Holon.
-                        foreach (IWeb3NFT web3NFT in existingWeb4NFT.Web3NFTs)
+                        // Temp remove the metadata so it's not persisted on the Web4 NFT Holon.
+                        var web3NftsToScan = existingWeb4NFT?.Web3NFTs ?? result.Result?.Web3NFTs;
+                        if (web3NftsToScan != null)
                         {
-                            if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
+                            foreach (IWeb3NFT web3NFT in web3NftsToScan)
                             {
-                                newlyMintedNFTs.Add(web3NFT);
-                                web3NFT.MetaData.Remove("{{{newnft}}}");
+                                if (web3NFT.MetaData != null && web3NFT.MetaData.ContainsKey("{{{newnft}}}"))
+                                {
+                                    newlyMintedNFTs.Add(web3NFT);
+                                    web3NFT.MetaData.Remove("{{{newnft}}}");
+                                }
                             }
                         }
 
@@ -3825,7 +3829,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                         }
 
-                        result.Result.NewlyMintedWeb3NFTs = newlyMintedNFTs; //Used for returning the newly minted web3 nfts only (not persisted). Currently only used for the MintAndPlaceGeoNFT functions.
+                        if (result.Result != null)
+                            result.Result.NewlyMintedWeb3NFTs = newlyMintedNFTs; // Used for returning newly minted Web3 NFTs only (not persisted).
                     }
                 }
                 else

@@ -8,14 +8,11 @@ internal static class Program
 {
     private static int _passed;
     private static int _failed;
-    private static bool _realLocalBypassEnabled;
     private static readonly List<(string Name, bool Passed, string Message)> _results = [];
 
     private static async Task Main()
     {
         var harnessMode = GetEnv("STARAPI_HARNESS_MODE", "fake").Trim().ToLowerInvariant();
-        _realLocalBypassEnabled = harnessMode == "real-local" &&
-                                  GetEnv("STARAPI_REAL_LOCAL_BYPASS", "false").Equals("true", StringComparison.OrdinalIgnoreCase);
         var useFakeServer = harnessMode == "fake" ||
                             GetEnv("STARAPI_HARNESS_USE_FAKE_SERVER", "true").Equals("true", StringComparison.OrdinalIgnoreCase);
         var web5BaseUrl = GetEnv("STARAPI_WEB5_BASE_URL", "http://localhost:5055");
@@ -39,6 +36,8 @@ internal static class Program
         {
             username = "dellams";
             password = "test!";
+            if (string.IsNullOrWhiteSpace(avatarId))
+                avatarId = "f9ccf5b2-3991-42ec-8155-65b94b2e0f0c";
         }
 
         Console.WriteLine("==============================================");
@@ -48,7 +47,6 @@ internal static class Program
         Console.WriteLine($"WEB4 URI: {web4BaseUrl}");
         Console.WriteLine($"Harness mode: {harnessMode}");
         Console.WriteLine($"Use fake server: {useFakeServer}");
-        Console.WriteLine($"Real-local compatibility bypass: {_realLocalBypassEnabled}");
 
         using var client = new StarApiClient();
         client.SetCallback((code, _) => Console.WriteLine($"[callback] {code}"), null);
@@ -57,6 +55,7 @@ internal static class Program
         {
             Web5StarApiBaseUrl = web5BaseUrl,
             Web4OasisApiBaseUrl = web4BaseUrl,
+            TimeoutSeconds = harnessMode == "real-local" ? 180 : 30,
             ApiKey = string.IsNullOrWhiteSpace(apiKey) ? null : apiKey,
             AvatarId = string.IsNullOrWhiteSpace(avatarId) ? null : avatarId
         });
@@ -148,15 +147,6 @@ internal static class Program
     {
         if (result.IsError)
         {
-            if (_realLocalBypassEnabled && IsKnownRealLocalGap(step, result.Message))
-            {
-                _passed++;
-                var bypassMessage = $"BYPASS: {result.Message}";
-                _results.Add((step, true, bypassMessage));
-                Console.WriteLine($"[PASS] {step} => {bypassMessage}");
-                return;
-            }
-
             _failed++;
             _results.Add((step, false, result.Message ?? "Unknown error"));
             Console.WriteLine($"[FAIL] {step} => {result.Message}");
@@ -166,32 +156,6 @@ internal static class Program
         _passed++;
         _results.Add((step, true, result.Message ?? string.Empty));
         Console.WriteLine($"[PASS] {step} => {result.Message}");
-    }
-
-    private static bool IsKnownRealLocalGap(string step, string? message)
-    {
-        if (string.IsNullOrWhiteSpace(message))
-            return false;
-
-        if (message.Contains("HTTP 500 (InternalServerError) calling http://localhost:5055/api/avatar/inventory", StringComparison.OrdinalIgnoreCase))
-            return step is "AddItemAsync" or "QueueAddItemAsync" or "QueueAddItemsAsync";
-
-        if (message.Contains("Error loading avatar detail", StringComparison.OrdinalIgnoreCase) &&
-            message.Contains("00000000-0000-0000-0000-000000000000", StringComparison.OrdinalIgnoreCase))
-        {
-            return step is "HasItemAsync" or "GetInventoryAsync" or "UseItemAsync" or "QueueUseItemAsync";
-        }
-
-        if (message.Contains("OASISException", StringComparison.OrdinalIgnoreCase))
-            return step is "CreateCrossGameQuestAsync" or "GetActiveQuestsAsync" or "GetNftCollectionAsync";
-
-        if (message.Contains("Object reference not set to an instance of an object", StringComparison.OrdinalIgnoreCase))
-            return step is "StartQuestAsync" or "CompleteQuestObjectiveAsync" or "QueueCompleteQuestObjectiveAsync" or "CompleteQuestAsync";
-
-        if (message.Contains("Unauthorized. Try Logging In First With api/avatar/authenticate REST API Route", StringComparison.OrdinalIgnoreCase))
-            return step == "CreateBossNftAsync";
-
-        return false;
     }
 
     private static void ExitWithSummary(string junitPath)
