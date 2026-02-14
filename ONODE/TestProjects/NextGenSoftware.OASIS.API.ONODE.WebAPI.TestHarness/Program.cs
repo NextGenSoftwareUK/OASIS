@@ -7,9 +7,13 @@ var username = Environment.GetEnvironmentVariable("OASIS_WEBAPI_USERNAME") ?? "d
 var password = Environment.GetEnvironmentVariable("OASIS_WEBAPI_PASSWORD") ?? "test!";
 
 using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-var token = await TryAuthenticateAsync(client, baseUrl, username, password);
+var (token, avatarId) = await TryAuthenticateAsync(client, baseUrl, username, password);
 if (!string.IsNullOrWhiteSpace(token))
+{
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    if (avatarId.HasValue)
+        client.DefaultRequestHeaders.Add("X-Avatar-Id", avatarId.Value.ToString());
+}
 
 using var swaggerDoc = JsonDocument.Parse(await client.GetStringAsync($"{baseUrl}/swagger/v1/swagger.json"));
 var endpoints = ReadEndpoints(swaggerDoc.RootElement).ToList();
@@ -96,16 +100,22 @@ static string ResolvePath(string path)
     });
 }
 
-static async Task<string?> TryAuthenticateAsync(HttpClient client, string baseUrl, string username, string password)
+static async Task<(string? Token, Guid? AvatarId)> TryAuthenticateAsync(HttpClient client, string baseUrl, string username, string password)
 {
     var payload = JsonSerializer.Serialize(new { username, password });
     using var response = await client.PostAsync($"{baseUrl}/api/avatar/authenticate", new StringContent(payload, Encoding.UTF8, "application/json"));
     var body = await response.Content.ReadAsStringAsync();
-    if (string.IsNullOrWhiteSpace(body))
-        return null;
+    if (string.IsNullOrWhiteSpace(body) || !response.IsSuccessStatusCode)
+        return (null, null);
 
     using var doc = JsonDocument.Parse(body);
-    return FindStringRecursive(doc.RootElement, "jwtToken");
+    var token = FindStringRecursive(doc.RootElement, "jwtToken") ?? FindStringRecursive(doc.RootElement, "token");
+    var avatarIdStr = FindStringRecursive(doc.RootElement, "avatarId") ?? FindStringRecursive(doc.RootElement, "id");
+    Guid? avatarId = null;
+    if (!string.IsNullOrWhiteSpace(avatarIdStr) && Guid.TryParse(avatarIdStr, out var parsedId))
+        avatarId = parsedId;
+    
+    return (token, avatarId);
 }
 
 static string? FindStringRecursive(JsonElement element, string propertyName)

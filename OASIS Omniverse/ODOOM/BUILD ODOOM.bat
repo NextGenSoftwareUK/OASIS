@@ -122,69 +122,95 @@ copy /Y "%ODOOM_INTEGRATION%odoom_inventory_popup.zs" "%UZDOOM_SRC%\wadsrc\stati
 if not exist "%UZDOOM_SRC%\wadsrc\static\sprites" mkdir "%UZDOOM_SRC%\wadsrc\static\sprites"
 if not exist "%UZDOOM_SRC%\wadsrc\static\graphics" mkdir "%UZDOOM_SRC%\wadsrc\static\graphics"
 if "%DO_SPRITE_REGEN%"=="1" goto :regen_sprites
-echo [ODOOM][NOTE] Sprite/icon regeneration disabled (nosprites mode).
+echo [ODOOM][NOTE] Sprite/icon regeneration disabled - nosprites mode.
 goto :after_sprites
 
 :regen_sprites
-if exist "%OASIS_SPRITES_SRC%\5005.png" echo [ODOOM][STEP] Regenerating OQ gold key sprites...
-if exist "%OASIS_SPRITES_SRC%\5005.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5005.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" -MaxWidth 18 -MaxHeight 24
-if exist "%OASIS_SPRITES_SRC%\5005.png" echo [ODOOM][DONE] OQ gold key sprite generation complete.
-if exist "%OASIS_SPRITES_SRC%\5005.png" copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGB0.png" >nul
+REM Gold key: only generate if output missing
+if exist "%OASIS_SPRITES_SRC%\5005.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" (
+    echo [ODOOM][STEP] Regenerating OQ gold key sprites...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5005.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" -MaxWidth 18 -MaxHeight 24
+    echo [ODOOM][DONE] OQ gold key sprite generation complete.
+)
+if exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGB0.png" copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGB0.png" >nul
+if exist "%OASIS_SPRITES_SRC%\5005.png" if exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" echo [ODOOM][SKIP] OQ gold key sprites already generated.
 if not exist "%OASIS_SPRITES_SRC%\5005.png" echo [ODOOM][NOTE] Sprite step skipped: gold key source 5005.png not found in %OASIS_SPRITES_SRC%.
 
-if exist "%OASIS_SPRITES_SRC%\5013.png" echo [ODOOM][STEP] Regenerating OQ silver key sprites... start: %DATE% %TIME%
-if exist "%OASIS_SPRITES_SRC%\5013.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5013.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" -MaxWidth 18 -MaxHeight 24
-if exist "%OASIS_SPRITES_SRC%\5013.png" echo [ODOOM][DONE] OQ silver key sprite generation complete. end: %DATE% %TIME%
-if exist "%OASIS_SPRITES_SRC%\5013.png" copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSB0.png" >nul
+REM Silver key: only generate if output missing
+if exist "%OASIS_SPRITES_SRC%\5013.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" (
+    echo [ODOOM][STEP] Regenerating OQ silver key sprites...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5013.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" -MaxWidth 18 -MaxHeight 24
+    echo [ODOOM][DONE] OQ silver key sprite generation complete.
+)
+if exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSB0.png" copy /Y "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSB0.png" >nul
+if exist "%OASIS_SPRITES_SRC%\5013.png" if exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" echo [ODOOM][SKIP] OQ silver key sprites already generated.
 if not exist "%OASIS_SPRITES_SRC%\5013.png" echo [ODOOM][NOTE] Sprite step skipped: silver key source 5013.png not found in %OASIS_SPRITES_SRC%.
 
-REM Non-key OQUAKE sprites (runtime actors/items/monsters)
-if exist "%OASIS_SPRITES_SRC%\5201.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5201.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW1A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5202.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5202.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW2A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5203.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5203.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW3A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5204.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5204.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW4A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5205.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5205.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW5A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5206.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5206.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW6A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5207.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5207.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW7A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+REM Non-key OQUAKE sprites - only generate if output missing
+if exist "%OASIS_SPRITES_SRC%\5201.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW1A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5201.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW1A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5202.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW2A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5202.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW2A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5203.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW3A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5203.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW3A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5204.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW4A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5204.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW4A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5205.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW5A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5205.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW5A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5206.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW6A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5206.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW6A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5207.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW7A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5207.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQW7A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
 
-if exist "%OASIS_SPRITES_SRC%\5208.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5208.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQA1A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5209.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5209.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQA2A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5210.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5210.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQA3A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5211.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5211.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQA4A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5208.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQA1A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5208.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQA1A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5209.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQA2A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5209.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQA2A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5210.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQA3A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5210.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQA3A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5211.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQA4A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5211.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQA4A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
 
-if exist "%OASIS_SPRITES_SRC%\5212.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5212.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH1A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5213.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5213.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH2A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5214.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5214.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH3A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5215.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5215.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH4A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
-if exist "%OASIS_SPRITES_SRC%\5216.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5216.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH5A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5212.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQH1A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5212.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH1A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5213.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQH2A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5213.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH2A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5214.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQH3A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5214.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH3A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5215.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQH4A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5215.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH4A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
+if exist "%OASIS_SPRITES_SRC%\5216.png" if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQH5A0.png" powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_key_sprite.ps1" -SourcePath "%OASIS_SPRITES_SRC%\5216.png" -DestPath "%UZDOOM_SRC%\wadsrc\static\sprites\OQH5A0.png" -MaxWidth 24 -MaxHeight 24 -PadBottom %OQ_ITEM_PAD%
 
 if not exist "%QUAKE_PAK0%" goto :missing_quake_pak0
 if not exist "%QUAKE_PAK1%" goto :missing_quake_pak1
-echo [ODOOM][STEP] Generating Doom-profile OQ monster sprite sets from Quake MDL...
-for %%P in (OQM1 OQM2 OQM3 OQM4 OQM5 OQM6 OQM7 OQM8 OQM9 OQMA) do if exist "%UZDOOM_SRC%\wadsrc\static\sprites\%%PA0.png" del /q "%UZDOOM_SRC%\wadsrc\static\sprites\%%PA0.png"
-for %%P in (OQM1 OQM2 OQM3 OQM4 OQM5 OQM6 OQM7 OQM8 OQM9 OQMA) do if exist "%UZDOOM_SRC%\wadsrc\static\sprites\%%P*.png" del /q "%UZDOOM_SRC%\wadsrc\static\sprites\%%P*.png"
-if exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM*_manifest.json" del /q "%UZDOOM_SRC%\wadsrc\static\sprites\OQM*_manifest.json"
-if exist "%UZDOOM_SRC%\wadsrc\static\sprites\oqm*_manifest.json" del /q "%UZDOOM_SRC%\wadsrc\static\sprites\oqm*_manifest.json"
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/dog.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM1 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/zombie.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM2 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/demon.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM3 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/shambler.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM4 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/soldier.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM5 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK1%" --mdl-entry "progs/fish.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM6 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/ogre.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM7 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK1%" --mdl-entry "progs/enforcer.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM8 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK1%" --mdl-entry "progs/tarbaby.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM9 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
-"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK1%" --mdl-entry "progs/hknight.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQMA --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
-if errorlevel 1 goto :mdlgen_failed
+REM OQ monster sprites from Quake MDL - script outputs A1 etc. Skip if first file exists.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM1A1.png" (
+    echo [ODOOM][STEP] Generating OQ monster sprites: dog OQM1...
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/dog.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM1 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQM1 already generated.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM2A1.png" (
+    echo [ODOOM][STEP] Generating OQ monster sprites: zombie OQM2...
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/zombie.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM2 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQM2 already generated.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM3A1.png" (
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/demon.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM3 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQM3 already generated.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM4A1.png" (
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/shambler.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM4 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQM4 already generated.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM5A1.png" (
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/soldier.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM5 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQM5 already generated.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM6A1.png" (
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK1%" --mdl-entry "progs/fish.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM6 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQM6 already generated.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM7A1.png" (
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK0%" --mdl-entry "progs/ogre.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM7 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQM7 already generated.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM8A1.png" (
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK1%" --mdl-entry "progs/enforcer.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM8 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQM8 already generated.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM9A1.png" (
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK1%" --mdl-entry "progs/tarbaby.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQM9 --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQM9 already generated.
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQMAA1.png" (
+    "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%generate_oquake_mdl_sprites.py" --mdl-pak "%QUAKE_PAK1%" --mdl-entry "progs/hknight.mdl" --palette-pak "%QUAKE_PAK0%" --palette-entry "gfx/palette.lmp" --out-dir "%UZDOOM_SRC%\wadsrc\static\sprites" --sprite-prefix OQMA --width 160 --height 160 --angles 8 --profile zombieman --yaw-offset-deg 90 --no-manifest
+    if errorlevel 1 goto :mdlgen_failed
+) else echo [ODOOM][SKIP] OQ monster OQMA already generated.
 goto :after_quake_monsters
 
 :missing_quake_pak0
@@ -206,8 +232,12 @@ exit /b 1
 
 :after_quake_monsters
 
-echo [ODOOM][STEP] Generating OQ HUD key icons...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%generate_odoom_hud_key_icons.ps1" -OutputDir "%UZDOOM_SRC%\wadsrc\static\graphics"
+REM OQ HUD key icons - only generate if output missing
+if not exist "%UZDOOM_SRC%\wadsrc\static\graphics\OQKGI0.png" (
+    echo [ODOOM][STEP] Generating OQ HUD key icons...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%generate_odoom_hud_key_icons.ps1" -OutputDir "%UZDOOM_SRC%\wadsrc\static\graphics"
+    echo [ODOOM][DONE] OQ HUD key icons generated.
+) else echo [ODOOM][SKIP] OQ HUD key icons already generated.
 
 :after_sprites
 echo [ODOOM][STEP] Verifying required OQ runtime sprites...
@@ -248,7 +278,7 @@ if "%DO_FULL_CLEAN%"=="1" (
     echo [ODOOM][STEP] Full clean...
     if exist "%UZDOOM_SRC%\build" rmdir /s /q "%UZDOOM_SRC%\build" & echo   build removed
 )
-echo [ODOOM][STEP] Configuring (CMake + STAR API)...
+echo [ODOOM][STEP] Configuring CMake and STAR API...
 cd /d "%UZDOOM_SRC%"
 if not exist build mkdir build
 cd build
@@ -294,7 +324,7 @@ if exist "%ODOOM_INTEGRATION%copy_builder_native.ps1" (
 echo.
 echo ---
 echo [ODOOM][DONE] ODOOM ready: %ODOOM_INTEGRATION%build\ODOOM.exe
-echo [ODOOM][INFO] Put doom2.wad (and optional soft_oal.dll) in build folder.
+echo [ODOOM][INFO] Put doom2.wad and optional soft_oal.dll in build folder.
 echo [ODOOM][INFO] Use "BUILD & RUN ODOOM.bat" to launch.
 echo ---
 

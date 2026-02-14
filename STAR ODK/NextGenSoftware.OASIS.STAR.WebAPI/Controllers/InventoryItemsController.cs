@@ -58,8 +58,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
                 await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.LoadAllAsync(AvatarId, 0);
+                
+                // Ensure result is properly initialized
+                if (result == null)
+                {
+                    return Ok(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = false,
+                        Result = new List<InventoryItem>(),
+                        Message = "No inventory items found."
+                    });
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
@@ -67,7 +88,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
                 {
                     IsError = true,
-                    Message = $"Error loading inventory items for AvatarId {AvatarId}: {ex}",
+                    Message = $"Error loading inventory items for AvatarId {AvatarId}: {ex.Message}",
                     Exception = ex
                 });
             }
@@ -321,7 +342,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, showAllVersions, version);
+                
+                // Ensure result is properly initialized
+                if (result == null)
+                {
+                    return Ok(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = false,
+                        Result = new List<InventoryItem>(),
+                        Message = "No inventory items found for avatar."
+                    });
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
