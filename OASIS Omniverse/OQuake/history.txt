@@ -3,3 +3,5 @@ See README.md and WINDOWS_INTEGRATION.md for setup and build.
 star
 star version
 star
+oasis_inventory_toggle#
+oasis_inventory_toggle

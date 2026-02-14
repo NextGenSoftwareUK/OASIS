@@ -21,11 +21,17 @@ extern "C" {
 #define OQUAKE_ITEM_SILVER_KEY "silver_key"
 #define OQUAKE_ITEM_GOLD_KEY   "gold_key"
 
+typedef struct cb_context_s cb_context_t;
+
 void OQuake_STAR_Init(void);
 void OQuake_STAR_Cleanup(void);
 void OQuake_STAR_OnKeyPickup(const char* key_name);
 int  OQuake_STAR_CheckDoorAccess(const char* door_targetname, const char* required_key_name);
 void OQuake_STAR_Console_f(void); /* in-game console "star" command - registered by Init */
+void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx);
+int OQuake_STAR_ShouldUseAnorakFace(void);
+const char* OQuake_STAR_GetUsername(void);
+void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx);
 
 #ifdef __cplusplus
 }
