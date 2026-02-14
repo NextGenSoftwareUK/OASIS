@@ -180,27 +180,22 @@ static void OQ_InventoryNextTab_f(void) {
 }
 
 static void OQ_PollInventoryHotkeys(void) {
-    qboolean i_down, o_down, p_down;
+    qboolean o_down, p_down;
 
     if (key_dest == key_menu || key_dest == key_message) {
-        g_inv_i_was_down = false;
         g_inv_o_was_down = false;
         g_inv_p_was_down = false;
         return;
     }
 
-    i_down = keydown['i'] || keydown['I'];
     o_down = keydown['o'] || keydown['O'];
     p_down = keydown['p'] || keydown['P'];
 
-    if (i_down && !g_inv_i_was_down)
-        OQ_InventoryToggle_f();
     if (o_down && !g_inv_o_was_down)
         OQ_InventoryPrevTab_f();
     if (p_down && !g_inv_p_was_down)
         OQ_InventoryNextTab_f();
 
-    g_inv_i_was_down = i_down;
     g_inv_o_was_down = o_down;
     g_inv_p_was_down = p_down;
 }
@@ -514,13 +509,12 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     if (realtime - g_inventory_last_refresh > 2.0)
         OQ_RefreshInventoryCache();
 
-    /* CANVAS_DEFAULT uses HUD coordinates (roughly 320x200), not raw glwidth/glheight. */
-    panel_w = q_min(320 - 32, 288);
-    panel_h = q_min(200 - 32, 168);
-    if (panel_w < 240) panel_w = 240;
-    if (panel_h < 112) panel_h = 112;
-    panel_x = (320 - panel_w) / 2;
-    panel_y = 24;
+    panel_w = q_min(glwidth - 64, 720);
+    panel_h = q_min(glheight - 96, 420);
+    if (panel_w < 320) panel_w = 320;
+    if (panel_h < 160) panel_h = 160;
+    panel_x = (glwidth - panel_w) / 2;
+    panel_y = (glheight - panel_h) / 2;
     if (panel_x < 0) panel_x = 0;
     if (panel_y < 0) panel_y = 0;
 
