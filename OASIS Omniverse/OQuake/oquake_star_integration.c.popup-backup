@@ -56,12 +56,16 @@ static int g_inventory_active_tab = OQ_TAB_KEYS;
 static qboolean g_inventory_open = false;
 static double g_inventory_last_refresh = 0.0;
 static char g_inventory_status[128] = "STAR inventory unavailable.";
+static qboolean g_inv_i_was_down = false;
+static qboolean g_inv_o_was_down = false;
+static qboolean g_inv_p_was_down = false;
+
 static int star_initialized(void);
 
-static const char* OQ_TabShortName(int tab) {
+static const char* OQ_TabName(int tab) {
     switch (tab) {
         case OQ_TAB_KEYS: return "Keys";
-        case OQ_TAB_POWERUPS: return "Power Ups";
+        case OQ_TAB_POWERUPS: return "Powerups";
         case OQ_TAB_WEAPONS: return "Weapons";
         case OQ_TAB_AMMO: return "Ammo";
         case OQ_TAB_ARMOR: return "Armor";
@@ -176,7 +180,24 @@ static void OQ_InventoryNextTab_f(void) {
 }
 
 static void OQ_PollInventoryHotkeys(void) {
-    /* O/P are handled through bound console commands to avoid double-step input. */
+    qboolean o_down, p_down;
+
+    if (key_dest == key_menu || key_dest == key_message) {
+        g_inv_o_was_down = false;
+        g_inv_p_was_down = false;
+        return;
+    }
+
+    o_down = keydown['o'] || keydown['O'];
+    p_down = keydown['p'] || keydown['P'];
+
+    if (o_down && !g_inv_o_was_down)
+        OQ_InventoryPrevTab_f();
+    if (p_down && !g_inv_p_was_down)
+        OQ_InventoryNextTab_f();
+
+    g_inv_o_was_down = o_down;
+    g_inv_p_was_down = p_down;
 }
 
 static int star_initialized(void) {
@@ -474,9 +495,6 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     int panel_h;
     int panel_x;
     int panel_y;
-    int tab_y;
-    int tab_slot_w;
-    int tab;
     int draw_y;
     int shown;
     int i;
@@ -490,9 +508,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     if (realtime - g_inventory_last_refresh > 2.0)
         OQ_RefreshInventoryCache();
 
-    panel_w = q_min(glwidth - 48, 900);
+    panel_w = q_min(glwidth - 64, 720);
     panel_h = q_min(glheight - 96, 420);
-    if (panel_w < 480) panel_w = 480;
+    if (panel_w < 320) panel_w = 320;
     if (panel_h < 160) panel_h = 160;
     panel_x = (glwidth - panel_w) / 2;
     panel_y = (glheight - panel_h) / 2;
@@ -507,20 +525,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (header_x < panel_x + 6) header_x = panel_x + 6;
         Draw_String(cbx, header_x, panel_y + 6, header);
     }
-    tab_y = panel_y + 26;
-    tab_slot_w = (panel_w - 24) / OQ_TAB_COUNT;
-    for (tab = 0; tab < OQ_TAB_COUNT; tab++) {
-        int slot_x = panel_x + 12 + tab * tab_slot_w;
-        const char* tab_name = OQ_TabShortName(tab);
-        int tab_name_w = (int)strlen(tab_name) * 8;
-        int tab_name_x = slot_x + (tab_slot_w - tab_name_w) / 2;
-        if (tab == g_inventory_active_tab)
-            Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, 10, 96, 0.35f);
-        Draw_String(cbx, tab_name_x, tab_y, tab_name);
-    }
+    q_snprintf(line, sizeof(line), "Tab: %s", OQ_TabName(g_inventory_active_tab));
+    Draw_String(cbx, panel_x + 6, panel_y + 26, line);
     Draw_String(cbx, panel_x + 6, panel_y + panel_h - 8, "I=Toggle  O/P=Switch Tabs");
 
-    draw_y = panel_y + 46;
+    draw_y = panel_y + 42;
     shown = 0;
     for (i = 0; i < g_inventory_count; i++) {
         if (!OQ_ItemMatchesTab(&g_inventory_entries[i], g_inventory_active_tab))
