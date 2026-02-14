@@ -131,7 +131,29 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "POST" && path == "/api/inventoryitems")
+            if (method == "GET" && path == "/api/inventoryitems")
+            {
+                List<object> snapshot;
+                lock (_sync)
+                {
+                    snapshot = _inventory.Select(x => (object)new
+                    {
+                        Id = x.Id,
+                        Name = x.Name,
+                        Description = x.Description,
+                        MetaData = new Dictionary<string, string>
+                        {
+                            ["GameSource"] = x.GameSource,
+                            ["ItemType"] = x.ItemType
+                        }
+                    }).ToList();
+                }
+
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = snapshot }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && (path == "/api/inventoryitems" || path == "/api/inventoryitems/create"))
             {
                 var body = await ReadBodyAsync(request).ConfigureAwait(false);
                 using var doc = JsonDocument.Parse(body);
@@ -163,9 +185,11 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "DELETE" && path.StartsWith("/api/avatar/inventory/", StringComparison.OrdinalIgnoreCase))
+            if (method == "DELETE" && (path.StartsWith("/api/avatar/inventory/", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/api/inventoryitems/", StringComparison.OrdinalIgnoreCase)))
             {
-                var idText = path["/api/avatar/inventory/".Length..];
+                var idText = path.StartsWith("/api/inventoryitems/", StringComparison.OrdinalIgnoreCase)
+                    ? path["/api/inventoryitems/".Length..]
+                    : path["/api/avatar/inventory/".Length..];
                 Guid.TryParse(idText, out var id);
                 lock (_sync)
                     _inventory.RemoveAll(x => x.Id == id);

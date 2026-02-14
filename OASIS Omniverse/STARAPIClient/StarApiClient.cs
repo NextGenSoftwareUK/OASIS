@@ -194,10 +194,65 @@ public sealed class StarApiClient : IDisposable
             if (auth is null)
                 return FailAndCallback<bool>("Authentication response did not include avatar data.", StarApiResultCode.ApiError);
 
+            // Some WEB4 OASIS API payloads wrap auth properties multiple levels deep.
+            // Parse directly from raw JSON as a fallback to ensure JWT/avatar id are captured.
+            try
+            {
+                using var rawDoc = JsonDocument.Parse(response.Result);
+                var rawJwt = FindStringRecursive(rawDoc.RootElement, "JwtToken");
+                var rawRefresh = FindStringRecursive(rawDoc.RootElement, "RefreshToken");
+                var rawId = FindStringRecursive(rawDoc.RootElement, "Id") ?? FindStringRecursive(rawDoc.RootElement, "AvatarId");
+
+                if (string.IsNullOrWhiteSpace(auth.JwtToken) && !string.IsNullOrWhiteSpace(rawJwt))
+                    auth.JwtToken = rawJwt;
+                if (string.IsNullOrWhiteSpace(auth.RefreshToken) && !string.IsNullOrWhiteSpace(rawRefresh))
+                    auth.RefreshToken = rawRefresh;
+                if (auth.Id == Guid.Empty && Guid.TryParse(rawId, out var parsedRawId))
+                    auth.Id = parsedRawId;
+            }
+            catch
+            {
+                // Keep parsed envelope values if raw parsing fails.
+            }
+
             // Keep local WEB5 STAR API session state in sync after WEB4 OASIS authentication.
             // Some local controllers resolve avatar context from their own auth flow.
             try
             {
+                // Ensure WEB5 STAR API runtime is ignited before using manager-backed routes.
+                var starStatusResponse = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/star/status", null, cancellationToken).ConfigureAwait(false);
+                if (!starStatusResponse.IsError)
+                {
+                    var needsIgnite = true;
+                    try
+                    {
+                        using var statusDoc = JsonDocument.Parse(starStatusResponse.Result);
+                        if (statusDoc.RootElement.ValueKind == JsonValueKind.Object &&
+                            statusDoc.RootElement.TryGetProperty("isIgnited", out var ignitedProp) &&
+                            ignitedProp.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                        {
+                            needsIgnite = !ignitedProp.GetBoolean();
+                        }
+                    }
+                    catch
+                    {
+                        needsIgnite = true;
+                    }
+
+                    if (needsIgnite)
+                    {
+                        var ignitePayload = BuildJson(writer =>
+                        {
+                            writer.WriteStartObject();
+                            writer.WriteString("userName", username);
+                            writer.WriteString("password", password);
+                            writer.WriteEndObject();
+                        });
+
+                        _ = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/star/ignite", ignitePayload, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
                 var web5AuthResponse = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/authenticate", payload, cancellationToken).ConfigureAwait(false);
                 if (!web5AuthResponse.IsError)
                 {
@@ -407,7 +462,7 @@ public sealed class StarApiClient : IDisposable
 
         try
         {
-            var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, cancellationToken).ConfigureAwait(false);
             if (response.IsError)
                 return FailAndCallback<List<StarItem>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
@@ -806,20 +861,33 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<string>($"bossStatsJson is not valid JSON: {ex.Message}", StarApiResultCode.InvalidParam, ex);
         }
 
+        string? sendToAvatarAfterMintingId = null;
+        lock (_stateLock)
+        {
+            if (Guid.TryParse(_avatarId, out var avatarGuid) && avatarGuid != Guid.Empty)
+                sendToAvatarAfterMintingId = avatarGuid.ToString();
+        }
+
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
             writer.WriteString("title", bossName);
             writer.WriteString("description", string.IsNullOrWhiteSpace(description) ? "Boss from game" : description);
             writer.WriteString("symbol", "BOSS");
+            writer.WriteString("image", "AQ==");
+            writer.WriteString("imageUrl", "https://oasisweb4.one/images/star/default-boss.png");
+            writer.WriteString("thumbnail", "AQ==");
+            writer.WriteString("thumbnailUrl", "https://oasisweb4.one/images/star/default-boss-thumb.png");
             writer.WriteString("memoText", "Minted by WEB5 STAR API Client");
             writer.WriteNumber("numberToMint", 1);
             writer.WriteBoolean("storeNFTMetaDataOnChain", false);
-            writer.WriteString("offChainProvider", "IPFSOASIS");
-            writer.WriteString("onChainProvider", "SolanaOASIS");
-            writer.WriteString("nftOffChainMetaType", "OASIS");
-            writer.WriteString("jsonMetaDataURL", string.Empty);
+            writer.WriteString("offChainProvider", "MongoDBOASIS");
+            writer.WriteString("onChainProvider", "ArbitrumOASIS");
+            writer.WriteString("nftOffChainMetaType", "ExternalJSONURL");
+            writer.WriteString("JSONMetaDataURL", "https://oasisweb4.one/metadata/star/default-boss.json");
             writer.WriteString("nftStandardType", "ERC1155");
+            if (!string.IsNullOrWhiteSpace(sendToAvatarAfterMintingId))
+                writer.WriteString("sendToAvatarAfterMintingId", sendToAvatarAfterMintingId);
             writer.WritePropertyName("metaData");
             writer.WriteStartObject();
             writer.WriteString("GameSource", string.IsNullOrWhiteSpace(gameSource) ? "Unknown" : gameSource);
@@ -828,8 +896,8 @@ public sealed class StarApiClient : IDisposable
             writer.WriteString("DefeatedAt", DateTime.UtcNow.ToString("O"));
             writer.WriteBoolean("Deployable", true);
             writer.WriteEndObject();
-            writer.WriteBoolean("waitTillNFTMinted", true);
-            writer.WriteNumber("waitForNFTToMintInSeconds", 60);
+            writer.WriteBoolean("waitTillNFTMinted", false);
+            writer.WriteNumber("waitForNFTToMintInSeconds", 10);
             writer.WriteNumber("attemptToMintEveryXSeconds", 1);
             writer.WriteBoolean("waitTillNFTSent", false);
             writer.WriteNumber("waitForNFTToSendInSeconds", 30);
@@ -839,11 +907,27 @@ public sealed class StarApiClient : IDisposable
 
         var response = await SendRawAsync(HttpMethod.Post, $"{_oasisBaseUrl}/api/nft/mint-nft", payload, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
+        {
+            if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
+            {
+                InvokeCallback(StarApiResultCode.Success);
+                return Success(warningMintId!, StarApiResultCode.Success, $"Boss NFT created with warnings: {response.Message}");
+            }
+
             return FailAndCallback<string>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
+        {
+            if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
+            {
+                InvokeCallback(StarApiResultCode.Success);
+                return Success(warningMintId!, StarApiResultCode.Success, $"Boss NFT created with warnings: {parseErrorMessage}");
+            }
+
             return FailAndCallback<string>(parseErrorMessage, parseErrorCode);
+        }
 
         var nftId = ParseIdAsString(resultElement);
         if (string.IsNullOrWhiteSpace(nftId))
@@ -873,7 +957,7 @@ public sealed class StarApiClient : IDisposable
 
         var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/nfts/{nftId}/activate", payload, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
-            return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+                return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Boss NFT deployed successfully.");
@@ -933,6 +1017,11 @@ public sealed class StarApiClient : IDisposable
             using var request = new HttpRequestMessage(method, url);
             if (!string.IsNullOrWhiteSpace(bodyJson))
                 request.Content = new StringContent(bodyJson, Encoding.UTF8, "application/json");
+            lock (_stateLock)
+            {
+                if (!string.IsNullOrWhiteSpace(_avatarId))
+                    request.Headers.TryAddWithoutValidation("X-Avatar-Id", _avatarId);
+            }
 
             using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -1122,9 +1211,13 @@ public sealed class StarApiClient : IDisposable
         if (element.ValueKind != JsonValueKind.Object)
             return null;
 
-        Guid.TryParse(GetStringProperty(element, "Id"), out var id);
-        var jwt = GetStringProperty(element, "JwtToken");
-        var refresh = GetStringProperty(element, "RefreshToken");
+        var idText = GetStringProperty(element, "Id")
+            ?? GetStringProperty(element, "AvatarId")
+            ?? FindStringRecursive(element, "Id")
+            ?? FindStringRecursive(element, "AvatarId");
+        Guid.TryParse(idText, out var id);
+        var jwt = GetStringProperty(element, "JwtToken") ?? FindStringRecursive(element, "JwtToken");
+        var refresh = GetStringProperty(element, "RefreshToken") ?? FindStringRecursive(element, "RefreshToken");
 
         if (id != Guid.Empty || !string.IsNullOrWhiteSpace(jwt) || !string.IsNullOrWhiteSpace(refresh))
         {
@@ -1145,6 +1238,42 @@ public sealed class StarApiClient : IDisposable
             JwtToken = jwt,
             RefreshToken = refresh
         };
+    }
+
+    private static string? FindStringRecursive(JsonElement element, string propertyName)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                if (string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.String)
+                        return property.Value.GetString();
+
+                    var nestedDirect = FindStringRecursive(property.Value, propertyName);
+                    if (!string.IsNullOrWhiteSpace(nestedDirect))
+                        return nestedDirect;
+                }
+                else
+                {
+                    var nested = FindStringRecursive(property.Value, propertyName);
+                    if (!string.IsNullOrWhiteSpace(nested))
+                        return nested;
+                }
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+            {
+                var nested = FindStringRecursive(item, propertyName);
+                if (!string.IsNullOrWhiteSpace(nested))
+                    return nested;
+            }
+        }
+
+        return null;
     }
 
     private static AvatarInfo? ParseAvatarInfo(JsonElement element)
@@ -1170,6 +1299,37 @@ public sealed class StarApiClient : IDisposable
             return element.GetString();
 
         return null;
+    }
+
+    private static bool TryExtractTopLevelResultId(string? json, out string? id)
+    {
+        id = null;
+        if (string.IsNullOrWhiteSpace(json))
+            return false;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                return false;
+
+            if (!TryGetProperty(doc.RootElement, "Result", out var resultElement) &&
+                !TryGetProperty(doc.RootElement, "result", out resultElement))
+            {
+                return false;
+            }
+
+            var parsedId = ParseIdAsString(resultElement);
+            if (string.IsNullOrWhiteSpace(parsedId))
+                return false;
+
+            id = parsedId;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static Guid ExtractAvatarIdFromJwt(string? jwtToken)

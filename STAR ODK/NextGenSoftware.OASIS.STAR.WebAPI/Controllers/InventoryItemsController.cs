@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -21,6 +22,28 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class InventoryItemsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
+
+        private static async Task EnsureStarApiBootedAsync()
+        {
+            if (_starAPI.IsOASISBooted)
+                return;
+
+            await _bootLock.WaitAsync();
+            try
+            {
+                if (_starAPI.IsOASISBooted)
+                    return;
+
+                var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                if (boot.IsError)
+                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Retrieves all inventory items in the system.
@@ -35,6 +58,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.LoadAllAsync(AvatarId, 0);
                 return Ok(result);
             }
@@ -43,7 +67,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
                 {
                     IsError = true,
-                    Message = $"Error loading inventory items: {ex.Message}",
+                    Message = $"Error loading inventory items for AvatarId {AvatarId}: {ex}",
                     Exception = ex
                 });
             }
@@ -99,7 +123,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<InventoryItem>
                 {
                     IsError = true,
-                    Message = $"Error creating inventory item: {ex.Message}",
+                    Message = $"Error creating inventory item for AvatarId {AvatarId}: {ex}",
                     Exception = ex
                 });
             }
@@ -130,6 +154,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.DeleteAsync(AvatarId, id, 0);
                 return Ok(result);
             }
@@ -177,6 +202,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
@@ -185,7 +211,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<InventoryItem>
                 {
                     IsError = true,
-                    Message = $"Error creating inventory item: {ex.Message}",
+                    Message = $"Error creating inventory item for AvatarId {AvatarId}: {ex}",
                     Exception = ex
                 });
             }

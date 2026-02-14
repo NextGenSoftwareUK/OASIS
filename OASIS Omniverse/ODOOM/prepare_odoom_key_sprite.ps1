@@ -5,11 +5,96 @@ param(
     [int]$MaxWidth = 0,
     [int]$MaxHeight = 0,
     [int]$PadBottom = 0,
-    [switch]$Rotate90CW
+    [switch]$Rotate90CW,
+    [switch]$WriteGrabOffsets
 )
 
 Add-Type -AssemblyName System.Drawing
 $swTotal = [System.Diagnostics.Stopwatch]::StartNew()
+
+function Get-Crc32 {
+    param([byte[]]$Bytes)
+    [uint32]$crc = 4294967295
+    foreach ($b in $Bytes) {
+        $crc = $crc -bxor [uint32]$b
+        for ($i = 0; $i -lt 8; $i++) {
+            if (($crc -band 1) -ne 0) {
+                $crc = (($crc -shr 1) -bxor [uint32]3988292384)
+            } else {
+                $crc = ($crc -shr 1)
+            }
+        }
+    }
+    return ($crc -bxor [uint32]4294967295)
+}
+
+function To-BigEndianBytesUInt32 {
+    param([uint32]$Value)
+    $b = [BitConverter]::GetBytes($Value)
+    if ([BitConverter]::IsLittleEndian) { [Array]::Reverse($b) }
+    return $b
+}
+
+function To-BigEndianBytesInt32 {
+    param([int]$Value)
+    $b = [BitConverter]::GetBytes($Value)
+    if ([BitConverter]::IsLittleEndian) { [Array]::Reverse($b) }
+    return $b
+}
+
+function Write-PngWithGrAb {
+    param(
+        [string]$PngPath,
+        [int]$GrabX,
+        [int]$GrabY
+    )
+
+    [byte[]]$png = [System.IO.File]::ReadAllBytes($PngPath)
+    if ($png.Length -lt 33) {
+        throw "PNG too small: $PngPath"
+    }
+    [byte[]]$sig = 137,80,78,71,13,10,26,10
+    for ($i = 0; $i -lt 8; $i++) {
+        if ($png[$i] -ne $sig[$i]) {
+            throw "Invalid PNG signature: $PngPath"
+        }
+    }
+
+    # First chunk should be IHDR; insert grAb immediately after it.
+    [uint32]$ihdrLen = ([uint32]$png[8] -shl 24) -bor ([uint32]$png[9] -shl 16) -bor ([uint32]$png[10] -shl 8) -bor [uint32]$png[11]
+    $firstChunkTotal = 4 + 4 + [int]$ihdrLen + 4
+    $insertPos = 8 + $firstChunkTotal
+    if ($insertPos -gt $png.Length) {
+        throw "IHDR chunk parse failed: $PngPath"
+    }
+
+    [byte[]]$type = [System.Text.Encoding]::ASCII.GetBytes("grAb")
+    [byte[]]$data = New-Object byte[] 8
+    [byte[]]$xBytes = To-BigEndianBytesInt32 $GrabX
+    [byte[]]$yBytes = To-BigEndianBytesInt32 $GrabY
+    [Array]::Copy($xBytes, 0, $data, 0, 4)
+    [Array]::Copy($yBytes, 0, $data, 4, 4)
+
+    [byte[]]$crcInput = New-Object byte[] 12
+    [Array]::Copy($type, 0, $crcInput, 0, 4)
+    [Array]::Copy($data, 0, $crcInput, 4, 8)
+    [uint32]$crc = Get-Crc32 $crcInput
+
+    [byte[]]$lenBytes = To-BigEndianBytesUInt32 8
+    [byte[]]$crcBytes = To-BigEndianBytesUInt32 $crc
+
+    [byte[]]$chunk = New-Object byte[] 20
+    [Array]::Copy($lenBytes, 0, $chunk, 0, 4)
+    [Array]::Copy($type, 0, $chunk, 4, 4)
+    [Array]::Copy($data, 0, $chunk, 8, 8)
+    [Array]::Copy($crcBytes, 0, $chunk, 16, 4)
+
+    [byte[]]$out = New-Object byte[] ($png.Length + $chunk.Length)
+    [Array]::Copy($png, 0, $out, 0, $insertPos)
+    [Array]::Copy($chunk, 0, $out, $insertPos, $chunk.Length)
+    [Array]::Copy($png, $insertPos, $out, $insertPos + $chunk.Length, $png.Length - $insertPos)
+    [System.IO.File]::WriteAllBytes($PngPath, $out)
+}
 
 if ([string]::IsNullOrWhiteSpace($SourcePath)) {
     throw "SourcePath is empty."
@@ -214,6 +299,25 @@ try {
         }
         Write-Host "[sprite] Saving PNG..."
         $bmp.Save($DestPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        if ($WriteGrabOffsets) {
+            $maxOpaqueY = -1
+            $minOpaqueX = $w
+            $maxOpaqueX = -1
+            for ($yy = 0; $yy -lt $h; $yy++) {
+                for ($xx = 0; $xx -lt $w; $xx++) {
+                    $a = $bmp.GetPixel($xx, $yy).A
+                    if ($a -gt 0) {
+                        if ($xx -lt $minOpaqueX) { $minOpaqueX = $xx }
+                        if ($xx -gt $maxOpaqueX) { $maxOpaqueX = $xx }
+                        if ($yy -gt $maxOpaqueY) { $maxOpaqueY = $yy }
+                    }
+                }
+            }
+            $grabX = if ($maxOpaqueX -ge $minOpaqueX) { [int][Math]::Round(($minOpaqueX + $maxOpaqueX + 1) / 2.0) } else { [int][Math]::Round($w / 2.0) }
+            $grabY = if ($maxOpaqueY -ge 0) { $maxOpaqueY + 1 } else { $h }
+            Write-PngWithGrAb -PngPath $DestPath -GrabX $grabX -GrabY $grabY
+            Write-Host ("[sprite] Wrote grAb offsets: x={0} y={1}" -f $grabX, $grabY)
+        }
         Write-Host ("[sprite] DONE in {0} ms" -f $swTotal.ElapsedMilliseconds)
     } finally {
         if ($bmp -ne $null) { $bmp.Dispose() }

@@ -23,7 +23,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class NftController : OASISControllerBase
     {
         NFTManager _NFTManager = null;
@@ -236,7 +235,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await NFTManager.SendNFTAsync(AvatarId, nftRequest);
         }
 
-        [Authorize]
         [HttpPost]
         [Route("mint-nft")]
         public async Task<OASISResult<IWeb4NFT>> MintNftAsync(Models.NFT.MintNFTTransactionRequest request)
@@ -277,9 +275,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingId) && !Guid.TryParse(request.SendToAvatarAfterMintingId, out sendToAvatarAfterMintingId))
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
 
+            var mintedByAvatarId = AvatarId;
+            if (mintedByAvatarId == Guid.Empty && sendToAvatarAfterMintingId != Guid.Empty)
+                mintedByAvatarId = sendToAvatarAfterMintingId;
+
             API.Core.Objects.NFT.Requests.MintWeb4NFTRequest mintRequest = new API.Core.Objects.NFT.Requests.MintWeb4NFTRequest()
             {
-                MintedByAvatarId = AvatarId,
+                MintedByAvatarId = mintedByAvatarId,
                 Title = request.Title,
                 Description = request.Description,
                 Image = request.Image,

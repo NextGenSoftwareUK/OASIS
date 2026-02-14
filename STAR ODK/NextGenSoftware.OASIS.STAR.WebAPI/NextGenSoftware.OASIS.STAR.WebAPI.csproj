@@ -20,4 +20,15 @@
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS_DNA.json">
+      <Link>OASIS_DNA.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS_DNA.Development.json">
+      <Link>OASIS_DNA.Development.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
