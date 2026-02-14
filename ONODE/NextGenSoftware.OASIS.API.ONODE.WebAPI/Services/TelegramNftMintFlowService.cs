@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.OASISBootLoader;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
@@ -584,6 +585,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 }
             }
 
+            // Switch Solana to the cluster from options (devnet or mainnet) so mint uses the right RPC and wallet
+            var cluster = string.IsNullOrWhiteSpace(_options.SolanaCluster) ? "devnet" : _options.SolanaCluster.Trim();
+            var clusterResult = await OASISBootLoader.OASISBootLoader.EnsureSolanaClusterAsync(cluster).ConfigureAwait(false);
+            if (clusterResult.IsError)
+            {
+                _logger?.LogWarning("[TelegramNftMint] EnsureSolanaCluster failed: {Message}", clusterResult.Message);
+                return $"❌ Mint failed: {clusterResult.Message}";
+            }
+
             var providerResult = new NFTManager(Guid.Empty).GetNFTProvider(ProviderType.SolanaOASIS);
             if (providerResult?.Result == null || providerResult.IsError)
             {
@@ -611,7 +621,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 var txHash = result.Result?.TransactionResult ?? result.Result?.Web3NFT?.MintTransactionHash ?? "";
                 var nftAddress = result.Result?.Web3NFT?.NFTTokenAddress ?? "";
-                var cluster = string.IsNullOrEmpty(_options.SolanaCluster) ? "devnet" : _options.SolanaCluster;
                 var txLink = $"https://solscan.io/tx/{txHash}?cluster={cluster}";
                 var nftLink = string.IsNullOrEmpty(nftAddress) ? txLink : $"https://solscan.io/account/{nftAddress}?cluster={cluster}";
                 return $"✅ **NFT minted!**\n\n🔗 [View transaction]({txLink})\n📍 [View NFT]({nftLink})\n\nCheck your Solana wallet.";
