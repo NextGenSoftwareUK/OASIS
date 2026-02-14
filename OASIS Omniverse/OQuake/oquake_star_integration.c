@@ -111,7 +111,9 @@ static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab) {
 static int OQ_IsMockAnorakCredentials(const char* username, const char* password) {
     if (!username || !password)
         return 0;
-    return q_strcasecmp(username, "anorak") == 0 && strcmp(password, "test!") == 0;
+    if (strcmp(password, "test!") != 0)
+        return 0;
+    return q_strcasecmp(username, "anorak") == 0 || q_strcasecmp(username, "avatar") == 0;
 }
 
 static void OQ_RefreshInventoryCache(void) {
@@ -327,6 +329,7 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star use <item> [context]     - Use item\n");
         Con_Printf("  star pickup keycard <silver|gold> - Add OQuake key (convenience)\n");
         Con_Printf("  star beamin <username> <password> - Log in inside Quake\n");
+        Con_Printf("  star beamed in <username> <password> - Alias for beamin\n");
         Con_Printf("  star beamin   - Log in using STAR_USERNAME/STAR_PASSWORD or API key\n");
         Con_Printf("  star beamout  - Log out / disconnect from STAR\n");
         Con_Printf("\n");
@@ -400,12 +403,13 @@ void OQuake_STAR_Console_f(void) {
         if (!ok) Con_Printf("  %s\n", star_api_get_last_error());
         return;
     }
-    if (strcmp(sub, "beamin") == 0) {
+    if (strcmp(sub, "beamin") == 0 || (strcmp(sub, "beamed") == 0 && argc >= 3 && strcmp(Cmd_Argv(2), "in") == 0)) {
         const char* runtime_user = NULL;
         const char* runtime_pass = NULL;
-        if (argc >= 4 && strcmp(Cmd_Argv(2), "jwt") != 0) {
-            runtime_user = Cmd_Argv(2);
-            runtime_pass = Cmd_Argv(3);
+        int arg_shift = (strcmp(sub, "beamed") == 0) ? 1 : 0;
+        if (argc >= (4 + arg_shift) && strcmp(Cmd_Argv(2 + arg_shift), "jwt") != 0) {
+            runtime_user = Cmd_Argv(2 + arg_shift);
+            runtime_pass = Cmd_Argv(3 + arg_shift);
         }
 
         if (star_initialized() && !runtime_user) { Con_Printf("Already logged in. Use 'star beamout' first.\n"); return; }
@@ -418,7 +422,7 @@ void OQuake_STAR_Console_f(void) {
             g_star_initialized = 1;
             q_strlcpy(g_star_username, runtime_user, sizeof(g_star_username));
             Cvar_SetValueQuick(&oasis_star_anorak_face, 1);
-            Con_Printf("Beam-in successful (mock). Welcome, anorak.\n");
+            Con_Printf("Beam-in successful (mock). Welcome, %s.\n", runtime_user);
             return;
         }
 
@@ -538,18 +542,13 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 }
 
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
-    // Temporarily disabled to debug crash
-    // TODO: Re-enable once crash is fixed
-    return;
-    
     extern int glheight;
     if (!cbx)
         return;
-    
-    // Safety check
+
     if (glheight <= 0)
         return;
-    
+
     const char* username = OQuake_STAR_GetUsername();
     char status[128];
     if (username && username[0]) {
@@ -557,13 +556,8 @@ void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
     } else {
         q_strlcpy(status, "Beamed In: None", sizeof(status));
     }
-    
-    // Draw in bottom left corner, above the status bar
-    int y_pos = glheight - 40;
-    if (y_pos < 8) y_pos = 8;
-    if (y_pos >= glheight) y_pos = glheight - 8;
-    
-    Draw_String(cbx, 8, y_pos, status);
+
+    Draw_String(cbx, 8, glheight - 24, status);
 }
 
 int OQuake_STAR_ShouldUseAnorakFace(void) {
