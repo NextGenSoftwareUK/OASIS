@@ -29,6 +29,7 @@ void OQuake_STAR_OnKeyPickup(const char* key_name);
 int  OQuake_STAR_CheckDoorAccess(const char* door_targetname, const char* required_key_name);
 void OQuake_STAR_Console_f(void); /* in-game console "star" command - registered by Init */
 void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx);
+void OQuake_STAR_PollInventoryInput(void);
 int OQuake_STAR_ShouldUseAnorakFace(void);
 const char* OQuake_STAR_GetUsername(void);
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx);
