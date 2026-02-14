@@ -41,7 +41,6 @@ if (-not $StarDll -and (Test-Path (Join-Path $NativeWrapper "build\Release\star_
     $StarLib = Join-Path $NativeWrapper "build\Release\star_api.lib"
 }
 
-# Copy files
 $files = @(
     @{ Src = Join-Path $OQuakeRoot "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
     @{ Src = Join-Path $OQuakeRoot "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },

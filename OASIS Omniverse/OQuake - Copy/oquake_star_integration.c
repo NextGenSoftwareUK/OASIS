@@ -112,12 +112,11 @@ static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab) {
     }
 }
 
-static void OQ_SetDefaultBindIfUnbound(const char* key_name, const char* command) {
+static void OQ_SetBindForce(const char* key_name, const char* command) {
     int keynum = Key_StringToKeynum(key_name);
     if (keynum < 0 || keynum >= MAX_KEYS)
         return;
-    if (!keybindings[keynum] || !keybindings[keynum][0])
-        Key_SetBinding(keynum, command);
+    Key_SetBinding(keynum, command);
 }
 
 static int OQ_IsMockAnorakCredentials(const char* username, const char* password) {
@@ -213,6 +212,10 @@ static void OQ_PollInventoryHotkeys(void) {
     g_inv_p_was_down = p_down;
 }
 
+void OQuake_STAR_PollInventoryInput(void) {
+    OQ_PollInventoryHotkeys();
+}
+
 static int star_initialized(void) {
     return g_star_initialized;
 }
@@ -245,9 +248,9 @@ void OQuake_STAR_Init(void) {
         g_star_console_registered = 1;
     }
 
-    OQ_SetDefaultBindIfUnbound("i", "oasis_inventory_toggle");
-    OQ_SetDefaultBindIfUnbound("o", "oasis_inventory_prevtab");
-    OQ_SetDefaultBindIfUnbound("p", "oasis_inventory_nexttab");
+    OQ_SetBindForce("i", "oasis_inventory_toggle");
+    OQ_SetBindForce("o", "oasis_inventory_prevtab");
+    OQ_SetBindForce("p", "oasis_inventory_nexttab");
 
     g_star_config.base_url = "https://star-api.oasisplatform.world/api";
     g_star_config.api_key = getenv("STAR_API_KEY");
