@@ -113,7 +113,8 @@ function Start-LocalApi {
         "--urls", "`"$Urls`""
     ) -join " "
 
-    $process = Start-Process -FilePath "dotnet" -ArgumentList $args -WorkingDirectory $scriptDir -PassThru
+    $projectWorkingDir = Split-Path -Parent $ProjectPath
+    $process = Start-Process -FilePath "dotnet" -ArgumentList $args -WorkingDirectory $projectWorkingDir -PassThru
     $script:startedProcesses += $process
     return $process
 }

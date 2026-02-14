@@ -156,6 +156,29 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
+            if (method == "GET" && path == "/api/inventoryitems")
+            {
+                List<object> snapshot;
+                lock (_sync)
+                {
+                    snapshot = _inventory
+                        .Select(x => (object)new
+                        {
+                            Id = x.Id,
+                            Name = x.Name,
+                            Description = x.Description,
+                            MetaData = new Dictionary<string, string>
+                            {
+                                ["GameSource"] = x.GameSource,
+                                ["ItemType"] = x.ItemType
+                            }
+                        }).ToList();
+                }
+
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = snapshot }).ConfigureAwait(false);
+                return;
+            }
+
             if (method == "POST" && (path == "/api/inventoryitems" || path == "/api/avatar/inventory"))
             {
                 var body = await ReadBodyAsync(request).ConfigureAwait(false);
@@ -190,9 +213,52 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
+            if (method == "POST" && path == "/api/inventoryitems/create")
+            {
+                var body = await ReadBodyAsync(request).ConfigureAwait(false);
+                using var doc = JsonDocument.Parse(body);
+                var root = doc.RootElement;
+                var itemId = Guid.NewGuid();
+                var name = GetProperty(root, "Name")?.GetString() ?? "Unnamed";
+                var description = GetProperty(root, "Description")?.GetString() ?? string.Empty;
+
+                lock (_sync)
+                {
+                    _inventory.Add(new InventoryItemRecord(itemId, name, description, "Unknown", "KeyItem"));
+                }
+
+                await WriteJsonAsync(response, 200, new
+                {
+                    IsError = false,
+                    Result = new
+                    {
+                        Id = itemId,
+                        Name = name,
+                        Description = description,
+                        MetaData = new Dictionary<string, string>
+                        {
+                            ["GameSource"] = "Unknown",
+                            ["ItemType"] = "KeyItem"
+                        }
+                    }
+                }).ConfigureAwait(false);
+                return;
+            }
+
             if (method == "DELETE" && path.StartsWith("/api/avatar/inventory/", StringComparison.OrdinalIgnoreCase))
             {
                 var idText = path["/api/avatar/inventory/".Length..];
+                Guid.TryParse(idText, out var id);
+                lock (_sync)
+                    _inventory.RemoveAll(x => x.Id == id);
+
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "DELETE" && path.StartsWith("/api/inventoryitems/", StringComparison.OrdinalIgnoreCase))
+            {
+                var idText = path["/api/inventoryitems/".Length..];
                 Guid.TryParse(idText, out var id);
                 lock (_sync)
                     _inventory.RemoveAll(x => x.Id == id);

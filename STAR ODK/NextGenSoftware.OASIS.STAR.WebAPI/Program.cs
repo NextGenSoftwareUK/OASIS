@@ -3,8 +3,13 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Ensure OASIS_DNA.json is resolved from the app output directory in local runs.
+Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -170,9 +175,15 @@ app.Use(async (context, next) =>
             {
                 try
                 {
-                    var avatar = AvatarManager.Instance.LoadAvatar(avatarId);
-                    if (avatar is not null)
-                        context.Items["Avatar"] = avatar;
+                    var avatarLoadResult = AvatarManager.Instance.LoadAvatar(avatarId);
+                    if (avatarLoadResult is OASISResult<IAvatar> typedResult && typedResult.Result is not null)
+                    {
+                        context.Items["Avatar"] = typedResult.Result;
+                    }
+                    else if (avatarLoadResult is IAvatar directAvatar)
+                    {
+                        context.Items["Avatar"] = directAvatar;
+                    }
                 }
                 catch
                 {

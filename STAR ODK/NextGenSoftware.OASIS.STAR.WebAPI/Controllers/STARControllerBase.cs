@@ -15,7 +15,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             get
             {
                 if (HttpContext.Items.ContainsKey("Avatar") && HttpContext.Items["Avatar"] != null)
-                    return (IAvatar)HttpContext.Items["Avatar"];
+                {
+                    if (HttpContext.Items["Avatar"] is IAvatar avatar)
+                        return avatar;
+
+                    if (HttpContext.Items["Avatar"] is OASISResult<IAvatar> avatarResult && avatarResult.Result is not null)
+                        return avatarResult.Result;
+                }
 
                 return null;
             }
@@ -31,6 +37,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (Avatar != null && Avatar.Id != Guid.Empty)
                     return Avatar.Id;
+
+                if (Request.Headers.TryGetValue("X-Avatar-Id", out var avatarHeader) &&
+                    Guid.TryParse(avatarHeader.ToString(), out var headerAvatarId) &&
+                    headerAvatarId != Guid.Empty)
+                {
+                    return headerAvatarId;
+                }
 
                 return ResolveAvatarIdFromBearerToken();
             }

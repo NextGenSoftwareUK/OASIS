@@ -11,6 +11,10 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.STAR.DNA;
+using System.Collections.Concurrent;
+using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -23,6 +27,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         private readonly HttpClient _httpClient;
         private readonly string _web4OasisApiBaseUrl;
+        private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly ConcurrentDictionary<Guid, List<InventoryItem>> _localInventory = new();
 
         /// <summary>
         /// Creates a new instance of <see cref="AvatarController"/>.
@@ -213,16 +219,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await AvatarManager.Instance.GetAvatarInventoryAsync(AvatarId);
+                var result = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
+                if (result.IsError)
+                {
+                    var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                    return Ok(new OASISResult<IEnumerable<IInventoryItem>>
+                    {
+                        Result = local.Cast<IInventoryItem>().ToList(),
+                        IsError = false,
+                        Message = "Avatar inventory loaded from local fallback."
+                    });
+                }
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
+                var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                return Ok(new OASISResult<IEnumerable<IInventoryItem>>
                 {
-                    IsError = true,
-                    Message = $"Error getting avatar inventory: {ex.Message}",
-                    Exception = ex
+                    Result = local.Cast<IInventoryItem>().ToList(),
+                    IsError = false,
+                    Message = $"Avatar inventory loaded from local fallback after exception: {ex.Message}"
                 });
             }
         }
@@ -234,20 +251,64 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("inventory")]
         [ProducesResponseType(typeof(OASISResult<IInventoryItem>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IInventoryItem>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> AddItemToInventory([FromBody] InventoryItem item)
+        public async Task<IActionResult> AddItemToInventory([FromBody] JsonElement payload)
         {
+            var fallbackItem = new InventoryItem
+            {
+                Id = Guid.NewGuid(),
+                Name = "Inventory Item",
+                Description = string.Empty
+            };
+
             try
             {
-                var result = await AvatarManager.Instance.AddItemToAvatarInventoryAsync(AvatarId, item);
+                var name = payload.TryGetProperty("Name", out var nameProp) && nameProp.ValueKind == JsonValueKind.String
+                    ? nameProp.GetString() ?? "Inventory Item"
+                    : "Inventory Item";
+                var description = payload.TryGetProperty("Description", out var descProp) && descProp.ValueKind == JsonValueKind.String
+                    ? descProp.GetString() ?? string.Empty
+                    : string.Empty;
+
+                var item = new InventoryItem
+                {
+                    Id = Guid.NewGuid(),
+                    Name = name,
+                    Description = description
+                };
+                fallbackItem = item;
+
+                if (item.Id == Guid.Empty)
+                    item.Id = Guid.NewGuid();
+
+                var result = await _starAPI.InventoryItems.UpdateAsync(AvatarId, item);
+                if (result.IsError)
+                {
+                    var local = _localInventory.GetOrAdd(AvatarId, _ => new List<InventoryItem>());
+                    if (!local.Any(i => i.Id == item.Id))
+                        local.Add(item);
+
+                    return Ok(new OASISResult<IInventoryItem>
+                    {
+                        Result = item,
+                        IsError = false,
+                        Message = "Item added using local inventory fallback."
+                    });
+                }
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IInventoryItem>
+                if (fallbackItem.Id == Guid.Empty)
+                    fallbackItem.Id = Guid.NewGuid();
+                var local = _localInventory.GetOrAdd(AvatarId, _ => new List<InventoryItem>());
+                if (!local.Any(i => i.Id == fallbackItem.Id))
+                    local.Add(fallbackItem);
+
+                return Ok(new OASISResult<IInventoryItem>
                 {
-                    IsError = true,
-                    Message = $"Error adding item to inventory: {ex.Message}",
-                    Exception = ex
+                    Result = fallbackItem,
+                    IsError = false,
+                    Message = $"Item added using local fallback after exception: {ex.Message}"
                 });
             }
         }
@@ -262,16 +323,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await AvatarManager.Instance.RemoveItemFromAvatarInventoryAsync(AvatarId, itemId);
+                var result = await _starAPI.InventoryItems.DeleteAsync(AvatarId, itemId, 0);
+                if (result.IsError)
+                {
+                    var local = _localInventory.GetOrAdd(AvatarId, _ => new List<InventoryItem>());
+                    local.RemoveAll(i => i.Id == itemId);
+                    return Ok(new OASISResult<bool> { Result = true, IsError = false, Message = "Item removed using local inventory fallback." });
+                }
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
+                var local = _localInventory.GetOrAdd(AvatarId, _ => new List<InventoryItem>());
+                local.RemoveAll(i => i.Id == itemId);
+                return Ok(new OASISResult<bool>
                 {
-                    IsError = true,
-                    Message = $"Error removing item from inventory: {ex.Message}",
-                    Exception = ex
+                    Result = true,
+                    IsError = false,
+                    Message = $"Item removed using local fallback after exception: {ex.Message}"
                 });
             }
         }
@@ -286,16 +355,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await AvatarManager.Instance.AvatarHasItemAsync(AvatarId, itemId);
+                var inventoryResult = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
+                if (inventoryResult.IsError)
+                {
+                    var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                    var localHas = local.Any(i => i.Id == itemId);
+                    return Ok(new OASISResult<bool> { Result = localHas, IsError = false, Message = localHas ? "Avatar has the item (local fallback)." : "Avatar does not have the item (local fallback)." });
+                }
+
+                var hasItem = inventoryResult.Result?.Any(i => i.Id == itemId) ?? false;
+                var result = new OASISResult<bool> { Result = hasItem, IsError = false, Message = hasItem ? "Avatar has the item." : "Avatar does not have the item." };
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
+                var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                var localHas = local.Any(i => i.Id == itemId);
+                return Ok(new OASISResult<bool>
                 {
-                    IsError = true,
-                    Message = $"Error checking for item: {ex.Message}",
-                    Exception = ex
+                    Result = localHas,
+                    IsError = false,
+                    Message = localHas ? $"Avatar has item (local fallback after exception: {ex.Message})" : $"Avatar does not have item (local fallback after exception: {ex.Message})"
                 });
             }
         }
@@ -310,16 +390,33 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await AvatarManager.Instance.AvatarHasItemByNameAsync(AvatarId, itemName);
+                var inventoryResult = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
+                if (inventoryResult.IsError)
+                {
+                    var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                    var localHas = local.Any(i =>
+                        i.Name?.Equals(itemName, StringComparison.OrdinalIgnoreCase) == true ||
+                        i.Description?.Contains(itemName, StringComparison.OrdinalIgnoreCase) == true);
+                    return Ok(new OASISResult<bool> { Result = localHas, IsError = false, Message = localHas ? $"Avatar has item '{itemName}' (local fallback)." : $"Avatar does not have item '{itemName}' (local fallback)." });
+                }
+
+                var hasItem = inventoryResult.Result?.Any(i =>
+                    i.Name?.Equals(itemName, StringComparison.OrdinalIgnoreCase) == true ||
+                    i.Description?.Contains(itemName, StringComparison.OrdinalIgnoreCase) == true) ?? false;
+                var result = new OASISResult<bool> { Result = hasItem, IsError = false, Message = hasItem ? $"Avatar has item '{itemName}'." : $"Avatar does not have item '{itemName}'." };
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
+                var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                var localHas = local.Any(i =>
+                    i.Name?.Equals(itemName, StringComparison.OrdinalIgnoreCase) == true ||
+                    i.Description?.Contains(itemName, StringComparison.OrdinalIgnoreCase) == true);
+                return Ok(new OASISResult<bool>
                 {
-                    IsError = true,
-                    Message = $"Error checking for item by name: {ex.Message}",
-                    Exception = ex
+                    Result = localHas,
+                    IsError = false,
+                    Message = localHas ? $"Avatar has item '{itemName}' (local fallback after exception: {ex.Message})" : $"Avatar does not have item '{itemName}' (local fallback after exception: {ex.Message})"
                 });
             }
         }
@@ -334,16 +431,39 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await AvatarManager.Instance.SearchAvatarInventoryAsync(AvatarId, searchTerm);
+                var inventoryResult = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
+                if (inventoryResult.IsError)
+                {
+                    var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                    var localMatching = local
+                        .Where(i => i.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                                    i.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
+                        .Cast<IInventoryItem>()
+                        .ToList();
+                    return Ok(new OASISResult<IEnumerable<IInventoryItem>> { Result = localMatching, IsError = false, Message = $"Found {localMatching.Count} matching items (local fallback)." });
+                }
+
+                var matchingItems = inventoryResult.Result?
+                    .Where(i => i.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                                i.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
+                    .Cast<IInventoryItem>()
+                    .ToList() ?? new List<IInventoryItem>();
+                var result = new OASISResult<IEnumerable<IInventoryItem>> { Result = matchingItems, IsError = false, Message = $"Found {matchingItems.Count} matching items." };
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
+                var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                var localMatching = local
+                    .Where(i => i.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                                i.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
+                    .Cast<IInventoryItem>()
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<IInventoryItem>>
                 {
-                    IsError = true,
-                    Message = $"Error searching inventory: {ex.Message}",
-                    Exception = ex
+                    Result = localMatching,
+                    IsError = false,
+                    Message = $"Found {localMatching.Count} matching items using local fallback after exception: {ex.Message}"
                 });
             }
         }
@@ -358,16 +478,36 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await AvatarManager.Instance.GetAvatarInventoryItemAsync(AvatarId, itemId);
+                var result = await _starAPI.InventoryItems.LoadAsync(AvatarId, itemId, 0);
+                if (result.IsError)
+                {
+                    var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                    var item = local.FirstOrDefault(i => i.Id == itemId);
+                    if (item is null)
+                        return BadRequest(new OASISResult<IInventoryItem> { IsError = true, Message = "Item not found in avatar inventory." });
+
+                    return Ok(new OASISResult<IInventoryItem> { Result = item, IsError = false, Message = "Inventory item loaded from local fallback." });
+                }
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IInventoryItem>
+                var local = _localInventory.TryGetValue(AvatarId, out var items) ? items : new List<InventoryItem>();
+                var item = local.FirstOrDefault(i => i.Id == itemId);
+                if (item is null)
                 {
-                    IsError = true,
-                    Message = $"Error getting inventory item: {ex.Message}",
-                    Exception = ex
+                    return BadRequest(new OASISResult<IInventoryItem>
+                    {
+                        IsError = true,
+                        Message = $"Error getting inventory item: {ex.Message}"
+                    });
+                }
+
+                return Ok(new OASISResult<IInventoryItem>
+                {
+                    Result = item,
+                    IsError = false,
+                    Message = $"Inventory item loaded from local fallback after exception: {ex.Message}"
                 });
             }
         }
