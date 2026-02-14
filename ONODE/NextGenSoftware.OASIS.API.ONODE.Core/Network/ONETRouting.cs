@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -881,9 +882,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate real network stability based on recent performance
-                var metrics = await GetNetworkMetricsAsync();
-                return Math.Max(0.0, Math.Min(1.0, metrics.Stability));
+                int totalNodes = _routingTable.Count;
+                if (totalNodes == 0)
+                    return 0.8;
+
+                int activeNodes = _routingTable.Values.Count(x => x.IsActive);
+                double availability = (double)activeNodes / totalNodes;
+                double avgReliability = _routingTable.Values.Any()
+                    ? _routingTable.Values.Average(x => Math.Max(0.0, Math.Min(1.0, x.Reliability)))
+                    : 0.8;
+
+                double stability = (availability * 0.6) + (avgReliability * 0.4);
+                return Math.Max(0.0, Math.Min(1.0, stability));
             }
             catch
             {
@@ -895,9 +905,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Get real traffic load from network metrics
-                var metrics = await GetNetworkMetricsAsync();
-                return Math.Max(0.0, Math.Min(1.0, metrics.TrafficLoad));
+                if (_nodeMetrics.Count > 0)
+                {
+                    double avgLoad = _nodeMetrics.Values.Average(x => Math.Max(0.0, Math.Min(1.0, x.TrafficLoad)));
+                    return Math.Max(0.0, Math.Min(1.0, avgLoad));
+                }
+
+                int activeNodes = _routingTable.Values.Count(x => x.IsActive);
+                return Math.Max(0.0, Math.Min(1.0, activeNodes / 100.0));
             }
             catch
             {
@@ -923,9 +938,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate real network health from system metrics
-                var metrics = await GetNetworkMetricsAsync();
-                return Math.Max(0.0, Math.Min(1.0, metrics.Health));
+                double stability = await GetActualNetworkStabilityAsync();
+                double reliability = await GetActualNetworkReliabilityAsync();
+                double capacity = await GetActualNetworkCapacityAsync();
+                double health = (stability * 0.4) + (reliability * 0.4) + (capacity * 0.2);
+                return Math.Max(0.0, Math.Min(1.0, health));
             }
             catch
             {
@@ -951,9 +968,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Get real network capacity from metrics
-                var metrics = await GetNetworkMetricsAsync();
-                return Math.Max(0.0, Math.Min(1.0, metrics.Capacity));
+                int activeNodes = _routingTable.Values.Count(x => x.IsActive);
+                // Treat 200 active nodes as full nominal capacity.
+                return Math.Max(0.0, Math.Min(1.0, activeNodes / 200.0));
             }
             catch
             {
@@ -965,9 +982,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Get real node performance from system metrics
-                var metrics = await GetSystemMetricsAsync();
-                return Math.Max(0.0, Math.Min(1.0, 1.0 - metrics.CpuLoad));
+                ThreadPool.GetAvailableThreads(out int availableWorkers, out _);
+                ThreadPool.GetMaxThreads(out int maxWorkers, out _);
+                double threadPoolPressure = maxWorkers > 0 ? 1.0 - ((double)availableWorkers / maxWorkers) : 0.0;
+
+                var gcInfo = GC.GetGCMemoryInfo();
+                double memoryPressure = gcInfo.TotalAvailableMemoryBytes > 0
+                    ? (double)GC.GetTotalMemory(false) / gcInfo.TotalAvailableMemoryBytes
+                    : 0.0;
+
+                double performance = 1.0 - ((threadPoolPressure * 0.6) + (Math.Max(0.0, Math.Min(1.0, memoryPressure)) * 0.4));
+                return Math.Max(0.0, Math.Min(1.0, performance));
             }
             catch
             {
@@ -993,9 +1018,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Get real network reliability from metrics
-                var metrics = await GetNetworkMetricsAsync();
-                return Math.Max(0.0, Math.Min(1.0, metrics.Reliability));
+                if (_routingTable.Count == 0)
+                    return 0.9;
+
+                double reliability = _routingTable.Values.Average(x => Math.Max(0.0, Math.Min(1.0, x.Reliability)));
+                return Math.Max(0.0, Math.Min(1.0, reliability));
             }
             catch
             {

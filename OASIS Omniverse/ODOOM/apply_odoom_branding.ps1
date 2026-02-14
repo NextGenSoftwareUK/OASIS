@@ -85,12 +85,26 @@ if (Test-Path $sharedSbarCpp) {
 		double x = twod->GetWidth() - SmallFont->StringWidth(verText.GetChars()) * CleanXfac - 4;
 		double y = twod->GetHeight() - SmallFont->GetHeight() * CleanYfac - 2;
 		DrawText(twod, SmallFont, CR_TAN, x, y, verText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
+		const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
+		FString beamedText = (starUser && *starUser) ? FString("Beamed In: ") + starUser : "Beamed In: None";
+		DrawText(twod, SmallFont, CR_TAN, 4, y, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
 	}
 #endif
 
 	if (state != HUD_AltHud)
 "@
         $content = $content -replace $old, $new
+        $sbarChanged = $true
+    }
+    if ($content -match 'OASIS_STAR_API' -and $content -match 'verText' -and $content -notmatch 'Beamed In') {
+        $content = $content -replace '(\t\tDrawText\(twod, SmallFont, CR_TAN, x, y, verText\.GetChars\(\), DTA_CleanNoMove, true, TAG_DONE\);\r?\n)(\t\})', @"
+`$1		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
+		const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
+		FString beamedText = (starUser && *starUser) ? FString("Beamed In: ") + starUser : "Beamed In: None";
+		DrawText(twod, SmallFont, CR_TAN, 4, y, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+`$2
+"@
         $sbarChanged = $true
     }
     if ($content -match 'OASIS_STAR_API' -and $content -match 'verText.*GetVersionString') {

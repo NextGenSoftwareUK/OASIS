@@ -12,7 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.MaxDepth = 64;
+        options.JsonSerializerOptions.WriteIndented = false;
+    });
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

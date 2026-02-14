@@ -9,6 +9,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Exceptions;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -21,6 +23,28 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class MissionsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
+
+        private static async Task EnsureStarApiBootedAsync()
+        {
+            if (_starAPI.IsOASISBooted)
+                return;
+
+            await _bootLock.WaitAsync();
+            try
+            {
+                if (_starAPI.IsOASISBooted)
+                    return;
+
+                var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                if (boot.IsError)
+                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Retrieves all missions in the system.
@@ -91,6 +115,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
                 return Ok(result);
             }
@@ -120,6 +145,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 mission.Id = id;
                 var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
                 return Ok(result);

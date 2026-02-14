@@ -65,15 +65,16 @@ CVAR(Bool, oasis_star_anorak_face, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_oq_monster_yoffset, -50, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_global, 1.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_dog, 0.50f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Float, odoom_oq_monster_scale_zombie, 0.66f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Float, odoom_oq_monster_scale_zombie, 0.33f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_demon, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_shambler, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Float, odoom_oq_monster_scale_grunt, 0.66f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Float, odoom_oq_monster_scale_grunt, 0.40f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_fish, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_ogre, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_enforcer, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_spawn, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Float, odoom_oq_monster_scale_knight, 0.66f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Float, odoom_oq_monster_scale_knight, 0.60f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(String, odoom_star_username, "", 0)
 
 static std::string TrimAscii(const std::string& s) {
 	size_t start = 0;
@@ -296,6 +297,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 			g_star_initialized = true;
 			g_star_logged_runtime_auth_failure = false;
 			g_star_logged_missing_auth_config = false;
+			odoom_star_username = g_star_effective_username.c_str();
 			if (logVerbose) StarLogInfo("Beam-in successful (SSO). Cross-game features enabled.");
 			return true;
 		}
@@ -311,6 +313,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 			g_star_initialized = true;
 			g_star_logged_runtime_auth_failure = false;
 			g_star_logged_missing_auth_config = false;
+			odoom_star_username = g_star_effective_username.c_str();
 			size_t count = list ? list->count : 0;
 			if (list) star_api_free_item_list(list);
 			if (logVerbose) StarLogInfo("Beam-in successful (API key/avatar). Inventory items=%zu. Cross-game features enabled.", count);
@@ -758,6 +761,7 @@ CCMD(star)
 			g_star_logged_runtime_auth_failure = false;
 			g_star_logged_missing_auth_config = false;
 			oasis_star_anorak_face = true;
+			odoom_star_username = "anorak";
 			Printf("Beam-in successful (mock). Welcome, anorak.\n");
 			Printf("\n");
 			return;
@@ -797,6 +801,7 @@ CCMD(star)
 		g_star_client_ready = false;
 		g_star_initialized = false;
 		oasis_star_anorak_face = false;
+		odoom_star_username = "";
 		Printf("Beam-out successful. Use 'star beamin' to beam in again.\n");
 		Printf("\n");
 		return;

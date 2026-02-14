@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -25,8 +26,30 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class QuestsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
         private QuestManager CreateQuestManager() => new QuestManager(AvatarId, new STARDNA());
         private static readonly ConcurrentDictionary<Guid, LocalQuestRuntime> _localQuestRuntime = new();
+
+        private static async Task EnsureStarApiBootedAsync()
+        {
+            if (_starAPI.IsOASISBooted)
+                return;
+
+            await _bootLock.WaitAsync();
+            try
+            {
+                if (_starAPI.IsOASISBooted)
+                    return;
+
+                var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                if (boot.IsError)
+                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Retrieves all quests in the system.
@@ -97,6 +120,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
                 return Ok(result);
             }
@@ -126,6 +150,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 quest.Id = id;
                 var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
                 return Ok(result);
