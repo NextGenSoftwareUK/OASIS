@@ -271,7 +271,6 @@ void OQuake_STAR_Init(void) {
     Con_Printf("\n");
     Con_Printf("  Welcome to OQuake!\n");
     Con_Printf("\n");
-    g_inventory_open = true; /* diagnostic: verify overlay draw path */
 }
 
 void OQuake_STAR_Cleanup(void) {
@@ -520,17 +519,17 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
     Draw_Fill(cbx, panel_x, panel_y, panel_w, panel_h, 0, 0.70f);
     {
-        const char* header = "OASIS Inventory";
+        const char* header = "OASIS Inventory ";
         int header_len = strlen(header);
         int header_x = panel_x + (panel_w - (header_len * 8)) / 2;
         if (header_x < panel_x + 6) header_x = panel_x + 6;
         Draw_String(cbx, header_x, panel_y + 6, header);
     }
     q_snprintf(line, sizeof(line), "Tab: %s", OQ_TabName(g_inventory_active_tab));
-    Draw_String(cbx, panel_x + 6, panel_y + 18, line);
+    Draw_String(cbx, panel_x + 6, panel_y + 26, line);
     Draw_String(cbx, panel_x + 6, panel_y + panel_h - 8, "I=Toggle  O/P=Switch Tabs");
 
-    draw_y = panel_y + 28;
+    draw_y = panel_y + 42;
     shown = 0;
     for (i = 0; i < g_inventory_count; i++) {
         if (!OQ_ItemMatchesTab(&g_inventory_entries[i], g_inventory_active_tab))
