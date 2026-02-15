@@ -807,6 +807,11 @@ static void OQ_PollInventoryHotkeys(void) {
         return;
     }
 
+    if (OQ_KeyPressed(K_LEFTARROW))
+        OQ_InventoryPrevTab_f();
+    if (OQ_KeyPressed(K_RIGHTARROW))
+        OQ_InventoryNextTab_f();
+
     if (OQ_KeyPressed(K_UPARROW)) {
         g_inventory_selected_row--;
         OQ_ClampSelection(grouped_count);
@@ -1327,6 +1332,26 @@ void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
     }
 
     Draw_String(cbx, 8, glheight - 24, status);
+}
+
+void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
+    extern int glwidth, glheight;
+    const char* text = "OQUAKE " OQUAKE_VERSION " (BUILD " OQUAKE_BUILD ")";
+    int text_w;
+    int x;
+    int y;
+
+    if (!cbx || glwidth <= 0 || glheight <= 0)
+        return;
+
+    text_w = (int)strlen(text) * 8;
+    x = glwidth - text_w - 8;
+    y = glheight - 24;
+    if (x < 8)
+        x = 8;
+    if (y < 8)
+        y = 8;
+    Draw_String(cbx, x, y, text);
 }
 
 int OQuake_STAR_ShouldUseAnorakFace(void) {

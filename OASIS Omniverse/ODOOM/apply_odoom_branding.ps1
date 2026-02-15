@@ -5,16 +5,18 @@
 #>
 param([Parameter(Mandatory=$true)][string]$UZDOOM_SRC)
 
+$odoomRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $src = $UZDOOM_SRC.TrimEnd('\')
 $versionH = "$src\src\version.h"
 $startscreenCpp = "$src\src\common\startscreen\startscreen.cpp"
 $sharedSbarCpp = "$src\src\g_statusbar\shared_sbar.cpp"
+$dMainCpp = "$src\src\d_main.cpp"
 $sbarMugshotCpp = "$src\src\g_statusbar\sbar_mugshot.cpp"
 $zscriptTxt = "$src\wadsrc\static\zscript.txt"
+$cvarinfoTxt = "$src\wadsrc\static\cvarinfo.txt"
+$odoomCvarinfo = Join-Path $odoomRoot "odoom_cvarinfo.txt"
 $doomItemsMapinfo = "$src\wadsrc\static\mapinfo\doomitems.txt"
 $commonMapinfo = "$src\wadsrc\static\mapinfo\common.txt"
-
-$odoomRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 if (Test-Path (Join-Path $odoomRoot "generate_odoom_version.ps1")) {
     & (Join-Path $odoomRoot "generate_odoom_version.ps1") -Root $odoomRoot
 }
@@ -81,6 +83,7 @@ if (Test-Path $sharedSbarCpp) {
 	}
 
 #ifdef OASIS_STAR_API
+	ODOOM_InventoryInputCaptureFrame();
 	{
 		FString verText = GAMENAME " " ODOOM_FULL_VERSION_STR;
 		double y = 2;
@@ -112,7 +115,60 @@ if (Test-Path $sharedSbarCpp) {
         $content = $content -replace '(FString verText = GAMENAME;)\r?\n\s+verText \+= " ";\r?\n\s+verText \+= GetVersionString\(\);', 'FString verText = GAMENAME " " ODOOM_FULL_VERSION_STR;'
         $sbarChanged = $true
     }
+    if ($content -match 'ODOOM_InventoryInputCaptureFrame' -and $content -notmatch 'uzdoom_star_integration\.h') {
+        $content = $content -replace '(#ifdef OASIS_STAR_API)', "#include `"uzdoom_star_integration.h`"`r`n`$1"
+        $sbarChanged = $true
+    }
     if ($sbarChanged) { Set-Content $sharedSbarCpp $content -NoNewline; $changes += "shared_sbar" }
+}
+
+# 3a1. d_main.cpp: run inventory key capture at start of every frame (before TryRunTics/input) so bindings are cleared and key CVars set before ticcmd is built
+if (Test-Path $dMainCpp) {
+    $dContent = Get-Content $dMainCpp -Raw
+    if ($dContent -notmatch 'ODOOM_InventoryInputCaptureFrame') {
+        $dChanged = $false
+        if ($dContent -match '#include "d_net\.h"') {
+            $dContent = $dContent -replace '(#include "d_net\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+            $dChanged = $true
+        }
+        # Insert at start of for(;;) loop in D_DoomLoop so capture runs before TryRunTics/G_BuildTiccmd
+        if ($dContent -match '(for\s*\(\s*;;\s*\)\s*\r?\n\s*\{\s*\r?\n)(\s*try\s)') {
+            $dContent = $dContent -replace '(for\s*\(\s*;;\s*\)\s*\r?\n\s*\{\s*\r?\n)(\s*try\s)', "`$1#ifdef OASIS_STAR_API`r`n	ODOOM_InventoryInputCaptureFrame();`r`n#endif`r`n`$2"
+            $dChanged = $true
+        }
+        if ($dChanged) {
+            Set-Content $dMainCpp $dContent -NoNewline
+            $changes += "d_main (inventory capture)"
+        }
+    }
+}
+
+# 3a2. g_game.cpp: run inventory key capture at start of each tic (backup if d_main patch missed)
+$gGameCpp = "$src\src\g_game.cpp"
+if (Test-Path $gGameCpp) {
+    $gContent = Get-Content $gGameCpp -Raw
+    if ($gContent -notmatch 'ODOOM_InventoryInputCaptureFrame') {
+        $gChanged = $false
+        if ($gContent -match '#include "version\.h"') {
+            $gContent = $gContent -replace '(#include "version\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+            $gChanged = $true
+        }
+        $runTicPatterns = @(
+            '(\bvoid\s+RunTic\s*\(\s*\)\s*\r?\n\s*\{\s*\r?\n)',
+            '(\bvoid\s+FLevelLocals::RunTic\s*\(\s*\)\s*\r?\n\s*\{\s*\r?\n)'
+        )
+        foreach ($pat in $runTicPatterns) {
+            if ($gContent -match $pat) {
+                $gContent = $gContent -replace $pat, "`$1#ifdef OASIS_STAR_API`r`n	ODOOM_InventoryInputCaptureFrame();`r`n#endif`r`n"
+                $gChanged = $true
+                break
+            }
+        }
+        if ($gChanged) {
+            Set-Content $gGameCpp $gContent -NoNewline
+            $changes += "g_game (inventory capture)"
+        }
+    }
 }
 
 # 3b. sbar_mugshot.cpp: show OASIS face (OASFACE) when beamed in (odoom_star_username set or oasis_star_anorak_face)
@@ -148,6 +204,21 @@ if (Test-Path $sbarMugshotCpp) {
         $mugContent = $mugContent -replace 'if \(starUser && \*starUser\)', 'if ((starUser && *starUser) || anorakFace)'
         Set-Content $sbarMugshotCpp $mugContent -NoNewline
         $changes += "sbar_mugshot(anorak)"
+    }
+}
+
+# 3c. CVARINFO: add ODOOM inventory CVars (odoom_inventory_open, odoom_key_*) for ZScript/C++ coordination
+if (Test-Path $odoomCvarinfo) {
+    $cvarContent = Get-Content $odoomCvarinfo -Raw
+    if (Test-Path $cvarinfoTxt) {
+        $existing = Get-Content $cvarinfoTxt -Raw
+        if ($existing -notmatch 'odoom_inventory_open') {
+            Add-Content -Path $cvarinfoTxt -Value "`r`n// ODOOM inventory overlay (OQuake-style key capture)`r`n$cvarContent"
+            $changes += "cvarinfo"
+        }
+    } else {
+        Set-Content -Path $cvarinfoTxt -Value $cvarContent -NoNewline
+        $changes += "cvarinfo"
     }
 }
 
