@@ -31,20 +31,35 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
         private static readonly SemaphoreSlim _bootLock = new(1, 1);
 
-        private static async Task EnsureStarApiBootedAsync()
+        private async Task EnsureStarApiBootedAsync()
         {
-            if (_starAPI.IsOASISBooted)
+            // Check if already booted and avatar is set
+            if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
+                Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
                 return;
 
             await _bootLock.WaitAsync();
             try
             {
-                if (_starAPI.IsOASISBooted)
+                // Double-check after acquiring lock
+                if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
+                    Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
                     return;
 
-                var boot = await _starAPI.BootOASISAsync("admin", "admin");
-                if (boot.IsError)
-                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+                // Boot OASIS if not already booted
+                if (!_starAPI.IsOASISBooted)
+                {
+                    var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                    if (boot.IsError)
+                        throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+                }
+
+                // Set LoggedInAvatar to the authenticated avatar so InventoryItems property works
+                // This is required because InventoryItems property getter uses AvatarManager.LoggedInAvatar.AvatarId
+                if (Avatar != null)
+                {
+                    AvatarManager.LoggedInAvatar = Avatar;
+                }
             }
             finally
             {
