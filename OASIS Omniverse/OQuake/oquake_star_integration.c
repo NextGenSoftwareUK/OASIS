@@ -55,6 +55,7 @@ typedef struct oquake_inventory_entry_s {
 static oquake_inventory_entry_t g_inventory_entries[OQ_MAX_INVENTORY_ITEMS];
 static int g_inventory_count = 0;
 static oquake_inventory_entry_t g_local_inventory_entries[OQ_MAX_INVENTORY_ITEMS];
+static qboolean g_local_inventory_synced[OQ_MAX_INVENTORY_ITEMS];
 static int g_local_inventory_count = 0;
 static int g_inventory_active_tab = OQ_TAB_KEYS;
 static qboolean g_inventory_open = false;
@@ -102,13 +103,19 @@ static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* des
         q_strlcpy(dst->name, item_name, sizeof(dst->name));
         q_strlcpy(dst->description, description ? description : "", sizeof(dst->description));
         q_strlcpy(dst->item_type, item_type ? item_type : "Item", sizeof(dst->item_type));
+        g_local_inventory_synced[i] = false;
         local_added = 1;
     }
 
     if (g_star_initialized && !star_api_has_item(item_name)) {
         result = star_api_add_item(item_name, description, "Quake", item_type);
-        if (result == STAR_API_SUCCESS)
+        if (result == STAR_API_SUCCESS) {
+            if (i < g_local_inventory_count)
+                g_local_inventory_synced[i] = true;
             remote_added = 1;
+        }
+    } else if (i < g_local_inventory_count && star_api_has_item(item_name)) {
+        g_local_inventory_synced[i] = true;
     }
 
     return local_added || remote_added;
@@ -126,17 +133,22 @@ static int OQ_AddInventoryEvent(const char* item_prefix, const char* description
     q_snprintf(item_name, sizeof(item_name), "%s_%06u", item_prefix, g_inventory_event_seq);
 
     if (g_local_inventory_count < OQ_MAX_INVENTORY_ITEMS) {
-        oquake_inventory_entry_t* dst = &g_local_inventory_entries[g_local_inventory_count++];
+        oquake_inventory_entry_t* dst = &g_local_inventory_entries[g_local_inventory_count];
         q_strlcpy(dst->name, item_name, sizeof(dst->name));
         q_strlcpy(dst->description, description ? description : "", sizeof(dst->description));
         q_strlcpy(dst->item_type, item_type ? item_type : "Item", sizeof(dst->item_type));
+        g_local_inventory_synced[g_local_inventory_count] = false;
+        g_local_inventory_count++;
         local_added = 1;
     }
 
     if (g_star_initialized) {
         result = star_api_add_item(item_name, description, "Quake", item_type);
-        if (result == STAR_API_SUCCESS)
+        if (result == STAR_API_SUCCESS) {
+            if (g_local_inventory_count > 0)
+                g_local_inventory_synced[g_local_inventory_count - 1] = true;
             remote_added = 1;
+        }
     }
 
     return local_added || remote_added;
@@ -257,7 +269,7 @@ static void OQ_GetGroupedDisplayInfo(const oquake_inventory_entry_t* item, char*
 }
 
 static int OQ_BuildGroupedRows(
-    int* out_rep_indices, char out_labels[][OQ_GROUP_LABEL_MAX], int* out_modes, int* out_values, int max_rows)
+    int* out_rep_indices, char out_labels[][OQ_GROUP_LABEL_MAX], int* out_modes, int* out_values, qboolean* out_pending, int max_rows)
 {
     int filtered_indices[OQ_MAX_INVENTORY_ITEMS];
     int filtered_count;
@@ -282,10 +294,20 @@ static int OQ_BuildGroupedRows(
             out_rep_indices[group_count] = item_idx;
             out_modes[group_count] = mode;
             out_values[group_count] = 0;
+            out_pending[group_count] = false;
             q_strlcpy(out_labels[group_count], label, OQ_GROUP_LABEL_MAX);
             group_count++;
         }
         out_values[row] += value;
+        if (out_pending[row] == false) {
+            int j;
+            for (j = 0; j < g_local_inventory_count; j++) {
+                if (!strcmp(g_local_inventory_entries[j].name, g_inventory_entries[item_idx].name) && !g_local_inventory_synced[j]) {
+                    out_pending[row] = true;
+                    break;
+                }
+            }
+        }
     }
 
     return group_count;
@@ -297,7 +319,8 @@ static int OQ_GetSelectedGroupInfo(int* out_rep_index, int* out_mode, int* out_v
     char labels[OQ_MAX_INVENTORY_ITEMS][OQ_GROUP_LABEL_MAX];
     int modes[OQ_MAX_INVENTORY_ITEMS];
     int values[OQ_MAX_INVENTORY_ITEMS];
-    int grouped_count = OQ_BuildGroupedRows(rep_indices, labels, modes, values, OQ_MAX_INVENTORY_ITEMS);
+    qboolean pending[OQ_MAX_INVENTORY_ITEMS];
+    int grouped_count = OQ_BuildGroupedRows(rep_indices, labels, modes, values, pending, OQ_MAX_INVENTORY_ITEMS);
 
     OQ_ClampSelection(grouped_count);
     if (grouped_count <= 0)
@@ -523,11 +546,24 @@ static void OQ_RefreshInventoryCache(void) {
     star_api_result_t result;
     size_t i;
     int remote_ok = 0;
+    int pending_local = 0;
 
     g_inventory_count = 0;
     q_strlcpy(g_inventory_status, "STAR inventory unavailable.", sizeof(g_inventory_status));
 
     if (star_initialized()) {
+        int l;
+        for (l = 0; l < g_local_inventory_count; l++) {
+            if (!g_local_inventory_synced[l]) {
+                star_api_result_t add_result = star_api_add_item(
+                    g_local_inventory_entries[l].name,
+                    g_local_inventory_entries[l].description,
+                    "Quake",
+                    g_local_inventory_entries[l].item_type);
+                if (add_result == STAR_API_SUCCESS)
+                    g_local_inventory_synced[l] = true;
+            }
+        }
         result = star_api_get_inventory(&list);
         if (result == STAR_API_SUCCESS)
             remote_ok = 1;
@@ -563,10 +599,22 @@ static void OQ_RefreshInventoryCache(void) {
         }
     }
 
+    {
+        int l;
+        for (l = 0; l < g_local_inventory_count; l++) {
+            if (!g_local_inventory_synced[l])
+                pending_local++;
+        }
+    }
+
     if (g_inventory_count == 0) {
         q_strlcpy(g_inventory_status, "Inventory is empty.", sizeof(g_inventory_status));
     } else if (remote_ok) {
-        q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR inventory synced (%d items)", g_inventory_count);
+        if (pending_local > 0)
+            q_snprintf(
+                g_inventory_status, sizeof(g_inventory_status), "STAR synced (%d items), %d local pending", g_inventory_count, pending_local);
+        else
+            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR inventory synced (%d items)", g_inventory_count);
     } else if (star_initialized()) {
         q_snprintf(
             g_inventory_status, sizeof(g_inventory_status), "STAR API unavailable; showing local inventory (%d items)", g_inventory_count);
@@ -583,7 +631,8 @@ static void OQ_RefreshInventoryCache(void) {
         char labels[OQ_MAX_INVENTORY_ITEMS][OQ_GROUP_LABEL_MAX];
         int modes[OQ_MAX_INVENTORY_ITEMS];
         int values[OQ_MAX_INVENTORY_ITEMS];
-        OQ_ClampSelection(OQ_BuildGroupedRows(rep_indices, labels, modes, values, OQ_MAX_INVENTORY_ITEMS));
+        qboolean pending[OQ_MAX_INVENTORY_ITEMS];
+        OQ_ClampSelection(OQ_BuildGroupedRows(rep_indices, labels, modes, values, pending, OQ_MAX_INVENTORY_ITEMS));
     }
 }
 
@@ -629,7 +678,8 @@ static void OQ_PollInventoryHotkeys(void) {
         char labels[OQ_MAX_INVENTORY_ITEMS][OQ_GROUP_LABEL_MAX];
         int modes[OQ_MAX_INVENTORY_ITEMS];
         int values[OQ_MAX_INVENTORY_ITEMS];
-        grouped_count = OQ_BuildGroupedRows(rep_indices, labels, modes, values, OQ_MAX_INVENTORY_ITEMS);
+        qboolean pending[OQ_MAX_INVENTORY_ITEMS];
+        grouped_count = OQ_BuildGroupedRows(rep_indices, labels, modes, values, pending, OQ_MAX_INVENTORY_ITEMS);
     }
     OQ_ClampSelection(grouped_count);
 
@@ -1074,6 +1124,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     char grouped_labels[OQ_MAX_INVENTORY_ITEMS][OQ_GROUP_LABEL_MAX];
     int grouped_modes[OQ_MAX_INVENTORY_ITEMS];
     int grouped_values[OQ_MAX_INVENTORY_ITEMS];
+    qboolean grouped_pending[OQ_MAX_INVENTORY_ITEMS];
     int grouped_count;
     int visible_end;
     char line[512];
@@ -1118,7 +1169,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     Draw_String(cbx, panel_x + 6, panel_y + panel_h - 8, "I=Toggle  O/P=Switch Tabs");
 
     draw_y = panel_y + 54;
-    grouped_count = OQ_BuildGroupedRows(rep_indices, grouped_labels, grouped_modes, grouped_values, OQ_MAX_INVENTORY_ITEMS);
+    grouped_count = OQ_BuildGroupedRows(
+        rep_indices, grouped_labels, grouped_modes, grouped_values, grouped_pending, OQ_MAX_INVENTORY_ITEMS);
     OQ_ClampSelection(grouped_count);
     visible_end = q_min(grouped_count, g_inventory_scroll_row + OQ_MAX_OVERLAY_ROWS);
     for (row = g_inventory_scroll_row; row < visible_end; row++) {
@@ -1128,6 +1180,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             q_snprintf(line, sizeof(line), "%s +%d", grouped_labels[row], grouped_values[row]);
         else
             q_snprintf(line, sizeof(line), "%s x%d", grouped_labels[row], grouped_values[row]);
+        if (grouped_pending[row] && strlen(line) < sizeof(line) - 8)
+            q_strlcat(line, " [LOCAL]", sizeof(line));
         Draw_String(cbx, panel_x + 8, draw_y, line);
         draw_y += 8;
     }
