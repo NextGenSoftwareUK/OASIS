@@ -1,0 +1,11 @@
+{
+  "starApiBaseUrl": "https://star-api.oasisplatform.world/api",
+  "apiKey": "YOUR_STAR_API_KEY_HERE",
+  "avatarId": "YOUR_AVATAR_ID_HERE",
+  "timeoutSeconds": 10,
+  "enableLogging": true,
+  "logLevel": "INFO"
+}
+
+
+

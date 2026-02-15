@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -17,12 +18,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class ONODEController : OASISControllerBase
     {
         private readonly ILogger<ONODEController> _logger;
-        private readonly ONODEManager _onodeManager;
+        private ONODEManager _onodeManager;
+        private readonly object _onodeManagerLock = new object();
 
-        public ONODEController(ILogger<ONODEController> logger, ONODEManager onodeManager)
+        public ONODEController(ILogger<ONODEController> logger)
         {
             _logger = logger;
-            _onodeManager = onodeManager;
+        }
+
+        private ONODEManager GetOnodeManager()
+        {
+            if (_onodeManager != null)
+                return _onodeManager;
+
+            lock (_onodeManagerLock)
+            {
+                if (_onodeManager != null)
+                    return _onodeManager;
+
+                OASISResult<IOASISStorageProvider> providerResult = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+                if (providerResult == null || providerResult.IsError || providerResult.Result == null)
+                    throw new InvalidOperationException($"Unable to initialize ONODEManager because default provider activation failed: {providerResult?.Message}");
+
+                _onodeManager = new ONODEManager(providerResult.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
+                return _onodeManager;
+            }
         }
 
         /// <summary>
@@ -33,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.GetOASISDNAAsync();
+                var result = await GetOnodeManager().GetOASISDNAAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -51,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.UpdateOASISDNAAsync(oasisdna);
+                var result = await GetOnodeManager().UpdateOASISDNAAsync(oasisdna);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -73,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.GetNodeStatusAsync();
+                var result = await GetOnodeManager().GetNodeStatusAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -91,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.GetNodeInfoAsync();
+                var result = await GetOnodeManager().GetNodeInfoAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -109,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.StartNodeAsync();
+                var result = await GetOnodeManager().StartNodeAsync();
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -131,7 +151,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.StopNodeAsync();
+                var result = await GetOnodeManager().StopNodeAsync();
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -153,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.RestartNodeAsync();
+                var result = await GetOnodeManager().RestartNodeAsync();
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -175,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.GetNodeMetricsAsync();
+                var result = await GetOnodeManager().GetNodeMetricsAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -193,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.GetNodeLogsAsync(lines ?? 100);
+                var result = await GetOnodeManager().GetNodeLogsAsync(lines ?? 100);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -211,7 +231,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.UpdateNodeConfigAsync(request.Config);
+                var result = await GetOnodeManager().UpdateNodeConfigAsync(request.Config);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -233,7 +253,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.GetNodeConfigAsync();
+                var result = await GetOnodeManager().GetNodeConfigAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -251,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.GetConnectedPeersAsync();
+                var result = await GetOnodeManager().GetConnectedPeersAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -269,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _onodeManager.GetNodeStatsAsync();
+                var result = await GetOnodeManager().GetNodeStatsAsync();
                 return Ok(result);
             }
             catch (Exception ex)

@@ -10,6 +10,8 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using System.Threading;
 // duplicate using removed
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
@@ -23,6 +25,43 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class NFTsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
+
+        private async Task EnsureStarApiBootedAsync()
+        {
+            // Check if already booted and avatar is set
+            if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
+                Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
+                return;
+
+            await _bootLock.WaitAsync();
+            try
+            {
+                // Double-check after acquiring lock
+                if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
+                    Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
+                    return;
+
+                // Boot OASIS if not already booted
+                if (!_starAPI.IsOASISBooted)
+                {
+                    var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                    if (boot.IsError)
+                        throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+                }
+
+                // Set LoggedInAvatar to the authenticated avatar so NFTs property works
+                // This is required because NFTs property getter uses AvatarManager.LoggedInAvatar.AvatarId
+                if (Avatar != null)
+                {
+                    AvatarManager.LoggedInAvatar = Avatar;
+                }
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Retrieves all NFTs in the system.
@@ -298,14 +337,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.NFTs.LoadAllForAvatarAsync(AvatarId, showAllVersions, version);
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARNFT>>
+                return BadRequest(new OASISResult<IEnumerable<object>>
                 {
                     IsError = true,
-                    Message = $"Error loading NFTs for avatar: {ex.Message}",
+                    Message = $"Error loading NFT collection: {ex.Message}",
                     Exception = ex
                 });
             }
@@ -328,7 +370,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.NFTs.SearchAsync<STARNFT>(AvatarId, searchTerm, searchOnlyForCurrentAvatar, showAllVersions, version);
+                var result = await _starAPI.NFTs.SearchAsync<STARNFT>(AvatarId, searchTerm, default, null, MetaKeyValuePairMatchMode.All, searchOnlyForCurrentAvatar, showAllVersions, version);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -570,6 +612,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.NFTs.ActivateAsync(AvatarId, id, version);
                 return Ok(result);
             }
@@ -618,7 +661,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public HolonType HolonSubType { get; set; } = HolonType.NFT;
+        public HolonType HolonSubType { get; set; } = HolonType.Web5NFT;
         public string SourceFolderPath { get; set; } = "";
         public ISTARNETCreateOptions<STARNFT, STARNETDNA> CreateOptions { get; set; } = null;
     }

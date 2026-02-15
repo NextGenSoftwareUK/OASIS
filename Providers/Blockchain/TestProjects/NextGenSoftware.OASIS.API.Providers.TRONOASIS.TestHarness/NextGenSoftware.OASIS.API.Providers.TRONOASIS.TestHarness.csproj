@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" />
   </ItemGroup>
 
 </Project>

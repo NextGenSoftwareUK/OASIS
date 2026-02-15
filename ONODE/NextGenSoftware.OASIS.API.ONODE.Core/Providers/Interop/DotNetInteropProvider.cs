@@ -295,7 +295,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                             {
                                 FunctionName = $"{type.FullName}.{method.Name}",
                                 ReturnType = method.ReturnType.Name,
-                                Parameters = parameters,
+                                Parameters = parameters.Cast<IParameterInfo>().ToList(),
                                 Documentation = GetXmlDocumentation(method)
                             });
                         }

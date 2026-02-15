@@ -70,8 +70,9 @@ public class RadixOracleNode
         catch (Exception ex)
         {
             _isRunning = false;
-            return OASISErrorHandling.HandleError<bool>(ref result,
+            OASISErrorHandling.HandleError<bool>(ref result,
                 $"Error starting oracle node: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -108,8 +109,9 @@ public class RadixOracleNode
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<bool>(ref result,
+            OASISErrorHandling.HandleError<bool>(ref result,
                 $"Error stopping oracle node: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -207,8 +209,9 @@ public class RadixOracleNode
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<OracleDataResponse>(ref result,
+            OASISErrorHandling.HandleError<OracleDataResponse>(ref result,
                 $"Error getting oracle data: {ex.Message}", ex);
+            return result;
         }
     }
 }

@@ -1,11 +1,26 @@
 using NextGenSoftware.OASIS.STAR.DNA;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.OASISBootLoader;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Ensure OASIS_DNA.json is resolved from the app output directory in local runs.
+Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.MaxDepth = 64;
+        options.JsonSerializerOptions.WriteIndented = false;
+    });
+builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -154,7 +169,92 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.Use(async (context, next) =>
+{
+    if (context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
+    {
+        var authHeader = authHeaderValue.ToString();
+        if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            var token = authHeader["Bearer ".Length..].Trim();
+            var avatarId = ParseAvatarIdFromJwt(token);
+            if (avatarId != Guid.Empty)
+            {
+                try
+                {
+                    // Ensure OASIS is booted before loading avatar
+                    if (!OASISBootLoader.IsOASISBooted)
+                    {
+                        var dnaPath = OASISBootLoader.OASISDNAPath ?? 
+                                     Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
+                        var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
+                        if (bootResult.IsError)
+                        {
+                            // Log but don't fail - avatar loading will fail gracefully
+                            System.Diagnostics.Debug.WriteLine($"Warning: OASIS boot failed in middleware: {bootResult.Message}");
+                        }
+                    }
+
+                    // Use async method like WEB4 JWT middleware does
+                    var avatarLoadResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId);
+                    if (!avatarLoadResult.IsError && avatarLoadResult.Result is not null)
+                    {
+                        context.Items["Avatar"] = avatarLoadResult.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Best-effort context hydration for local API routes - log but don't fail
+                    System.Diagnostics.Debug.WriteLine($"Warning: Failed to load avatar in middleware: {ex.Message}");
+                }
+            }
+        }
+    }
+
+    await next();
+});
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static Guid ParseAvatarIdFromJwt(string? token)
+{
+    if (string.IsNullOrWhiteSpace(token))
+        return Guid.Empty;
+
+    var parts = token.Split('.');
+    if (parts.Length < 2)
+        return Guid.Empty;
+
+    try
+    {
+        var payload = parts[1].Replace('-', '+').Replace('_', '/');
+        switch (payload.Length % 4)
+        {
+            case 2: payload += "=="; break;
+            case 3: payload += "="; break;
+        }
+
+        var bytes = Convert.FromBase64String(payload);
+        using var doc = JsonDocument.Parse(bytes);
+        if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            return Guid.Empty;
+
+        foreach (var property in doc.RootElement.EnumerateObject())
+        {
+            if ((string.Equals(property.Name, "id", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(property.Name, "avatarId", StringComparison.OrdinalIgnoreCase)) &&
+                property.Value.ValueKind == JsonValueKind.String &&
+                Guid.TryParse(property.Value.GetString(), out var parsed))
+            {
+                return parsed;
+            }
+        }
+    }
+    catch
+    {
+    }
+
+    return Guid.Empty;
+}

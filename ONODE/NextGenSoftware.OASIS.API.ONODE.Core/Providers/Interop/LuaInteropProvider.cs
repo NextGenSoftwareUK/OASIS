@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public LuaInteropProvider()
         {
-            _loadedScripts = new Dictionary<string, string>();
+            _loadedScripts = new Dictionary<string, LuaLibraryInfo>();
         }
 
         public Task<OASISResult<bool>> InitializeAsync()
@@ -341,13 +341,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseLuaSignatures(scriptContent);
+                    var signatures = ParseLuaSignatures(scriptInfo.ScriptContent);
                     var functionNames = signatures.Select(s => s.FunctionName).ToList();
 
                     result.Result = functionNames;
@@ -413,13 +413,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 lock (_lockObject)
                 {
-                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptContent))
+                    if (!_loadedScripts.TryGetValue(libraryId, out var scriptInfo))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
                         return Task.FromResult(result);
                     }
 
-                    var signatures = ParseLuaSignatures(scriptContent);
+                    var signatures = ParseLuaSignatures(scriptInfo.ScriptContent);
 
                     result.Result = signatures;
                     result.Message = signatures.Count > 0

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -105,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, showOnlyDefault, decryptPrivateKeys, providerType);
+            return await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, providerType);
+            return await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
         }
 
 
@@ -163,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByEmailAsync(string email, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, decryptPrivateKeys, providerType);
+            return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, providerType);
+            return await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, providerType);
         }
 
         /// <summary>
@@ -479,7 +479,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<IProviderWallet> GetWalletThatPublicKeyBelongsTo(string providerKey, ProviderType providerType)
         {
-            return WalletManager.GetWalletThatPublicKeyBelongsTo(providerKey, providerType);
+            return WalletManager.GetWalletThatPublicKeyBelongsTo(providerKey, false, false, providerType);
         }
 
         /// <summary>
@@ -705,7 +705,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByIdAsync(Guid avatarId, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
-            return await WalletManager.CreateWalletForAvatarByIdAsync(avatarId, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+            return await WalletManager.CreateWalletForAvatarByIdAsync(avatarId, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, request.ShowSecretRecoveryPhase, request.ShowPrivateKey, providerTypeToLoadSave);
         }
 
         /// <summary>
@@ -721,7 +721,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByUsernameAsync(string username, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
-            return await WalletManager.CreateWalletForAvatarByUsernameAsync(username, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+            return await WalletManager.CreateWalletForAvatarByUsernameAsync(username, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, false, false, providerTypeToLoadSave);
         }
 
         /// <summary>
@@ -737,7 +737,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByEmailAsync(string email, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
-            return await WalletManager.CreateWalletForAvatarByEmailAsync(email, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+            return await WalletManager.CreateWalletForAvatarByEmailAsync(email, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, false, false, providerTypeToLoadSave);
         }
 
         /// <summary>
@@ -802,6 +802,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ProviderType WalletProviderType { get; set; }
         public bool GenerateKeyPair { get; set; } = true;
         public bool IsDefaultWallet { get; set; } = false;
+        public bool ShowSecretRecoveryPhase { get; set; }
+        public bool ShowPrivateKey { get; set; }
     }
 
     /// <summary>

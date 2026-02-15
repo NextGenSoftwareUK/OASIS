@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -173,8 +173,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = _avatarRepository.LoadAllAvatars();
@@ -220,8 +224,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = _holonRepository.LoadAllHolons(Type, true, true, 0, 0, true, 0);
@@ -320,8 +328,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username and verify password
@@ -551,8 +563,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchResults = new SearchResults();
@@ -605,8 +621,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load all avatars and aggregate their provider wallets
@@ -658,8 +678,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (providerWallets == null)
@@ -727,8 +751,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar to get provider wallets
@@ -769,8 +797,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username to get provider wallets
@@ -811,8 +843,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by email to get provider wallets
@@ -853,8 +889,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar and update provider wallets
@@ -912,8 +952,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username and update provider wallets
@@ -971,8 +1015,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by email and update provider wallets
@@ -1037,8 +1085,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var importedCount = 0;
@@ -1076,8 +1128,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId
@@ -1106,8 +1162,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
@@ -1136,8 +1196,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
@@ -1166,8 +1230,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons via current repository API
@@ -1220,8 +1288,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons by metadata from SQLite - using LoadAllHolons and filter
@@ -1267,8 +1339,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons by multiple metadata pairs from SQLite - using LoadAllHolons and filter

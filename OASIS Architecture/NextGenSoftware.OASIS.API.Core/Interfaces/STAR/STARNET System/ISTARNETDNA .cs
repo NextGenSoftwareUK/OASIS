@@ -15,6 +15,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         DateTime CreatedOn { get; set; }
         string STARNETHolonType { get; set; }
         object STARNETCategory { get; set; }
+        /// <summary>
+        /// Sub-category for libraries (e.g., Language). Shown as "Language" in UI/wizards.
+        /// </summary>
+        object STARNETSubCategory { get; set; }
         public STARNETDependencies Dependencies { get; set; }
         public Dictionary<string, object> MetaData { get; set; }
         //public Dictionary<string, (string, string)> MetaHolonTagMappings { get; set; }

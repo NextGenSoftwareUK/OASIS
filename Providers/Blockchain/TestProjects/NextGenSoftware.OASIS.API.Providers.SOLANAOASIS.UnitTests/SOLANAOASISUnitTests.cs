@@ -10,12 +10,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests
     [TestClass]
     public class SOLANAOASISProviderTests
     {
-        private SOLANAOASIS _provider;
+        private SolanaOASIS _provider;
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new SOLANAOASIS();
+            _provider = new SolanaOASIS("https://api.mainnet-beta.solana.com", "", "");
         }
 
         [TestMethod]
@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.SOLANAOASIS, providerType);
+            Assert.AreEqual(ProviderType.SolanaOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests
             var providerName = _provider.ProviderName;
 
             // Assert
-            Assert.AreEqual("SOLANAOASIS", providerName);
+            Assert.AreEqual("SolanaOASIS", providerName);
         }
 
         [TestMethod]

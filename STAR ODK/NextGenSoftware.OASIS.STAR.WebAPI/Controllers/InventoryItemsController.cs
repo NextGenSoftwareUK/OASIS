@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -21,6 +22,28 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class InventoryItemsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
+
+        private static async Task EnsureStarApiBootedAsync()
+        {
+            if (_starAPI.IsOASISBooted)
+                return;
+
+            await _bootLock.WaitAsync();
+            try
+            {
+                if (_starAPI.IsOASISBooted)
+                    return;
+
+                var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                if (boot.IsError)
+                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Retrieves all inventory items in the system.
@@ -35,7 +58,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.LoadAllAsync(AvatarId, 0);
+                
+                // Ensure result is properly initialized
+                if (result == null)
+                {
+                    return Ok(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = false,
+                        Result = new List<InventoryItem>(),
+                        Message = "No inventory items found."
+                    });
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
@@ -43,7 +88,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
                 {
                     IsError = true,
-                    Message = $"Error loading inventory items: {ex.Message}",
+                    Message = $"Error loading inventory items for AvatarId {AvatarId}: {ex.Message}",
                     Exception = ex
                 });
             }
@@ -99,7 +144,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<InventoryItem>
                 {
                     IsError = true,
-                    Message = $"Error creating inventory item: {ex.Message}",
+                    Message = $"Error creating inventory item for AvatarId {AvatarId}: {ex}",
                     Exception = ex
                 });
             }
@@ -130,6 +175,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.DeleteAsync(AvatarId, id, 0);
                 return Ok(result);
             }
@@ -177,6 +223,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
@@ -185,7 +232,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<InventoryItem>
                 {
                     IsError = true,
-                    Message = $"Error creating inventory item: {ex.Message}",
+                    Message = $"Error creating inventory item for AvatarId {AvatarId}: {ex}",
                     Exception = ex
                 });
             }
@@ -295,7 +342,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, showAllVersions, version);
+                
+                // Ensure result is properly initialized
+                if (result == null)
+                {
+                    return Ok(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = false,
+                        Result = new List<InventoryItem>(),
+                        Message = "No inventory items found for avatar."
+                    });
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
@@ -594,7 +663,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.InventoryItems.SearchAsync<InventoryItem>(AvatarId, request.SearchTerm, true, false, 0);
+                var result = await _starAPI.InventoryItems.SearchAsync<InventoryItem>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true, false, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -615,7 +684,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.InventoryItem;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<InventoryItem, STARNETDNA> CreateOptions { get; set; } = null;
+        public ISTARNETCreateOptions<InventoryItem, STARNETDNA>? CreateOptions { get; set; } = null;
     }
 
     public class EditInventoryItemRequest

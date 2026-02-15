@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS\NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
