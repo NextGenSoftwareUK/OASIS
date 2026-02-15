@@ -40,6 +40,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx);
 int OQuake_STAR_ShouldUseAnorakFace(void);
 const char* OQuake_STAR_GetUsername(void);
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx);
+void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx);
 
 #ifdef __cplusplus
 }

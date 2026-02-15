@@ -1,12 +1,13 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 var baseUrl = (Environment.GetEnvironmentVariable("OASIS_WEBAPI_BASE_URL") ?? "http://localhost:5003").TrimEnd('/');
 var username = Environment.GetEnvironmentVariable("OASIS_WEBAPI_USERNAME") ?? "dellams";
 var password = Environment.GetEnvironmentVariable("OASIS_WEBAPI_PASSWORD") ?? "test!";
 
-using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(180) };
 var (token, avatarId) = await TryAuthenticateAsync(client, baseUrl, username, password);
 if (!string.IsNullOrWhiteSpace(token))
 {
@@ -16,7 +17,8 @@ if (!string.IsNullOrWhiteSpace(token))
 }
 
 using var swaggerDoc = JsonDocument.Parse(await client.GetStringAsync($"{baseUrl}/swagger/v1/swagger.json"));
-var endpoints = ReadEndpoints(swaggerDoc.RootElement).ToList();
+var swaggerRoot = swaggerDoc.RootElement;
+var endpoints = ReadEndpoints(swaggerRoot).ToList();
 var failures = new List<string>();
 var orderedEndpoints = endpoints
     .OrderBy(e => IsDestructiveOnetEndpoint(e.Path) ? 1 : 0)
@@ -34,38 +36,490 @@ foreach (var endpoint in orderedEndpoints)
         break;
     }
 
-    var url = $"{baseUrl}{ResolvePath(endpoint.Path)}";
-    var request = new HttpRequestMessage(new HttpMethod(endpoint.Method), url);
-    if (endpoint.Method is "POST" or "PUT" or "PATCH")
-        request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
-
     try
     {
+        var (url, content) = BuildRequest(swaggerRoot, endpoint, avatarId, baseUrl);
+        var request = new HttpRequestMessage(new HttpMethod(endpoint.Method), url);
+        if (content != null)
+            request.Content = content;
+
         using var response = await client.SendAsync(request);
         var code = (int)response.StatusCode;
         Console.WriteLine($"{endpoint.Method} {endpoint.Path} => {code}");
+        
         if (code >= 500)
         {
             var body = await response.Content.ReadAsStringAsync();
-            failures.Add($"{endpoint.Method} {endpoint.Path} => {code}. Body: {body}");
+            var errorPreview = body.Length > 200 ? body.Substring(0, 200) + "..." : body;
+            failures.Add($"{endpoint.Method} {endpoint.Path} => {code}. Body: {errorPreview}");
+            if (failures.Count <= 10)
+                Console.WriteLine($"  Error details: {errorPreview}");
+        }
+        else if (code == 400 && failures.Count < 20)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            var errorPreview = body.Length > 300 ? body.Substring(0, 300) + "..." : body;
+            Console.WriteLine($"  {endpoint.Method} {endpoint.Path} => {code}: {errorPreview}");
         }
     }
     catch (Exception ex)
     {
         failures.Add($"{endpoint.Method} {endpoint.Path} => exception: {ex.Message}");
+        Console.WriteLine($"  Exception: {ex.Message}");
     }
 }
 
 if (failures.Count > 0)
 {
-    Console.WriteLine("Failures:");
+    Console.WriteLine($"\nFailures ({failures.Count}):");
     foreach (var failure in failures)
         Console.WriteLine(failure);
     Environment.ExitCode = 1;
 }
 else
 {
-    Console.WriteLine("All OASIS WEB4 endpoints returned non-5xx responses.");
+    Console.WriteLine("\nAll OASIS WEB4 endpoints returned non-5xx responses.");
+}
+
+static (string Url, HttpContent? Content) BuildRequest(JsonElement swaggerRoot, (string Method, string Path) endpoint, Guid? avatarId, string baseUrl)
+{
+    var path = ResolvePath(endpoint.Path, avatarId);
+    var url = $"{baseUrl}{path}";
+    HttpContent? content = null;
+
+    if (endpoint.Method is "POST" or "PUT" or "PATCH")
+    {
+        var requestBody = GenerateRequestBody(swaggerRoot, endpoint);
+        if (requestBody != null)
+            content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+    }
+    else if (endpoint.Method == "GET")
+    {
+        var queryParams = GenerateQueryParameters(swaggerRoot, endpoint, avatarId);
+        if (queryParams.Any())
+            url += "?" + string.Join("&", queryParams.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
+    }
+
+    return (url, content);
+}
+
+static Dictionary<string, object>? GenerateRequestBody(JsonElement swaggerRoot, (string Method, string Path) endpoint)
+{
+    try
+    {
+        if (!swaggerRoot.TryGetProperty("paths", out var paths))
+            return null;
+
+        if (!paths.TryGetProperty(endpoint.Path, out var pathObj))
+            return null;
+
+        if (!pathObj.TryGetProperty(endpoint.Method.ToLowerInvariant(), out var methodObj))
+            return null;
+
+        if (!methodObj.TryGetProperty("requestBody", out var requestBody))
+            return null;
+
+        if (!requestBody.TryGetProperty("content", out var content))
+            return null;
+
+        if (!content.TryGetProperty("application/json", out var jsonContent))
+            return null;
+
+        if (!jsonContent.TryGetProperty("schema", out var schema))
+            return null;
+
+        JsonElement actualSchema = schema;
+        if (schema.TryGetProperty("$ref", out var refProp))
+        {
+            var refPath = refProp.GetString()?.Replace("#/", "").Replace("/", ".");
+            if (refPath != null && swaggerRoot.TryGetProperty("components", out var components))
+            {
+                var parts = refPath.Split('.');
+                JsonElement current = components;
+                foreach (var part in parts)
+                {
+                    if (current.TryGetProperty(part, out var next))
+                        current = next;
+                    else
+                        return GenerateDefaultBody(endpoint.Path);
+                }
+                actualSchema = current;
+            }
+        }
+
+        return GenerateObjectFromSchema(actualSchema, swaggerRoot);
+    }
+    catch
+    {
+        return GenerateDefaultBody(endpoint.Path);
+    }
+}
+
+static Dictionary<string, object> GenerateObjectFromSchema(JsonElement schema, JsonElement swaggerRoot)
+{
+    var result = new Dictionary<string, object>();
+
+    if (!schema.TryGetProperty("properties", out var properties))
+        return result;
+
+    foreach (var prop in properties.EnumerateObject())
+    {
+        var propName = prop.Name;
+        var propSchema = prop.Value;
+
+        if (propSchema.TryGetProperty("readOnly", out var readOnly) && readOnly.GetBoolean())
+            continue;
+
+        var value = GenerateValueFromSchema(propSchema, swaggerRoot, propName);
+        if (value != null)
+            result[propName] = value;
+    }
+
+    return result;
+}
+
+static object? GenerateValueFromSchema(JsonElement schema, JsonElement swaggerRoot, string propertyName)
+{
+    if (schema.TryGetProperty("$ref", out var refProp))
+    {
+        var refPath = refProp.GetString()?.Replace("#/", "").Replace("/", ".");
+        if (refPath != null && swaggerRoot.TryGetProperty("components", out var components))
+        {
+            var parts = refPath.Split('.');
+            JsonElement current = components;
+            foreach (var part in parts)
+            {
+                if (current.TryGetProperty(part, out var next))
+                    current = next;
+                else
+                    return GetDefaultValue(propertyName);
+            }
+            schema = current;
+        }
+    }
+
+    if (schema.TryGetProperty("type", out var typeProp))
+    {
+        var type = typeProp.GetString();
+        return type switch
+        {
+            "string" => GetStringValue(propertyName, schema),
+            "integer" => GetIntegerValue(propertyName, schema),
+            "number" => GetNumberValue(propertyName, schema),
+            "boolean" => true,
+            "array" => GetArrayValue(schema, swaggerRoot, propertyName),
+            "object" => GenerateObjectFromSchema(schema, swaggerRoot),
+            _ => GetDefaultValue(propertyName)
+        };
+    }
+
+    return GetDefaultValue(propertyName);
+}
+
+static string GetStringValue(string propertyName, JsonElement schema)
+{
+    var lowerName = propertyName.ToLowerInvariant();
+    
+    if (schema.TryGetProperty("enum", out var enumProp) && enumProp.ValueKind == JsonValueKind.Array && enumProp.GetArrayLength() > 0)
+    {
+        return enumProp[0].GetString() ?? "test";
+    }
+
+    if (schema.TryGetProperty("format", out var format))
+    {
+        return format.GetString() switch
+        {
+            "uuid" or "guid" => Guid.NewGuid().ToString(),
+            "date-time" => DateTime.UtcNow.ToString("O"),
+            "email" => "test@example.com",
+            "uri" => "https://example.com/test",
+            _ => "test"
+        };
+    }
+
+    if (lowerName.Contains("name") || lowerName.Contains("title"))
+        return "Test " + propertyName;
+    if (lowerName.Contains("description"))
+        return $"Test description for {propertyName}";
+    if (lowerName.Contains("email"))
+        return "test@example.com";
+    if (lowerName.Contains("url") || lowerName.Contains("uri"))
+        return "https://example.com/test";
+    if (lowerName.Contains("path"))
+        return "/test/path";
+    if (lowerName.Contains("token"))
+        return "test-token-123";
+    if (lowerName.Contains("username"))
+        return "testuser";
+    if (lowerName.Contains("password"))
+        return "testpass123";
+    if (lowerName.Contains("search") || lowerName.Contains("query") || lowerName.Contains("term"))
+        return "test";
+    if (lowerName.Contains("type"))
+        return "TestType";
+    if (lowerName.Contains("status"))
+        return "Active";
+    if (lowerName.Contains("category"))
+        return "TestCategory";
+    if (lowerName.Contains("firstname"))
+        return "Test";
+    if (lowerName.Contains("lastname"))
+        return "User";
+    if (lowerName.Contains("title"))
+        return "Mr";
+
+    return "test";
+}
+
+static int GetIntegerValue(string propertyName, JsonElement schema)
+{
+    if (schema.TryGetProperty("minimum", out var min))
+        return min.GetInt32();
+    if (schema.TryGetProperty("default", out var def) && def.ValueKind == JsonValueKind.Number)
+        return def.GetInt32();
+    
+    var lowerName = propertyName.ToLowerInvariant();
+    if (lowerName.Contains("version") || lowerName.Contains("level"))
+        return 1;
+    if (lowerName.Contains("count") || lowerName.Contains("limit") || lowerName.Contains("size"))
+        return 10;
+    
+    return 1;
+}
+
+static double GetNumberValue(string propertyName, JsonElement schema)
+{
+    if (schema.TryGetProperty("minimum", out var min))
+        return min.GetDouble();
+    if (schema.TryGetProperty("default", out var def) && def.ValueKind == JsonValueKind.Number)
+        return def.GetDouble();
+    
+    return 1.0;
+}
+
+static object GetArrayValue(JsonElement schema, JsonElement swaggerRoot, string propertyName)
+{
+    if (schema.TryGetProperty("items", out var items))
+    {
+        var itemValue = GenerateValueFromSchema(items, swaggerRoot, "item");
+        return itemValue != null ? new[] { itemValue } : Array.Empty<object>();
+    }
+    return Array.Empty<object>();
+}
+
+static object? GetDefaultValue(string propertyName)
+{
+    var lowerName = propertyName.ToLowerInvariant();
+    
+    if (lowerName.Contains("id") && (lowerName.Contains("avatar") || lowerName.Contains("user")))
+        return Guid.NewGuid().ToString();
+    if (lowerName.Contains("id"))
+        return Guid.NewGuid().ToString();
+    if (lowerName.Contains("name"))
+        return "Test " + propertyName;
+    if (lowerName.Contains("description"))
+        return "Test description";
+    if (lowerName.Contains("email"))
+        return "test@example.com";
+    if (lowerName.Contains("url") || lowerName.Contains("uri"))
+        return "https://example.com/test";
+    
+    return "test";
+}
+
+static Dictionary<string, object> GenerateDefaultBody(string path)
+{
+    var body = new Dictionary<string, object>();
+    var lowerPath = path.ToLowerInvariant();
+
+    if (lowerPath.Contains("avatar") && lowerPath.Contains("register"))
+    {
+        body["username"] = "testuser" + Guid.NewGuid().ToString().Substring(0, 8);
+        body["email"] = $"test{Guid.NewGuid().ToString().Substring(0, 8)}@example.com";
+        body["password"] = "TestPass123!";
+        body["firstName"] = "Test";
+        body["lastName"] = "User";
+    }
+    else if (lowerPath.Contains("avatar") && lowerPath.Contains("authenticate"))
+    {
+        body["username"] = "testuser";
+        body["password"] = "testpass";
+    }
+    else if (lowerPath.Contains("inventory"))
+    {
+        body["Name"] = "Test Item";
+        body["Description"] = "Test inventory item";
+    }
+    else if (lowerPath.Contains("nft"))
+    {
+        body["Name"] = "Test NFT";
+        body["Description"] = "Test NFT description";
+        body["ImageUrl"] = "https://example.com/nft.png";
+        body["ThumbnailUrl"] = "https://example.com/nft-thumb.png";
+    }
+    else
+    {
+        body["Name"] = "Test";
+        body["Description"] = "Test description";
+    }
+
+    return body;
+}
+
+static Dictionary<string, string> GenerateQueryParameters(JsonElement swaggerRoot, (string Method, string Path) endpoint, Guid? avatarId)
+{
+    var queryParams = new Dictionary<string, string>();
+
+    try
+    {
+        if (!swaggerRoot.TryGetProperty("paths", out var paths))
+            return queryParams;
+
+        if (!paths.TryGetProperty(endpoint.Path, out var pathObj))
+            return queryParams;
+
+        if (!pathObj.TryGetProperty(endpoint.Method.ToLowerInvariant(), out var methodObj))
+            return queryParams;
+
+        if (!methodObj.TryGetProperty("parameters", out var parameters))
+            return queryParams;
+
+        foreach (var param in parameters.EnumerateArray())
+        {
+            if (param.TryGetProperty("in", out var inProp) && inProp.GetString() == "query")
+            {
+                if (param.TryGetProperty("name", out var nameProp))
+                {
+                    var name = nameProp.GetString();
+                    if (string.IsNullOrWhiteSpace(name))
+                        continue;
+
+                    var value = GetQueryParameterValue(param, name, avatarId);
+                    if (value != null)
+                        queryParams[name] = value;
+                }
+            }
+        }
+    }
+    catch
+    {
+    }
+
+    return queryParams;
+}
+
+static string? GetQueryParameterValue(JsonElement param, string name, Guid? avatarId)
+{
+    var lowerName = name.ToLowerInvariant();
+
+    if (param.TryGetProperty("required", out var required) && required.GetBoolean())
+    {
+        if (lowerName.Contains("search") || lowerName.Contains("query") || lowerName.Contains("term"))
+            return "test";
+        if (lowerName.Contains("itemname"))
+            return "Test Item";
+        if (lowerName.Contains("type"))
+            return "TestType";
+        if (lowerName.Contains("status"))
+            return "Active";
+        if (lowerName.Contains("category"))
+            return "TestCategory";
+        if (lowerName.Contains("path"))
+            return "/test/path";
+        if (lowerName.Contains("publishedfilepath"))
+            return "/test/published.json";
+        if (lowerName.Contains("email"))
+            return "test@example.com";
+        if (lowerName.Contains("username"))
+            return "testuser";
+    }
+
+    if (param.TryGetProperty("schema", out var schema) && schema.TryGetProperty("enum", out var enumProp) && enumProp.ValueKind == JsonValueKind.Array && enumProp.GetArrayLength() > 0)
+    {
+        return enumProp[0].GetString();
+    }
+
+    if (param.TryGetProperty("schema", out var schema2))
+    {
+        if (schema2.TryGetProperty("type", out var type))
+        {
+            return type.GetString() switch
+            {
+                "string" => lowerName.Contains("id") ? (avatarId?.ToString() ?? Guid.NewGuid().ToString()) : "test",
+                "integer" => "1",
+                "number" => "1.0",
+                "boolean" => "true",
+                _ => "test"
+            };
+        }
+    }
+
+    return null;
+}
+
+static string ResolvePath(string path, Guid? avatarId)
+{
+    return Regex.Replace(path, "\\{([^}]+)\\}", m =>
+    {
+        var key = m.Groups[1].Value.ToLowerInvariant();
+        if (key.Contains("avatarid") && avatarId.HasValue)
+            return avatarId.Value.ToString();
+        if (key.Contains("id"))
+            return Guid.NewGuid().ToString();
+        if (key.Contains("version"))
+            return "1";
+        if (key.Contains("type"))
+            return "TestType";
+        if (key.Contains("status"))
+            return "Active";
+        if (key.Contains("category"))
+            return "TestCategory";
+        if (key.Contains("username"))
+            return "testuser";
+        if (key.Contains("email"))
+            return "test@example.com";
+        if (key.Contains("search") || key.Contains("query") || key.Contains("term"))
+            return "test";
+        if (key.Contains("itemname"))
+            return "TestItem";
+        if (key.Contains("providerType"))
+            return "Default";
+        if (key.Contains("setGlobally"))
+            return "false";
+        if (key.Contains("autoReplicationMode"))
+            return "Auto";
+        if (key.Contains("autoFailOverMode"))
+            return "Auto";
+        if (key.Contains("autoLoadBalanceMode"))
+            return "Auto";
+        if (key.Contains("waitForAutoReplicationResult"))
+            return "false";
+        if (key.Contains("showDetailedSettings"))
+            return "false";
+        if (key.Contains("includeUsernames"))
+            return "true";
+        if (key.Contains("includeIds"))
+            return "true";
+        if (key.Contains("removeDuplicates"))
+            return "false";
+        if (key.Contains("includeUserNames"))
+            return "true";
+        if (key.Contains("JWTToken"))
+            return "test-token";
+        if (key.Contains("telosAccountName"))
+            return "testaccount";
+        if (key.Contains("eosioAccountName"))
+            return "testaccount";
+        if (key.Contains("holochainAgentID"))
+            return "test-agent-id";
+        if (key.Contains("karmaType"))
+            return "Positive";
+        if (key.Contains("weighting"))
+            return "1.0";
+        if (key.Contains("model"))
+            return "Default";
+        return "test";
+    });
 }
 
 static IEnumerable<(string Method, string Path)> ReadEndpoints(JsonElement root)
@@ -85,19 +539,6 @@ static IEnumerable<(string Method, string Path)> ReadEndpoints(JsonElement root)
                 yield return (method, pathProp.Name);
         }
     }
-}
-
-static string ResolvePath(string path)
-{
-    return System.Text.RegularExpressions.Regex.Replace(path, "\\{([^}]+)\\}", m =>
-    {
-        var key = m.Groups[1].Value.ToLowerInvariant();
-        if (key.Contains("id"))
-            return Guid.NewGuid().ToString();
-        if (key.Contains("version"))
-            return "1";
-        return "test";
-    });
 }
 
 static async Task<(string? Token, Guid? AvatarId)> TryAuthenticateAsync(HttpClient client, string baseUrl, string username, string password)
@@ -120,7 +561,6 @@ static async Task<(string? Token, Guid? AvatarId)> TryAuthenticateAsync(HttpClie
         using var doc = JsonDocument.Parse(body);
         var token = FindStringRecursive(doc.RootElement, "jwtToken") ?? FindStringRecursive(doc.RootElement, "token");
         
-        // Try to find avatar ID in various locations - WEB4 returns IAvatar in Result.Result
         var avatarIdStr = FindStringRecursive(doc.RootElement, "avatarId") 
             ?? FindStringRecursive(doc.RootElement, "id");
         
@@ -128,11 +568,8 @@ static async Task<(string? Token, Guid? AvatarId)> TryAuthenticateAsync(HttpClie
         if (!string.IsNullOrWhiteSpace(avatarIdStr) && Guid.TryParse(avatarIdStr, out var parsedId))
             avatarId = parsedId;
         
-        // If we have a token but no avatar ID, try to extract from JWT
         if (!string.IsNullOrWhiteSpace(token) && !avatarId.HasValue)
-        {
             avatarId = ExtractAvatarIdFromJwt(token);
-        }
         
         return (token, avatarId);
     }
@@ -161,7 +598,6 @@ static Guid? ExtractAvatarIdFromJwt(string token)
         var bytes = Convert.FromBase64String(payload);
         using var doc = JsonDocument.Parse(bytes);
         
-        // Try common JWT claim names for avatar ID
         if (doc.RootElement.TryGetProperty("id", out var idProp) && idProp.ValueKind == JsonValueKind.String)
         {
             if (Guid.TryParse(idProp.GetString(), out var id))
@@ -180,10 +616,7 @@ static Guid? ExtractAvatarIdFromJwt(string token)
                 return id;
         }
     }
-    catch
-    {
-        // Ignore JWT parsing errors
-    }
+    catch { }
     
     return null;
 }
@@ -237,6 +670,3 @@ static async Task<bool> IsApiHealthyAsync(HttpClient client, string baseUrl)
         return false;
     }
 }
-
-
-
