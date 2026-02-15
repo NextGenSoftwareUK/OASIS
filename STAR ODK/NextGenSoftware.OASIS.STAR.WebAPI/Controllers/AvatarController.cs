@@ -14,6 +14,8 @@ using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Exceptions;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -27,6 +29,28 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private readonly HttpClient _httpClient;
         private readonly string _web4OasisApiBaseUrl;
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
+
+        private static async Task EnsureStarApiBootedAsync()
+        {
+            if (_starAPI.IsOASISBooted)
+                return;
+
+            await _bootLock.WaitAsync();
+            try
+            {
+                if (_starAPI.IsOASISBooted)
+                    return;
+
+                var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                if (boot.IsError)
+                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Creates a new instance of <see cref="AvatarController"/>.
@@ -249,6 +273,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
                 if (result.IsError)
                     return BadRequest(result);
@@ -277,6 +311,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IInventoryItem>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
                 var name = payload.TryGetProperty("Name", out var nameProp) && nameProp.ValueKind == JsonValueKind.String
                     ? nameProp.GetString() ?? "Inventory Item"
                     : "Inventory Item";
@@ -284,6 +327,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     ? descProp.GetString() ?? string.Empty
                     : string.Empty;
 
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.CreateAsync(AvatarId, name, description, null, null, null);
                 if (result.IsError)
                     return BadRequest(result);
@@ -311,6 +355,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.DeleteAsync(AvatarId, itemId, 0);
                 if (result.IsError)
                     return BadRequest(result);
@@ -338,6 +392,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var inventoryResult = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
                 if (inventoryResult.IsError)
                     return BadRequest(inventoryResult);
@@ -367,6 +431,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var inventoryResult = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
                 if (inventoryResult.IsError)
                     return BadRequest(inventoryResult);
@@ -398,6 +472,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var inventoryResult = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
                 if (inventoryResult.IsError)
                     return BadRequest(inventoryResult);
@@ -431,6 +515,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IInventoryItem>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.LoadAsync(AvatarId, itemId, 0);
                 if (result.IsError)
                     return BadRequest(result);
