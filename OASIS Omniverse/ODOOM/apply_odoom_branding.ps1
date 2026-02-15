@@ -144,7 +144,7 @@ if (Test-Path $sbarMugshotCpp) {
     # If already patched with OASFACE but missing anorak face check, add it
     if ($mugContent -match 'odoom_star_username.*OASFACE' -and $mugContent -notmatch 'oasis_star_anorak_face') {
         $mugContent = Get-Content $sbarMugshotCpp -Raw
-        $mugContent = $mugContent -replace '(FBaseCVar \*starUserVar = FindCVar\("odoom_star_username")', 'FBaseCVar *anorakFaceVar = FindCVar("oasis_star_anorak_face", nullptr);' + "`r`n" + '	bool anorakFace = (anorakFaceVar && anorakFaceVar->GetRealType() == CVAR_Bool) && (anorakFaceVar->GetGenericRep(CVAR_Bool).Int != 0);' + "`r`n`t" + '$1'
+        $mugContent = $mugContent -replace '(\tconst char \*starUser = )', "`tFBaseCVar *anorakFaceVar = FindCVar(`"oasis_star_anorak_face`", nullptr);`r`n`tbool anorakFace = (anorakFaceVar && anorakFaceVar->GetRealType() == CVAR_Bool) && (anorakFaceVar->GetGenericRep(CVAR_Bool).Int != 0);`r`n`$1"
         $mugContent = $mugContent -replace 'if \(starUser && \*starUser\)', 'if ((starUser && *starUser) || anorakFace)'
         Set-Content $sbarMugshotCpp $mugContent -NoNewline
         $changes += "sbar_mugshot(anorak)"
