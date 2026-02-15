@@ -9,6 +9,7 @@ $src = $UZDOOM_SRC.TrimEnd('\')
 $versionH = "$src\src\version.h"
 $startscreenCpp = "$src\src\common\startscreen\startscreen.cpp"
 $sharedSbarCpp = "$src\src\g_statusbar\shared_sbar.cpp"
+$sbarMugshotCpp = "$src\src\g_statusbar\sbar_mugshot.cpp"
 $zscriptTxt = "$src\wadsrc\static\zscript.txt"
 $doomItemsMapinfo = "$src\wadsrc\static\mapinfo\doomitems.txt"
 $commonMapinfo = "$src\wadsrc\static\mapinfo\common.txt"
@@ -82,9 +83,9 @@ if (Test-Path $sharedSbarCpp) {
 #ifdef OASIS_STAR_API
 	{
 		FString verText = GAMENAME " " ODOOM_FULL_VERSION_STR;
-		double x = twod->GetWidth() - SmallFont->StringWidth(verText.GetChars()) * CleanXfac - 4;
-		double y = twod->GetHeight() - SmallFont->GetHeight() * CleanYfac - 2;
-		DrawText(twod, SmallFont, CR_TAN, x, y, verText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		double y = 2;
+		double xVersion = twod->GetWidth() - SmallFont->StringWidth(verText.GetChars()) * CleanXfac - 4;
+		DrawText(twod, SmallFont, CR_TAN, xVersion, y, verText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
 		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
 		const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
 		FString beamedText = (starUser && *starUser) ? FString("Beamed In: ") + starUser : "Beamed In: None";
@@ -102,7 +103,7 @@ if (Test-Path $sharedSbarCpp) {
 `$1		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
 		const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
 		FString beamedText = (starUser && *starUser) ? FString("Beamed In: ") + starUser : "Beamed In: None";
-		DrawText(twod, SmallFont, CR_TAN, 4, y, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		DrawText(twod, SmallFont, CR_TAN, 4, 2, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
 `$2
 "@
         $sbarChanged = $true
@@ -112,6 +113,30 @@ if (Test-Path $sharedSbarCpp) {
         $sbarChanged = $true
     }
     if ($sbarChanged) { Set-Content $sharedSbarCpp $content -NoNewline; $changes += "shared_sbar" }
+}
+
+# 3b. sbar_mugshot.cpp: show OASIS face (OASFACE) when beamed in (odoom_star_username set)
+if (Test-Path $sbarMugshotCpp) {
+    $mugContent = Get-Content $sbarMugshotCpp -Raw
+    if ($mugContent -match 'FMugShot::GetFace' -and $mugContent -notmatch 'odoom_star_username.*OASFACE|OASFACE.*odoom_star_username') {
+        $oldMug = '(FGameTexture \*FMugShot::GetFace\(player_t \*player, const char \*default_face, int accuracy, StateFlags stateflags\)\r?\n\{\r?\n)(\tint angle = UpdateState)'
+        $newMug = @"
+`$1#ifdef OASIS_STAR_API
+	FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
+	const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
+	if (starUser && *starUser)
+	{
+		FGameTexture *oasFace = TexMan.GetGameTexture(TexMan.CheckForTexture("OASFACE", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins));
+		if (oasFace && oasFace->isValid())
+			return oasFace;
+	}
+#endif
+`$2
+"@
+        $mugContent = $mugContent -replace $oldMug, $newMug
+        Set-Content $sbarMugshotCpp $mugContent -NoNewline
+        $changes += "sbar_mugshot"
+    }
 }
 
 # 4. Launcher about.txt: fix Release notes (UZDoom entries) and prepend ODOOM entry from global version

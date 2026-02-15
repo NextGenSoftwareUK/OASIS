@@ -105,6 +105,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (park == null)
+                {
+                    return BadRequest(new OASISResult<IPark>
+                    {
+                        IsError = true,
+                        Message = "Park cannot be null. Please provide a valid Park object in the request body."
+                    });
+                }
+
                 // TODO: Implement proper park saving
                 await Task.Delay(1); // Placeholder async operation
                 return Ok(new OASISResult<IPark>
@@ -130,6 +139,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (park == null)
+                {
+                    return BadRequest(new OASISResult<IPark>
+                    {
+                        IsError = true,
+                        Message = "Park cannot be null. Please provide a valid Park object in the request body."
+                    });
+                }
+
                 // TODO: Implement proper park saving
                 await Task.Delay(1); // Placeholder async operation
                 return Ok(new OASISResult<IPark>

@@ -39,3 +39,13 @@ Version and build number are set in **odoom_version.txt** (line 1 = version, lin
 - OQuake **gold_key** and **silver_key** are OQuake-only door keys (they do not unlock ODOOM doors).
 
 See [WINDOWS_INTEGRATION.md](WINDOWS_INTEGRATION.md) for STAR API setup and in-game console commands (`star version`, `star inventory`, etc.).
+
+## Beamed-in face (OASFACE)
+
+When you beam in, the status bar can show a custom face. The game looks for a texture named **OASFACE**. If it’s missing, the normal Doom guy face is used.
+
+**How to add OASFACE:**
+
+- **Ready-made:** Run `python create_odoom_face_pk3.py` from the ODOOM folder (or use the existing `odoom_face.pk3` there). Copy `odoom_face.pk3` next to ODOOM.exe so the beamed-in face appears.
+- **PK3 (custom):** Put a 32×32 image as `textures/OASFACE.png` in a zip, rename to `odoom_face.pk3`. See [textures/README.txt](textures/README.txt).
+- **WAD:** In SLADE, add a graphic lump named **OASFACE**, save your WAD, then run ODOOM with `-file your.wad`.
