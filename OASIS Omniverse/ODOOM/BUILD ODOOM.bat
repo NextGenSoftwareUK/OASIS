@@ -297,11 +297,17 @@ if errorlevel 1 (echo [ODOOM][ERROR] Build failed. & pause & exit /b 1)
 
 echo.
 echo [ODOOM][STEP] Packaging output...
+REM Generate OASFACE texture and odoom_face.pk3 for beamed-in status bar face
+echo [ODOOM][STEP] Generating OASIS beamed-in face (OASFACE)...
+"%PYTHON3_EXE%" "%ODOOM_INTEGRATION%create_odoom_face_pk3.py"
+if errorlevel 1 echo [ODOOM][WARN] OASFACE pk3 generation failed - beamed-in face may be missing.
+
 copy /Y "%DOOM_FOLDER%\star_api.dll" "%UZDOOM_SRC%\build\Release\star_api.dll" >nul
 if not exist "%ODOOM_INTEGRATION%build" mkdir "%ODOOM_INTEGRATION%build"
 xcopy "%UZDOOM_SRC%\build\Release\*" "%ODOOM_INTEGRATION%build" /Y /I /Q /E >nul
 copy /Y "%UZDOOM_SRC%\build\Release\uzdoom.exe" "%ODOOM_INTEGRATION%build\ODOOM.exe" >nul
 copy /Y "%DOOM_FOLDER%\star_api.dll" "%ODOOM_INTEGRATION%build\star_api.dll" >nul
+if exist "%ODOOM_INTEGRATION%odoom_face.pk3" copy /Y "%ODOOM_INTEGRATION%odoom_face.pk3" "%ODOOM_INTEGRATION%build\odoom_face.pk3" >nul
 if exist "%ODOOM_INTEGRATION%build\uzdoom.exe" del "%ODOOM_INTEGRATION%build\uzdoom.exe"
 if exist "%ODOOM_INTEGRATION%soft_oal.dll" copy /Y "%ODOOM_INTEGRATION%soft_oal.dll" "%ODOOM_INTEGRATION%build\soft_oal.dll" >nul
 
@@ -324,7 +330,7 @@ if exist "%ODOOM_INTEGRATION%copy_builder_native.ps1" (
 echo.
 echo ---
 echo [ODOOM][DONE] ODOOM ready: %ODOOM_INTEGRATION%build\ODOOM.exe
-echo [ODOOM][INFO] Put doom2.wad and optional soft_oal.dll in build folder.
+echo [ODOOM][INFO] Put doom2.wad in build folder. odoom_face.pk3 is included for beamed-in status bar face.
 echo [ODOOM][INFO] Use "BUILD & RUN ODOOM.bat" to launch.
 echo ---
 

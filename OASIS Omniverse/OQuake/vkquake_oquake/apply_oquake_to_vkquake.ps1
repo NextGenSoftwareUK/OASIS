@@ -3,7 +3,11 @@
   Copies OQuake + STAR files into vkQuake and patches host.c for console version string.
   Invoked by BUILD_OQUAKE.bat. Manual: .\apply_oquake_to_vkquake.ps1 -VkQuakeSrc "C:\Source\vkQuake"
 #>
-param([string]$VkQuakeSrc = $env:VKQUAKE_SRC)
+param(
+    [string]$VkQuakeSrc = $env:VKQUAKE_SRC,
+    [string]$QuakeInstallDir = "C:\Program Files (x86)\Steam\steamapps\common\Quake",
+    [switch]$SkipQuakeInstallPrompt
+)
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -14,6 +18,22 @@ $DoomFolder = Join-Path (Split-Path -Parent $OQuakeRoot) "Doom"
 if (-not $VkQuakeSrc -or -not (Test-Path $VkQuakeSrc)) {
     Write-Host "Error: VkQuake source path required. Use -VkQuakeSrc or set VKQUAKE_SRC." -ForegroundColor Red
     exit 1
+}
+
+if (-not $SkipQuakeInstallPrompt) {
+    Write-Host ""
+    Write-Host "[OQuake] Quake install directory:"
+    Write-Host ""
+    Write-Host "  $QuakeInstallDir"
+    Write-Host ""
+    $useDefault = Read-Host "Use this path? [Y]"
+    Write-Host ""
+    if ($useDefault -match '^(n|no)$') {
+        $overridePath = Read-Host "Enter Quake install directory path"
+        if ($overridePath -and $overridePath.Trim().Length -gt 0) {
+            $QuakeInstallDir = $overridePath.Trim()
+        }
+    }
 }
 
 $QuakeDir = Join-Path $VkQuakeSrc "Quake"
@@ -59,6 +79,27 @@ if ($StarDll) {
     Copy-Item -Path $StarDll -Destination (Join-Path $QuakeDir "star_api.dll") -Force
     Copy-Item -Path $StarLib -Destination (Join-Path $QuakeDir "star_api.lib") -Force
     $copied += 2
+}
+
+# Copy custom face image into Quake install dir so HUD can load gfx/face_anorak.
+$faceSource = Join-Path $OQuakeRoot "face_anorak.png"
+if (-not (Test-Path $faceSource)) {
+    $altFaceSource = Join-Path $OQuakeRoot "gfx\face_anorak.png"
+    if (Test-Path $altFaceSource) {
+        $faceSource = $altFaceSource
+    }
+}
+if (Test-Path $faceSource) {
+    try {
+        $faceDestDir = Join-Path $QuakeInstallDir "id1\gfx"
+        New-Item -Path $faceDestDir -ItemType Directory -Force | Out-Null
+        Copy-Item -Path $faceSource -Destination (Join-Path $faceDestDir "face_anorak.png") -Force
+        Write-Host "[OQuake] Copied face_anorak.png -> $faceDestDir"
+    } catch {
+        Write-Warning "[OQuake] Failed to copy face_anorak.png to '$QuakeInstallDir\id1\gfx': $($_.Exception.Message)"
+    }
+} else {
+    Write-Warning "[OQuake] face_anorak.png not found in OQuake root. Expected: $faceSource"
 }
 
 # Patch host.c (OQuake version in bottom-right)

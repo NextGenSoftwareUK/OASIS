@@ -105,17 +105,87 @@ static async Task<(string? Token, Guid? AvatarId)> TryAuthenticateAsync(HttpClie
     var payload = JsonSerializer.Serialize(new { username, password });
     using var response = await client.PostAsync($"{baseUrl}/api/avatar/authenticate", new StringContent(payload, Encoding.UTF8, "application/json"));
     var body = await response.Content.ReadAsStringAsync();
-    if (string.IsNullOrWhiteSpace(body) || !response.IsSuccessStatusCode)
+    
+    if (!response.IsSuccessStatusCode)
+    {
+        Console.WriteLine($"Authentication failed with status {response.StatusCode}: {body.Substring(0, Math.Min(body.Length, 500))}");
+        return (null, null);
+    }
+    
+    if (string.IsNullOrWhiteSpace(body))
         return (null, null);
 
-    using var doc = JsonDocument.Parse(body);
-    var token = FindStringRecursive(doc.RootElement, "jwtToken") ?? FindStringRecursive(doc.RootElement, "token");
-    var avatarIdStr = FindStringRecursive(doc.RootElement, "avatarId") ?? FindStringRecursive(doc.RootElement, "id");
-    Guid? avatarId = null;
-    if (!string.IsNullOrWhiteSpace(avatarIdStr) && Guid.TryParse(avatarIdStr, out var parsedId))
-        avatarId = parsedId;
+    try
+    {
+        using var doc = JsonDocument.Parse(body);
+        var token = FindStringRecursive(doc.RootElement, "jwtToken") ?? FindStringRecursive(doc.RootElement, "token");
+        
+        // Try to find avatar ID in various locations - WEB4 returns IAvatar in Result.Result
+        var avatarIdStr = FindStringRecursive(doc.RootElement, "avatarId") 
+            ?? FindStringRecursive(doc.RootElement, "id");
+        
+        Guid? avatarId = null;
+        if (!string.IsNullOrWhiteSpace(avatarIdStr) && Guid.TryParse(avatarIdStr, out var parsedId))
+            avatarId = parsedId;
+        
+        // If we have a token but no avatar ID, try to extract from JWT
+        if (!string.IsNullOrWhiteSpace(token) && !avatarId.HasValue)
+        {
+            avatarId = ExtractAvatarIdFromJwt(token);
+        }
+        
+        return (token, avatarId);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error parsing authentication response: {ex.Message}");
+        return (null, null);
+    }
+}
+
+static Guid? ExtractAvatarIdFromJwt(string token)
+{
+    try
+    {
+        var parts = token.Split('.');
+        if (parts.Length < 2)
+            return null;
+
+        var payload = parts[1].Replace('-', '+').Replace('_', '/');
+        switch (payload.Length % 4)
+        {
+            case 2: payload += "=="; break;
+            case 3: payload += "="; break;
+        }
+
+        var bytes = Convert.FromBase64String(payload);
+        using var doc = JsonDocument.Parse(bytes);
+        
+        // Try common JWT claim names for avatar ID
+        if (doc.RootElement.TryGetProperty("id", out var idProp) && idProp.ValueKind == JsonValueKind.String)
+        {
+            if (Guid.TryParse(idProp.GetString(), out var id))
+                return id;
+        }
+        
+        if (doc.RootElement.TryGetProperty("avatarId", out var avatarIdProp) && avatarIdProp.ValueKind == JsonValueKind.String)
+        {
+            if (Guid.TryParse(avatarIdProp.GetString(), out var id))
+                return id;
+        }
+        
+        if (doc.RootElement.TryGetProperty("sub", out var subProp) && subProp.ValueKind == JsonValueKind.String)
+        {
+            if (Guid.TryParse(subProp.GetString(), out var id))
+                return id;
+        }
+    }
+    catch
+    {
+        // Ignore JWT parsing errors
+    }
     
-    return (token, avatarId);
+    return null;
 }
 
 static string? FindStringRecursive(JsonElement element, string propertyName)

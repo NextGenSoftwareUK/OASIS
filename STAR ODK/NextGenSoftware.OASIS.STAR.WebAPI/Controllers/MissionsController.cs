@@ -115,8 +115,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (mission == null)
+                {
+                    return BadRequest(new OASISResult<IMission>
+                    {
+                        IsError = true,
+                        Message = "Mission cannot be null. Please provide a valid Mission object in the request body."
+                    });
+                }
+
                 await EnsureStarApiBootedAsync();
                 var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (Exception ex)
@@ -145,9 +158,22 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (mission == null)
+                {
+                    return BadRequest(new OASISResult<IMission>
+                    {
+                        IsError = true,
+                        Message = "Mission cannot be null. Please provide a valid Mission object in the request body."
+                    });
+                }
+
                 await EnsureStarApiBootedAsync();
                 mission.Id = id;
                 var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (Exception ex)

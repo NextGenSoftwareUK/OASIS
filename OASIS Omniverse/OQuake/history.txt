@@ -7,3 +7,5 @@ oasis_inventory_toggle#
 oasis_inventory_toggle
 star beamin
 star beamin anorak test!
+star beamin
+star beamin anorak test!
