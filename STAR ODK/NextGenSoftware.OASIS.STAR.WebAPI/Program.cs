@@ -195,14 +195,11 @@ app.Use(async (context, next) =>
                         }
                     }
 
-                    var avatarLoadResult = AvatarManager.Instance.LoadAvatar(avatarId);
-                    if (avatarLoadResult is OASISResult<IAvatar> typedResult && typedResult.Result is not null)
+                    // Use async method like WEB4 JWT middleware does
+                    var avatarLoadResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId);
+                    if (!avatarLoadResult.IsError && avatarLoadResult.Result is not null)
                     {
-                        context.Items["Avatar"] = typedResult.Result;
-                    }
-                    else if (avatarLoadResult is IAvatar directAvatar)
-                    {
-                        context.Items["Avatar"] = directAvatar;
+                        context.Items["Avatar"] = avatarLoadResult.Result;
                     }
                 }
                 catch (Exception ex)

@@ -115,16 +115,19 @@ if (Test-Path $sharedSbarCpp) {
     if ($sbarChanged) { Set-Content $sharedSbarCpp $content -NoNewline; $changes += "shared_sbar" }
 }
 
-# 3b. sbar_mugshot.cpp: show OASIS face (OASFACE) when beamed in (odoom_star_username set)
+# 3b. sbar_mugshot.cpp: show OASIS face (OASFACE) when beamed in (odoom_star_username set or oasis_star_anorak_face)
 if (Test-Path $sbarMugshotCpp) {
     $mugContent = Get-Content $sbarMugshotCpp -Raw
     if ($mugContent -match 'FMugShot::GetFace' -and $mugContent -notmatch 'odoom_star_username.*OASFACE|OASFACE.*odoom_star_username') {
         $oldMug = '(FGameTexture \*FMugShot::GetFace\(player_t \*player, const char \*default_face, int accuracy, StateFlags stateflags\)\r?\n\{\r?\n)(\tint angle = UpdateState)'
         $newMug = @"
-`$1#ifdef OASIS_STAR_API
+`$1
+#ifdef OASIS_STAR_API
 	FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
 	const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
-	if (starUser && *starUser)
+	FBaseCVar *anorakFaceVar = FindCVar("oasis_star_anorak_face", nullptr);
+	bool anorakFace = (anorakFaceVar && anorakFaceVar->GetRealType() == CVAR_Bool) && (anorakFaceVar->GetGenericRep(CVAR_Bool).Int != 0);
+	if ((starUser && *starUser) || anorakFace)
 	{
 		FGameTexture *oasFace = TexMan.FindGameTexture("OASFACE", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins);
 		if (!oasFace) oasFace = TexMan.GetGameTexture(TexMan.CheckForTexture("OASFACE", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins));
@@ -137,6 +140,14 @@ if (Test-Path $sbarMugshotCpp) {
         $mugContent = $mugContent -replace $oldMug, $newMug
         Set-Content $sbarMugshotCpp $mugContent -NoNewline
         $changes += "sbar_mugshot"
+    }
+    # If already patched with OASFACE but missing anorak face check, add it
+    if ($mugContent -match 'odoom_star_username.*OASFACE' -and $mugContent -notmatch 'oasis_star_anorak_face') {
+        $mugContent = Get-Content $sbarMugshotCpp -Raw
+        $mugContent = $mugContent -replace '(FBaseCVar \*starUserVar = FindCVar\("odoom_star_username")', 'FBaseCVar *anorakFaceVar = FindCVar("oasis_star_anorak_face", nullptr);' + "`r`n" + '	bool anorakFace = (anorakFaceVar && anorakFaceVar->GetRealType() == CVAR_Bool) && (anorakFaceVar->GetGenericRep(CVAR_Bool).Int != 0);' + "`r`n`t" + '$1'
+        $mugContent = $mugContent -replace 'if \(starUser && \*starUser\)', 'if ((starUser && *starUser) || anorakFace)'
+        Set-Content $sbarMugshotCpp $mugContent -NoNewline
+        $changes += "sbar_mugshot(anorak)"
     }
 }
 
