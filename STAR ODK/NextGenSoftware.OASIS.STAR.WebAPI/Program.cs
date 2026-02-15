@@ -181,6 +181,19 @@ app.Use(async (context, next) =>
             {
                 try
                 {
+                    // Ensure OASIS is booted before loading avatar
+                    if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                    {
+                        var dnaPath = OASISBootLoader.OASISBootLoader.OASISDNAPath ?? 
+                                     Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
+                        var bootResult = await OASISBootLoader.OASISBootLoader.BootOASISAsync(dnaPath);
+                        if (bootResult.IsError)
+                        {
+                            // Log but don't fail - avatar loading will fail gracefully
+                            System.Diagnostics.Debug.WriteLine($"Warning: OASIS boot failed in middleware: {bootResult.Message}");
+                        }
+                    }
+
                     var avatarLoadResult = AvatarManager.Instance.LoadAvatar(avatarId);
                     if (avatarLoadResult is OASISResult<IAvatar> typedResult && typedResult.Result is not null)
                     {
@@ -191,9 +204,10 @@ app.Use(async (context, next) =>
                         context.Items["Avatar"] = directAvatar;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Best-effort context hydration for local API routes.
+                    // Best-effort context hydration for local API routes - log but don't fail
+                    System.Diagnostics.Debug.WriteLine($"Warning: Failed to load avatar in middleware: {ex.Message}");
                 }
             }
         }
