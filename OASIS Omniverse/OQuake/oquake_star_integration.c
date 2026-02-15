@@ -43,6 +43,8 @@ enum {
 
 #define OQ_MAX_INVENTORY_ITEMS 256
 #define OQ_MAX_OVERLAY_ROWS 8
+#define OQ_SEND_TARGET_MAX 63
+#define OQ_GROUP_LABEL_MAX 96
 
 typedef struct oquake_inventory_entry_s {
     char name[256];
@@ -56,7 +58,373 @@ static int g_inventory_active_tab = OQ_TAB_KEYS;
 static qboolean g_inventory_open = false;
 static double g_inventory_last_refresh = 0.0;
 static char g_inventory_status[128] = "STAR inventory unavailable.";
+static int g_inventory_selected_row = 0;
+static int g_inventory_scroll_row = 0;
+static qboolean g_inventory_key_was_down[MAX_KEYS];
+static char g_inventory_send_target[OQ_SEND_TARGET_MAX + 1];
+static int g_inventory_send_button = 0; /* 0=Send, 1=Cancel */
+static int g_inventory_send_quantity = 1;
+enum {
+    OQ_SEND_POPUP_NONE = 0,
+    OQ_SEND_POPUP_AVATAR = 1,
+    OQ_SEND_POPUP_CLAN = 2
+};
+static int g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+static unsigned int g_inventory_event_seq = 0;
 static int star_initialized(void);
+static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab);
+static void OQ_RefreshInventoryCache(void);
+static void OQ_ClampSelection(int filtered_count);
+
+enum {
+    OQ_GROUP_MODE_COUNT = 0,
+    OQ_GROUP_MODE_SUM = 1
+};
+
+static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* description, const char* item_type)
+{
+    star_api_result_t result;
+    if (!g_star_initialized || !item_name || !item_name[0])
+        return 0;
+    if (star_api_has_item(item_name))
+        return 0;
+    result = star_api_add_item(item_name, description, "Quake", item_type);
+    if (result != STAR_API_SUCCESS)
+        return 0;
+    return 1;
+}
+
+static int OQ_AddInventoryEvent(const char* item_prefix, const char* description, const char* item_type)
+{
+    char item_name[128];
+    star_api_result_t result;
+    if (!g_star_initialized || !item_prefix || !item_prefix[0])
+        return 0;
+    g_inventory_event_seq++;
+    q_snprintf(item_name, sizeof(item_name), "%s_%06u", item_prefix, g_inventory_event_seq);
+    result = star_api_add_item(item_name, description, "Quake", item_type);
+    if (result != STAR_API_SUCCESS)
+        return 0;
+    return 1;
+}
+
+static qboolean OQ_KeyPressed(int key)
+{
+    if (key < 0 || key >= MAX_KEYS)
+        return false;
+    if (keydown[key] && !g_inventory_key_was_down[key]) {
+        g_inventory_key_was_down[key] = true;
+        return true;
+    }
+    if (!keydown[key])
+        g_inventory_key_was_down[key] = false;
+    return false;
+}
+
+static int OQ_BuildFilteredIndices(int* out_indices, int max_indices)
+{
+    int i;
+    int count = 0;
+    for (i = 0; i < g_inventory_count; i++) {
+        if (!OQ_ItemMatchesTab(&g_inventory_entries[i], g_inventory_active_tab))
+            continue;
+        if (count < max_indices)
+            out_indices[count] = i;
+        count++;
+    }
+    return count;
+}
+
+static int OQ_ParsePickupDelta(const char* description)
+{
+    const char* plus;
+    if (!description)
+        return 1;
+    plus = strrchr(description, '+');
+    if (!plus || !plus[1] || !isdigit((unsigned char)plus[1]))
+        return 1;
+    return atoi(plus + 1);
+}
+
+static void OQ_GetGroupedDisplayInfo(const oquake_inventory_entry_t* item, char* label, size_t label_size, int* mode, int* value)
+{
+    const char* name = item ? item->name : "";
+    const char* desc = item ? item->description : "";
+    *mode = OQ_GROUP_MODE_COUNT;
+    *value = 1;
+
+    if (!strncmp(name, "quake_pickup_shells_", 20)) {
+        q_strlcpy(label, "Shells", label_size);
+        *mode = OQ_GROUP_MODE_SUM;
+        *value = OQ_ParsePickupDelta(desc);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_nails_", 19)) {
+        q_strlcpy(label, "Nails", label_size);
+        *mode = OQ_GROUP_MODE_SUM;
+        *value = OQ_ParsePickupDelta(desc);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_rockets_", 21)) {
+        q_strlcpy(label, "Rockets", label_size);
+        *mode = OQ_GROUP_MODE_SUM;
+        *value = OQ_ParsePickupDelta(desc);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_cells_", 19)) {
+        q_strlcpy(label, "Cells", label_size);
+        *mode = OQ_GROUP_MODE_SUM;
+        *value = OQ_ParsePickupDelta(desc);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_armor_", 19)) {
+        q_strlcpy(label, "Armor", label_size);
+        *mode = OQ_GROUP_MODE_SUM;
+        *value = OQ_ParsePickupDelta(desc);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_health_", 20)) {
+        q_strlcpy(label, "Health", label_size);
+        *mode = OQ_GROUP_MODE_SUM;
+        *value = OQ_ParsePickupDelta(desc);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_quad_", 18)) {
+        q_strlcpy(label, "Quad Damage", label_size);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_suit_", 18)) {
+        q_strlcpy(label, "Biosuit", label_size);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_invisibility_", 26)) {
+        q_strlcpy(label, "Ring of Shadows", label_size);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_invulnerability_", 28)) {
+        q_strlcpy(label, "Pentagram of Protection", label_size);
+        return;
+    }
+    if (!strncmp(name, "quake_pickup_megahealth_", 24)) {
+        q_strlcpy(label, "Megahealth", label_size);
+        return;
+    }
+
+    if (!strcmp(name, OQUAKE_ITEM_SILVER_KEY)) {
+        q_strlcpy(label, "Silver Key", label_size);
+        return;
+    }
+    if (!strcmp(name, OQUAKE_ITEM_GOLD_KEY)) {
+        q_strlcpy(label, "Gold Key", label_size);
+        return;
+    }
+
+    q_strlcpy(label, name, label_size);
+}
+
+static int OQ_BuildGroupedRows(
+    int* out_rep_indices, char out_labels[][OQ_GROUP_LABEL_MAX], int* out_modes, int* out_values, int max_rows)
+{
+    int filtered_indices[OQ_MAX_INVENTORY_ITEMS];
+    int filtered_count;
+    int group_count = 0;
+    int i;
+
+    filtered_count = OQ_BuildFilteredIndices(filtered_indices, OQ_MAX_INVENTORY_ITEMS);
+    for (i = 0; i < filtered_count; i++) {
+        int item_idx = filtered_indices[i];
+        int row;
+        char label[OQ_GROUP_LABEL_MAX];
+        int mode;
+        int value;
+        OQ_GetGroupedDisplayInfo(&g_inventory_entries[item_idx], label, sizeof(label), &mode, &value);
+        for (row = 0; row < group_count; row++) {
+            if (out_modes[row] == mode && !strcmp(out_labels[row], label))
+                break;
+        }
+        if (row == group_count) {
+            if (group_count >= max_rows)
+                break;
+            out_rep_indices[group_count] = item_idx;
+            out_modes[group_count] = mode;
+            out_values[group_count] = 0;
+            q_strlcpy(out_labels[group_count], label, OQ_GROUP_LABEL_MAX);
+            group_count++;
+        }
+        out_values[row] += value;
+    }
+
+    return group_count;
+}
+
+static int OQ_GetSelectedGroupInfo(int* out_rep_index, int* out_mode, int* out_value, char* out_label, size_t out_label_size)
+{
+    int rep_indices[OQ_MAX_INVENTORY_ITEMS];
+    char labels[OQ_MAX_INVENTORY_ITEMS][OQ_GROUP_LABEL_MAX];
+    int modes[OQ_MAX_INVENTORY_ITEMS];
+    int values[OQ_MAX_INVENTORY_ITEMS];
+    int grouped_count = OQ_BuildGroupedRows(rep_indices, labels, modes, values, OQ_MAX_INVENTORY_ITEMS);
+
+    OQ_ClampSelection(grouped_count);
+    if (grouped_count <= 0)
+        return 0;
+
+    if (out_rep_index)
+        *out_rep_index = rep_indices[g_inventory_selected_row];
+    if (out_mode)
+        *out_mode = modes[g_inventory_selected_row];
+    if (out_value)
+        *out_value = values[g_inventory_selected_row];
+    if (out_label && out_label_size > 0)
+        q_strlcpy(out_label, labels[g_inventory_selected_row], out_label_size);
+
+    return 1;
+}
+
+static void OQ_ClampSelection(int filtered_count)
+{
+    int max_scroll;
+    if (filtered_count <= 0) {
+        g_inventory_selected_row = 0;
+        g_inventory_scroll_row = 0;
+        return;
+    }
+
+    if (g_inventory_selected_row < 0)
+        g_inventory_selected_row = 0;
+    if (g_inventory_selected_row >= filtered_count)
+        g_inventory_selected_row = filtered_count - 1;
+
+    if (g_inventory_scroll_row > g_inventory_selected_row)
+        g_inventory_scroll_row = g_inventory_selected_row;
+    if (g_inventory_selected_row >= g_inventory_scroll_row + OQ_MAX_OVERLAY_ROWS)
+        g_inventory_scroll_row = g_inventory_selected_row - OQ_MAX_OVERLAY_ROWS + 1;
+
+    if (g_inventory_scroll_row < 0)
+        g_inventory_scroll_row = 0;
+
+    max_scroll = filtered_count > OQ_MAX_OVERLAY_ROWS ? filtered_count - OQ_MAX_OVERLAY_ROWS : 0;
+    if (g_inventory_scroll_row > max_scroll)
+        g_inventory_scroll_row = max_scroll;
+}
+
+static oquake_inventory_entry_t* OQ_GetSelectedItem(void)
+{
+    int rep_index = -1;
+    if (!OQ_GetSelectedGroupInfo(&rep_index, NULL, NULL, NULL, 0))
+        return NULL;
+    return &g_inventory_entries[rep_index];
+}
+
+static void OQ_OpenSendPopup(int popup_mode)
+{
+    int mode = OQ_GROUP_MODE_COUNT;
+    int value = 1;
+    if (!OQ_GetSelectedItem()) {
+        q_strlcpy(g_inventory_status, "No item selected.", sizeof(g_inventory_status));
+        return;
+    }
+    OQ_GetSelectedGroupInfo(NULL, &mode, &value, NULL, 0);
+    g_inventory_send_popup = popup_mode;
+    g_inventory_send_target[0] = 0;
+    g_inventory_send_button = 0;
+    g_inventory_send_quantity = 1;
+    if (mode != OQ_GROUP_MODE_COUNT || value < 1)
+        g_inventory_send_quantity = 1;
+}
+
+static void OQ_SendSelectedItem(void)
+{
+    oquake_inventory_entry_t* item = OQ_GetSelectedItem();
+    const char* send_kind;
+    int mode = OQ_GROUP_MODE_COUNT;
+    int available = 1;
+    int qty = 1;
+    if (!item) {
+        q_strlcpy(g_inventory_status, "No item selected.", sizeof(g_inventory_status));
+        return;
+    }
+    if (!g_inventory_send_target[0]) {
+        q_strlcpy(g_inventory_status, "Enter a destination first.", sizeof(g_inventory_status));
+        return;
+    }
+
+    send_kind = (g_inventory_send_popup == OQ_SEND_POPUP_CLAN) ? "clan" : "avatar";
+    OQ_GetSelectedGroupInfo(NULL, &mode, &available, NULL, 0);
+    if (mode != OQ_GROUP_MODE_COUNT)
+        available = 1;
+    if (available < 1)
+        available = 1;
+    qty = g_inventory_send_quantity;
+    if (qty < 1)
+        qty = 1;
+    if (qty > available)
+        qty = available;
+
+    q_snprintf(
+        g_inventory_status,
+        sizeof(g_inventory_status),
+        "Mock sent %d x '%s' to %s '%s'.",
+        qty,
+        item->name,
+        send_kind,
+        g_inventory_send_target);
+    g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+}
+
+static void OQ_UseSelectedItem(void)
+{
+    oquake_inventory_entry_t* item = OQ_GetSelectedItem();
+    if (!item) {
+        q_strlcpy(g_inventory_status, "No item selected.", sizeof(g_inventory_status));
+        return;
+    }
+
+    if (star_api_use_item(item->name, "inventory_overlay")) {
+        q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Used item: %s", item->name);
+        OQ_RefreshInventoryCache();
+    } else {
+        q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Use failed: %s", star_api_get_last_error());
+    }
+}
+
+static void OQ_HandleSendPopupTyping(void)
+{
+    int len = (int)strlen(g_inventory_send_target);
+    int c;
+    if (OQ_KeyPressed(K_BACKSPACE) || OQ_KeyPressed(K_DEL)) {
+        if (len > 0)
+            g_inventory_send_target[len - 1] = 0;
+    }
+
+    for (c = 'a'; c <= 'z'; c++) {
+        if (OQ_KeyPressed(c) || OQ_KeyPressed(toupper(c))) {
+            if (len < OQ_SEND_TARGET_MAX) {
+                g_inventory_send_target[len] = (char)c;
+                g_inventory_send_target[len + 1] = 0;
+                len++;
+            }
+        }
+    }
+    for (c = '0'; c <= '9'; c++) {
+        if (OQ_KeyPressed(c)) {
+            if (len < OQ_SEND_TARGET_MAX) {
+                g_inventory_send_target[len] = (char)c;
+                g_inventory_send_target[len + 1] = 0;
+                len++;
+            }
+        }
+    }
+    if ((OQ_KeyPressed('_') || OQ_KeyPressed('-') || OQ_KeyPressed('.')) && len < OQ_SEND_TARGET_MAX) {
+        if (keydown['_'])
+            g_inventory_send_target[len] = '_';
+        else if (keydown['-'])
+            g_inventory_send_target[len] = '-';
+        else
+            g_inventory_send_target[len] = '.';
+        g_inventory_send_target[len + 1] = 0;
+    }
+}
 
 static const char* OQ_TabShortName(int tab) {
     switch (tab) {
@@ -153,32 +521,110 @@ static void OQ_RefreshInventoryCache(void) {
     q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR inventory synced (%d items)", g_inventory_count);
     star_api_free_item_list(list);
     g_inventory_last_refresh = realtime;
+    {
+        int rep_indices[OQ_MAX_INVENTORY_ITEMS];
+        char labels[OQ_MAX_INVENTORY_ITEMS][OQ_GROUP_LABEL_MAX];
+        int modes[OQ_MAX_INVENTORY_ITEMS];
+        int values[OQ_MAX_INVENTORY_ITEMS];
+        OQ_ClampSelection(OQ_BuildGroupedRows(rep_indices, labels, modes, values, OQ_MAX_INVENTORY_ITEMS));
+    }
 }
 
 static void OQ_InventoryToggle_f(void) {
     g_inventory_open = !g_inventory_open;
-    if (g_inventory_open)
+    if (g_inventory_open) {
+        g_inventory_selected_row = 0;
+        g_inventory_scroll_row = 0;
+        g_inventory_send_popup = OQ_SEND_POPUP_NONE;
         OQ_RefreshInventoryCache();
+    }
 }
 
 static void OQ_InventoryPrevTab_f(void) {
-    if (!g_inventory_open)
+    if (!g_inventory_open || g_inventory_send_popup != OQ_SEND_POPUP_NONE)
         return;
     g_inventory_active_tab--;
     if (g_inventory_active_tab < 0)
         g_inventory_active_tab = OQ_TAB_COUNT - 1;
+    g_inventory_selected_row = 0;
+    g_inventory_scroll_row = 0;
 }
 
 static void OQ_InventoryNextTab_f(void) {
-    if (!g_inventory_open)
+    if (!g_inventory_open || g_inventory_send_popup != OQ_SEND_POPUP_NONE)
         return;
     g_inventory_active_tab++;
     if (g_inventory_active_tab >= OQ_TAB_COUNT)
         g_inventory_active_tab = 0;
+    g_inventory_selected_row = 0;
+    g_inventory_scroll_row = 0;
 }
 
 static void OQ_PollInventoryHotkeys(void) {
-    /* O/P are handled through bound console commands to avoid double-step input. */
+    int grouped_count;
+    if (!g_inventory_open)
+        return;
+    if (key_dest == key_menu || key_dest == key_message || key_dest == key_console)
+        return;
+
+    {
+        int rep_indices[OQ_MAX_INVENTORY_ITEMS];
+        char labels[OQ_MAX_INVENTORY_ITEMS][OQ_GROUP_LABEL_MAX];
+        int modes[OQ_MAX_INVENTORY_ITEMS];
+        int values[OQ_MAX_INVENTORY_ITEMS];
+        grouped_count = OQ_BuildGroupedRows(rep_indices, labels, modes, values, OQ_MAX_INVENTORY_ITEMS);
+    }
+    OQ_ClampSelection(grouped_count);
+
+    if (g_inventory_send_popup != OQ_SEND_POPUP_NONE) {
+        int mode = OQ_GROUP_MODE_COUNT;
+        int available = 1;
+        OQ_HandleSendPopupTyping();
+        OQ_GetSelectedGroupInfo(NULL, &mode, &available, NULL, 0);
+        if (mode != OQ_GROUP_MODE_COUNT)
+            available = 1;
+        if (available < 1)
+            available = 1;
+        if (g_inventory_send_quantity < 1)
+            g_inventory_send_quantity = 1;
+        if (g_inventory_send_quantity > available)
+            g_inventory_send_quantity = available;
+
+        if (OQ_KeyPressed(K_ESCAPE)) {
+            g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+            return;
+        }
+        if (OQ_KeyPressed(K_LEFTARROW) || OQ_KeyPressed(K_RIGHTARROW))
+            g_inventory_send_button = 1 - g_inventory_send_button;
+        if (OQ_KeyPressed(K_UPARROW) && g_inventory_send_quantity < available)
+            g_inventory_send_quantity++;
+        if (OQ_KeyPressed(K_DOWNARROW) && g_inventory_send_quantity > 1)
+            g_inventory_send_quantity--;
+
+        if (OQ_KeyPressed(K_ENTER) || OQ_KeyPressed(K_KP_ENTER)) {
+            if (g_inventory_send_button == 0)
+                OQ_SendSelectedItem();
+            else
+                g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+        }
+        return;
+    }
+
+    if (OQ_KeyPressed(K_UPARROW)) {
+        g_inventory_selected_row--;
+        OQ_ClampSelection(grouped_count);
+    }
+    if (OQ_KeyPressed(K_DOWNARROW)) {
+        g_inventory_selected_row++;
+        OQ_ClampSelection(grouped_count);
+    }
+
+    if (OQ_KeyPressed('e') || OQ_KeyPressed('E'))
+        OQ_UseSelectedItem();
+    if (OQ_KeyPressed('z') || OQ_KeyPressed('Z'))
+        OQ_OpenSendPopup(OQ_SEND_POPUP_AVATAR);
+    if (OQ_KeyPressed('x') || OQ_KeyPressed('X'))
+        OQ_OpenSendPopup(OQ_SEND_POPUP_CLAN);
 }
 
 static int star_initialized(void) {
@@ -268,10 +714,97 @@ void OQuake_STAR_OnKeyPickup(const char* key_name) {
         return;
     const char* desc = get_key_description(key_name);
     star_api_result_t result = star_api_add_item(key_name, desc, "Quake", "KeyItem");
-    if (result == STAR_API_SUCCESS)
+    if (result == STAR_API_SUCCESS) {
         printf("OQuake STAR API: Added %s to cross-game inventory.\n", key_name);
-    else
+        q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Collected: %s", key_name);
+        OQ_RefreshInventoryCache();
+    } else
         printf("OQuake STAR API: Failed to add %s: %s\n", key_name, star_api_get_last_error());
+}
+
+void OQuake_STAR_OnItemsChanged(unsigned int old_items, unsigned int new_items)
+{
+    unsigned int gained = new_items & ~old_items;
+    int added = 0;
+
+    if (!g_star_initialized || gained == 0)
+        return;
+
+    if (gained & IT_SHOTGUN) added += OQ_AddInventoryUnlockIfMissing("quake_weapon_shotgun", "Shotgun discovered", "Weapon");
+    if (gained & IT_SUPER_SHOTGUN) added += OQ_AddInventoryUnlockIfMissing("quake_weapon_super_shotgun", "Super Shotgun discovered", "Weapon");
+    if (gained & IT_NAILGUN) added += OQ_AddInventoryUnlockIfMissing("quake_weapon_nailgun", "Nailgun discovered", "Weapon");
+    if (gained & IT_SUPER_NAILGUN) added += OQ_AddInventoryUnlockIfMissing("quake_weapon_super_nailgun", "Super Nailgun discovered", "Weapon");
+    if (gained & IT_GRENADE_LAUNCHER) added += OQ_AddInventoryUnlockIfMissing("quake_weapon_grenade_launcher", "Grenade Launcher discovered", "Weapon");
+    if (gained & IT_ROCKET_LAUNCHER) added += OQ_AddInventoryUnlockIfMissing("quake_weapon_rocket_launcher", "Rocket Launcher discovered", "Weapon");
+    if (gained & IT_LIGHTNING) added += OQ_AddInventoryUnlockIfMissing("quake_weapon_lightning", "Lightning Gun discovered", "Weapon");
+    if (gained & IT_SUPER_LIGHTNING) added += OQ_AddInventoryUnlockIfMissing("quake_weapon_super_lightning", "Super Lightning discovered", "Weapon");
+
+    if (gained & IT_ARMOR1) added += OQ_AddInventoryUnlockIfMissing("quake_armor_green", "Green Armor acquired", "Armor");
+    if (gained & IT_ARMOR2) added += OQ_AddInventoryUnlockIfMissing("quake_armor_yellow", "Yellow Armor acquired", "Armor");
+    if (gained & IT_ARMOR3) added += OQ_AddInventoryUnlockIfMissing("quake_armor_red", "Red Armor acquired", "Armor");
+
+    if (gained & IT_SUPERHEALTH) added += OQ_AddInventoryEvent("quake_pickup_megahealth", "Megahealth pickup", "Powerup");
+    if (gained & IT_INVISIBILITY) added += OQ_AddInventoryEvent("quake_pickup_invisibility", "Ring of Shadows pickup", "Powerup");
+    if (gained & IT_INVULNERABILITY) added += OQ_AddInventoryEvent("quake_pickup_invulnerability", "Pentagram of Protection pickup", "Powerup");
+    if (gained & IT_SUIT) added += OQ_AddInventoryEvent("quake_pickup_suit", "Biosuit pickup", "Powerup");
+    if (gained & IT_QUAD) added += OQ_AddInventoryEvent("quake_pickup_quad", "Quad Damage pickup", "Powerup");
+
+    if (gained & IT_SIGIL1) added += OQ_AddInventoryUnlockIfMissing("quake_sigil_1", "Sigil Piece 1 acquired", "Artifact");
+    if (gained & IT_SIGIL2) added += OQ_AddInventoryUnlockIfMissing("quake_sigil_2", "Sigil Piece 2 acquired", "Artifact");
+    if (gained & IT_SIGIL3) added += OQ_AddInventoryUnlockIfMissing("quake_sigil_3", "Sigil Piece 3 acquired", "Artifact");
+    if (gained & IT_SIGIL4) added += OQ_AddInventoryUnlockIfMissing("quake_sigil_4", "Sigil Piece 4 acquired", "Artifact");
+
+    if (gained & IT_KEY1) OQuake_STAR_OnKeyPickup(OQUAKE_ITEM_SILVER_KEY);
+    if (gained & IT_KEY2) OQuake_STAR_OnKeyPickup(OQUAKE_ITEM_GOLD_KEY);
+
+    if (added > 0) {
+        q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR updated: %d new pickup(s)", added);
+        OQ_RefreshInventoryCache();
+    }
+}
+
+void OQuake_STAR_OnStatsChanged(
+    int old_shells, int new_shells,
+    int old_nails, int new_nails,
+    int old_rockets, int new_rockets,
+    int old_cells, int new_cells,
+    int old_health, int new_health,
+    int old_armor, int new_armor)
+{
+    int added = 0;
+    char desc[96];
+    if (!g_star_initialized)
+        return;
+
+    if (new_shells > old_shells) {
+        q_snprintf(desc, sizeof(desc), "Shells pickup +%d", new_shells - old_shells);
+        added += OQ_AddInventoryEvent("quake_pickup_shells", desc, "Ammo");
+    }
+    if (new_nails > old_nails) {
+        q_snprintf(desc, sizeof(desc), "Nails pickup +%d", new_nails - old_nails);
+        added += OQ_AddInventoryEvent("quake_pickup_nails", desc, "Ammo");
+    }
+    if (new_rockets > old_rockets) {
+        q_snprintf(desc, sizeof(desc), "Rockets pickup +%d", new_rockets - old_rockets);
+        added += OQ_AddInventoryEvent("quake_pickup_rockets", desc, "Ammo");
+    }
+    if (new_cells > old_cells) {
+        q_snprintf(desc, sizeof(desc), "Cells pickup +%d", new_cells - old_cells);
+        added += OQ_AddInventoryEvent("quake_pickup_cells", desc, "Ammo");
+    }
+    if (new_health > old_health) {
+        q_snprintf(desc, sizeof(desc), "Health pickup +%d", new_health - old_health);
+        added += OQ_AddInventoryEvent("quake_pickup_health", desc, "Consumable");
+    }
+    if (new_armor > old_armor) {
+        q_snprintf(desc, sizeof(desc), "Armor pickup +%d", new_armor - old_armor);
+        added += OQ_AddInventoryEvent("quake_pickup_armor", desc, "Armor");
+    }
+
+    if (added > 0) {
+        q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR updated: %d pickup event(s)", added);
+        OQ_RefreshInventoryCache();
+    }
 }
 
 int OQuake_STAR_CheckDoorAccess(const char* door_targetname, const char* required_key_name) {
@@ -482,8 +1015,13 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     int tab_slot_w;
     int tab;
     int draw_y;
-    int shown;
-    int i;
+    int row;
+    int rep_indices[OQ_MAX_INVENTORY_ITEMS];
+    char grouped_labels[OQ_MAX_INVENTORY_ITEMS][OQ_GROUP_LABEL_MAX];
+    int grouped_modes[OQ_MAX_INVENTORY_ITEMS];
+    int grouped_values[OQ_MAX_INVENTORY_ITEMS];
+    int grouped_count;
+    int visible_end;
     char line[512];
 
     OQ_PollInventoryHotkeys();
@@ -505,13 +1043,13 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
     Draw_Fill(cbx, panel_x, panel_y, panel_w, panel_h, 0, 0.70f);
     {
-        const char* header = "OASIS Inventory ";
+        const char* header = "OASIS INVENTORY ";
         int header_len = strlen(header);
         int header_x = panel_x + (panel_w - (header_len * 8)) / 2;
         if (header_x < panel_x + 6) header_x = panel_x + 6;
         Draw_String(cbx, header_x, panel_y + 6, header);
     }
-    tab_y = panel_y + 26;
+    tab_y = panel_y + 34;
     tab_slot_w = (panel_w - 24) / OQ_TAB_COUNT;
     for (tab = 0; tab < OQ_TAB_COUNT; tab++) {
         int slot_x = panel_x + 12 + tab * tab_slot_w;
@@ -522,23 +1060,61 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, 10, 96, 0.35f);
         Draw_String(cbx, tab_name_x, tab_y, tab_name);
     }
+    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 16, "Arrows=Select  E=Use  Z=Send Avatar  X=Send Clan");
     Draw_String(cbx, panel_x + 6, panel_y + panel_h - 8, "I=Toggle  O/P=Switch Tabs");
 
-    draw_y = panel_y + 46;
-    shown = 0;
-    for (i = 0; i < g_inventory_count; i++) {
-        if (!OQ_ItemMatchesTab(&g_inventory_entries[i], g_inventory_active_tab))
-            continue;
-        q_snprintf(line, sizeof(line), "%s [%s]", g_inventory_entries[i].name, g_inventory_entries[i].item_type);
-        Draw_String(cbx, panel_x + 6, draw_y, line);
+    draw_y = panel_y + 54;
+    grouped_count = OQ_BuildGroupedRows(rep_indices, grouped_labels, grouped_modes, grouped_values, OQ_MAX_INVENTORY_ITEMS);
+    OQ_ClampSelection(grouped_count);
+    visible_end = q_min(grouped_count, g_inventory_scroll_row + OQ_MAX_OVERLAY_ROWS);
+    for (row = g_inventory_scroll_row; row < visible_end; row++) {
+        if (row == g_inventory_selected_row)
+            Draw_Fill(cbx, panel_x + 5, draw_y - 1, panel_w - 10, 10, 96, 0.25f);
+        if (grouped_modes[row] == OQ_GROUP_MODE_SUM)
+            q_snprintf(line, sizeof(line), "%s +%d", grouped_labels[row], grouped_values[row]);
+        else
+            q_snprintf(line, sizeof(line), "%s x%d", grouped_labels[row], grouped_values[row]);
+        Draw_String(cbx, panel_x + 8, draw_y, line);
         draw_y += 8;
-        shown++;
-        if (shown >= OQ_MAX_OVERLAY_ROWS)
-            break;
     }
 
-    if (shown == 0)
+    if (grouped_count == 0)
         Draw_String(cbx, panel_x + 6, draw_y, g_inventory_status);
+
+    if (g_inventory_send_popup != OQ_SEND_POPUP_NONE) {
+        int popup_w = q_min(panel_w - 80, 420);
+        int popup_h = 96;
+        int popup_x = panel_x + (panel_w - popup_w) / 2;
+        int popup_y = panel_y + (panel_h - popup_h) / 2;
+        const char* title = g_inventory_send_popup == OQ_SEND_POPUP_CLAN ? "SEND TO CLAN" : "SEND TO AVATAR";
+        const char* label = g_inventory_send_popup == OQ_SEND_POPUP_CLAN ? "Clan" : "Username";
+        int mode = OQ_GROUP_MODE_COUNT;
+        int available = 1;
+
+        Draw_Fill(cbx, popup_x, popup_y, popup_w, popup_h, 0, 0.9f);
+        Draw_String(cbx, popup_x + 8, popup_y + 8, title);
+        q_snprintf(line, sizeof(line), "%s: %s%s", label, g_inventory_send_target, ((int)(realtime * 2) & 1) ? "_" : "");
+        Draw_String(cbx, popup_x + 8, popup_y + 24, line);
+        OQ_GetSelectedGroupInfo(NULL, &mode, &available, NULL, 0);
+        if (mode != OQ_GROUP_MODE_COUNT)
+            available = 1;
+        if (available < 1)
+            available = 1;
+        if (g_inventory_send_quantity < 1)
+            g_inventory_send_quantity = 1;
+        if (g_inventory_send_quantity > available)
+            g_inventory_send_quantity = available;
+        q_snprintf(line, sizeof(line), "Quantity: %d / %d (Up/Down)", g_inventory_send_quantity, available);
+        Draw_String(cbx, popup_x + 8, popup_y + 36, line);
+
+        if (g_inventory_send_button == 0)
+            Draw_Fill(cbx, popup_x + 8, popup_y + 60, 64, 10, 96, 0.35f);
+        Draw_String(cbx, popup_x + 16, popup_y + 61, "SEND");
+
+        if (g_inventory_send_button == 1)
+            Draw_Fill(cbx, popup_x + 84, popup_y + 60, 72, 10, 96, 0.35f);
+        Draw_String(cbx, popup_x + 92, popup_y + 61, "CANCEL");
+    }
 }
 
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {

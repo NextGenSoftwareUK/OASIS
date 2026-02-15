@@ -322,23 +322,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 var result = await _starAPI.NFTs.LoadAllForAvatarAsync(AvatarId, showAllVersions, version);
                 if (result.IsError)
-                {
-                    return Ok(new OASISResult<IEnumerable<object>>
-                    {
-                        Result = [],
-                        IsError = false,
-                        Message = "NFT collection loaded from local fallback."
-                    });
-                }
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return Ok(new OASISResult<IEnumerable<object>>
+                return BadRequest(new OASISResult<IEnumerable<object>>
                 {
-                    Result = [],
-                    IsError = false,
-                    Message = $"NFT collection loaded from local fallback after exception: {ex.Message}"
+                    IsError = true,
+                    Message = $"Error loading NFT collection: {ex.Message}",
+                    Exception = ex
                 });
             }
         }
