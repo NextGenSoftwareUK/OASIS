@@ -54,6 +54,8 @@ typedef struct oquake_inventory_entry_s {
 
 static oquake_inventory_entry_t g_inventory_entries[OQ_MAX_INVENTORY_ITEMS];
 static int g_inventory_count = 0;
+static oquake_inventory_entry_t g_local_inventory_entries[OQ_MAX_INVENTORY_ITEMS];
+static int g_local_inventory_count = 0;
 static int g_inventory_active_tab = OQ_TAB_KEYS;
 static qboolean g_inventory_open = false;
 static double g_inventory_last_refresh = 0.0;
@@ -83,29 +85,61 @@ enum {
 
 static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* description, const char* item_type)
 {
+    int i;
+    int local_added = 0;
+    int remote_added = 0;
     star_api_result_t result;
-    if (!g_star_initialized || !item_name || !item_name[0])
+
+    if (!item_name || !item_name[0])
         return 0;
-    if (star_api_has_item(item_name))
-        return 0;
-    result = star_api_add_item(item_name, description, "Quake", item_type);
-    if (result != STAR_API_SUCCESS)
-        return 0;
-    return 1;
+
+    for (i = 0; i < g_local_inventory_count; i++) {
+        if (!strcmp(g_local_inventory_entries[i].name, item_name))
+            break;
+    }
+    if (i == g_local_inventory_count && g_local_inventory_count < OQ_MAX_INVENTORY_ITEMS) {
+        oquake_inventory_entry_t* dst = &g_local_inventory_entries[g_local_inventory_count++];
+        q_strlcpy(dst->name, item_name, sizeof(dst->name));
+        q_strlcpy(dst->description, description ? description : "", sizeof(dst->description));
+        q_strlcpy(dst->item_type, item_type ? item_type : "Item", sizeof(dst->item_type));
+        local_added = 1;
+    }
+
+    if (g_star_initialized && !star_api_has_item(item_name)) {
+        result = star_api_add_item(item_name, description, "Quake", item_type);
+        if (result == STAR_API_SUCCESS)
+            remote_added = 1;
+    }
+
+    return local_added || remote_added;
 }
 
 static int OQ_AddInventoryEvent(const char* item_prefix, const char* description, const char* item_type)
 {
     char item_name[128];
+    int local_added = 0;
+    int remote_added = 0;
     star_api_result_t result;
-    if (!g_star_initialized || !item_prefix || !item_prefix[0])
+    if (!item_prefix || !item_prefix[0])
         return 0;
     g_inventory_event_seq++;
     q_snprintf(item_name, sizeof(item_name), "%s_%06u", item_prefix, g_inventory_event_seq);
-    result = star_api_add_item(item_name, description, "Quake", item_type);
-    if (result != STAR_API_SUCCESS)
-        return 0;
-    return 1;
+
+    if (g_local_inventory_count < OQ_MAX_INVENTORY_ITEMS) {
+        oquake_inventory_entry_t* dst = &g_local_inventory_entries[g_local_inventory_count++];
+        q_strlcpy(dst->name, item_name, sizeof(dst->name));
+        q_strlcpy(dst->description, description ? description : "", sizeof(dst->description));
+        q_strlcpy(dst->item_type, item_type ? item_type : "Item", sizeof(dst->item_type));
+        local_added = 1;
+    }
+
+    if (g_star_initialized) {
+        result = star_api_add_item(item_name, description, "Quake", item_type);
+        if (result == STAR_API_SUCCESS)
+            remote_added = 1;
+    }
+
+    return local_added || remote_added;
 }
 
 static qboolean OQ_KeyPressed(int key)
@@ -488,38 +522,61 @@ static void OQ_RefreshInventoryCache(void) {
     star_item_list_t* list = NULL;
     star_api_result_t result;
     size_t i;
+    int remote_ok = 0;
 
     g_inventory_count = 0;
     q_strlcpy(g_inventory_status, "STAR inventory unavailable.", sizeof(g_inventory_status));
 
-    if (!star_initialized()) {
-        q_strlcpy(g_inventory_status, "Not beamed in. Use: star beamin", sizeof(g_inventory_status));
-        return;
+    if (star_initialized()) {
+        result = star_api_get_inventory(&list);
+        if (result == STAR_API_SUCCESS)
+            remote_ok = 1;
     }
 
-    result = star_api_get_inventory(&list);
-    if (result != STAR_API_SUCCESS) {
-        q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Inventory error: %s", star_api_get_last_error());
-        return;
+    if (remote_ok && list && list->count > 0) {
+        for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
+            oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
+            q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
+            q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
+            q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
+            g_inventory_count++;
+        }
+        star_api_free_item_list(list);
+        list = NULL;
     }
 
-    if (!list || list->count == 0) {
+    for (i = 0; i < (size_t)g_local_inventory_count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
+        int j;
+        int exists = 0;
+        for (j = 0; j < g_inventory_count; j++) {
+            if (!strcmp(g_inventory_entries[j].name, g_local_inventory_entries[i].name)) {
+                exists = 1;
+                break;
+            }
+        }
+        if (!exists) {
+            oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
+            q_strlcpy(dst->name, g_local_inventory_entries[i].name, sizeof(dst->name));
+            q_strlcpy(dst->description, g_local_inventory_entries[i].description, sizeof(dst->description));
+            q_strlcpy(dst->item_type, g_local_inventory_entries[i].item_type, sizeof(dst->item_type));
+            g_inventory_count++;
+        }
+    }
+
+    if (g_inventory_count == 0) {
         q_strlcpy(g_inventory_status, "Inventory is empty.", sizeof(g_inventory_status));
-        if (list)
-            star_api_free_item_list(list);
-        return;
+    } else if (remote_ok) {
+        q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR inventory synced (%d items)", g_inventory_count);
+    } else if (star_initialized()) {
+        q_snprintf(
+            g_inventory_status, sizeof(g_inventory_status), "STAR API unavailable; showing local inventory (%d items)", g_inventory_count);
+    } else {
+        q_snprintf(
+            g_inventory_status, sizeof(g_inventory_status), "Offline local inventory (%d items). Use: star beamin", g_inventory_count);
     }
 
-    for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
-        oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
-        q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
-        q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
-        q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
-        g_inventory_count++;
-    }
-
-    q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR inventory synced (%d items)", g_inventory_count);
-    star_api_free_item_list(list);
+    if (list)
+        star_api_free_item_list(list);
     g_inventory_last_refresh = realtime;
     {
         int rep_indices[OQ_MAX_INVENTORY_ITEMS];
@@ -710,16 +767,16 @@ void OQuake_STAR_Cleanup(void) {
 }
 
 void OQuake_STAR_OnKeyPickup(const char* key_name) {
-    if (!g_star_initialized || !key_name)
+    if (!key_name)
         return;
     const char* desc = get_key_description(key_name);
-    star_api_result_t result = star_api_add_item(key_name, desc, "Quake", "KeyItem");
-    if (result == STAR_API_SUCCESS) {
+    if (OQ_AddInventoryUnlockIfMissing(key_name, desc, "KeyItem")) {
         printf("OQuake STAR API: Added %s to cross-game inventory.\n", key_name);
         q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Collected: %s", key_name);
         OQ_RefreshInventoryCache();
-    } else
+    } else {
         printf("OQuake STAR API: Failed to add %s: %s\n", key_name, star_api_get_last_error());
+    }
 }
 
 void OQuake_STAR_OnItemsChanged(unsigned int old_items, unsigned int new_items)
@@ -727,7 +784,7 @@ void OQuake_STAR_OnItemsChanged(unsigned int old_items, unsigned int new_items)
     unsigned int gained = new_items & ~old_items;
     int added = 0;
 
-    if (!g_star_initialized || gained == 0)
+    if (gained == 0)
         return;
 
     if (gained & IT_SHOTGUN) added += OQ_AddInventoryUnlockIfMissing("quake_weapon_shotgun", "Shotgun discovered", "Weapon");
@@ -773,9 +830,6 @@ void OQuake_STAR_OnStatsChanged(
 {
     int added = 0;
     char desc[96];
-    if (!g_star_initialized)
-        return;
-
     if (new_shells > old_shells) {
         q_snprintf(desc, sizeof(desc), "Shells pickup +%d", new_shells - old_shells);
         added += OQ_AddInventoryEvent("quake_pickup_shells", desc, "Ammo");
