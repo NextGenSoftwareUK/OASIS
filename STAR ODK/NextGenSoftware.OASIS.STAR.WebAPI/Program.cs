@@ -5,6 +5,7 @@ using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.OASISBootLoader;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -182,11 +183,11 @@ app.Use(async (context, next) =>
                 try
                 {
                     // Ensure OASIS is booted before loading avatar
-                    if (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                    if (!OASISBootLoader.IsOASISBooted)
                     {
-                        var dnaPath = OASISBootLoader.OASISBootLoader.OASISDNAPath ?? 
+                        var dnaPath = OASISBootLoader.OASISDNAPath ?? 
                                      Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
-                        var bootResult = await OASISBootLoader.OASISBootLoader.BootOASISAsync(dnaPath);
+                        var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
                         if (bootResult.IsError)
                         {
                             // Log but don't fail - avatar loading will fail gracefully
