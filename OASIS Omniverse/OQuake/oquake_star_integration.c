@@ -74,6 +74,7 @@ enum {
 };
 static int g_inventory_send_popup = OQ_SEND_POPUP_NONE;
 static unsigned int g_inventory_event_seq = 0;
+static qboolean g_inventory_popup_input_captured = false;
 static int star_initialized(void);
 static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab);
 static void OQ_RefreshInventoryCache(void);
@@ -336,6 +337,20 @@ static int OQ_GetSelectedGroupInfo(int* out_rep_index, int* out_mode, int* out_v
         q_strlcpy(out_label, labels[g_inventory_selected_row], out_label_size);
 
     return 1;
+}
+
+static void OQ_UpdatePopupInputCapture(void)
+{
+    if (g_inventory_send_popup != OQ_SEND_POPUP_NONE) {
+        if (key_dest == key_game) {
+            key_dest = key_menu;
+            g_inventory_popup_input_captured = true;
+        }
+    } else if (g_inventory_popup_input_captured) {
+        if (key_dest == key_menu)
+            key_dest = key_game;
+        g_inventory_popup_input_captured = false;
+    }
 }
 
 static void OQ_ClampSelection(int filtered_count)
@@ -642,7 +657,11 @@ static void OQ_InventoryToggle_f(void) {
         g_inventory_selected_row = 0;
         g_inventory_scroll_row = 0;
         g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+        OQ_UpdatePopupInputCapture();
         OQ_RefreshInventoryCache();
+    } else {
+        g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+        OQ_UpdatePopupInputCapture();
     }
 }
 
@@ -670,7 +689,10 @@ static void OQ_PollInventoryHotkeys(void) {
     int grouped_count;
     if (!g_inventory_open)
         return;
-    if (key_dest == key_menu || key_dest == key_message || key_dest == key_console)
+    OQ_UpdatePopupInputCapture();
+    if (key_dest == key_message || key_dest == key_console)
+        return;
+    if (key_dest == key_menu && g_inventory_send_popup == OQ_SEND_POPUP_NONE)
         return;
 
     {
@@ -687,6 +709,11 @@ static void OQ_PollInventoryHotkeys(void) {
         int mode = OQ_GROUP_MODE_COUNT;
         int available = 1;
         OQ_HandleSendPopupTyping();
+        /* Prevent game movement while popup is active; arrows are popup UI controls here. */
+        keydown[K_UPARROW] = false;
+        keydown[K_DOWNARROW] = false;
+        keydown[K_LEFTARROW] = false;
+        keydown[K_RIGHTARROW] = false;
         OQ_GetSelectedGroupInfo(NULL, &mode, &available, NULL, 0);
         if (mode != OQ_GROUP_MODE_COUNT)
             available = 1;
@@ -699,6 +726,7 @@ static void OQ_PollInventoryHotkeys(void) {
 
         if (OQ_KeyPressed(K_ESCAPE)) {
             g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+            OQ_UpdatePopupInputCapture();
             return;
         }
         if (OQ_KeyPressed(K_LEFTARROW) || OQ_KeyPressed(K_RIGHTARROW))
@@ -711,8 +739,10 @@ static void OQ_PollInventoryHotkeys(void) {
         if (OQ_KeyPressed(K_ENTER) || OQ_KeyPressed(K_KP_ENTER)) {
             if (g_inventory_send_button == 0)
                 OQ_SendSelectedItem();
-            else
+            else {
                 g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+                OQ_UpdatePopupInputCapture();
+            }
         }
         return;
     }
@@ -880,6 +910,10 @@ void OQuake_STAR_OnStatsChanged(
 {
     int added = 0;
     char desc[96];
+    (void)old_health;
+    (void)new_health;
+    (void)old_armor;
+    (void)new_armor;
     if (new_shells > old_shells) {
         q_snprintf(desc, sizeof(desc), "Shells pickup +%d", new_shells - old_shells);
         added += OQ_AddInventoryEvent("quake_pickup_shells", desc, "Ammo");
@@ -896,15 +930,6 @@ void OQuake_STAR_OnStatsChanged(
         q_snprintf(desc, sizeof(desc), "Cells pickup +%d", new_cells - old_cells);
         added += OQ_AddInventoryEvent("quake_pickup_cells", desc, "Ammo");
     }
-    if (new_health > old_health) {
-        q_snprintf(desc, sizeof(desc), "Health pickup +%d", new_health - old_health);
-        added += OQ_AddInventoryEvent("quake_pickup_health", desc, "Consumable");
-    }
-    if (new_armor > old_armor) {
-        q_snprintf(desc, sizeof(desc), "Armor pickup +%d", new_armor - old_armor);
-        added += OQ_AddInventoryEvent("quake_pickup_armor", desc, "Armor");
-    }
-
     if (added > 0) {
         q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR updated: %d pickup event(s)", added);
         OQ_RefreshInventoryCache();
@@ -1162,7 +1187,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         int tab_name_w = (int)strlen(tab_name) * 8;
         int tab_name_x = slot_x + (tab_slot_w - tab_name_w) / 2;
         if (tab == g_inventory_active_tab)
-            Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, 10, 96, 0.35f);
+            Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, 10, 224, 0.60f);
         Draw_String(cbx, tab_name_x, tab_y, tab_name);
     }
     Draw_String(cbx, panel_x + 6, panel_y + panel_h - 16, "Arrows=Select  E=Use  Z=Send Avatar  X=Send Clan");
@@ -1175,7 +1200,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     visible_end = q_min(grouped_count, g_inventory_scroll_row + OQ_MAX_OVERLAY_ROWS);
     for (row = g_inventory_scroll_row; row < visible_end; row++) {
         if (row == g_inventory_selected_row)
-            Draw_Fill(cbx, panel_x + 5, draw_y - 1, panel_w - 10, 10, 96, 0.25f);
+            Draw_Fill(cbx, panel_x + 5, draw_y - 1, panel_w - 10, 10, 224, 0.50f);
         if (grouped_modes[row] == OQ_GROUP_MODE_SUM)
             q_snprintf(line, sizeof(line), "%s +%d", grouped_labels[row], grouped_values[row]);
         else
@@ -1216,11 +1241,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         Draw_String(cbx, popup_x + 8, popup_y + 36, line);
 
         if (g_inventory_send_button == 0)
-            Draw_Fill(cbx, popup_x + 8, popup_y + 60, 64, 10, 96, 0.35f);
+            Draw_Fill(cbx, popup_x + 8, popup_y + 60, 64, 10, 224, 0.65f);
         Draw_String(cbx, popup_x + 16, popup_y + 61, "SEND");
 
         if (g_inventory_send_button == 1)
-            Draw_Fill(cbx, popup_x + 84, popup_y + 60, 72, 10, 96, 0.35f);
+            Draw_Fill(cbx, popup_x + 84, popup_y + 60, 72, 10, 224, 0.65f);
         Draw_String(cbx, popup_x + 92, popup_y + 61, "CANCEL");
     }
 }
