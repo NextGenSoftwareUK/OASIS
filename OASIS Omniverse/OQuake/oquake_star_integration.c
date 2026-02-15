@@ -75,6 +75,12 @@ enum {
 static int g_inventory_send_popup = OQ_SEND_POPUP_NONE;
 static unsigned int g_inventory_event_seq = 0;
 static qboolean g_inventory_popup_input_captured = false;
+static qboolean g_inventory_send_bindings_captured = false;
+static char g_inventory_saved_up_bind[128];
+static char g_inventory_saved_down_bind[128];
+static char g_inventory_saved_left_bind[128];
+static char g_inventory_saved_right_bind[128];
+static char g_inventory_saved_all_binds[MAX_KEYS][128];
 static int star_initialized(void);
 static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab);
 static void OQ_RefreshInventoryCache(void);
@@ -341,15 +347,60 @@ static int OQ_GetSelectedGroupInfo(int* out_rep_index, int* out_mode, int* out_v
 
 static void OQ_UpdatePopupInputCapture(void)
 {
-    if (g_inventory_send_popup != OQ_SEND_POPUP_NONE) {
-        if (key_dest == key_game) {
-            key_dest = key_menu;
+    if (g_inventory_open) {
+        if (!g_inventory_popup_input_captured) {
+            int up = Key_StringToKeynum("UPARROW");
+            int down = Key_StringToKeynum("DOWNARROW");
+            int left = Key_StringToKeynum("LEFTARROW");
+            int right = Key_StringToKeynum("RIGHTARROW");
+
+            q_strlcpy(g_inventory_saved_up_bind, (up >= 0 && keybindings[up]) ? keybindings[up] : "", sizeof(g_inventory_saved_up_bind));
+            q_strlcpy(g_inventory_saved_down_bind, (down >= 0 && keybindings[down]) ? keybindings[down] : "", sizeof(g_inventory_saved_down_bind));
+            q_strlcpy(g_inventory_saved_left_bind, (left >= 0 && keybindings[left]) ? keybindings[left] : "", sizeof(g_inventory_saved_left_bind));
+            q_strlcpy(g_inventory_saved_right_bind, (right >= 0 && keybindings[right]) ? keybindings[right] : "", sizeof(g_inventory_saved_right_bind));
+
+            if (up >= 0) Key_SetBinding(up, "");
+            if (down >= 0) Key_SetBinding(down, "");
+            if (left >= 0) Key_SetBinding(left, "");
+            if (right >= 0) Key_SetBinding(right, "");
+
             g_inventory_popup_input_captured = true;
         }
     } else if (g_inventory_popup_input_captured) {
-        if (key_dest == key_menu)
-            key_dest = key_game;
+        int up = Key_StringToKeynum("UPARROW");
+        int down = Key_StringToKeynum("DOWNARROW");
+        int left = Key_StringToKeynum("LEFTARROW");
+        int right = Key_StringToKeynum("RIGHTARROW");
+
+        if (up >= 0) Key_SetBinding(up, g_inventory_saved_up_bind);
+        if (down >= 0) Key_SetBinding(down, g_inventory_saved_down_bind);
+        if (left >= 0) Key_SetBinding(left, g_inventory_saved_left_bind);
+        if (right >= 0) Key_SetBinding(right, g_inventory_saved_right_bind);
+
         g_inventory_popup_input_captured = false;
+    }
+}
+
+static void OQ_UpdateSendPopupBindingCapture(void)
+{
+    int k;
+    if (g_inventory_send_popup != OQ_SEND_POPUP_NONE) {
+        if (!g_inventory_send_bindings_captured) {
+            for (k = 0; k < MAX_KEYS; k++) {
+                q_strlcpy(
+                    g_inventory_saved_all_binds[k],
+                    keybindings[k] ? keybindings[k] : "",
+                    sizeof(g_inventory_saved_all_binds[k]));
+                Key_SetBinding(k, "");
+            }
+            Key_ClearStates();
+            g_inventory_send_bindings_captured = true;
+        }
+    } else if (g_inventory_send_bindings_captured) {
+        for (k = 0; k < MAX_KEYS; k++)
+            Key_SetBinding(k, g_inventory_saved_all_binds[k]);
+        Key_ClearStates();
+        g_inventory_send_bindings_captured = false;
     }
 }
 
@@ -486,6 +537,11 @@ static void OQ_HandleSendPopupTyping(void)
                 len++;
             }
         }
+    }
+    if (OQ_KeyPressed(' ') && len < OQ_SEND_TARGET_MAX) {
+        g_inventory_send_target[len] = ' ';
+        g_inventory_send_target[len + 1] = 0;
+        len++;
     }
     if ((OQ_KeyPressed('_') || OQ_KeyPressed('-') || OQ_KeyPressed('.')) && len < OQ_SEND_TARGET_MAX) {
         if (keydown['_'])
@@ -658,9 +714,11 @@ static void OQ_InventoryToggle_f(void) {
         g_inventory_scroll_row = 0;
         g_inventory_send_popup = OQ_SEND_POPUP_NONE;
         OQ_UpdatePopupInputCapture();
+        OQ_UpdateSendPopupBindingCapture();
         OQ_RefreshInventoryCache();
     } else {
         g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+        OQ_UpdateSendPopupBindingCapture();
         OQ_UpdatePopupInputCapture();
     }
 }
@@ -690,9 +748,12 @@ static void OQ_PollInventoryHotkeys(void) {
     if (!g_inventory_open)
         return;
     OQ_UpdatePopupInputCapture();
-    if (key_dest == key_message || key_dest == key_console)
+    OQ_UpdateSendPopupBindingCapture();
+    if (key_dest == key_message)
         return;
-    if (key_dest == key_menu && g_inventory_send_popup == OQ_SEND_POPUP_NONE)
+    if (key_dest == key_console)
+        return;
+    if (key_dest == key_menu)
         return;
 
     {
@@ -709,11 +770,6 @@ static void OQ_PollInventoryHotkeys(void) {
         int mode = OQ_GROUP_MODE_COUNT;
         int available = 1;
         OQ_HandleSendPopupTyping();
-        /* Prevent game movement while popup is active; arrows are popup UI controls here. */
-        keydown[K_UPARROW] = false;
-        keydown[K_DOWNARROW] = false;
-        keydown[K_LEFTARROW] = false;
-        keydown[K_RIGHTARROW] = false;
         OQ_GetSelectedGroupInfo(NULL, &mode, &available, NULL, 0);
         if (mode != OQ_GROUP_MODE_COUNT)
             available = 1;
@@ -726,14 +782,17 @@ static void OQ_PollInventoryHotkeys(void) {
 
         if (OQ_KeyPressed(K_ESCAPE)) {
             g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+            OQ_UpdateSendPopupBindingCapture();
             OQ_UpdatePopupInputCapture();
             return;
         }
-        if (OQ_KeyPressed(K_LEFTARROW) || OQ_KeyPressed(K_RIGHTARROW))
-            g_inventory_send_button = 1 - g_inventory_send_button;
-        if (OQ_KeyPressed(K_UPARROW) && g_inventory_send_quantity < available)
+        if (OQ_KeyPressed(K_LEFTARROW))
+            g_inventory_send_button = 0; /* Send */
+        if (OQ_KeyPressed(K_RIGHTARROW))
+            g_inventory_send_button = 1; /* Cancel */
+        if ((OQ_KeyPressed(K_UPARROW) || OQ_KeyPressed(K_PGUP) || OQ_KeyPressed(K_MWHEELUP)) && g_inventory_send_quantity < available)
             g_inventory_send_quantity++;
-        if (OQ_KeyPressed(K_DOWNARROW) && g_inventory_send_quantity > 1)
+        if ((OQ_KeyPressed(K_DOWNARROW) || OQ_KeyPressed(K_PGDN) || OQ_KeyPressed(K_MWHEELDOWN)) && g_inventory_send_quantity > 1)
             g_inventory_send_quantity--;
 
         if (OQ_KeyPressed(K_ENTER) || OQ_KeyPressed(K_KP_ENTER)) {
@@ -741,6 +800,7 @@ static void OQ_PollInventoryHotkeys(void) {
                 OQ_SendSelectedItem();
             else {
                 g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+                OQ_UpdateSendPopupBindingCapture();
                 OQ_UpdatePopupInputCapture();
             }
         }
@@ -1190,8 +1250,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, 10, 224, 0.60f);
         Draw_String(cbx, tab_name_x, tab_y, tab_name);
     }
-    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 16, "Arrows=Select  E=Use  Z=Send Avatar  X=Send Clan");
-    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 8, "I=Toggle  O/P=Switch Tabs");
+    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 8, "Arrows=Select  E=Use  Z=Send Avatar  X=Send Clan  I=Toggle  O/P=Switch Tabs");
 
     draw_y = panel_y + 54;
     grouped_count = OQ_BuildGroupedRows(
@@ -1239,14 +1298,15 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             g_inventory_send_quantity = available;
         q_snprintf(line, sizeof(line), "Quantity: %d / %d (Up/Down)", g_inventory_send_quantity, available);
         Draw_String(cbx, popup_x + 8, popup_y + 36, line);
+        Draw_String(cbx, popup_x + 8, popup_y + 48, "Left=Send  Right=Cancel");
 
         if (g_inventory_send_button == 0)
-            Draw_Fill(cbx, popup_x + 8, popup_y + 60, 64, 10, 224, 0.65f);
-        Draw_String(cbx, popup_x + 16, popup_y + 61, "SEND");
+            Draw_Fill(cbx, popup_x + 8, popup_y + 72, 64, 10, 224, 0.65f);
+        Draw_String(cbx, popup_x + 16, popup_y + 73, "SEND");
 
         if (g_inventory_send_button == 1)
-            Draw_Fill(cbx, popup_x + 84, popup_y + 60, 72, 10, 224, 0.65f);
-        Draw_String(cbx, popup_x + 92, popup_y + 61, "CANCEL");
+            Draw_Fill(cbx, popup_x + 84, popup_y + 72, 72, 10, 224, 0.65f);
+        Draw_String(cbx, popup_x + 92, popup_y + 73, "CANCEL");
     }
 }
 
