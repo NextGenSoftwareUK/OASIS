@@ -187,11 +187,6 @@ if (Test-Path $sbarMugshotCpp) {
 		if (!oasFace) oasFace = TexMan.GetGameTexture(TexMan.CheckForTexture("OASFACE", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins));
 		if (oasFace)
 			return oasFace;
-		/* Anorak-only fallback if OASFACE isn't loaded. */
-		FGameTexture *fallbackFace = TexMan.FindGameTexture("OQKGI0", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins);
-		if (!fallbackFace) fallbackFace = TexMan.GetGameTexture(TexMan.CheckForTexture("OQKGI0", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins));
-		if (fallbackFace)
-			return fallbackFace;
 	}
 #endif
 `$2
