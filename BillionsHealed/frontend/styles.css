@@ -1,0 +1,1570 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(52, 59, 230, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(176, 255, 236, 0.1) 0%, transparent 50%),
+        #000;
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Header / Navbar */
+header.header-component {
+    background: rgba(10, 10, 30, 0.95);
+    border: 1px solid rgba(0, 150, 255, 0.5);
+    border-radius: 12px;
+    box-shadow: 
+        0 0 0 1px #000,
+        0 0 0 2px rgba(0, 150, 255, 0.3),
+        0 8px 32px rgba(0, 150, 255, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin: 10px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 35px;
+    width: 100%;
+}
+
+.logo-text {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 0 0 auto;
+}
+
+.logo-text:hover {
+    transform: scale(1.05);
+}
+
+.logo-text h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #0096FF;
+    margin: 0;
+    text-shadow: 
+        0 0 20px rgba(0, 150, 255, 0.8),
+        2px 2px 0px rgba(0, 0, 0, 0.8);
+    letter-spacing: 3px;
+    transition: all 0.3s ease;
+}
+
+.logo-text:hover h1 {
+    color: #00BFFF;
+    text-shadow: 
+        0 0 30px rgba(0, 191, 255, 1),
+        0 0 60px rgba(0, 150, 255, 0.8),
+        2px 2px 0px rgba(0, 0, 0, 0.8);
+}
+
+.oasis-subtitle {
+    font-size: 0.7rem;
+    font-weight: normal;
+    color: rgba(0, 150, 255, 0.7);
+    margin: 2px 0 0 0;
+    text-shadow: 
+        0 0 10px rgba(0, 150, 255, 0.6),
+        1px 1px 0px rgba(0, 0, 0, 0.8);
+    letter-spacing: 1px;
+    text-align: center;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.center-logo {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 0 0 auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.thermometer-icon {
+    font-size: 2.5rem;
+    filter: drop-shadow(0 0 10px rgba(0, 150, 255, 0.6));
+    transition: all 0.3s ease;
+}
+
+.center-logo:hover .thermometer-icon {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 20px rgba(0, 191, 255, 1));
+}
+
+.desktop-nav-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 0 0 auto;
+}
+
+.nav-btn {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0, 150, 255, 0.5);
+    color: #0096FF;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nav-btn:hover {
+    background: rgba(0, 150, 255, 0.2);
+    border-color: #0096FF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 150, 255, 0.4);
+}
+
+.nav-btn:active {
+    transform: translateY(0);
+}
+
+.connect-wallet-btn {
+    background: linear-gradient(45deg, #0096FF, #00BFFF);
+    border: 1px solid #0096FF;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
+}
+
+.connect-wallet-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 150, 255, 0.6);
+}
+
+/* Navigation Box */
+.nav-box {
+    position: fixed;
+    top: 100px;
+    left: 20px;
+    z-index: 99;
+    transition: all 0.3s ease;
+}
+
+.nav-box.right-side {
+    left: auto;
+    right: 20px;
+}
+
+.nav-box-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(10, 10, 30, 0.95);
+    border: 2px solid rgba(0, 150, 255, 0.5);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 
+        0 0 0 2px #000,
+        0 0 0 4px rgba(0, 150, 255, 0.3),
+        0 8px 32px rgba(0, 150, 255, 0.2);
+}
+
+.nav-box-btn {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0, 150, 255, 0.5);
+    color: #0096FF;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.nav-box-btn:hover {
+    background: rgba(0, 150, 255, 0.2);
+    border-color: #0096FF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 150, 255, 0.4);
+}
+
+.nav-box-btn:active {
+    transform: translateY(0);
+}
+
+.nav-move-arrow {
+    position: absolute;
+    top: 50%;
+    right: -40px;
+    transform: translateY(-50%);
+    background: rgba(10, 10, 30, 0.95);
+    border: 1px solid rgba(0, 150, 255, 0.5);
+    color: #0096FF;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+}
+
+.nav-move-arrow:hover {
+    background: rgba(0, 150, 255, 0.2);
+    border-color: #0096FF;
+}
+
+.nav-box.right-side .nav-move-arrow {
+    right: auto;
+    left: -40px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    margin-top: 20px;
+}
+
+/* Main Content */
+.main-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 300px);
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+/* Thermometer Section - Centered */
+.thermometer-section {
+    background: rgba(10, 10, 30, 0.8);
+    border: 2px solid rgba(0, 150, 255, 0.5);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 
+        0 0 0 2px #000,
+        0 0 0 4px rgba(0, 150, 255, 0.3),
+        0 8px 32px rgba(0, 150, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    width: 500px;
+    position: relative;
+    z-index: 1;
+}
+
+.thermometer-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.thermometer {
+    width: 120px;
+    height: 780px;
+    margin: 0 auto;
+    position: relative;
+    perspective: 1000px;
+    animation: float 6s ease-in-out infinite;
+}
+
+.thermometer-casing {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+    border: 3px solid #333;
+    border-radius: 20px;
+    position: relative;
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.5),
+        inset 0 2px 10px rgba(255, 255, 255, 0.1),
+        inset 0 -2px 10px rgba(0, 0, 0, 0.3);
+    transform: rotateX(5deg) rotateY(-2deg);
+}
+
+.thermometer-tube {
+    width: 24px;
+    height: 700px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    position: absolute;
+    left: 50%;
+    top: 30px;
+    transform: translateX(-50%);
+    box-shadow: 
+        inset 0 0 15px rgba(0, 0, 0, 0.3),
+        0 0 10px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.thermometer-liquid {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, #ff3838, #ff6b6b, #ff4757);
+    border-radius: 10px;
+    transition: height 0.8s ease;
+    box-shadow: 
+        0 0 15px rgba(255, 71, 87, 0.8),
+        inset 0 0 8px rgba(255, 255, 255, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    filter: drop-shadow(0 0 5px rgba(255, 71, 87, 0.6));
+    height: 0%;
+}
+
+.thermometer-bulb {
+    width: 70px;
+    height: 70px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 50%;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 
+        0 8px 32px rgba(0, 150, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        inset 2px 2px 10px rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: box-shadow 0.3s ease;
+}
+
+.thermometer-bulb::before {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 20%;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.6), transparent);
+    border-radius: 50%;
+    filter: blur(1px);
+}
+
+.thermometer-hook {
+    width: 20px;
+    height: 8px;
+    background: linear-gradient(145deg, #c0c0c0, #e0e0e0);
+    border-radius: 10px;
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.thermometer-markings {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    height: 420px;
+    pointer-events: none;
+}
+
+.marking-line {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    height: 1px;
+    background: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 3px rgba(0, 150, 255, 0.3);
+}
+
+.marking-line.major {
+    width: 20px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 5px rgba(0, 150, 255, 0.5);
+}
+
+.marking-line:not(.major) {
+    width: 12px;
+}
+
+/* Thermometer Info */
+.thermometer-info {
+    text-align: center;
+    width: 100%;
+}
+
+.thermometer-info h3 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.thermometer-info p {
+    font-size: 1.1rem;
+    color: #e0e0e0;
+    margin-bottom: 0.5rem;
+}
+
+.mint-btn {
+    background: linear-gradient(45deg, #0096FF, #00BFFF);
+    border: 1px solid #0096FF;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    color: #000;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 1.5rem 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 150, 255, 0.4);
+}
+
+.mint-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(0, 150, 255, 0.6);
+}
+
+.mint-btn:active {
+    transform: translateY(0);
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0, 150, 255, 0.3);
+    border-radius: 12px;
+    box-shadow: 
+        0 0 0 1px #000,
+        0 0 0 2px rgba(0, 150, 255, 0.2);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+/* Twitter Feed Section - Floating Popup */
+.twitter-feed-section {
+    background: rgba(10, 10, 30, 0.95);
+    border: 2px solid rgba(0, 150, 255, 0.6);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 
+        0 0 0 3px #000,
+        0 0 0 6px rgba(0, 150, 255, 0.4),
+        0 15px 50px rgba(0, 150, 255, 0.4);
+    max-height: 400px;
+    overflow-y: auto;
+    width: 380px;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    transform: none;
+    z-index: 10;
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.twitter-feed-section::-webkit-scrollbar {
+    width: 8px;
+}
+
+.twitter-feed-section::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.twitter-feed-section::-webkit-scrollbar-thumb {
+    background: rgba(0, 150, 255, 0.3);
+    border-radius: 4px;
+}
+
+.twitter-feed-section::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 150, 255, 0.5);
+}
+
+.feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(0, 150, 255, 0.3);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.feed-header h3 {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.feed-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.cache-status {
+    font-size: 0.85rem;
+    color: #4FC3F7;
+    padding: 0.3rem 0.6rem;
+    background: rgba(79, 195, 247, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(79, 195, 247, 0.3);
+}
+
+.refresh-twitter-btn {
+    background: linear-gradient(135deg, #0096FF 0%, #00D4FF 100%);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 150, 255, 0.3);
+}
+
+.refresh-twitter-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 150, 255, 0.5);
+    background: linear-gradient(135deg, #00D4FF 0%, #0096FF 100%);
+}
+
+.refresh-twitter-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.x-logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #0096FF;
+    filter: drop-shadow(0 0 5px rgba(0, 150, 255, 0.6));
+}
+
+.refresh-btn {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0, 150, 255, 0.5);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #0096FF;
+    font-size: 1.2rem;
+}
+
+.refresh-btn:hover {
+    background: rgba(0, 150, 255, 0.2);
+    border-color: #0096FF;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+}
+
+.feed-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.feed-stats .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #b0b0b0;
+    font-size: 0.9rem;
+    flex-direction: row;
+}
+
+.feed-stats .stat-item.active {
+    color: #4ade80;
+}
+
+.stat-icon {
+    font-size: 0.8rem;
+}
+
+/* Tweets Container */
+.tweets-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #b0b0b0;
+}
+
+.tweet-item {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0, 150, 255, 0.3);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 
+        0 0 0 1px #000,
+        0 0 0 2px rgba(0, 150, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.tweet-item:hover {
+    background: rgba(0, 150, 255, 0.1);
+    border-color: rgba(0, 150, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 0 0 1px #000,
+        0 0 0 2px rgba(0, 150, 255, 0.3),
+        0 4px 16px rgba(0, 150, 255, 0.4);
+}
+
+.tweet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.tweet-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #000, #111);
+    border: 2px solid rgba(0, 150, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #0096FF;
+    font-weight: bold;
+}
+
+.author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.author-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.author-handle {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.tweet-time {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.tweet-content {
+    margin-bottom: 1rem;
+}
+
+.tweet-content p {
+    color: #e0e0e0;
+    line-height: 1.5;
+}
+
+.tweet-hashtag {
+    color: #4ade80;
+    font-weight: 600;
+}
+
+.tweet-engagement {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 150, 255, 0.2);
+}
+
+.engagement-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.engagement-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.engagement-icon {
+    font-size: 0.9rem;
+}
+
+.engagement-level {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.engagement-level.high {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.engagement-level.medium {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.engagement-level.low {
+    background: rgba(107, 114, 128, 0.2);
+    color: #9ca3af;
+}
+
+.feed-footer {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid rgba(0, 150, 255, 0.3);
+    text-align: center;
+}
+
+.tweet-cta {
+    color: #b0b0b0;
+    font-size: 0.9rem;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.footer p {
+    margin-bottom: 0.5rem;
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+    0%, 100% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
+    50% { text-shadow: 0 0 30px rgba(255, 255, 255, 0.6); }
+}
+
+/* Info Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: rgba(10, 10, 30, 0.98);
+    border: 2px solid rgba(0, 150, 255, 0.5);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 
+        0 0 0 3px #000,
+        0 0 0 6px rgba(0, 150, 255, 0.3),
+        0 20px 60px rgba(0, 150, 255, 0.3);
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 2rem;
+    color: #0096FF;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    color: #00BFFF;
+    transform: rotate(90deg);
+}
+
+#modal-title {
+    color: #0096FF;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 2rem;
+}
+
+#modal-body {
+    color: #e0e0e0;
+    line-height: 1.8;
+}
+
+#modal-body h3 {
+    color: #0096FF;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+#modal-body p {
+    margin-bottom: 1rem;
+}
+
+#modal-body ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+#modal-body li {
+    margin-bottom: 0.5rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive Design */
+/* Tablet */
+@media (max-width: 1024px) {
+    .main-content {
+        padding: 1rem;
+    }
+    
+    .thermometer-section {
+        max-width: 100%;
+    }
+    
+    .twitter-feed-section {
+        position: relative;
+        right: 0;
+        top: 0;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 2rem;
+        animation: none;
+    }
+    
+    .nav-box {
+        left: 1rem;
+        padding: 1rem 0.75rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+    }
+    
+    header.header-component {
+        position: sticky;
+        margin: 5px;
+        border-radius: 8px;
+    }
+    
+    .header-content {
+        padding: 12px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .logo-text h1 {
+        font-size: 1.3rem;
+        letter-spacing: 1px;
+    }
+    
+    .oasis-subtitle {
+        font-size: 0.6rem;
+    }
+    
+    .center-logo {
+        order: -1;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    
+    .thermometer-icon {
+        font-size: 2.5rem;
+    }
+    
+    .desktop-nav-section {
+        width: 100%;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .nav-btn, .connect-wallet-btn {
+        padding: 10px 15px;
+        font-size: 0.85rem;
+        flex: 1;
+        min-width: 80px;
+    }
+    
+    .container {
+        padding: 0;
+    }
+    
+    .main-content {
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: auto;
+        padding: 1rem 0.5rem;
+        gap: 2rem;
+        position: relative;
+    }
+    
+    .thermometer-section {
+        max-width: 100%;
+        width: 100%;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+    
+    .thermometer-container {
+        background: rgba(0, 0, 0, 0.8);
+        border: 2px solid #0096FF;
+        border-radius: 16px;
+        padding: 1.5rem 1rem;
+        margin: 0 auto;
+        width: 90%;
+        max-width: 400px;
+    }
+    
+    .thermometer-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+    
+    .thermometer {
+        transform: scale(0.7);
+        width: 100px;
+        height: 400px;
+        margin: 0 auto;
+    }
+    
+    .thermometer-casing {
+        transform: rotateX(2deg) rotateY(-1deg);
+    }
+    
+    .thermometer-info {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .thermometer-info h3 {
+        font-size: 1.5rem;
+    }
+    
+    .thermometer-info p {
+        font-size: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .thermometer-info .mint-btn {
+        width: 100%;
+        max-width: 300px;
+        padding: 15px;
+        font-size: 1rem;
+    }
+    
+    .stats {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem;
+        background: rgba(0, 150, 255, 0.1);
+        border-radius: 8px;
+    }
+    
+    .twitter-feed-section {
+        position: relative;
+        right: auto;
+        top: auto;
+        transform: none;
+        width: 90%;
+        max-width: 400px;
+        margin: 0 auto 1rem auto;
+        animation: none;
+        border-radius: 12px;
+        z-index: 1;
+        box-shadow: 0 8px 24px rgba(0, 150, 255, 0.3);
+    }
+    
+    .feed-header {
+        padding: 0.5rem 0.75rem;
+        background: rgba(0, 150, 255, 0.1);
+        border-bottom: 1px solid rgba(0, 150, 255, 0.3);
+    }
+    
+    .feed-header h3 {
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .feed-stats {
+        display: none;
+    }
+    
+    .tweets-container {
+        max-height: 110px;
+        padding: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .tweet-item {
+        padding: 0.5rem;
+        margin-bottom: 0.3rem;
+        font-size: 0.75rem;
+        border-radius: 6px;
+    }
+    
+    .tweet-item:nth-child(n+3) {
+        display: none;
+    }
+    
+    .tweet-item .tweet-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+        font-size: 0.75rem;
+    }
+    
+    .tweet-item .tweet-header,
+    .tweet-item .tweet-metrics,
+    .tweet-item .tweet-time {
+        display: none;
+    }
+    
+    .nav-box {
+        display: none;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    .modal-content h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    .header-content {
+        padding: 10px;
+    }
+    
+    .logo-text h1 {
+        font-size: 1.1rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .thermometer-icon {
+        font-size: 2rem;
+    }
+    
+    .nav-btn, .connect-wallet-btn {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        min-width: 70px;
+    }
+    
+    .thermometer-container {
+        padding: 1.5rem 0.75rem;
+    }
+    
+    .thermometer {
+        transform: scale(0.7);
+        width: 90px;
+        height: 350px;
+    }
+    
+    .thermometer-info h3 {
+        font-size: 1.3rem;
+    }
+    
+    .thermometer-info p {
+        font-size: 0.9rem;
+    }
+    
+    .thermometer-info .mint-btn {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+    
+    .thermometer {
+        transform: scale(0.65);
+    }
+    
+    .thermometer-container {
+        width: 85%;
+        max-width: 350px;
+    }
+    
+    .twitter-feed-section {
+        width: 85%;
+        max-width: 350px;
+        margin: 0 auto 0.75rem auto;
+    }
+    
+    .feed-header {
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .feed-header h3 {
+        font-size: 0.85rem;
+    }
+    
+    .tweets-container {
+        max-height: 90px;
+        padding: 0.4rem;
+    }
+    
+    .tweet-item {
+        padding: 0.4rem;
+        margin-bottom: 0.25rem;
+        font-size: 0.7rem;
+    }
+    
+    .tweet-item .tweet-text {
+        -webkit-line-clamp: 1;
+        font-size: 0.7rem;
+    }
+    
+    .thermometer {
+        transform: scale(0.65);
+    }
+    
+    .thermometer-container {
+        padding: 1rem 0.75rem;
+    }
+    
+    .modal-content {
+        padding: 1rem;
+    }
+}
+
+/* Share button */
+.share-btn {
+    background: linear-gradient(135deg, #FF9800 0%, #FFC107 100%);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    width: 100%;
+    margin: 0.5rem 0;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.5);
+    background: linear-gradient(135deg, #FFC107 0%, #FF9800 100%);
+}
+
+/* Tweet temperature markers */
+.tweet-temp-marker {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Tweet connections SVG */
+#tweet-connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Thermometer Markers */
+.thermo-marker {
+    position: absolute;
+    right: -8px;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #0096FF 0%, #00D4FF 100%);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    transform: translateY(50%);
+    box-shadow: 0 2px 8px rgba(0, 150, 255, 0.5);
+}
+
+.thermo-marker:hover {
+    transform: translateY(50%) scale(1.3);
+    box-shadow: 0 4px 16px rgba(0, 150, 255, 0.8);
+    z-index: 20;
+}
+
+.thermo-marker::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+}
+
+/* Highlighted Tweet */
+.tweet-item.highlighted {
+    animation: highlightPulse 0.5s ease;
+    background: rgba(0, 150, 255, 0.2) !important;
+    border: 2px solid rgba(0, 150, 255, 0.8) !important;
+    box-shadow: 0 8px 24px rgba(0, 150, 255, 0.5) !important;
+}
+
+@keyframes highlightPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Thermometer Marker Containers - Left and Right */
+.thermo-marker-container {
+    position: absolute;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.thermo-marker-container.left {
+    left: -80px;
+}
+
+.thermo-marker-container.right {
+    right: -80px;
+}
+
+.thermo-marker-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background: rgba(10, 10, 30, 0.95);
+    border: 2px solid rgba(0, 150, 255, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 150, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.thermo-marker-container:hover .thermo-marker-badge {
+    border-color: rgba(0, 150, 255, 0.9);
+    box-shadow: 0 4px 16px rgba(0, 150, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.marker-avatar-small {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #0096FF 0%, #00D4FF 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.marker-label {
+    font-size: 0.8rem;
+    color: #fff;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+/* Thermometer section needs relative positioning for markers */
+.thermometer-section {
+    position: relative;
+}
+
+/* SVG lines */
+#marker-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Highlighted Tweet (keep existing) */
+.tweet-item.highlighted {
+    animation: highlightPulse 0.5s ease;
+    background: rgba(0, 150, 255, 0.2) !important;
+    border: 2px solid rgba(0, 150, 255, 0.8) !important;
+    box-shadow: 0 8px 24px rgba(0, 150, 255, 0.5) !important;
+}
+
+@keyframes highlightPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* Marker Compact and Expanded Views */
+.marker-compact-view {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.marker-expanded-view {
+    display: none;
+    position: absolute;
+    width: 300px;
+    padding: 1rem;
+    background: rgba(10, 10, 30, 0.98);
+    border: 2px solid rgba(0, 150, 255, 0.8);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 150, 255, 0.6);
+    z-index: 1000;
+    animation: expandIn 0.3s ease;
+}
+
+.thermo-marker-container.left .marker-expanded-view {
+    left: 100%;
+    margin-left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.thermo-marker-container.right .marker-expanded-view {
+    right: 100%;
+    margin-right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.thermo-marker-badge:hover .marker-compact-view {
+    display: none;
+}
+
+.thermo-marker-badge:hover .marker-expanded-view {
+    display: block;
+}
+
+@keyframes expandIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+.expanded-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.expanded-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #0096FF 0%, #00D4FF 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.expanded-author-info {
+    flex: 1;
+}
+
+.expanded-name {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.expanded-handle {
+    color: #888;
+    font-size: 0.85rem;
+}
+
+.expanded-content {
+    padding: 0.75rem;
+    background: rgba(0, 150, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    color: #fff;
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+.expanded-metrics {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.expanded-metrics span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.expanded-impact {
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 150, 255, 0.2);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4FC3F7;
+    text-align: center;
+}
