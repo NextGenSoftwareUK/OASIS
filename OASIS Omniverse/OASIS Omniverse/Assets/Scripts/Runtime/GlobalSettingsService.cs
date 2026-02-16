@@ -49,6 +49,39 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             return OASISResult<bool>.Success(true, "Global settings saved locally and to WEB4 settings API.");
         }
 
+        public async Task<OASISResult<bool>> SavePreferencesOnlyAsync(OmniverseGlobalSettings settings, Web4Web5GatewayClient apiClient)
+        {
+            CurrentSettings = settings ?? new OmniverseGlobalSettings();
+            SaveLocal(CurrentSettings);
+
+            var remoteSave = await apiClient.SaveGlobalPreferencesAsync(CurrentSettings);
+            if (remoteSave.IsError)
+            {
+                return OASISResult<bool>.Error($"Saved locally, but failed to save to WEB4 settings API: {remoteSave.Message}");
+            }
+
+            return OASISResult<bool>.Success(true, "UI preferences saved locally and to WEB4 settings API.");
+        }
+
+        public OASISResult<OmniverseGlobalSettings> CloneCurrentSettings()
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(CurrentSettings ?? new OmniverseGlobalSettings());
+                var clone = JsonConvert.DeserializeObject<OmniverseGlobalSettings>(json);
+                if (clone == null)
+                {
+                    return OASISResult<OmniverseGlobalSettings>.Error("Could not clone current settings.");
+                }
+
+                return OASISResult<OmniverseGlobalSettings>.Success(clone);
+            }
+            catch (Exception ex)
+            {
+                return OASISResult<OmniverseGlobalSettings>.Error($"Failed to clone settings: {ex.Message}");
+            }
+        }
+
         public OASISResult<string> BuildLaunchArgumentsForGame(string gameId)
         {
             if (string.IsNullOrWhiteSpace(gameId))
@@ -106,6 +139,8 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             merged.resolution = string.IsNullOrWhiteSpace(remote.resolution) ? merged.resolution : remote.resolution;
             merged.keyOpenControlCenter = string.IsNullOrWhiteSpace(remote.keyOpenControlCenter) ? merged.keyOpenControlCenter : remote.keyOpenControlCenter;
             merged.keyHideHostedGame = string.IsNullOrWhiteSpace(remote.keyHideHostedGame) ? merged.keyHideHostedGame : remote.keyHideHostedGame;
+            merged.viewPresets = remote.viewPresets ?? merged.viewPresets ?? new System.Collections.Generic.List<OmniverseViewPreset>();
+            merged.activeViewPresets = remote.activeViewPresets ?? merged.activeViewPresets ?? new System.Collections.Generic.List<OmniverseActiveViewPreset>();
             return merged;
         }
 
@@ -164,6 +199,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
         }
     }
 }
+
 
 
 

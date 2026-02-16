@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OASIS.Omniverse.UnityHost.Config;
 using OASIS.Omniverse.UnityHost.Core;
+using UnityEngine;
 
 namespace OASIS.Omniverse.UnityHost.API
 {
@@ -365,12 +366,25 @@ namespace OASIS.Omniverse.UnityHost.API
                 var quests = new List<QuestItem>();
                 foreach (var q in arr)
                 {
+                    var objectivesTotal = ParseIntFromToken(q["ObjectivesCount"] ?? q["TotalObjectives"] ?? q["objectivesCount"] ?? q["totalObjectives"]);
+                    var objectivesCompleted = ParseIntFromToken(q["ObjectivesCompleted"] ?? q["CompletedObjectives"] ?? q["objectivesCompleted"] ?? q["completedObjectives"]);
+                    var progress = ParseFloatFromToken(q["Progress"] ?? q["progress"] ?? q["Completion"] ?? q["completion"]);
+                    if (progress <= 0f && objectivesTotal > 0)
+                    {
+                        progress = Mathf.Clamp01(objectivesCompleted / (float)objectivesTotal);
+                    }
+
                     quests.Add(new QuestItem
                     {
                         id = q.Value<string>("Id") ?? q.Value<string>("id"),
                         name = q.Value<string>("Name") ?? q.Value<string>("name"),
                         description = q.Value<string>("Description") ?? q.Value<string>("description"),
-                        status = q.Value<string>("Status") ?? q.Value<string>("status")
+                        status = q.Value<string>("Status") ?? q.Value<string>("status"),
+                        gameSource = q.Value<string>("GameSource") ?? q.Value<string>("gameSource"),
+                        priority = q.Value<string>("Priority") ?? q.Value<string>("priority"),
+                        progress = progress,
+                        objectivesCompleted = objectivesCompleted,
+                        objectivesTotal = objectivesTotal
                     });
                 }
 
@@ -460,6 +474,26 @@ namespace OASIS.Omniverse.UnityHost.API
             }
 
             return 0f;
+        }
+
+        private static int ParseIntFromToken(JToken token)
+        {
+            if (token == null)
+            {
+                return 0;
+            }
+
+            return int.TryParse(token.ToString(), out var value) ? value : 0;
+        }
+
+        private static float ParseFloatFromToken(JToken token)
+        {
+            if (token == null)
+            {
+                return 0f;
+            }
+
+            return float.TryParse(token.ToString(), out var value) ? value : 0f;
         }
 
         public void Dispose()
