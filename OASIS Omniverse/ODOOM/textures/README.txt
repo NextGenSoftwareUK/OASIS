@@ -39,3 +39,5 @@ WAD method (using SLADE)
 5. Save the WAD. Run ODOOM with: ODOOM.exe -file your.wad
 
 Image size: 32x32 pixels matches the classic status bar face; other sizes will be scaled.
+
+

@@ -144,6 +144,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     });
                 }
 
+                var avatarCheck = ValidateAvatarId<IQuest>();
+                if (avatarCheck != null) return avatarCheck;
+
                 await EnsureStarApiBootedAsync();
                 var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
                 
@@ -151,6 +154,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     return BadRequest(result);
                 
                 return Ok(result);
+            }
+            catch (OASISException ex)
+            {
+                return BadRequest(new OASISResult<IQuest>
+                {
+                    IsError = true,
+                    Message = ex.Message,
+                    Exception = ex
+                });
             }
             catch (Exception ex)
             {
