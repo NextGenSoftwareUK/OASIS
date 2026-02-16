@@ -109,6 +109,7 @@ namespace OASIS.Omniverse.UnityHost.Config
         public string keyHideHostedGame = "F1";
         public List<OmniverseViewPreset> viewPresets = new List<OmniverseViewPreset>();
         public List<OmniverseActiveViewPreset> activeViewPresets = new List<OmniverseActiveViewPreset>();
+        public List<OmniversePanelLayout> panelLayouts = new List<OmniversePanelLayout>();
     }
 
     [Serializable]
@@ -126,6 +127,16 @@ namespace OASIS.Omniverse.UnityHost.Config
     {
         public string tab;
         public string presetName;
+    }
+
+    [Serializable]
+    public class OmniversePanelLayout
+    {
+        public string panelId;
+        public float anchoredX;
+        public float anchoredY;
+        public float width;
+        public float height;
     }
 }
 

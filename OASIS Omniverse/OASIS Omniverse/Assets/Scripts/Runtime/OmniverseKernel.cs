@@ -59,7 +59,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             _hudOverlay = gameObject.AddComponent<SharedHudOverlay>();
             _hudOverlay.Initialize(_config, _apiClient, _globalSettingsService, this);
             _questTrackerWidget = gameObject.AddComponent<QuestTrackerWidget>();
-            _questTrackerWidget.Initialize(_apiClient);
+            _questTrackerWidget.Initialize(_apiClient, _globalSettingsService, this);
 
             var preloadResult = await _hostService.PreloadAllAsync();
             if (preloadResult.IsError)
@@ -140,6 +140,56 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             }
 
             return await _globalSettingsService.SavePreferencesOnlyAsync(settings, _apiClient);
+        }
+
+        public OASISResult<OmniversePanelLayout> GetQuestTrackerLayout()
+        {
+            if (_questTrackerWidget == null)
+            {
+                return OASISResult<OmniversePanelLayout>.Error("Quest tracker is not initialized.");
+            }
+
+            return _questTrackerWidget.GetCurrentLayout();
+        }
+
+        public OASISResult<OmniversePanelLayout> ApplyQuestTrackerLayoutPreset(string presetName)
+        {
+            if (_questTrackerWidget == null)
+            {
+                return OASISResult<OmniversePanelLayout>.Error("Quest tracker is not initialized.");
+            }
+
+            return _questTrackerWidget.ApplyLayoutPreset(presetName);
+        }
+
+        public async System.Threading.Tasks.Task<OASISResult<OmniversePanelLayout>> ApplyQuestTrackerLayoutPresetAnimatedAsync(string presetName, float durationSeconds = 0.22f)
+        {
+            if (_questTrackerWidget == null)
+            {
+                return OASISResult<OmniversePanelLayout>.Error("Quest tracker is not initialized.");
+            }
+
+            return await _questTrackerWidget.ApplyLayoutPresetAnimatedAsync(presetName, durationSeconds);
+        }
+
+        public OASISResult<OmniversePanelLayout> ResetQuestTrackerLayoutToDefault()
+        {
+            if (_questTrackerWidget == null)
+            {
+                return OASISResult<OmniversePanelLayout>.Error("Quest tracker is not initialized.");
+            }
+
+            return _questTrackerWidget.ResetLayoutToDefault();
+        }
+
+        public async System.Threading.Tasks.Task<OASISResult<OmniversePanelLayout>> ResetQuestTrackerLayoutToDefaultAnimatedAsync(float durationSeconds = 0.22f)
+        {
+            if (_questTrackerWidget == null)
+            {
+                return OASISResult<OmniversePanelLayout>.Error("Quest tracker is not initialized.");
+            }
+
+            return await _questTrackerWidget.ResetLayoutToDefaultAnimatedAsync(durationSeconds);
         }
 
         private void OnDestroy()
