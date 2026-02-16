@@ -30,6 +30,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private static readonly SemaphoreSlim _bootLock = new(1, 1);
         private QuestManager CreateQuestManager() => new QuestManager(AvatarId, new STARDNA());
 
+        private IActionResult ValidateAvatarId<T>()
+        {
+            if (AvatarId == Guid.Empty)
+            {
+                return BadRequest(new OASISResult<T>
+                {
+                    IsError = true,
+                    Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                });
+            }
+            return null;
+        }
+
         private async Task EnsureStarApiBootedAsync()
         {
             // Check if already booted and avatar is set
@@ -199,6 +212,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     });
                 }
 
+                var avatarCheck = ValidateAvatarId<IQuest>();
+                if (avatarCheck != null) return avatarCheck;
+
                 await EnsureStarApiBootedAsync();
                 quest.Id = id;
                 var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
@@ -207,6 +223,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     return BadRequest(result);
                 
                 return Ok(result);
+            }
+            catch (OASISException ex)
+            {
+                return BadRequest(new OASISResult<IQuest>
+                {
+                    IsError = true,
+                    Message = ex.Message,
+                    Exception = ex
+                });
             }
             catch (Exception ex)
             {

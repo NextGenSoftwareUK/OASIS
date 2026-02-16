@@ -50,5 +50,58 @@ namespace OASIS.Omniverse.UnityHost.Config
         public string description;
         public string status;
     }
+
+    [Serializable]
+    public class NftAssetItem
+    {
+        public string id;
+        public string name;
+        public string description;
+        public string type;
+        public string source;
+    }
+
+    [Serializable]
+    public class AvatarProfileItem
+    {
+        public string id;
+        public string username;
+        public string email;
+        public string firstName;
+        public string lastName;
+        public string title;
+    }
+
+    [Serializable]
+    public class KarmaEntry
+    {
+        public string id;
+        public string source;
+        public string reason;
+        public float amount;
+        public string karmaType;
+        public string createdDate;
+    }
+
+    [Serializable]
+    public class KarmaOverview
+    {
+        public float totalKarma;
+        public List<KarmaEntry> history = new List<KarmaEntry>();
+    }
+
+    [Serializable]
+    public class OmniverseGlobalSettings
+    {
+        public float masterVolume = 1f;
+        public float musicVolume = 0.8f;
+        public float soundVolume = 0.8f;
+        public float voiceVolume = 0.8f;
+        public string graphicsPreset = "High";
+        public bool fullscreen = false;
+        public string resolution = "1920x1080";
+        public string keyOpenControlCenter = "I";
+        public string keyHideHostedGame = "F1";
+    }
 }
 
