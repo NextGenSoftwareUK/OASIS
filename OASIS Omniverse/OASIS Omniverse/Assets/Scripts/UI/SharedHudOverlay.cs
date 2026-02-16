@@ -27,9 +27,20 @@ namespace OASIS.Omniverse.UnityHost.UI
             Settings
         }
 
+        private enum ToastSeverity
+        {
+            Success,
+            Warning,
+            Error
+        }
+
         private const int PageSize = 10;
         private const string ControlCenterPanelId = "control_center";
         private const float SnapAnimationDuration = 0.22f;
+        private const int MaxVisibleToasts = 3;
+        private const float ToastHeight = 42f;
+        private const float ToastWidth = 560f;
+        private const float ToastSpacing = 8f;
 
         [Serializable]
         private class PresetExportPackage
@@ -41,11 +52,20 @@ namespace OASIS.Omniverse.UnityHost.UI
             public List<OmniverseActiveViewPreset> activeViewPresets = new List<OmniverseActiveViewPreset>();
         }
 
+        private sealed class ToastEntry
+        {
+            public GameObject panel;
+            public Image background;
+            public Text text;
+            public float expireAtRealtime;
+        }
+
         private Canvas _canvas;
         private GameObject _panel;
         private GameObject _contentRoot;
         private GameObject _settingsRoot;
         private GameObject _listControlsRoot;
+        private RectTransform _toastRoot;
         private Text _contentText;
         private Text _statusText;
         private InputField _searchInput;
@@ -65,6 +85,7 @@ namespace OASIS.Omniverse.UnityHost.UI
         private bool _isRefreshing;
         private bool _suppressPresetEvents;
         private Coroutine _controlCenterTween;
+        private readonly List<ToastEntry> _activeToasts = new List<ToastEntry>();
 
         private Slider _masterSlider;
         private Slider _musicSlider;
@@ -176,6 +197,20 @@ namespace OASIS.Omniverse.UnityHost.UI
             SetAnchors(settingsRect, 0.02f, 0.06f, 0.98f, 0.82f);
             BuildSettingsUi(_settingsRoot.transform);
             _settingsRoot.SetActive(false);
+
+            BuildToastUi();
+        }
+
+        private void BuildToastUi()
+        {
+            var root = new GameObject("OmniverseToastRoot");
+            root.transform.SetParent(_canvas.transform, false);
+            _toastRoot = root.AddComponent<RectTransform>();
+            _toastRoot.anchorMin = new Vector2(0.5f, 1f);
+            _toastRoot.anchorMax = new Vector2(0.5f, 1f);
+            _toastRoot.pivot = new Vector2(0.5f, 1f);
+            _toastRoot.anchoredPosition = new Vector2(0f, -10f);
+            _toastRoot.sizeDelta = new Vector2(ToastWidth, 1f);
         }
 
         private void BuildListControls()
@@ -279,6 +314,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             }
 
             HandleLayoutHotkeys();
+            TickToastQueue();
 
             _toggleWasDown = toggleDown;
             _hideWasDown = hideDown;
@@ -337,6 +373,120 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             var selected = EventSystem.current.currentSelectedGameObject;
             return selected.GetComponent<InputField>() == null;
+        }
+
+        private void ShowToast(string message, ToastSeverity severity = ToastSeverity.Success, float durationSeconds = 1.7f)
+        {
+            if (_toastRoot == null || string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+
+            while (_activeToasts.Count >= MaxVisibleToasts)
+            {
+                DismissToast(_activeToasts[0]);
+            }
+
+            var panel = new GameObject("ToastItem");
+            panel.transform.SetParent(_toastRoot, false);
+            var panelRect = panel.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 1f);
+            panelRect.anchorMax = new Vector2(0.5f, 1f);
+            panelRect.pivot = new Vector2(0.5f, 1f);
+            panelRect.sizeDelta = new Vector2(ToastWidth, ToastHeight);
+
+            var background = panel.AddComponent<Image>();
+            var text = CreateText("ToastText", string.Empty, 16, TextAnchor.MiddleCenter, panel.transform);
+            SetAnchors(text.rectTransform, 0.02f, 0.05f, 0.98f, 0.95f);
+
+            ApplyToastStyle(text, background, message, severity);
+
+            _activeToasts.Add(new ToastEntry
+            {
+                panel = panel,
+                background = background,
+                text = text,
+                expireAtRealtime = Time.realtimeSinceStartup + Mathf.Max(0.4f, durationSeconds)
+            });
+
+            RelayoutToasts();
+        }
+
+        private void TickToastQueue()
+        {
+            if (_activeToasts.Count == 0)
+            {
+                return;
+            }
+
+            var now = Time.realtimeSinceStartup;
+            for (var i = _activeToasts.Count - 1; i >= 0; i--)
+            {
+                if (now >= _activeToasts[i].expireAtRealtime)
+                {
+                    DismissToast(_activeToasts[i]);
+                }
+            }
+
+            RelayoutToasts();
+        }
+
+        private void DismissToast(ToastEntry entry)
+        {
+            if (entry == null)
+            {
+                return;
+            }
+
+            _activeToasts.Remove(entry);
+            if (entry.panel != null)
+            {
+                Destroy(entry.panel);
+            }
+        }
+
+        private void RelayoutToasts()
+        {
+            for (var i = 0; i < _activeToasts.Count; i++)
+            {
+                var entry = _activeToasts[i];
+                if (entry?.panel == null)
+                {
+                    continue;
+                }
+
+                var rect = entry.panel.GetComponent<RectTransform>();
+                rect.anchoredPosition = new Vector2(0f, -(i * (ToastHeight + ToastSpacing)));
+            }
+        }
+
+        private static void ApplyToastStyle(Text toastText, Image toastBackground, string message, ToastSeverity severity)
+        {
+            string icon;
+            Color bg;
+            Color fg;
+            switch (severity)
+            {
+                case ToastSeverity.Error:
+                    icon = "[!]";
+                    bg = new Color(0.40f, 0.06f, 0.06f, 0.90f);
+                    fg = new Color(1.0f, 0.86f, 0.86f, 1f);
+                    break;
+                case ToastSeverity.Warning:
+                    icon = "[~]";
+                    bg = new Color(0.40f, 0.28f, 0.06f, 0.90f);
+                    fg = new Color(1.0f, 0.95f, 0.78f, 1f);
+                    break;
+                default:
+                    icon = "[+]";
+                    bg = new Color(0.05f, 0.26f, 0.36f, 0.90f);
+                    fg = new Color(0.86f, 0.97f, 1f, 1f);
+                    break;
+            }
+
+            toastBackground.color = bg;
+            toastText.color = fg;
+            toastText.text = $"{icon} {message}";
         }
 
         private void Toggle()
@@ -823,6 +973,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             if (save.IsError)
             {
                 _settingsFeedbackText.text = save.Message;
+                ShowToast(save.Message, ToastSeverity.Error, 2.1f);
             }
         }
 
@@ -832,13 +983,16 @@ namespace OASIS.Omniverse.UnityHost.UI
             if (layout == null)
             {
                 _settingsFeedbackText.text = $"Unknown control center preset '{presetName}'.";
+                ShowToast(_settingsFeedbackText.text, ToastSeverity.Error, 2.0f);
                 return;
             }
 
             await AnimateControlCenterLayoutAsync(layout);
             var trackerLayout = _kernel.GetQuestTrackerLayout();
             await PersistPanelLayoutsAsync(layout, trackerLayout.IsError ? null : trackerLayout.Result);
-            _settingsFeedbackText.text = $"Control Center snapped to {presetName}.";
+            var msg = $"Control Center snapped to {presetName}.";
+            _settingsFeedbackText.text = msg;
+            ShowToast(msg, ToastSeverity.Success);
         }
 
         private async Task ApplyQuestTrackerLayoutPresetAsync(string presetName)
@@ -847,11 +1001,14 @@ namespace OASIS.Omniverse.UnityHost.UI
             if (trackerLayout.IsError)
             {
                 _settingsFeedbackText.text = trackerLayout.Message;
+                ShowToast(_settingsFeedbackText.text, ToastSeverity.Error, 2.0f);
                 return;
             }
 
             await PersistPanelLayoutsAsync(CaptureControlCenterLayout(), trackerLayout.Result);
-            _settingsFeedbackText.text = $"Quest Tracker snapped to {presetName}.";
+            var msg = $"Quest Tracker snapped to {presetName}.";
+            _settingsFeedbackText.text = msg;
+            ShowToast(msg, ToastSeverity.Success);
         }
 
         private async Task ResetAllPanelLayoutsAsync()
@@ -871,6 +1028,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             _settingsFeedbackText.text = trackerLayout.IsError
                 ? $"Control Center reset, tracker reset failed: {trackerLayout.Message}"
                 : "All panel layouts reset to defaults.";
+            ShowToast(_settingsFeedbackText.text, trackerLayout.IsError ? ToastSeverity.Warning : ToastSeverity.Success, 2.0f);
         }
 
         private void ConfigureSortOptionsForTab(OmniverseTab tab)

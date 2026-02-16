@@ -119,6 +119,8 @@ copy /Y "%ODOOM_INTEGRATION%odoom_branding.h" "%UZDOOM_SRC%\src\odoom_branding.h
 copy /Y "%ODOOM_INTEGRATION%odoom_oquake_keys.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_keys.zs" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_oquake_items.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_items.zs" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_inventory_popup.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\ui\statusbar\odoom_inventory_popup.zs" >nul
+if not exist "%UZDOOM_SRC%\wadsrc\static\textures" mkdir "%UZDOOM_SRC%\wadsrc\static\textures"
+if exist "%ODOOM_INTEGRATION%textures\OASFACE.png" copy /Y "%ODOOM_INTEGRATION%textures\OASFACE.png" "%UZDOOM_SRC%\wadsrc\static\textures\OASFACE.png" >nul
 if not exist "%UZDOOM_SRC%\wadsrc\static\sprites" mkdir "%UZDOOM_SRC%\wadsrc\static\sprites"
 if not exist "%UZDOOM_SRC%\wadsrc\static\graphics" mkdir "%UZDOOM_SRC%\wadsrc\static\graphics"
 if "%DO_SPRITE_REGEN%"=="1" goto :regen_sprites
