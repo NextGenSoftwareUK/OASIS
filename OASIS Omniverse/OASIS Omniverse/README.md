@@ -65,6 +65,9 @@ Walking through a portal activates the corresponding preloaded game process with
     - `7/8/9` => Quest Tracker TL/TR/Center
     - `0` => Reset both layouts
   - Snap transitions are animated (smooth glide)
+  - Toast notifications appear for snap/reset actions
+  - Toasts include severity styles (`success`, `warning`, `error`)
+  - Toast queue with stacked display for rapid actions (no overwrite)
 
 ## Configuration
 
