@@ -55,6 +55,16 @@ Walking through a portal activates the corresponding preloaded game process with
   - Uses quest objective/progress fields from API responses when present
 - Overlay UX:
   - Control Center and Quest Tracker are both draggable and resizable at runtime
+  - Panel position/size persistence per avatar via WEB4 settings
+  - Quick layout buttons in Settings:
+    - Reset all panel layouts
+    - Snap Control Center to TL/TR/Center
+    - Snap Quest Tracker to TL/TR/Center
+  - Keyboard shortcuts (Ctrl+Alt):
+    - `1/2/3` => Control Center TL/TR/Center
+    - `7/8/9` => Quest Tracker TL/TR/Center
+    - `0` => Reset both layouts
+  - Snap transitions are animated (smooth glide)
 
 ## Configuration
 

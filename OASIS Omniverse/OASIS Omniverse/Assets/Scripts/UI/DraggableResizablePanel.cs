@@ -1,3 +1,4 @@
+using System;
 using OASIS.Omniverse.UnityHost.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -5,7 +6,7 @@ using UnityEngine.EventSystems;
 namespace OASIS.Omniverse.UnityHost.UI
 {
     [RequireComponent(typeof(RectTransform))]
-    public class DraggableResizablePanel : MonoBehaviour, IPointerDownHandler, IDragHandler
+    public class DraggableResizablePanel : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
     {
         [SerializeField] private float minWidth = 320f;
         [SerializeField] private float minHeight = 220f;
@@ -16,6 +17,10 @@ namespace OASIS.Omniverse.UnityHost.UI
         private bool _isResizing;
         private bool _isDragging;
         private Vector2 _dragOffset;
+        private Vector2 _pointerDownPos;
+        private Vector2 _pointerDownSize;
+        private bool _changed;
+        public Action<RectTransform> OnLayoutCommitted;
 
         private void Awake()
         {
@@ -37,6 +42,10 @@ namespace OASIS.Omniverse.UnityHost.UI
             {
                 _dragOffset = local;
             }
+
+            _pointerDownPos = _rect.anchoredPosition;
+            _pointerDownSize = _rect.rect.size;
+            _changed = false;
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -58,6 +67,25 @@ namespace OASIS.Omniverse.UnityHost.UI
             }
         }
 
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (_rect == null)
+            {
+                return;
+            }
+
+            var moved = Vector2.Distance(_pointerDownPos, _rect.anchoredPosition) > 0.5f;
+            var resized = Vector2.Distance(_pointerDownSize, _rect.rect.size) > 0.5f;
+            if (_changed || moved || resized)
+            {
+                OnLayoutCommitted?.Invoke(_rect);
+            }
+
+            _isDragging = false;
+            _isResizing = false;
+            _changed = false;
+        }
+
         public OASISResult<bool> SetMinSize(float width, float height)
         {
             minWidth = Mathf.Max(100f, width);
@@ -76,6 +104,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             var targetLocal = parentPoint - _dragOffset;
             var clamped = ClampToParent(targetLocal, size);
             _rect.anchoredPosition = clamped;
+            _changed = true;
         }
 
         private void Resize(Vector2 screenPosition, Camera eventCamera)
@@ -96,6 +125,7 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             _rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             _rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            _changed = true;
         }
 
         private bool IsInResizeZone(Vector2 localPoint)

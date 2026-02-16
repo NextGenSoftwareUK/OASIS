@@ -10,6 +10,7 @@ using OASIS.Omniverse.UnityHost.Config;
 using OASIS.Omniverse.UnityHost.Native;
 using OASIS.Omniverse.UnityHost.Runtime;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace OASIS.Omniverse.UnityHost.UI
@@ -27,6 +28,8 @@ namespace OASIS.Omniverse.UnityHost.UI
         }
 
         private const int PageSize = 10;
+        private const string ControlCenterPanelId = "control_center";
+        private const float SnapAnimationDuration = 0.22f;
 
         [Serializable]
         private class PresetExportPackage
@@ -61,6 +64,7 @@ namespace OASIS.Omniverse.UnityHost.UI
         private int _currentPage;
         private bool _isRefreshing;
         private bool _suppressPresetEvents;
+        private Coroutine _controlCenterTween;
 
         private Slider _masterSlider;
         private Slider _musicSlider;
@@ -71,6 +75,13 @@ namespace OASIS.Omniverse.UnityHost.UI
         private InputField _openMenuInput;
         private InputField _hideGameInput;
         private Text _settingsFeedbackText;
+        private Button _layoutResetButton;
+        private Button _controlTopLeftButton;
+        private Button _controlTopRightButton;
+        private Button _controlCenterButton;
+        private Button _trackerTopLeftButton;
+        private Button _trackerTopRightButton;
+        private Button _trackerCenterButton;
 
         private readonly List<InventoryItem> _inventoryCache = new List<InventoryItem>();
         private readonly List<QuestItem> _questCache = new List<QuestItem>();
@@ -123,9 +134,11 @@ namespace OASIS.Omniverse.UnityHost.UI
             rect.anchoredPosition = new Vector2(30f, -30f);
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Max(900f, Screen.width * 0.90f));
             rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(560f, Screen.height * 0.90f));
+            ApplySavedPanelLayout(rect, ControlCenterPanelId);
 
             var dragResize = _panel.AddComponent<DraggableResizablePanel>();
             dragResize.SetMinSize(760f, 420f);
+            dragResize.OnLayoutCommitted += panelRect => _ = PersistPanelLayoutAsync(ControlCenterPanelId, panelRect);
 
             var title = CreateText("Title", "OASIS Omniverse Control Center", 28, TextAnchor.MiddleLeft, _panel.transform);
             SetAnchors(title.rectTransform, 0.02f, 0.92f, 0.75f, 0.985f);
@@ -265,8 +278,65 @@ namespace OASIS.Omniverse.UnityHost.UI
                 _kernel.HideHostedGames();
             }
 
+            HandleLayoutHotkeys();
+
             _toggleWasDown = toggleDown;
             _hideWasDown = hideDown;
+        }
+
+        private void HandleLayoutHotkeys()
+        {
+            if (!AreLayoutHotkeysEnabled())
+            {
+                return;
+            }
+
+            var ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            var alt = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+            if (!ctrl || !alt)
+            {
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha0))
+            {
+                _ = ResetAllPanelLayoutsAsync();
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                _ = ApplyControlCenterLayoutPresetAsync("TopLeft");
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                _ = ApplyControlCenterLayoutPresetAsync("TopRight");
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                _ = ApplyControlCenterLayoutPresetAsync("Center");
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha7))
+            {
+                _ = ApplyQuestTrackerLayoutPresetAsync("TopLeft");
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha8))
+            {
+                _ = ApplyQuestTrackerLayoutPresetAsync("TopRight");
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha9))
+            {
+                _ = ApplyQuestTrackerLayoutPresetAsync("Center");
+            }
+        }
+
+        private static bool AreLayoutHotkeysEnabled()
+        {
+            if (EventSystem.current == null || EventSystem.current.currentSelectedGameObject == null)
+            {
+                return true;
+            }
+
+            var selected = EventSystem.current.currentSelectedGameObject;
+            return selected.GetComponent<InputField>() == null;
         }
 
         private void Toggle()
@@ -554,6 +624,253 @@ namespace OASIS.Omniverse.UnityHost.UI
             }
 
             return false;
+        }
+
+        private void ApplySavedPanelLayout(RectTransform rect, string panelId)
+        {
+            if (rect == null || _settingsService == null)
+            {
+                return;
+            }
+
+            var layout = (_settingsService.CurrentSettings.panelLayouts ?? new List<OmniversePanelLayout>())
+                .FirstOrDefault(x => string.Equals(x.panelId, panelId, StringComparison.OrdinalIgnoreCase));
+            if (layout == null)
+            {
+                return;
+            }
+
+            rect.anchoredPosition = new Vector2(layout.anchoredX, layout.anchoredY);
+            if (layout.width > 100f)
+            {
+                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, layout.width);
+            }
+            if (layout.height > 100f)
+            {
+                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, layout.height);
+            }
+        }
+
+        private async Task PersistPanelLayoutAsync(string panelId, RectTransform rect)
+        {
+            if (_settingsService == null || _kernel == null || rect == null)
+            {
+                return;
+            }
+
+            var clone = _settingsService.CloneCurrentSettings();
+            if (clone.IsError)
+            {
+                _statusText.text = clone.Message;
+                return;
+            }
+
+            var settings = clone.Result;
+            settings.panelLayouts ??= new List<OmniversePanelLayout>();
+            settings.panelLayouts.RemoveAll(x => string.Equals(x.panelId, panelId, StringComparison.OrdinalIgnoreCase));
+            settings.panelLayouts.Add(new OmniversePanelLayout
+            {
+                panelId = panelId,
+                anchoredX = rect.anchoredPosition.x,
+                anchoredY = rect.anchoredPosition.y,
+                width = rect.rect.width,
+                height = rect.rect.height
+            });
+
+            await _kernel.SaveUiPreferencesAsync(settings);
+        }
+
+        private OmniversePanelLayout CaptureControlCenterLayout()
+        {
+            if (_panel == null)
+            {
+                return null;
+            }
+
+            var rect = _panel.GetComponent<RectTransform>();
+            return new OmniversePanelLayout
+            {
+                panelId = ControlCenterPanelId,
+                anchoredX = rect.anchoredPosition.x,
+                anchoredY = rect.anchoredPosition.y,
+                width = rect.rect.width,
+                height = rect.rect.height
+            };
+        }
+
+        private void ApplyControlCenterLayout(OmniversePanelLayout layout)
+        {
+            if (_panel == null || layout == null)
+            {
+                return;
+            }
+
+            var rect = _panel.GetComponent<RectTransform>();
+            rect.anchoredPosition = new Vector2(layout.anchoredX, layout.anchoredY);
+            if (layout.width > 100f)
+            {
+                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, layout.width);
+            }
+            if (layout.height > 100f)
+            {
+                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, layout.height);
+            }
+        }
+
+        private async Task AnimateControlCenterLayoutAsync(OmniversePanelLayout layout, float durationSeconds = SnapAnimationDuration)
+        {
+            if (_panel == null || layout == null)
+            {
+                return;
+            }
+
+            var rect = _panel.GetComponent<RectTransform>();
+            if (_controlCenterTween != null)
+            {
+                StopCoroutine(_controlCenterTween);
+                _controlCenterTween = null;
+            }
+
+            var tcs = new TaskCompletionSource<bool>();
+            _controlCenterTween = StartCoroutine(AnimateRectLayoutCoroutine(rect, layout, Mathf.Max(0.05f, durationSeconds), () => tcs.TrySetResult(true)));
+            await tcs.Task;
+            _controlCenterTween = null;
+        }
+
+        private static System.Collections.IEnumerator AnimateRectLayoutCoroutine(RectTransform rect, OmniversePanelLayout target, float duration, Action onComplete)
+        {
+            var startPos = rect.anchoredPosition;
+            var startSize = rect.rect.size;
+            var endPos = new Vector2(target.anchoredX, target.anchoredY);
+            var endSize = new Vector2(Mathf.Max(100f, target.width), Mathf.Max(100f, target.height));
+            var elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var t = Mathf.Clamp01(elapsed / duration);
+                var eased = Mathf.SmoothStep(0f, 1f, t);
+                rect.anchoredPosition = Vector2.LerpUnclamped(startPos, endPos, eased);
+                var size = Vector2.LerpUnclamped(startSize, endSize, eased);
+                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+                yield return null;
+            }
+
+            rect.anchoredPosition = endPos;
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, endSize.x);
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, endSize.y);
+            onComplete?.Invoke();
+        }
+
+        private OmniversePanelLayout BuildControlCenterLayoutPreset(string presetName)
+        {
+            var current = CaptureControlCenterLayout();
+            if (current == null)
+            {
+                return null;
+            }
+
+            var width = Mathf.Max(300f, current.width);
+            var height = Mathf.Max(250f, current.height);
+            var margin = 30f;
+
+            switch ((presetName ?? string.Empty).Trim().ToLowerInvariant())
+            {
+                case "topleft":
+                    current.anchoredX = margin;
+                    current.anchoredY = -margin;
+                    break;
+                case "topright":
+                    current.anchoredX = Mathf.Max(margin, Screen.width - width - margin);
+                    current.anchoredY = -margin;
+                    break;
+                case "center":
+                    current.anchoredX = Mathf.Max(0f, (Screen.width - width) * 0.5f);
+                    current.anchoredY = -Mathf.Max(0f, (Screen.height - height) * 0.5f);
+                    break;
+                default:
+                    return null;
+            }
+
+            return current;
+        }
+
+        private async Task PersistPanelLayoutsAsync(params OmniversePanelLayout[] layouts)
+        {
+            if (_settingsService == null || _kernel == null)
+            {
+                return;
+            }
+
+            var clone = _settingsService.CloneCurrentSettings();
+            if (clone.IsError)
+            {
+                _settingsFeedbackText.text = clone.Message;
+                return;
+            }
+
+            var settings = clone.Result;
+            settings.panelLayouts ??= new List<OmniversePanelLayout>();
+
+            foreach (var layout in layouts.Where(x => x != null && !string.IsNullOrWhiteSpace(x.panelId)))
+            {
+                settings.panelLayouts.RemoveAll(x => string.Equals(x.panelId, layout.panelId, StringComparison.OrdinalIgnoreCase));
+                settings.panelLayouts.Add(layout);
+            }
+
+            var save = await _kernel.SaveUiPreferencesAsync(settings);
+            if (save.IsError)
+            {
+                _settingsFeedbackText.text = save.Message;
+            }
+        }
+
+        private async Task ApplyControlCenterLayoutPresetAsync(string presetName)
+        {
+            var layout = BuildControlCenterLayoutPreset(presetName);
+            if (layout == null)
+            {
+                _settingsFeedbackText.text = $"Unknown control center preset '{presetName}'.";
+                return;
+            }
+
+            await AnimateControlCenterLayoutAsync(layout);
+            var trackerLayout = _kernel.GetQuestTrackerLayout();
+            await PersistPanelLayoutsAsync(layout, trackerLayout.IsError ? null : trackerLayout.Result);
+            _settingsFeedbackText.text = $"Control Center snapped to {presetName}.";
+        }
+
+        private async Task ApplyQuestTrackerLayoutPresetAsync(string presetName)
+        {
+            var trackerLayout = await _kernel.ApplyQuestTrackerLayoutPresetAnimatedAsync(presetName, SnapAnimationDuration);
+            if (trackerLayout.IsError)
+            {
+                _settingsFeedbackText.text = trackerLayout.Message;
+                return;
+            }
+
+            await PersistPanelLayoutsAsync(CaptureControlCenterLayout(), trackerLayout.Result);
+            _settingsFeedbackText.text = $"Quest Tracker snapped to {presetName}.";
+        }
+
+        private async Task ResetAllPanelLayoutsAsync()
+        {
+            var defaultControlLayout = new OmniversePanelLayout
+            {
+                panelId = ControlCenterPanelId,
+                anchoredX = 30f,
+                anchoredY = -30f,
+                width = Mathf.Max(900f, Screen.width * 0.90f),
+                height = Mathf.Max(560f, Screen.height * 0.90f)
+            };
+            await AnimateControlCenterLayoutAsync(defaultControlLayout);
+
+            var trackerLayout = await _kernel.ResetQuestTrackerLayoutToDefaultAnimatedAsync(SnapAnimationDuration);
+            await PersistPanelLayoutsAsync(defaultControlLayout, trackerLayout.IsError ? null : trackerLayout.Result);
+            _settingsFeedbackText.text = trackerLayout.IsError
+                ? $"Control Center reset, tracker reset failed: {trackerLayout.Message}"
+                : "All panel layouts reset to defaults.";
         }
 
         private void ConfigureSortOptionsForTab(OmniverseTab tab)
@@ -1220,6 +1537,26 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             CreateText("HideHostedKeyLabel", "Hide Hosted Game Key", 17, TextAnchor.MiddleLeft, root, 0.50f, 0.21f, 0.74f, 0.28f);
             _hideGameInput = CreateInputField(root, 0.75f, 0.21f, 0.89f, 0.28f);
+
+            CreateText("LayoutQuickLabel", "Panel Layout Quick Actions", 16, TextAnchor.MiddleLeft, root, 0.02f, 0.16f, 0.34f, 0.21f);
+            _layoutResetButton = CreateButton(root, "Reset Layouts", 0.35f, 0.16f, 0.49f, 0.21f);
+            _layoutResetButton.onClick.AddListener(() => _ = ResetAllPanelLayoutsAsync());
+
+            CreateText("CCLayoutLabel", "Control Center", 14, TextAnchor.MiddleLeft, root, 0.02f, 0.12f, 0.18f, 0.16f);
+            _controlTopLeftButton = CreateButton(root, "TL", 0.19f, 0.12f, 0.23f, 0.16f);
+            _controlTopRightButton = CreateButton(root, "TR", 0.24f, 0.12f, 0.28f, 0.16f);
+            _controlCenterButton = CreateButton(root, "C", 0.29f, 0.12f, 0.33f, 0.16f);
+            _controlTopLeftButton.onClick.AddListener(() => _ = ApplyControlCenterLayoutPresetAsync("TopLeft"));
+            _controlTopRightButton.onClick.AddListener(() => _ = ApplyControlCenterLayoutPresetAsync("TopRight"));
+            _controlCenterButton.onClick.AddListener(() => _ = ApplyControlCenterLayoutPresetAsync("Center"));
+
+            CreateText("QTLayoutLabel", "Quest Tracker", 14, TextAnchor.MiddleLeft, root, 0.36f, 0.12f, 0.50f, 0.16f);
+            _trackerTopLeftButton = CreateButton(root, "TL", 0.51f, 0.12f, 0.55f, 0.16f);
+            _trackerTopRightButton = CreateButton(root, "TR", 0.56f, 0.12f, 0.60f, 0.16f);
+            _trackerCenterButton = CreateButton(root, "C", 0.61f, 0.12f, 0.65f, 0.16f);
+            _trackerTopLeftButton.onClick.AddListener(() => _ = ApplyQuestTrackerLayoutPresetAsync("TopLeft"));
+            _trackerTopRightButton.onClick.AddListener(() => _ = ApplyQuestTrackerLayoutPresetAsync("TopRight"));
+            _trackerCenterButton.onClick.AddListener(() => _ = ApplyQuestTrackerLayoutPresetAsync("Center"));
 
             var applyButton = CreateButton(root, "Save & Apply", 0.70f, 0.06f, 0.92f, 0.15f);
             applyButton.onClick.AddListener(() => _ = SaveAndApplySettingsAsync());
