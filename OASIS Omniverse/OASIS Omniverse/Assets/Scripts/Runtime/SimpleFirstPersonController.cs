@@ -1,4 +1,5 @@
 using UnityEngine;
+using OASIS.Omniverse.UnityHost.Rendering;
 
 namespace OASIS.Omniverse.UnityHost.Runtime
 {
@@ -21,8 +22,10 @@ namespace OASIS.Omniverse.UnityHost.Runtime
                 cameraObject.transform.SetParent(transform);
                 cameraObject.transform.localPosition = new Vector3(0f, 0.7f, 0f);
                 cameraTransform = cameraObject.transform;
-                cameraObject.AddComponent<Camera>();
+                var camera = cameraObject.AddComponent<Camera>();
+                camera.allowHDR = true;
                 cameraObject.AddComponent<AudioListener>();
+                cameraObject.AddComponent<CinematicPortalGlow>();
             }
 
             Cursor.lockState = CursorLockMode.Locked;

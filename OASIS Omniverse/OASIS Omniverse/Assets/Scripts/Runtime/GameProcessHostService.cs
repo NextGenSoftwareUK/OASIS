@@ -23,13 +23,15 @@ namespace OASIS.Omniverse.UnityHost.Runtime
         }
 
         private readonly OmniverseHostConfig _config;
+        private readonly GlobalSettingsService _globalSettingsService;
         private readonly Dictionary<string, HostedSession> _sessions = new Dictionary<string, HostedSession>(StringComparer.OrdinalIgnoreCase);
         private DateTime _lastMaintenanceUtc = DateTime.MinValue;
         private string _activeGameId = string.Empty;
 
-        public GameProcessHostService(OmniverseHostConfig config)
+        public GameProcessHostService(OmniverseHostConfig config, GlobalSettingsService globalSettingsService)
         {
             _config = config;
+            _globalSettingsService = globalSettingsService;
         }
 
         public async Task<OASISResult<bool>> PreloadAllAsync()
@@ -71,7 +73,13 @@ namespace OASIS.Omniverse.UnityHost.Runtime
                 return OASISResult<bool>.Error($"Working directory not found: {workDir}");
             }
 
-            var args = string.Join(" ", new[] { game.baseArguments, game.defaultLevelArgument }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
+            var globalArgsResult = _globalSettingsService.BuildLaunchArgumentsForGame(game.gameId);
+            if (globalArgsResult.IsError)
+            {
+                return OASISResult<bool>.Error(globalArgsResult.Message);
+            }
+
+            var args = string.Join(" ", new[] { game.baseArguments, game.defaultLevelArgument, globalArgsResult.Result }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -147,6 +155,18 @@ namespace OASIS.Omniverse.UnityHost.Runtime
 
             _activeGameId = string.Empty;
             return OASISResult<bool>.Success(true, "All game windows hidden.");
+        }
+
+        public async Task<OASISResult<bool>> RebuildSessionsForUpdatedSettingsAsync()
+        {
+            foreach (var session in _sessions.Values.ToList())
+            {
+                KillSession(session);
+            }
+
+            _sessions.Clear();
+            _activeGameId = string.Empty;
+            return await PreloadAllAsync();
         }
 
         public OASISResult<bool> TickMaintenance()
