@@ -823,9 +823,9 @@ static void OQ_PollInventoryHotkeys(void) {
 
     if (OQ_KeyPressed('e') || OQ_KeyPressed('E'))
         OQ_UseSelectedItem();
-    if (OQ_KeyPressed('z') || OQ_KeyPressed('Z'))
+    if (OQ_KeyPressed('a') || OQ_KeyPressed('A'))
         OQ_OpenSendPopup(OQ_SEND_POPUP_AVATAR);
-    if (OQ_KeyPressed('x') || OQ_KeyPressed('X'))
+    if (OQ_KeyPressed('c') || OQ_KeyPressed('C'))
         OQ_OpenSendPopup(OQ_SEND_POPUP_CLAN);
 }
 
@@ -1255,7 +1255,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, 10, 224, 0.60f);
         Draw_String(cbx, tab_name_x, tab_y, tab_name);
     }
-    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 8, "Arrows=Select  E=Use  Z=Send Avatar  X=Send Clan  I=Toggle  O/P=Switch Tabs");
+    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 8, "Arrows=Select  E=Use  A=Send Avatar  C=Send Clan  I=Toggle  O/P=Switch Tabs");
 
     draw_y = panel_y + 54;
     grouped_count = OQ_BuildGroupedRows(

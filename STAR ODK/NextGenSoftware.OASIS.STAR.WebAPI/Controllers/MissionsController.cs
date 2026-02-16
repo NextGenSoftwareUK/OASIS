@@ -25,6 +25,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
         private static readonly SemaphoreSlim _bootLock = new(1, 1);
 
+        private IActionResult ValidateAvatarId<T>()
+        {
+            if (AvatarId == Guid.Empty)
+            {
+                return BadRequest(new OASISResult<T>
+                {
+                    IsError = true,
+                    Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                });
+            }
+            return null;
+        }
+
         private static async Task EnsureStarApiBootedAsync()
         {
             if (_starAPI.IsOASISBooted)
@@ -124,6 +137,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     });
                 }
 
+                var avatarCheck = ValidateAvatarId<IMission>();
+                if (avatarCheck != null) return avatarCheck;
+
                 await EnsureStarApiBootedAsync();
                 var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
                 
@@ -131,6 +147,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     return BadRequest(result);
                 
                 return Ok(result);
+            }
+            catch (OASISException ex)
+            {
+                return BadRequest(new OASISResult<IMission>
+                {
+                    IsError = true,
+                    Message = ex.Message,
+                    Exception = ex
+                });
             }
             catch (Exception ex)
             {
@@ -167,6 +192,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     });
                 }
 
+                var avatarCheck = ValidateAvatarId<IMission>();
+                if (avatarCheck != null) return avatarCheck;
+
                 await EnsureStarApiBootedAsync();
                 mission.Id = id;
                 var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
@@ -175,6 +203,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     return BadRequest(result);
                 
                 return Ok(result);
+            }
+            catch (OASISException ex)
+            {
+                return BadRequest(new OASISResult<IMission>
+                {
+                    IsError = true,
+                    Message = ex.Message,
+                    Exception = ex
+                });
             }
             catch (Exception ex)
             {
