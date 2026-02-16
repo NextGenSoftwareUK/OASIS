@@ -41,3 +41,5 @@ WAD method (using SLADE)
 Image size: 32x32 pixels matches the classic status bar face; other sizes will be scaled.
 
 
+
+

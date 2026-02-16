@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
 // Add services to the container.
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+{
+    // Add exception filter to catch model binding and other exceptions
+    options.Filters.Add<ExceptionFilter>();
+})
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
@@ -169,6 +174,45 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+
+// Global exception handler for model binding and other exceptions - must be early in pipeline
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        // Check if this is a model binding/validation exception or OASISException
+        if (ex is System.Text.Json.JsonException || 
+            ex is InvalidOperationException ||
+            ex is OASISException ||
+            (ex.InnerException is System.Text.Json.JsonException) ||
+            (ex.InnerException is InvalidOperationException) ||
+            (ex.InnerException is OASISException) ||
+            ex.Message.Contains("JSON", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("deserializ", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("binding", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Response.StatusCode = 400;
+            context.Response.ContentType = "application/json";
+            var errorResult = new OASISResult<object>
+            {
+                IsError = true,
+                Message = ex is OASISException ? ex.Message : $"Invalid request: {ex.Message}",
+                Exception = ex
+            };
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+            return;
+        }
+        
+        // Re-throw other exceptions to be handled by default error handling
+        throw;
+    }
+});
+
 app.Use(async (context, next) =>
 {
     if (context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
@@ -257,4 +301,34 @@ static Guid ParseAvatarIdFromJwt(string? token)
     }
 
     return Guid.Empty;
+}
+
+// Exception filter to catch model binding and other exceptions
+public class ExceptionFilter : IExceptionFilter
+{
+    public void OnException(ExceptionContext context)
+    {
+        var ex = context.Exception;
+        
+        // Check if this is a model binding/validation exception
+        if (ex is System.Text.Json.JsonException || 
+            ex is InvalidOperationException ||
+            ex is OASISException ||
+            (ex.InnerException is System.Text.Json.JsonException) ||
+            (ex.InnerException is InvalidOperationException) ||
+            (ex.InnerException is OASISException) ||
+            ex.Message.Contains("JSON", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("deserializ", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("binding", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Result = new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(new OASISResult<object>
+            {
+                IsError = true,
+                Message = ex is OASISException ? ex.Message : $"Invalid request: {ex.Message}",
+                Exception = ex
+            });
+            context.ExceptionHandled = true;
+        }
+    }
 }
