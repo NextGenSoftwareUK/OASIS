@@ -141,6 +141,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             merged.keyHideHostedGame = string.IsNullOrWhiteSpace(remote.keyHideHostedGame) ? merged.keyHideHostedGame : remote.keyHideHostedGame;
             merged.viewPresets = remote.viewPresets ?? merged.viewPresets ?? new System.Collections.Generic.List<OmniverseViewPreset>();
             merged.activeViewPresets = remote.activeViewPresets ?? merged.activeViewPresets ?? new System.Collections.Generic.List<OmniverseActiveViewPreset>();
+            merged.panelLayouts = remote.panelLayouts ?? merged.panelLayouts ?? new System.Collections.Generic.List<OmniversePanelLayout>();
             return merged;
         }
 
