@@ -14,7 +14,9 @@ Walking through a portal activates the corresponding preloaded game process with
 ## What is implemented
 
 - Space hub generated at runtime (starfield + first-person controller).
+- Dedicated startup scene asset: `Assets/Scenes/OmniverseHub.unity`.
 - Two emissive spinning portals with trigger volumes and floating labels.
+- Cinematic portal glow post-process pass on the player camera.
 - Native game process preloading for:
   - `../ODOOM/build/ODOOM.exe`
   - `../OQuake/build/OQUAKE.exe`
@@ -23,7 +25,17 @@ Walking through a portal activates the corresponding preloaded game process with
   - Configurable stale timeout (default 10 min)
   - Configurable low-memory threshold (default 2048 MB available)
 - Shared HUD overlay (global `I` key) across hub/hosted games.
-- Live inventory + quest fetch integration from WEB4/WEB5 APIs.
+- Omniverse Control Center with tabs for:
+  - Inventory (WEB5/WEB4 inventory APIs)
+  - Cross-game quests (WEB5 Quest API)
+  - Cross-game assets/NFTs (WEB5 + WEB4 NFT APIs)
+  - Avatar profile (WEB4/WEB5 avatar APIs)
+  - Karma timeline (WEB4 Karma API with source/reason/date/amount)
+  - Global settings (audio/music/voice/master, graphics, key bindings)
+- Global settings persistence:
+  - Local (PlayerPrefs)
+  - Remote sync via WEB4 Settings API (`/api/settings/user/preferences` with fallback routes)
+- Applying settings rebuilds preloaded ODOOM/OQUAKE sessions so global launch settings propagate.
 
 ## Configuration
 
@@ -41,6 +53,7 @@ Edit `Assets/StreamingAssets/omniverse_host_config.json`:
 - Walk through portal collider to activate ODOOM/OQUAKE.
 - `I`: open/close shared inventory and cross-quest HUD overlay.
 - `F1`: hide active hosted game windows and return visual focus to hub.
+- Hotkeys are configurable in the Settings tab.
 
 ## Open in Unity
 

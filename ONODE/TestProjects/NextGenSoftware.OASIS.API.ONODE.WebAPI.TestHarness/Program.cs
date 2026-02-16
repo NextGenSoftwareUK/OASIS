@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 var baseUrl = (Environment.GetEnvironmentVariable("OASIS_WEBAPI_BASE_URL") ?? "http://localhost:5003").TrimEnd('/');
 var username = Environment.GetEnvironmentVariable("OASIS_WEBAPI_USERNAME") ?? "dellams";
@@ -162,6 +163,17 @@ static Dictionary<string, object> GenerateObjectFromSchema(JsonElement schema, J
     if (!schema.TryGetProperty("properties", out var properties))
         return result;
 
+    // Get required fields
+    var requiredFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    if (schema.TryGetProperty("required", out var required) && required.ValueKind == JsonValueKind.Array)
+    {
+        foreach (var req in required.EnumerateArray())
+        {
+            if (req.ValueKind == JsonValueKind.String)
+                requiredFields.Add(req.GetString() ?? "");
+        }
+    }
+
     foreach (var prop in properties.EnumerateObject())
     {
         var propName = prop.Name;
@@ -170,12 +182,42 @@ static Dictionary<string, object> GenerateObjectFromSchema(JsonElement schema, J
         if (propSchema.TryGetProperty("readOnly", out var readOnly) && readOnly.GetBoolean())
             continue;
 
+        // Always include required fields, and include optional fields if they have good defaults
+        var isRequired = requiredFields.Contains(propName);
         var value = GenerateValueFromSchema(propSchema, swaggerRoot, propName);
-        if (value != null)
+        
+        if (value != null && (isRequired || ShouldIncludeOptionalProperty(propName, propSchema, swaggerRoot)))
             result[propName] = value;
     }
 
     return result;
+}
+
+static bool ShouldIncludeOptionalProperty(string propertyName, JsonElement propSchema, JsonElement swaggerRoot)
+{
+    // Always include properties that have non-null defaults
+    if (propSchema.TryGetProperty("default", out var defaultVal))
+    {
+        if (defaultVal.ValueKind != JsonValueKind.Null)
+            return true;
+    }
+
+    // Include properties that are commonly needed
+    var lowerName = propertyName.ToLowerInvariant();
+    if (lowerName.Contains("name") || lowerName.Contains("title") || 
+        lowerName.Contains("description") || lowerName.Contains("type") ||
+        lowerName.Contains("id") || lowerName.Contains("guid"))
+        return true;
+
+    // Include if it's a simple type (not complex object/array)
+    if (propSchema.TryGetProperty("type", out var type))
+    {
+        var typeStr = type.GetString();
+        if (typeStr == "string" || typeStr == "integer" || typeStr == "number" || typeStr == "boolean")
+            return true;
+    }
+
+    return false;
 }
 
 static object? GenerateValueFromSchema(JsonElement schema, JsonElement swaggerRoot, string propertyName)
@@ -265,8 +307,14 @@ static string GetStringValue(string propertyName, JsonElement schema)
         return "Test";
     if (lowerName.Contains("lastname"))
         return "User";
-    if (lowerName.Contains("title"))
+    if (lowerName.Contains("title") && !lowerName.Contains("name"))
         return "Mr";
+    if (lowerName.Contains("holontype") || lowerName.Contains("holonType"))
+        return "Holon";
+    if (lowerName.Contains("provider") && lowerName.Contains("type"))
+        return "Default";
+    if (lowerName.Contains("version"))
+        return "1.0.0";
 
     return "test";
 }
@@ -274,7 +322,7 @@ static string GetStringValue(string propertyName, JsonElement schema)
 static int GetIntegerValue(string propertyName, JsonElement schema)
 {
     if (schema.TryGetProperty("minimum", out var min))
-        return min.GetInt32();
+        return Math.Max(min.GetInt32(), 0);
     if (schema.TryGetProperty("default", out var def) && def.ValueKind == JsonValueKind.Number)
         return def.GetInt32();
     
@@ -283,6 +331,8 @@ static int GetIntegerValue(string propertyName, JsonElement schema)
         return 1;
     if (lowerName.Contains("count") || lowerName.Contains("limit") || lowerName.Contains("size"))
         return 10;
+    if (lowerName.Contains("depth") || lowerName.Contains("maxchilddepth"))
+        return 0;
     
     return 1;
 }
@@ -290,9 +340,15 @@ static int GetIntegerValue(string propertyName, JsonElement schema)
 static double GetNumberValue(string propertyName, JsonElement schema)
 {
     if (schema.TryGetProperty("minimum", out var min))
-        return min.GetDouble();
+        return Math.Max(min.GetDouble(), 0.0);
     if (schema.TryGetProperty("default", out var def) && def.ValueKind == JsonValueKind.Number)
         return def.GetDouble();
+    
+    var lowerName = propertyName.ToLowerInvariant();
+    if (lowerName.Contains("mass") || lowerName.Contains("radius") || lowerName.Contains("temperature"))
+        return 1.0;
+    if (lowerName.Contains("volume") || lowerName.Contains("area"))
+        return 1.0;
     
     return 1.0;
 }

@@ -2,6 +2,7 @@ using OASIS.Omniverse.UnityHost.Config;
 using OASIS.Omniverse.UnityHost.Core;
 using OASIS.Omniverse.UnityHost.UI;
 using UnityEngine;
+using OASIS.Omniverse.UnityHost.API;
 
 namespace OASIS.Omniverse.UnityHost.Runtime
 {
@@ -12,6 +13,8 @@ namespace OASIS.Omniverse.UnityHost.Runtime
         private OmniverseHostConfig _config;
         private GameProcessHostService _hostService;
         private SharedHudOverlay _hudOverlay;
+        private Web4Web5GatewayClient _apiClient;
+        private GlobalSettingsService _globalSettingsService;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -47,9 +50,13 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             _config = configResult.Result;
             SpaceHubBuilder.BuildHub(_config);
 
-            _hostService = new GameProcessHostService(_config);
+            _apiClient = new Web4Web5GatewayClient(_config.web4OasisApiBaseUrl, _config.web5StarApiBaseUrl, _config.apiKey, _config.avatarId);
+            _globalSettingsService = new GlobalSettingsService();
+            await _globalSettingsService.InitializeAsync(_apiClient);
+
+            _hostService = new GameProcessHostService(_config, _globalSettingsService);
             _hudOverlay = gameObject.AddComponent<SharedHudOverlay>();
-            _hudOverlay.Initialize(_config);
+            _hudOverlay.Initialize(_config, _apiClient, _globalSettingsService, this);
 
             var preloadResult = await _hostService.PreloadAllAsync();
             if (preloadResult.IsError)
@@ -82,7 +89,49 @@ namespace OASIS.Omniverse.UnityHost.Runtime
                 return OASISResult<bool>.Error("Kernel host service is not initialized.");
             }
 
+            if (string.IsNullOrWhiteSpace(gameId))
+            {
+                return OASISResult<bool>.Error("Game id is required.");
+            }
+
             return await _hostService.ActivateGameAsync(gameId);
+        }
+
+        public OASISResult<bool> HideHostedGames()
+        {
+            if (_hostService == null)
+            {
+                return OASISResult<bool>.Error("Kernel host service is not initialized.");
+            }
+
+            return _hostService.HideAllGames();
+        }
+
+        public async System.Threading.Tasks.Task<OASISResult<bool>> ApplyGlobalSettingsAndRebuildSessionsAsync(OmniverseGlobalSettings settings)
+        {
+            if (_hostService == null || _globalSettingsService == null || _apiClient == null)
+            {
+                return OASISResult<bool>.Error("Kernel services are not initialized.");
+            }
+
+            var save = await _globalSettingsService.SaveAndApplyAsync(settings, _apiClient);
+            if (save.IsError)
+            {
+                return save;
+            }
+
+            var rebuild = await _hostService.RebuildSessionsForUpdatedSettingsAsync();
+            if (rebuild.IsError)
+            {
+                return rebuild;
+            }
+
+            return OASISResult<bool>.Success(true, "Global settings applied and hosted game sessions rebuilt.");
+        }
+
+        private void OnDestroy()
+        {
+            _apiClient?.Dispose();
         }
     }
 }
