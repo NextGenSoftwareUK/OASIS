@@ -49,6 +49,11 @@ namespace OASIS.Omniverse.UnityHost.Config
         public string name;
         public string description;
         public string status;
+        public string gameSource;
+        public string priority;
+        public float progress;
+        public int objectivesCompleted;
+        public int objectivesTotal;
     }
 
     [Serializable]
@@ -102,6 +107,25 @@ namespace OASIS.Omniverse.UnityHost.Config
         public string resolution = "1920x1080";
         public string keyOpenControlCenter = "I";
         public string keyHideHostedGame = "F1";
+        public List<OmniverseViewPreset> viewPresets = new List<OmniverseViewPreset>();
+        public List<OmniverseActiveViewPreset> activeViewPresets = new List<OmniverseActiveViewPreset>();
+    }
+
+    [Serializable]
+    public class OmniverseViewPreset
+    {
+        public string name;
+        public string tab;
+        public string searchQuery;
+        public string sortField;
+        public bool sortAscending = true;
+    }
+
+    [Serializable]
+    public class OmniverseActiveViewPreset
+    {
+        public string tab;
+        public string presetName;
     }
 }
 

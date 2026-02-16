@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OASIS.Omniverse.UnityHost.API;
 using OASIS.Omniverse.UnityHost.Config;
 using OASIS.Omniverse.UnityHost.Native;
@@ -22,18 +26,41 @@ namespace OASIS.Omniverse.UnityHost.UI
             Settings
         }
 
+        private const int PageSize = 10;
+
+        [Serializable]
+        private class PresetExportPackage
+        {
+            public string schema = "oasis.omniverse.viewpresets";
+            public int schemaVersion = 1;
+            public string exportedAtUtc;
+            public List<OmniverseViewPreset> viewPresets = new List<OmniverseViewPreset>();
+            public List<OmniverseActiveViewPreset> activeViewPresets = new List<OmniverseActiveViewPreset>();
+        }
+
         private Canvas _canvas;
         private GameObject _panel;
         private GameObject _contentRoot;
         private GameObject _settingsRoot;
+        private GameObject _listControlsRoot;
         private Text _contentText;
         private Text _statusText;
+        private InputField _searchInput;
+        private Dropdown _sortFieldDropdown;
+        private Dropdown _sortDirectionDropdown;
+        private Dropdown _presetDropdown;
+        private Dropdown _templateDropdown;
+        private InputField _presetNameInput;
+        private Text _pageIndicator;
         private bool _isVisible;
         private bool _toggleWasDown;
         private bool _hideWasDown;
         private KeyCode _toggleKey = KeyCode.I;
         private KeyCode _hideGameKey = KeyCode.F1;
         private OmniverseTab _currentTab;
+        private int _currentPage;
+        private bool _isRefreshing;
+        private bool _suppressPresetEvents;
 
         private Slider _masterSlider;
         private Slider _musicSlider;
@@ -45,9 +72,26 @@ namespace OASIS.Omniverse.UnityHost.UI
         private InputField _hideGameInput;
         private Text _settingsFeedbackText;
 
+        private readonly List<InventoryItem> _inventoryCache = new List<InventoryItem>();
+        private readonly List<QuestItem> _questCache = new List<QuestItem>();
+        private readonly List<NftAssetItem> _nftCache = new List<NftAssetItem>();
+        private readonly List<KarmaEntry> _karmaCache = new List<KarmaEntry>();
+        private AvatarProfileItem _avatarCache;
+        private float _karmaTotal;
+
         private Web4Web5GatewayClient _apiClient;
         private GlobalSettingsService _settingsService;
         private OmniverseKernel _kernel;
+
+        private readonly Dictionary<OmniverseTab, string[]> _sortOptions = new Dictionary<OmniverseTab, string[]>
+        {
+            { OmniverseTab.Inventory, new[] { "Name", "Type", "Source" } },
+            { OmniverseTab.Quests, new[] { "Name", "Status", "Priority" } },
+            { OmniverseTab.Nfts, new[] { "Name", "Type", "Source" } },
+            { OmniverseTab.Karma, new[] { "Date", "Source", "Amount" } },
+            { OmniverseTab.Avatar, new[] { "Name" } },
+            { OmniverseTab.Settings, new[] { "Name" } }
+        };
 
         public void Initialize(OmniverseHostConfig config, Web4Web5GatewayClient apiClient, GlobalSettingsService settingsService, OmniverseKernel kernel)
         {
@@ -69,37 +113,30 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             _panel = new GameObject("OmniverseControlCenter");
             _panel.transform.SetParent(_canvas.transform, false);
-
             var image = _panel.AddComponent<Image>();
             image.color = new Color(0f, 0f, 0f, 0.82f);
 
             var rect = _panel.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.03f, 0.05f);
-            rect.anchorMax = new Vector2(0.97f, 0.95f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(30f, -30f);
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Max(900f, Screen.width * 0.90f));
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(560f, Screen.height * 0.90f));
+
+            var dragResize = _panel.AddComponent<DraggableResizablePanel>();
+            dragResize.SetMinSize(760f, 420f);
 
             var title = CreateText("Title", "OASIS Omniverse Control Center", 28, TextAnchor.MiddleLeft, _panel.transform);
-            var titleRect = title.GetComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0.02f, 0.92f);
-            titleRect.anchorMax = new Vector2(0.75f, 0.985f);
-            titleRect.offsetMin = Vector2.zero;
-            titleRect.offsetMax = Vector2.zero;
+            SetAnchors(title.rectTransform, 0.02f, 0.92f, 0.75f, 0.985f);
 
             _statusText = CreateText("Status", "Ready", 16, TextAnchor.MiddleRight, _panel.transform);
-            var statusRect = _statusText.GetComponent<RectTransform>();
-            statusRect.anchorMin = new Vector2(0.55f, 0.92f);
-            statusRect.anchorMax = new Vector2(0.98f, 0.985f);
-            statusRect.offsetMin = Vector2.zero;
-            statusRect.offsetMax = Vector2.zero;
+            SetAnchors(_statusText.rectTransform, 0.55f, 0.92f, 0.98f, 0.985f);
 
             var tabs = new GameObject("Tabs");
             tabs.transform.SetParent(_panel.transform, false);
             var tabsRect = tabs.AddComponent<RectTransform>();
-            tabsRect.anchorMin = new Vector2(0.02f, 0.84f);
-            tabsRect.anchorMax = new Vector2(0.98f, 0.91f);
-            tabsRect.offsetMin = Vector2.zero;
-            tabsRect.offsetMax = Vector2.zero;
+            SetAnchors(tabsRect, 0.02f, 0.84f, 0.98f, 0.91f);
 
             CreateTabButton(tabs.transform, "Inventory", OmniverseTab.Inventory, 0);
             CreateTabButton(tabs.transform, "Quests", OmniverseTab.Quests, 1);
@@ -108,33 +145,110 @@ namespace OASIS.Omniverse.UnityHost.UI
             CreateTabButton(tabs.transform, "Karma", OmniverseTab.Karma, 4);
             CreateTabButton(tabs.transform, "Settings", OmniverseTab.Settings, 5);
 
+            BuildListControls();
+
             _contentRoot = new GameObject("ContentRoot");
             _contentRoot.transform.SetParent(_panel.transform, false);
             var contentRect = _contentRoot.AddComponent<RectTransform>();
-            contentRect.anchorMin = new Vector2(0.02f, 0.06f);
-            contentRect.anchorMax = new Vector2(0.98f, 0.82f);
-            contentRect.offsetMin = Vector2.zero;
-            contentRect.offsetMax = Vector2.zero;
+            SetAnchors(contentRect, 0.02f, 0.06f, 0.98f, 0.69f);
 
-            _contentText = CreateText("ContentText", "", 19, TextAnchor.UpperLeft, _contentRoot.transform);
+            _contentText = CreateText("ContentText", string.Empty, 19, TextAnchor.UpperLeft, _contentRoot.transform);
             _contentText.horizontalOverflow = HorizontalWrapMode.Wrap;
             _contentText.verticalOverflow = VerticalWrapMode.Overflow;
-            var textRect = _contentText.GetComponent<RectTransform>();
-            textRect.anchorMin = new Vector2(0.02f, 0.02f);
-            textRect.anchorMax = new Vector2(0.98f, 0.98f);
-            textRect.offsetMin = Vector2.zero;
-            textRect.offsetMax = Vector2.zero;
+            SetAnchors(_contentText.rectTransform, 0.02f, 0.02f, 0.98f, 0.98f);
 
             _settingsRoot = new GameObject("SettingsRoot");
             _settingsRoot.transform.SetParent(_panel.transform, false);
             var settingsRect = _settingsRoot.AddComponent<RectTransform>();
-            settingsRect.anchorMin = new Vector2(0.02f, 0.06f);
-            settingsRect.anchorMax = new Vector2(0.98f, 0.82f);
-            settingsRect.offsetMin = Vector2.zero;
-            settingsRect.offsetMax = Vector2.zero;
-
+            SetAnchors(settingsRect, 0.02f, 0.06f, 0.98f, 0.82f);
             BuildSettingsUi(_settingsRoot.transform);
             _settingsRoot.SetActive(false);
+        }
+
+        private void BuildListControls()
+        {
+            _listControlsRoot = new GameObject("ListControls");
+            _listControlsRoot.transform.SetParent(_panel.transform, false);
+            var controlsRect = _listControlsRoot.AddComponent<RectTransform>();
+            SetAnchors(controlsRect, 0.02f, 0.70f, 0.98f, 0.835f);
+
+            CreateText("SearchLabel", "Search", 16, TextAnchor.MiddleLeft, _listControlsRoot.transform, 0.0f, 0f, 0.06f, 1f);
+            _searchInput = CreateInputField(_listControlsRoot.transform, 0.065f, 0.56f, 0.26f, 0.94f);
+            _searchInput.onValueChanged.AddListener(_ =>
+            {
+                _currentPage = 0;
+                RedrawListTab();
+            });
+
+            CreateText("SortByLabel", "Sort", 16, TextAnchor.MiddleLeft, _listControlsRoot.transform, 0.27f, 0f, 0.31f, 1f);
+            _sortFieldDropdown = CreateDropdown(_listControlsRoot.transform, new[] { "Name" }, 0.315f, 0.56f, 0.50f, 0.94f);
+            _sortFieldDropdown.onValueChanged.AddListener(_ =>
+            {
+                _currentPage = 0;
+                RedrawListTab();
+            });
+
+            _sortDirectionDropdown = CreateDropdown(_listControlsRoot.transform, new[] { "Asc", "Desc" }, 0.505f, 0.56f, 0.59f, 0.94f);
+            _sortDirectionDropdown.onValueChanged.AddListener(_ =>
+            {
+                _currentPage = 0;
+                RedrawListTab();
+            });
+
+            var refreshButton = CreateButton(_listControlsRoot.transform, "Refresh", 0.595f, 0.56f, 0.69f, 0.94f);
+            refreshButton.onClick.AddListener(() => _ = RefreshCurrentTabAsync());
+
+            var prevButton = CreateButton(_listControlsRoot.transform, "< Prev", 0.74f, 0.56f, 0.82f, 0.94f);
+            prevButton.onClick.AddListener(() =>
+            {
+                _currentPage = Mathf.Max(0, _currentPage - 1);
+                RedrawListTab();
+            });
+
+            _pageIndicator = CreateText("PageIndicator", "Page 1/1", 15, TextAnchor.MiddleCenter, _listControlsRoot.transform, 0.83f, 0.56f, 0.92f, 0.94f);
+
+            var nextButton = CreateButton(_listControlsRoot.transform, "Next >", 0.92f, 0.56f, 1.0f, 0.94f);
+            nextButton.onClick.AddListener(() =>
+            {
+                _currentPage += 1;
+                RedrawListTab();
+            });
+
+            // Preset row
+            CreateText("PresetLabel", "Preset", 15, TextAnchor.MiddleLeft, _listControlsRoot.transform, 0.0f, 0.10f, 0.06f, 0.48f);
+            _presetDropdown = CreateDropdown(_listControlsRoot.transform, new[] { "(none)" }, 0.065f, 0.10f, 0.24f, 0.48f);
+            _presetDropdown.onValueChanged.AddListener(_ =>
+            {
+                if (_suppressPresetEvents)
+                {
+                    return;
+                }
+
+                _ = ApplySelectedPresetAsync();
+            });
+
+            _presetNameInput = CreateInputField(_listControlsRoot.transform, 0.25f, 0.10f, 0.40f, 0.48f);
+            _presetNameInput.text = "MyPreset";
+
+            var savePresetButton = CreateButton(_listControlsRoot.transform, "Save Preset", 0.41f, 0.10f, 0.52f, 0.48f);
+            savePresetButton.onClick.AddListener(() => _ = SaveCurrentPresetAsync());
+
+            var applyPresetButton = CreateButton(_listControlsRoot.transform, "Apply", 0.53f, 0.10f, 0.60f, 0.48f);
+            applyPresetButton.onClick.AddListener(() => _ = ApplySelectedPresetAsync());
+
+            var deletePresetButton = CreateButton(_listControlsRoot.transform, "Delete", 0.61f, 0.10f, 0.68f, 0.48f);
+            deletePresetButton.onClick.AddListener(() => _ = DeleteSelectedPresetAsync());
+
+            _templateDropdown = CreateDropdown(_listControlsRoot.transform, new[] { "Select Template" }, 0.69f, 0.10f, 0.84f, 0.48f);
+
+            var applyTemplateButton = CreateButton(_listControlsRoot.transform, "Template", 0.85f, 0.10f, 0.91f, 0.48f);
+            applyTemplateButton.onClick.AddListener(() => ApplySelectedTemplate());
+
+            var exportButton = CreateButton(_listControlsRoot.transform, "Export", 0.92f, 0.10f, 0.96f, 0.48f);
+            exportButton.onClick.AddListener(ExportPresetsToClipboard);
+
+            var importButton = CreateButton(_listControlsRoot.transform, "Import", 0.96f, 0.10f, 1.0f, 0.48f);
+            importButton.onClick.AddListener(() => _ = ImportPresetsFromClipboardAsync());
         }
 
         private void Update()
@@ -177,154 +291,901 @@ namespace OASIS.Omniverse.UnityHost.UI
         {
             _currentTab = tab;
             _statusText.text = $"Loading {tab}...";
-            _contentRoot.SetActive(tab != OmniverseTab.Settings);
-            _settingsRoot.SetActive(tab == OmniverseTab.Settings);
+            _currentPage = 0;
+            ConfigureSortOptionsForTab(tab);
 
-            switch (tab)
+            var isSettings = tab == OmniverseTab.Settings;
+            _contentRoot.SetActive(!isSettings);
+            _settingsRoot.SetActive(isSettings);
+            _listControlsRoot.SetActive(!isSettings);
+
+            if (isSettings)
             {
-                case OmniverseTab.Inventory:
-                    await RenderInventoryAsync();
-                    break;
-                case OmniverseTab.Quests:
-                    await RenderQuestsAsync();
-                    break;
-                case OmniverseTab.Nfts:
-                    await RenderNftsAsync();
-                    break;
-                case OmniverseTab.Avatar:
-                    await RenderAvatarAsync();
-                    break;
-                case OmniverseTab.Karma:
-                    await RenderKarmaAsync();
-                    break;
-                case OmniverseTab.Settings:
-                    RenderSettings();
-                    break;
+                RenderSettings();
+            }
+            else
+            {
+                await RefreshCurrentTabAsync();
             }
 
             _statusText.text = $"Viewing {tab}";
         }
 
-        private async Task RenderInventoryAsync()
+        private async Task RefreshCurrentTabAsync()
         {
-            var inventoryResult = await _apiClient.GetSharedInventoryAsync();
+            if (_isRefreshing || _apiClient == null)
+            {
+                return;
+            }
+
+            _isRefreshing = true;
+            try
+            {
+                switch (_currentTab)
+                {
+                    case OmniverseTab.Inventory:
+                    {
+                        var result = await _apiClient.GetSharedInventoryAsync();
+                        _inventoryCache.Clear();
+                        if (!result.IsError && result.Result != null)
+                        {
+                            _inventoryCache.AddRange(result.Result);
+                        }
+                        else
+                        {
+                            _contentText.text = $"Inventory Error: {result.Message}";
+                        }
+                        break;
+                    }
+                    case OmniverseTab.Quests:
+                    {
+                        var result = await _apiClient.GetCrossGameQuestsAsync();
+                        _questCache.Clear();
+                        if (!result.IsError && result.Result != null)
+                        {
+                            _questCache.AddRange(result.Result);
+                        }
+                        else
+                        {
+                            _contentText.text = $"Quest Error: {result.Message}";
+                        }
+                        break;
+                    }
+                    case OmniverseTab.Nfts:
+                    {
+                        var result = await _apiClient.GetCrossGameNftsAsync();
+                        _nftCache.Clear();
+                        if (!result.IsError && result.Result != null)
+                        {
+                            _nftCache.AddRange(result.Result);
+                        }
+                        else
+                        {
+                            _contentText.text = $"NFT Error: {result.Message}";
+                        }
+                        break;
+                    }
+                    case OmniverseTab.Avatar:
+                    {
+                        var result = await _apiClient.GetAvatarProfileAsync();
+                        _avatarCache = result.IsError ? null : result.Result;
+                        if (result.IsError)
+                        {
+                            _contentText.text = $"Avatar Error: {result.Message}";
+                        }
+                        break;
+                    }
+                    case OmniverseTab.Karma:
+                    {
+                        var result = await _apiClient.GetKarmaOverviewAsync();
+                        _karmaCache.Clear();
+                        _karmaTotal = 0f;
+                        if (!result.IsError && result.Result != null)
+                        {
+                            _karmaTotal = result.Result.totalKarma;
+                            if (result.Result.history != null)
+                            {
+                                _karmaCache.AddRange(result.Result.history);
+                            }
+                        }
+                        else
+                        {
+                            _contentText.text = $"Karma Error: {result.Message}";
+                        }
+                        break;
+                    }
+                }
+            }
+            finally
+            {
+                _isRefreshing = false;
+                RedrawListTab();
+            }
+        }
+
+        private void RedrawListTab()
+        {
+            if (_currentTab == OmniverseTab.Settings)
+            {
+                return;
+            }
+
+            var query = (_searchInput?.text ?? string.Empty).Trim();
             var builder = new StringBuilder();
+
+            switch (_currentTab)
+            {
+                case OmniverseTab.Inventory:
+                    DrawInventory(builder, query);
+                    break;
+                case OmniverseTab.Quests:
+                    DrawQuests(builder, query);
+                    break;
+                case OmniverseTab.Nfts:
+                    DrawNfts(builder, query);
+                    break;
+                case OmniverseTab.Avatar:
+                    DrawAvatar(builder);
+                    break;
+                case OmniverseTab.Karma:
+                    DrawKarma(builder, query);
+                    break;
+            }
+
+            _contentText.text = builder.ToString();
+        }
+
+        private void DrawInventory(StringBuilder builder, string query)
+        {
             builder.AppendLine("Shared Inventory");
             builder.AppendLine(new string('-', 64));
-            if (inventoryResult.IsError)
-            {
-                builder.AppendLine($"Inventory Error: {inventoryResult.Message}");
-            }
-            else
-            {
-                WriteInventory(builder, inventoryResult.Result);
-            }
-
-            _contentText.text = builder.ToString();
+            var filtered = _inventoryCache.Where(x => Matches(query, x.name, x.description, x.itemType, x.source)).ToList();
+            filtered = SortInventory(filtered);
+            WritePaged(
+                builder,
+                filtered,
+                item => $"{item.name} [{item.itemType}] from <color=#8EEBFF>{item.source}</color>",
+                "(empty)");
         }
 
-        private async Task RenderQuestsAsync()
+        private void DrawQuests(StringBuilder builder, string query)
         {
-            var questResult = await _apiClient.GetCrossGameQuestsAsync();
-            var builder = new StringBuilder();
             builder.AppendLine("Cross-Game Quests (WEB5 STAR API)");
             builder.AppendLine(new string('-', 64));
-            if (questResult.IsError)
-            {
-                builder.AppendLine($"Quest Error: {questResult.Message}");
-            }
-            else
-            {
-                WriteQuests(builder, questResult.Result);
-            }
-
-            _contentText.text = builder.ToString();
+            var filtered = _questCache.Where(x => Matches(query, x.name, x.description, x.status)).ToList();
+            filtered = SortQuests(filtered);
+            WritePaged(
+                builder,
+                filtered,
+                item =>
+                {
+                    var statusColor = StatusColorHex(item.status);
+                    var priorityColor = PriorityColorHex(item.name, item.description);
+                    return $"<color={priorityColor}>{item.name}</color> (<color={statusColor}>{item.status}</color>) - {item.description}";
+                },
+                "(none)");
         }
 
-        private async Task RenderNftsAsync()
+        private void DrawNfts(StringBuilder builder, string query)
         {
-            var nftResult = await _apiClient.GetCrossGameNftsAsync();
-            var builder = new StringBuilder();
             builder.AppendLine("Cross-Game Assets / NFTs");
             builder.AppendLine(new string('-', 64));
-            if (nftResult.IsError)
-            {
-                builder.AppendLine($"NFT Error: {nftResult.Message}");
-            }
-            else
-            {
-                if (nftResult.Result.Count == 0)
-                {
-                    builder.AppendLine("  (none)");
-                }
-                else
-                {
-                    foreach (var nft in nftResult.Result)
-                    {
-                        builder.AppendLine($"  - {nft.name} [{nft.type}] | {nft.source}");
-                        if (!string.IsNullOrWhiteSpace(nft.description))
-                        {
-                            builder.AppendLine($"      {nft.description}");
-                        }
-                    }
-                }
-            }
-
-            _contentText.text = builder.ToString();
+            var filtered = _nftCache.Where(x => Matches(query, x.name, x.description, x.type, x.source)).ToList();
+            filtered = SortNfts(filtered);
+            WritePaged(
+                builder,
+                filtered,
+                item => $"{item.name} [{item.type}] | <color=#8EEBFF>{item.source}</color>\n    {item.description}",
+                "(none)");
         }
 
-        private async Task RenderAvatarAsync()
+        private void DrawAvatar(StringBuilder builder)
         {
-            var avatar = await _apiClient.GetAvatarProfileAsync();
-            var builder = new StringBuilder();
+            _pageIndicator.text = "Page 1/1";
             builder.AppendLine("Avatar Profile");
             builder.AppendLine(new string('-', 64));
-            if (avatar.IsError)
+            if (_avatarCache == null)
             {
-                builder.AppendLine($"Avatar Error: {avatar.Message}");
-            }
-            else
-            {
-                var p = avatar.Result;
-                builder.AppendLine($"ID: {p.id}");
-                builder.AppendLine($"Username: {p.username}");
-                builder.AppendLine($"Name: {p.firstName} {p.lastName}");
-                builder.AppendLine($"Email: {p.email}");
-                builder.AppendLine($"Title: {p.title}");
+                builder.AppendLine("No avatar data loaded.");
+                return;
             }
 
-            _contentText.text = builder.ToString();
+            builder.AppendLine($"ID: {_avatarCache.id}");
+            builder.AppendLine($"Username: {_avatarCache.username}");
+            builder.AppendLine($"Name: {_avatarCache.firstName} {_avatarCache.lastName}");
+            builder.AppendLine($"Email: {_avatarCache.email}");
+            builder.AppendLine($"Title: {_avatarCache.title}");
         }
 
-        private async Task RenderKarmaAsync()
+        private void DrawKarma(StringBuilder builder, string query)
         {
-            var karma = await _apiClient.GetKarmaOverviewAsync();
-            var builder = new StringBuilder();
             builder.AppendLine("Karma Timeline");
             builder.AppendLine(new string('-', 64));
-            if (karma.IsError)
+            builder.AppendLine($"Total Karma: {_karmaTotal:0.##}");
+            builder.AppendLine();
+            var filtered = _karmaCache.Where(x => Matches(query, x.source, x.reason, x.karmaType, x.createdDate, x.amount.ToString("0.##"))).ToList();
+            filtered = SortKarma(filtered);
+            WritePaged(
+                builder,
+                filtered,
+                item =>
+                {
+                    var amountColor = item.amount >= 0 ? "#7BFF7B" : "#FF7B7B";
+                    return $"[{item.createdDate}] <color=#8EEBFF>{item.source}</color> | <color={amountColor}>{item.amount:0.##}</color> | {item.reason}";
+                },
+                "(no records)");
+        }
+
+        private void WritePaged<T>(StringBuilder builder, List<T> filtered, Func<T, string> formatter, string emptyText)
+        {
+            if (filtered.Count == 0)
             {
-                builder.AppendLine($"Karma Error: {karma.Message}");
+                _currentPage = 0;
+                _pageIndicator.text = "Page 1/1";
+                builder.AppendLine($"  {emptyText}");
+                return;
             }
-            else
+
+            var totalPages = Mathf.Max(1, Mathf.CeilToInt(filtered.Count / (float)PageSize));
+            _currentPage = Mathf.Clamp(_currentPage, 0, totalPages - 1);
+            _pageIndicator.text = $"Page {_currentPage + 1}/{totalPages} ({filtered.Count} items)";
+
+            var page = filtered.Skip(_currentPage * PageSize).Take(PageSize);
+            foreach (var row in page)
             {
-                builder.AppendLine($"Total Karma: {karma.Result.totalKarma:0.##}");
-                builder.AppendLine();
-                builder.AppendLine("History:");
-                if (karma.Result.history.Count == 0)
+                builder.AppendLine($"  - {formatter(row)}");
+            }
+        }
+
+        private static bool Matches(string query, params string[] fields)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return true;
+            }
+
+            var q = query.ToLowerInvariant();
+            foreach (var field in fields)
+            {
+                if (!string.IsNullOrWhiteSpace(field) && field.ToLowerInvariant().Contains(q))
                 {
-                    builder.AppendLine("  (no records)");
-                }
-                else
-                {
-                    foreach (var row in karma.Result.history)
-                    {
-                        builder.AppendLine($"  - [{row.createdDate}] {row.source} | {row.amount:0.##} | {row.reason}");
-                    }
+                    return true;
                 }
             }
 
-            _contentText.text = builder.ToString();
+            return false;
+        }
+
+        private void ConfigureSortOptionsForTab(OmniverseTab tab)
+        {
+            if (_sortFieldDropdown == null)
+            {
+                return;
+            }
+
+            var options = _sortOptions.TryGetValue(tab, out var tabOptions) ? tabOptions : new[] { "Name" };
+            _sortFieldDropdown.options.Clear();
+            foreach (var option in options)
+            {
+                _sortFieldDropdown.options.Add(new Dropdown.OptionData(option));
+            }
+            _sortFieldDropdown.value = 0;
+            _sortFieldDropdown.RefreshShownValue();
+
+            _suppressPresetEvents = true;
+            try
+            {
+                RefreshPresetDropdownForCurrentTab();
+                RefreshTemplateDropdownForCurrentTab();
+                ApplyActivePresetForCurrentTab();
+            }
+            finally
+            {
+                _suppressPresetEvents = false;
+            }
+        }
+
+        private List<InventoryItem> SortInventory(List<InventoryItem> list)
+        {
+            var field = CurrentSortField();
+            var asc = IsSortAscending();
+            IOrderedEnumerable<InventoryItem> sorted;
+            switch (field)
+            {
+                case "Type":
+                    sorted = list.OrderBy(x => x.itemType);
+                    break;
+                case "Source":
+                    sorted = list.OrderBy(x => x.source);
+                    break;
+                default:
+                    sorted = list.OrderBy(x => x.name);
+                    break;
+            }
+
+            return asc ? sorted.ToList() : sorted.Reverse().ToList();
+        }
+
+        private List<QuestItem> SortQuests(List<QuestItem> list)
+        {
+            var field = CurrentSortField();
+            var asc = IsSortAscending();
+            IOrderedEnumerable<QuestItem> sorted;
+            switch (field)
+            {
+                case "Status":
+                    sorted = list.OrderBy(x => x.status);
+                    break;
+                case "Priority":
+                    sorted = list.OrderBy(x => PriorityRank(x.name, x.description));
+                    break;
+                default:
+                    sorted = list.OrderBy(x => x.name);
+                    break;
+            }
+
+            return asc ? sorted.ToList() : sorted.Reverse().ToList();
+        }
+
+        private List<NftAssetItem> SortNfts(List<NftAssetItem> list)
+        {
+            var field = CurrentSortField();
+            var asc = IsSortAscending();
+            IOrderedEnumerable<NftAssetItem> sorted;
+            switch (field)
+            {
+                case "Type":
+                    sorted = list.OrderBy(x => x.type);
+                    break;
+                case "Source":
+                    sorted = list.OrderBy(x => x.source);
+                    break;
+                default:
+                    sorted = list.OrderBy(x => x.name);
+                    break;
+            }
+
+            return asc ? sorted.ToList() : sorted.Reverse().ToList();
+        }
+
+        private List<KarmaEntry> SortKarma(List<KarmaEntry> list)
+        {
+            var field = CurrentSortField();
+            var asc = IsSortAscending();
+            IOrderedEnumerable<KarmaEntry> sorted;
+            switch (field)
+            {
+                case "Source":
+                    sorted = list.OrderBy(x => x.source);
+                    break;
+                case "Amount":
+                    sorted = list.OrderBy(x => x.amount);
+                    break;
+                default:
+                    sorted = list.OrderBy(x => x.createdDate);
+                    break;
+            }
+
+            return asc ? sorted.ToList() : sorted.Reverse().ToList();
+        }
+
+        private string CurrentSortField()
+        {
+            if (_sortFieldDropdown == null || _sortFieldDropdown.options.Count == 0)
+            {
+                return "Name";
+            }
+
+            return _sortFieldDropdown.options[_sortFieldDropdown.value].text;
+        }
+
+        private bool IsSortAscending()
+        {
+            return _sortDirectionDropdown == null || _sortDirectionDropdown.value == 0;
+        }
+
+        private void RefreshPresetDropdownForCurrentTab()
+        {
+            if (_presetDropdown == null || _settingsService == null)
+            {
+                return;
+            }
+
+            var tabName = _currentTab.ToString();
+            var presets = (_settingsService.CurrentSettings.viewPresets ?? new List<OmniverseViewPreset>())
+                .Where(x => string.Equals(x.tab, tabName, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.name)
+                .ToList();
+
+            _presetDropdown.options.Clear();
+            _presetDropdown.options.Add(new Dropdown.OptionData("(none)"));
+            foreach (var preset in presets)
+            {
+                _presetDropdown.options.Add(new Dropdown.OptionData(preset.name));
+            }
+
+            _presetDropdown.value = 0;
+            _presetDropdown.RefreshShownValue();
+        }
+
+        private void RefreshTemplateDropdownForCurrentTab()
+        {
+            if (_templateDropdown == null)
+            {
+                return;
+            }
+
+            _templateDropdown.options.Clear();
+            _templateDropdown.options.Add(new Dropdown.OptionData("Select Template"));
+            foreach (var template in GetBuiltInTemplatesForCurrentTab())
+            {
+                _templateDropdown.options.Add(new Dropdown.OptionData(template.name));
+            }
+
+            _templateDropdown.value = 0;
+            _templateDropdown.RefreshShownValue();
+        }
+
+        private List<OmniverseViewPreset> GetBuiltInTemplatesForCurrentTab()
+        {
+            var tabName = _currentTab.ToString();
+            var list = new List<OmniverseViewPreset>();
+
+            switch (_currentTab)
+            {
+                case OmniverseTab.Quests:
+                    list.Add(new OmniverseViewPreset { name = "Critical Quests First", tab = tabName, sortField = "Priority", sortAscending = true, searchQuery = "critical urgent boss" });
+                    list.Add(new OmniverseViewPreset { name = "Active Quests", tab = tabName, sortField = "Status", sortAscending = true, searchQuery = "active progress started" });
+                    break;
+                case OmniverseTab.Karma:
+                    list.Add(new OmniverseViewPreset { name = "Newest Karma First", tab = tabName, sortField = "Date", sortAscending = false, searchQuery = string.Empty });
+                    list.Add(new OmniverseViewPreset { name = "Highest Karma First", tab = tabName, sortField = "Amount", sortAscending = false, searchQuery = string.Empty });
+                    break;
+                case OmniverseTab.Inventory:
+                    list.Add(new OmniverseViewPreset { name = "Loot by Source", tab = tabName, sortField = "Source", sortAscending = true, searchQuery = string.Empty });
+                    list.Add(new OmniverseViewPreset { name = "Key Items", tab = tabName, sortField = "Type", sortAscending = true, searchQuery = "key" });
+                    break;
+                case OmniverseTab.Nfts:
+                    list.Add(new OmniverseViewPreset { name = "Assets by Source", tab = tabName, sortField = "Source", sortAscending = true, searchQuery = string.Empty });
+                    list.Add(new OmniverseViewPreset { name = "Boss NFTs", tab = tabName, sortField = "Type", sortAscending = true, searchQuery = "boss" });
+                    break;
+            }
+
+            return list;
+        }
+
+        private void ApplySelectedTemplate()
+        {
+            if (_templateDropdown == null)
+            {
+                return;
+            }
+
+            var selected = _templateDropdown.options[_templateDropdown.value].text;
+            if (selected == "Select Template")
+            {
+                return;
+            }
+
+            var template = GetBuiltInTemplatesForCurrentTab()
+                .FirstOrDefault(x => string.Equals(x.name, selected, StringComparison.OrdinalIgnoreCase));
+            if (template == null)
+            {
+                return;
+            }
+
+            ApplyPresetValues(template);
+            _presetNameInput.text = template.name;
+            _statusText.text = $"Template '{template.name}' applied.";
+        }
+
+        private void ExportPresetsToClipboard()
+        {
+            if (_settingsService == null)
+            {
+                return;
+            }
+
+            var payload = new PresetExportPackage
+            {
+                schema = "oasis.omniverse.viewpresets",
+                schemaVersion = 1,
+                exportedAtUtc = DateTime.UtcNow.ToString("O"),
+                viewPresets = (_settingsService.CurrentSettings.viewPresets ?? new List<OmniverseViewPreset>()).ToList(),
+                activeViewPresets = (_settingsService.CurrentSettings.activeViewPresets ?? new List<OmniverseActiveViewPreset>()).ToList()
+            };
+
+            GUIUtility.systemCopyBuffer = JsonConvert.SerializeObject(payload, Formatting.Indented);
+            _statusText.text = $"Exported {payload.viewPresets.Count} preset(s) to clipboard.";
+        }
+
+        private async Task ImportPresetsFromClipboardAsync()
+        {
+            if (_settingsService == null || _kernel == null)
+            {
+                return;
+            }
+
+            var json = GUIUtility.systemCopyBuffer;
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                _statusText.text = "Clipboard is empty.";
+                return;
+            }
+
+            PresetExportPackage payload;
+            try
+            {
+                payload = ParsePresetImportPayload(json);
+            }
+            catch (Exception ex)
+            {
+                _statusText.text = $"Import failed: invalid JSON ({ex.Message}).";
+                return;
+            }
+
+            if (payload == null || payload.viewPresets == null)
+            {
+                _statusText.text = "Import failed: JSON has no preset payload.";
+                return;
+            }
+
+            var cloneResult = _settingsService.CloneCurrentSettings();
+            if (cloneResult.IsError)
+            {
+                _statusText.text = cloneResult.Message;
+                return;
+            }
+
+            var settings = cloneResult.Result;
+            settings.viewPresets ??= new List<OmniverseViewPreset>();
+            settings.activeViewPresets ??= new List<OmniverseActiveViewPreset>();
+
+            foreach (var preset in payload.viewPresets.Where(x => !string.IsNullOrWhiteSpace(x.name) && !string.IsNullOrWhiteSpace(x.tab)))
+            {
+                settings.viewPresets.RemoveAll(x => string.Equals(x.tab, preset.tab, StringComparison.OrdinalIgnoreCase) &&
+                                                    string.Equals(x.name, preset.name, StringComparison.OrdinalIgnoreCase));
+                settings.viewPresets.Add(preset);
+            }
+
+            if (payload.activeViewPresets != null && payload.activeViewPresets.Count > 0)
+            {
+                foreach (var active in payload.activeViewPresets.Where(x => !string.IsNullOrWhiteSpace(x.tab)))
+                {
+                    settings.activeViewPresets.RemoveAll(x => string.Equals(x.tab, active.tab, StringComparison.OrdinalIgnoreCase));
+                    settings.activeViewPresets.Add(active);
+                }
+            }
+
+            var saveResult = await _kernel.SaveUiPreferencesAsync(settings);
+            if (saveResult.IsError)
+            {
+                _statusText.text = $"Import save failed: {saveResult.Message}";
+                return;
+            }
+
+            _suppressPresetEvents = true;
+            try
+            {
+                RefreshPresetDropdownForCurrentTab();
+                ApplyActivePresetForCurrentTab();
+            }
+            finally
+            {
+                _suppressPresetEvents = false;
+            }
+
+            _statusText.text = $"Imported {payload.viewPresets.Count} preset(s) from clipboard.";
+        }
+
+        private PresetExportPackage ParsePresetImportPayload(string json)
+        {
+            var token = JToken.Parse(json);
+            if (token is JArray legacyArray)
+            {
+                return new PresetExportPackage
+                {
+                    schema = "oasis.omniverse.viewpresets",
+                    schemaVersion = 1,
+                    exportedAtUtc = DateTime.UtcNow.ToString("O"),
+                    viewPresets = legacyArray.ToObject<List<OmniverseViewPreset>>() ?? new List<OmniverseViewPreset>(),
+                    activeViewPresets = new List<OmniverseActiveViewPreset>()
+                };
+            }
+
+            if (token is not JObject obj)
+            {
+                throw new InvalidOperationException("Unsupported import JSON root.");
+            }
+
+            // Legacy object format with only viewPresets and no schema metadata.
+            if (obj["viewPresets"] != null && obj["schemaVersion"] == null)
+            {
+                return new PresetExportPackage
+                {
+                    schema = "oasis.omniverse.viewpresets",
+                    schemaVersion = 1,
+                    exportedAtUtc = DateTime.UtcNow.ToString("O"),
+                    viewPresets = obj["viewPresets"]?.ToObject<List<OmniverseViewPreset>>() ?? new List<OmniverseViewPreset>(),
+                    activeViewPresets = obj["activeViewPresets"]?.ToObject<List<OmniverseActiveViewPreset>>() ?? new List<OmniverseActiveViewPreset>()
+                };
+            }
+
+            var payload = obj.ToObject<PresetExportPackage>();
+            if (payload == null)
+            {
+                throw new InvalidOperationException("Could not deserialize preset package.");
+            }
+
+            if (!string.Equals(payload.schema, "oasis.omniverse.viewpresets", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Unsupported schema '{payload.schema}'.");
+            }
+
+            if (payload.schemaVersion < 1 || payload.schemaVersion > 1)
+            {
+                throw new InvalidOperationException($"Unsupported schema version '{payload.schemaVersion}'.");
+            }
+
+            payload.viewPresets ??= new List<OmniverseViewPreset>();
+            payload.activeViewPresets ??= new List<OmniverseActiveViewPreset>();
+            return payload;
+        }
+
+        private void ApplyActivePresetForCurrentTab()
+        {
+            if (_settingsService == null)
+            {
+                return;
+            }
+
+            var active = (_settingsService.CurrentSettings.activeViewPresets ?? new List<OmniverseActiveViewPreset>())
+                .FirstOrDefault(x => string.Equals(x.tab, _currentTab.ToString(), StringComparison.OrdinalIgnoreCase));
+
+            if (active == null || string.IsNullOrWhiteSpace(active.presetName))
+            {
+                _searchInput.text = string.Empty;
+                _sortDirectionDropdown.value = 0;
+                return;
+            }
+
+            var preset = (_settingsService.CurrentSettings.viewPresets ?? new List<OmniverseViewPreset>())
+                .FirstOrDefault(x => string.Equals(x.tab, _currentTab.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                                     string.Equals(x.name, active.presetName, StringComparison.OrdinalIgnoreCase));
+            if (preset == null)
+            {
+                return;
+            }
+
+            ApplyPresetValues(preset);
+        }
+
+        private async Task SaveCurrentPresetAsync()
+        {
+            if (_settingsService == null || _kernel == null)
+            {
+                return;
+            }
+
+            var cloneResult = _settingsService.CloneCurrentSettings();
+            if (cloneResult.IsError)
+            {
+                _statusText.text = cloneResult.Message;
+                return;
+            }
+
+            var settings = cloneResult.Result;
+            settings.viewPresets ??= new List<OmniverseViewPreset>();
+            settings.activeViewPresets ??= new List<OmniverseActiveViewPreset>();
+
+            var presetName = (_presetNameInput?.text ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(presetName))
+            {
+                _statusText.text = "Preset name is required.";
+                return;
+            }
+
+            var tabName = _currentTab.ToString();
+            settings.viewPresets.RemoveAll(x => string.Equals(x.tab, tabName, StringComparison.OrdinalIgnoreCase) &&
+                                                string.Equals(x.name, presetName, StringComparison.OrdinalIgnoreCase));
+
+            settings.viewPresets.Add(new OmniverseViewPreset
+            {
+                name = presetName,
+                tab = tabName,
+                searchQuery = _searchInput?.text ?? string.Empty,
+                sortField = CurrentSortField(),
+                sortAscending = IsSortAscending()
+            });
+
+            settings.activeViewPresets.RemoveAll(x => string.Equals(x.tab, tabName, StringComparison.OrdinalIgnoreCase));
+            settings.activeViewPresets.Add(new OmniverseActiveViewPreset
+            {
+                tab = tabName,
+                presetName = presetName
+            });
+
+            var saveResult = await _kernel.SaveUiPreferencesAsync(settings);
+            _statusText.text = saveResult.IsError ? $"Preset save failed: {saveResult.Message}" : $"Preset '{presetName}' saved.";
+
+            RefreshPresetDropdownForCurrentTab();
+            SelectPresetInDropdown(presetName);
+        }
+
+        private async Task ApplySelectedPresetAsync()
+        {
+            if (_presetDropdown == null || _settingsService == null || _kernel == null)
+            {
+                return;
+            }
+
+            var selected = _presetDropdown.options[_presetDropdown.value].text;
+            if (selected == "(none)")
+            {
+                _searchInput.text = string.Empty;
+                _sortDirectionDropdown.value = 0;
+                _currentPage = 0;
+                RedrawListTab();
+                return;
+            }
+
+            var preset = (_settingsService.CurrentSettings.viewPresets ?? new List<OmniverseViewPreset>())
+                .FirstOrDefault(x => string.Equals(x.tab, _currentTab.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                                     string.Equals(x.name, selected, StringComparison.OrdinalIgnoreCase));
+            if (preset == null)
+            {
+                return;
+            }
+
+            ApplyPresetValues(preset);
+            _presetNameInput.text = preset.name;
+
+            var cloneResult = _settingsService.CloneCurrentSettings();
+            if (cloneResult.IsError)
+            {
+                return;
+            }
+
+            var settings = cloneResult.Result;
+            settings.activeViewPresets ??= new List<OmniverseActiveViewPreset>();
+            settings.activeViewPresets.RemoveAll(x => string.Equals(x.tab, _currentTab.ToString(), StringComparison.OrdinalIgnoreCase));
+            settings.activeViewPresets.Add(new OmniverseActiveViewPreset
+            {
+                tab = _currentTab.ToString(),
+                presetName = preset.name
+            });
+
+            await _kernel.SaveUiPreferencesAsync(settings);
+            _statusText.text = $"Preset '{preset.name}' applied.";
+        }
+
+        private async Task DeleteSelectedPresetAsync()
+        {
+            if (_presetDropdown == null || _settingsService == null || _kernel == null)
+            {
+                return;
+            }
+
+            var selected = _presetDropdown.options[_presetDropdown.value].text;
+            if (selected == "(none)")
+            {
+                return;
+            }
+
+            var cloneResult = _settingsService.CloneCurrentSettings();
+            if (cloneResult.IsError)
+            {
+                _statusText.text = cloneResult.Message;
+                return;
+            }
+
+            var settings = cloneResult.Result;
+            settings.viewPresets ??= new List<OmniverseViewPreset>();
+            settings.activeViewPresets ??= new List<OmniverseActiveViewPreset>();
+
+            settings.viewPresets.RemoveAll(x => string.Equals(x.tab, _currentTab.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                                                string.Equals(x.name, selected, StringComparison.OrdinalIgnoreCase));
+            settings.activeViewPresets.RemoveAll(x => string.Equals(x.tab, _currentTab.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                                                      string.Equals(x.presetName, selected, StringComparison.OrdinalIgnoreCase));
+
+            var saveResult = await _kernel.SaveUiPreferencesAsync(settings);
+            _statusText.text = saveResult.IsError ? $"Preset delete failed: {saveResult.Message}" : $"Preset '{selected}' deleted.";
+
+            _suppressPresetEvents = true;
+            try
+            {
+                RefreshPresetDropdownForCurrentTab();
+            }
+            finally
+            {
+                _suppressPresetEvents = false;
+            }
+        }
+
+        private void ApplyPresetValues(OmniverseViewPreset preset)
+        {
+            if (preset == null)
+            {
+                return;
+            }
+
+            _suppressPresetEvents = true;
+            try
+            {
+                _searchInput.text = preset.searchQuery ?? string.Empty;
+                _sortDirectionDropdown.value = preset.sortAscending ? 0 : 1;
+
+                var targetField = string.IsNullOrWhiteSpace(preset.sortField) ? "Name" : preset.sortField;
+                var index = 0;
+                for (var i = 0; i < _sortFieldDropdown.options.Count; i++)
+                {
+                    if (string.Equals(_sortFieldDropdown.options[i].text, targetField, StringComparison.OrdinalIgnoreCase))
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+
+                _sortFieldDropdown.value = index;
+                _sortFieldDropdown.RefreshShownValue();
+            }
+            finally
+            {
+                _suppressPresetEvents = false;
+            }
+
+            _currentPage = 0;
+            RedrawListTab();
+        }
+
+        private void SelectPresetInDropdown(string presetName)
+        {
+            if (_presetDropdown == null || string.IsNullOrWhiteSpace(presetName))
+            {
+                return;
+            }
+
+            for (var i = 0; i < _presetDropdown.options.Count; i++)
+            {
+                if (string.Equals(_presetDropdown.options[i].text, presetName, StringComparison.OrdinalIgnoreCase))
+                {
+                    _presetDropdown.value = i;
+                    _presetDropdown.RefreshShownValue();
+                    break;
+                }
+            }
+        }
+
+        private static string StatusColorHex(string status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                return "#CCCCCC";
+            }
+
+            var s = status.ToLowerInvariant();
+            if (s.Contains("complete")) return "#7BFF7B";
+            if (s.Contains("progress") || s.Contains("active") || s.Contains("started")) return "#FFD86B";
+            if (s.Contains("failed") || s.Contains("blocked")) return "#FF7B7B";
+            return "#CCCCCC";
+        }
+
+        private static string PriorityColorHex(string name, string description)
+        {
+            var rank = PriorityRank(name, description);
+            if (rank <= 0) return "#FF7070";
+            if (rank == 1) return "#FFA24D";
+            if (rank == 2) return "#FFE07A";
+            return "#A8D8FF";
+        }
+
+        private static int PriorityRank(string name, string description)
+        {
+            var hay = $"{name} {description}".ToLowerInvariant();
+            if (hay.Contains("critical") || hay.Contains("urgent") || hay.Contains("boss")) return 0;
+            if (hay.Contains("high")) return 1;
+            if (hay.Contains("medium")) return 2;
+            return 3;
         }
 
         private void RenderSettings()
@@ -348,22 +1209,22 @@ namespace OASIS.Omniverse.UnityHost.UI
             _soundSlider = CreateSlider(root, "Sound FX Volume", 0.60f);
             _voiceSlider = CreateSlider(root, "Voice Volume", 0.46f);
 
-            CreateText("GraphicsLabel", "Graphics Preset", 18, TextAnchor.MiddleLeft, root, new Vector2(0.02f, 0.33f), new Vector2(0.35f, 0.40f));
-            _graphicsDropdown = CreateDropdown(root, new[] { "Low", "Medium", "High", "Ultra", "Custom" }, new Vector2(0.36f, 0.33f), new Vector2(0.58f, 0.40f));
+            CreateText("GraphicsLabel", "Graphics Preset", 18, TextAnchor.MiddleLeft, root, 0.02f, 0.33f, 0.35f, 0.40f);
+            _graphicsDropdown = CreateDropdown(root, new[] { "Low", "Medium", "High", "Ultra", "Custom" }, 0.36f, 0.33f, 0.58f, 0.40f);
 
-            CreateText("FullscreenLabel", "Fullscreen", 18, TextAnchor.MiddleLeft, root, new Vector2(0.62f, 0.33f), new Vector2(0.78f, 0.40f));
-            _fullscreenToggle = CreateToggle(root, new Vector2(0.80f, 0.34f), new Vector2(0.85f, 0.39f));
+            CreateText("FullscreenLabel", "Fullscreen", 18, TextAnchor.MiddleLeft, root, 0.62f, 0.33f, 0.78f, 0.40f);
+            _fullscreenToggle = CreateToggle(root, 0.80f, 0.34f, 0.85f, 0.39f);
 
-            CreateText("OpenMenuKeyLabel", "Open Control Center Key", 17, TextAnchor.MiddleLeft, root, new Vector2(0.02f, 0.21f), new Vector2(0.30f, 0.28f));
-            _openMenuInput = CreateInputField(root, new Vector2(0.31f, 0.21f), new Vector2(0.45f, 0.28f));
+            CreateText("OpenMenuKeyLabel", "Open Control Center Key", 17, TextAnchor.MiddleLeft, root, 0.02f, 0.21f, 0.30f, 0.28f);
+            _openMenuInput = CreateInputField(root, 0.31f, 0.21f, 0.45f, 0.28f);
 
-            CreateText("HideHostedKeyLabel", "Hide Hosted Game Key", 17, TextAnchor.MiddleLeft, root, new Vector2(0.50f, 0.21f), new Vector2(0.74f, 0.28f));
-            _hideGameInput = CreateInputField(root, new Vector2(0.75f, 0.21f), new Vector2(0.89f, 0.28f));
+            CreateText("HideHostedKeyLabel", "Hide Hosted Game Key", 17, TextAnchor.MiddleLeft, root, 0.50f, 0.21f, 0.74f, 0.28f);
+            _hideGameInput = CreateInputField(root, 0.75f, 0.21f, 0.89f, 0.28f);
 
-            var applyButton = CreateButton(root, "Save & Apply", new Vector2(0.70f, 0.06f), new Vector2(0.92f, 0.15f));
+            var applyButton = CreateButton(root, "Save & Apply", 0.70f, 0.06f, 0.92f, 0.15f);
             applyButton.onClick.AddListener(() => _ = SaveAndApplySettingsAsync());
 
-            _settingsFeedbackText = CreateText("SettingsFeedback", "", 16, TextAnchor.MiddleLeft, root, new Vector2(0.02f, 0.06f), new Vector2(0.66f, 0.15f));
+            _settingsFeedbackText = CreateText("SettingsFeedback", string.Empty, 16, TextAnchor.MiddleLeft, root, 0.02f, 0.06f, 0.66f, 0.15f);
             _settingsFeedbackText.color = new Color(0.7f, 0.95f, 1f);
         }
 
@@ -471,34 +1332,30 @@ namespace OASIS.Omniverse.UnityHost.UI
         {
             var xMin = 0.005f + (index * 0.165f);
             var xMax = xMin + 0.155f;
-            var button = CreateButton(parent, label, new Vector2(xMin, 0.05f), new Vector2(xMax, 0.95f));
+            var button = CreateButton(parent, label, xMin, 0.05f, xMax, 0.95f);
             button.onClick.AddListener(() => _ = ShowTabAsync(tab));
         }
 
-        private static Button CreateButton(Transform parent, string text, Vector2 anchorMin, Vector2 anchorMax)
+        private static Button CreateButton(Transform parent, string text, float minX, float minY, float maxX, float maxY)
         {
             var go = new GameObject(text + "_Button");
             go.transform.SetParent(parent, false);
             var image = go.AddComponent<Image>();
             image.color = new Color(0.12f, 0.18f, 0.28f, 0.95f);
             var button = go.AddComponent<Button>();
-            var rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            SetAnchors(go.GetComponent<RectTransform>(), minX, minY, maxX, maxY);
 
             var labelText = CreateText(text + "_Label", text, 16, TextAnchor.MiddleCenter, go.transform);
-            labelText.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+            SetAnchors(labelText.rectTransform, 0f, 0f, 1f, 1f);
             return button;
         }
 
         private static Text CreateText(string name, string content, int size, TextAnchor anchor, Transform parent)
         {
-            return CreateText(name, content, size, anchor, parent, new Vector2(0f, 0f), new Vector2(1f, 1f));
+            return CreateText(name, content, size, anchor, parent, 0f, 0f, 1f, 1f);
         }
 
-        private static Text CreateText(string name, string content, int size, TextAnchor anchor, Transform parent, Vector2 anchorMin, Vector2 anchorMax)
+        private static Text CreateText(string name, string content, int size, TextAnchor anchor, Transform parent, float minX, float minY, float maxX, float maxY)
         {
             var textObject = new GameObject(name);
             textObject.transform.SetParent(parent, false);
@@ -508,24 +1365,16 @@ namespace OASIS.Omniverse.UnityHost.UI
             text.alignment = anchor;
             text.fontSize = size;
             text.color = Color.white;
-            var rect = text.GetComponent<RectTransform>();
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            SetAnchors(text.rectTransform, minX, minY, maxX, maxY);
             return text;
         }
 
         private static Slider CreateSlider(Transform parent, string label, float yTop)
         {
-            CreateText(label + "_Label", label, 18, TextAnchor.MiddleLeft, parent, new Vector2(0.02f, yTop), new Vector2(0.28f, yTop + 0.08f));
+            CreateText(label + "_Label", label, 18, TextAnchor.MiddleLeft, parent, 0.02f, yTop, 0.28f, yTop + 0.08f);
             var go = new GameObject(label + "_Slider");
             go.transform.SetParent(parent, false);
-            var rect = go.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.30f, yTop + 0.015f);
-            rect.anchorMax = new Vector2(0.92f, yTop + 0.055f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            SetAnchors(go.AddComponent<RectTransform>(), 0.30f, yTop + 0.015f, 0.92f, yTop + 0.055f);
 
             var slider = go.AddComponent<Slider>();
             slider.minValue = 0f;
@@ -536,29 +1385,18 @@ namespace OASIS.Omniverse.UnityHost.UI
             background.transform.SetParent(go.transform, false);
             var backgroundImage = background.AddComponent<Image>();
             backgroundImage.color = new Color(0.2f, 0.2f, 0.2f, 1f);
-            var backgroundRect = background.GetComponent<RectTransform>();
-            backgroundRect.anchorMin = new Vector2(0f, 0.2f);
-            backgroundRect.anchorMax = new Vector2(1f, 0.8f);
-            backgroundRect.offsetMin = Vector2.zero;
-            backgroundRect.offsetMax = Vector2.zero;
+            SetAnchors(background.GetComponent<RectTransform>(), 0f, 0.2f, 1f, 0.8f);
 
             var fillArea = new GameObject("FillArea");
             fillArea.transform.SetParent(go.transform, false);
-            var fillAreaRect = fillArea.AddComponent<RectTransform>();
-            fillAreaRect.anchorMin = new Vector2(0f, 0.2f);
-            fillAreaRect.anchorMax = new Vector2(1f, 0.8f);
-            fillAreaRect.offsetMin = Vector2.zero;
-            fillAreaRect.offsetMax = Vector2.zero;
+            SetAnchors(fillArea.AddComponent<RectTransform>(), 0f, 0.2f, 1f, 0.8f);
 
             var fill = new GameObject("Fill");
             fill.transform.SetParent(fillArea.transform, false);
             var fillImage = fill.AddComponent<Image>();
             fillImage.color = new Color(0.2f, 0.8f, 1f, 1f);
             var fillRect = fill.GetComponent<RectTransform>();
-            fillRect.anchorMin = new Vector2(0f, 0f);
-            fillRect.anchorMax = new Vector2(1f, 1f);
-            fillRect.offsetMin = Vector2.zero;
-            fillRect.offsetMax = Vector2.zero;
+            SetAnchors(fillRect, 0f, 0f, 1f, 1f);
 
             var handle = new GameObject("Handle");
             handle.transform.SetParent(go.transform, false);
@@ -574,20 +1412,16 @@ namespace OASIS.Omniverse.UnityHost.UI
             return slider;
         }
 
-        private static Dropdown CreateDropdown(Transform parent, string[] values, Vector2 anchorMin, Vector2 anchorMax)
+        private static Dropdown CreateDropdown(Transform parent, string[] values, float minX, float minY, float maxX, float maxY)
         {
             var go = new GameObject("Dropdown");
             go.transform.SetParent(parent, false);
             var image = go.AddComponent<Image>();
             image.color = new Color(0.14f, 0.14f, 0.14f, 1f);
             var dropdown = go.AddComponent<Dropdown>();
-            var rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            SetAnchors(go.GetComponent<RectTransform>(), minX, minY, maxX, maxY);
 
-            var label = CreateText("Label", "Select", 16, TextAnchor.MiddleLeft, go.transform, new Vector2(0.07f, 0f), new Vector2(0.9f, 1f));
+            var label = CreateText("Label", "Select", 16, TextAnchor.MiddleLeft, go.transform, 0.07f, 0f, 0.9f, 1f);
             dropdown.captionText = label;
             dropdown.options.Clear();
             foreach (var value in values)
@@ -597,94 +1431,51 @@ namespace OASIS.Omniverse.UnityHost.UI
             return dropdown;
         }
 
-        private static Toggle CreateToggle(Transform parent, Vector2 anchorMin, Vector2 anchorMax)
+        private static Toggle CreateToggle(Transform parent, float minX, float minY, float maxX, float maxY)
         {
             var go = new GameObject("Toggle");
             go.transform.SetParent(parent, false);
             var toggle = go.AddComponent<Toggle>();
-            var rect = go.AddComponent<RectTransform>();
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            SetAnchors(go.AddComponent<RectTransform>(), minX, minY, maxX, maxY);
 
             var bg = new GameObject("Background");
             bg.transform.SetParent(go.transform, false);
             var bgImage = bg.AddComponent<Image>();
             bgImage.color = new Color(0.2f, 0.2f, 0.2f);
-            var bgRect = bg.GetComponent<RectTransform>();
-            bgRect.anchorMin = new Vector2(0f, 0f);
-            bgRect.anchorMax = new Vector2(1f, 1f);
-            bgRect.offsetMin = Vector2.zero;
-            bgRect.offsetMax = Vector2.zero;
+            SetAnchors(bg.GetComponent<RectTransform>(), 0f, 0f, 1f, 1f);
 
             var checkmark = new GameObject("Checkmark");
             checkmark.transform.SetParent(bg.transform, false);
             var checkImage = checkmark.AddComponent<Image>();
             checkImage.color = new Color(0.2f, 0.8f, 1f);
-            var checkRect = checkmark.GetComponent<RectTransform>();
-            checkRect.anchorMin = new Vector2(0.15f, 0.15f);
-            checkRect.anchorMax = new Vector2(0.85f, 0.85f);
-            checkRect.offsetMin = Vector2.zero;
-            checkRect.offsetMax = Vector2.zero;
+            SetAnchors(checkmark.GetComponent<RectTransform>(), 0.15f, 0.15f, 0.85f, 0.85f);
 
             toggle.graphic = checkImage;
             toggle.targetGraphic = bgImage;
             return toggle;
         }
 
-        private static InputField CreateInputField(Transform parent, Vector2 anchorMin, Vector2 anchorMax)
+        private static InputField CreateInputField(Transform parent, float minX, float minY, float maxX, float maxY)
         {
             var go = new GameObject("InputField");
             go.transform.SetParent(parent, false);
             var image = go.AddComponent<Image>();
             image.color = new Color(0.12f, 0.12f, 0.12f, 1f);
             var input = go.AddComponent<InputField>();
-            var rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            SetAnchors(go.GetComponent<RectTransform>(), minX, minY, maxX, maxY);
 
-            var text = CreateText("Text", "", 16, TextAnchor.MiddleCenter, go.transform, new Vector2(0.08f, 0f), new Vector2(0.92f, 1f));
+            var text = CreateText("Text", string.Empty, 16, TextAnchor.MiddleLeft, go.transform, 0.05f, 0f, 0.95f, 1f);
             input.textComponent = text;
-            input.text = "";
+            input.text = string.Empty;
             return input;
         }
 
-        private static void WriteInventory(StringBuilder builder, List<InventoryItem> items)
+        private static void SetAnchors(RectTransform rect, float minX, float minY, float maxX, float maxY)
         {
-            builder.AppendLine("Inventory Items:");
-            if (items == null || items.Count == 0)
-            {
-                builder.AppendLine("  (empty)");
-                return;
-            }
-
-            foreach (var item in items)
-            {
-                builder.AppendLine($"  - {item.name} [{item.itemType}] from {item.source}");
-            }
-        }
-
-        private static void WriteQuests(StringBuilder builder, List<QuestItem> quests)
-        {
-            builder.AppendLine("Cross-Game Quests:");
-            if (quests == null || quests.Count == 0)
-            {
-                builder.AppendLine("  (none)");
-                return;
-            }
-
-            foreach (var quest in quests)
-            {
-                builder.AppendLine($"  - {quest.name} ({quest.status})");
-            }
-        }
-
-        private void OnDestroy()
-        {
-            _apiClient?.Dispose();
+            rect.anchorMin = new Vector2(minX, minY);
+            rect.anchorMax = new Vector2(maxX, maxY);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
         }
     }
 }
