@@ -171,19 +171,17 @@ if (Test-Path $gGameCpp) {
     }
 }
 
-# 3b. sbar_mugshot.cpp: show OASIS face (OASFACE) when beamed in (odoom_star_username set or oasis_star_anorak_face)
+# 3b. sbar_mugshot.cpp: show OASIS face (OASFACE) only when anorak face mode is enabled
 if (Test-Path $sbarMugshotCpp) {
     $mugContent = Get-Content $sbarMugshotCpp -Raw
-    if ($mugContent -match 'FMugShot::GetFace' -and $mugContent -notmatch 'odoom_star_username.*OASFACE|OASFACE.*odoom_star_username') {
+    if ($mugContent -match 'FMugShot::GetFace' -and $mugContent -notmatch 'oasis_star_anorak_face.*OASFACE|OASFACE.*oasis_star_anorak_face') {
         $oldMug = '(FGameTexture \*FMugShot::GetFace\(player_t \*player, const char \*default_face, int accuracy, StateFlags stateflags\)\r?\n\{\r?\n)(\tint angle = UpdateState)'
         $newMug = @"
 `$1
 #ifdef OASIS_STAR_API
-	FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
-	const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
 	FBaseCVar *anorakFaceVar = FindCVar("oasis_star_anorak_face", nullptr);
 	bool anorakFace = (anorakFaceVar && anorakFaceVar->GetRealType() == CVAR_Bool) && (anorakFaceVar->GetGenericRep(CVAR_Bool).Int != 0);
-	if ((starUser && *starUser) || anorakFace)
+	if (anorakFace)
 	{
 		FGameTexture *oasFace = TexMan.FindGameTexture("OASFACE", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins);
 		if (!oasFace) oasFace = TexMan.GetGameTexture(TexMan.CheckForTexture("OASFACE", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins));
@@ -197,13 +195,25 @@ if (Test-Path $sbarMugshotCpp) {
         Set-Content $sbarMugshotCpp $mugContent -NoNewline
         $changes += "sbar_mugshot"
     }
-    # If already patched with OASFACE but missing anorak face check, add it
-    if ($mugContent -match 'odoom_star_username.*OASFACE' -and $mugContent -notmatch 'oasis_star_anorak_face') {
+    # If already patched with star-user trigger, convert to anorak-only trigger.
+    if ($mugContent -match 'odoom_star_username.*OASFACE') {
         $mugContent = Get-Content $sbarMugshotCpp -Raw
-        $mugContent = $mugContent -replace '(\tconst char \*starUser = )', "`tFBaseCVar *anorakFaceVar = FindCVar(`"oasis_star_anorak_face`", nullptr);`r`n`tbool anorakFace = (anorakFaceVar && anorakFaceVar->GetRealType() == CVAR_Bool) && (anorakFaceVar->GetGenericRep(CVAR_Bool).Int != 0);`r`n`$1"
-        $mugContent = $mugContent -replace 'if \(starUser && \*starUser\)', 'if ((starUser && *starUser) || anorakFace)'
+        $mugContent = $mugContent -replace '\tFBaseCVar \*starUserVar = FindCVar\("odoom_star_username", nullptr\);\r?\n\tconst char \*starUser = \(starUserVar && starUserVar->GetRealType\(\) == CVAR_String\) \? starUserVar->GetGenericRep\(CVAR_String\)\.String : nullptr;\r?\n', ''
+        if ($mugContent -notmatch 'oasis_star_anorak_face') {
+            $mugContent = $mugContent -replace '(\tif \()', "`tFBaseCVar *anorakFaceVar = FindCVar(`"oasis_star_anorak_face`", nullptr);`r`n`tbool anorakFace = (anorakFaceVar && anorakFaceVar->GetRealType() == CVAR_Bool) && (anorakFaceVar->GetGenericRep(CVAR_Bool).Int != 0);`r`n`$1"
+        }
+        $mugContent = $mugContent -replace 'if \(\(starUser && \*starUser\) \|\| anorakFace\)', 'if (anorakFace)'
+        $mugContent = $mugContent -replace 'if \(starUser && \*starUser\)', 'if (anorakFace)'
         Set-Content $sbarMugshotCpp $mugContent -NoNewline
         $changes += "sbar_mugshot(anorak)"
+    }
+    # Remove any previously-added OQKGI0 fallback so default Doom face is preserved unless anorak face is active and OASFACE exists.
+    if ($mugContent -match 'OQKGI0') {
+        $mugContent = Get-Content $sbarMugshotCpp -Raw
+        $mugContent = $mugContent -replace '\r?\n\t\t// Fallback when odoom_face\.pk3 is not loaded\.\r?\n\t\tFGameTexture \*fallbackFace = TexMan\.FindGameTexture\("OQKGI0", ETextureType::Any, FTextureManager::TEXMAN_TryAny\|FTextureManager::TEXMAN_AllowSkins\);\r?\n\t\tif \(!fallbackFace\) fallbackFace = TexMan\.GetGameTexture\(TexMan\.CheckForTexture\("OQKGI0", ETextureType::Any, FTextureManager::TEXMAN_TryAny\|FTextureManager::TEXMAN_AllowSkins\)\);\r?\n\t\tif \(fallbackFace\)\r?\n\t\t\treturn fallbackFace;', ''
+        $mugContent = $mugContent -replace '\r?\n\t\t/\* Fallback if odoom_face\.pk3 is not loaded: use a guaranteed ODOOM icon texture\. \*/\r?\n\t\tFGameTexture \*fallbackFace = TexMan\.FindGameTexture\("OQKGI0", ETextureType::Any, FTextureManager::TEXMAN_TryAny\|FTextureManager::TEXMAN_AllowSkins\);\r?\n\t\tif \(!fallbackFace\) fallbackFace = TexMan\.GetGameTexture\(TexMan\.CheckForTexture\("OQKGI0", ETextureType::Any, FTextureManager::TEXMAN_TryAny\|FTextureManager::TEXMAN_AllowSkins\)\);\r?\n\t\tif \(fallbackFace\)\r?\n\t\t\treturn fallbackFace;', ''
+        Set-Content $sbarMugshotCpp $mugContent -NoNewline
+        $changes += "sbar_mugshot(remove-fallback)"
     }
 }
 
@@ -215,6 +225,21 @@ if (Test-Path $odoomCvarinfo) {
         if ($existing -notmatch 'odoom_inventory_open') {
             Add-Content -Path $cvarinfoTxt -Value "`r`n// ODOOM inventory overlay (OQuake-style key capture)`r`n$cvarContent"
             $changes += "cvarinfo"
+        } else {
+            # Existing ODOOM block present: append any newly added ODOOM cvar lines that are missing.
+            $missingLines = New-Object System.Collections.Generic.List[string]
+            foreach ($line in ($cvarContent -split "`r?`n")) {
+                $trim = $line.Trim()
+                if ([string]::IsNullOrWhiteSpace($trim)) { continue }
+                if ($trim.StartsWith("//")) { continue }
+                if ($existing -notmatch [regex]::Escape($trim)) {
+                    $missingLines.Add($trim)
+                }
+            }
+            if ($missingLines.Count -gt 0) {
+                Add-Content -Path $cvarinfoTxt -Value ("`r`n" + ($missingLines -join "`r`n"))
+                $changes += "cvarinfo(update)"
+            }
         }
     } else {
         Set-Content -Path $cvarinfoTxt -Value $cvarContent -NoNewline

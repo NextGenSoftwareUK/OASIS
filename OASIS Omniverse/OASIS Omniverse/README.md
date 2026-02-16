@@ -36,6 +36,25 @@ Walking through a portal activates the corresponding preloaded game process with
   - Local (PlayerPrefs)
   - Remote sync via WEB4 Settings API (`/api/settings/user/preferences` with fallback routes)
 - Applying settings rebuilds preloaded ODOOM/OQUAKE sessions so global launch settings propagate.
+- List UX features in Control Center:
+  - Search/filter box
+  - Pagination (Prev/Next + page indicator)
+  - Sort controls (field + asc/desc), including status/date/source
+  - Per-tab view presets (save/apply/delete)
+  - Per-avatar preset persistence via WEB4 Settings API
+  - Preset import/export via clipboard JSON
+  - Import schema/version validation + legacy migration
+  - One-click built-in template views (critical quests, newest karma, etc.)
+  - Per-tab refresh
+  - Quest priority/status color coding
+- Always-visible mini HUD:
+  - Cross-quest tracker widget in the top-right corner
+  - Auto-refresh every 20 seconds
+  - Toggle with backtick key (`) by default
+  - Compact objective progress-bar mode toggle with `=` key
+  - Uses quest objective/progress fields from API responses when present
+- Overlay UX:
+  - Control Center and Quest Tracker are both draggable and resizable at runtime
 
 ## Configuration
 

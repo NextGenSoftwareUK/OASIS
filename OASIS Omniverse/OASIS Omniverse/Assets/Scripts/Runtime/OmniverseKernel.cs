@@ -13,6 +13,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
         private OmniverseHostConfig _config;
         private GameProcessHostService _hostService;
         private SharedHudOverlay _hudOverlay;
+        private QuestTrackerWidget _questTrackerWidget;
         private Web4Web5GatewayClient _apiClient;
         private GlobalSettingsService _globalSettingsService;
 
@@ -57,6 +58,8 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             _hostService = new GameProcessHostService(_config, _globalSettingsService);
             _hudOverlay = gameObject.AddComponent<SharedHudOverlay>();
             _hudOverlay.Initialize(_config, _apiClient, _globalSettingsService, this);
+            _questTrackerWidget = gameObject.AddComponent<QuestTrackerWidget>();
+            _questTrackerWidget.Initialize(_apiClient);
 
             var preloadResult = await _hostService.PreloadAllAsync();
             if (preloadResult.IsError)
@@ -127,6 +130,16 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             }
 
             return OASISResult<bool>.Success(true, "Global settings applied and hosted game sessions rebuilt.");
+        }
+
+        public async System.Threading.Tasks.Task<OASISResult<bool>> SaveUiPreferencesAsync(OmniverseGlobalSettings settings)
+        {
+            if (_globalSettingsService == null || _apiClient == null)
+            {
+                return OASISResult<bool>.Error("Kernel services are not initialized.");
+            }
+
+            return await _globalSettingsService.SavePreferencesOnlyAsync(settings, _apiClient);
         }
 
         private void OnDestroy()
