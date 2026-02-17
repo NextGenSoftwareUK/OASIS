@@ -90,8 +90,11 @@ namespace OASIS.Omniverse.UnityHost.UI
         private bool _isVisible;
         private bool _toggleWasDown;
         private bool _hideWasDown;
+        private bool _returnToHubWasDown;
         private KeyCode _toggleKey = KeyCode.I;
         private KeyCode _hideGameKey = KeyCode.F1;
+        private KeyCode _returnToHubKey = KeyCode.H;
+        private bool _returnToHubRequiresCtrl = true;
         private OmniverseTab _currentTab;
         private int _currentPage;
         private bool _isRefreshing;
@@ -111,6 +114,7 @@ namespace OASIS.Omniverse.UnityHost.UI
         private Toggle _showStatusStripToggle;
         private InputField _openMenuInput;
         private InputField _hideGameInput;
+        private InputField _returnToHubInput;
         private InputField _toastMaxVisibleInput;
         private InputField _toastDurationInput;
         private Text _settingsFeedbackText;
@@ -122,6 +126,11 @@ namespace OASIS.Omniverse.UnityHost.UI
         private Button _trackerTopRightButton;
         private Button _trackerCenterButton;
         private Button _diagnosticsExportButton;
+        private Button _diagnosticsExportSanitizedButton;
+        private Button _returnToHubButton;
+        private GameObject _confirmReturnToHubDialog;
+        private Button _confirmReturnToHubYesButton;
+        private Button _confirmReturnToHubNoButton;
 
         private readonly List<InventoryItem> _inventoryCache = new List<InventoryItem>();
         private readonly List<QuestItem> _questCache = new List<QuestItem>();
@@ -182,10 +191,14 @@ namespace OASIS.Omniverse.UnityHost.UI
             dragResize.OnLayoutCommitted += panelRect => _ = PersistPanelLayoutAsync(ControlCenterPanelId, panelRect);
 
             var title = CreateText("Title", "OASIS Omniverse Control Center", 28, TextAnchor.MiddleLeft, _panel.transform);
-            SetAnchors(title.rectTransform, 0.02f, 0.92f, 0.75f, 0.985f);
+            SetAnchors(title.rectTransform, 0.02f, 0.92f, 0.70f, 0.985f);
+
+            _returnToHubButton = CreateButton(_panel.transform, "Return to Hub", 0.71f, 0.92f, 0.85f, 0.985f);
+            _returnToHubButton.onClick.AddListener(ReturnToHub);
+            _returnToHubButton.gameObject.SetActive(false);
 
             _statusText = CreateText("Status", "Ready", 16, TextAnchor.MiddleRight, _panel.transform);
-            SetAnchors(_statusText.rectTransform, 0.55f, 0.92f, 0.98f, 0.985f);
+            SetAnchors(_statusText.rectTransform, 0.86f, 0.92f, 0.98f, 0.985f);
 
             var tabs = new GameObject("Tabs");
             tabs.transform.SetParent(_panel.transform, false);
@@ -221,6 +234,7 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             BuildToastUi();
             BuildStatusStripUi();
+            BuildReturnToHubConfirmationDialog();
             ApplyAccessibilityTheme();
         }
 
@@ -340,9 +354,13 @@ namespace OASIS.Omniverse.UnityHost.UI
             var importButton = CreateButton(_listControlsRoot.transform, "Import", 0.96f, 0.10f, 1.0f, 0.48f);
             importButton.onClick.AddListener(() => _ = ImportPresetsFromClipboardAsync());
 
-            _diagnosticsExportButton = CreateButton(_listControlsRoot.transform, "Copy Diag", 0.86f, 0.56f, 1.0f, 0.94f);
+            _diagnosticsExportButton = CreateButton(_listControlsRoot.transform, "Copy Diag", 0.72f, 0.56f, 0.86f, 0.94f);
             _diagnosticsExportButton.onClick.AddListener(CopyDiagnosticsToClipboard);
             _diagnosticsExportButton.gameObject.SetActive(false);
+
+            _diagnosticsExportSanitizedButton = CreateButton(_listControlsRoot.transform, "Copy Diag (Sanitized)", 0.86f, 0.56f, 1.0f, 0.94f);
+            _diagnosticsExportSanitizedButton.onClick.AddListener(CopyDiagnosticsToClipboardSanitized);
+            _diagnosticsExportSanitizedButton.gameObject.SetActive(false);
         }
 
         private void Update()
@@ -359,6 +377,30 @@ namespace OASIS.Omniverse.UnityHost.UI
                 _kernel.HideHostedGames();
             }
 
+            var ctrlDown = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            var returnToHubKeyDown = IsHotkeyDown(_returnToHubKey);
+            var returnToHubDown = returnToHubKeyDown && (!_returnToHubRequiresCtrl || ctrlDown);
+            if (returnToHubDown && !_returnToHubWasDown && _kernel != null)
+            {
+                var health = _kernel.GetRuntimeHealthSnapshot();
+                if (health?.host != null && !string.IsNullOrWhiteSpace(health.host.activeGameId) && health.host.activeGameId != "(none)")
+                {
+                    ReturnToHub();
+                }
+            }
+
+            if (_confirmReturnToHubDialog != null && _confirmReturnToHubDialog.activeSelf)
+            {
+                if (Input.GetKeyDown(KeyCode.Escape))
+                {
+                    HideReturnToHubConfirmation();
+                }
+                else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                {
+                    ConfirmReturnToHub();
+                }
+            }
+
             HandleLayoutHotkeys();
             TickToastQueue();
             TickToastAnimations();
@@ -366,6 +408,122 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             _toggleWasDown = toggleDown;
             _hideWasDown = hideDown;
+            _returnToHubWasDown = returnToHubDown;
+        }
+
+        public void UpdateReturnToHubButtonVisibility(bool hasActiveGame)
+        {
+            if (_returnToHubButton != null)
+            {
+                _returnToHubButton.gameObject.SetActive(hasActiveGame);
+            }
+        }
+
+        private void ReturnToHub()
+        {
+            if (_kernel == null)
+            {
+                return;
+            }
+
+            var health = _kernel.GetRuntimeHealthSnapshot();
+            if (health?.host == null || string.IsNullOrWhiteSpace(health.host.activeGameId) || health.host.activeGameId == "(none)")
+            {
+                ShowToast("No active game to exit.", ToastSeverity.Warning, 1.5f);
+                return;
+            }
+
+            ShowReturnToHubConfirmation();
+        }
+
+        private void ConfirmReturnToHub()
+        {
+            if (_kernel == null)
+            {
+                HideReturnToHubConfirmation();
+                return;
+            }
+
+            var result = _kernel.HideHostedGames();
+            HideReturnToHubConfirmation();
+            
+            if (!result.IsError)
+            {
+                ShowToast("Returned to hub.", ToastSeverity.Success, 1.5f);
+            }
+            else
+            {
+                ShowToast($"Failed to return to hub: {result.Message}", ToastSeverity.Error, 2.5f);
+            }
+        }
+
+        private void BuildReturnToHubConfirmationDialog()
+        {
+            _confirmReturnToHubDialog = new GameObject("ConfirmReturnToHubDialog");
+            _confirmReturnToHubDialog.transform.SetParent(_canvas.transform, false);
+            _confirmReturnToHubDialog.SetActive(false);
+
+            var dialogRect = _confirmReturnToHubDialog.AddComponent<RectTransform>();
+            dialogRect.anchorMin = new Vector2(0f, 0f);
+            dialogRect.anchorMax = new Vector2(1f, 1f);
+            dialogRect.sizeDelta = Vector2.zero;
+            dialogRect.anchoredPosition = Vector2.zero;
+            dialogRect.SetAsLastSibling();
+
+            var background = _confirmReturnToHubDialog.AddComponent<Image>();
+            background.color = new Color(0f, 0f, 0f, 0.75f);
+            
+            var button = _confirmReturnToHubDialog.AddComponent<Button>();
+            button.onClick.AddListener(HideReturnToHubConfirmation);
+            button.transition = Selectable.Transition.None;
+
+            var panel = new GameObject("DialogPanel");
+            panel.transform.SetParent(_confirmReturnToHubDialog.transform, false);
+            var panelRect = panel.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.pivot = new Vector2(0.5f, 0.5f);
+            panelRect.sizeDelta = new Vector2(480f, 200f);
+            panelRect.anchoredPosition = Vector2.zero;
+
+            var panelImage = panel.AddComponent<Image>();
+            panelImage.color = new Color(0.05f, 0.12f, 0.22f, 0.98f);
+            
+            var panelButton = panel.AddComponent<Button>();
+            panelButton.transition = Selectable.Transition.None;
+            panelButton.onClick.AddListener(() => { });
+
+            var title = CreateText("DialogTitle", "Return to Hub?", 24, TextAnchor.MiddleCenter, panel.transform);
+            SetAnchors(title.rectTransform, 0.05f, 0.70f, 0.95f, 0.95f);
+            title.color = new Color(0.9f, 0.95f, 1f, 1f);
+
+            var message = CreateText("DialogMessage", "Are you sure you want to exit the current game and return to the hub?", 18, TextAnchor.MiddleCenter, panel.transform);
+            SetAnchors(message.rectTransform, 0.05f, 0.40f, 0.95f, 0.68f);
+            message.color = new Color(0.85f, 0.90f, 0.95f, 1f);
+            message.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+            _confirmReturnToHubYesButton = CreateButton(panel.transform, "Yes", 0.15f, 0.08f, 0.45f, 0.30f);
+            _confirmReturnToHubYesButton.onClick.AddListener(ConfirmReturnToHub);
+
+            _confirmReturnToHubNoButton = CreateButton(panel.transform, "No", 0.55f, 0.08f, 0.85f, 0.30f);
+            _confirmReturnToHubNoButton.onClick.AddListener(HideReturnToHubConfirmation);
+        }
+
+        private void ShowReturnToHubConfirmation()
+        {
+            if (_confirmReturnToHubDialog != null)
+            {
+                _confirmReturnToHubDialog.transform.SetAsLastSibling();
+                _confirmReturnToHubDialog.SetActive(true);
+            }
+        }
+
+        private void HideReturnToHubConfirmation()
+        {
+            if (_confirmReturnToHubDialog != null)
+            {
+                _confirmReturnToHubDialog.SetActive(false);
+            }
         }
 
         private void TickStatusStrip()
@@ -711,6 +869,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             if (_presetNameInput != null) _presetNameInput.gameObject.SetActive(!diagnosticsMode);
             if (_pageIndicator != null) _pageIndicator.gameObject.SetActive(!diagnosticsMode);
             if (_diagnosticsExportButton != null) _diagnosticsExportButton.gameObject.SetActive(diagnosticsMode);
+            if (_diagnosticsExportSanitizedButton != null) _diagnosticsExportSanitizedButton.gameObject.SetActive(diagnosticsMode);
 
             if (isSettings)
             {
@@ -967,6 +1126,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             builder.AppendLine($"  Last Maintenance UTC: {health.host?.lastMaintenanceUtc}");
             builder.AppendLine();
             builder.AppendLine("Use 'Copy Diag' to export snapshot + recent runtime log to clipboard.");
+            builder.AppendLine("Use 'Copy Diag (Sanitized)' to export with sensitive data redacted.");
         }
 
         private void CopyDiagnosticsToClipboard()
@@ -981,6 +1141,101 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             GUIUtility.systemCopyBuffer = JsonConvert.SerializeObject(package, Formatting.Indented);
             ShowToast("Diagnostics copied to clipboard.", ToastSeverity.Success, 1.8f);
+        }
+
+        private void CopyDiagnosticsToClipboardSanitized()
+        {
+            var health = _kernel?.GetRuntimeHealthSnapshot();
+            var package = new
+            {
+                exportedUtc = DateTime.UtcNow.ToString("u"),
+                runtime = health,
+                recentLogs = RuntimeDiagnosticsLog.ReadRecentLines(120)
+            };
+
+            var json = JsonConvert.SerializeObject(package, Formatting.Indented);
+            var sanitized = SanitizeDiagnosticsJson(json);
+            GUIUtility.systemCopyBuffer = sanitized;
+            ShowToast("Sanitized diagnostics copied to clipboard.", ToastSeverity.Success, 1.8f);
+        }
+
+        private static string SanitizeDiagnosticsJson(string json)
+        {
+            if (string.IsNullOrEmpty(json))
+            {
+                return json;
+            }
+
+            var result = json;
+
+            // Redact GUIDs (format: 8-4-4-4-12 hex digits, case-insensitive)
+            result = System.Text.RegularExpressions.Regex.Replace(
+                result,
+                @"\b[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\b",
+                "[REDACTED-GUID]",
+                System.Text.RegularExpressions.RegexOptions.None);
+
+            // Redact tokens (common patterns: bearer tokens, API keys, JWT-like strings)
+            result = System.Text.RegularExpressions.Regex.Replace(
+                result,
+                @"\b[A-Za-z0-9_-]{32,}\b",
+                match =>
+                {
+                    var value = match.Value;
+                    // Skip if it looks like a normal word or number (less than 40 chars and not all hex-like)
+                    if (value.Length < 40 && !System.Text.RegularExpressions.Regex.IsMatch(value, @"^[0-9A-Fa-f]{20,}$"))
+                    {
+                        return value;
+                    }
+                    // Redact long alphanumeric strings that look like tokens
+                    return "[REDACTED-TOKEN]";
+                },
+                System.Text.RegularExpressions.RegexOptions.None);
+
+            // Redact email addresses
+            result = System.Text.RegularExpressions.Regex.Replace(
+                result,
+                @"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+                "[REDACTED-EMAIL]",
+                System.Text.RegularExpressions.RegexOptions.None);
+
+            // Redact URLs that might contain tokens (query params, paths with IDs)
+            result = System.Text.RegularExpressions.Regex.Replace(
+                result,
+                @"https?://[^\s""']+",
+                match =>
+                {
+                    var url = match.Value;
+                    // Keep the domain but redact paths and query strings
+                    var uriMatch = System.Text.RegularExpressions.Regex.Match(url, @"^(https?://[^/]+)");
+                    if (uriMatch.Success)
+                    {
+                        return uriMatch.Groups[1].Value + "/[REDACTED-PATH]";
+                    }
+                    return "[REDACTED-URL]";
+                },
+                System.Text.RegularExpressions.RegexOptions.None);
+
+            // Redact potential API keys in JSON keys/values
+            result = System.Text.RegularExpressions.Regex.Replace(
+                result,
+                @"""([^""]*[Kk][Ee][Yy][^""]*)"":\s*""([^""]{20,})""",
+                @"""$1"": ""[REDACTED-KEY]""",
+                System.Text.RegularExpressions.RegexOptions.None);
+
+            result = System.Text.RegularExpressions.Regex.Replace(
+                result,
+                @"""([^""]*[Tt][Oo][Kk][Ee][Nn][^""]*)"":\s*""([^""]{20,})""",
+                @"""$1"": ""[REDACTED-TOKEN]""",
+                System.Text.RegularExpressions.RegexOptions.None);
+
+            result = System.Text.RegularExpressions.Regex.Replace(
+                result,
+                @"""([^""]*[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd][^""]*)"":\s*""([^""]+)""",
+                @"""$1"": ""[REDACTED]""",
+                System.Text.RegularExpressions.RegexOptions.None);
+
+            return result;
         }
 
         private void WritePaged<T>(StringBuilder builder, List<T> filtered, Func<T, string> formatter, string emptyText)
@@ -1924,6 +2179,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             _showStatusStripToggle.isOn = s.showStatusStrip;
             _openMenuInput.text = s.keyOpenControlCenter;
             _hideGameInput.text = s.keyHideHostedGame;
+            _returnToHubInput.text = s.keyReturnToHub;
             _toastMaxVisibleInput.text = Mathf.Clamp(s.toastMaxVisible, 1, 8).ToString();
             _toastDurationInput.text = Mathf.Clamp(s.toastDurationSeconds, 0.4f, 8f).ToString("0.0");
             _settingsFeedbackText.text = "Update values, then Save & Apply.";
@@ -1956,12 +2212,15 @@ namespace OASIS.Omniverse.UnityHost.UI
             CreateText("HideHostedKeyLabel", "Hide Hosted Game Key", 17, TextAnchor.MiddleLeft, root, 0.50f, 0.21f, 0.74f, 0.28f);
             _hideGameInput = CreateInputField(root, 0.75f, 0.21f, 0.89f, 0.28f);
 
-            CreateText("ToastMaxLabel", "Toast Max Visible (1-8)", 15, TextAnchor.MiddleLeft, root, 0.02f, 0.16f, 0.30f, 0.21f);
+            CreateText("ReturnToHubKeyLabel", "Return to Hub Key", 17, TextAnchor.MiddleLeft, root, 0.02f, 0.16f, 0.30f, 0.21f);
+            _returnToHubInput = CreateInputField(root, 0.31f, 0.16f, 0.45f, 0.21f);
+
+            CreateText("ToastMaxLabel", "Toast Max Visible (1-8)", 15, TextAnchor.MiddleLeft, root, 0.50f, 0.16f, 0.74f, 0.21f);
             _toastMaxVisibleInput = CreateInputField(root, 0.31f, 0.16f, 0.41f, 0.21f);
             _toastMaxVisibleInput.contentType = InputField.ContentType.IntegerNumber;
 
-            CreateText("ToastDurationLabel", "Toast Duration Sec (0.4-8.0)", 15, TextAnchor.MiddleLeft, root, 0.43f, 0.16f, 0.72f, 0.21f);
-            _toastDurationInput = CreateInputField(root, 0.73f, 0.16f, 0.89f, 0.21f);
+            CreateText("ToastDurationLabel", "Toast Duration Sec (0.4-8.0)", 15, TextAnchor.MiddleLeft, root, 0.75f, 0.16f, 0.89f, 0.21f);
+            _toastDurationInput = CreateInputField(root, 0.90f, 0.16f, 0.98f, 0.21f);
             _toastDurationInput.contentType = InputField.ContentType.DecimalNumber;
 
             CreateText("LayoutQuickLabel", "Panel Layout Quick Actions", 16, TextAnchor.MiddleLeft, root, 0.02f, 0.11f, 0.34f, 0.16f);
@@ -2007,6 +2266,7 @@ namespace OASIS.Omniverse.UnityHost.UI
                 resolution = _settingsService.CurrentSettings.resolution,
                 keyOpenControlCenter = _openMenuInput.text.Trim().ToUpperInvariant(),
                 keyHideHostedGame = _hideGameInput.text.Trim().ToUpperInvariant(),
+                keyReturnToHub = _returnToHubInput.text.Trim().ToUpperInvariant(),
                 toastMaxVisible = toastMaxVisible,
                 toastDurationSeconds = toastDurationSeconds,
                 uiFontScale = uiFontScale,
@@ -2103,6 +2363,33 @@ namespace OASIS.Omniverse.UnityHost.UI
             {
                 _hideGameKey = hideResult.Result;
             }
+
+            var returnToHubBinding = ResolveKeyBindingWithModifier(_settingsService.CurrentSettings.keyReturnToHub, KeyCode.H);
+            _returnToHubKey = returnToHubBinding.key;
+            _returnToHubRequiresCtrl = returnToHubBinding.requiresCtrl;
+        }
+
+        private (KeyCode key, bool requiresCtrl) ResolveKeyBindingWithModifier(string keyText, KeyCode fallback)
+        {
+            if (string.IsNullOrWhiteSpace(keyText))
+            {
+                return (fallback, false);
+            }
+
+            var text = keyText.Trim().ToUpperInvariant();
+            var requiresCtrl = text.Contains("CTRL+") || text.StartsWith("CTRL");
+            
+            if (requiresCtrl)
+            {
+                text = text.Replace("CTRL+", "").Replace("CTRL", "").Trim();
+            }
+
+            if (Enum.TryParse(text, true, out KeyCode parsed))
+            {
+                return (parsed, requiresCtrl);
+            }
+
+            return (fallback, requiresCtrl);
         }
 
         private static int GraphicsValue(string value)

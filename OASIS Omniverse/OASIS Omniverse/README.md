@@ -25,6 +25,7 @@ Walking through a portal activates the corresponding preloaded game process with
   - Configurable stale timeout (default 10 min)
   - Configurable low-memory threshold (default 2048 MB available)
 - Shared HUD overlay (global `I` key) across hub/hosted games.
+- Return to Hub: button and keyboard shortcut (`H` by default) to exit any active game and return to the hub.
 - Omniverse Control Center with tabs for:
   - Inventory (WEB5/WEB4 inventory APIs)
   - Cross-game quests (WEB5 Quest API)
@@ -85,7 +86,9 @@ Walking through a portal activates the corresponding preloaded game process with
 - Diagnostics logging:
   - Rolling runtime diagnostics log at `Application.persistentDataPath/Logs/omniverse_runtime.log`
   - API failures/circuit transitions and host recovery/restart events are recorded
-  - Control Center Diagnostics tab includes one-click clipboard export (`Copy Diag`) with runtime snapshot + recent log lines
+  - Control Center Diagnostics tab includes one-click clipboard export:
+    - `Copy Diag`: Full runtime snapshot + recent log lines
+    - `Copy Diag (Sanitized)`: Same export with sensitive data redacted (GUIDs, tokens, emails, URLs)
 
 ## Configuration
 
@@ -103,6 +106,8 @@ Edit `Assets/StreamingAssets/omniverse_host_config.json`:
 - Walk through portal collider to activate ODOOM/OQUAKE.
 - `I`: open/close shared inventory and cross-quest HUD overlay.
 - `F1`: hide active hosted game windows and return visual focus to hub.
+- `CTRL+H`: return to hub from any active game (default, configurable).
+- "Return to Hub" button appears in Control Center header when a game is active.
 - Hotkeys are configurable in the Settings tab.
 
 ## Open in Unity

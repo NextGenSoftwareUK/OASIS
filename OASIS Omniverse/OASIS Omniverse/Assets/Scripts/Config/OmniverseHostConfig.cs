@@ -107,6 +107,7 @@ namespace OASIS.Omniverse.UnityHost.Config
         public string resolution = "1920x1080";
         public string keyOpenControlCenter = "I";
         public string keyHideHostedGame = "F1";
+        public string keyReturnToHub = "CTRL+H";
         public int toastMaxVisible = 3;
         public float toastDurationSeconds = 1.7f;
         public float uiFontScale = 1f;

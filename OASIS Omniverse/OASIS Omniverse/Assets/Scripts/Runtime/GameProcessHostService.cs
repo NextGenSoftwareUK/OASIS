@@ -279,6 +279,11 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             return OASISResult<bool>.Success(true, $"Maintenance complete. Available memory: {availableMb} MB");
         }
 
+        public bool HasActiveGame()
+        {
+            return !string.IsNullOrWhiteSpace(_activeGameId);
+        }
+
         public HostRuntimeHealthSnapshot GetHealthSnapshot()
         {
             return new HostRuntimeHealthSnapshot
