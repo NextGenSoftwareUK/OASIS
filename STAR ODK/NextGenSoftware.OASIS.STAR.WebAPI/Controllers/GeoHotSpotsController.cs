@@ -70,12 +70,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "loading geo hot spot");
             }
         }
 
@@ -98,12 +93,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error creating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "creating geo hot spot");
             }
         }
 
@@ -128,12 +118,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error updating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "updating geo hot spot");
             }
         }
 
@@ -156,12 +141,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting geo hot spot");
             }
         }
 
@@ -213,12 +193,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error creating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "creating geo hot spot");
             }
         }
 
@@ -244,12 +219,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "loading geo hot spot");
             }
         }
 
@@ -274,12 +244,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "loading geo hot spot from path");
             }
         }
 
@@ -302,12 +267,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "loading geo hot spot from published file");
             }
         }
 
@@ -369,12 +329,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error publishing geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "publishing geo hot spot");
             }
         }
 
@@ -400,12 +355,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedGeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error downloading geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedGeoHotSpot>(ex, "downloading geo hot spot");
             }
         }
 
@@ -457,12 +407,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo hot spot version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "loading geo hot spot version");
             }
         }
 
@@ -486,12 +431,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error editing geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "editing geo hot spot");
             }
         }
 
@@ -515,12 +455,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "unpublishing geo hot spot");
             }
         }
 
@@ -544,12 +479,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error republishing geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "republishing geo hot spot");
             }
         }
 
@@ -573,12 +503,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error activating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "activating geo hot spot");
             }
         }
 
@@ -602,12 +527,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<GeoHotSpot>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating geo hot spot: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<GeoHotSpot>(ex, "deactivating geo hot spot");
             }
         }
     }

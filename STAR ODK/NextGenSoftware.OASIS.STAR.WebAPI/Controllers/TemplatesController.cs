@@ -64,12 +64,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading template");
             }
         }
 
@@ -101,12 +96,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating template");
             }
         }
 
@@ -139,12 +129,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error updating template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "updating template");
             }
         }
 
@@ -158,12 +143,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting template");
             }
         }
 
@@ -272,12 +252,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning template");
             }
         }
 
@@ -300,12 +275,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating template");
             }
         }
 
@@ -328,12 +298,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading template from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading template from path");
             }
         }
 
@@ -356,12 +321,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading template from published: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading template from published");
             }
         }
 
@@ -449,12 +409,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error publishing template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "publishing template");
             }
         }
 
@@ -478,12 +433,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading template");
             }
         }
 
@@ -535,12 +485,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading template version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading template version");
             }
         }
 
@@ -564,12 +509,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error editing template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "editing template");
             }
         }
 
@@ -592,12 +532,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "unpublishing template");
             }
         }
 
@@ -621,12 +556,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error republishing template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "republishing template");
             }
         }
 
@@ -649,12 +579,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error activating template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "activating template");
             }
         }
 
@@ -677,12 +602,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating template: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "deactivating template");
             }
         }
     }

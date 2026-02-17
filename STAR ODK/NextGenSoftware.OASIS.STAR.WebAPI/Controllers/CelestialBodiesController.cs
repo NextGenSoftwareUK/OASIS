@@ -70,12 +70,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "loading celestial body");
             }
         }
 
@@ -98,12 +93,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error creating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "creating celestial body");
             }
         }
 
@@ -128,12 +118,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error updating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "updating celestial body");
             }
         }
 
@@ -156,12 +141,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting celestial body");
             }
         }
 
@@ -278,12 +258,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error creating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "creating celestial body");
             }
         }
 
@@ -309,12 +284,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "loading celestial body");
             }
         }
 
@@ -339,12 +309,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial body from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "loading celestial body from path");
             }
         }
 
@@ -367,12 +332,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial body from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "loading celestial body from published file");
             }
         }
 
@@ -434,12 +394,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error publishing celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "publishing celestial body");
             }
         }
 
@@ -465,12 +420,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error downloading celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARCelestialBody>(ex, "downloading celestial body");
             }
         }
 
@@ -522,12 +472,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial body version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "loading celestial body version");
             }
         }
 
@@ -551,12 +496,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error editing celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "editing celestial body");
             }
         }
 
@@ -580,12 +520,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "unpublishing celestial body");
             }
         }
 
@@ -609,12 +544,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error republishing celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "republishing celestial body");
             }
         }
 
@@ -638,12 +568,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error activating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "activating celestial body");
             }
         }
 
@@ -667,12 +592,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "deactivating celestial body");
             }
         }
     }

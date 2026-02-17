@@ -142,6 +142,9 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             merged.keyHideHostedGame = string.IsNullOrWhiteSpace(remote.keyHideHostedGame) ? merged.keyHideHostedGame : remote.keyHideHostedGame;
             merged.toastMaxVisible = Mathf.Clamp(remote.toastMaxVisible, 1, 8);
             merged.toastDurationSeconds = Mathf.Clamp(remote.toastDurationSeconds, 0.4f, 8f);
+            merged.uiFontScale = Mathf.Clamp(remote.uiFontScale, 0.8f, 1.5f);
+            merged.uiHighContrast = remote.uiHighContrast;
+            merged.showStatusStrip = remote.showStatusStrip;
             merged.viewPresets = remote.viewPresets ?? merged.viewPresets ?? new System.Collections.Generic.List<OmniverseViewPreset>();
             merged.activeViewPresets = remote.activeViewPresets ?? merged.activeViewPresets ?? new System.Collections.Generic.List<OmniverseActiveViewPreset>();
             merged.panelLayouts = remote.panelLayouts ?? merged.panelLayouts ?? new System.Collections.Generic.List<OmniversePanelLayout>();
@@ -153,6 +156,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             var normalized = settings ?? new OmniverseGlobalSettings();
             normalized.toastMaxVisible = Mathf.Clamp(normalized.toastMaxVisible, 1, 8);
             normalized.toastDurationSeconds = Mathf.Clamp(normalized.toastDurationSeconds, 0.4f, 8f);
+            normalized.uiFontScale = Mathf.Clamp(normalized.uiFontScale, 0.8f, 1.5f);
             return normalized;
         }
 

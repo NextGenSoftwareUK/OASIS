@@ -97,12 +97,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<Quest>>
-                {
-                    IsError = true,
-                    Message = $"Error loading quests: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IEnumerable<Quest>>(ex, "GetAllQuests");
             }
         }
 
@@ -125,12 +120,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error loading quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "GetIQuest");
             }
         }
 
@@ -179,12 +169,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IQuest>
-                {
-                    IsError = true,
-                    Message = $"Error creating quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IQuest>(ex, "CreateQuest");
             }
         }
 
@@ -235,12 +220,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IQuest>
-                {
-                    IsError = true,
-                    Message = $"Error updating quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IQuest>(ex, "updating quest");
             }
         }
 
@@ -263,12 +243,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting quest");
             }
         }
 
@@ -320,12 +295,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning quest");
             }
         }
 
@@ -465,12 +435,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error creating quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "creating quest");
             }
         }
 
@@ -496,12 +461,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error loading quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "loading quest");
             }
         }
 
@@ -526,12 +486,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error loading quest from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "loading quest from path");
             }
         }
 
@@ -554,12 +509,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error loading quest from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "loading quest from published file");
             }
         }
 
@@ -621,12 +571,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error publishing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "publishing quest");
             }
         }
 
@@ -652,12 +597,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedQuest>
-                {
-                    IsError = true,
-                    Message = $"Error downloading quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedQuest>(ex, "downloading quest");
             }
         }
 
@@ -709,12 +649,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error loading quest version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "loading quest version");
             }
         }
 
@@ -738,12 +673,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error editing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "editing quest");
             }
         }
 
@@ -767,12 +697,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "unpublishing quest");
             }
         }
 
@@ -796,12 +721,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error republishing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "republishing quest");
             }
         }
 
@@ -825,12 +745,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error activating quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "activating quest");
             }
         }
 
@@ -854,12 +769,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "deactivating quest");
             }
         }
 
@@ -881,12 +791,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error starting quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "starting quest");
             }
         }
 
@@ -914,12 +819,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error completing quest objective: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "completing quest objective");
             }
         }
 
@@ -946,12 +846,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error completing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "completing quest");
             }
         }
 

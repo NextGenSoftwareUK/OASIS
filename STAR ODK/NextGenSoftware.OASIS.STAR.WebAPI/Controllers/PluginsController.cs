@@ -71,12 +71,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading plugin");
             }
         }
 
@@ -108,12 +103,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating plugin");
             }
         }
 
@@ -146,12 +136,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error updating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "updating plugin");
             }
         }
 
@@ -165,12 +150,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting plugin");
             }
         }
 
@@ -285,12 +265,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error installing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "installing plugin");
             }
         }
 
@@ -304,12 +279,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error uninstalling plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "uninstalling plugin");
             }
         }
 
@@ -323,12 +293,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning plugin");
             }
         }
 
@@ -351,12 +316,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating plugin");
             }
         }
 
@@ -382,12 +342,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading plugin");
             }
         }
 
@@ -412,12 +367,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading plugin from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading plugin from path");
             }
         }
 
@@ -440,12 +390,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading plugin from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading plugin from published file");
             }
         }
 
@@ -507,12 +452,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error publishing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "publishing plugin");
             }
         }
 
@@ -538,12 +478,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedPlugin>
-                {
-                    IsError = true,
-                    Message = $"Error downloading plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedPlugin>(ex, "downloading plugin");
             }
         }
 
@@ -595,12 +530,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading plugin version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading plugin version");
             }
         }
 
@@ -624,12 +554,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error editing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "editing plugin");
             }
         }
 
@@ -653,12 +578,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "unpublishing plugin");
             }
         }
 
@@ -682,12 +602,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error republishing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "republishing plugin");
             }
         }
 
@@ -711,12 +626,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error activating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "activating plugin");
             }
         }
 
@@ -740,12 +650,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "deactivating plugin");
             }
         }
     }
