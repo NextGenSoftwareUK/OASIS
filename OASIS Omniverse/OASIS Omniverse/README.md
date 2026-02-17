@@ -68,6 +68,7 @@ Walking through a portal activates the corresponding preloaded game process with
   - Toast notifications appear for snap/reset actions
   - Toasts include severity styles (`success`, `warning`, `error`)
   - Toast queue with stacked display for rapid actions (no overwrite)
+  - Toast queue settings are configurable in Settings (`max visible`, `duration`) and persisted per avatar
 
 ## Configuration
 

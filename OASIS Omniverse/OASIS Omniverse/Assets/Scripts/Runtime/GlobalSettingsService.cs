@@ -20,7 +20,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             var localResult = LoadLocal();
             if (!localResult.IsError)
             {
-                CurrentSettings = localResult.Result;
+                CurrentSettings = NormalizeSettings(localResult.Result);
             }
 
             var remoteResult = await apiClient.GetGlobalPreferencesAsync();
@@ -30,13 +30,14 @@ namespace OASIS.Omniverse.UnityHost.Runtime
                 SaveLocal(CurrentSettings);
             }
 
+            CurrentSettings = NormalizeSettings(CurrentSettings);
             ApplyToUnity(CurrentSettings);
             return OASISResult<OmniverseGlobalSettings>.Success(CurrentSettings);
         }
 
         public async Task<OASISResult<bool>> SaveAndApplyAsync(OmniverseGlobalSettings settings, Web4Web5GatewayClient apiClient)
         {
-            CurrentSettings = settings ?? new OmniverseGlobalSettings();
+            CurrentSettings = NormalizeSettings(settings);
             SaveLocal(CurrentSettings);
             ApplyToUnity(CurrentSettings);
 
@@ -51,7 +52,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
 
         public async Task<OASISResult<bool>> SavePreferencesOnlyAsync(OmniverseGlobalSettings settings, Web4Web5GatewayClient apiClient)
         {
-            CurrentSettings = settings ?? new OmniverseGlobalSettings();
+            CurrentSettings = NormalizeSettings(settings);
             SaveLocal(CurrentSettings);
 
             var remoteSave = await apiClient.SaveGlobalPreferencesAsync(CurrentSettings);
@@ -124,7 +125,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
 
         private static OmniverseGlobalSettings MergeSettings(OmniverseGlobalSettings local, OmniverseGlobalSettings remote)
         {
-            var merged = local ?? new OmniverseGlobalSettings();
+            var merged = NormalizeSettings(local);
             if (remote == null)
             {
                 return merged;
@@ -139,10 +140,20 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             merged.resolution = string.IsNullOrWhiteSpace(remote.resolution) ? merged.resolution : remote.resolution;
             merged.keyOpenControlCenter = string.IsNullOrWhiteSpace(remote.keyOpenControlCenter) ? merged.keyOpenControlCenter : remote.keyOpenControlCenter;
             merged.keyHideHostedGame = string.IsNullOrWhiteSpace(remote.keyHideHostedGame) ? merged.keyHideHostedGame : remote.keyHideHostedGame;
+            merged.toastMaxVisible = Mathf.Clamp(remote.toastMaxVisible, 1, 8);
+            merged.toastDurationSeconds = Mathf.Clamp(remote.toastDurationSeconds, 0.4f, 8f);
             merged.viewPresets = remote.viewPresets ?? merged.viewPresets ?? new System.Collections.Generic.List<OmniverseViewPreset>();
             merged.activeViewPresets = remote.activeViewPresets ?? merged.activeViewPresets ?? new System.Collections.Generic.List<OmniverseActiveViewPreset>();
             merged.panelLayouts = remote.panelLayouts ?? merged.panelLayouts ?? new System.Collections.Generic.List<OmniversePanelLayout>();
-            return merged;
+            return NormalizeSettings(merged);
+        }
+
+        private static OmniverseGlobalSettings NormalizeSettings(OmniverseGlobalSettings settings)
+        {
+            var normalized = settings ?? new OmniverseGlobalSettings();
+            normalized.toastMaxVisible = Mathf.Clamp(normalized.toastMaxVisible, 1, 8);
+            normalized.toastDurationSeconds = Mathf.Clamp(normalized.toastDurationSeconds, 0.4f, 8f);
+            return normalized;
         }
 
         private static OASISResult<OmniverseGlobalSettings> LoadLocal()
