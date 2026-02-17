@@ -14,6 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Ensure OASIS_DNA.json is resolved from the app output directory in local runs.
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
+// Configuration for exception handling mode
+// Set environment variable ENABLE_GENERIC_EXCEPTION_HANDLING=false to disable generic catch-all in dev/test
+var enableGenericExceptionHandling = builder.Configuration.GetValue<bool>("EnableGenericExceptionHandling", 
+    bool.Parse(Environment.GetEnvironmentVariable("ENABLE_GENERIC_EXCEPTION_HANDLING") ?? "true"));
+
 // Add services to the container.
 builder.Services.AddControllers(options =>
 {
@@ -176,41 +181,112 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
-// Global exception handler for model binding and other exceptions - must be early in pipeline
+// Global exception handler - catch all exceptions, log them, and return real error details
 app.Use(async (context, next) =>
 {
     try
     {
         await next();
     }
-    catch (Exception ex)
+    catch (System.Text.Json.JsonException ex)
     {
-        // Check if this is a model binding/validation exception or OASISException
-        if (ex is System.Text.Json.JsonException || 
-            ex is InvalidOperationException ||
-            ex is OASISException ||
-            (ex.InnerException is System.Text.Json.JsonException) ||
-            (ex.InnerException is InvalidOperationException) ||
-            (ex.InnerException is OASISException) ||
-            ex.Message.Contains("JSON", StringComparison.OrdinalIgnoreCase) ||
-            ex.Message.Contains("deserializ", StringComparison.OrdinalIgnoreCase) ||
-            ex.Message.Contains("binding", StringComparison.OrdinalIgnoreCase) ||
-            ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase))
+        // Model binding/JSON deserialization errors - these are validation errors (400)
+        OASISErrorHandling.HandleError($"JSON deserialization error: {ex.Message}", ex, includeStackTrace: true);
+        
+        var errorResult = new OASISResult<object>
         {
-            context.Response.StatusCode = 400;
-            context.Response.ContentType = "application/json";
-            var errorResult = new OASISResult<object>
-            {
-                IsError = true,
-                Message = ex is OASISException ? ex.Message : $"Invalid request: {ex.Message}",
-                Exception = ex
-            };
-            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
-            return;
+            IsError = true,
+            Exception = ex
+        };
+        
+        if (enableGenericExceptionHandling)
+        {
+            errorResult.Message = $"Invalid args were passed. Invalid JSON in request body: {ex.Message}";
+        }
+        else
+        {
+            errorResult.Message = $"Invalid JSON in request body: {ex.Message}";
+            errorResult.DetailedMessage = ex.ToString();
         }
         
-        // Re-throw other exceptions to be handled by default error handling
-        throw;
+        context.Response.StatusCode = 400;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+    }
+    catch (OASISException ex)
+    {
+        // OASIS-specific exceptions - these are validation errors (400)
+        OASISErrorHandling.HandleError(ex.Message, ex, includeStackTrace: true);
+        
+        var errorResult = new OASISResult<object>
+        {
+            IsError = true,
+            Exception = ex
+        };
+        
+        if (enableGenericExceptionHandling)
+        {
+            errorResult.Message = $"Invalid args were passed. {ex.Message}";
+        }
+        else
+        {
+            errorResult.Message = ex.Message;
+            errorResult.DetailedMessage = ex.ToString();
+        }
+        
+        context.Response.StatusCode = 400;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+    }
+    catch (Exception ex)
+    {
+        // Always log the error
+        OASISErrorHandling.HandleError($"Unexpected error in middleware: {ex.Message}", ex, includeStackTrace: true);
+        
+        // Check if this is a validation error or real exception
+        bool isValidationError = ex.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                                ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
+                                ex.Message.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
+                                ex.Message.Contains("cannot be null", StringComparison.OrdinalIgnoreCase) ||
+                                ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase);
+        
+        var errorResult = new OASISResult<object>
+        {
+            IsError = true,
+            Exception = ex
+        };
+        
+        if (isValidationError)
+        {
+            // Validation error - return 400
+            if (enableGenericExceptionHandling)
+            {
+                errorResult.Message = $"Invalid args were passed. {ex.Message}";
+            }
+            else
+            {
+                errorResult.Message = ex.Message;
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            context.Response.StatusCode = 400;
+        }
+        else
+        {
+            // Real exception - return 500
+            if (enableGenericExceptionHandling)
+            {
+                errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+            }
+            else
+            {
+                errorResult.Message = $"Unexpected error: {ex.Message}";
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            context.Response.StatusCode = 500;
+        }
+        
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
     }
 });
 
@@ -304,32 +380,72 @@ static Guid ParseAvatarIdFromJwt(string? token)
     return Guid.Empty;
 }
 
-// Exception filter to catch model binding and other exceptions
+// Exception filter - catch all exceptions, log them, and return real error details
+// Can be disabled in dev/test mode via ENABLE_GENERIC_EXCEPTION_HANDLING=false
 public class ExceptionFilter : IExceptionFilter
 {
+    private readonly bool _enableGenericExceptionHandling;
+
+    public ExceptionFilter(IConfiguration configuration)
+    {
+        _enableGenericExceptionHandling = configuration.GetValue<bool>("EnableGenericExceptionHandling", 
+            bool.Parse(Environment.GetEnvironmentVariable("ENABLE_GENERIC_EXCEPTION_HANDLING") ?? "true"));
+    }
+
     public void OnException(ExceptionContext context)
     {
         var ex = context.Exception;
         
-        // Check if this is a model binding/validation exception
-        if (ex is System.Text.Json.JsonException || 
-            ex is InvalidOperationException ||
-            ex is OASISException ||
-            (ex.InnerException is System.Text.Json.JsonException) ||
-            (ex.InnerException is InvalidOperationException) ||
-            (ex.InnerException is OASISException) ||
-            ex.Message.Contains("JSON", StringComparison.OrdinalIgnoreCase) ||
-            ex.Message.Contains("deserializ", StringComparison.OrdinalIgnoreCase) ||
-            ex.Message.Contains("binding", StringComparison.OrdinalIgnoreCase) ||
-            ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase))
+        // Always log the error first
+        OASISErrorHandling.HandleError($"Error in {context.ActionDescriptor.DisplayName}: {ex.Message}", ex, includeStackTrace: true);
+        
+        // Check if this is a validation error (400) or real exception (500)
+        bool isValidationError = ex is System.Text.Json.JsonException ||
+                                 ex is OASISException ||
+                                 ex.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("cannot be null", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase);
+        
+        var errorResult = new OASISResult<object>
         {
-            context.Result = new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(new OASISResult<object>
+            IsError = true,
+            Exception = ex
+        };
+        
+        if (isValidationError)
+        {
+            // Validation error - return 400
+            if (_enableGenericExceptionHandling)
             {
-                IsError = true,
-                Message = ex is OASISException ? ex.Message : $"Invalid request: {ex.Message}",
-                Exception = ex
-            });
-            context.ExceptionHandled = true;
+                errorResult.Message = $"Invalid args were passed to {context.ActionDescriptor.DisplayName}. {ex.Message}";
+            }
+            else
+            {
+                errorResult.Message = ex.Message;
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            context.Result = new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(errorResult);
         }
+        else
+        {
+            // Real exception - return 500
+            if (_enableGenericExceptionHandling)
+            {
+                errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+            }
+            else
+            {
+                errorResult.Message = $"Unexpected error in {context.ActionDescriptor.DisplayName}: {ex.Message}";
+                errorResult.DetailedMessage = ex.ToString();
+            }
+            context.Result = new Microsoft.AspNetCore.Mvc.ObjectResult(errorResult)
+            {
+                StatusCode = 500
+            };
+        }
+        
+        context.ExceptionHandled = true;
     }
 }

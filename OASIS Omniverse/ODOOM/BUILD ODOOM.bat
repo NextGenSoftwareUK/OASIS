@@ -120,6 +120,13 @@ copy /Y "%ODOOM_INTEGRATION%odoom_oquake_keys.zs" "%UZDOOM_SRC%\wadsrc\static\zs
 copy /Y "%ODOOM_INTEGRATION%odoom_oquake_items.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_items.zs" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_inventory_popup.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\ui\statusbar\odoom_inventory_popup.zs" >nul
 if not exist "%UZDOOM_SRC%\wadsrc\static\textures" mkdir "%UZDOOM_SRC%\wadsrc\static\textures"
+if exist "%ODOOM_INTEGRATION%face_anorak.png" (
+    echo [ODOOM][STEP] Preparing anorak HUD face from face_anorak.png ^(target 33x30^)...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_face_texture.ps1" -SourcePath "%ODOOM_INTEGRATION%face_anorak.png" -DestPath "%ODOOM_INTEGRATION%textures\OASFACE.png" -Width 33 -Height 30
+    if errorlevel 1 echo [ODOOM][WARN] face_anorak.png processing failed; using existing OASFACE.png if present.
+) else (
+    echo [ODOOM][NOTE] face_anorak.png not found in ODOOM root; using existing textures\OASFACE.png.
+)
 if exist "%ODOOM_INTEGRATION%textures\OASFACE.png" copy /Y "%ODOOM_INTEGRATION%textures\OASFACE.png" "%UZDOOM_SRC%\wadsrc\static\textures\OASFACE.png" >nul
 if not exist "%UZDOOM_SRC%\wadsrc\static\sprites" mkdir "%UZDOOM_SRC%\wadsrc\static\sprites"
 if not exist "%UZDOOM_SRC%\wadsrc\static\graphics" mkdir "%UZDOOM_SRC%\wadsrc\static\graphics"
@@ -299,8 +306,8 @@ if errorlevel 1 (echo [ODOOM][ERROR] Build failed. & pause & exit /b 1)
 
 echo.
 echo [ODOOM][STEP] Packaging output...
-REM Generate OASFACE texture and odoom_face.pk3 for beamed-in status bar face
-echo [ODOOM][STEP] Generating OASIS beamed-in face (OASFACE)...
+REM Package current OASFACE texture into odoom_face.pk3 for standalone distribution
+echo [ODOOM][STEP] Packaging OASIS beamed-in face (OASFACE)...
 "%PYTHON3_EXE%" "%ODOOM_INTEGRATION%create_odoom_face_pk3.py"
 if errorlevel 1 echo [ODOOM][WARN] OASFACE pk3 generation failed - beamed-in face may be missing.
 
