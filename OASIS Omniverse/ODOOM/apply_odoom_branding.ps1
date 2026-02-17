@@ -171,17 +171,15 @@ if (Test-Path $gGameCpp) {
     }
 }
 
-# 3b. sbar_mugshot.cpp: show OASIS face (OASFACE) only when anorak face mode is enabled
+# 3b. sbar_mugshot.cpp: show OASIS face (OASFACE) only when anorak face mode is enabled (via UZDoom_STAR_GetShowAnorakFace)
 if (Test-Path $sbarMugshotCpp) {
     $mugContent = Get-Content $sbarMugshotCpp -Raw
-    if ($mugContent -match 'FMugShot::GetFace' -and $mugContent -notmatch 'oasis_star_anorak_face.*OASFACE|OASFACE.*oasis_star_anorak_face') {
+    if ($mugContent -match 'FMugShot::GetFace' -and $mugContent -notmatch 'UZDoom_STAR_GetShowAnorakFace|oasis_star_anorak_face.*OASFACE|OASFACE.*oasis_star_anorak_face') {
         $oldMug = '(FGameTexture \*FMugShot::GetFace\(player_t \*player, const char \*default_face, int accuracy, StateFlags stateflags\)\r?\n\{\r?\n)(\tint angle = UpdateState)'
         $newMug = @"
 `$1
 #ifdef OASIS_STAR_API
-	FBaseCVar *anorakFaceVar = FindCVar("oasis_star_anorak_face", nullptr);
-	bool anorakFace = (anorakFaceVar && anorakFaceVar->GetRealType() == CVAR_Bool) && (anorakFaceVar->GetGenericRep(CVAR_Bool).Int != 0);
-	if (anorakFace)
+	if (UZDoom_STAR_GetShowAnorakFace() != 0)
 	{
 		FGameTexture *oasFace = TexMan.FindGameTexture("OASFACE", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins);
 		if (!oasFace) oasFace = TexMan.GetGameTexture(TexMan.CheckForTexture("OASFACE", ETextureType::Any, FTextureManager::TEXMAN_TryAny|FTextureManager::TEXMAN_AllowSkins));
@@ -192,6 +190,9 @@ if (Test-Path $sbarMugshotCpp) {
 `$2
 "@
         $mugContent = $mugContent -replace $oldMug, $newMug
+        if ($mugContent -notmatch 'uzdoom_star_integration\.h') {
+            $mugContent = $mugContent -replace '(#include "texturemanager\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+        }
         Set-Content $sbarMugshotCpp $mugContent -NoNewline
         $changes += "sbar_mugshot"
     }

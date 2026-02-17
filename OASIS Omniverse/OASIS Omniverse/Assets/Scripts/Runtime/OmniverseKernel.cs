@@ -90,6 +90,11 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             {
                 _hostService.HideAllGames();
             }
+
+            if (_hudOverlay != null && _hostService != null)
+            {
+                _hudOverlay.UpdateReturnToHubButtonVisibility(_hostService.HasActiveGame());
+            }
         }
 
         public async System.Threading.Tasks.Task<OASISResult<bool>> EnterPortalAsync(string gameId, int? targetLevel)
