@@ -11,6 +11,18 @@ using UnityEngine;
 
 namespace OASIS.Omniverse.UnityHost.Runtime
 {
+    [Serializable]
+    public class HostRuntimeHealthSnapshot
+    {
+        public int totalSessions;
+        public string activeGameId;
+        public ulong availablePhysicalMemoryMb;
+        public int restarts;
+        public int recoveredWindowHandles;
+        public string lastMaintenanceMessage;
+        public string lastMaintenanceUtc;
+    }
+
     public class GameProcessHostService
     {
         private class HostedSession
@@ -20,6 +32,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             public IntPtr WindowHandle;
             public DateTime LastUsedUtc;
             public bool IsVisible;
+            public int RecoveryCount;
         }
 
         private readonly OmniverseHostConfig _config;
@@ -27,6 +40,10 @@ namespace OASIS.Omniverse.UnityHost.Runtime
         private readonly Dictionary<string, HostedSession> _sessions = new Dictionary<string, HostedSession>(StringComparer.OrdinalIgnoreCase);
         private DateTime _lastMaintenanceUtc = DateTime.MinValue;
         private string _activeGameId = string.Empty;
+        private string _lastMaintenanceMessage = "Not started";
+        private ulong _lastAvailableMemoryMb;
+        private int _restartCount;
+        private int _recoveredHandleCount;
 
         public GameProcessHostService(OmniverseHostConfig config, GlobalSettingsService globalSettingsService)
         {
@@ -58,6 +75,20 @@ namespace OASIS.Omniverse.UnityHost.Runtime
 
             if (_sessions.ContainsKey(gameId) && _sessions[gameId].Process is { HasExited: false })
             {
+                var existing = _sessions[gameId];
+                if (existing.WindowHandle == IntPtr.Zero)
+                {
+                    var recovered = await RecoverWindowHandleAsync(existing);
+                    if (recovered.IsError)
+                    {
+                        _lastMaintenanceMessage = recovered.Message;
+                    }
+                    else
+                    {
+                        _recoveredHandleCount++;
+                    }
+                }
+
                 return OASISResult<bool>.Success(true, $"{game.displayName} already preloaded.");
             }
 
@@ -138,6 +169,19 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             }
 
             var target = _sessions[gameId];
+            if (target.WindowHandle == IntPtr.Zero)
+            {
+                var recoveredWindow = await RecoverWindowHandleAsync(target);
+                if (recoveredWindow.IsError)
+                {
+                        RuntimeDiagnosticsLog.Write("HOST", recoveredWindow.Message);
+                    return OASISResult<bool>.Error(recoveredWindow.Message);
+                }
+
+                _recoveredHandleCount++;
+                    RuntimeDiagnosticsLog.Write("HOST", $"Recovered window handle for '{target.Definition.displayName}'.");
+            }
+
             EmbedIntoUnityWindow(target.WindowHandle);
             ShowWindow(target);
             target.LastUsedUtc = DateTime.UtcNow;
@@ -178,19 +222,26 @@ namespace OASIS.Omniverse.UnityHost.Runtime
 
             _lastMaintenanceUtc = DateTime.UtcNow;
             CleanupExitedProcesses();
+            RecoverMissingWindowHandles();
+            EnsureActiveSessionAlive();
 
             var availableMb = Win32Interop.GetAvailablePhysicalMemoryMb();
+            _lastAvailableMemoryMb = availableMb;
             if (availableMb == 0)
             {
+                _lastMaintenanceMessage = "Memory probe unavailable on this platform.";
+                RuntimeDiagnosticsLog.Write("HOST", _lastMaintenanceMessage);
                 return OASISResult<bool>.Success(true, "Memory probe unavailable on this platform.");
             }
 
             if (availableMb >= (ulong)Math.Max(128, _config.lowMemoryAvailableMbThreshold))
             {
+                _lastMaintenanceMessage = $"Memory healthy ({availableMb} MB available).";
                 return OASISResult<bool>.Success(true, $"Memory healthy ({availableMb} MB available).");
             }
 
             var staleCutoff = DateTime.UtcNow.AddMinutes(-Math.Max(1, _config.staleGameMinutes));
+            var removedAny = false;
             foreach (var kv in _sessions
                          .Where(x => !x.Key.Equals(_activeGameId, StringComparison.OrdinalIgnoreCase) && x.Value.LastUsedUtc <= staleCutoff)
                          .OrderBy(x => x.Value.LastUsedUtc)
@@ -198,6 +249,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             {
                 KillSession(kv.Value);
                 _sessions.Remove(kv.Key);
+                removedAny = true;
 
                 availableMb = Win32Interop.GetAvailablePhysicalMemoryMb();
                 if (availableMb >= (ulong)Math.Max(128, _config.lowMemoryAvailableMbThreshold))
@@ -206,7 +258,39 @@ namespace OASIS.Omniverse.UnityHost.Runtime
                 }
             }
 
+            if (!removedAny && availableMb < (ulong)Math.Max(128, _config.lowMemoryAvailableMbThreshold * 0.7f))
+            {
+                // Emergency pass: unload least-recent non-active game if all sessions are "fresh".
+                var emergencyVictim = _sessions
+                    .Where(x => !x.Key.Equals(_activeGameId, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(x => x.Value.LastUsedUtc)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(emergencyVictim.Key))
+                {
+                    KillSession(emergencyVictim.Value);
+                    _sessions.Remove(emergencyVictim.Key);
+                    RuntimeDiagnosticsLog.Write("HOST", $"Emergency unloaded '{emergencyVictim.Key}' due to low memory pressure.");
+                    availableMb = Win32Interop.GetAvailablePhysicalMemoryMb();
+                }
+            }
+
+            _lastMaintenanceMessage = $"Maintenance complete. Available memory: {availableMb} MB";
             return OASISResult<bool>.Success(true, $"Maintenance complete. Available memory: {availableMb} MB");
+        }
+
+        public HostRuntimeHealthSnapshot GetHealthSnapshot()
+        {
+            return new HostRuntimeHealthSnapshot
+            {
+                totalSessions = _sessions.Count,
+                activeGameId = string.IsNullOrWhiteSpace(_activeGameId) ? "(none)" : _activeGameId,
+                availablePhysicalMemoryMb = _lastAvailableMemoryMb,
+                restarts = _restartCount,
+                recoveredWindowHandles = _recoveredHandleCount,
+                lastMaintenanceMessage = _lastMaintenanceMessage,
+                lastMaintenanceUtc = _lastMaintenanceUtc == DateTime.MinValue ? "never" : _lastMaintenanceUtc.ToString("u")
+            };
         }
 
         private static async Task<OASISResult<IntPtr>> ResolveMainWindowAsync(Process process, string displayName)
@@ -284,6 +368,86 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             {
                 _sessions.Remove(key);
             }
+        }
+
+        private void EnsureActiveSessionAlive()
+        {
+            if (string.IsNullOrWhiteSpace(_activeGameId))
+            {
+                return;
+            }
+
+            if (!_sessions.TryGetValue(_activeGameId, out var active))
+            {
+                return;
+            }
+
+            if (active.Process == null || active.Process.HasExited)
+            {
+                _lastMaintenanceMessage = $"Active session '{_activeGameId}' exited. Restarting...";
+                _ = RestartSessionAsync(_activeGameId);
+            }
+        }
+
+        private async Task RestartSessionAsync(string gameId)
+        {
+            try
+            {
+                _sessions.Remove(gameId);
+                var preload = await PreloadGameAsync(gameId);
+                if (!preload.IsError)
+                {
+                    _restartCount++;
+                    RuntimeDiagnosticsLog.Write("HOST", $"Restarted active session '{gameId}' after unexpected exit.");
+                    await ActivateGameAsync(gameId);
+                }
+                else
+                {
+                    RuntimeDiagnosticsLog.Write("HOST", $"Failed to restart active session '{gameId}': {preload.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _lastMaintenanceMessage = $"Failed to restart active session '{gameId}': {ex.Message}";
+                RuntimeDiagnosticsLog.Write("HOST", _lastMaintenanceMessage);
+            }
+        }
+
+        private void RecoverMissingWindowHandles()
+        {
+            foreach (var session in _sessions.Values)
+            {
+                if (session.Process == null || session.Process.HasExited || session.WindowHandle != IntPtr.Zero)
+                {
+                    continue;
+                }
+
+                _ = RecoverWindowHandleAsync(session);
+            }
+        }
+
+        private static async Task<OASISResult<bool>> RecoverWindowHandleAsync(HostedSession session)
+        {
+            if (session?.Process == null || session.Process.HasExited)
+            {
+                return OASISResult<bool>.Error("Process exited before window handle recovery.");
+            }
+
+            var timeout = DateTime.UtcNow.AddSeconds(6);
+            while (DateTime.UtcNow < timeout)
+            {
+                session.Process.Refresh();
+                if (session.Process.MainWindowHandle != IntPtr.Zero)
+                {
+                    session.WindowHandle = session.Process.MainWindowHandle;
+                    session.RecoveryCount++;
+                    return OASISResult<bool>.Success(true);
+                }
+
+                await Task.Delay(100);
+            }
+
+            return OASISResult<bool>.Error($"Failed to recover window handle for '{session.Definition?.displayName ?? "Unknown"}'.");
         }
 
         private static void KillSession(HostedSession session)

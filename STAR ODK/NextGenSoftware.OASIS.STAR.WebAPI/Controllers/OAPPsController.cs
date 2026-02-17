@@ -69,12 +69,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error loading OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "loading OAPP");
             }
         }
 
@@ -97,12 +92,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error creating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "creating OAPP");
             }
         }
 
@@ -117,12 +107,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error updating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "updating OAPP");
             }
         }
 
@@ -136,12 +121,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting OAPP");
             }
         }
 
@@ -155,12 +135,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning OAPP");
             }
         }
 
@@ -193,12 +168,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error publishing OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "publishing OAPP");
             }
         }
 
@@ -291,12 +261,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error creating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "creating OAPP");
             }
         }
 
@@ -319,12 +284,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error loading OAPP from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "loading OAPP from path");
             }
         }
 
@@ -347,12 +307,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error loading OAPP from published: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "loading OAPP from published");
             }
         }
 
@@ -431,12 +386,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading OAPP");
             }
         }
 
@@ -460,12 +410,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error loading OAPP version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "loading OAPP version");
             }
         }
 
@@ -489,12 +434,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error editing OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "editing OAPP");
             }
         }
 
@@ -517,12 +457,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "unpublishing OAPP");
             }
         }
 
@@ -546,12 +481,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error republishing OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "republishing OAPP");
             }
         }
 
@@ -574,12 +504,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error activating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "activating OAPP");
             }
         }
 
@@ -602,12 +527,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "deactivating OAPP");
             }
         }
     }

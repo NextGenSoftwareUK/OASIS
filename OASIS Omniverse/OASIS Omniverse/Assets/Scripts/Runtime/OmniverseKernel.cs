@@ -6,6 +6,13 @@ using OASIS.Omniverse.UnityHost.API;
 
 namespace OASIS.Omniverse.UnityHost.Runtime
 {
+    [System.Serializable]
+    public class OmniverseRuntimeHealthSnapshot
+    {
+        public GatewayHealthSnapshot api = new GatewayHealthSnapshot();
+        public HostRuntimeHealthSnapshot host = new HostRuntimeHealthSnapshot();
+    }
+
     public class OmniverseKernel : MonoBehaviour
     {
         public static OmniverseKernel Instance { get; private set; }
@@ -140,6 +147,15 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             }
 
             return await _globalSettingsService.SavePreferencesOnlyAsync(settings, _apiClient);
+        }
+
+        public OmniverseRuntimeHealthSnapshot GetRuntimeHealthSnapshot()
+        {
+            return new OmniverseRuntimeHealthSnapshot
+            {
+                api = _apiClient?.GetHealthSnapshot() ?? new GatewayHealthSnapshot(),
+                host = _hostService?.GetHealthSnapshot() ?? new HostRuntimeHealthSnapshot()
+            };
         }
 
         public OASISResult<OmniversePanelLayout> GetQuestTrackerLayout()

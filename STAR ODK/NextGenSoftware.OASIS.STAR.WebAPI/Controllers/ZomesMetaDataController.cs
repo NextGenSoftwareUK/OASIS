@@ -69,12 +69,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "loading Zome Metadata");
             }
         }
 
@@ -97,12 +92,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error creating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "creating Zome Metadata");
             }
         }
 
@@ -126,12 +116,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error updating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "updating Zome Metadata");
             }
         }
 
@@ -154,12 +139,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting Zome Metadata");
             }
         }
 
@@ -181,12 +161,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning Zome Metadata");
             }
         }
 
@@ -210,12 +185,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error publishing Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "publishing Zome Metadata");
             }
         }
 
@@ -296,12 +266,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error creating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "creating Zome Metadata");
             }
         }
 
@@ -324,12 +289,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Zome Metadata from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "loading Zome Metadata from path");
             }
         }
 
@@ -352,12 +312,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Zome Metadata from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "loading Zome Metadata from published file");
             }
         }
 
@@ -436,12 +391,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading Zome Metadata");
             }
         }
 
@@ -465,12 +415,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "loading version");
             }
         }
 
@@ -494,12 +439,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error editing Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "editing Zome Metadata");
             }
         }
 
@@ -523,12 +463,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "unpublishing Zome Metadata");
             }
         }
 
@@ -553,12 +488,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error republishing Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "republishing Zome Metadata");
             }
         }
 
@@ -582,12 +512,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error activating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "activating Zome Metadata");
             }
         }
 
@@ -611,12 +536,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "deactivating Zome Metadata");
             }
         }
     }

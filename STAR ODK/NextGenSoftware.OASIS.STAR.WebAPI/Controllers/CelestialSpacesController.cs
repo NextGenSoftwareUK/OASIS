@@ -70,12 +70,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "loading celestial space");
             }
         }
 
@@ -98,12 +93,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error creating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "creating celestial space");
             }
         }
 
@@ -128,12 +118,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error updating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "updating celestial space");
             }
         }
 
@@ -156,12 +141,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting celestial space");
             }
         }
 
@@ -278,12 +258,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error creating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "creating celestial space");
             }
         }
 
@@ -309,12 +284,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "loading celestial space");
             }
         }
 
@@ -339,12 +309,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial space from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "loading celestial space from path");
             }
         }
 
@@ -367,12 +332,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial space from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "loading celestial space from published file");
             }
         }
 
@@ -434,12 +394,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error publishing celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "publishing celestial space");
             }
         }
 
@@ -465,12 +420,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error downloading celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARCelestialSpace>(ex, "downloading celestial space");
             }
         }
 
@@ -522,12 +472,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial space version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "loading celestial space version");
             }
         }
 
@@ -551,12 +496,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error editing celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "editing celestial space");
             }
         }
 
@@ -580,12 +520,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "unpublishing celestial space");
             }
         }
 
@@ -609,12 +544,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error republishing celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "republishing celestial space");
             }
         }
 
@@ -638,12 +568,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error activating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "activating celestial space");
             }
         }
 
@@ -667,12 +592,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "deactivating celestial space");
             }
         }
     }

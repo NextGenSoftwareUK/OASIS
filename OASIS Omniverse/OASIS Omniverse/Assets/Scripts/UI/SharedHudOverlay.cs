@@ -24,7 +24,8 @@ namespace OASIS.Omniverse.UnityHost.UI
             Nfts,
             Avatar,
             Karma,
-            Settings
+            Settings,
+            Diagnostics
         }
 
         private enum ToastSeverity
@@ -45,6 +46,7 @@ namespace OASIS.Omniverse.UnityHost.UI
         private const float ToastEnterDuration = 0.12f;
         private const float ToastExitDuration = 0.16f;
         private const float ToastSlideLerpSpeed = 14f;
+        private const float StatusStripPollSeconds = 0.6f;
 
         [Serializable]
         private class PresetExportPackage
@@ -74,8 +76,10 @@ namespace OASIS.Omniverse.UnityHost.UI
         private GameObject _settingsRoot;
         private GameObject _listControlsRoot;
         private RectTransform _toastRoot;
+        private RectTransform _statusStripRoot;
         private Text _contentText;
         private Text _statusText;
+        private Text _statusStripText;
         private InputField _searchInput;
         private Dropdown _sortFieldDropdown;
         private Dropdown _sortDirectionDropdown;
@@ -93,14 +97,18 @@ namespace OASIS.Omniverse.UnityHost.UI
         private bool _isRefreshing;
         private bool _suppressPresetEvents;
         private Coroutine _controlCenterTween;
+        private float _nextStatusStripPoll;
         private readonly List<ToastEntry> _activeToasts = new List<ToastEntry>();
 
         private Slider _masterSlider;
         private Slider _musicSlider;
         private Slider _soundSlider;
         private Slider _voiceSlider;
+        private Slider _uiFontScaleSlider;
         private Dropdown _graphicsDropdown;
         private Toggle _fullscreenToggle;
+        private Toggle _highContrastToggle;
+        private Toggle _showStatusStripToggle;
         private InputField _openMenuInput;
         private InputField _hideGameInput;
         private InputField _toastMaxVisibleInput;
@@ -113,6 +121,7 @@ namespace OASIS.Omniverse.UnityHost.UI
         private Button _trackerTopLeftButton;
         private Button _trackerTopRightButton;
         private Button _trackerCenterButton;
+        private Button _diagnosticsExportButton;
 
         private readonly List<InventoryItem> _inventoryCache = new List<InventoryItem>();
         private readonly List<QuestItem> _questCache = new List<QuestItem>();
@@ -132,7 +141,8 @@ namespace OASIS.Omniverse.UnityHost.UI
             { OmniverseTab.Nfts, new[] { "Name", "Type", "Source" } },
             { OmniverseTab.Karma, new[] { "Date", "Source", "Amount" } },
             { OmniverseTab.Avatar, new[] { "Name" } },
-            { OmniverseTab.Settings, new[] { "Name" } }
+            { OmniverseTab.Settings, new[] { "Name" } },
+            { OmniverseTab.Diagnostics, new[] { "Name" } }
         };
 
         public void Initialize(OmniverseHostConfig config, Web4Web5GatewayClient apiClient, GlobalSettingsService settingsService, OmniverseKernel kernel)
@@ -188,6 +198,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             CreateTabButton(tabs.transform, "Avatar", OmniverseTab.Avatar, 3);
             CreateTabButton(tabs.transform, "Karma", OmniverseTab.Karma, 4);
             CreateTabButton(tabs.transform, "Settings", OmniverseTab.Settings, 5);
+            CreateTabButton(tabs.transform, "Diagnostics", OmniverseTab.Diagnostics, 6);
 
             BuildListControls();
 
@@ -209,6 +220,8 @@ namespace OASIS.Omniverse.UnityHost.UI
             _settingsRoot.SetActive(false);
 
             BuildToastUi();
+            BuildStatusStripUi();
+            ApplyAccessibilityTheme();
         }
 
         private void BuildToastUi()
@@ -221,6 +234,25 @@ namespace OASIS.Omniverse.UnityHost.UI
             _toastRoot.pivot = new Vector2(0.5f, 1f);
             _toastRoot.anchoredPosition = new Vector2(0f, -10f);
             _toastRoot.sizeDelta = new Vector2(ToastWidth, 1f);
+        }
+
+        private void BuildStatusStripUi()
+        {
+            var root = new GameObject("OmniverseStatusStrip");
+            root.transform.SetParent(_canvas.transform, false);
+            _statusStripRoot = root.AddComponent<RectTransform>();
+            _statusStripRoot.anchorMin = new Vector2(0f, 1f);
+            _statusStripRoot.anchorMax = new Vector2(1f, 1f);
+            _statusStripRoot.pivot = new Vector2(0.5f, 1f);
+            _statusStripRoot.anchoredPosition = new Vector2(0f, 0f);
+            _statusStripRoot.sizeDelta = new Vector2(0f, 28f);
+
+            var background = root.AddComponent<Image>();
+            background.color = new Color(0f, 0f, 0f, 0.68f);
+
+            _statusStripText = CreateText("StatusStripText", "Runtime status initializing...", 14, TextAnchor.MiddleLeft, root.transform, 0.01f, 0f, 0.99f, 1f);
+            _statusStripText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            _statusStripText.verticalOverflow = VerticalWrapMode.Truncate;
         }
 
         private void BuildListControls()
@@ -307,6 +339,10 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             var importButton = CreateButton(_listControlsRoot.transform, "Import", 0.96f, 0.10f, 1.0f, 0.48f);
             importButton.onClick.AddListener(() => _ = ImportPresetsFromClipboardAsync());
+
+            _diagnosticsExportButton = CreateButton(_listControlsRoot.transform, "Copy Diag", 0.86f, 0.56f, 1.0f, 0.94f);
+            _diagnosticsExportButton.onClick.AddListener(CopyDiagnosticsToClipboard);
+            _diagnosticsExportButton.gameObject.SetActive(false);
         }
 
         private void Update()
@@ -326,9 +362,48 @@ namespace OASIS.Omniverse.UnityHost.UI
             HandleLayoutHotkeys();
             TickToastQueue();
             TickToastAnimations();
+            TickStatusStrip();
 
             _toggleWasDown = toggleDown;
             _hideWasDown = hideDown;
+        }
+
+        private void TickStatusStrip()
+        {
+            if (_statusStripRoot == null || _statusStripText == null || _kernel == null)
+            {
+                return;
+            }
+
+            if (Time.unscaledTime < _nextStatusStripPoll)
+            {
+                return;
+            }
+
+            _nextStatusStripPoll = Time.unscaledTime + StatusStripPollSeconds;
+            var health = _kernel.GetRuntimeHealthSnapshot();
+            var severityColor = "#8EEBFF";
+            if (health.api != null)
+            {
+                if (health.api.authExpired || health.api.circuitOpen)
+                {
+                    severityColor = "#FF8A8A";
+                }
+                else if (health.api.consecutiveFailures > 0 || health.api.lastResultFromCache)
+                {
+                    severityColor = "#FFD86B";
+                }
+            }
+
+            var apiMode = health.api != null && health.api.lastResultFromCache ? "CACHE" : "LIVE";
+            var circuit = health.api != null && health.api.circuitOpen ? "OPEN" : "OK";
+            var auth = health.api != null && health.api.authExpired ? "AUTH-ERR" : "AUTH-OK";
+            var latency = health.api != null ? $"{health.api.lastLatencyMs}ms" : "n/a";
+            var hostSessions = health.host != null ? health.host.totalSessions.ToString() : "0";
+            var hostActive = health.host != null ? health.host.activeGameId : "(none)";
+            var hostMemory = health.host != null ? $"{health.host.availablePhysicalMemoryMb}MB" : "n/a";
+
+            _statusStripText.text = $"<color={severityColor}>API {apiMode} | Circuit {circuit} | {auth} | {latency}</color>    Host Sessions: {hostSessions} | Active: {hostActive} | Free RAM: {hostMemory}";
         }
 
         private void HandleLayoutHotkeys()
@@ -627,6 +702,15 @@ namespace OASIS.Omniverse.UnityHost.UI
             _contentRoot.SetActive(!isSettings);
             _settingsRoot.SetActive(isSettings);
             _listControlsRoot.SetActive(!isSettings);
+            var diagnosticsMode = tab == OmniverseTab.Diagnostics;
+            if (_searchInput != null) _searchInput.gameObject.SetActive(!diagnosticsMode);
+            if (_sortFieldDropdown != null) _sortFieldDropdown.gameObject.SetActive(!diagnosticsMode);
+            if (_sortDirectionDropdown != null) _sortDirectionDropdown.gameObject.SetActive(!diagnosticsMode);
+            if (_presetDropdown != null) _presetDropdown.gameObject.SetActive(!diagnosticsMode);
+            if (_templateDropdown != null) _templateDropdown.gameObject.SetActive(!diagnosticsMode);
+            if (_presetNameInput != null) _presetNameInput.gameObject.SetActive(!diagnosticsMode);
+            if (_pageIndicator != null) _pageIndicator.gameObject.SetActive(!diagnosticsMode);
+            if (_diagnosticsExportButton != null) _diagnosticsExportButton.gameObject.SetActive(diagnosticsMode);
 
             if (isSettings)
             {
@@ -723,6 +807,10 @@ namespace OASIS.Omniverse.UnityHost.UI
                         }
                         break;
                     }
+                    case OmniverseTab.Diagnostics:
+                    {
+                        break;
+                    }
                 }
             }
             finally
@@ -758,6 +846,9 @@ namespace OASIS.Omniverse.UnityHost.UI
                     break;
                 case OmniverseTab.Karma:
                     DrawKarma(builder, query);
+                    break;
+                case OmniverseTab.Diagnostics:
+                    DrawDiagnostics(builder);
                     break;
             }
 
@@ -843,6 +934,53 @@ namespace OASIS.Omniverse.UnityHost.UI
                     return $"[{item.createdDate}] <color=#8EEBFF>{item.source}</color> | <color={amountColor}>{item.amount:0.##}</color> | {item.reason}";
                 },
                 "(no records)");
+        }
+
+        private void DrawDiagnostics(StringBuilder builder)
+        {
+            _pageIndicator.text = "Diagnostics";
+            var health = _kernel?.GetRuntimeHealthSnapshot();
+            builder.AppendLine("Runtime Diagnostics");
+            builder.AppendLine(new string('-', 64));
+            if (health == null)
+            {
+                builder.AppendLine("No runtime health available.");
+                return;
+            }
+
+            builder.AppendLine("API Gateway");
+            builder.AppendLine($"  Circuit Open: {health.api?.circuitOpen}");
+            builder.AppendLine($"  Consecutive Failures: {health.api?.consecutiveFailures}");
+            builder.AppendLine($"  Last Error: {health.api?.lastError}");
+            builder.AppendLine($"  Last Result From Cache: {health.api?.lastResultFromCache}");
+            builder.AppendLine($"  Auth Expired: {health.api?.authExpired}");
+            builder.AppendLine($"  Last Latency: {health.api?.lastLatencyMs}ms");
+            builder.AppendLine($"  Last Success UTC: {health.api?.lastSuccessUtc}");
+            builder.AppendLine();
+            builder.AppendLine("Hosted Process Runtime");
+            builder.AppendLine($"  Sessions: {health.host?.totalSessions}");
+            builder.AppendLine($"  Active Game: {health.host?.activeGameId}");
+            builder.AppendLine($"  Available RAM: {health.host?.availablePhysicalMemoryMb} MB");
+            builder.AppendLine($"  Restarts: {health.host?.restarts}");
+            builder.AppendLine($"  Window Recoveries: {health.host?.recoveredWindowHandles}");
+            builder.AppendLine($"  Last Maintenance: {health.host?.lastMaintenanceMessage}");
+            builder.AppendLine($"  Last Maintenance UTC: {health.host?.lastMaintenanceUtc}");
+            builder.AppendLine();
+            builder.AppendLine("Use 'Copy Diag' to export snapshot + recent runtime log to clipboard.");
+        }
+
+        private void CopyDiagnosticsToClipboard()
+        {
+            var health = _kernel?.GetRuntimeHealthSnapshot();
+            var package = new
+            {
+                exportedUtc = DateTime.UtcNow.ToString("u"),
+                runtime = health,
+                recentLogs = RuntimeDiagnosticsLog.ReadRecentLines(120)
+            };
+
+            GUIUtility.systemCopyBuffer = JsonConvert.SerializeObject(package, Formatting.Indented);
+            ShowToast("Diagnostics copied to clipboard.", ToastSeverity.Success, 1.8f);
         }
 
         private void WritePaged<T>(StringBuilder builder, List<T> filtered, Func<T, string> formatter, string emptyText)
@@ -1779,13 +1917,17 @@ namespace OASIS.Omniverse.UnityHost.UI
             _musicSlider.value = s.musicVolume;
             _soundSlider.value = s.soundVolume;
             _voiceSlider.value = s.voiceVolume;
+            _uiFontScaleSlider.value = Mathf.InverseLerp(0.8f, 1.5f, Mathf.Clamp(s.uiFontScale, 0.8f, 1.5f));
             _graphicsDropdown.value = GraphicsValue(s.graphicsPreset);
             _fullscreenToggle.isOn = s.fullscreen;
+            _highContrastToggle.isOn = s.uiHighContrast;
+            _showStatusStripToggle.isOn = s.showStatusStrip;
             _openMenuInput.text = s.keyOpenControlCenter;
             _hideGameInput.text = s.keyHideHostedGame;
             _toastMaxVisibleInput.text = Mathf.Clamp(s.toastMaxVisible, 1, 8).ToString();
             _toastDurationInput.text = Mathf.Clamp(s.toastDurationSeconds, 0.4f, 8f).ToString("0.0");
             _settingsFeedbackText.text = "Update values, then Save & Apply.";
+            ApplyAccessibilityTheme();
         }
 
         private void BuildSettingsUi(Transform root)
@@ -1794,12 +1936,19 @@ namespace OASIS.Omniverse.UnityHost.UI
             _musicSlider = CreateSlider(root, "Music Volume", 0.74f);
             _soundSlider = CreateSlider(root, "Sound FX Volume", 0.60f);
             _voiceSlider = CreateSlider(root, "Voice Volume", 0.46f);
+            _uiFontScaleSlider = CreateSlider(root, "UI Font Scale", 0.40f);
 
             CreateText("GraphicsLabel", "Graphics Preset", 18, TextAnchor.MiddleLeft, root, 0.02f, 0.33f, 0.35f, 0.40f);
             _graphicsDropdown = CreateDropdown(root, new[] { "Low", "Medium", "High", "Ultra", "Custom" }, 0.36f, 0.33f, 0.58f, 0.40f);
 
             CreateText("FullscreenLabel", "Fullscreen", 18, TextAnchor.MiddleLeft, root, 0.62f, 0.33f, 0.78f, 0.40f);
             _fullscreenToggle = CreateToggle(root, 0.80f, 0.34f, 0.85f, 0.39f);
+
+            CreateText("HighContrastLabel", "High Contrast UI", 16, TextAnchor.MiddleLeft, root, 0.62f, 0.27f, 0.78f, 0.33f);
+            _highContrastToggle = CreateToggle(root, 0.80f, 0.275f, 0.85f, 0.325f);
+
+            CreateText("StatusStripLabel", "Show Runtime Status Strip", 16, TextAnchor.MiddleLeft, root, 0.02f, 0.27f, 0.31f, 0.33f);
+            _showStatusStripToggle = CreateToggle(root, 0.32f, 0.275f, 0.37f, 0.325f);
 
             CreateText("OpenMenuKeyLabel", "Open Control Center Key", 17, TextAnchor.MiddleLeft, root, 0.02f, 0.21f, 0.30f, 0.28f);
             _openMenuInput = CreateInputField(root, 0.31f, 0.21f, 0.45f, 0.28f);
@@ -1846,6 +1995,7 @@ namespace OASIS.Omniverse.UnityHost.UI
         {
             var toastMaxVisible = Mathf.Clamp(ParseIntOrDefault(_toastMaxVisibleInput, DefaultMaxVisibleToasts), 1, 8);
             var toastDurationSeconds = Mathf.Clamp(ParseFloatOrDefault(_toastDurationInput, DefaultToastDurationSeconds), 0.4f, 8f);
+            var uiFontScale = Mathf.Lerp(0.8f, 1.5f, Mathf.Clamp01(_uiFontScaleSlider.value));
             var settings = new OmniverseGlobalSettings
             {
                 masterVolume = _masterSlider.value,
@@ -1859,6 +2009,9 @@ namespace OASIS.Omniverse.UnityHost.UI
                 keyHideHostedGame = _hideGameInput.text.Trim().ToUpperInvariant(),
                 toastMaxVisible = toastMaxVisible,
                 toastDurationSeconds = toastDurationSeconds,
+                uiFontScale = uiFontScale,
+                uiHighContrast = _highContrastToggle.isOn,
+                showStatusStrip = _showStatusStripToggle.isOn,
                 viewPresets = (_settingsService.CurrentSettings.viewPresets ?? new List<OmniverseViewPreset>()).ToList(),
                 activeViewPresets = (_settingsService.CurrentSettings.activeViewPresets ?? new List<OmniverseActiveViewPreset>()).ToList(),
                 panelLayouts = (_settingsService.CurrentSettings.panelLayouts ?? new List<OmniversePanelLayout>()).ToList()
@@ -1874,7 +2027,42 @@ namespace OASIS.Omniverse.UnityHost.UI
             SyncHotkeysFromSettings();
             _toastMaxVisibleInput.text = toastMaxVisible.ToString();
             _toastDurationInput.text = toastDurationSeconds.ToString("0.0");
+            ApplyAccessibilityTheme();
             _settingsFeedbackText.text = "Saved + applied to host and cached game sessions.";
+        }
+
+        private void ApplyAccessibilityTheme()
+        {
+            if (_settingsService?.CurrentSettings == null)
+            {
+                return;
+            }
+
+            var settings = _settingsService.CurrentSettings;
+            if (_panel != null)
+            {
+                _panel.transform.localScale = Vector3.one * Mathf.Clamp(settings.uiFontScale, 0.8f, 1.5f);
+                var panelImage = _panel.GetComponent<Image>();
+                if (panelImage != null)
+                {
+                    panelImage.color = settings.uiHighContrast ? new Color(0f, 0f, 0f, 0.93f) : new Color(0f, 0f, 0f, 0.82f);
+                }
+            }
+
+            if (_statusStripRoot != null)
+            {
+                _statusStripRoot.gameObject.SetActive(settings.showStatusStrip);
+                var stripImage = _statusStripRoot.GetComponent<Image>();
+                if (stripImage != null)
+                {
+                    stripImage.color = settings.uiHighContrast ? new Color(0f, 0f, 0f, 0.9f) : new Color(0f, 0f, 0f, 0.68f);
+                }
+            }
+
+            if (_contentText != null)
+            {
+                _contentText.color = settings.uiHighContrast ? Color.white : new Color(0.8f, 0.92f, 1f, 1f);
+            }
         }
 
         private static int ParseIntOrDefault(InputField input, int fallback)

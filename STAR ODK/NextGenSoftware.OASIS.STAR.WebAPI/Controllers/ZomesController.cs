@@ -70,12 +70,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error loading zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "loading zome");
             }
         }
 
@@ -98,12 +93,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error creating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "creating zome");
             }
         }
 
@@ -118,12 +108,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error updating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "updating zome");
             }
         }
 
@@ -137,12 +122,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting zome");
             }
         }
 
@@ -201,12 +181,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error creating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "creating zome");
             }
         }
 
@@ -232,12 +207,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error loading zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "loading zome");
             }
         }
 
@@ -262,12 +232,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error loading zome from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "loading zome from path");
             }
         }
 
@@ -290,12 +255,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error loading zome from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "loading zome from published file");
             }
         }
 
@@ -388,12 +348,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error publishing zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "publishing zome");
             }
         }
 
@@ -419,12 +374,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARZome>
-                {
-                    IsError = true,
-                    Message = $"Error downloading zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARZome>(ex, "downloading zome");
             }
         }
 
@@ -476,12 +426,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error loading zome version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "loading zome version");
             }
         }
 
@@ -505,12 +450,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error editing zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "editing zome");
             }
         }
 
@@ -534,12 +474,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "unpublishing zome");
             }
         }
 
@@ -563,12 +498,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error republishing zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "republishing zome");
             }
         }
 
@@ -592,12 +522,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error activating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "activating zome");
             }
         }
 
@@ -621,12 +546,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "deactivating zome");
             }
         }
     }

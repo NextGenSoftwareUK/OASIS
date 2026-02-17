@@ -69,12 +69,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "loading Holon Metadata");
             }
         }
 
@@ -97,12 +92,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error creating Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "creating Holon Metadata");
             }
         }
 
@@ -126,12 +116,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error updating Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "updating Holon Metadata");
             }
         }
 
@@ -154,12 +139,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting Holon Metadata");
             }
         }
 
@@ -181,12 +161,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning Holon Metadata");
             }
         }
 
@@ -210,12 +185,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error publishing Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "publishing Holon Metadata");
             }
         }
 
@@ -296,12 +266,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error creating Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "creating Holon Metadata");
             }
         }
 
@@ -324,12 +289,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Holon Metadata from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "loading Holon Metadata from path");
             }
         }
 
@@ -352,12 +312,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Holon Metadata from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "loading Holon Metadata from published file");
             }
         }
 
@@ -436,12 +391,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading Holon Metadata");
             }
         }
 
@@ -465,12 +415,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "loading version");
             }
         }
 
@@ -494,12 +439,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error editing Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "editing Holon Metadata");
             }
         }
 
@@ -523,12 +463,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "unpublishing Holon Metadata");
             }
         }
 
@@ -553,12 +488,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error republishing Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "republishing Holon Metadata");
             }
         }
 
@@ -582,12 +512,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error activating Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "activating Holon Metadata");
             }
         }
 
@@ -611,12 +536,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<HolonMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating Holon Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<HolonMetaDataDNA>(ex, "deactivating Holon Metadata");
             }
         }
     }

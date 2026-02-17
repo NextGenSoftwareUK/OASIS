@@ -2,8 +2,10 @@
 param(
     [Parameter(Mandatory=$true)][string]$SourcePath,
     [Parameter(Mandatory=$true)][string]$DestPath,
-    [int]$Width = 33,
-    [int]$Height = 30
+    [int]$Width = 34,
+    [int]$Height = 30,
+    [int]$OffsetX = 1,
+    [int]$OffsetY = 1
 )
 
 Add-Type -AssemblyName System.Drawing
@@ -24,8 +26,8 @@ $src = [System.Drawing.Bitmap]::FromFile($SourcePath)
 try {
     $drawW = $Width
     $drawH = $Height
-    $drawX = 0
-    $drawY = 0
+    $drawX = $OffsetX
+    $drawY = $OffsetY
 
     $dst = New-Object System.Drawing.Bitmap($Width, $Height, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
     try {
@@ -45,7 +47,7 @@ try {
         $dst.Dispose()
     }
 
-    Write-Host ("[face] Prepared OASFACE from '{0}' -> '{1}' size {2}x{3} (drawn {4}x{5})" -f $SourcePath, $DestPath, $Width, $Height, $drawW, $drawH)
+    Write-Host ("[face] Prepared OASFACE from '{0}' -> '{1}' size {2}x{3} (drawn {4}x{5} at x={6}, y={7})" -f $SourcePath, $DestPath, $Width, $Height, $drawW, $drawH, $drawX, $drawY)
 }
 finally {
     $src.Dispose()

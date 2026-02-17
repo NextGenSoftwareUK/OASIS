@@ -69,12 +69,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "loading Celestial Body Metadata");
             }
         }
 
@@ -97,12 +92,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error creating Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "creating Celestial Body Metadata");
             }
         }
 
@@ -126,12 +116,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error updating Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "updating Celestial Body Metadata");
             }
         }
 
@@ -154,12 +139,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting Celestial Body Metadata");
             }
         }
 
@@ -181,12 +161,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning Celestial Body Metadata");
             }
         }
 
@@ -210,12 +185,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error publishing Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "publishing Celestial Body Metadata");
             }
         }
 
@@ -296,12 +266,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error creating Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "creating Celestial Body Metadata");
             }
         }
 
@@ -324,12 +289,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Celestial Body Metadata from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "loading Celestial Body Metadata from path");
             }
         }
 
@@ -352,12 +312,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Celestial Body Metadata from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "loading Celestial Body Metadata from published file");
             }
         }
 
@@ -436,12 +391,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading Celestial Body Metadata");
             }
         }
 
@@ -465,12 +415,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "loading version");
             }
         }
 
@@ -494,12 +439,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error editing Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "editing Celestial Body Metadata");
             }
         }
 
@@ -523,12 +463,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "unpublishing Celestial Body Metadata");
             }
         }
 
@@ -553,12 +488,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error republishing Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "republishing Celestial Body Metadata");
             }
         }
 
@@ -582,12 +512,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error activating Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "activating Celestial Body Metadata");
             }
         }
 
@@ -611,12 +536,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating Celestial Body Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<CelestialBodyMetaDataDNA>(ex, "deactivating Celestial Body Metadata");
             }
         }
     }

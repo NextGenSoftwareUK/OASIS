@@ -1,24 +1,66 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OASIS.Omniverse.UnityHost.Config;
 using OASIS.Omniverse.UnityHost.Core;
+using OASIS.Omniverse.UnityHost.Runtime;
 using UnityEngine;
 
 namespace OASIS.Omniverse.UnityHost.API
 {
+    [Serializable]
+    public class GatewayHealthSnapshot
+    {
+        public bool circuitOpen;
+        public int consecutiveFailures;
+        public string lastError;
+        public bool lastResultFromCache;
+        public bool authExpired;
+        public long lastLatencyMs;
+        public string lastSuccessUtc;
+    }
+
     public sealed class Web4Web5GatewayClient : IDisposable
     {
+        [Serializable]
+        private class ApiCacheEnvelope
+        {
+            public string savedUtc;
+            public string payload;
+        }
+
+        private const int MaxRetries = 3;
+        private const int RequestTimeoutSeconds = 8;
+        private const int CircuitFailureThreshold = 6;
+        private const int CircuitCooldownSeconds = 20;
+        private const float CacheTtlSeconds = 180f;
+        private const string CachePrefix = "OASIS_OMNI_API_CACHE_";
+        private const string CacheInventory = CachePrefix + "inventory";
+        private const string CacheQuests = CachePrefix + "quests";
+        private const string CacheNfts = CachePrefix + "nfts";
+        private const string CacheAvatar = CachePrefix + "avatar";
+        private const string CacheKarma = CachePrefix + "karma";
+        private const string CacheSettings = CachePrefix + "settings";
+
         private readonly HttpClient _httpClient;
         private readonly string _web4Base;
         private readonly string _web5Base;
         private readonly string _avatarId;
+        private int _consecutiveFailures;
+        private DateTime _circuitOpenUntilUtc = DateTime.MinValue;
+        private string _lastError = "none";
+        private bool _lastResultFromCache;
+        private bool _authExpired;
+        private long _lastLatencyMs;
+        private DateTime _lastSuccessUtc = DateTime.MinValue;
 
         public Web4Web5GatewayClient(string web4BaseUrl, string web5BaseUrl, string apiKey, string avatarId)
         {
@@ -52,10 +94,16 @@ namespace OASIS.Omniverse.UnityHost.API
 
             if (fetch.IsError)
             {
-                return OASISResult<List<InventoryItem>>.Error(fetch.Message);
+                return TryLoadCache<List<InventoryItem>>(CacheInventory, "Inventory", fetch.Message);
             }
 
-            return ParseInventory(fetch.Result);
+            var parsed = ParseInventory(fetch.Result);
+            if (!parsed.IsError)
+            {
+                SaveCache(CacheInventory, parsed.Result);
+            }
+
+            return parsed;
         }
 
         public async Task<OASISResult<List<QuestItem>>> GetCrossGameQuestsAsync()
@@ -72,10 +120,16 @@ namespace OASIS.Omniverse.UnityHost.API
 
             if (fetch.IsError)
             {
-                return OASISResult<List<QuestItem>>.Error(fetch.Message);
+                return TryLoadCache<List<QuestItem>>(CacheQuests, "Quests", fetch.Message);
             }
 
-            return ParseQuests(fetch.Result);
+            var parsed = ParseQuests(fetch.Result);
+            if (!parsed.IsError)
+            {
+                SaveCache(CacheQuests, parsed.Result);
+            }
+
+            return parsed;
         }
 
         public async Task<OASISResult<List<NftAssetItem>>> GetCrossGameNftsAsync()
@@ -92,7 +146,7 @@ namespace OASIS.Omniverse.UnityHost.API
 
             if (fetch.IsError)
             {
-                return OASISResult<List<NftAssetItem>>.Error(fetch.Message);
+                return TryLoadCache<List<NftAssetItem>>(CacheNfts, "NFT assets", fetch.Message);
             }
 
             try
@@ -112,6 +166,7 @@ namespace OASIS.Omniverse.UnityHost.API
                     });
                 }
 
+                SaveCache(CacheNfts, items);
                 return OASISResult<List<NftAssetItem>>.Success(items);
             }
             catch (Exception ex)
@@ -135,13 +190,13 @@ namespace OASIS.Omniverse.UnityHost.API
 
             if (fetch.IsError)
             {
-                return OASISResult<AvatarProfileItem>.Error(fetch.Message);
+                return TryLoadCache<AvatarProfileItem>(CacheAvatar, "Avatar profile", fetch.Message);
             }
 
             try
             {
                 var profile = ExtractObject(fetch.Result);
-                return OASISResult<AvatarProfileItem>.Success(new AvatarProfileItem
+                var profileItem = new AvatarProfileItem
                 {
                     id = profile.Value<string>("Id") ?? profile.Value<string>("id"),
                     username = profile.Value<string>("Username") ?? profile.Value<string>("username"),
@@ -149,7 +204,10 @@ namespace OASIS.Omniverse.UnityHost.API
                     firstName = profile.Value<string>("FirstName") ?? profile.Value<string>("firstName"),
                     lastName = profile.Value<string>("LastName") ?? profile.Value<string>("lastName"),
                     title = profile.Value<string>("Title") ?? profile.Value<string>("title")
-                });
+                };
+
+                SaveCache(CacheAvatar, profileItem);
+                return OASISResult<AvatarProfileItem>.Success(profileItem);
             }
             catch (Exception ex)
             {
@@ -171,7 +229,7 @@ namespace OASIS.Omniverse.UnityHost.API
 
             if (totalFetch.IsError && historyFetch.IsError)
             {
-                return OASISResult<KarmaOverview>.Error($"Karma request failed. Total: {totalFetch.Message}. History: {historyFetch.Message}");
+                return TryLoadCache<KarmaOverview>(CacheKarma, "Karma", $"Karma request failed. Total: {totalFetch.Message}. History: {historyFetch.Message}");
             }
 
             var overview = new KarmaOverview();
@@ -205,6 +263,7 @@ namespace OASIS.Omniverse.UnityHost.API
                 }
             }
 
+            SaveCache(CacheKarma, overview);
             return OASISResult<KarmaOverview>.Success(overview);
         }
 
@@ -216,7 +275,7 @@ namespace OASIS.Omniverse.UnityHost.API
 
             if (fetch.IsError)
             {
-                return OASISResult<OmniverseGlobalSettings>.Error(fetch.Message);
+                return TryLoadCache<OmniverseGlobalSettings>(CacheSettings, "Global preferences", fetch.Message);
             }
 
             try
@@ -234,6 +293,7 @@ namespace OASIS.Omniverse.UnityHost.API
                     return OASISResult<OmniverseGlobalSettings>.Error("Global preferences could not be deserialized.");
                 }
 
+                SaveCache(CacheSettings, settings);
                 return OASISResult<OmniverseGlobalSettings>.Success(settings);
             }
             catch (Exception ex)
@@ -254,12 +314,22 @@ namespace OASIS.Omniverse.UnityHost.API
                 $"{_web4Base}/api/settings/user/preferences",
                 $"{_web4Base}/api/settings/user");
 
+            if (!save.IsError)
+            {
+                SaveCache(CacheSettings, settings);
+            }
+
             return save;
         }
 
         private async Task<OASISResult<string>> GetJsonFromCandidatesAsync(params string[] uris)
         {
             var errors = new List<string>();
+            if (IsCircuitOpen())
+            {
+                return OASISResult<string>.Error($"API circuit temporarily open ({Mathf.CeilToInt((float)(_circuitOpenUntilUtc - DateTime.UtcNow).TotalSeconds)}s cooldown). Last error: {_lastError}");
+            }
+
             foreach (var uri in uris)
             {
                 if (string.IsNullOrWhiteSpace(uri))
@@ -269,14 +339,13 @@ namespace OASIS.Omniverse.UnityHost.API
 
                 try
                 {
-                    var response = await _httpClient.GetAsync(uri);
-                    if (!response.IsSuccessStatusCode)
+                    var result = await ExecuteGetWithResilienceAsync(uri);
+                    if (!result.IsError)
                     {
-                        errors.Add($"{uri} -> {(int)response.StatusCode} {response.ReasonPhrase}");
-                        continue;
+                        return result;
                     }
 
-                    return OASISResult<string>.Success(await response.Content.ReadAsStringAsync());
+                    errors.Add($"{uri} -> {result.Message}");
                 }
                 catch (Exception ex)
                 {
@@ -290,6 +359,11 @@ namespace OASIS.Omniverse.UnityHost.API
         private async Task<OASISResult<bool>> PutJsonToCandidatesAsync(string jsonBody, params string[] uris)
         {
             var errors = new List<string>();
+            if (IsCircuitOpen())
+            {
+                return OASISResult<bool>.Error($"API circuit temporarily open ({Mathf.CeilToInt((float)(_circuitOpenUntilUtc - DateTime.UtcNow).TotalSeconds)}s cooldown). Last error: {_lastError}");
+            }
+
             foreach (var uri in uris)
             {
                 if (string.IsNullOrWhiteSpace(uri))
@@ -299,27 +373,31 @@ namespace OASIS.Omniverse.UnityHost.API
 
                 try
                 {
-                    using var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PutAsync(uri, content);
+                    var response = await ExecuteSendWithResilienceAsync(uri, HttpMethod.Put, jsonBody);
                     if (response.IsSuccessStatusCode)
                     {
+                        RegisterRequestSuccess(0);
                         return OASISResult<bool>.Success(true);
                     }
 
                     if (response.StatusCode == HttpStatusCode.MethodNotAllowed)
                     {
-                        using var postContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                        var postResponse = await _httpClient.PostAsync(uri, postContent);
+                        var postResponse = await ExecuteSendWithResilienceAsync(uri, HttpMethod.Post, jsonBody);
                         if (postResponse.IsSuccessStatusCode)
                         {
+                            RegisterRequestSuccess(0);
                             return OASISResult<bool>.Success(true);
                         }
 
-                        errors.Add($"{uri} (POST fallback) -> {(int)postResponse.StatusCode} {postResponse.ReasonPhrase}");
+                        var mapped = MapStatusToFriendlyMessage(postResponse.StatusCode, uri, postResponse.ReasonPhrase);
+                        RegisterRequestFailure(mapped, postResponse.StatusCode);
+                        errors.Add($"{uri} (POST fallback) -> {mapped}");
                     }
                     else
                     {
-                        errors.Add($"{uri} -> {(int)response.StatusCode} {response.ReasonPhrase}");
+                        var mapped = MapStatusToFriendlyMessage(response.StatusCode, uri, response.ReasonPhrase);
+                        RegisterRequestFailure(mapped, response.StatusCode);
+                        errors.Add($"{uri} -> {mapped}");
                     }
                 }
                 catch (Exception ex)
@@ -329,6 +407,300 @@ namespace OASIS.Omniverse.UnityHost.API
             }
 
             return OASISResult<bool>.Error(string.Join(" | ", errors));
+        }
+
+        public GatewayHealthSnapshot GetHealthSnapshot()
+        {
+            return new GatewayHealthSnapshot
+            {
+                circuitOpen = IsCircuitOpen(),
+                consecutiveFailures = _consecutiveFailures,
+                lastError = _lastError,
+                lastResultFromCache = _lastResultFromCache,
+                authExpired = _authExpired,
+                lastLatencyMs = _lastLatencyMs,
+                lastSuccessUtc = _lastSuccessUtc == DateTime.MinValue ? "never" : _lastSuccessUtc.ToString("u")
+            };
+        }
+
+        private bool IsCircuitOpen()
+        {
+            return DateTime.UtcNow < _circuitOpenUntilUtc;
+        }
+
+        private async Task<OASISResult<string>> ExecuteGetWithResilienceAsync(string uri)
+        {
+            for (var attempt = 1; attempt <= MaxRetries; attempt++)
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RequestTimeoutSeconds));
+                var sw = Stopwatch.StartNew();
+                try
+                {
+                    var response = await _httpClient.GetAsync(uri, cts.Token);
+                    sw.Stop();
+                    _lastLatencyMs = Math.Max(0, sw.ElapsedMilliseconds);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var payload = await response.Content.ReadAsStringAsync();
+                        RegisterRequestSuccess(_lastLatencyMs);
+                        return OASISResult<string>.Success(payload);
+                    }
+
+                    var message = MapStatusToFriendlyMessage(response.StatusCode, uri, response.ReasonPhrase);
+                    if (IsUnauthorized(response.StatusCode))
+                    {
+                        RegisterRequestFailure(message, response.StatusCode);
+                        return OASISResult<string>.Error(message);
+                    }
+
+                    if (IsTransientStatus(response.StatusCode) && attempt < MaxRetries)
+                    {
+                        await Task.Delay(GetRetryDelayMs(attempt));
+                        continue;
+                    }
+
+                    RegisterRequestFailure(message, response.StatusCode);
+                    return OASISResult<string>.Error(message);
+                }
+                catch (TaskCanceledException)
+                {
+                    sw.Stop();
+                    _lastLatencyMs = Math.Max(0, sw.ElapsedMilliseconds);
+                    if (attempt < MaxRetries)
+                    {
+                        await Task.Delay(GetRetryDelayMs(attempt));
+                        continue;
+                    }
+
+                    var timeoutMessage = $"GET {uri} timed out after {RequestTimeoutSeconds}s.";
+                    RegisterRequestFailure(timeoutMessage, 0);
+                    return OASISResult<string>.Error(timeoutMessage);
+                }
+                catch (Exception ex)
+                {
+                    sw.Stop();
+                    _lastLatencyMs = Math.Max(0, sw.ElapsedMilliseconds);
+                    if (attempt < MaxRetries)
+                    {
+                        await Task.Delay(GetRetryDelayMs(attempt));
+                        continue;
+                    }
+
+                    var errorMessage = $"GET {uri} failed: {ex.Message}";
+                    RegisterRequestFailure(errorMessage, 0);
+                    return OASISResult<string>.Error(errorMessage);
+                }
+            }
+
+            var fallback = $"GET {uri} failed after {MaxRetries} retries.";
+            RegisterRequestFailure(fallback, 0);
+            return OASISResult<string>.Error(fallback);
+        }
+
+        private async Task<HttpResponseMessage> ExecuteSendWithResilienceAsync(string uri, HttpMethod method, string jsonBody)
+        {
+            HttpResponseMessage lastResponse = null;
+            for (var attempt = 1; attempt <= MaxRetries; attempt++)
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RequestTimeoutSeconds));
+                var sw = Stopwatch.StartNew();
+                try
+                {
+                    using var request = new HttpRequestMessage(method, uri)
+                    {
+                        Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+                    };
+
+                    var response = await _httpClient.SendAsync(request, cts.Token);
+                    sw.Stop();
+                    _lastLatencyMs = Math.Max(0, sw.ElapsedMilliseconds);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return response;
+                    }
+
+                    if (IsUnauthorized(response.StatusCode))
+                    {
+                        RegisterRequestFailure(MapStatusToFriendlyMessage(response.StatusCode, uri, response.ReasonPhrase), response.StatusCode);
+                        return response;
+                    }
+
+                    lastResponse = response;
+                    if (IsTransientStatus(response.StatusCode) && attempt < MaxRetries)
+                    {
+                        await Task.Delay(GetRetryDelayMs(attempt));
+                        continue;
+                    }
+
+                    return response;
+                }
+                catch (TaskCanceledException)
+                {
+                    sw.Stop();
+                    _lastLatencyMs = Math.Max(0, sw.ElapsedMilliseconds);
+                    if (attempt < MaxRetries)
+                    {
+                        await Task.Delay(GetRetryDelayMs(attempt));
+                        continue;
+                    }
+
+                    RegisterRequestFailure($"{method} {uri} timed out after {RequestTimeoutSeconds}s.", 0);
+                    return new HttpResponseMessage(HttpStatusCode.RequestTimeout)
+                    {
+                        RequestMessage = new HttpRequestMessage(method, uri),
+                        ReasonPhrase = "Timed out"
+                    };
+                }
+                catch (Exception ex)
+                {
+                    sw.Stop();
+                    _lastLatencyMs = Math.Max(0, sw.ElapsedMilliseconds);
+                    if (attempt < MaxRetries)
+                    {
+                        await Task.Delay(GetRetryDelayMs(attempt));
+                        continue;
+                    }
+
+                    RegisterRequestFailure($"{method} {uri} failed: {ex.Message}", 0);
+                    return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+                    {
+                        RequestMessage = new HttpRequestMessage(method, uri),
+                        ReasonPhrase = ex.Message
+                    };
+                }
+            }
+
+            return lastResponse ?? new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+            {
+                RequestMessage = new HttpRequestMessage(method, uri),
+                ReasonPhrase = "Failed after retries"
+            };
+        }
+
+        private static bool IsUnauthorized(HttpStatusCode statusCode)
+        {
+            return statusCode == HttpStatusCode.Unauthorized || statusCode == HttpStatusCode.Forbidden;
+        }
+
+        private static bool IsTransientStatus(HttpStatusCode statusCode)
+        {
+            return statusCode == HttpStatusCode.RequestTimeout ||
+                   statusCode == HttpStatusCode.TooManyRequests ||
+                   (int)statusCode >= 500;
+        }
+
+        private static int GetRetryDelayMs(int attempt)
+        {
+            // 250, 500, 1000...
+            return (int)(250 * Math.Pow(2, Mathf.Clamp(attempt - 1, 0, 6)));
+        }
+
+        private void RegisterRequestSuccess(long latencyMs)
+        {
+            var recovered = _consecutiveFailures > 0;
+            _consecutiveFailures = 0;
+            _circuitOpenUntilUtc = DateTime.MinValue;
+            _lastError = "none";
+            _lastResultFromCache = false;
+            _authExpired = false;
+            _lastLatencyMs = latencyMs;
+            _lastSuccessUtc = DateTime.UtcNow;
+            if (recovered)
+            {
+                RuntimeDiagnosticsLog.Write("API", $"Recovered after failures. Latest latency: {latencyMs}ms");
+            }
+        }
+
+        private void RegisterRequestFailure(string message, HttpStatusCode statusCode)
+        {
+            _consecutiveFailures++;
+            _lastError = message;
+            _authExpired = IsUnauthorized(statusCode);
+            RuntimeDiagnosticsLog.Write("API", $"Failure #{_consecutiveFailures}: {message}");
+            if (_consecutiveFailures >= CircuitFailureThreshold)
+            {
+                _circuitOpenUntilUtc = DateTime.UtcNow.AddSeconds(CircuitCooldownSeconds);
+                RuntimeDiagnosticsLog.Write("API", $"Circuit opened for {CircuitCooldownSeconds}s due to repeated failures.");
+            }
+        }
+
+        private static string MapStatusToFriendlyMessage(HttpStatusCode statusCode, string uri, string reasonPhrase)
+        {
+            if (statusCode == HttpStatusCode.Unauthorized || statusCode == HttpStatusCode.Forbidden)
+            {
+                return $"Auth expired/invalid for {uri}. Please refresh WEB4/WEB5 API credentials.";
+            }
+
+            if (statusCode == HttpStatusCode.TooManyRequests)
+            {
+                return $"Rate limited by API at {uri}. Retrying with backoff.";
+            }
+
+            if (statusCode == HttpStatusCode.RequestTimeout || (int)statusCode >= 500)
+            {
+                return $"API temporarily unavailable at {uri}: {(int)statusCode} {reasonPhrase}";
+            }
+
+            return $"{uri} -> {(int)statusCode} {reasonPhrase}";
+        }
+
+        private OASISResult<T> TryLoadCache<T>(string key, string friendlyName, string fetchError)
+        {
+            if (!PlayerPrefs.HasKey(key))
+            {
+                return OASISResult<T>.Error(fetchError);
+            }
+
+            try
+            {
+                var envelopeJson = PlayerPrefs.GetString(key);
+                var envelope = JsonConvert.DeserializeObject<ApiCacheEnvelope>(envelopeJson);
+                if (envelope == null || string.IsNullOrWhiteSpace(envelope.payload))
+                {
+                    return OASISResult<T>.Error(fetchError);
+                }
+
+                if (DateTime.TryParse(envelope.savedUtc, out var savedUtc))
+                {
+                    if ((DateTime.UtcNow - savedUtc).TotalSeconds > CacheTtlSeconds)
+                    {
+                        return OASISResult<T>.Error(fetchError);
+                    }
+                }
+
+                var cached = JsonConvert.DeserializeObject<T>(envelope.payload);
+                if (cached == null)
+                {
+                    return OASISResult<T>.Error(fetchError);
+                }
+
+                _lastResultFromCache = true;
+                return OASISResult<T>.Success(cached, $"{friendlyName} loaded from cache (API unavailable).");
+            }
+            catch
+            {
+                return OASISResult<T>.Error(fetchError);
+            }
+        }
+
+        private static void SaveCache<T>(string key, T value)
+        {
+            try
+            {
+                var envelope = new ApiCacheEnvelope
+                {
+                    savedUtc = DateTime.UtcNow.ToString("u"),
+                    payload = JsonConvert.SerializeObject(value)
+                };
+
+                PlayerPrefs.SetString(key, JsonConvert.SerializeObject(envelope));
+                PlayerPrefs.Save();
+            }
+            catch
+            {
+                // best-effort cache
+            }
         }
 
         private static OASISResult<List<InventoryItem>> ParseInventory(string json)

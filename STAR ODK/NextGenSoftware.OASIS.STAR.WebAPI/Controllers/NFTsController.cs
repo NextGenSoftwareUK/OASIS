@@ -81,12 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARNFT>>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFTs: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IEnumerable<STARNFT>>(ex, "GetAllNFTs");
             }
         }
 
@@ -109,12 +104,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "GetNFT");
             }
         }
 
@@ -137,12 +127,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error creating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "CreateNFT");
             }
         }
 
@@ -157,12 +142,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error updating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "updating NFT");
             }
         }
 
@@ -176,12 +156,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting NFT");
             }
         }
 
@@ -195,12 +170,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning NFT");
             }
         }
 
@@ -223,12 +193,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error creating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "creating NFT");
             }
         }
 
@@ -254,12 +219,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "loading NFT");
             }
         }
 
@@ -284,12 +244,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "loading NFT from path");
             }
         }
 
@@ -312,12 +267,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "loading NFT from published file");
             }
         }
 
@@ -413,12 +363,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error publishing NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "publishing NFT");
             }
         }
 
@@ -444,12 +389,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error downloading NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARNFT>(ex, "downloading NFT");
             }
         }
 
@@ -501,12 +441,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "loading NFT version");
             }
         }
 
@@ -530,12 +465,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error editing NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "editing NFT");
             }
         }
 
@@ -559,12 +489,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "unpublishing NFT");
             }
         }
 
@@ -588,12 +513,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error republishing NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "republishing NFT");
             }
         }
 
@@ -618,12 +538,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error activating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "activating NFT");
             }
         }
 
@@ -647,12 +562,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "deactivating NFT");
             }
         }
     }
