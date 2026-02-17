@@ -37,7 +37,8 @@ namespace OASIS.Omniverse.UnityHost.UI
         private const int PageSize = 10;
         private const string ControlCenterPanelId = "control_center";
         private const float SnapAnimationDuration = 0.22f;
-        private const int MaxVisibleToasts = 3;
+        private const int DefaultMaxVisibleToasts = 3;
+        private const float DefaultToastDurationSeconds = 1.7f;
         private const float ToastHeight = 42f;
         private const float ToastWidth = 560f;
         private const float ToastSpacing = 8f;
@@ -95,6 +96,8 @@ namespace OASIS.Omniverse.UnityHost.UI
         private Toggle _fullscreenToggle;
         private InputField _openMenuInput;
         private InputField _hideGameInput;
+        private InputField _toastMaxVisibleInput;
+        private InputField _toastDurationInput;
         private Text _settingsFeedbackText;
         private Button _layoutResetButton;
         private Button _controlTopLeftButton;
@@ -375,14 +378,35 @@ namespace OASIS.Omniverse.UnityHost.UI
             return selected.GetComponent<InputField>() == null;
         }
 
-        private void ShowToast(string message, ToastSeverity severity = ToastSeverity.Success, float durationSeconds = 1.7f)
+        private int GetConfiguredToastMaxVisible()
+        {
+            if (_settingsService?.CurrentSettings == null)
+            {
+                return DefaultMaxVisibleToasts;
+            }
+
+            return Mathf.Clamp(_settingsService.CurrentSettings.toastMaxVisible, 1, 8);
+        }
+
+        private float GetConfiguredToastDuration()
+        {
+            if (_settingsService?.CurrentSettings == null)
+            {
+                return DefaultToastDurationSeconds;
+            }
+
+            return Mathf.Clamp(_settingsService.CurrentSettings.toastDurationSeconds, 0.4f, 8f);
+        }
+
+        private void ShowToast(string message, ToastSeverity severity = ToastSeverity.Success, float durationSeconds = -1f)
         {
             if (_toastRoot == null || string.IsNullOrWhiteSpace(message))
             {
                 return;
             }
 
-            while (_activeToasts.Count >= MaxVisibleToasts)
+            var maxVisible = GetConfiguredToastMaxVisible();
+            while (_activeToasts.Count >= maxVisible)
             {
                 DismissToast(_activeToasts[0]);
             }
@@ -406,7 +430,7 @@ namespace OASIS.Omniverse.UnityHost.UI
                 panel = panel,
                 background = background,
                 text = text,
-                expireAtRealtime = Time.realtimeSinceStartup + Mathf.Max(0.4f, durationSeconds)
+                expireAtRealtime = Time.realtimeSinceStartup + (durationSeconds > 0f ? Mathf.Max(0.4f, durationSeconds) : GetConfiguredToastDuration())
             });
 
             RelayoutToasts();
@@ -1674,6 +1698,8 @@ namespace OASIS.Omniverse.UnityHost.UI
             _fullscreenToggle.isOn = s.fullscreen;
             _openMenuInput.text = s.keyOpenControlCenter;
             _hideGameInput.text = s.keyHideHostedGame;
+            _toastMaxVisibleInput.text = Mathf.Clamp(s.toastMaxVisible, 1, 8).ToString();
+            _toastDurationInput.text = Mathf.Clamp(s.toastDurationSeconds, 0.4f, 8f).ToString("0.0");
             _settingsFeedbackText.text = "Update values, then Save & Apply.";
         }
 
@@ -1696,22 +1722,30 @@ namespace OASIS.Omniverse.UnityHost.UI
             CreateText("HideHostedKeyLabel", "Hide Hosted Game Key", 17, TextAnchor.MiddleLeft, root, 0.50f, 0.21f, 0.74f, 0.28f);
             _hideGameInput = CreateInputField(root, 0.75f, 0.21f, 0.89f, 0.28f);
 
-            CreateText("LayoutQuickLabel", "Panel Layout Quick Actions", 16, TextAnchor.MiddleLeft, root, 0.02f, 0.16f, 0.34f, 0.21f);
-            _layoutResetButton = CreateButton(root, "Reset Layouts", 0.35f, 0.16f, 0.49f, 0.21f);
+            CreateText("ToastMaxLabel", "Toast Max Visible (1-8)", 15, TextAnchor.MiddleLeft, root, 0.02f, 0.16f, 0.30f, 0.21f);
+            _toastMaxVisibleInput = CreateInputField(root, 0.31f, 0.16f, 0.41f, 0.21f);
+            _toastMaxVisibleInput.contentType = InputField.ContentType.IntegerNumber;
+
+            CreateText("ToastDurationLabel", "Toast Duration Sec (0.4-8.0)", 15, TextAnchor.MiddleLeft, root, 0.43f, 0.16f, 0.72f, 0.21f);
+            _toastDurationInput = CreateInputField(root, 0.73f, 0.16f, 0.89f, 0.21f);
+            _toastDurationInput.contentType = InputField.ContentType.DecimalNumber;
+
+            CreateText("LayoutQuickLabel", "Panel Layout Quick Actions", 16, TextAnchor.MiddleLeft, root, 0.02f, 0.11f, 0.34f, 0.16f);
+            _layoutResetButton = CreateButton(root, "Reset Layouts", 0.35f, 0.11f, 0.49f, 0.16f);
             _layoutResetButton.onClick.AddListener(() => _ = ResetAllPanelLayoutsAsync());
 
-            CreateText("CCLayoutLabel", "Control Center", 14, TextAnchor.MiddleLeft, root, 0.02f, 0.12f, 0.18f, 0.16f);
-            _controlTopLeftButton = CreateButton(root, "TL", 0.19f, 0.12f, 0.23f, 0.16f);
-            _controlTopRightButton = CreateButton(root, "TR", 0.24f, 0.12f, 0.28f, 0.16f);
-            _controlCenterButton = CreateButton(root, "C", 0.29f, 0.12f, 0.33f, 0.16f);
+            CreateText("CCLayoutLabel", "Control Center", 14, TextAnchor.MiddleLeft, root, 0.02f, 0.07f, 0.18f, 0.11f);
+            _controlTopLeftButton = CreateButton(root, "TL", 0.19f, 0.07f, 0.23f, 0.11f);
+            _controlTopRightButton = CreateButton(root, "TR", 0.24f, 0.07f, 0.28f, 0.11f);
+            _controlCenterButton = CreateButton(root, "C", 0.29f, 0.07f, 0.33f, 0.11f);
             _controlTopLeftButton.onClick.AddListener(() => _ = ApplyControlCenterLayoutPresetAsync("TopLeft"));
             _controlTopRightButton.onClick.AddListener(() => _ = ApplyControlCenterLayoutPresetAsync("TopRight"));
             _controlCenterButton.onClick.AddListener(() => _ = ApplyControlCenterLayoutPresetAsync("Center"));
 
-            CreateText("QTLayoutLabel", "Quest Tracker", 14, TextAnchor.MiddleLeft, root, 0.36f, 0.12f, 0.50f, 0.16f);
-            _trackerTopLeftButton = CreateButton(root, "TL", 0.51f, 0.12f, 0.55f, 0.16f);
-            _trackerTopRightButton = CreateButton(root, "TR", 0.56f, 0.12f, 0.60f, 0.16f);
-            _trackerCenterButton = CreateButton(root, "C", 0.61f, 0.12f, 0.65f, 0.16f);
+            CreateText("QTLayoutLabel", "Quest Tracker", 14, TextAnchor.MiddleLeft, root, 0.36f, 0.07f, 0.50f, 0.11f);
+            _trackerTopLeftButton = CreateButton(root, "TL", 0.51f, 0.07f, 0.55f, 0.11f);
+            _trackerTopRightButton = CreateButton(root, "TR", 0.56f, 0.07f, 0.60f, 0.11f);
+            _trackerCenterButton = CreateButton(root, "C", 0.61f, 0.07f, 0.65f, 0.11f);
             _trackerTopLeftButton.onClick.AddListener(() => _ = ApplyQuestTrackerLayoutPresetAsync("TopLeft"));
             _trackerTopRightButton.onClick.AddListener(() => _ = ApplyQuestTrackerLayoutPresetAsync("TopRight"));
             _trackerCenterButton.onClick.AddListener(() => _ = ApplyQuestTrackerLayoutPresetAsync("Center"));
@@ -1725,6 +1759,8 @@ namespace OASIS.Omniverse.UnityHost.UI
 
         private async Task SaveAndApplySettingsAsync()
         {
+            var toastMaxVisible = Mathf.Clamp(ParseIntOrDefault(_toastMaxVisibleInput, DefaultMaxVisibleToasts), 1, 8);
+            var toastDurationSeconds = Mathf.Clamp(ParseFloatOrDefault(_toastDurationInput, DefaultToastDurationSeconds), 0.4f, 8f);
             var settings = new OmniverseGlobalSettings
             {
                 masterVolume = _masterSlider.value,
@@ -1735,7 +1771,12 @@ namespace OASIS.Omniverse.UnityHost.UI
                 fullscreen = _fullscreenToggle.isOn,
                 resolution = _settingsService.CurrentSettings.resolution,
                 keyOpenControlCenter = _openMenuInput.text.Trim().ToUpperInvariant(),
-                keyHideHostedGame = _hideGameInput.text.Trim().ToUpperInvariant()
+                keyHideHostedGame = _hideGameInput.text.Trim().ToUpperInvariant(),
+                toastMaxVisible = toastMaxVisible,
+                toastDurationSeconds = toastDurationSeconds,
+                viewPresets = (_settingsService.CurrentSettings.viewPresets ?? new List<OmniverseViewPreset>()).ToList(),
+                activeViewPresets = (_settingsService.CurrentSettings.activeViewPresets ?? new List<OmniverseActiveViewPreset>()).ToList(),
+                panelLayouts = (_settingsService.CurrentSettings.panelLayouts ?? new List<OmniversePanelLayout>()).ToList()
             };
 
             var apply = await _kernel.ApplyGlobalSettingsAndRebuildSessionsAsync(settings);
@@ -1746,7 +1787,29 @@ namespace OASIS.Omniverse.UnityHost.UI
             }
 
             SyncHotkeysFromSettings();
+            _toastMaxVisibleInput.text = toastMaxVisible.ToString();
+            _toastDurationInput.text = toastDurationSeconds.ToString("0.0");
             _settingsFeedbackText.text = "Saved + applied to host and cached game sessions.";
+        }
+
+        private static int ParseIntOrDefault(InputField input, int fallback)
+        {
+            if (input == null || string.IsNullOrWhiteSpace(input.text))
+            {
+                return fallback;
+            }
+
+            return int.TryParse(input.text.Trim(), out var value) ? value : fallback;
+        }
+
+        private static float ParseFloatOrDefault(InputField input, float fallback)
+        {
+            if (input == null || string.IsNullOrWhiteSpace(input.text))
+            {
+                return fallback;
+            }
+
+            return float.TryParse(input.text.Trim(), out var value) ? value : fallback;
         }
 
         private void SyncHotkeysFromSettings()

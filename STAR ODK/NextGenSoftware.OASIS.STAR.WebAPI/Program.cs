@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using Microsoft.AspNetCore.Mvc.Filters;

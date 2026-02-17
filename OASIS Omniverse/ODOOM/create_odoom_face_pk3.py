@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Creates textures/OASFACE.png (32x32 OASIS beamed-in face) and odoom_face.pk3.
+Creates textures/OASFACE.png (34x30 OASIS beamed-in face) and odoom_face.pk3.
 Uses only the standard library (no Pillow required).
 """
 import zlib
@@ -18,9 +18,9 @@ def png_chunk(chunk_type: bytes, data: bytes) -> bytes:
     return struct.pack(">I", len(data)) + chunk + struct.pack(">I", 0xFFFFFFFF & zlib.crc32(chunk))
 
 
-def make_png_32x32():
-    """Build a 32x32 PNG (OASIS-style face: tan/amber background, simple eyes and mouth)."""
-    width, height = 32, 32
+def make_png_34x30():
+    """Build a 34x30 PNG (OASIS-style face: tan/amber background, simple eyes and mouth)."""
+    width, height = 34, 30
     # Raw image: filter byte 0 per row, then RGB (3 bytes per pixel)
     raw = bytearray()
     for y in range(height):
@@ -59,7 +59,7 @@ def make_png_32x32():
 def main():
     os.makedirs(TEXTURES_DIR, exist_ok=True)
     png_path = os.path.join(TEXTURES_DIR, "OASFACE.png")
-    png_data = make_png_32x32()
+    png_data = make_png_34x30()
     with open(png_path, "wb") as f:
         f.write(png_data)
     print(f"Created {png_path}")
