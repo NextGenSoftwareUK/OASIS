@@ -42,6 +42,9 @@ namespace OASIS.Omniverse.UnityHost.UI
         private const float ToastHeight = 42f;
         private const float ToastWidth = 560f;
         private const float ToastSpacing = 8f;
+        private const float ToastEnterDuration = 0.12f;
+        private const float ToastExitDuration = 0.16f;
+        private const float ToastSlideLerpSpeed = 14f;
 
         [Serializable]
         private class PresetExportPackage
@@ -56,9 +59,13 @@ namespace OASIS.Omniverse.UnityHost.UI
         private sealed class ToastEntry
         {
             public GameObject panel;
+            public RectTransform rect;
+            public CanvasGroup canvasGroup;
             public Image background;
             public Text text;
             public float expireAtRealtime;
+            public float targetY;
+            public bool isDismissing;
         }
 
         private Canvas _canvas;
@@ -318,6 +325,7 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             HandleLayoutHotkeys();
             TickToastQueue();
+            TickToastAnimations();
 
             _toggleWasDown = toggleDown;
             _hideWasDown = hideDown;
@@ -418,6 +426,9 @@ namespace OASIS.Omniverse.UnityHost.UI
             panelRect.anchorMax = new Vector2(0.5f, 1f);
             panelRect.pivot = new Vector2(0.5f, 1f);
             panelRect.sizeDelta = new Vector2(ToastWidth, ToastHeight);
+            panelRect.anchoredPosition = new Vector2(0f, 18f);
+            var canvasGroup = panel.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 0f;
 
             var background = panel.AddComponent<Image>();
             var text = CreateText("ToastText", string.Empty, 16, TextAnchor.MiddleCenter, panel.transform);
@@ -428,12 +439,17 @@ namespace OASIS.Omniverse.UnityHost.UI
             _activeToasts.Add(new ToastEntry
             {
                 panel = panel,
+                rect = panelRect,
+                canvasGroup = canvasGroup,
                 background = background,
                 text = text,
-                expireAtRealtime = Time.realtimeSinceStartup + (durationSeconds > 0f ? Mathf.Max(0.4f, durationSeconds) : GetConfiguredToastDuration())
+                expireAtRealtime = Time.realtimeSinceStartup + (durationSeconds > 0f ? Mathf.Max(0.4f, durationSeconds) : GetConfiguredToastDuration()),
+                targetY = 0f,
+                isDismissing = false
             });
 
             RelayoutToasts();
+            StartCoroutine(AnimateToastIn(canvasGroup));
         }
 
         private void TickToastQueue()
@@ -457,15 +473,17 @@ namespace OASIS.Omniverse.UnityHost.UI
 
         private void DismissToast(ToastEntry entry)
         {
-            if (entry == null)
+            if (entry == null || entry.isDismissing)
             {
                 return;
             }
 
             _activeToasts.Remove(entry);
+            entry.isDismissing = true;
+            RelayoutToasts();
             if (entry.panel != null)
             {
-                Destroy(entry.panel);
+                StartCoroutine(AnimateToastOutAndDestroy(entry));
             }
         }
 
@@ -479,8 +497,75 @@ namespace OASIS.Omniverse.UnityHost.UI
                     continue;
                 }
 
-                var rect = entry.panel.GetComponent<RectTransform>();
-                rect.anchoredPosition = new Vector2(0f, -(i * (ToastHeight + ToastSpacing)));
+                entry.targetY = -(i * (ToastHeight + ToastSpacing));
+            }
+        }
+
+        private void TickToastAnimations()
+        {
+            for (var i = 0; i < _activeToasts.Count; i++)
+            {
+                var entry = _activeToasts[i];
+                if (entry?.rect == null || entry.isDismissing)
+                {
+                    continue;
+                }
+
+                var current = entry.rect.anchoredPosition;
+                var nextY = Mathf.Lerp(current.y, entry.targetY, 1f - Mathf.Exp(-ToastSlideLerpSpeed * Time.unscaledDeltaTime));
+                entry.rect.anchoredPosition = new Vector2(0f, nextY);
+            }
+        }
+
+        private System.Collections.IEnumerator AnimateToastIn(CanvasGroup canvasGroup)
+        {
+            if (canvasGroup == null)
+            {
+                yield break;
+            }
+
+            var elapsed = 0f;
+            while (elapsed < ToastEnterDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                canvasGroup.alpha = Mathf.Clamp01(elapsed / ToastEnterDuration);
+                yield return null;
+            }
+
+            canvasGroup.alpha = 1f;
+        }
+
+        private System.Collections.IEnumerator AnimateToastOutAndDestroy(ToastEntry entry)
+        {
+            if (entry?.panel == null)
+            {
+                yield break;
+            }
+
+            var group = entry.canvasGroup;
+            var rect = entry.rect;
+            var startY = rect != null ? rect.anchoredPosition.y : 0f;
+            var elapsed = 0f;
+            while (elapsed < ToastExitDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var t = Mathf.Clamp01(elapsed / ToastExitDuration);
+                if (group != null)
+                {
+                    group.alpha = 1f - t;
+                }
+
+                if (rect != null)
+                {
+                    rect.anchoredPosition = new Vector2(0f, Mathf.Lerp(startY, startY - 12f, t));
+                }
+
+                yield return null;
+            }
+
+            if (entry.panel != null)
+            {
+                Destroy(entry.panel);
             }
         }
 
