@@ -77,12 +77,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<Mission>>
-                {
-                    IsError = true,
-                    Message = $"Error loading missions: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IEnumerable<Mission>>(ex, "GetAllMissions");
             }
         }
 
@@ -105,12 +100,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error loading mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "GetMission");
             }
         }
 
@@ -159,12 +149,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IMission>
-                {
-                    IsError = true,
-                    Message = $"Error creating mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IMission>(ex, "creating mission");
             }
         }
 
@@ -215,12 +200,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IMission>
-                {
-                    IsError = true,
-                    Message = $"Error updating mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IMission>(ex, "updating mission");
             }
         }
 
@@ -243,12 +223,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting mission");
             }
         }
 
@@ -272,12 +247,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning mission");
             }
         }
 
@@ -414,12 +384,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error creating mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "creating mission");
             }
         }
 
@@ -445,12 +410,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error loading mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "loading mission");
             }
         }
 
@@ -475,12 +435,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error loading mission from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "loading mission from path");
             }
         }
 
@@ -503,12 +458,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error loading mission from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "loading mission from published file");
             }
         }
 
@@ -570,12 +520,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error publishing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "publishing mission");
             }
         }
 
@@ -601,12 +546,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedMission>
-                {
-                    IsError = true,
-                    Message = $"Error downloading mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedMission>(ex, "downloading mission");
             }
         }
 
@@ -658,12 +598,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error loading mission version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "loading mission version");
             }
         }
 
@@ -687,12 +622,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error editing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "editing mission");
             }
         }
 
@@ -716,12 +646,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "unpublishing mission");
             }
         }
 
@@ -745,12 +670,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error republishing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "republishing mission");
             }
         }
 
@@ -774,12 +694,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error activating mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "activating mission");
             }
         }
 
@@ -803,12 +718,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "deactivating mission");
             }
         }
 
@@ -839,12 +749,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error completing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "completing mission");
             }
         }
 

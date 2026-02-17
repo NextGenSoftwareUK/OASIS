@@ -70,12 +70,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error loading chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "loading chapter");
             }
         }
 
@@ -98,12 +93,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error creating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "creating chapter");
             }
         }
 
@@ -128,12 +118,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error updating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "updating chapter");
             }
         }
 
@@ -156,12 +141,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting chapter");
             }
         }
 
@@ -224,12 +204,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error creating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "creating chapter");
             }
         }
 
@@ -255,12 +230,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error loading chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "loading chapter");
             }
         }
 
@@ -285,12 +255,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error loading chapter from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "loading chapter from path");
             }
         }
 
@@ -313,12 +278,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error loading chapter from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "loading chapter from published file");
             }
         }
 
@@ -380,12 +340,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error publishing chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "publishing chapter");
             }
         }
 
@@ -411,12 +366,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedChapter>
-                {
-                    IsError = true,
-                    Message = $"Error downloading chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedChapter>(ex, "downloading chapter");
             }
         }
 
@@ -468,12 +418,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error loading chapter version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "loading chapter version");
             }
         }
 
@@ -497,12 +442,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error editing chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "editing chapter");
             }
         }
 
@@ -526,12 +466,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "unpublishing chapter");
             }
         }
 
@@ -555,12 +490,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error republishing chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "republishing chapter");
             }
         }
 
@@ -584,12 +514,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error activating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "activating chapter");
             }
         }
 
@@ -613,12 +538,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "deactivating chapter");
             }
         }
     }

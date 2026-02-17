@@ -32,10 +32,16 @@ Walking through a portal activates the corresponding preloaded game process with
   - Avatar profile (WEB4/WEB5 avatar APIs)
   - Karma timeline (WEB4 Karma API with source/reason/date/amount)
   - Global settings (audio/music/voice/master, graphics, key bindings)
+  - Diagnostics (runtime health snapshot + export)
 - Global settings persistence:
   - Local (PlayerPrefs)
   - Remote sync via WEB4 Settings API (`/api/settings/user/preferences` with fallback routes)
 - Applying settings rebuilds preloaded ODOOM/OQUAKE sessions so global launch settings propagate.
+- API resilience and offline continuity:
+  - Per-request retry/backoff and timeout handling for WEB4/WEB5 calls
+  - Circuit cooldown protection when repeated failures occur
+  - Centralized auth-aware error mapping (`401/403`, rate-limit, transient service errors)
+  - Short-lived local cache fallback for inventory/quests/NFT/avatar/karma/settings reads
 - List UX features in Control Center:
   - Search/filter box
   - Pagination (Prev/Next + page indicator)
@@ -70,6 +76,16 @@ Walking through a portal activates the corresponding preloaded game process with
   - Toast queue with stacked display for rapid actions (no overwrite)
   - Toast queue settings are configurable in Settings (`max visible`, `duration`) and persisted per avatar
   - Toast entries animate in/out and smoothly reflow when the stack changes
+  - Runtime status strip (API mode/circuit/auth/latency + host session/memory summary)
+  - Accessibility controls in Settings (`UI Font Scale`, `High Contrast`, `Show Runtime Status Strip`)
+- Process resilience:
+  - Active hosted session watchdog with automatic restart if the active process exits
+  - Window-handle recovery checks for hosted sessions before activation/maintenance
+  - Protected active session policy during low-memory unload passes
+- Diagnostics logging:
+  - Rolling runtime diagnostics log at `Application.persistentDataPath/Logs/omniverse_runtime.log`
+  - API failures/circuit transitions and host recovery/restart events are recorded
+  - Control Center Diagnostics tab includes one-click clipboard export (`Copy Diag`) with runtime snapshot + recent log lines
 
 ## Configuration
 

@@ -121,8 +121,8 @@ copy /Y "%ODOOM_INTEGRATION%odoom_oquake_items.zs" "%UZDOOM_SRC%\wadsrc\static\z
 copy /Y "%ODOOM_INTEGRATION%odoom_inventory_popup.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\ui\statusbar\odoom_inventory_popup.zs" >nul
 if not exist "%UZDOOM_SRC%\wadsrc\static\textures" mkdir "%UZDOOM_SRC%\wadsrc\static\textures"
 if exist "%ODOOM_INTEGRATION%face_anorak.png" (
-    echo [ODOOM][STEP] Preparing anorak HUD face from face_anorak.png ^(target 33x30^)...
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_face_texture.ps1" -SourcePath "%ODOOM_INTEGRATION%face_anorak.png" -DestPath "%ODOOM_INTEGRATION%textures\OASFACE.png" -Width 33 -Height 30
+    echo [ODOOM][STEP] Preparing anorak HUD face from face_anorak.png ^(target 34x30^)...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%prepare_odoom_face_texture.ps1" -SourcePath "%ODOOM_INTEGRATION%face_anorak.png" -DestPath "%ODOOM_INTEGRATION%textures\OASFACE.png" -Width 34 -Height 30 -OffsetX 1 -OffsetY 1
     if errorlevel 1 echo [ODOOM][WARN] face_anorak.png processing failed; using existing OASFACE.png if present.
 ) else (
     echo [ODOOM][NOTE] face_anorak.png not found in ODOOM root; using existing textures\OASFACE.png.

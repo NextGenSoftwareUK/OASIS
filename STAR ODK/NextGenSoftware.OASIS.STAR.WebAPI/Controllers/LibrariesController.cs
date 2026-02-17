@@ -71,12 +71,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading library");
             }
         }
 
@@ -108,12 +103,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating library");
             }
         }
 
@@ -146,12 +136,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error updating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "updating library");
             }
         }
 
@@ -165,12 +150,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting library");
             }
         }
 
@@ -279,12 +259,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning library");
             }
         }
 
@@ -307,12 +282,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating library");
             }
         }
 
@@ -338,12 +308,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading library");
             }
         }
 
@@ -368,12 +333,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading library from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading library from path");
             }
         }
 
@@ -396,12 +356,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading library from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading library from published file");
             }
         }
 
@@ -463,12 +418,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error publishing library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "publishing library");
             }
         }
 
@@ -494,12 +444,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading library");
             }
         }
 
@@ -551,12 +496,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading library version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading library version");
             }
         }
 
@@ -580,12 +520,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error editing library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "editing library");
             }
         }
 
@@ -609,12 +544,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "unpublishing library");
             }
         }
 
@@ -638,12 +568,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error republishing library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "republishing library");
             }
         }
 
@@ -667,12 +592,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error activating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "activating library");
             }
         }
 
@@ -696,12 +616,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "deactivating library");
             }
         }
     }

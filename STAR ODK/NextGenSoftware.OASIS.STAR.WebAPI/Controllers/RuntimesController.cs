@@ -67,12 +67,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading runtime");
             }
         }
 
@@ -104,12 +99,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating runtime");
             }
         }
 
@@ -142,12 +132,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error updating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "updating runtime");
             }
         }
 
@@ -161,12 +146,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting runtime");
             }
         }
 
@@ -275,12 +255,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error starting runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "starting runtime");
             }
         }
 
@@ -294,12 +269,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error stopping runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "stopping runtime");
             }
         }
 
@@ -313,12 +283,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error getting runtime status: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "getting runtime status");
             }
         }
 
@@ -332,12 +297,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning runtime");
             }
         }
 
@@ -360,12 +320,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating runtime");
             }
         }
 
@@ -388,12 +343,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading runtime from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading runtime from path");
             }
         }
 
@@ -416,12 +366,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading runtime from published: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading runtime from published");
             }
         }
 
@@ -509,12 +454,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error publishing runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "publishing runtime");
             }
         }
 
@@ -538,12 +478,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading runtime");
             }
         }
 
@@ -595,12 +530,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading runtime version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading runtime version");
             }
         }
 
@@ -624,12 +554,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error editing runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "editing runtime");
             }
         }
 
@@ -652,12 +577,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "unpublishing runtime");
             }
         }
 
@@ -681,12 +601,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error republishing runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "republishing runtime");
             }
         }
 
@@ -709,12 +624,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error activating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "activating runtime");
             }
         }
 
@@ -737,12 +647,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "deactivating runtime");
             }
         }
     }

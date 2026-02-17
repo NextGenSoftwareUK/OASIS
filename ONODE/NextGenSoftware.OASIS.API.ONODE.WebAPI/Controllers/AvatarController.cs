@@ -505,11 +505,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> 
-                { 
-                    IsError = true, 
-                    Message = $"Failed to create avatar: {ex.Message}" 
-                });
+                return HandleExceptionForWeb4<IAvatar>(ex, "CreateAvatar");
             }
         }
         */

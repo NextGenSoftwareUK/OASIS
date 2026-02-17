@@ -69,12 +69,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error loading holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "loading holon");
             }
         }
 
@@ -97,12 +92,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error creating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "creating holon");
             }
         }
 
@@ -127,12 +117,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error updating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "updating holon");
             }
         }
 
@@ -155,12 +140,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting holon");
             }
         }
 
@@ -342,12 +322,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error creating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "creating holon");
             }
         }
 
@@ -373,12 +348,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error loading holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "loading holon");
             }
         }
 
@@ -403,12 +373,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error loading holon from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "loading holon from path");
             }
         }
 
@@ -431,12 +396,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error loading holon from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "loading holon from published file");
             }
         }
 
@@ -498,12 +458,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error publishing holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "publishing holon");
             }
         }
 
@@ -529,12 +484,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error downloading holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARHolon>(ex, "downloading holon");
             }
         }
 
@@ -586,12 +536,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error loading holon version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "loading holon version");
             }
         }
 
@@ -615,12 +560,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error editing holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "editing holon");
             }
         }
 
@@ -644,12 +584,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "unpublishing holon");
             }
         }
 
@@ -673,12 +608,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error republishing holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "republishing holon");
             }
         }
 
@@ -702,12 +632,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error activating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "activating holon");
             }
         }
 
@@ -731,12 +656,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "deactivating holon");
             }
         }
     }

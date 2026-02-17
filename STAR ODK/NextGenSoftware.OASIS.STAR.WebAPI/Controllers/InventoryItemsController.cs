@@ -113,12 +113,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error loading inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "loading inventory item");
             }
         }
 
@@ -161,12 +156,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error updating inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "updating inventory item");
             }
         }
 
@@ -181,12 +171,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting inventory item");
             }
         }
 
@@ -260,12 +245,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error loading inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "loading inventory item");
             }
         }
 
@@ -290,12 +270,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error loading inventory item from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "loading inventory item from path");
             }
         }
 
@@ -318,12 +293,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error loading inventory item from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "loading inventory item from published file");
             }
         }
 
@@ -407,12 +377,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error publishing inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "publishing inventory item");
             }
         }
 
@@ -438,12 +403,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedInventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error downloading inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedInventoryItem>(ex, "downloading inventory item");
             }
         }
 
@@ -495,12 +455,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error loading inventory item version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "loading inventory item version");
             }
         }
 
@@ -524,12 +479,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error editing inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "editing inventory item");
             }
         }
 
@@ -553,12 +503,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "unpublishing inventory item");
             }
         }
 
@@ -582,12 +527,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error republishing inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "republishing inventory item");
             }
         }
 
@@ -611,12 +551,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error activating inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "activating inventory item");
             }
         }
 
@@ -640,12 +575,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "deactivating inventory item");
             }
         }
 

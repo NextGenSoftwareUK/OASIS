@@ -109,6 +109,9 @@ namespace OASIS.Omniverse.UnityHost.Config
         public string keyHideHostedGame = "F1";
         public int toastMaxVisible = 3;
         public float toastDurationSeconds = 1.7f;
+        public float uiFontScale = 1f;
+        public bool uiHighContrast = false;
+        public bool showStatusStrip = true;
         public List<OmniverseViewPreset> viewPresets = new List<OmniverseViewPreset>();
         public List<OmniverseActiveViewPreset> activeViewPresets = new List<OmniverseActiveViewPreset>();
         public List<OmniversePanelLayout> panelLayouts = new List<OmniversePanelLayout>();
