@@ -228,26 +228,26 @@ namespace OASIS.Omniverse.UnityHost.UI
             dragResize.SetMinSize(760f, 420f);
             dragResize.OnLayoutCommitted += panelRect => _ = PersistPanelLayoutAsync(ControlCenterPanelId, panelRect);
 
-            var title = CreateText("Title", "OASIS Omniverse Control Center", 32, TextAnchor.MiddleLeft, _panel.transform);
-            title.gameObject.SetActive(true); // Ensure title is visible
-            title.color = new Color(1f, 1f, 1f, 1f); // Force bright white color
-            SetAnchors(title.rectTransform, 0.02f, 0.92f, 0.70f, 0.985f);
-            
-            // Test rectangle will be created when panel becomes active (see RefreshAfterActivation)
+            // Title bar: top 8% of panel
+            var title = CreateText("Title", "OASIS Omniverse Control Center", 28, TextAnchor.MiddleLeft, _panel.transform);
+            title.gameObject.SetActive(true);
+            title.color = new Color(1f, 1f, 1f, 1f);
+            SetAnchors(title.rectTransform, 0.02f, 0.94f, 0.60f, 0.99f);
 
-            _returnToHubButton = CreateButton(_panel.transform, "Return to Hub", 0.71f, 0.92f, 0.85f, 0.985f);
+            _returnToHubButton = CreateButton(_panel.transform, "Return to Hub", 0.62f, 0.94f, 0.78f, 0.99f);
             _returnToHubButton.onClick.AddListener(ReturnToHub);
             _returnToHubButton.gameObject.SetActive(false);
 
-            _statusText = CreateText("Status", "Ready", 16, TextAnchor.MiddleRight, _panel.transform);
-            _statusText.gameObject.SetActive(true); // Ensure status is visible
-            SetAnchors(_statusText.rectTransform, 0.86f, 0.92f, 0.98f, 0.985f);
+            _statusText = CreateText("Status", "Ready", 14, TextAnchor.MiddleRight, _panel.transform);
+            _statusText.gameObject.SetActive(true);
+            SetAnchors(_statusText.rectTransform, 0.80f, 0.94f, 0.98f, 0.99f);
 
+            // Tabs: below title, 6% height
             var tabs = new GameObject("Tabs");
             tabs.transform.SetParent(_panel.transform, false);
-            tabs.SetActive(true); // Ensure tabs are active
+            tabs.SetActive(true);
             var tabsRect = tabs.AddComponent<RectTransform>();
-            SetAnchors(tabsRect, 0.02f, 0.84f, 0.98f, 0.91f);
+            SetAnchors(tabsRect, 0.02f, 0.87f, 0.98f, 0.93f);
 
             CreateTabButton(tabs.transform, "Inventory", OmniverseTab.Inventory, 0);
             CreateTabButton(tabs.transform, "Quests", OmniverseTab.Quests, 1);
@@ -257,13 +257,15 @@ namespace OASIS.Omniverse.UnityHost.UI
             CreateTabButton(tabs.transform, "Settings", OmniverseTab.Settings, 5);
             CreateTabButton(tabs.transform, "Diagnostics", OmniverseTab.Diagnostics, 6);
 
+            // List controls: below tabs, 12% height
             BuildListControls();
 
+            // Content area: below list controls, fills remaining space
             _contentRoot = new GameObject("ContentRoot");
             _contentRoot.transform.SetParent(_panel.transform, false);
-            _contentRoot.SetActive(true); // Ensure it's active
+            _contentRoot.SetActive(true);
             var contentRect = _contentRoot.AddComponent<RectTransform>();
-            SetAnchors(contentRect, 0.02f, 0.06f, 0.98f, 0.69f);
+            SetAnchors(contentRect, 0.02f, 0.02f, 0.98f, 0.75f);
 
             _contentText = CreateText("ContentText", string.Empty, 19, TextAnchor.UpperLeft, _contentRoot.transform);
             _contentText.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -273,7 +275,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             _settingsRoot = new GameObject("SettingsRoot");
             _settingsRoot.transform.SetParent(_panel.transform, false);
             var settingsRect = _settingsRoot.AddComponent<RectTransform>();
-            SetAnchors(settingsRect, 0.02f, 0.06f, 0.98f, 0.82f);
+            SetAnchors(settingsRect, 0.02f, 0.02f, 0.98f, 0.87f);
             BuildSettingsUi(_settingsRoot.transform);
             _settingsRoot.SetActive(false);
 
@@ -321,9 +323,9 @@ namespace OASIS.Omniverse.UnityHost.UI
         {
             _listControlsRoot = new GameObject("ListControls");
             _listControlsRoot.transform.SetParent(_panel.transform, false);
-            _listControlsRoot.SetActive(true); // Ensure list controls are active
+            _listControlsRoot.SetActive(true);
             var controlsRect = _listControlsRoot.AddComponent<RectTransform>();
-            SetAnchors(controlsRect, 0.02f, 0.70f, 0.98f, 0.835f);
+            SetAnchors(controlsRect, 0.02f, 0.75f, 0.98f, 0.87f);
 
             CreateText("SearchLabel", "Search", 16, TextAnchor.MiddleLeft, _listControlsRoot.transform, 0.0f, 0f, 0.06f, 1f);
             _searchInput = CreateInputField(_listControlsRoot.transform, 0.065f, 0.56f, 0.26f, 0.94f);
@@ -370,14 +372,14 @@ namespace OASIS.Omniverse.UnityHost.UI
             // Preset row
             CreateText("PresetLabel", "Preset", 15, TextAnchor.MiddleLeft, _listControlsRoot.transform, 0.0f, 0.10f, 0.06f, 0.48f);
             _presetDropdown = CreateDropdown(_listControlsRoot.transform, new[] { "(none)" }, 0.065f, 0.10f, 0.24f, 0.48f);
-            _presetDropdown.onValueChanged.AddListener(_ =>
+            _presetDropdown.onValueChanged.AddListener(value =>
             {
                 if (_suppressPresetEvents)
                 {
                     return;
                 }
 
-                ApplySelectedPresetAsync();
+                _ = ApplySelectedPresetAsync();
             });
 
             _presetNameInput = CreateInputField(_listControlsRoot.transform, 0.25f, 0.10f, 0.40f, 0.48f);
@@ -2703,12 +2705,11 @@ namespace OASIS.Omniverse.UnityHost.UI
             var text = textObject.AddComponent<Text>();
             // Use LegacyRuntime.ttf as Arial.ttf is no longer available in newer Unity versions
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null)
+            if (font != null)
             {
-                // If LegacyRuntime also fails, try to get any available font
-                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                text.font = font;
             }
-            text.font = font;
+            // If font is null, Unity will use the default font
             text.text = content;
             text.alignment = anchor;
             text.fontSize = size;
