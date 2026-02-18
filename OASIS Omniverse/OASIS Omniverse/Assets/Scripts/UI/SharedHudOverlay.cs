@@ -156,48 +156,25 @@ namespace OASIS.Omniverse.UnityHost.UI
 
         public void Initialize(OmniverseHostConfig config, Web4Web5GatewayClient apiClient, GlobalSettingsService settingsService, OmniverseKernel kernel)
         {
-            UnityEngine.Debug.LogError("[HUD] Initialize called - starting HUD setup");
             _apiClient = apiClient;
             _settingsService = settingsService;
             _kernel = kernel;
             SyncHotkeysFromSettings();
-            UnityEngine.Debug.LogError($"[HUD] Toggle key set to: {_toggleKey}");
             BuildUi();
             // Ensure panel is definitely hidden initially
             if (_panel != null)
             {
                 _panel.SetActive(false);
                 _isVisible = false;
-                UnityEngine.Debug.LogError($"[HUD] Initialize complete - Panel HIDDEN. Active: {_panel.activeSelf}, _isVisible: {_isVisible}, Canvas: {_canvas != null}, Canvas Active: {_canvas?.gameObject.activeSelf}");
             }
-            else
-            {
-                UnityEngine.Debug.LogError("[HUD] ERROR: Panel is null in Initialize!");
-            }
-            UnityEngine.Debug.LogError($"[HUD] Component enabled: {enabled}, gameObject active: {gameObject.activeSelf}");
             
             // Ensure component is enabled so Update runs
             enabled = true;
             gameObject.SetActive(true);
-            UnityEngine.Debug.LogError($"[HUD] After ensuring enabled - Component enabled: {enabled}, gameObject active: {gameObject.activeSelf}");
-            
-            // Test: Show HUD briefly on startup to verify it's working
-            StartCoroutine(TestHudVisibility());
-        }
-        
-        private System.Collections.IEnumerator TestHudVisibility()
-        {
-            yield return new WaitForSeconds(0.5f);
-            UnityEngine.Debug.LogError("[HUD] Test: Making HUD visible for 3 seconds");
-            SetVisible(true);
-            yield return new WaitForSeconds(3f);
-            UnityEngine.Debug.LogError("[HUD] Test: Hiding HUD again");
-            SetVisible(false);
         }
 
         private void BuildUi()
         {
-            UnityEngine.Debug.LogError("[HUD] BuildUi called - creating canvas");
             _canvas = new GameObject("SharedHudCanvas").AddComponent<Canvas>();
             _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             _canvas.sortingOrder = 9999;
@@ -212,7 +189,6 @@ namespace OASIS.Omniverse.UnityHost.UI
             
             // Ensure canvas is active and visible
             _canvas.gameObject.SetActive(true);
-            UnityEngine.Debug.LogError($"[HUD] Canvas created and activated. RenderMode: {_canvas.renderMode}, Active: {_canvas.gameObject.activeSelf}, Enabled: {_canvas.enabled}");
             
             // Create EventSystem if it doesn't exist (required for UI input)
             if (UnityEngine.EventSystems.EventSystem.current == null)
@@ -306,11 +282,8 @@ namespace OASIS.Omniverse.UnityHost.UI
             BuildReturnToHubConfirmationDialog();
             ApplyAccessibilityTheme();
             
-            UnityEngine.Debug.LogError($"[HUD] BuildUi complete - Panel has {_panel.transform.childCount} children");
-            
             // Hide panel after all children are created and initialized
             _panel.SetActive(false);
-            UnityEngine.Debug.LogError($"[HUD] Panel hidden after BuildUi. Active: {_panel.activeSelf}");
         }
 
         private void BuildToastUi()
@@ -445,7 +418,6 @@ namespace OASIS.Omniverse.UnityHost.UI
             var toggleDown = IsHotkeyDown(_toggleKey) || Input.GetKeyDown(KeyCode.I);
             if (toggleDown && !_toggleWasDown)
             {
-                UnityEngine.Debug.LogError($"[HUD] Toggle key pressed! Current state: _isVisible={_isVisible}, Panel active: {_panel?.activeSelf}");
                 Toggle();
             }
 
@@ -928,18 +900,12 @@ namespace OASIS.Omniverse.UnityHost.UI
             _isVisible = visible;
             if (_panel != null)
             {
-                UnityEngine.Debug.LogError($"[HUD] SetVisible called: {visible}, Panel currently has {_panel.transform.childCount} children, Panel active: {_panel.activeSelf}, Canvas active: {_canvas?.gameObject.activeSelf}");
                 _panel.SetActive(visible);
-                UnityEngine.Debug.LogError($"[HUD] After SetActive({visible}), Panel active: {_panel.activeSelf}");
                 if (visible)
                 {
                     // Wait a frame to ensure panel is fully active
                     StartCoroutine(RefreshAfterActivation());
                 }
-            }
-            else
-            {
-                UnityEngine.Debug.LogError("[HUD] SetVisible called but _panel is NULL!");
             }
         }
         
@@ -2826,20 +2792,38 @@ namespace OASIS.Omniverse.UnityHost.UI
         {
             var go = new GameObject("Toggle");
             go.transform.SetParent(parent, false);
+            
+            // Ensure RectTransform exists (UI components automatically get one, but let's be explicit)
+            var rect = go.GetComponent<RectTransform>();
+            if (rect == null)
+            {
+                rect = go.AddComponent<RectTransform>();
+            }
+            
             var toggle = go.AddComponent<Toggle>();
-            SetAnchors(go.AddComponent<RectTransform>(), minX, minY, maxX, maxY);
+            SetAnchors(rect, minX, minY, maxX, maxY);
 
             var bg = new GameObject("Background");
             bg.transform.SetParent(go.transform, false);
             var bgImage = bg.AddComponent<Image>();
             bgImage.color = new Color(0.2f, 0.2f, 0.2f);
-            SetAnchors(bg.GetComponent<RectTransform>(), 0f, 0f, 1f, 1f);
+            var bgRect = bg.GetComponent<RectTransform>();
+            if (bgRect == null)
+            {
+                bgRect = bg.AddComponent<RectTransform>();
+            }
+            SetAnchors(bgRect, 0f, 0f, 1f, 1f);
 
             var checkmark = new GameObject("Checkmark");
             checkmark.transform.SetParent(bg.transform, false);
             var checkImage = checkmark.AddComponent<Image>();
             checkImage.color = new Color(0.2f, 0.8f, 1f);
-            SetAnchors(checkmark.GetComponent<RectTransform>(), 0.15f, 0.15f, 0.85f, 0.85f);
+            var checkRect = checkmark.GetComponent<RectTransform>();
+            if (checkRect == null)
+            {
+                checkRect = checkmark.AddComponent<RectTransform>();
+            }
+            SetAnchors(checkRect, 0.15f, 0.15f, 0.85f, 0.85f);
 
             toggle.graphic = checkImage;
             toggle.targetGraphic = bgImage;
@@ -2863,6 +2847,11 @@ namespace OASIS.Omniverse.UnityHost.UI
 
         private static void SetAnchors(RectTransform rect, float minX, float minY, float maxX, float maxY)
         {
+            if (rect == null)
+            {
+                UnityEngine.Debug.LogError("[HUD] SetAnchors called with null RectTransform!");
+                return;
+            }
             rect.anchorMin = new Vector2(minX, minY);
             rect.anchorMax = new Vector2(maxX, maxY);
             rect.offsetMin = Vector2.zero;
