@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -37,16 +38,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Holons.LoadAllAsync(AvatarId, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testHolons = TestDataHelper.GetTestSTARHolons(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARHolon>>(testHolons, "Holons retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARHolon>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading holons: {ex.Message}",
-                    Exception = ex
-                });
+                    var testHolons = TestDataHelper.GetTestSTARHolons(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARHolon>>(testHolons, "Holons retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARHolon>>(ex, "GetAllHolons");
             }
         }
 
@@ -65,11 +75,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Holons.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testHolon = TestDataHelper.GetTestSTARHolon(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<STARHolon>(testHolon, "Holon retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return HandleException<STARHolon>(ex, "loading holon");
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testHolon = TestDataHelper.GetTestSTARHolon(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<STARHolon>(testHolon, "Holon retrieved successfully (using test data)"));
+                }
+                return HandleException<STARHolon>(ex, "GetHolon");
             }
         }
 

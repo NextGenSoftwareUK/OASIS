@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Threading;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 // duplicate using removed
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
@@ -77,10 +78,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.NFTs.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testNFTs = TestDataHelper.GetTestNFTs(5).Cast<STARNFT>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARNFT>>(testNFTs, "NFTs retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testNFTs = TestDataHelper.GetTestNFTs(5).Cast<STARNFT>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARNFT>>(testNFTs, "NFTs retrieved successfully (using test data)"));
+                }
                 return HandleException<IEnumerable<STARNFT>>(ex, "GetAllNFTs");
             }
         }

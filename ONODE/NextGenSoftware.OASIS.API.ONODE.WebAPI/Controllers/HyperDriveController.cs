@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -9,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -82,18 +84,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var config = _configManager.GetConfiguration();
-                return Ok(new OASISResult<OASISHyperDriveConfig>
+                var result = new OASISResult<OASISHyperDriveConfig>
                 {
                     Result = config,
                     Message = "HyperDrive configuration retrieved successfully."
-                });
+                };
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                // Note: HyperDriveController doesn't inherit from OASISControllerBase, so we need to check config directly
+                var configService = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
+                bool useTestData = configService?.GetValue<bool>("OASIS:UseTestDataWhenLiveDataNotAvailable", 
+                    bool.Parse(Environment.GetEnvironmentVariable("USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE") ?? "false")) ?? false;
+
+                if (useTestData && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<OASISHyperDriveConfig>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "HyperDrive configuration retrieved successfully (using test data)."
+                    });
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                var configService = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
+                bool useTestData = configService?.GetValue<bool>("OASIS:UseTestDataWhenLiveDataNotAvailable", 
+                    bool.Parse(Environment.GetEnvironmentVariable("USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE") ?? "false")) ?? false;
+
+                if (useTestData)
+                {
+                    return Ok(new OASISResult<OASISHyperDriveConfig>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "HyperDrive configuration retrieved successfully (using test data)."
+                    });
+                }
                 return BadRequest(new OASISResult<OASISHyperDriveConfig>
                 {
                     IsError = true,
-                    Message = $"Error retrieving HyperDrive configuration: {ex.Message}"
+                    Message = $"Error retrieving HyperDrive configuration: {ex.Message}",
+                    Exception = ex
                 });
             }
         }

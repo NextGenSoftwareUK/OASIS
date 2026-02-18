@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -58,8 +59,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("history/{sessionId}")]
         public async Task<OASISResult<List<ChatMessage>>> GetChatHistory(string sessionId, [FromQuery] int limit = 50, [FromQuery] int offset = 0)
         {
-            // Use ChatManager for business logic
-            return await ChatManager.Instance.GetChatHistoryAsync(sessionId, limit, offset);
+            try
+            {
+                // Use ChatManager for business logic
+                var result = await ChatManager.Instance.GetChatHistoryAsync(sessionId, limit, offset);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return new OASISResult<List<ChatMessage>>
+                    {
+                        Result = new List<ChatMessage>(),
+                        IsError = false,
+                        Message = "Chat history retrieved successfully (using test data)"
+                    };
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return new OASISResult<List<ChatMessage>>
+                    {
+                        Result = new List<ChatMessage>(),
+                        IsError = false,
+                        Message = "Chat history retrieved successfully (using test data)"
+                    };
+                }
+                return new OASISResult<List<ChatMessage>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving chat history: {ex.Message}",
+                    Exception = ex
+                };
+            }
         }
     }
 }

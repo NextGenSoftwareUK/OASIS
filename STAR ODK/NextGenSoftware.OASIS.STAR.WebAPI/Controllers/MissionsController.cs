@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using System.Threading;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -73,10 +74,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Missions.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMissions = TestDataHelper.GetTestMissions(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Mission>>(testMissions, "Missions retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testMissions = TestDataHelper.GetTestMissions(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Mission>>(testMissions, "Missions retrieved successfully (using test data)"));
+                }
                 return HandleException<IEnumerable<Mission>>(ex, "GetAllMissions");
             }
         }
@@ -96,10 +111,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Missions.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMission = TestDataHelper.GetTestMission(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testMission = TestDataHelper.GetTestMission(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission retrieved successfully (using test data)"));
+                }
                 return HandleException<Mission>(ex, "GetMission");
             }
         }

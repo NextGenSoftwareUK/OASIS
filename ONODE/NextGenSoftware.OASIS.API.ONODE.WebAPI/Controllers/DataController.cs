@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using Solnet.Metaplex;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -88,13 +89,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
-            OASISResult<IHolon> result = await HolonManager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
-            ResetOASISSettings(request, configResult);
+            OASISResult<IHolon> result = null;
+            try
+            {
+                result = await HolonManager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
 
-            OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-            response.Result.Result = (Holon)result.Result;
+                ResetOASISSettings(request, configResult);
 
-            return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    var testHolon = TestDataHelper.GetTestHolon(request.Id);
+                    return TestDataHelper.CreateSuccessResponse<Holon>(testHolon, "Holon loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
+                }
+
+                OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
+                response.Result.Result = (Holon)result.Result;
+
+                return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+            }
+            catch (Exception ex)
+            {
+                ResetOASISSettings(request, configResult);
+
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testHolon = TestDataHelper.GetTestHolon(request.Id);
+                    return TestDataHelper.CreateSuccessResponse<Holon>(testHolon, "Holon loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
+                }
+                return TestDataHelper.CreateErrorResponse<Holon>($"Error loading holon: {ex.Message}", ex, System.Net.HttpStatusCode.BadRequest);
+            }
         }
 
 
@@ -255,25 +280,62 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("load-all-holons")]
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(LoadAllHolonsRequest request)
         {
-            OASISHttpResponseMessage<IEnumerable<Holon>> response;
-            (response, HolonType holonType) = ValidateHolonType<IEnumerable<Holon>>(request.HolonType);
-            (response, HolonType childHolonType) = ValidateHolonType<IEnumerable<Holon>>(request.ChildHolonType);
+            try
+            {
+                OASISHttpResponseMessage<IEnumerable<Holon>> response;
+                (response, HolonType holonType) = ValidateHolonType<IEnumerable<Holon>>(request.HolonType);
+                (response, HolonType childHolonType) = ValidateHolonType<IEnumerable<Holon>>(request.ChildHolonType);
 
-            if (response.Result.IsError)
-                return response;
+                if (response.Result.IsError)
+                    return response;
 
-            OASISConfigResult<IEnumerable<Holon>> configResult = ConfigureOASISEngine<IEnumerable<Holon>>(request);
+                OASISConfigResult<IEnumerable<Holon>> configResult = ConfigureOASISEngine<IEnumerable<Holon>>(request);
 
-            if (configResult.IsError && configResult.Response != null)
-                return configResult.Response;
+                if (configResult.IsError && configResult.Response != null)
+                    return configResult.Response;
 
-            OASISResult<IEnumerable<IHolon>> result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
+                OASISResult<IEnumerable<IHolon>> result = null;
+                try
+                {
+                    result = await HolonManager.LoadAllHolonsAsync(holonType, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
 
-            OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-            response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result);
-            ResetOASISSettings(request, configResult);
+                    ResetOASISSettings(request, configResult);
 
-            return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                    // Return test data if setting is enabled and result is null, has error, or is empty
+                    if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null || !result.Result.Any()))
+                    {
+                        var testHolons = TestDataHelper.GetTestHolons(5);
+                        return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
+                    }
+
+                    OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
+                    response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result);
+
+                    return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                }
+                catch (Exception ex)
+                {
+                    ResetOASISSettings(request, configResult);
+
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        var testHolons = TestDataHelper.GetTestHolons(5);
+                        return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
+                    }
+                    return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>($"Error loading holons: {ex.Message}", ex);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testHolons = TestDataHelper.GetTestHolons(5);
+                    return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)", System.Net.HttpStatusCode.OK);
+                }
+                return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>($"Error loading holons: {ex.Message}", ex);
+            }
         }
 
 
@@ -286,8 +348,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("load-all-holons/{holonType}")]
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadAllHolons(string holonType)
         {
-            return await LoadAllHolons(new LoadAllHolonsRequest() { HolonType = holonType });
-            //return await LoadAllHolons(holonType, true, true, 0, true, 0);
+            try
+            {
+                var result = await LoadAllHolons(new LoadAllHolonsRequest() { HolonType = holonType });
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.Result == null || result.Result.IsError || result.Result.Result == null || !result.Result.Result.Any()))
+                {
+                    var testHolons = TestDataHelper.GetTestHolons(5);
+                    return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)");
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testHolons = TestDataHelper.GetTestHolons(5);
+                    return TestDataHelper.CreateSuccessResponse<IEnumerable<Holon>>(testHolons, "Holons loaded successfully (using test data)");
+                }
+                return TestDataHelper.CreateErrorResponse<IEnumerable<Holon>>($"Error loading holons: {ex.Message}", ex);
+            }
         }
 
         /// <summary>

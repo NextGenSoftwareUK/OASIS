@@ -13,6 +13,7 @@ using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -95,7 +96,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-karma-for-avatar/{avatarId}")]
         public async Task<OASISResult<long>> GetKarmaForAvatar(Guid avatarId)
         {
-            return await KarmaManager.Instance.GetKarmaAsync(avatarId);
+            try
+            {
+                OASISResult<long> result = null;
+                try
+                {
+                    result = await KarmaManager.Instance.GetKarmaAsync(avatarId);
+                }
+                catch
+                {
+                    // If real data unavailable, use test data
+                }
+
+                // Return test data if setting is enabled and result is null, has error, or result is 0
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError))
+                {
+                    return new OASISResult<long>
+                    {
+                        Result = 1000,
+                        IsError = false,
+                        Message = "Karma retrieved successfully (using test data)"
+                    };
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return new OASISResult<long>
+                    {
+                        Result = 1000,
+                        IsError = false,
+                        Message = "Karma retrieved successfully (using test data)"
+                    };
+                }
+                return new OASISResult<long>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving karma: {ex.Message}",
+                    Exception = ex
+                };
+            }
         }
 
         /// <summary>

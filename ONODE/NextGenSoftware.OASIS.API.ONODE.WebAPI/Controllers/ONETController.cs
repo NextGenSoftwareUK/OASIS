@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -54,10 +55,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var result = await GetOnetManager().GetOASISDNAAsync();
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<OASISDNA>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "OASISDNA retrieved successfully (using test data)"
+                    });
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<OASISDNA>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "OASISDNA retrieved successfully (using test data)"
+                    });
+                }
                 _logger.LogError(ex, "Error getting OASISDNA configuration");
                 return StatusCode(500, new { message = "Error getting OASISDNA configuration", error = ex.Message });
             }
@@ -94,10 +117,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var result = await GetOnetManager().GetNetworkStatusAsync();
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<object>
+                    {
+                        Result = new { status = "online", nodes = 0 },
+                        IsError = false,
+                        Message = "Network status retrieved successfully (using test data)"
+                    });
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<object>
+                    {
+                        Result = new { status = "online", nodes = 0 },
+                        IsError = false,
+                        Message = "Network status retrieved successfully (using test data)"
+                    });
+                }
                 _logger.LogError(ex, "Error getting network status");
                 return StatusCode(500, new { message = "Error getting network status", error = ex.Message });
             }

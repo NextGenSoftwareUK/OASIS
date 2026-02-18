@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -39,15 +40,30 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 // TODO: Implement proper park loading
                 await Task.Delay(1); // Placeholder async operation
-                return Ok(new OASISResult<IEnumerable<IPark>>
+                OASISResult<IEnumerable<IPark>> result = new OASISResult<IEnumerable<IPark>>
                 {
                     IsError = false,
                     Message = "Parks loaded successfully",
                     Result = new List<IPark>()
-                });
+                };
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testParks = TestDataHelper.GetTestParks(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IPark>>(testParks, "Parks retrieved successfully (using test data)"));
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testParks = TestDataHelper.GetTestParks(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IPark>>(testParks, "Parks retrieved successfully (using test data)"));
+                }
                 return HandleException<IEnumerable<IPark>>(ex, "GetAllParks");
             }
         }
@@ -68,16 +84,31 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 // TODO: Implement proper park loading by ID
                 await Task.Delay(1); // Placeholder async operation
-                return Ok(new OASISResult<IPark>
+                OASISResult<IPark> result = new OASISResult<IPark>
                 {
                     IsError = false,
                     Message = "Park loaded successfully",
                     Result = null
-                });
+                };
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testParks = TestDataHelper.GetTestParks(1);
+                    return Ok(TestDataHelper.CreateSuccessResult<IPark>(testParks.FirstOrDefault(), "Park retrieved successfully (using test data)"));
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return HandleException<IPark>(ex, "loading park");
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testParks = TestDataHelper.GetTestParks(1);
+                    return Ok(TestDataHelper.CreateSuccessResult<IPark>(testParks.FirstOrDefault(), "Park retrieved successfully (using test data)"));
+                }
+                return HandleException<IPark>(ex, "GetPark");
             }
         }
 

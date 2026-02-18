@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -37,16 +38,26 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.OAPPs.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    // Create test OAPPs - using empty list for now as OAPP type may need specific implementation
+                    var testOAPPs = new List<OAPP>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<OAPP>>(testOAPPs, "OAPPs retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<OAPP>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading OAPPs: {ex.Message}",
-                    Exception = ex
-                });
+                    var testOAPPs = new List<OAPP>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<OAPP>>(testOAPPs, "OAPPs retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<OAPP>>(ex, "GetAllOAPPs");
             }
         }
 
@@ -65,11 +76,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.OAPPs.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    // Create test OAPP - using null for now as OAPP type may need specific implementation
+                    return Ok(TestDataHelper.CreateSuccessResult<OAPP>(null, "OAPP retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return HandleException<OAPP>(ex, "loading OAPP");
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<OAPP>(null, "OAPP retrieved successfully (using test data)"));
+                }
+                return HandleException<OAPP>(ex, "GetOAPP");
             }
         }
 

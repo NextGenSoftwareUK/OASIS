@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
 using System.Threading;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -58,33 +59,30 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                if (AvatarId == Guid.Empty)
+                OASISResult<IEnumerable<InventoryItem>> result = null;
+                if (AvatarId != Guid.Empty)
                 {
-                    return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
-                    {
-                        IsError = true,
-                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-                    });
+                    await EnsureStarApiBootedAsync();
+                    result = await _starAPI.InventoryItems.LoadAllAsync(AvatarId, 0);
                 }
 
-                await EnsureStarApiBootedAsync();
-                var result = await _starAPI.InventoryItems.LoadAllAsync(AvatarId, 0);
-                
-                // Ensure result is properly initialized
-                if (result == null)
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
                 {
-                    return Ok(new OASISResult<IEnumerable<InventoryItem>>
-                    {
-                        IsError = false,
-                        Result = new List<InventoryItem>(),
-                        Message = "No inventory items found."
-                    });
+                    var testItems = TestDataHelper.GetTestInventoryItems(5).Cast<InventoryItem>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<InventoryItem>>(testItems, "Inventory items retrieved successfully (using test data)"));
                 }
                 
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testItems = TestDataHelper.GetTestInventoryItems(5).Cast<InventoryItem>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<InventoryItem>>(testItems, "Inventory items retrieved successfully (using test data)"));
+                }
                 return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
                 {
                     IsError = true,
@@ -109,10 +107,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.InventoryItems.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testItem = TestDataHelper.GetTestInventoryItem(id) as InventoryItem;
+                    return Ok(TestDataHelper.CreateSuccessResult<InventoryItem>(testItem, "Inventory item retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testItem = TestDataHelper.GetTestInventoryItem(id) as InventoryItem;
+                    return Ok(TestDataHelper.CreateSuccessResult<InventoryItem>(testItem, "Inventory item retrieved successfully (using test data)"));
+                }
                 return HandleException<InventoryItem>(ex, "loading inventory item");
             }
         }

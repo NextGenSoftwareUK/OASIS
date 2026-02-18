@@ -119,16 +119,27 @@ where msbuild >nul 2>nul || (
     exit /b 1
 )
 msbuild "%VKQUAKE_SRC%\Windows\VisualStudio\vkquake.sln" /p:Configuration=Release /p:Platform=x64 /v:m
-if not errorlevel 1 (
-    if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe"
-    if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\Windows\VisualStudio\x64\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\x64\Release\vkquake.exe"
-    if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe"
-    if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\build\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\build\Release\vkquake.exe"
-) else (
+if errorlevel 1 (
     echo Build failed. Run from Developer Command Prompt for details.
     pause
     exit /b 1
 )
+if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Build-vkQuake\x64\Release\vkquake.exe"
+if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\Windows\VisualStudio\x64\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\x64\Release\vkquake.exe"
+if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\Windows\VisualStudio\Release\vkquake.exe"
+if not defined VKQUAKE_EXE if exist "%VKQUAKE_SRC%\build\Release\vkquake.exe" set "VKQUAKE_EXE=%VKQUAKE_SRC%\build\Release\vkquake.exe"
+if not defined VKQUAKE_EXE (
+    echo [WARNING] Build succeeded but vkquake.exe not found in expected locations.
+    echo Searching for vkquake.exe...
+    for /r "%VKQUAKE_SRC%" %%F in (vkquake.exe) do (
+        if exist "%%F" (
+            echo Found: %%F
+            set "VKQUAKE_EXE=%%F"
+            goto exe_found
+        )
+    )
+)
+:exe_found
 goto :copy_out
 
 :meson
@@ -144,15 +155,28 @@ cd /d "%~dp0"
 goto :copy_out
 
 :copy_out
-if defined VKQUAKE_EXE (
-    for %%A in ("%VKQUAKE_EXE%") do copy /Y "%STAR_DLL%" "%%~dpA" >nul
-    set "QUAKE_ENGINE_EXE=%VKQUAKE_EXE%"
-    if not exist "%OQUAKE_INTEGRATION%\build" mkdir "%OQUAKE_INTEGRATION%\build"
-    copy /Y "%VKQUAKE_EXE%" "%OQUAKE_INTEGRATION%\build\OQUAKE.exe" >nul
-    copy /Y "%STAR_DLL%" "%OQUAKE_INTEGRATION%\build\star_api.dll" >nul
-    for %%A in ("%VKQUAKE_EXE%") do for %%D in ("%%~dpA*.dll") do copy /Y "%%D" "%OQUAKE_INTEGRATION%\build\" >nul
-    echo   Output: %OQUAKE_INTEGRATION%\build\OQUAKE.exe
+if not defined VKQUAKE_EXE goto copy_done
+if not exist "%VKQUAKE_EXE%" (
+    echo [ERROR] VKQUAKE_EXE points to non-existent file: %VKQUAKE_EXE%
+    goto copy_done
 )
+echo [OQuake] Copying files to build folder...
+for %%A in ("%VKQUAKE_EXE%") do set "EXE_DIR=%%~dpA"
+copy /Y "%STAR_DLL%" "!EXE_DIR!" >nul
+set "QUAKE_ENGINE_EXE=%VKQUAKE_EXE%"
+if not exist "%OQUAKE_INTEGRATION%\build" mkdir "%OQUAKE_INTEGRATION%\build"
+copy /Y "%VKQUAKE_EXE%" "%OQUAKE_INTEGRATION%\build\OQUAKE.exe"
+if errorlevel 1 (
+    echo [ERROR] Failed to copy exe to build folder
+    goto copy_done
+)
+echo   Copied: %OQUAKE_INTEGRATION%\build\OQUAKE.exe
+copy /Y "%STAR_DLL%" "%OQUAKE_INTEGRATION%\build\star_api.dll" >nul
+for %%D in ("!EXE_DIR!*.dll") do (
+    if exist "%%D" copy /Y "%%D" "%OQUAKE_INTEGRATION%\build\" >nul
+)
+echo   Output: %OQUAKE_INTEGRATION%\build\OQUAKE.exe
+:copy_done
 
 goto :done
 

@@ -161,7 +161,18 @@ namespace OASIS.Omniverse.UnityHost.UI
             _kernel = kernel;
             SyncHotkeysFromSettings();
             BuildUi();
-            SetVisible(false);
+            // Ensure panel is definitely hidden
+            if (_panel != null)
+            {
+                _panel.SetActive(false);
+                _isVisible = false;
+                // Use LogError so it definitely shows in console
+                UnityEngine.Debug.LogError($"[HUD] Initialize complete - Panel should be HIDDEN. Active: {_panel.activeSelf}, _isVisible: {_isVisible}");
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("[HUD] ERROR: Panel is null in Initialize!");
+            }
         }
 
         private void BuildUi()
@@ -169,15 +180,44 @@ namespace OASIS.Omniverse.UnityHost.UI
             _canvas = new GameObject("SharedHudCanvas").AddComponent<Canvas>();
             _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             _canvas.sortingOrder = 9999;
-            _canvas.gameObject.AddComponent<CanvasScaler>();
+            
+            // Configure CanvasScaler for proper scaling
+            var scaler = _canvas.gameObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.matchWidthOrHeight = 0.5f;
+            
             _canvas.gameObject.AddComponent<GraphicRaycaster>();
+            
+            // Ensure canvas is active and visible
+            _canvas.gameObject.SetActive(true);
+            
+            // Create EventSystem if it doesn't exist (required for UI input)
+            if (UnityEngine.EventSystems.EventSystem.current == null)
+            {
+                var eventSystem = new GameObject("EventSystem");
+                eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            }
 
             _panel = new GameObject("OmniverseControlCenter");
             _panel.transform.SetParent(_canvas.transform, false);
+            // Start active so all children initialize properly
+            _panel.SetActive(true);
+            
+            // Ensure RectTransform exists (required for UI)
+            var rect = _panel.AddComponent<RectTransform>();
+            if (rect == null)
+            {
+                rect = _panel.GetComponent<RectTransform>();
+            }
+            
+            // Make background semi-transparent so we can see if children are rendering
             var image = _panel.AddComponent<Image>();
-            image.color = new Color(0f, 0f, 0f, 0.82f);
-
-            var rect = _panel.GetComponent<RectTransform>();
+            image.color = new Color(0.1f, 0.1f, 0.15f, 0.3f); // Very transparent so children show through
+            image.raycastTarget = true; // Allow raycasts but don't block rendering
+            // Ensure the panel's image renders first (lowest in hierarchy)
+            _panel.transform.SetAsFirstSibling();
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
@@ -190,18 +230,24 @@ namespace OASIS.Omniverse.UnityHost.UI
             dragResize.SetMinSize(760f, 420f);
             dragResize.OnLayoutCommitted += panelRect => _ = PersistPanelLayoutAsync(ControlCenterPanelId, panelRect);
 
-            var title = CreateText("Title", "OASIS Omniverse Control Center", 28, TextAnchor.MiddleLeft, _panel.transform);
+            var title = CreateText("Title", "OASIS Omniverse Control Center", 32, TextAnchor.MiddleLeft, _panel.transform);
+            title.gameObject.SetActive(true); // Ensure title is visible
+            title.color = new Color(1f, 1f, 1f, 1f); // Force bright white color
             SetAnchors(title.rectTransform, 0.02f, 0.92f, 0.70f, 0.985f);
+            
+            // Test rectangle will be created when panel becomes active (see RefreshAfterActivation)
 
             _returnToHubButton = CreateButton(_panel.transform, "Return to Hub", 0.71f, 0.92f, 0.85f, 0.985f);
             _returnToHubButton.onClick.AddListener(ReturnToHub);
             _returnToHubButton.gameObject.SetActive(false);
 
             _statusText = CreateText("Status", "Ready", 16, TextAnchor.MiddleRight, _panel.transform);
+            _statusText.gameObject.SetActive(true); // Ensure status is visible
             SetAnchors(_statusText.rectTransform, 0.86f, 0.92f, 0.98f, 0.985f);
 
             var tabs = new GameObject("Tabs");
             tabs.transform.SetParent(_panel.transform, false);
+            tabs.SetActive(true); // Ensure tabs are active
             var tabsRect = tabs.AddComponent<RectTransform>();
             SetAnchors(tabsRect, 0.02f, 0.84f, 0.98f, 0.91f);
 
@@ -217,6 +263,7 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             _contentRoot = new GameObject("ContentRoot");
             _contentRoot.transform.SetParent(_panel.transform, false);
+            _contentRoot.SetActive(true); // Ensure it's active
             var contentRect = _contentRoot.AddComponent<RectTransform>();
             SetAnchors(contentRect, 0.02f, 0.06f, 0.98f, 0.69f);
 
@@ -236,6 +283,9 @@ namespace OASIS.Omniverse.UnityHost.UI
             BuildStatusStripUi();
             BuildReturnToHubConfirmationDialog();
             ApplyAccessibilityTheme();
+            
+            // Hide panel after all children are created and initialized
+            _panel.SetActive(false);
         }
 
         private void BuildToastUi()
@@ -273,6 +323,7 @@ namespace OASIS.Omniverse.UnityHost.UI
         {
             _listControlsRoot = new GameObject("ListControls");
             _listControlsRoot.transform.SetParent(_panel.transform, false);
+            _listControlsRoot.SetActive(true); // Ensure list controls are active
             var controlsRect = _listControlsRoot.AddComponent<RectTransform>();
             SetAnchors(controlsRect, 0.02f, 0.70f, 0.98f, 0.835f);
 
@@ -328,7 +379,7 @@ namespace OASIS.Omniverse.UnityHost.UI
                     return;
                 }
 
-                _ = ApplySelectedPresetAsync();
+                ApplySelectedPresetAsync();
             });
 
             _presetNameInput = CreateInputField(_listControlsRoot.transform, 0.25f, 0.10f, 0.40f, 0.48f);
@@ -365,7 +416,8 @@ namespace OASIS.Omniverse.UnityHost.UI
 
         private void Update()
         {
-            var toggleDown = IsHotkeyDown(_toggleKey);
+            // Check both the configured key and I key as fallback
+            var toggleDown = IsHotkeyDown(_toggleKey) || Input.GetKey(KeyCode.I);
             if (toggleDown && !_toggleWasDown)
             {
                 Toggle();
@@ -836,6 +888,11 @@ namespace OASIS.Omniverse.UnityHost.UI
             SetVisible(!_isVisible);
             if (_isVisible)
             {
+                // Ensure we have a valid tab selected (default to Inventory)
+                if (_currentTab == 0)
+                {
+                    _currentTab = OmniverseTab.Inventory;
+                }
                 _ = ShowTabAsync(_currentTab);
             }
         }
@@ -845,21 +902,180 @@ namespace OASIS.Omniverse.UnityHost.UI
             _isVisible = visible;
             if (_panel != null)
             {
+                UnityEngine.Debug.Log($"[HUD] SetVisible: {visible}, Panel currently has {_panel.transform.childCount} children, Panel active: {_panel.activeSelf}");
                 _panel.SetActive(visible);
+                if (visible)
+                {
+                    // Wait a frame to ensure panel is fully active
+                    StartCoroutine(RefreshAfterActivation());
+                }
+            }
+        }
+        
+        private System.Collections.IEnumerator RefreshAfterActivation()
+        {
+            yield return null; // Wait one frame for panel to be fully active
+            UnityEngine.Debug.Log($"[HUD] After activation, panel has {_panel.transform.childCount} children, Panel Active: {_panel.activeSelf}");
+            
+            // Recursively activate all children FIRST
+            SetChildrenActive(_panel.transform, true);
+            
+            // Force refresh all child elements when showing
+            RefreshAllUiElements();
+            
+            // Force canvas to rebuild to ensure all UI elements are properly laid out
+            Canvas.ForceUpdateCanvases();
+            
+            // Re-enable all UI components to force Unity to refresh them
+            RefreshAllUiComponents();
+            
+            // Log all children
+            for (int i = 0; i < _panel.transform.childCount; i++)
+            {
+                var child = _panel.transform.GetChild(i);
+                var img = child.GetComponent<Image>();
+                var text = child.GetComponent<Text>();
+                UnityEngine.Debug.Log($"[HUD] Child {i}: {child.name}, Active: {child.gameObject.activeSelf}, Has Image: {img != null}, Has Text: {text != null}");
+            }
+        }
+        
+        private void RefreshAllUiComponents()
+        {
+            // Force all UI components to refresh by toggling them
+            var allImages = _panel.GetComponentsInChildren<Image>(true);
+            var allTexts = _panel.GetComponentsInChildren<Text>(true);
+            
+            UnityEngine.Debug.Log($"[HUD] Found {allImages.Length} Images and {allTexts.Length} Texts to refresh");
+            
+            foreach (var img in allImages)
+            {
+                if (img != null && img.gameObject != _panel)
+                {
+                    img.enabled = false;
+                    img.enabled = true;
+                    // Force the color to update
+                    var color = img.color;
+                    img.color = color;
+                }
+            }
+            
+            foreach (var text in allTexts)
+            {
+                if (text != null)
+                {
+                    text.enabled = false;
+                    text.enabled = true;
+                    // Force the color and text to update
+                    var color = text.color;
+                    text.color = color;
+                    if (string.IsNullOrEmpty(text.text) && text.name.Contains("Title"))
+                    {
+                        text.text = "OASIS Omniverse Control Center";
+                    }
+                }
+            }
+            
+            // Also force all RectTransforms to update
+            var allRects = _panel.GetComponentsInChildren<RectTransform>(true);
+            foreach (var rect in allRects)
+            {
+                if (rect != null && rect.gameObject != _panel)
+                {
+                    // Force layout update
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+                }
+            }
+        }
+        
+        private void SetChildrenActive(Transform parent, bool active)
+        {
+            foreach (Transform child in parent)
+            {
+                child.gameObject.SetActive(active);
+                SetChildrenActive(child, active); // Recursive
+            }
+        }
+        
+        private void RefreshAllUiElements()
+        {
+            // Debug: Log how many children the panel has
+            if (_panel != null)
+            {
+                int childCount = _panel.transform.childCount;
+                UnityEngine.Debug.Log($"[HUD] Panel has {childCount} children");
+                for (int i = 0; i < childCount; i++)
+                {
+                    var child = _panel.transform.GetChild(i);
+                    UnityEngine.Debug.Log($"[HUD] Child {i}: {child.name}, Active: {child.gameObject.activeSelf}");
+                }
+            }
+            
+            // Force all UI elements to be active and visible
+            if (_contentRoot != null) 
+            {
+                _contentRoot.SetActive(true);
+                UnityEngine.Debug.Log("[HUD] ContentRoot activated");
+            }
+            if (_listControlsRoot != null) 
+            {
+                _listControlsRoot.SetActive(true);
+                UnityEngine.Debug.Log("[HUD] ListControlsRoot activated");
+            }
+            if (_statusText != null) 
+            {
+                _statusText.gameObject.SetActive(true);
+                _statusText.text = "Ready"; // Ensure it has text
+                UnityEngine.Debug.Log("[HUD] StatusText activated");
+            }
+            
+            // Ensure tabs are visible
+            var tabs = _panel.transform.Find("Tabs");
+            if (tabs != null) 
+            {
+                tabs.gameObject.SetActive(true);
+                UnityEngine.Debug.Log("[HUD] Tabs activated");
+            }
+            
+            // Ensure title is visible
+            var title = _panel.transform.Find("Title");
+            if (title != null) 
+            {
+                title.gameObject.SetActive(true);
+                var titleText = title.GetComponent<Text>();
+                if (titleText != null)
+                {
+                    if (string.IsNullOrEmpty(titleText.text))
+                    {
+                        titleText.text = "OASIS Omniverse Control Center";
+                    }
+                    UnityEngine.Debug.Log($"[HUD] Title activated, text: '{titleText.text}', color: {titleText.color}");
+                }
+            }
+            
+            // Force canvas to update
+            if (_canvas != null)
+            {
+                _canvas.enabled = false;
+                _canvas.enabled = true;
+                UnityEngine.Debug.Log("[HUD] Canvas refreshed");
             }
         }
 
         private async Task ShowTabAsync(OmniverseTab tab)
         {
             _currentTab = tab;
-            _statusText.text = $"Loading {tab}...";
+            if (_statusText != null)
+            {
+                _statusText.text = $"Loading {tab}...";
+                _statusText.gameObject.SetActive(true);
+            }
             _currentPage = 0;
             ConfigureSortOptionsForTab(tab);
 
             var isSettings = tab == OmniverseTab.Settings;
-            _contentRoot.SetActive(!isSettings);
-            _settingsRoot.SetActive(isSettings);
-            _listControlsRoot.SetActive(!isSettings);
+            if (_contentRoot != null) _contentRoot.SetActive(!isSettings);
+            if (_settingsRoot != null) _settingsRoot.SetActive(isSettings);
+            if (_listControlsRoot != null) _listControlsRoot.SetActive(!isSettings);
             var diagnosticsMode = tab == OmniverseTab.Diagnostics;
             if (_searchInput != null) _searchInput.gameObject.SetActive(!diagnosticsMode);
             if (_sortFieldDropdown != null) _sortFieldDropdown.gameObject.SetActive(!diagnosticsMode);
@@ -2195,7 +2411,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             _uiFontScaleSlider = CreateSlider(root, "UI Font Scale", 0.40f);
 
             CreateText("GraphicsLabel", "Graphics Preset", 18, TextAnchor.MiddleLeft, root, 0.02f, 0.33f, 0.35f, 0.40f);
-            _graphicsDropdown = CreateDropdown(root, new[] { "Low", "Medium", "High", "Ultra", "Custom" }, 0.36f, 0.33f, 0.58f, 0.40f);
+            _graphicsDropdown = CreateDropdown(root, new[] { "Low", "Medium", "High" }, 0.36f, 0.33f, 0.58f, 0.40f);
 
             CreateText("FullscreenLabel", "Fullscreen", 18, TextAnchor.MiddleLeft, root, 0.62f, 0.33f, 0.78f, 0.40f);
             _fullscreenToggle = CreateToggle(root, 0.80f, 0.34f, 0.85f, 0.39f);
@@ -2458,6 +2674,7 @@ namespace OASIS.Omniverse.UnityHost.UI
         {
             var go = new GameObject(text + "_Button");
             go.transform.SetParent(parent, false);
+            go.SetActive(true); // Ensure button is active
             var image = go.AddComponent<Image>();
             image.color = new Color(0.12f, 0.18f, 0.28f, 0.95f);
             var button = go.AddComponent<Button>();
@@ -2477,13 +2694,38 @@ namespace OASIS.Omniverse.UnityHost.UI
         {
             var textObject = new GameObject(name);
             textObject.transform.SetParent(parent, false);
+            textObject.SetActive(true); // Ensure text is active
+            
+            // Ensure RectTransform exists and is properly configured
+            var rectTransform = textObject.AddComponent<RectTransform>();
+            if (rectTransform == null)
+            {
+                rectTransform = textObject.GetComponent<RectTransform>();
+            }
+            
             var text = textObject.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            // Use LegacyRuntime.ttf as Arial.ttf is no longer available in newer Unity versions
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (font == null)
+            {
+                // If LegacyRuntime also fails, try to get any available font
+                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            }
+            text.font = font;
             text.text = content;
             text.alignment = anchor;
             text.fontSize = size;
-            text.color = Color.white;
-            SetAnchors(text.rectTransform, minX, minY, maxX, maxY);
+            text.color = new Color(1f, 1f, 1f, 1f); // Force bright white
+            text.raycastTarget = false; // Don't block raycasts
+            text.supportRichText = false; // Disable rich text for better compatibility
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.verticalOverflow = VerticalWrapMode.Overflow;
+            
+            // Set anchors and ensure size is correct
+            SetAnchors(rectTransform, minX, minY, maxX, maxY);
+            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.sizeDelta = Vector2.zero;
+            
             return text;
         }
 
