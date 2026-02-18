@@ -56,11 +56,13 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             }
 
             _config = configResult.Result;
-            SpaceHubBuilder.BuildHub(_config);
-
+            
             _apiClient = new Web4Web5GatewayClient(_config.web4OasisApiBaseUrl, _config.web5StarApiBaseUrl, _config.apiKey, _config.avatarId);
             _globalSettingsService = new GlobalSettingsService();
             await _globalSettingsService.InitializeAsync(_apiClient);
+            
+            // Build hub after settings are loaded so quality can be applied
+            SpaceHubBuilder.BuildHub(_config, _globalSettingsService);
 
             _hostService = new GameProcessHostService(_config, _globalSettingsService);
             _hudOverlay = gameObject.AddComponent<SharedHudOverlay>();
@@ -135,6 +137,9 @@ namespace OASIS.Omniverse.UnityHost.Runtime
                 return save;
             }
 
+            // Update portals with new graphics quality
+            UpdatePortalsQuality(settings.graphicsPreset);
+
             var rebuild = await _hostService.RebuildSessionsForUpdatedSettingsAsync();
             if (rebuild.IsError)
             {
@@ -142,6 +147,28 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             }
 
             return OASISResult<bool>.Success(true, "Global settings applied and hosted game sessions rebuilt.");
+        }
+
+        private void UpdatePortalsQuality(string graphicsPreset)
+        {
+            if (_config == null) return;
+
+            var qualityLevel = PortalQualityManager.ParseQualityLevel(graphicsPreset);
+
+            foreach (var game in _config.games)
+            {
+                var portalName = $"Portal_{game.displayName}";
+                var portalRoot = GameObject.Find(portalName);
+                if (portalRoot != null)
+                {
+                    var portalColor = new Color(
+                        Mathf.Clamp01(game.portalColorR),
+                        Mathf.Clamp01(game.portalColorG),
+                        Mathf.Clamp01(game.portalColorB)
+                    );
+                    PortalQualityManager.ApplyQualityToPortal(portalRoot, portalColor, qualityLevel);
+                }
+            }
         }
 
         public async System.Threading.Tasks.Task<OASISResult<bool>> SaveUiPreferencesAsync(OmniverseGlobalSettings settings)

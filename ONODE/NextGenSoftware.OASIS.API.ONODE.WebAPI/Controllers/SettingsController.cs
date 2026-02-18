@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -31,16 +32,59 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-settings-for-current-logged-in-avatar")]
         public async Task<OASISResult<Dictionary<string, object>>> GetAllSettingsForCurrentLoggedInAvatar()
         {
-            if (Avatar == null)
+            try
             {
-                return new OASISResult<Dictionary<string, object>> 
-                { 
-                    IsError = true, 
-                    Message = "Avatar not found. Please ensure you are logged in." 
+                if (Avatar == null)
+                {
+                    return new OASISResult<Dictionary<string, object>> 
+                    { 
+                        IsError = true, 
+                        Message = "Avatar not found. Please ensure you are logged in." 
+                    };
+                }
+
+                OASISResult<Dictionary<string, object>> result = null;
+                try
+                {
+                    result = await Program.SettingsManager.GetAllSettingsAsync(Avatar.Id);
+                }
+                catch
+                {
+                    // If real data unavailable, use test data
+                }
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return new OASISResult<Dictionary<string, object>>
+                    {
+                        Result = new Dictionary<string, object>(),
+                        IsError = false,
+                        Message = "Settings retrieved successfully (using test data)"
+                    };
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return new OASISResult<Dictionary<string, object>>
+                    {
+                        Result = new Dictionary<string, object>(),
+                        IsError = false,
+                        Message = "Settings retrieved successfully (using test data)"
+                    };
+                }
+                return new OASISResult<Dictionary<string, object>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving settings: {ex.Message}",
+                    Exception = ex
                 };
             }
-
-            return await Program.SettingsManager.GetAllSettingsAsync(Avatar.Id);
         }
 
         /// <summary>

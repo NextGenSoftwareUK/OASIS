@@ -8,7 +8,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
 
         private void Update()
         {
-            transform.Rotate(Vector3.up, spinSpeed * Time.deltaTime, Space.World);
+            transform.Rotate(transform.right, spinSpeed * Time.deltaTime, Space.World);
         }
     }
 }

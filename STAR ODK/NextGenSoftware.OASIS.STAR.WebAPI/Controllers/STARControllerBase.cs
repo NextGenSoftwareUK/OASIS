@@ -71,6 +71,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     bool.Parse(Environment.GetEnvironmentVariable("ENABLE_GENERIC_EXCEPTION_HANDLING") ?? "true"));
             }
         }
+
+        /// <summary>
+        /// Gets whether to use test data when live data is not available (default: false).
+        /// Set OASIS:UseTestDataWhenLiveDataNotAvailable=true in appsettings.json or 
+        /// USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE=true as environment variable to enable.
+        /// </summary>
+        protected bool UseTestDataWhenLiveDataNotAvailable
+        {
+            get
+            {
+                var config = HttpContext.RequestServices.GetService<Microsoft.Extensions.Configuration.IConfiguration>();
+                if (config == null)
+                    return false; // Default to disabled
+                    
+                return config.GetValue<bool>("OASIS:UseTestDataWhenLiveDataNotAvailable", 
+                    bool.Parse(Environment.GetEnvironmentVariable("USE_TEST_DATA_WHEN_LIVE_DATA_NOT_AVAILABLE") ?? "false"));
+            }
+        }
         
         /// <summary>
         /// Handles exceptions with proper logging and error response.

@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -38,16 +39,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialBodies.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBodies = TestDataHelper.GetTestCelestialBodies(5).Cast<STARCelestialBody>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARCelestialBody>>(testBodies, "Celestial bodies retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARCelestialBody>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading celestial bodies: {ex.Message}",
-                    Exception = ex
-                });
+                    var testBodies = TestDataHelper.GetTestCelestialBodies(5).Cast<STARCelestialBody>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARCelestialBody>>(testBodies, "Celestial bodies retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARCelestialBody>>(ex, "GetAllCelestialBodies");
             }
         }
 
@@ -66,11 +76,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialBodies.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return HandleException<STARCelestialBody>(ex, "loading celestial body");
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body retrieved successfully (using test data)"));
+                }
+                return HandleException<STARCelestialBody>(ex, "GetCelestialBody");
             }
         }
 

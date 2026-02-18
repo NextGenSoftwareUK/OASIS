@@ -256,7 +256,7 @@ namespace OASIS.Omniverse.UnityHost.API
                         id = row.Value<string>("Id") ?? row.Value<string>("id"),
                         source = row.Value<string>("KarmaSourceTitle") ?? row.Value<string>("Source") ?? row.Value<string>("source"),
                         reason = row.Value<string>("KarmaSourceDesc") ?? row.Value<string>("Reason") ?? row.Value<string>("reason"),
-                        amount = ParseFloat(row, "Karma", "Amount", "amount", "value"),
+                        amount = row is JObject rowObj ? ParseFloat(rowObj, "Karma", "Amount", "amount", "value") : 0f,
                         karmaType = row.Value<string>("KarmaType") ?? row.Value<string>("Type") ?? row.Value<string>("type"),
                         createdDate = row.Value<string>("CreatedDate") ?? row.Value<string>("CreatedOn") ?? row.Value<string>("createdDate")
                     });

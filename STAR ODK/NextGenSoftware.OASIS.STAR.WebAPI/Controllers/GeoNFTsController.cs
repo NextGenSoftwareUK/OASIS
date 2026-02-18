@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -38,16 +39,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.GeoNFTs.LoadAllAsync(AvatarId, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testGeoNFTs = new List<STARGeoNFT>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARGeoNFT>>(testGeoNFTs, "Geo NFTs retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARGeoNFT>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading geo NFTs: {ex.Message}",
-                    Exception = ex
-                });
+                    var testGeoNFTs = new List<STARGeoNFT>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARGeoNFT>>(testGeoNFTs, "Geo NFTs retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARGeoNFT>>(ex, "GetAllGeoNFTs");
             }
         }
 
@@ -66,11 +76,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.GeoNFTs.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<STARGeoNFT>(null, "Geo NFT retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return HandleException<STARGeoNFT>(ex, "loading geo NFT");
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<STARGeoNFT>(null, "Geo NFT retrieved successfully (using test data)"));
+                }
+                return HandleException<STARGeoNFT>(ex, "GetGeoNFT");
             }
         }
 
