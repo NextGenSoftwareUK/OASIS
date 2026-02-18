@@ -409,6 +409,218 @@ namespace OASIS.Omniverse.UnityHost.API
             return OASISResult<bool>.Error(string.Join(" | ", errors));
         }
 
+        [Serializable]
+        public class AuthenticateRequest
+        {
+            public string username;
+            public string password;
+        }
+
+        [Serializable]
+        public class AuthenticateResponse
+        {
+            public string id;
+            public string username;
+            public string email;
+            public string jwtToken;
+            public string refreshToken;
+            public bool isBeamedIn;
+            public string lastBeamedIn;
+        }
+
+        public async Task<OASISResult<AuthenticateResponse>> AuthenticateAsync(string username, string password)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return OASISResult<AuthenticateResponse>.Error("Username is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                return OASISResult<AuthenticateResponse>.Error("Password is required.");
+            }
+
+            var request = new AuthenticateRequest
+            {
+                username = username,
+                password = password
+            };
+
+            var json = JsonConvert.SerializeObject(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var uri = $"{_web4Base}/api/avatar/authenticate";
+            UnityEngine.Debug.Log($"[Web4Web5GatewayClient] Authenticating to URI: {uri}");
+            var sw = Stopwatch.StartNew();
+
+            try
+            {
+                var response = await _httpClient.PostAsync(uri, content);
+                sw.Stop();
+                _lastLatencyMs = Math.Max(0, sw.ElapsedMilliseconds);
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                UnityEngine.Debug.Log($"[Web4Web5GatewayClient] Authentication response status: {response.StatusCode}, body length: {responseBody?.Length ?? 0}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    RegisterRequestSuccess(_lastLatencyMs);
+                    
+                    try
+                    {
+                        var jsonObj = JObject.Parse(responseBody);
+                        UnityEngine.Debug.Log($"[Web4Web5GatewayClient] Full response: {responseBody}");
+                        
+                        var result = jsonObj["result"];
+                        if (result == null)
+                        {
+                            return OASISResult<AuthenticateResponse>.Error("Authentication response missing 'result' field.");
+                        }
+
+                        // The API can return nested result structure: result.result
+                        JToken avatarObj = result["result"] ?? result;
+                        
+                        // Try multiple response structures
+                        JToken data = result["data"] ?? result["Data"];
+                        JToken user = data?["user"] ?? data?["User"];
+                        
+                        // Try to get avatar ID from various locations
+                        // First check if avatarObj (result.result or result) has the Id directly
+                        string avatarId = avatarObj.Value<string>("Id") ?? avatarObj.Value<string>("id") 
+                            ?? avatarObj.Value<string>("AvatarId") ?? avatarObj.Value<string>("avatarId");
+                        
+                        // If not found, check if it's in providerWallets (extract from first wallet)
+                        if (string.IsNullOrEmpty(avatarId))
+                        {
+                            var providerWallets = avatarObj["providerWallets"];
+                            if (providerWallets != null)
+                            {
+                                // Try ArbitrumOASIS first, then SolanaOASIS, then any first array
+                                var arbitrumWallets = providerWallets["ArbitrumOASIS"] as JArray;
+                                if (arbitrumWallets != null && arbitrumWallets.Count > 0)
+                                {
+                                    avatarId = arbitrumWallets[0].Value<string>("avatarId") ?? arbitrumWallets[0].Value<string>("AvatarId");
+                                }
+                                
+                                if (string.IsNullOrEmpty(avatarId))
+                                {
+                                    var solanaWallets = providerWallets["SolanaOASIS"] as JArray;
+                                    if (solanaWallets != null && solanaWallets.Count > 0)
+                                    {
+                                        avatarId = solanaWallets[0].Value<string>("avatarId") ?? solanaWallets[0].Value<string>("AvatarId");
+                                    }
+                                }
+                                
+                                // Try any first property that's an array
+                                if (string.IsNullOrEmpty(avatarId))
+                                {
+                                    foreach (var prop in providerWallets.Children<JProperty>())
+                                    {
+                                        if (prop.Value is JArray array && array.Count > 0)
+                                        {
+                                            avatarId = array[0].Value<string>("avatarId") ?? array[0].Value<string>("AvatarId");
+                                            if (!string.IsNullOrEmpty(avatarId)) break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // If still not found, check nested structures
+                        if (string.IsNullOrEmpty(avatarId) && user != null)
+                        {
+                            avatarId = user.Value<string>("id") ?? user.Value<string>("Id") ?? user.Value<string>("avatarId") ?? user.Value<string>("AvatarId");
+                        }
+                        if (string.IsNullOrEmpty(avatarId) && data != null)
+                        {
+                            avatarId = data.Value<string>("id") ?? data.Value<string>("Id") ?? data.Value<string>("avatarId") ?? data.Value<string>("AvatarId");
+                        }
+                        if (string.IsNullOrEmpty(avatarId))
+                        {
+                            avatarId = result.Value<string>("id") ?? result.Value<string>("Id") ?? result.Value<string>("avatarId") ?? result.Value<string>("AvatarId");
+                        }
+
+                        // Try to get JWT token from various locations
+                        string jwtToken = null;
+                        if (data != null)
+                        {
+                            jwtToken = data.Value<string>("token") ?? data.Value<string>("Token") ?? data.Value<string>("jwtToken") ?? data.Value<string>("JwtToken");
+                        }
+                        if (string.IsNullOrEmpty(jwtToken))
+                        {
+                            jwtToken = result.Value<string>("token") ?? result.Value<string>("Token") ?? result.Value<string>("jwtToken") ?? result.Value<string>("JwtToken");
+                        }
+
+                        // Try to get refresh token
+                        string refreshToken = null;
+                        if (data != null)
+                        {
+                            refreshToken = data.Value<string>("refreshToken") ?? data.Value<string>("RefreshToken");
+                        }
+                        if (string.IsNullOrEmpty(refreshToken))
+                        {
+                            refreshToken = result.Value<string>("refreshToken") ?? result.Value<string>("RefreshToken");
+                        }
+
+                        // Get username/email
+                        string avatarUsername = null;
+                        string avatarEmail = null;
+                        if (user != null)
+                        {
+                            avatarUsername = user.Value<string>("username") ?? user.Value<string>("Username");
+                            avatarEmail = user.Value<string>("email") ?? user.Value<string>("Email");
+                        }
+                        if (string.IsNullOrEmpty(avatarUsername))
+                        {
+                            avatarUsername = result.Value<string>("username") ?? result.Value<string>("Username");
+                        }
+                        if (string.IsNullOrEmpty(avatarEmail))
+                        {
+                            avatarEmail = result.Value<string>("email") ?? result.Value<string>("Email");
+                        }
+
+                        if (string.IsNullOrEmpty(avatarId))
+                        {
+                            UnityEngine.Debug.LogError($"[Web4Web5GatewayClient] Could not find avatarId in response. Response structure: {jsonObj.ToString(Newtonsoft.Json.Formatting.Indented)}");
+                            return OASISResult<AuthenticateResponse>.Error("Authentication response missing avatar ID. Check console for full response structure.");
+                        }
+
+                        var authResponse = new AuthenticateResponse
+                        {
+                            id = avatarId,
+                            username = avatarUsername,
+                            email = avatarEmail,
+                            jwtToken = jwtToken,
+                            refreshToken = refreshToken,
+                            isBeamedIn = result.Value<bool?>("isBeamedIn") ?? result.Value<bool?>("IsBeamedIn") ?? false,
+                            lastBeamedIn = result.Value<string>("lastBeamedIn") ?? result.Value<string>("LastBeamedIn")
+                        };
+
+                        UnityEngine.Debug.Log($"[Web4Web5GatewayClient] Parsed avatarId: {avatarId}, jwtToken present: {!string.IsNullOrEmpty(jwtToken)}");
+                        return OASISResult<AuthenticateResponse>.Success(authResponse);
+                    }
+                    catch (Exception ex)
+                    {
+                        return OASISResult<AuthenticateResponse>.Error($"Failed to parse authentication response: {ex.Message}");
+                    }
+                }
+
+                var message = MapStatusToFriendlyMessage(response.StatusCode, uri, response.ReasonPhrase);
+                UnityEngine.Debug.LogError($"[Web4Web5GatewayClient] Authentication failed - Status: {response.StatusCode}, URI: {uri}, Message: {message}, Response: {responseBody}");
+                RegisterRequestFailure(message, response.StatusCode);
+                return OASISResult<AuthenticateResponse>.Error($"{message} (URI: {uri})");
+            }
+            catch (Exception ex)
+            {
+                sw.Stop();
+                _lastLatencyMs = Math.Max(0, sw.ElapsedMilliseconds);
+                var errorMessage = $"Authentication failed: {ex.Message}";
+                UnityEngine.Debug.LogError($"[Web4Web5GatewayClient] Authentication exception - URI: {uri}, Exception: {ex}");
+                RegisterRequestFailure(errorMessage, 0);
+                return OASISResult<AuthenticateResponse>.Error($"{errorMessage} (URI: {uri})");
+            }
+        }
+
         public GatewayHealthSnapshot GetHealthSnapshot()
         {
             return new GatewayHealthSnapshot
@@ -593,7 +805,8 @@ namespace OASIS.Omniverse.UnityHost.API
         private static int GetRetryDelayMs(int attempt)
         {
             // 250, 500, 1000...
-            return (int)(250 * Math.Pow(2, Mathf.Clamp(attempt - 1, 0, 6)));
+            var clamped = Math.Max(0, Math.Min(6, attempt - 1));
+            return (int)(250 * Math.Pow(2, clamped));
         }
 
         private void RegisterRequestSuccess(long latencyMs)

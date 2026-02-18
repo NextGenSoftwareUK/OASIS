@@ -23,6 +23,8 @@ namespace OASIS.Omniverse.UnityHost.Runtime
         private QuestTrackerWidget _questTrackerWidget;
         private Web4Web5GatewayClient _apiClient;
         private GlobalSettingsService _globalSettingsService;
+        private LoginScreen _loginScreen;
+        private bool _isInitialized;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -56,6 +58,61 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             }
 
             _config = configResult.Result;
+
+            // Check if avatarId is set, if not show login screen
+            if (string.IsNullOrWhiteSpace(_config.avatarId))
+            {
+                ShowLoginScreen();
+                return;
+            }
+
+            // AvatarId is set, proceed with initialization
+            await InitializeAsync();
+        }
+
+        private void ShowLoginScreen()
+        {
+            _loginScreen = gameObject.AddComponent<LoginScreen>();
+            _loginScreen.Initialize(_config.web4OasisApiBaseUrl);
+            _loginScreen.OnBeamInSuccess += OnBeamInSuccess;
+            _loginScreen.Show();
+        }
+
+        private async void OnBeamInSuccess(string avatarId, string jwtToken)
+        {
+            if (_loginScreen != null)
+            {
+                _loginScreen.Hide();
+                Destroy(_loginScreen);
+                _loginScreen = null;
+            }
+
+            // Update config with login credentials
+            _config.avatarId = avatarId;
+            if (!string.IsNullOrWhiteSpace(jwtToken))
+            {
+                _config.apiKey = jwtToken;
+            }
+
+            // Save updated config
+            var saveResult = HostConfigLoader.Save(_config);
+            if (saveResult.IsError)
+            {
+                Debug.LogError($"Failed to save config: {saveResult.Message}");
+            }
+
+            // Now initialize everything
+            await InitializeAsync();
+        }
+
+        private async System.Threading.Tasks.Task InitializeAsync()
+        {
+            if (_isInitialized)
+            {
+                return;
+            }
+
+            _isInitialized = true;
             
             _apiClient = new Web4Web5GatewayClient(_config.web4OasisApiBaseUrl, _config.web5StarApiBaseUrl, _config.apiKey, _config.avatarId);
             _globalSettingsService = new GlobalSettingsService();
