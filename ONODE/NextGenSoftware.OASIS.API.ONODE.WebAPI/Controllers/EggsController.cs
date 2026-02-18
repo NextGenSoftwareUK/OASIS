@@ -28,16 +28,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                OASISResult<List<Egg>> result = null;
-                try
-                {
-                    // Use EggsManager for business logic
-                    result = await EggsManager.Instance.GetAllEggsAsync(AvatarId);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
+                // Use EggsManager for business logic
+                var result = await EggsManager.Instance.GetAllEggsAsync(AvatarId);
 
                 // Return test data if setting is enabled and result is null, has error, or result is null
                 if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
@@ -83,16 +75,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                OASISResult<List<EggQuest>> result = null;
-                try
-                {
-                    // Use EggsManager for business logic
-                    result = await EggsManager.Instance.GetCurrentEggQuestsAsync(AvatarId);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
+                // Use EggsManager for business logic
+                var result = await EggsManager.Instance.GetCurrentEggQuestsAsync(AvatarId);
 
                 // Return test data if setting is enabled and result is null, has error, or result is null
                 if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
@@ -138,16 +122,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                OASISResult<List<EggQuestLeaderboard>> result = null;
-                try
-                {
-                    // Use EggsManager for business logic
-                    result = await EggsManager.Instance.GetCurrentEggQuestLeaderboardAsync(AvatarId);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
+                // Use EggsManager for business logic
+                var result = await EggsManager.Instance.GetCurrentEggQuestLeaderboardAsync(AvatarId);
 
                 // Return test data if setting is enabled and result is null, has error, or result is null
                 if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
@@ -193,16 +169,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                OASISResult<List<Egg>> result = null;
-                try
-                {
-                    // Use EggsManager for business logic
-                    result = await EggsManager.Instance.GetAllEggsAsync(Avatar.Id);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
+                // Use EggsManager for business logic
+                var result = await EggsManager.Instance.GetAllEggsAsync(Avatar.Id);
 
                 // Return test data if setting is enabled and result is null, has error, or result is null
                 if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
