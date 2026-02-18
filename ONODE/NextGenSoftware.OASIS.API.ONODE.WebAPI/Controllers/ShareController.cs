@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -49,7 +50,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("share-holon/{holonId:guid}/{avatarId:guid}")]
         public async Task<OASISResult<bool>> ShareHolon(Guid holonId, Guid avatarId)
         {
-            return await ShareHolonInternalAsync(holonId, new[] { avatarId });
+            try
+            {
+                OASISResult<bool> result = null;
+                try
+                {
+                    result = await ShareHolonInternalAsync(holonId, new[] { avatarId });
+                }
+                catch
+                {
+                    // If real data unavailable, use test data
+                }
+
+                // Return test data if setting is enabled and result is null, has error
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError))
+                {
+                    return new OASISResult<bool>
+                    {
+                        Result = true,
+                        IsError = false,
+                        Message = "Holon shared successfully (using test data)"
+                    };
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return new OASISResult<bool>
+                    {
+                        Result = true,
+                        IsError = false,
+                        Message = "Holon shared successfully (using test data)"
+                    };
+                }
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error sharing holon: {ex.Message}",
+                    Exception = ex
+                };
+            }
         }
 
         /// <summary>

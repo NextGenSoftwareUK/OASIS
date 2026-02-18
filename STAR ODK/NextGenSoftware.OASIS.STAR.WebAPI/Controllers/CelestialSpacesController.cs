@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -38,16 +39,26 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialSpaces.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    // Create test celestial spaces - using empty list for now as STARCelestialSpace type may need specific implementation
+                    var testSpaces = new List<STARCelestialSpace>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARCelestialSpace>>(testSpaces, "Celestial spaces retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARCelestialSpace>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading celestial spaces: {ex.Message}",
-                    Exception = ex
-                });
+                    var testSpaces = new List<STARCelestialSpace>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARCelestialSpace>>(testSpaces, "Celestial spaces retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARCelestialSpace>>(ex, "GetAllCelestialSpaces");
             }
         }
 
@@ -66,11 +77,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialSpaces.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    // Create test celestial space - using null for now as STARCelestialSpace type may need specific implementation
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialSpace>(null, "Celestial space retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return HandleException<STARCelestialSpace>(ex, "loading celestial space");
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialSpace>(null, "Celestial space retrieved successfully (using test data)"));
+                }
+                return HandleException<STARCelestialSpace>(ex, "GetCelestialSpace");
             }
         }
 

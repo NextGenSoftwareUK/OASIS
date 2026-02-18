@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -37,16 +38,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMetaData = new List<ZomeMetaDataDNA>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<ZomeMetaDataDNA>>(testMetaData, "Zomes Metadata retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<ZomeMetaDataDNA>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading Zomes Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                    var testMetaData = new List<ZomeMetaDataDNA>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<ZomeMetaDataDNA>>(testMetaData, "Zomes Metadata retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<ZomeMetaDataDNA>>(ex, "GetAllZomesMetaData");
             }
         }
 
@@ -65,11 +75,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<ZomeMetaDataDNA>(null, "Zome Metadata retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return HandleException<ZomeMetaDataDNA>(ex, "loading Zome Metadata");
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<ZomeMetaDataDNA>(null, "Zome Metadata retrieved successfully (using test data)"));
+                }
+                return HandleException<ZomeMetaDataDNA>(ex, "GetZomeMetaData");
             }
         }
 

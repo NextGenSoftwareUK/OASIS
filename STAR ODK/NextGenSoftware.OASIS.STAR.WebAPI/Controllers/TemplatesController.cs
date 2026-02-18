@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -30,18 +31,26 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // Use OAPPTemplates instead of Templates since Templates doesn't exist in STARAPI
                 var result = await _starAPI.OAPPTemplates.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testTemplates = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testTemplates, "Templates retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<object>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading templates: {ex.Message}",
-                    Exception = ex
-                });
+                    var testTemplates = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testTemplates, "Templates retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<object>>(ex, "GetAllTemplates");
             }
         }
 
@@ -60,11 +69,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.OAPPTemplates.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Template retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "loading template");
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Template retrieved successfully (using test data)"));
+                }
+                return HandleException<object>(ex, "GetTemplate");
             }
         }
 

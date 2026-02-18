@@ -467,7 +467,7 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"Failed to kill session '{session.Definition.displayName}': {ex.Message}");
+                UnityEngine.Debug.LogWarning($"Failed to kill session '{session.Definition.displayName}': {ex.Message}");
             }
         }
     }

@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Collections.Concurrent;
 using System.Threading;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -93,10 +94,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Quests.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuests = TestDataHelper.GetTestQuests(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Quest>>(testQuests, "Quests retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testQuests = TestDataHelper.GetTestQuests(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Quest>>(testQuests, "Quests retrieved successfully (using test data)"));
+                }
                 return HandleException<IEnumerable<Quest>>(ex, "GetAllQuests");
             }
         }
@@ -116,10 +131,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Quests.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuest = TestDataHelper.GetTestQuest(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testQuest = TestDataHelper.GetTestQuest(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest retrieved successfully (using test data)"));
+                }
                 return HandleException<Quest>(ex, "GetIQuest");
             }
         }

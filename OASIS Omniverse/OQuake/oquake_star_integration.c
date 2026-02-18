@@ -30,6 +30,7 @@ extern int Key_StringToKeynum(const char *str);
 extern void Key_SetBinding(int keynum, const char *binding);
 
 cvar_t oasis_star_anorak_face = {"oasis_star_anorak_face", "0", CVAR_ARCHIVE};
+cvar_t oasis_star_beam_face = {"oasis_star_beam_face", "1", CVAR_ARCHIVE};
 
 enum {
     OQ_TAB_KEYS = 0,
@@ -810,6 +811,16 @@ static const char* get_key_description(const char* key_name) {
     return "Key from OQuake";
 }
 
+static int OQ_ShouldUseAnorakFace(void) {
+    const char* activeName = g_star_username[0] ? g_star_username : "";
+    return (oasis_star_beam_face.value > 0.5f) && (q_strcasecmp(activeName, "anorak") == 0);
+}
+
+static void OQ_ApplyBeamFacePreference(void) {
+    int should_show = g_star_initialized && OQ_ShouldUseAnorakFace();
+    Cvar_SetValueQuick(&oasis_star_anorak_face, should_show ? 1 : 0);
+}
+
 /* Forward declaration */
 // static void OQ_DebugMode_f(void); // Temporarily disabled
 
@@ -820,6 +831,7 @@ void OQuake_STAR_Init(void) {
 
     Cvar_RegisterVariable(&oasis_star_anorak_face);
     Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
+    Cvar_RegisterVariable(&oasis_star_beam_face);
 
     if (!g_star_console_registered) {
         Cmd_AddCommand("star", OQuake_STAR_Console_f);
@@ -1028,10 +1040,15 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star beamed in <username> <password> - Alias for beamin\n");
         Con_Printf("  star beamin   - Log in using STAR_USERNAME/STAR_PASSWORD or API key\n");
         Con_Printf("  star beamout  - Log out / disconnect from STAR\n");
+        Con_Printf("  star face on|off|status - Toggle beam-in face switch\n");
         Con_Printf("\n");
         return;
     }
     const char* sub = Cmd_Argv(1);
+    if (!sub) {
+        Con_Printf("Error: No subcommand provided.\n");
+        return;
+    }
     if (strcmp(sub, "pickup") == 0) {
         if (argc < 4 || strcmp(Cmd_Argv(2), "keycard") != 0) {
             Con_Printf("Usage: star pickup keycard <silver|gold>\n");
@@ -1117,7 +1134,7 @@ void OQuake_STAR_Console_f(void) {
         if (runtime_user && runtime_pass && OQ_IsMockAnorakCredentials(runtime_user, runtime_pass)) {
             g_star_initialized = 1;
             q_strlcpy(g_star_username, runtime_user, sizeof(g_star_username));
-            Cvar_SetValueQuick(&oasis_star_anorak_face, 1);
+            OQ_ApplyBeamFacePreference();
             Con_Printf("Beam-in successful (mock). Welcome, %s.\n", runtime_user);
             return;
         }
@@ -1139,6 +1156,7 @@ void OQuake_STAR_Console_f(void) {
             if (r == STAR_API_SUCCESS) {
                 g_star_initialized = 1;
                 q_strlcpy(g_star_username, username, sizeof(g_star_username));
+                OQ_ApplyBeamFacePreference();
                 Con_Printf("Logged in (beamin). Cross-game keys enabled.\n");
                 return;
             }
@@ -1151,6 +1169,7 @@ void OQuake_STAR_Console_f(void) {
             if (g_star_config.avatar_id) {
                 q_strlcpy(g_star_username, "API User", sizeof(g_star_username));
             }
+            OQ_ApplyBeamFacePreference();
             Con_Printf("Logged in with API key. Cross-game keys enabled.\n");
             return;
         }
@@ -1166,7 +1185,33 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("Logged out (beamout). Use 'star beamin' to log in again.\n");
         return;
     }
-    Con_Printf("Unknown STAR subcommand: %s. Type 'star' for list.\n", sub);
+    if (strcmp(sub, "face") == 0) {
+        Con_Printf("\n");
+        if (argc < 3 || !Cmd_Argv(2) || strcmp(Cmd_Argv(2), "status") == 0) {
+            Con_Printf("Beam-in face switch is %s\n", oasis_star_beam_face.value > 0.5f ? "on" : "off");
+            Con_Printf("Usage: star face on|off|status\n");
+            Con_Printf("\n");
+            return;
+        }
+        if (Cmd_Argv(2) && strcmp(Cmd_Argv(2), "on") == 0) {
+            Cvar_SetValueQuick(&oasis_star_beam_face, 1);
+            OQ_ApplyBeamFacePreference();
+            Con_Printf("Beam-in face switch enabled.\n");
+            Con_Printf("\n");
+            return;
+        }
+        if (Cmd_Argv(2) && strcmp(Cmd_Argv(2), "off") == 0) {
+            Cvar_SetValueQuick(&oasis_star_beam_face, 0);
+            Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
+            Con_Printf("Beam-in face switch disabled.\n");
+            Con_Printf("\n");
+            return;
+        }
+        Con_Printf("Unknown face option: %s. Use on|off|status.\n", Cmd_Argv(2) ? Cmd_Argv(2) : "(none)");
+        Con_Printf("\n");
+        return;
+    }
+    Con_Printf("Unknown STAR subcommand: '%s'. Type 'star' for list.\n", sub ? sub : "(null)");
 }
 
 void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {

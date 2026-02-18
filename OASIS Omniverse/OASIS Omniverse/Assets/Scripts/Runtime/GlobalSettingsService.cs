@@ -98,11 +98,41 @@ namespace OASIS.Omniverse.UnityHost.Runtime
                 sb.AppendFormat(" +snd_mastervolume {0:0.00}", Mathf.Clamp01(s.masterVolume));
                 sb.AppendFormat(" +snd_musicvolume {0:0.00}", Mathf.Clamp01(s.musicVolume));
                 sb.AppendFormat(" +snd_midivolume {0:0.00}", Mathf.Clamp01(s.voiceVolume));
+                
+                // Add graphics quality settings for ODOOM
+                var quality = s.graphicsPreset.ToLowerInvariant();
+                if (quality == "low")
+                {
+                    sb.Append(" +vid_renderer 0"); // Software renderer
+                }
+                else if (quality == "medium")
+                {
+                    sb.Append(" +vid_renderer 1"); // OpenGL
+                }
+                else if (quality == "high" || quality == "ultra")
+                {
+                    sb.Append(" +vid_renderer 2"); // Hardware accelerated
+                }
             }
             else if (gameId.Equals("oquake", StringComparison.OrdinalIgnoreCase))
             {
                 sb.AppendFormat(" +volume {0:0.00}", Mathf.Clamp01(s.masterVolume));
                 sb.AppendFormat(" +bgmvolume {0:0.00}", Mathf.Clamp01(s.musicVolume));
+                
+                // Add graphics quality settings for OQuake
+                var quality = s.graphicsPreset.ToLowerInvariant();
+                if (quality == "low")
+                {
+                    sb.Append(" -software"); // Software rendering
+                }
+                else if (quality == "medium")
+                {
+                    // Default rendering
+                }
+                else if (quality == "high" || quality == "ultra")
+                {
+                    sb.Append(" -gl"); // OpenGL/hardware
+                }
             }
 
             return OASISResult<string>.Success(sb.ToString().Trim());
@@ -206,11 +236,12 @@ namespace OASIS.Omniverse.UnityHost.Runtime
             }
             else if (settings.graphicsPreset.Equals("High", StringComparison.OrdinalIgnoreCase))
             {
-                QualitySettings.SetQualityLevel(Mathf.Max(0, QualitySettings.names.Length - 2), true);
-            }
-            else if (settings.graphicsPreset.Equals("Ultra", StringComparison.OrdinalIgnoreCase))
-            {
                 QualitySettings.SetQualityLevel(Mathf.Max(0, QualitySettings.names.Length - 1), true);
+            }
+            // Default to Medium if invalid
+            else
+            {
+                QualitySettings.SetQualityLevel(Mathf.Min(2, QualitySettings.names.Length - 1), true);
             }
         }
     }

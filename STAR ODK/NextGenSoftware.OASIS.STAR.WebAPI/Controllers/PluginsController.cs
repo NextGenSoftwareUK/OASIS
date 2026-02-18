@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -39,16 +40,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Plugins.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testPlugins = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testPlugins, "Plugins retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<object>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading plugins: {ex.Message}",
-                    Exception = ex
-                });
+                    var testPlugins = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testPlugins, "Plugins retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<object>>(ex, "GetAllPlugins");
             }
         }
 
@@ -67,10 +77,22 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Plugins.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Plugin retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Plugin retrieved successfully (using test data)"));
+                }
                 return HandleException<object>(ex, "loading plugin");
             }
         }

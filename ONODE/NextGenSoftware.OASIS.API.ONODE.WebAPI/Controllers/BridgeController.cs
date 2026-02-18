@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 
@@ -97,6 +98,17 @@ public class BridgeController : OASISControllerBase
 
             var result = await BridgeManager.CheckOrderBalanceAsync(orderId, cancellationToken);
 
+            // Return test data if setting is enabled and result is null, has error, or result is null
+            if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+            {
+                return Ok(new BridgeOrderBalanceResponse
+                {
+                    OrderId = orderId,
+                    CurrentBalance = 0,
+                    Status = "pending"
+                });
+            }
+
             if (result.IsError)
             {
                 _logger.LogWarning("Order balance check failed: {Message}", result.Message);
@@ -107,6 +119,16 @@ public class BridgeController : OASISControllerBase
         }
         catch (Exception ex)
         {
+            // Return test data if setting is enabled, otherwise return error
+            if (UseTestDataWhenLiveDataNotAvailable)
+            {
+                return Ok(new BridgeOrderBalanceResponse
+                {
+                    OrderId = orderId,
+                    CurrentBalance = 0,
+                    Status = "pending"
+                });
+            }
             _logger.LogError(ex, "Exception in CheckOrderBalance");
             return StatusCode(500, new { error = "Internal server error", isError = true });
         }
