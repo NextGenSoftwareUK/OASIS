@@ -77,7 +77,7 @@ namespace OASIS.Omniverse.UnityHost.UI
 
             _text = new GameObject("QuestTrackerText").AddComponent<Text>();
             _text.transform.SetParent(_panel.transform, false);
-            _text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            _text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             _text.fontSize = 16;
             _text.alignment = TextAnchor.UpperLeft;
             _text.color = new Color(0.86f, 0.97f, 1f, 1f);

@@ -38,6 +38,33 @@ namespace OASIS.Omniverse.UnityHost.Config
                 return OASISResult<OmniverseHostConfig>.Error($"Failed loading config: {ex.Message}");
             }
         }
+
+        public static OASISResult<bool> Save(OmniverseHostConfig config)
+        {
+            if (config == null)
+            {
+                return OASISResult<bool>.Error("Config is null.");
+            }
+
+            var path = Path.Combine(Application.streamingAssetsPath, ConfigName);
+            try
+            {
+                // Ensure directory exists
+                var directory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                var json = JsonConvert.SerializeObject(config, Formatting.Indented);
+                File.WriteAllText(path, json);
+                return OASISResult<bool>.Success(true, "Config saved successfully.");
+            }
+            catch (System.Exception ex)
+            {
+                return OASISResult<bool>.Error($"Failed saving config: {ex.Message}");
+            }
+        }
     }
 }
 

@@ -12,7 +12,7 @@ Write-Host "Waiting for WEB4 to be ready..." -ForegroundColor Yellow
 $web4Ready = $false
 for ($i = 0; $i -lt 120; $i++) {
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:5003/health" -TimeoutSec 2 -ErrorAction SilentlyContinue
+        $response = Invoke-WebRequest -Uri "http://localhost:5003/api/health" -UseBasicParsing -TimeoutSec 2 -ErrorAction SilentlyContinue
         if ($response.StatusCode -eq 200) {
             $web4Ready = $true
             Write-Host "WEB4 is ready!" -ForegroundColor Green
@@ -36,7 +36,7 @@ Write-Host "Waiting for WEB5 to be ready..." -ForegroundColor Yellow
 $web5Ready = $false
 for ($i = 0; $i -lt 120; $i++) {
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:5055/health" -TimeoutSec 2 -ErrorAction SilentlyContinue
+        $response = Invoke-WebRequest -Uri "http://localhost:5055/api/health" -UseBasicParsing -TimeoutSec 2 -ErrorAction SilentlyContinue
         if ($response.StatusCode -eq 200) {
             $web5Ready = $true
             Write-Host "WEB5 is ready!" -ForegroundColor Green
