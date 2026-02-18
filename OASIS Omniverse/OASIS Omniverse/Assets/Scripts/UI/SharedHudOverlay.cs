@@ -156,27 +156,48 @@ namespace OASIS.Omniverse.UnityHost.UI
 
         public void Initialize(OmniverseHostConfig config, Web4Web5GatewayClient apiClient, GlobalSettingsService settingsService, OmniverseKernel kernel)
         {
+            UnityEngine.Debug.LogError("[HUD] Initialize called - starting HUD setup");
             _apiClient = apiClient;
             _settingsService = settingsService;
             _kernel = kernel;
             SyncHotkeysFromSettings();
+            UnityEngine.Debug.LogError($"[HUD] Toggle key set to: {_toggleKey}");
             BuildUi();
-            // Ensure panel is definitely hidden
+            // Ensure panel is definitely hidden initially
             if (_panel != null)
             {
                 _panel.SetActive(false);
                 _isVisible = false;
-                // Use LogError so it definitely shows in console
-                UnityEngine.Debug.LogError($"[HUD] Initialize complete - Panel should be HIDDEN. Active: {_panel.activeSelf}, _isVisible: {_isVisible}");
+                UnityEngine.Debug.LogError($"[HUD] Initialize complete - Panel HIDDEN. Active: {_panel.activeSelf}, _isVisible: {_isVisible}, Canvas: {_canvas != null}, Canvas Active: {_canvas?.gameObject.activeSelf}");
             }
             else
             {
                 UnityEngine.Debug.LogError("[HUD] ERROR: Panel is null in Initialize!");
             }
+            UnityEngine.Debug.LogError($"[HUD] Component enabled: {enabled}, gameObject active: {gameObject.activeSelf}");
+            
+            // Ensure component is enabled so Update runs
+            enabled = true;
+            gameObject.SetActive(true);
+            UnityEngine.Debug.LogError($"[HUD] After ensuring enabled - Component enabled: {enabled}, gameObject active: {gameObject.activeSelf}");
+            
+            // Test: Show HUD briefly on startup to verify it's working
+            StartCoroutine(TestHudVisibility());
+        }
+        
+        private System.Collections.IEnumerator TestHudVisibility()
+        {
+            yield return new WaitForSeconds(0.5f);
+            UnityEngine.Debug.LogError("[HUD] Test: Making HUD visible for 3 seconds");
+            SetVisible(true);
+            yield return new WaitForSeconds(3f);
+            UnityEngine.Debug.LogError("[HUD] Test: Hiding HUD again");
+            SetVisible(false);
         }
 
         private void BuildUi()
         {
+            UnityEngine.Debug.LogError("[HUD] BuildUi called - creating canvas");
             _canvas = new GameObject("SharedHudCanvas").AddComponent<Canvas>();
             _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             _canvas.sortingOrder = 9999;
@@ -191,6 +212,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             
             // Ensure canvas is active and visible
             _canvas.gameObject.SetActive(true);
+            UnityEngine.Debug.LogError($"[HUD] Canvas created and activated. RenderMode: {_canvas.renderMode}, Active: {_canvas.gameObject.activeSelf}, Enabled: {_canvas.enabled}");
             
             // Create EventSystem if it doesn't exist (required for UI input)
             if (UnityEngine.EventSystems.EventSystem.current == null)
@@ -284,8 +306,11 @@ namespace OASIS.Omniverse.UnityHost.UI
             BuildReturnToHubConfirmationDialog();
             ApplyAccessibilityTheme();
             
+            UnityEngine.Debug.LogError($"[HUD] BuildUi complete - Panel has {_panel.transform.childCount} children");
+            
             // Hide panel after all children are created and initialized
             _panel.SetActive(false);
+            UnityEngine.Debug.LogError($"[HUD] Panel hidden after BuildUi. Active: {_panel.activeSelf}");
         }
 
         private void BuildToastUi()
@@ -417,9 +442,10 @@ namespace OASIS.Omniverse.UnityHost.UI
         private void Update()
         {
             // Check both the configured key and I key as fallback
-            var toggleDown = IsHotkeyDown(_toggleKey) || Input.GetKey(KeyCode.I);
+            var toggleDown = IsHotkeyDown(_toggleKey) || Input.GetKeyDown(KeyCode.I);
             if (toggleDown && !_toggleWasDown)
             {
+                UnityEngine.Debug.LogError($"[HUD] Toggle key pressed! Current state: _isVisible={_isVisible}, Panel active: {_panel?.activeSelf}");
                 Toggle();
             }
 
@@ -902,13 +928,18 @@ namespace OASIS.Omniverse.UnityHost.UI
             _isVisible = visible;
             if (_panel != null)
             {
-                UnityEngine.Debug.Log($"[HUD] SetVisible: {visible}, Panel currently has {_panel.transform.childCount} children, Panel active: {_panel.activeSelf}");
+                UnityEngine.Debug.LogError($"[HUD] SetVisible called: {visible}, Panel currently has {_panel.transform.childCount} children, Panel active: {_panel.activeSelf}, Canvas active: {_canvas?.gameObject.activeSelf}");
                 _panel.SetActive(visible);
+                UnityEngine.Debug.LogError($"[HUD] After SetActive({visible}), Panel active: {_panel.activeSelf}");
                 if (visible)
                 {
                     // Wait a frame to ensure panel is fully active
                     StartCoroutine(RefreshAfterActivation());
                 }
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("[HUD] SetVisible called but _panel is NULL!");
             }
         }
         
