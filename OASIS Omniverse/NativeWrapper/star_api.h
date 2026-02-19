@@ -185,6 +185,15 @@ star_api_result_t star_api_create_boss_nft(
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);
 
 /**
+ * Get the current avatar ID after authentication
+ * 
+ * @param avatar_id_out Output buffer for avatar ID (must be at least 64 bytes)
+ * @param avatar_id_size Size of the output buffer
+ * @return STAR_API_SUCCESS on success, error code on failure
+ */
+star_api_result_t star_api_get_avatar_id(char* avatar_id_out, size_t avatar_id_size);
+
+/**
  * Get the last error message
  * 
  * @return Error message string (valid until next API call)

@@ -1017,10 +1017,16 @@ public sealed class StarApiClient : IDisposable
             using var request = new HttpRequestMessage(method, url);
             if (!string.IsNullOrWhiteSpace(bodyJson))
                 request.Content = new StringContent(bodyJson, Encoding.UTF8, "application/json");
+            
             lock (_stateLock)
             {
                 if (!string.IsNullOrWhiteSpace(_avatarId))
                     request.Headers.TryAddWithoutValidation("X-Avatar-Id", _avatarId);
+                
+                // Explicitly set Authorization header if JWT token is available
+                // This ensures the token is sent even if DefaultRequestHeaders isn't working
+                if (!string.IsNullOrWhiteSpace(_jwtToken))
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
             }
 
             using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -2300,6 +2306,44 @@ public static unsafe class StarApiExports
 
         var result = client.SetWeb4OasisApiBaseUrl(PtrToString(oasisBaseUrl) ?? string.Empty);
         return (int)FinalizeResult(result);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_avatar_id", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetAvatarId(sbyte* avatarIdOut, nuint avatarIdSize)
+    {
+        if (avatarIdOut is null || avatarIdSize == 0)
+            return (int)SetErrorAndReturn("avatarIdOut must not be null and size must be > 0.", StarApiResultCode.InvalidParam);
+
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        // Get avatar_id by calling GetCurrentAvatarAsync which will ensure it's set
+        var result = client.GetCurrentAvatarAsync().GetAwaiter().GetResult();
+        if (result.IsError || result.Result is null)
+        {
+            return (int)SetErrorAndReturn(result.Message ?? "Failed to get avatar ID. Authenticate first.", ExtractCode(result));
+        }
+
+        var avatarId = result.Result.Id.ToString();
+        if (string.IsNullOrWhiteSpace(avatarId))
+            return (int)SetErrorAndReturn("Avatar ID not available. Authenticate first.", StarApiResultCode.NotInitialized);
+
+        var bytes = Encoding.UTF8.GetBytes(avatarId);
+        var copySize = Math.Min((int)avatarIdSize - 1, bytes.Length);
+        if (copySize > 0)
+        {
+            Marshal.Copy(bytes, 0, (nint)avatarIdOut, copySize);
+            avatarIdOut[copySize] = 0;
+        }
+        else
+        {
+            avatarIdOut[0] = 0;
+        }
+
+        SetError(string.Empty);
+        InvokeCallback(StarApiResultCode.Success);
+        return (int)StarApiResultCode.Success;
     }
 
     private static StarApiClient? GetClient()

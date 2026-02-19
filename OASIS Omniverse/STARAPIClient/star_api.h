@@ -62,6 +62,7 @@ star_api_result_t star_api_complete_quest_objective(const char* quest_id, const 
 star_api_result_t star_api_complete_quest(const char* quest_id);
 star_api_result_t star_api_create_boss_nft(const char* boss_name, const char* description, const char* game_source, const char* boss_stats, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);
+star_api_result_t star_api_get_avatar_id(char* avatar_id_out, size_t avatar_id_size);
 const char* star_api_get_last_error(void);
 void star_api_set_callback(star_api_callback_t callback, void* user_data);
 
