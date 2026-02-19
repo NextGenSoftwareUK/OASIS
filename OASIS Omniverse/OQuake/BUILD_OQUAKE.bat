@@ -175,6 +175,10 @@ copy /Y "%STAR_DLL%" "%OQUAKE_INTEGRATION%\build\star_api.dll" >nul
 for %%D in ("!EXE_DIR!*.dll") do (
     if exist "%%D" copy /Y "%%D" "%OQUAKE_INTEGRATION%\build\" >nul
 )
+REM Config file should be in build folder (already there)
+if exist "%OQUAKE_INTEGRATION%\build\config.cfg" (
+    echo   Config: %OQUAKE_INTEGRATION%\build\config.cfg
+)
 echo   Output: %OQUAKE_INTEGRATION%\build\OQUAKE.exe
 :copy_done
 

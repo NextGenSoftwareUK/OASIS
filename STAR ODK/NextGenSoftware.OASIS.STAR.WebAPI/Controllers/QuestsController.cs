@@ -33,6 +33,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
         private IActionResult ValidateAvatarId<T>()
         {
+            // Skip validation if test mode is enabled - let the method try to execute and return test data on failure
+            if (UseTestDataWhenLiveDataNotAvailable)
+                return null;
+                
             if (AvatarId == Guid.Empty)
             {
                 return BadRequest(new OASISResult<T>
@@ -457,6 +461,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Quests.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest created successfully (using test data)"));
+                }
+                
                 if (result.IsError)
                     return BadRequest(result);
                 
@@ -464,6 +476,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest created successfully (using test data)"));
+                }
                 return HandleException<Quest>(ex, "creating quest");
             }
         }
@@ -486,10 +504,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 var holonTypeEnum = Enum.Parse<HolonType>(holonType);
                 var result = await _starAPI.Quests.LoadAsync(AvatarId, id, version, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest loaded successfully (using test data)"));
+                }
                 return HandleException<Quest>(ex, "loading quest");
             }
         }
@@ -511,10 +543,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 var holonTypeEnum = Enum.Parse<HolonType>(holonType);
                 var result = await _starAPI.Quests.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest loaded successfully (using test data)"));
+                }
                 return HandleException<Quest>(ex, "loading quest from path");
             }
         }

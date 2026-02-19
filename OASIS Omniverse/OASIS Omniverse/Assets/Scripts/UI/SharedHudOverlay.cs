@@ -228,26 +228,26 @@ namespace OASIS.Omniverse.UnityHost.UI
             dragResize.SetMinSize(760f, 420f);
             dragResize.OnLayoutCommitted += panelRect => _ = PersistPanelLayoutAsync(ControlCenterPanelId, panelRect);
 
-            // Title bar: top 8% of panel
-            var title = CreateText("Title", "OASIS Omniverse Control Center", 28, TextAnchor.MiddleLeft, _panel.transform);
+            // Title bar: top 5% of panel (95-100%)
+            var title = CreateText("Title", "OASIS Omniverse Control Center", 24, TextAnchor.MiddleLeft, _panel.transform);
             title.gameObject.SetActive(true);
             title.color = new Color(1f, 1f, 1f, 1f);
-            SetAnchors(title.rectTransform, 0.02f, 0.94f, 0.60f, 0.99f);
+            SetAnchors(title.rectTransform, 0.02f, 0.95f, 0.55f, 1.0f);
 
-            _returnToHubButton = CreateButton(_panel.transform, "Return to Hub", 0.62f, 0.94f, 0.78f, 0.99f);
+            _returnToHubButton = CreateButton(_panel.transform, "Return to Hub", 0.57f, 0.95f, 0.72f, 1.0f);
             _returnToHubButton.onClick.AddListener(ReturnToHub);
             _returnToHubButton.gameObject.SetActive(false);
 
-            _statusText = CreateText("Status", "Ready", 14, TextAnchor.MiddleRight, _panel.transform);
+            _statusText = CreateText("Status", "Ready", 12, TextAnchor.MiddleRight, _panel.transform);
             _statusText.gameObject.SetActive(true);
-            SetAnchors(_statusText.rectTransform, 0.80f, 0.94f, 0.98f, 0.99f);
+            SetAnchors(_statusText.rectTransform, 0.74f, 0.95f, 0.98f, 1.0f);
 
-            // Tabs: below title, 6% height
+            // Tabs: below title, 5% height (88-93%)
             var tabs = new GameObject("Tabs");
             tabs.transform.SetParent(_panel.transform, false);
             tabs.SetActive(true);
             var tabsRect = tabs.AddComponent<RectTransform>();
-            SetAnchors(tabsRect, 0.02f, 0.87f, 0.98f, 0.93f);
+            SetAnchors(tabsRect, 0.02f, 0.88f, 0.98f, 0.93f);
 
             CreateTabButton(tabs.transform, "Inventory", OmniverseTab.Inventory, 0);
             CreateTabButton(tabs.transform, "Quests", OmniverseTab.Quests, 1);
@@ -257,15 +257,15 @@ namespace OASIS.Omniverse.UnityHost.UI
             CreateTabButton(tabs.transform, "Settings", OmniverseTab.Settings, 5);
             CreateTabButton(tabs.transform, "Diagnostics", OmniverseTab.Diagnostics, 6);
 
-            // List controls: below tabs, 12% height
+            // List controls: below tabs, 10% height (76-86%)
             BuildListControls();
 
-            // Content area: below list controls, fills remaining space
+            // Content area: below list controls, fills remaining space (2-76%)
             _contentRoot = new GameObject("ContentRoot");
             _contentRoot.transform.SetParent(_panel.transform, false);
             _contentRoot.SetActive(true);
             var contentRect = _contentRoot.AddComponent<RectTransform>();
-            SetAnchors(contentRect, 0.02f, 0.02f, 0.98f, 0.75f);
+            SetAnchors(contentRect, 0.02f, 0.02f, 0.98f, 0.76f);
 
             _contentText = CreateText("ContentText", string.Empty, 19, TextAnchor.UpperLeft, _contentRoot.transform);
             _contentText.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -325,7 +325,7 @@ namespace OASIS.Omniverse.UnityHost.UI
             _listControlsRoot.transform.SetParent(_panel.transform, false);
             _listControlsRoot.SetActive(true);
             var controlsRect = _listControlsRoot.AddComponent<RectTransform>();
-            SetAnchors(controlsRect, 0.02f, 0.75f, 0.98f, 0.87f);
+            SetAnchors(controlsRect, 0.02f, 0.76f, 0.98f, 0.86f);
 
             CreateText("SearchLabel", "Search", 16, TextAnchor.MiddleLeft, _listControlsRoot.transform, 0.0f, 0f, 0.06f, 1f);
             _searchInput = CreateInputField(_listControlsRoot.transform, 0.065f, 0.56f, 0.26f, 0.94f);

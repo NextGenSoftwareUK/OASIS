@@ -1,7 +1,7 @@
 param(
     [string]$Configuration = "Release",
-    [string]$Web4OasisApiBaseUrl = "http://localhost:5056",
-    [string]$Web5StarApiBaseUrl = "http://localhost:5055",
+    [string]$Web4OasisApiBaseUrl = "http://localhost:5555",
+    [string]$Web5StarApiBaseUrl = "http://localhost:5556",
     [int]$StartupTimeoutSeconds = 360,
     [switch]$NoWait
 )

@@ -173,6 +173,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 var holon = new Holon
                 {
                     Id = session.Id,
+                    HolonType = HolonType.GameSession, //TODO: Fix everywhere, all holons ALWAYS NEED A HolonType set, otherwise it causes all sorts of issues with loading, searching, etc. as it defaults to HolonType.Default which is not correct for any holon
                     Name = $"Game Session {gameId}",
                     Description = $"Active game session for avatar {avatarId}",
                     CreatedDate = DateTime.UtcNow,

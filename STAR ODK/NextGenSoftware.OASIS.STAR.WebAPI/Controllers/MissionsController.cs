@@ -28,6 +28,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
         private IActionResult ValidateAvatarId<T>()
         {
+            // Skip validation if test mode is enabled - let the method try to execute and return test data on failure
+            if (UseTestDataWhenLiveDataNotAvailable)
+                return null;
+                
             if (AvatarId == Guid.Empty)
             {
                 return BadRequest(new OASISResult<T>
@@ -409,10 +413,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Missions.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission created successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission created successfully (using test data)"));
+                }
                 return HandleException<Mission>(ex, "creating mission");
             }
         }
@@ -435,10 +453,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 var holonTypeEnum = Enum.Parse<HolonType>(holonType);
                 var result = await _starAPI.Missions.LoadAsync(AvatarId, id, version, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission loaded successfully (using test data)"));
+                }
                 return HandleException<Mission>(ex, "loading mission");
             }
         }
@@ -460,10 +492,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 var holonTypeEnum = Enum.Parse<HolonType>(holonType);
                 var result = await _starAPI.Missions.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission loaded successfully (using test data)"));
+                }
                 return HandleException<Mission>(ex, "loading mission from path");
             }
         }
