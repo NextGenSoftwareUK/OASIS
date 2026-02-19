@@ -33,3 +33,4 @@ exec config.cfg
 star config
 exec config.cfg
 star config
+star beamin dellams test!
