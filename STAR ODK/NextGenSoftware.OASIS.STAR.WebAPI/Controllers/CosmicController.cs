@@ -193,10 +193,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 var result = await CosmicManager.GetChildrenForParentAsync<IHolon>(parentId, parentTypeEnum, childTypeEnum);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
                 {
-                    var testHolons = TestDataHelper.GetTestHolons(3);
-                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IHolon>>(testHolons, "Children retrieved successfully (using test data)"));
+                    var testHolons = new List<IHolon>();
+                    return Ok(new OASISResult<IEnumerable<IHolon>>
+                    {
+                        Result = testHolons,
+                        IsError = false,
+                        Message = "Children retrieved successfully (using test data)"
+                    });
                 }
                 
                 return Ok(result);
@@ -206,8 +211,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 // Return test data if setting is enabled, otherwise return error
                 if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    var testHolons = TestDataHelper.GetTestHolons(3);
-                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IHolon>>(testHolons, "Children retrieved successfully (using test data)"));
+                    var testHolons = new List<IHolon>();
+                    return Ok(new OASISResult<IEnumerable<IHolon>>
+                    {
+                        Result = testHolons,
+                        IsError = false,
+                        Message = "Children retrieved successfully (using test data)"
+                    });
                 }
                 return HandleException<IEnumerable<IHolon>>(ex, "GetChildrenForParent");
             }
@@ -244,10 +254,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 var result = await CosmicManager.SearchChildrenForParentAsync(searchTerm, parentId, parentTypeEnum, childTypeEnum);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
                 {
-                    var testHolons = TestDataHelper.GetTestHolons(3);
-                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IHolon>>(testHolons, "Search completed successfully (using test data)"));
+                    var testHolons = new List<IHolon>();
+                    return Ok(new OASISResult<IEnumerable<IHolon>>
+                    {
+                        Result = testHolons,
+                        IsError = false,
+                        Message = "Search completed successfully (using test data)"
+                    });
                 }
                 
                 return Ok(result);
@@ -257,8 +272,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 // Return test data if setting is enabled, otherwise return error
                 if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    var testHolons = TestDataHelper.GetTestHolons(3);
-                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IHolon>>(testHolons, "Search completed successfully (using test data)"));
+                    var testHolons = new List<IHolon>();
+                    return Ok(new OASISResult<IEnumerable<IHolon>>
+                    {
+                        Result = testHolons,
+                        IsError = false,
+                        Message = "Search completed successfully (using test data)"
+                    });
                 }
                 return HandleException<IEnumerable<IHolon>>(ex, "SearchChildrenForParent");
             }
@@ -399,7 +419,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 var result = await CosmicManager.SaveOmniverseAsync(omniverse);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
                 {
                     return Ok(new OASISResult<IOmiverse>
                     {
@@ -492,7 +512,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 var result = await CosmicManager.UpdateOmniverseAsync(omniverse, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
                 {
                     return Ok(new OASISResult<IOmiverse>
                     {
@@ -594,7 +614,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 var result = await CosmicManager.AddMultiverseAsync(parentOmniverseId, multiverse);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
                 {
                     return Ok(new OASISResult<IMultiverse>
                     {
