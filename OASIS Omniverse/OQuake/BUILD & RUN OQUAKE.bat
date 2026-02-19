@@ -20,4 +20,9 @@ if not defined QUAKE_ENGINE_EXE (echo Build failed or path missing. Set VKQUAKE_
 
 :launch
 echo Launching OQuake...
+REM Copy config.cfg to basedir so Quake's exec config.cfg finds it
+if exist "%HERE%build\config.cfg" (
+    copy /Y "%HERE%build\config.cfg" "%OQUAKE_BASEDIR%\config.cfg" >nul 2>&1
+    if not errorlevel 1 echo [Config] Copied config.cfg to basedir successfully
+)
 start "" "%QUAKE_ENGINE_EXE%" -basedir "%OQUAKE_BASEDIR%"
