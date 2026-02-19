@@ -451,7 +451,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<Mission>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Missions.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -490,7 +492,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<Mission>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Missions.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null

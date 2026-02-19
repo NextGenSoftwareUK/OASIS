@@ -302,7 +302,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<STARCelestialSpace>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.CelestialSpaces.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
@@ -327,7 +329,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<STARCelestialSpace>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.CelestialSpaces.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }

@@ -31,3 +31,5 @@ star config
 star
 exec config.cfg
 star config
+exec config.cfg
+star config

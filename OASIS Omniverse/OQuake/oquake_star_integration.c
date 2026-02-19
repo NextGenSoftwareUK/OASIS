@@ -17,14 +17,18 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <time.h>
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <sys/stat.h>
 #endif
 
 static star_api_config_t g_star_config;
 static int g_star_initialized = 0;
 static int g_star_console_registered = 0;
 static char g_star_username[64] = {0};
+static char g_json_config_path[512] = {0};
 
 /* key binding helpers from keys.c */
 extern char *keybindings[MAX_KEYS];
@@ -34,6 +38,7 @@ extern void Key_SetBinding(int keynum, const char *binding);
 
 cvar_t oasis_star_anorak_face = {"oasis_star_anorak_face", "0", 0}; /* Runtime state - not archived */
 cvar_t oasis_star_beam_face = {"oasis_star_beam_face", "1", CVAR_ARCHIVE};
+cvar_t oquake_star_config_file = {"oquake_star_config_file", "json", CVAR_ARCHIVE}; /* "json" or "cfg" - which config file to use */
 cvar_t oquake_star_api_url = {"oquake_star_api_url", "https://star-api.oasisplatform.world/api", CVAR_ARCHIVE};
 cvar_t oquake_oasis_api_url = {"oquake_oasis_api_url", "https://api.oasisplatform.world", CVAR_ARCHIVE};
 cvar_t oquake_star_username = {"oquake_star_username", "", 0};
@@ -830,6 +835,255 @@ static void OQ_ApplyBeamFacePreference(void) {
     Cvar_SetValueQuick(&oasis_star_anorak_face, should_show ? 1 : 0);
 }
 
+/*-----------------------------------------------------------------------------
+ * OASIS STAR Config - JSON file support (fallback if Quake config.cfg fails)
+ *-----------------------------------------------------------------------------*/
+
+/* Forward declarations */
+static int OQ_LoadJsonConfig(const char *json_path);
+
+/* Console command to reload config from JSON */
+static void OQ_ReloadConfig_f(void) {
+    if (g_json_config_path[0]) {
+        if (OQ_LoadJsonConfig(g_json_config_path)) {
+            /* Re-apply the values to API config */
+            const char* config_url = oquake_star_api_url.string;
+            if (config_url && config_url[0]) {
+                g_star_config.base_url = config_url;
+            }
+        }
+    }
+}
+
+/* Helper function to find file in common locations */
+static int OQ_FindConfigFile(const char *filename, char *out_path, int maxlen) {
+    /* Try direct filename first (current directory / basedir) */
+    FILE *test_file = fopen(filename, "r");
+    if (test_file) {
+        fclose(test_file);
+        q_strlcpy(out_path, filename, maxlen);
+        return 1;
+    }
+    
+    const char *locations[] = {
+        "build/",  /* Relative to exe if in build folder */
+        "../build/",  /* One level up from exe */
+        "../OASIS Omniverse/OQuake/build/",  /* From basedir, go to OQuake build */
+        "../../OASIS Omniverse/OQuake/build/",  /* Two levels up */
+        "OASIS Omniverse/OQuake/build/",  /* Relative from repo root */
+        NULL
+    };
+    
+    for (int i = 0; locations[i]; i++) {
+        char test_path[512];
+        q_snprintf(test_path, sizeof(test_path), "%s%s", locations[i], filename);
+        test_file = fopen(test_path, "r");
+        if (test_file) {
+            fclose(test_file);
+            q_strlcpy(out_path, test_path, maxlen);
+            return 1;
+        }
+    }
+    
+    /* Try exe directory */
+#ifdef _WIN32
+    char exe_path[MAX_PATH] = {0};
+    char exe_dir[MAX_PATH] = {0};
+    if (GetModuleFileNameA(NULL, exe_path, sizeof(exe_path))) {
+        char *last_slash = strrchr(exe_path, '\\');
+        if (last_slash) {
+            int dir_len = last_slash - exe_path;
+            if (dir_len < sizeof(exe_dir)) {
+                memcpy(exe_dir, exe_path, dir_len);
+                exe_dir[dir_len] = 0;
+                char test_path[512];
+                q_snprintf(test_path, sizeof(test_path), "%s\\%s", exe_dir, filename);
+                test_file = fopen(test_path, "r");
+                if (test_file) {
+                    fclose(test_file);
+                    q_strlcpy(out_path, test_path, maxlen);
+                    return 1;
+                }
+                /* Also try build subdirectory */
+                q_snprintf(test_path, sizeof(test_path), "%s\\build\\%s", exe_dir, filename);
+                test_file = fopen(test_path, "r");
+                if (test_file) {
+                    fclose(test_file);
+                    q_strlcpy(out_path, test_path, maxlen);
+                    return 1;
+                }
+            }
+        }
+    }
+#endif
+    return 0;
+}
+
+/* Simple JSON value extractor - finds "key": "value" or "key": value */
+static int OQ_ExtractJsonValue(const char *json, const char *key, char *value, int maxlen) {
+    char search[128];
+    q_snprintf(search, sizeof(search), "\"%s\"", key);
+    const char *pos = strstr(json, search);
+    if (!pos) return 0;
+    
+    pos += strlen(search);
+    while (*pos && (*pos == ' ' || *pos == ':' || *pos == '\t')) pos++;
+    
+    if (*pos == '"') {
+        pos++;
+        int n = 0;
+        while (*pos && *pos != '"' && *pos != '\n' && *pos != '\r' && n < maxlen - 1) {
+            if (*pos == '\\' && pos[1]) {
+                pos++;
+                if (*pos == 'n') value[n++] = '\n';
+                else if (*pos == 't') value[n++] = '\t';
+                else if (*pos == '\\') value[n++] = '\\';
+                else if (*pos == '"') value[n++] = '"';
+                else value[n++] = *pos;
+            } else {
+                value[n++] = *pos;
+            }
+            pos++;
+        }
+        value[n] = 0;
+        return n > 0;
+    } else {
+        int n = 0;
+        while (*pos && *pos != ',' && *pos != '}' && *pos != '\n' && *pos != '\r' && *pos != ' ' && n < maxlen - 1) {
+            value[n++] = *pos++;
+        }
+        value[n] = 0;
+        return n > 0;
+    }
+}
+
+/* Load config from oasisstar.json */
+static int OQ_LoadJsonConfig(const char *json_path) {
+    FILE *f = fopen(json_path, "r");
+    if (!f) {
+        return 0;
+    }
+    
+    char json[4096] = {0};
+    size_t len = fread(json, 1, sizeof(json) - 1, f);
+    fclose(f);
+    if (len == 0) {
+        return 0;
+    }
+    json[len] = 0;
+    
+    char value[256];
+    int loaded = 0;
+    
+    if (OQ_ExtractJsonValue(json, "star_api_url", value, sizeof(value))) {
+        Cvar_Set("oquake_star_api_url", value);
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "oasis_api_url", value, sizeof(value))) {
+        Cvar_Set("oquake_oasis_api_url", value);
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "beam_face", value, sizeof(value))) {
+        Cvar_SetValueQuick(&oasis_star_beam_face, atoi(value));
+        loaded = 1;
+    }
+    
+    return loaded;
+}
+
+/* Save config to oasisstar.json */
+static int OQ_SaveJsonConfig(const char *json_path) {
+    FILE *f = fopen(json_path, "w");
+    if (!f) return 0;
+    
+    const char *star_url = oquake_star_api_url.string;
+    const char *oasis_url = oquake_oasis_api_url.string;
+    int beam_face = (int)oasis_star_beam_face.value;
+    
+    fprintf(f, "{\n");
+    fprintf(f, "  \"star_api_url\": \"%s\",\n", star_url ? star_url : "");
+    fprintf(f, "  \"oasis_api_url\": \"%s\",\n", oasis_url ? oasis_url : "");
+    fprintf(f, "  \"beam_face\": %d\n", beam_face);
+    fprintf(f, "}\n");
+    
+    fclose(f);
+    return 1;
+}
+
+/* Get file modification time (Windows) */
+#ifdef _WIN32
+static time_t OQ_GetFileTime(const char *path) {
+    WIN32_FIND_DATAA findData;
+    HANDLE hFind = FindFirstFileA(path, &findData);
+    if (hFind == INVALID_HANDLE_VALUE) return 0;
+    FindClose(hFind);
+    
+    FILETIME ft = findData.ftLastWriteTime;
+    ULARGE_INTEGER ul;
+    ul.LowPart = ft.dwLowDateTime;
+    ul.HighPart = ft.dwHighDateTime;
+    return (time_t)(ul.QuadPart / 10000000ULL - 11644473600ULL);
+}
+#else
+static time_t OQ_GetFileTime(const char *path) {
+    struct stat st;
+    if (stat(path, &st) == 0) return st.st_mtime;
+    return 0;
+}
+#endif
+
+/* Save config to Quake config.cfg format */
+static int OQ_SaveQuakeConfig(const char *cfg_path) {
+    FILE *f = fopen(cfg_path, "a"); /* Append mode to not overwrite user settings */
+    if (!f) return 0;
+    
+    const char *star_url = oquake_star_api_url.string;
+    const char *oasis_url = oquake_oasis_api_url.string;
+    int beam_face = (int)oasis_star_beam_face.value;
+    
+    fprintf(f, "\n// OQuake STAR API Configuration (auto-generated)\n");
+    fprintf(f, "set oquake_star_api_url \"%s\"\n", star_url ? star_url : "");
+    fprintf(f, "set oquake_oasis_api_url \"%s\"\n", oasis_url ? oasis_url : "");
+    fprintf(f, "set oasis_star_beam_face \"%d\"\n", beam_face);
+    
+    fclose(f);
+    return 1;
+}
+
+/* Sync config files - load from newer, save to older */
+static void OQ_SyncConfigFiles(const char *cfg_path, const char *json_path) {
+    time_t cfg_time = 0, json_time = 0;
+    int cfg_exists = 0, json_exists = 0;
+    
+    if (cfg_path) {
+        cfg_time = OQ_GetFileTime(cfg_path);
+        cfg_exists = (cfg_time > 0);
+    }
+    if (json_path) {
+        json_time = OQ_GetFileTime(json_path);
+        json_exists = (json_time > 0);
+    }
+    
+    if (!cfg_exists && !json_exists) return; /* Neither exists */
+    
+    if (cfg_exists && json_exists) {
+        /* Both exist - load from newer, sync to older */
+        if (cfg_time > json_time) {
+            /* config.cfg is newer - already loaded, save to JSON */
+            OQ_SaveJsonConfig(json_path);
+        } else if (json_time > cfg_time) {
+            /* JSON is newer - load from JSON, save to config.cfg */
+            if (OQ_LoadJsonConfig(json_path)) {
+                OQ_SaveQuakeConfig(cfg_path);
+            }
+        }
+    } else if (json_exists && !cfg_exists) {
+        /* Only JSON exists - load it */
+        OQ_LoadJsonConfig(json_path);
+    }
+    /* If only cfg exists, it's already loaded */
+}
+
 /* Forward declaration */
 // static void OQ_DebugMode_f(void); // Temporarily disabled
 
@@ -841,6 +1095,7 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oasis_star_anorak_face);
     Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
     Cvar_RegisterVariable(&oasis_star_beam_face);
+    Cvar_RegisterVariable(&oquake_star_config_file); /* Register this first so we can check it */
     Cvar_RegisterVariable(&oquake_star_api_url);
     Cvar_RegisterVariable(&oquake_oasis_api_url);
     Cvar_RegisterVariable(&oquake_star_username);
@@ -853,165 +1108,342 @@ void OQuake_STAR_Init(void) {
         Cmd_AddCommand("oasis_inventory_toggle", OQ_InventoryToggle_f);
         Cmd_AddCommand("oasis_inventory_prevtab", OQ_InventoryPrevTab_f);
         Cmd_AddCommand("oasis_inventory_nexttab", OQ_InventoryNextTab_f);
+        Cmd_AddCommand("oasis_reload_config", OQ_ReloadConfig_f);
         g_star_console_registered = 1;
     }
 
-    /* Try to auto-load config.cfg from common locations */
-    /* This ensures our CVARs get loaded even if Quake's auto-load didn't find it */
-    /* We manually parse the config file to set CVARs directly */
+    /* Try to auto-load config from config.cfg or oasisstar.json */
+    /* Default is to use oasisstar.json to avoid Quake's exec overwriting values */
     {
-        FILE *f = NULL;
-        char line[256];
-        char found_path[512] = {0};
         int config_loaded = 0;
+        char found_cfg_path[512] = {0};
+        char found_json_path[512] = {0};
         
-        /* Try multiple locations where config.cfg might be */
-        /* When -basedir is used, current dir is basedir, not exe dir */
-        const char *locations[] = {
-            "config.cfg",  /* Current directory / basedir */
-            "../OASIS Omniverse/OQuake/build/config.cfg",  /* From basedir, go to OQuake build */
-            "../../OASIS Omniverse/OQuake/build/config.cfg",  /* Two levels up */
-            "OASIS Omniverse/OQuake/build/config.cfg",  /* Relative from repo root */
-            "build/config.cfg",  /* Relative to exe if in build folder */
-            "../build/config.cfg",  /* One level up from exe */
-            NULL
-        };
+        /* Check which config file type to use (default: json) */
+        const char *config_type = oquake_star_config_file.string;
+        int use_json = 1; /* Default to JSON */
+        if (config_type && config_type[0] && q_strcasecmp(config_type, "cfg") == 0) {
+            use_json = 0;
+        }
         
-        /* Try to find and open config file */
-        for (int i = 0; locations[i]; i++) {
-            f = fopen(locations[i], "r");
+        /* Find both files */
+        int found_cfg = OQ_FindConfigFile("config.cfg", found_cfg_path, sizeof(found_cfg_path));
+        int found_json = OQ_FindConfigFile("oasisstar.json", found_json_path, sizeof(found_json_path));
+        
+        /* Show config preference */
+        Con_Printf("OQuake: Config preference: %s\n", use_json ? "oasisstar.json" : "config.cfg");
+        
+        /* If JSON not found but config.cfg exists, load config.cfg first to get values, then create JSON */
+        if (!found_json && found_cfg && use_json) {
+            /* Load from config.cfg first to populate CVARs */
+            FILE *f = fopen(found_cfg_path, "r");
             if (f) {
-                q_strlcpy(found_path, locations[i], sizeof(found_path));
-                break;
+                char line[256];
+                while (fgets(line, sizeof(line), f)) {
+                    char *p = line;
+                    while (*p && (*p == ' ' || *p == '\t')) p++;
+                    if (*p == '\n' || *p == '\r' || *p == 0) continue;
+                    if (*p == '/' && p[1] == '/') continue;
+                    if (*p == '#') continue;
+                    
+                    if (strncmp(p, "set ", 4) == 0) {
+                        p += 4;
+                        while (*p && (*p == ' ' || *p == '\t')) p++;
+                        
+                        char cvar_name[64] = {0};
+                        char cvar_value[256] = {0};
+                        int n = 0;
+                        
+                        while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_name) - 1) {
+                            cvar_name[n++] = *p++;
+                        }
+                        
+                        if (n > 0) {
+                            cvar_name[n] = 0;
+                            while (*p && (*p == ' ' || *p == '\t')) p++;
+                            
+                            if (*p == '"') {
+                                p++;
+                                n = 0;
+                                while (*p && *p != '"' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
+                                    cvar_value[n++] = *p++;
+                                }
+                            } else {
+                                n = 0;
+                                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
+                                    cvar_value[n++] = *p++;
+                                }
+                            }
+                            
+                            if (n > 0) {
+                                cvar_value[n] = 0;
+                                if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
+                                    Cvar_Set("oquake_star_api_url", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_oasis_api_url") == 0) {
+                                    Cvar_Set("oquake_oasis_api_url", cvar_value);
+                                } else if (strcmp(cvar_name, "oasis_star_beam_face") == 0) {
+                                    Cvar_SetValueQuick(&oasis_star_beam_face, atoi(cvar_value));
+                                }
+                            }
+                        }
+                    }
+                }
+                fclose(f);
+                config_loaded = 1;
+                Con_Printf("OQuake: Loaded config from: %s\n", found_cfg_path);
+                const char* star_url = oquake_star_api_url.string;
+                const char* oasis_url = oquake_oasis_api_url.string;
+                if (star_url && star_url[0]) {
+                    Con_Printf("OQuake: STAR API URL: %s\n", star_url);
+                }
+                if (oasis_url && oasis_url[0]) {
+                    Con_Printf("OQuake: OASIS API URL: %s\n", oasis_url);
+                }
+                
+                /* Now create JSON file in same directory */
+                q_strlcpy(found_json_path, found_cfg_path, sizeof(found_json_path));
+                char *slash = strrchr(found_json_path, '\\');
+                if (!slash) slash = strrchr(found_json_path, '/');
+                if (slash) {
+                    q_strlcpy(slash + 1, "oasisstar.json", sizeof(found_json_path) - (slash + 1 - found_json_path));
+                } else {
+                    q_strlcpy(found_json_path, "oasisstar.json", sizeof(found_json_path));
+                }
+                if (OQ_SaveJsonConfig(found_json_path)) {
+                    found_json = 1; /* Mark as found so we use it next time */
+                    Con_Printf("OQuake: Created JSON config: %s\n", found_json_path);
+                }
             }
         }
         
-        /* If still not found, try to get exe directory and search there */
-        if (!f) {
+        /* Load based on preference and availability */
+        if (use_json && found_json) {
+            /* Prefer JSON - load it */
+            if (OQ_LoadJsonConfig(found_json_path)) {
+                config_loaded = 1;
+                Con_Printf("OQuake: Loaded config from: %s\n", found_json_path);
+                const char* star_url = oquake_star_api_url.string;
+                const char* oasis_url = oquake_oasis_api_url.string;
+                if (star_url && star_url[0]) {
+                    Con_Printf("OQuake: STAR API URL: %s\n", star_url);
+                }
+                if (oasis_url && oasis_url[0]) {
+                    Con_Printf("OQuake: OASIS API URL: %s\n", oasis_url);
+                }
+                /* Sync to config.cfg if it exists */
+                if (found_cfg) {
+                    OQ_SyncConfigFiles(found_cfg_path, found_json_path);
+                }
+            }
+        } else if (!use_json && found_cfg) {
+            /* Prefer config.cfg - load it */
+            FILE *f = fopen(found_cfg_path, "r");
+            if (f) {
+                char line[256];
+                while (fgets(line, sizeof(line), f)) {
+                    char *p = line;
+                    while (*p && (*p == ' ' || *p == '\t')) p++;
+                    if (*p == '\n' || *p == '\r' || *p == 0) continue;
+                    if (*p == '/' && p[1] == '/') continue;
+                    if (*p == '#') continue;
+                    
+                    if (strncmp(p, "set ", 4) == 0) {
+                        p += 4;
+                        while (*p && (*p == ' ' || *p == '\t')) p++;
+                        
+                        char cvar_name[64] = {0};
+                        char cvar_value[256] = {0};
+                        int n = 0;
+                        
+                        while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_name) - 1) {
+                            cvar_name[n++] = *p++;
+                        }
+                        
+                        if (n > 0) {
+                            cvar_name[n] = 0;
+                            while (*p && (*p == ' ' || *p == '\t')) p++;
+                            
+                            if (*p == '"') {
+                                p++;
+                                n = 0;
+                                while (*p && *p != '"' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
+                                    cvar_value[n++] = *p++;
+                                }
+                            } else {
+                                n = 0;
+                                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
+                                    cvar_value[n++] = *p++;
+                                }
+                            }
+                            
+                            if (n > 0) {
+                                cvar_value[n] = 0;
+                                if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
+                                    Cvar_Set("oquake_star_api_url", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_oasis_api_url") == 0) {
+                                    Cvar_Set("oquake_oasis_api_url", cvar_value);
+                                } else if (strcmp(cvar_name, "oasis_star_beam_face") == 0) {
+                                    Cvar_SetValueQuick(&oasis_star_beam_face, atoi(cvar_value));
+                                }
+                            }
+                        }
+                    }
+                }
+                fclose(f);
+                config_loaded = 1;
+                Con_Printf("OQuake: Loaded config from: %s\n", found_cfg_path);
+                const char* star_url = oquake_star_api_url.string;
+                const char* oasis_url = oquake_oasis_api_url.string;
+                if (star_url && star_url[0]) {
+                    Con_Printf("OQuake: STAR API URL: %s\n", star_url);
+                }
+                if (oasis_url && oasis_url[0]) {
+                    Con_Printf("OQuake: OASIS API URL: %s\n", oasis_url);
+                }
+                /* Sync to JSON if it exists */
+                if (found_json) {
+                    OQ_SyncConfigFiles(found_cfg_path, found_json_path);
+                }
+            }
+        } else if (found_json) {
+            /* Fallback: use JSON if available */
+            if (OQ_LoadJsonConfig(found_json_path)) {
+                config_loaded = 1;
+                Con_Printf("OQuake: Loaded config from (fallback): %s\n", found_json_path);
+                const char* star_url = oquake_star_api_url.string;
+                const char* oasis_url = oquake_oasis_api_url.string;
+                if (star_url && star_url[0]) {
+                    Con_Printf("OQuake: STAR API URL: %s\n", star_url);
+                }
+                if (oasis_url && oasis_url[0]) {
+                    Con_Printf("OQuake: OASIS API URL: %s\n", oasis_url);
+                }
+            }
+        } else if (found_cfg) {
+            /* Fallback: use config.cfg if available */
+            FILE *f = fopen(found_cfg_path, "r");
+            if (f) {
+                char line[256];
+                while (fgets(line, sizeof(line), f)) {
+                    char *p = line;
+                    while (*p && (*p == ' ' || *p == '\t')) p++;
+                    if (*p == '\n' || *p == '\r' || *p == 0) continue;
+                    if (*p == '/' && p[1] == '/') continue;
+                    if (*p == '#') continue;
+                    
+                    if (strncmp(p, "set ", 4) == 0) {
+                        p += 4;
+                        while (*p && (*p == ' ' || *p == '\t')) p++;
+                        
+                        char cvar_name[64] = {0};
+                        char cvar_value[256] = {0};
+                        int n = 0;
+                        
+                        while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_name) - 1) {
+                            cvar_name[n++] = *p++;
+                        }
+                        
+                        if (n > 0) {
+                            cvar_name[n] = 0;
+                            while (*p && (*p == ' ' || *p == '\t')) p++;
+                            
+                            if (*p == '"') {
+                                p++;
+                                n = 0;
+                                while (*p && *p != '"' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
+                                    cvar_value[n++] = *p++;
+                                }
+                            } else {
+                                n = 0;
+                                while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
+                                    cvar_value[n++] = *p++;
+                                }
+                            }
+                            
+                            if (n > 0) {
+                                cvar_value[n] = 0;
+                                if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
+                                    Cvar_Set("oquake_star_api_url", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_oasis_api_url") == 0) {
+                                    Cvar_Set("oquake_oasis_api_url", cvar_value);
+                                } else if (strcmp(cvar_name, "oasis_star_beam_face") == 0) {
+                                    Cvar_SetValueQuick(&oasis_star_beam_face, atoi(cvar_value));
+                                }
+                            }
+                        }
+                    }
+                }
+                fclose(f);
+                config_loaded = 1;
+                Con_Printf("OQuake: Loaded config from (fallback): %s\n", found_cfg_path);
+                const char* star_url = oquake_star_api_url.string;
+                const char* oasis_url = oquake_oasis_api_url.string;
+                if (star_url && star_url[0]) {
+                    Con_Printf("OQuake: STAR API URL: %s\n", star_url);
+                }
+                if (oasis_url && oasis_url[0]) {
+                    Con_Printf("OQuake: OASIS API URL: %s\n", oasis_url);
+                }
+                /* Create JSON file from config.cfg if JSON doesn't exist */
+                if (!found_json && found_json_path[0]) {
+                    if (OQ_SaveJsonConfig(found_json_path)) {
+                        Con_Printf("OQuake: Created JSON config: %s\n", found_json_path);
+                    }
+                }
+            }
+        }
+        
+        if (!config_loaded) {
+            Con_Printf("OQuake: Config file not found in any standard location\n");
+            Con_Printf("OQuake: Tried: config.cfg and oasisstar.json\n");
+            Con_Printf("OQuake: Set oquake_star_config_file to \"json\" or \"cfg\" to choose format\n");
+            /* Create default JSON file if neither exists */
+            char default_json[512];
 #ifdef _WIN32
             char exe_path[MAX_PATH] = {0};
             char exe_dir[MAX_PATH] = {0};
-            char config_in_exe_dir[MAX_PATH] = {0};
-            
             if (GetModuleFileNameA(NULL, exe_path, sizeof(exe_path))) {
-                /* Extract directory from exe path */
                 char *last_slash = strrchr(exe_path, '\\');
                 if (last_slash) {
                     int dir_len = last_slash - exe_path;
                     if (dir_len < sizeof(exe_dir)) {
                         memcpy(exe_dir, exe_path, dir_len);
                         exe_dir[dir_len] = 0;
-                        
-                        /* Try config.cfg in exe directory */
-                        q_snprintf(config_in_exe_dir, sizeof(config_in_exe_dir), "%s\\config.cfg", exe_dir);
-                        f = fopen(config_in_exe_dir, "r");
-                        if (f) {
-                            q_strlcpy(found_path, config_in_exe_dir, sizeof(found_path));
-                        } else {
-                            /* Try build/config.cfg relative to exe */
-                            q_snprintf(config_in_exe_dir, sizeof(config_in_exe_dir), "%s\\build\\config.cfg", exe_dir);
-                            f = fopen(config_in_exe_dir, "r");
-                            if (f) {
-                                q_strlcpy(found_path, config_in_exe_dir, sizeof(found_path));
-                            }
-                        }
+                        q_snprintf(default_json, sizeof(default_json), "%s\\oasisstar.json", exe_dir);
+                    } else {
+                        q_strlcpy(default_json, "oasisstar.json", sizeof(default_json));
                     }
+                } else {
+                    q_strlcpy(default_json, "oasisstar.json", sizeof(default_json));
                 }
+            } else {
+                q_strlcpy(default_json, "oasisstar.json", sizeof(default_json));
             }
+#else
+            q_strlcpy(default_json, "oasisstar.json", sizeof(default_json));
 #endif
-        }
-        
-        /* If still not found, try to construct absolute path from known location */
-        if (!f) {
-            /* Try common absolute paths */
-            const char *abs_paths[] = {
-                "C:/Source/OASIS-master/OASIS Omniverse/OQuake/build/config.cfg",
-                NULL
-            };
-            for (int i = 0; abs_paths[i]; i++) {
-                f = fopen(abs_paths[i], "r");
-                if (f) {
-                    q_strlcpy(found_path, abs_paths[i], sizeof(found_path));
-                    break;
+            if (OQ_SaveJsonConfig(default_json)) {
+                Con_Printf("OQuake: Created default JSON config: %s\n", default_json);
+                if (OQ_LoadJsonConfig(default_json)) {
+                    config_loaded = 1;
+                    Con_Printf("OQuake: Loaded default config from: %s\n", default_json);
                 }
             }
         }
         
-        if (f) {
-            Con_Printf("OQuake: Loading config from: %s\n", found_path[0] ? found_path : "(found)");
-            config_loaded = 1;
-            
-            /* Parse config file line by line */
-            while (fgets(line, sizeof(line), f)) {
-                char *p = line;
-                /* Skip leading whitespace */
-                while (*p && (*p == ' ' || *p == '\t')) p++;
-                /* Skip empty lines and comments */
-                if (*p == '\n' || *p == '\r' || *p == 0) continue;
-                if (*p == '/' && p[1] == '/') continue;
-                if (*p == '#') continue;
-                
-                /* Look for "set <cvar> <value>" */
-                if (strncmp(p, "set ", 4) == 0) {
-                    p += 4;
-                    /* Skip whitespace after "set" */
-                    while (*p && (*p == ' ' || *p == '\t')) p++;
-                    
-                    char cvar_name[64] = {0};
-                    char cvar_value[256] = {0};
-                    int n = 0;
-                    
-                    /* Get CVAR name */
-                    while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_name) - 1) {
-                        cvar_name[n++] = *p++;
-                    }
-                    
-                    if (n > 0) {
-                        cvar_name[n] = 0;
-                        /* Skip whitespace before value */
-                        while (*p && (*p == ' ' || *p == '\t')) p++;
-                        
-                        /* Get value (may be quoted) */
-                        if (*p == '"') {
-                            p++; /* Skip opening quote */
-                            n = 0;
-                            while (*p && *p != '"' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
-                                cvar_value[n++] = *p++;
-                            }
-                        } else {
-                            n = 0;
-                            while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
-                                cvar_value[n++] = *p++;
-                            }
-                        }
-                        
-                        if (n > 0) {
-                            cvar_value[n] = 0;
-                            /* Set the CVAR if it matches one of ours */
-                            if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
-                                Cvar_Set("oquake_star_api_url", cvar_value);
-                            } else if (strcmp(cvar_name, "oquake_oasis_api_url") == 0) {
-                                Cvar_Set("oquake_oasis_api_url", cvar_value);
-                            } else if (strcmp(cvar_name, "oasis_star_beam_face") == 0) {
-                                Cvar_SetValueQuick(&oasis_star_beam_face, atoi(cvar_value));
-                            }
-                        }
-                    }
-                }
-            }
-            fclose(f);
-            Con_Printf("OQuake: Config file loaded successfully\n");
-        } else {
-            Con_Printf("OQuake: Config file not found in any standard location\n");
-            Con_Printf("OQuake: Tried: config.cfg, build/config.cfg, ../build/config.cfg, and absolute paths\n");
-            Con_Printf("OQuake: You can manually load it with: exec config.cfg\n");
+        /* Store JSON path for delayed reload (after Quake's exec config.cfg runs) */
+        if (found_json && found_json_path[0]) {
+            q_strlcpy(g_json_config_path, found_json_path, sizeof(g_json_config_path));
+        } else if (!found_json && found_json_path[0]) {
+            /* JSON will be created, store the path */
+            q_strlcpy(g_json_config_path, found_json_path, sizeof(g_json_config_path));
         }
         
-        /* Also try using Cbuf_AddText as a fallback (exec command) */
-        /* Note: This may not be available in all Quake engines */
-        if (!config_loaded) {
+        /* Queue delayed reload of JSON after Quake's exec config.cfg completes */
+        /* This ensures our values aren't overwritten by Quake's config */
+        if (use_json && g_json_config_path[0]) {
             extern void Cbuf_AddText(const char *text);
-            Cbuf_AddText("exec config.cfg\n");
+            Cbuf_AddText("wait 0.5; oasis_reload_config\n");
         }
     }
 

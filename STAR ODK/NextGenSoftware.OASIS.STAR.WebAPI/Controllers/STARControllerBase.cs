@@ -1,10 +1,13 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 
@@ -157,6 +160,69 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 
                 return StatusCode(500, errorResult);
             }
+        }
+
+        /// <summary>
+        /// Validates and parses a HolonType enum value. Returns a validation error with valid values if parsing fails.
+        /// </summary>
+        /// <typeparam name="T">The return type for the error response.</typeparam>
+        /// <param name="value">The string value to parse.</param>
+        /// <param name="parameterName">The name of the parameter being validated (for error message).</param>
+        /// <returns>Tuple containing the parsed HolonType and an optional error IActionResult. If error is not null, parsing failed.</returns>
+        protected (HolonType holonType, IActionResult? error) ValidateAndParseHolonType<T>(string value, string parameterName = "holonType")
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return (HolonType.Default, null);
+            }
+
+            // Try case-insensitive parsing
+            if (Enum.TryParse<HolonType>(value, true, out var result))
+            {
+                return (result, null);
+            }
+
+            // If parsing fails, return validation error with list of valid values
+            var validValues = EnumHelper.GetEnumValues(typeof(HolonType), EnumHelperListType.ItemsSeperatedByComma);
+            var errorResult = BadRequest(new OASISResult<T>
+            {
+                IsError = true,
+                Message = $"The {parameterName} '{value}' is not valid. It must be one of the following values: {validValues}"
+            });
+
+            return (HolonType.Default, errorResult);
+        }
+
+        /// <summary>
+        /// Validates and parses any enum value. Returns a validation error with valid values if parsing fails.
+        /// </summary>
+        /// <typeparam name="TEnum">The enum type to parse.</typeparam>
+        /// <typeparam name="T">The return type for the error response.</typeparam>
+        /// <param name="value">The string value to parse.</param>
+        /// <param name="parameterName">The name of the parameter being validated (for error message).</param>
+        /// <returns>Tuple containing the parsed enum value and an optional error IActionResult. If error is not null, parsing failed.</returns>
+        protected (TEnum enumValue, IActionResult? error) ValidateAndParseEnum<TEnum, T>(string value, string parameterName) where TEnum : struct, Enum
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return (default(TEnum), null);
+            }
+
+            // Try case-insensitive parsing
+            if (Enum.TryParse<TEnum>(value, true, out var result))
+            {
+                return (result, null);
+            }
+
+            // If parsing fails, return validation error with list of valid values
+            var validValues = EnumHelper.GetEnumValues(typeof(TEnum), EnumHelperListType.ItemsSeperatedByComma);
+            var errorResult = BadRequest(new OASISResult<T>
+            {
+                IsError = true,
+                Message = $"The {parameterName} '{value}' is not valid. It must be one of the following values: {validValues}"
+            });
+
+            return (default(TEnum), errorResult);
         }
 
         private Guid ResolveAvatarIdFromBearerToken()
