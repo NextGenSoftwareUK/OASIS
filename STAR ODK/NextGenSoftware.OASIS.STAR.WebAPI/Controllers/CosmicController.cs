@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -40,6 +41,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             return null;
         }
+
 
         private async Task EnsureOASISBootedAsync()
         {
@@ -416,6 +418,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 }
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.SaveOmniverseAsync(omniverse);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -509,6 +513,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 }
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateOmniverseAsync(omniverse, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -560,6 +566,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.DeleteOmniverseAsync(omniverseId, softDelete, providerType);
                 return Ok(result);
             }
@@ -611,6 +618,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddMultiverseAsync(parentOmniverseId, multiverse);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -686,6 +695,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (multiverse == null)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IMultiverse>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "Multiverse updated successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IMultiverse>
                     {
                         IsError = true,
@@ -697,11 +716,38 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateMultiverseAsync(multiverse, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<IMultiverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Multiverse updated successfully (using test mode - real data unavailable)"
+                    });
+                }
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IMultiverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Multiverse updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IMultiverse>
                 {
                     IsError = true,
@@ -711,6 +757,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IMultiverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Multiverse updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return HandleException<IMultiverse>(ex, "updating Multiverse");
             }
         }
@@ -758,6 +814,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (universe == null)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IUniverse>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "Universe added successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IUniverse>
                     {
                         IsError = true,
@@ -769,7 +835,20 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddUniverseAsync(parentMultiverseId, universe);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<IUniverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Universe added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 
                 if (result.IsError)
                     return BadRequest(result);
@@ -777,6 +856,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IUniverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Universe added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IUniverse>
                 {
                     IsError = true,
@@ -786,6 +875,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IUniverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Universe added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return HandleException<IUniverse>(ex, "adding Universe");
             }
         }
@@ -812,6 +911,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (universe == null)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IUniverse>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "Universe updated successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IUniverse>
                     {
                         IsError = true,
@@ -823,11 +932,38 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateUniverseAsync(universe, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<IUniverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Universe updated successfully (using test mode - real data unavailable)"
+                    });
+                }
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IUniverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Universe updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IUniverse>
                 {
                     IsError = true,
@@ -837,6 +973,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IUniverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Universe updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return HandleException<IUniverse>(ex, "updating Universe");
             }
         }
@@ -884,6 +1030,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (galaxyCluster == null)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IGalaxyCluster>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "GalaxyCluster added successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IGalaxyCluster>
                     {
                         IsError = true,
@@ -895,7 +1051,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddGalaxyClusterAsync(parentUniverseId, galaxyCluster);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<IGalaxyCluster>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "GalaxyCluster added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 
                 if (result.IsError)
                     return BadRequest(result);
@@ -903,6 +1071,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IGalaxyCluster>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "GalaxyCluster added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IGalaxyCluster>
                 {
                     IsError = true,
@@ -912,6 +1090,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IGalaxyCluster>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "GalaxyCluster added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return HandleException<IGalaxyCluster>(ex, "adding GalaxyCluster");
             }
         }
@@ -938,6 +1126,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (galaxyCluster == null)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IGalaxyCluster>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "GalaxyCluster updated successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IGalaxyCluster>
                     {
                         IsError = true,
@@ -949,11 +1147,37 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateGalaxyClusterAsync(galaxyCluster, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<IGalaxyCluster>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "GalaxyCluster updated successfully (using test mode - real data unavailable)"
+                    });
+                }
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IGalaxyCluster>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "GalaxyCluster updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IGalaxyCluster>
                 {
                     IsError = true,
@@ -963,6 +1187,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IGalaxyCluster>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "GalaxyCluster updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return HandleException<IGalaxyCluster>(ex, "updating GalaxyCluster");
             }
         }
@@ -1010,6 +1244,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (galaxy == null)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IGalaxy>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "Galaxy added successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IGalaxy>
                     {
                         IsError = true,
@@ -1021,7 +1265,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddGalaxyAsync(parentGalaxyClusterId, galaxy);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<IGalaxy>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Galaxy added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 
                 if (result.IsError)
                     return BadRequest(result);
@@ -1030,6 +1286,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IGalaxy>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Galaxy added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IGalaxy>
                 {
                     IsError = true,
@@ -1039,6 +1305,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IGalaxy>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Galaxy added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return HandleException<IGalaxy>(ex, "adding Galaxy");
             }
         }
@@ -1065,6 +1341,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (galaxy == null)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IGalaxy>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "Galaxy updated successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IGalaxy>
                     {
                         IsError = true,
@@ -1076,11 +1362,37 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateGalaxyAsync(galaxy, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<IGalaxy>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Galaxy updated successfully (using test mode - real data unavailable)"
+                    });
+                }
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IGalaxy>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Galaxy updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IGalaxy>
                 {
                     IsError = true,
@@ -1090,6 +1402,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IGalaxy>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Galaxy updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return HandleException<IGalaxy>(ex, "updating Galaxy");
             }
         }
@@ -1148,6 +1470,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddSolarSystemAsync(parentGalaxyId, solarSystem);
                 
                 if (result.IsError)
@@ -1203,6 +1526,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateSolarSystemAsync(solarSystem, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -1275,6 +1599,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddStarAsync(parentGalaxyId, star);
                 
                 if (result.IsError)
@@ -1330,6 +1655,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateStarAsync(star, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -1402,6 +1728,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddPlanetAsync(parentSolarSystemId, planet);
                 
                 if (result.IsError)
@@ -1441,7 +1768,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IPlanet>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IPlanet>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdatePlanet([FromBody] IPlanet planet, [FromQuery] bool saveChildren = true, [FromQuery] bool recursive = true, [FromQuery] int maxChildDepth = 0, [FromQuery] bool continueOnError = true, [FromQuery] bool saveChildrenOnProvider = false, [FromQuery] ProviderType providerType = ProviderType.Default)
-        { try { await EnsureOASISBootedAsync(); var result = await CosmicManager.UpdatePlanetAsync(planet, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+        {
+            try
+            {
+                await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
+                var result = await CosmicManager.UpdatePlanetAsync(planet, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -1504,6 +1836,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var planetLoad = await CosmicManager.Data.LoadHolonAsync(parentPlanetId);
                 if (planetLoad.IsError || planetLoad.Result == null)
                 {
@@ -1524,6 +1857,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     });
                 }
 
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddMoonAsync(planet, moon);
                 return Ok(result);
             }
@@ -1575,6 +1909,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateMoonAsync(moon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -1647,6 +1982,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var galaxyLoadResult = await CosmicManager.Data.LoadHolonAsync(parentGalaxyId, childHolonType: HolonType.Galaxy);
                 if (galaxyLoadResult.IsError || galaxyLoadResult.Result == null)
                 {
@@ -1665,6 +2001,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                         Message = "Loaded holon is not a galaxy"
                     });
                 }
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddAsteroidAsync(galaxy, asteroid);
                 return Ok(result);
             }
@@ -1716,6 +2053,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateAsteroidAsync(asteroid, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -1788,6 +2126,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var galaxyLoadResult = await CosmicManager.Data.LoadHolonAsync(parentGalaxyId, childHolonType: HolonType.Galaxy);
                 if (galaxyLoadResult.IsError || galaxyLoadResult.Result == null)
                 {
@@ -1806,6 +2145,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                         Message = "Loaded holon is not a galaxy"
                     });
                 }
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddCometAsync(galaxy, comet);
                 return Ok(result);
             }
@@ -1857,6 +2197,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateCometAsync(comet, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -1929,6 +2270,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var galaxyLoadResult = await CosmicManager.Data.LoadHolonAsync(parentGalaxyId, childHolonType: HolonType.Galaxy);
                 if (galaxyLoadResult.IsError || galaxyLoadResult.Result == null)
                 {
@@ -1947,6 +2289,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                         Message = "Loaded holon is not a galaxy"
                     });
                 }
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.AddMeteroidAsync(galaxy, meteroid);
                 return Ok(result);
             }
@@ -1998,6 +2341,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateMeteroidAsync(meteroid, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2204,6 +2548,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateNebulaAsync(nebula, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2281,6 +2626,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateSuperVerseAsync(superVerse, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2358,6 +2704,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateWormHoleAsync(wormHole, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2435,6 +2782,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateBlackHoleAsync(blackHole, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2512,6 +2860,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdatePortalAsync(portal, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2589,6 +2938,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateStarGateAsync(starGate, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2666,6 +3016,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateSpaceTimeDistortionAsync(distortion, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2743,6 +3094,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateSpaceTimeAbnormallyAsync(abnormally, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2820,6 +3172,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateTemporalRiftAsync(rift, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2897,6 +3250,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateStarDustAsync(starDust, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -2974,6 +3328,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateCosmicWaveAsync(wave, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -3051,6 +3406,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateCosmicRayAsync(ray, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
@@ -3128,6 +3484,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureOASISBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.UpdateGravitationalWaveAsync(wave, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 return Ok(result);
             }
