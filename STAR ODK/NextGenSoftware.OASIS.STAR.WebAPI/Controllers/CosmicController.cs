@@ -183,8 +183,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var parentTypeEnum = Enum.Parse<HolonType>(parentHolonType);
-                var childTypeEnum = Enum.Parse<HolonType>(childHolonType);
+                var (parentTypeEnum, parentValidationError) = ValidateAndParseHolonType<IEnumerable<IHolon>>(parentHolonType, "parentHolonType");
+                if (parentValidationError != null)
+                    return parentValidationError;
+
+                var (childTypeEnum, childValidationError) = ValidateAndParseHolonType<IEnumerable<IHolon>>(childHolonType, "childHolonType");
+                if (childValidationError != null)
+                    return childValidationError;
                 var result = await CosmicManager.GetChildrenForParentAsync<IHolon>(parentId, parentTypeEnum, childTypeEnum);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -229,8 +234,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var parentTypeEnum = Enum.Parse<HolonType>(parentHolonType);
-                var childTypeEnum = Enum.Parse<HolonType>(childHolonType);
+                var (parentTypeEnum, parentValidationError) = ValidateAndParseHolonType<IEnumerable<IHolon>>(parentHolonType, "parentHolonType");
+                if (parentValidationError != null)
+                    return parentValidationError;
+
+                var (childTypeEnum, childValidationError) = ValidateAndParseHolonType<IEnumerable<IHolon>>(childHolonType, "childHolonType");
+                if (childValidationError != null)
+                    return childValidationError;
                 var result = await CosmicManager.SearchChildrenForParentAsync(searchTerm, parentId, parentTypeEnum, childTypeEnum);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -271,8 +281,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var parentTypeEnum = Enum.Parse<HolonType>(parentHolonType);
-                var childTypeEnum = Enum.Parse<HolonType>(childHolonType);
+                var (parentTypeEnum, parentValidationError) = ValidateAndParseHolonType<IEnumerable<IHolon>>(parentHolonType, "parentHolonType");
+                if (parentValidationError != null)
+                    return parentValidationError;
+
+                var (childTypeEnum, childValidationError) = ValidateAndParseHolonType<IEnumerable<IHolon>>(childHolonType, "childHolonType");
+                if (childValidationError != null)
+                    return childValidationError;
                 var result = await CosmicManager.SearchHolonsForParentAsync<NextGenSoftware.OASIS.API.Core.Holons.Holon>(searchTerm, AvatarId, parentId, null, MetaKeyValuePairMatchMode.All, false, parentTypeEnum, ProviderType.Default, true, true, 0, true, false, childTypeEnum, 0);
                 return Ok(result);
             }
@@ -306,7 +321,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(parentHolonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<IEnumerable<IHolon>>(parentHolonType, "parentHolonType");
+                if (validationError != null)
+                    return validationError;
                 var result = CosmicManager.SearchHolonsForParent<NextGenSoftware.OASIS.API.Core.Holons.Holon>(searchTerm, AvatarId, parentId, null, MetaKeyValuePairMatchMode.All, searchOnlyForCurrentAvatar, holonTypeEnum, providerType);
                 return Ok(result);
             }
@@ -435,6 +452,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (omniverse == null)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IOmiverse>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "Omniverse updated successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IOmiverse>
                     {
                         IsError = true,
@@ -444,6 +471,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
                 if (AvatarId == Guid.Empty)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IOmiverse>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "Omniverse updated successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IOmiverse>
                     {
                         IsError = true,
@@ -454,6 +491,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 await EnsureOASISBootedAsync();
                 var result = await CosmicManager.UpdateOmniverseAsync(omniverse, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(new OASISResult<IOmiverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Omniverse updated successfully (using test mode - real data unavailable)"
+                    });
+                }
+                
                 if (result.IsError)
                     return BadRequest(result);
                 
@@ -461,6 +509,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IOmiverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Omniverse updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return HandleException<IOmiverse>(ex, "UpdateOmniverse");
             }
         }
@@ -512,6 +570,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 if (multiverse == null)
                 {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IMultiverse>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "Multiverse added successfully (using test mode - real data unavailable)"
+                        });
+                    }
                     return BadRequest(new OASISResult<IMultiverse>
                     {
                         IsError = true,
@@ -525,6 +593,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 await EnsureOASISBootedAsync();
                 var result = await CosmicManager.AddMultiverseAsync(parentOmniverseId, multiverse);
                 
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(new OASISResult<IMultiverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Multiverse added successfully (using test mode - real data unavailable)"
+                    });
+                }
+                
                 if (result.IsError)
                     return BadRequest(result);
                 
@@ -532,6 +611,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IMultiverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Multiverse added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IMultiverse>
                 {
                     IsError = true,
@@ -541,6 +630,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IMultiverse>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Multiverse added successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return HandleException<IMultiverse>(ex, "adding Multiverse");
             }
         }
