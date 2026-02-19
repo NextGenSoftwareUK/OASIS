@@ -184,6 +184,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null) return avatarCheck;
 
                 await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
                 
                 if (result.IsError)

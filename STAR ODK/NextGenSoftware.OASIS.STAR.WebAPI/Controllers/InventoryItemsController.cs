@@ -143,6 +143,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await _starAPI.InventoryItems.UpdateAsync(AvatarId, (InventoryItem)item);
                 return Ok(result);
             }
