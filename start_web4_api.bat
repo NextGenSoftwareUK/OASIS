@@ -29,3 +29,4 @@ dotnet run --no-launch-profile --project "%WEB4_PROJECT%" -c Release --urls "htt
 
 pause
 
+

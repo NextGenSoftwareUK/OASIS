@@ -113,13 +113,16 @@ namespace OASIS.Omniverse.UnityHost.API
                 return OASISResult<List<QuestItem>>.Error("AvatarId is empty. Set avatarId in omniverse_host_config.json.");
             }
 
+            // Try GET endpoints - load-all-for-avatar uses the authenticated user's avatarId from the token
+            UnityEngine.Debug.Log($"[Web4Web5GatewayClient] Fetching quests for avatarId: {_avatarId}, hasToken: {_httpClient.DefaultRequestHeaders.Authorization != null}");
             var fetch = await GetJsonFromCandidatesAsync(
-                $"{_web5Base}/api/quests/by-avatar/{_avatarId}",
                 $"{_web5Base}/api/quests/load-all-for-avatar",
+                $"{_web5Base}/api/quests/by-avatar/{_avatarId}",
                 $"{_web5Base}/api/quests");
 
             if (fetch.IsError)
             {
+                UnityEngine.Debug.LogError($"[Web4Web5GatewayClient] Failed to fetch quests: {fetch.Message}");
                 return TryLoadCache<List<QuestItem>>(CacheQuests, "Quests", fetch.Message);
             }
 

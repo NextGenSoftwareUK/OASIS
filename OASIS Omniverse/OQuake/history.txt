@@ -26,3 +26,8 @@ star face off
 star face
 star beamin anorak test!
 star face on
+exec config.cfg
+star config
+star
+exec config.cfg
+star config

@@ -278,10 +278,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialBodies.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body created successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body created successfully (using test data)"));
+                }
                 return HandleException<STARCelestialBody>(ex, "creating celestial body");
             }
         }
@@ -304,10 +318,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 var holonTypeEnum = Enum.Parse<HolonType>(holonType);
                 var result = await _starAPI.CelestialBodies.LoadAsync(AvatarId, id, version, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body loaded successfully (using test data)"));
+                }
                 return HandleException<STARCelestialBody>(ex, "loading celestial body");
             }
         }
@@ -329,10 +357,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 var holonTypeEnum = Enum.Parse<HolonType>(holonType);
                 var result = await _starAPI.CelestialBodies.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body loaded successfully (using test data)"));
+                }
                 return HandleException<STARCelestialBody>(ex, "loading celestial body from path");
             }
         }
