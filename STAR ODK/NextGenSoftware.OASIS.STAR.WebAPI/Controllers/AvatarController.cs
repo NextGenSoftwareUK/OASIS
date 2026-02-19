@@ -76,7 +76,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         /// </summary>
         private async Task<IActionResult> ForwardToWeb4Async(HttpMethod method, string endpoint, HttpContent? content = null)
         {
-            var candidates = new[] { _web4OasisApiBaseUrl, "http://localhost:5003", "https://localhost:5002" }
+            if (string.IsNullOrWhiteSpace(_web4OasisApiBaseUrl))
+            {
+                return BadRequest(new OASISResult<string>
+                {
+                    IsError = true,
+                    Message = "WEB4 OASIS API base URL is not configured. Please set 'Web4OasisApiBaseUrl' in appsettings.json or 'WEB4_OASIS_API_BASE_URL' environment variable."
+                });
+            }
+
+            var candidates = new[] { _web4OasisApiBaseUrl }
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Select(x => x.TrimEnd('/'))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -169,8 +178,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             _httpClient = httpClient;
             _web4OasisApiBaseUrl =
                 configuration["Web4OasisApiBaseUrl"] ??
+                configuration["OASIS:Web4OasisApiBaseUrl"] ??
                 configuration["WEB4_OASIS_API_BASE_URL"] ??
-                "http://localhost:5003";
+                Environment.GetEnvironmentVariable("WEB4_OASIS_API_BASE_URL") ??
+                string.Empty;
         }
 
         /// <summary>
@@ -195,7 +206,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 };
 
                 var json = JsonConvert.SerializeObject(authenticateRequest);
-                var candidates = new[] { _web4OasisApiBaseUrl, "http://localhost:5003", "https://localhost:5002" }
+                
+                if (string.IsNullOrWhiteSpace(_web4OasisApiBaseUrl))
+                {
+                    return BadRequest(new OASISResult<string>
+                    {
+                        IsError = true,
+                        Message = "WEB4 OASIS API base URL is not configured. Please set 'Web4OasisApiBaseUrl' in appsettings.json or 'WEB4_OASIS_API_BASE_URL' environment variable."
+                    });
+                }
+
+                var candidates = new[] { _web4OasisApiBaseUrl }
                     .Where(x => !string.IsNullOrWhiteSpace(x))
                     .Select(x => x.TrimEnd('/'))
                     .Distinct(StringComparer.OrdinalIgnoreCase)

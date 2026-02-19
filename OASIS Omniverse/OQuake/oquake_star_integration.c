@@ -17,6 +17,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 static star_api_config_t g_star_config;
 static int g_star_initialized = 0;
@@ -29,8 +32,14 @@ extern qboolean keydown[MAX_KEYS];
 extern int Key_StringToKeynum(const char *str);
 extern void Key_SetBinding(int keynum, const char *binding);
 
-cvar_t oasis_star_anorak_face = {"oasis_star_anorak_face", "0", CVAR_ARCHIVE};
+cvar_t oasis_star_anorak_face = {"oasis_star_anorak_face", "0", 0}; /* Runtime state - not archived */
 cvar_t oasis_star_beam_face = {"oasis_star_beam_face", "1", CVAR_ARCHIVE};
+cvar_t oquake_star_api_url = {"oquake_star_api_url", "https://star-api.oasisplatform.world/api", CVAR_ARCHIVE};
+cvar_t oquake_oasis_api_url = {"oquake_oasis_api_url", "https://api.oasisplatform.world", CVAR_ARCHIVE};
+cvar_t oquake_star_username = {"oquake_star_username", "", 0};
+cvar_t oquake_star_password = {"oquake_star_password", "", 0};
+cvar_t oquake_star_api_key = {"oquake_star_api_key", "", 0};
+cvar_t oquake_star_avatar_id = {"oquake_star_avatar_id", "", 0};
 
 enum {
     OQ_TAB_KEYS = 0,
@@ -832,6 +841,12 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oasis_star_anorak_face);
     Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
     Cvar_RegisterVariable(&oasis_star_beam_face);
+    Cvar_RegisterVariable(&oquake_star_api_url);
+    Cvar_RegisterVariable(&oquake_oasis_api_url);
+    Cvar_RegisterVariable(&oquake_star_username);
+    Cvar_RegisterVariable(&oquake_star_password);
+    Cvar_RegisterVariable(&oquake_star_api_key);
+    Cvar_RegisterVariable(&oquake_star_avatar_id);
 
     if (!g_star_console_registered) {
         Cmd_AddCommand("star", OQuake_STAR_Console_f);
@@ -841,18 +856,207 @@ void OQuake_STAR_Init(void) {
         g_star_console_registered = 1;
     }
 
+    /* Try to auto-load config.cfg from common locations */
+    /* This ensures our CVARs get loaded even if Quake's auto-load didn't find it */
+    /* We manually parse the config file to set CVARs directly */
+    {
+        FILE *f = NULL;
+        char line[256];
+        char found_path[512] = {0};
+        int config_loaded = 0;
+        
+        /* Try multiple locations where config.cfg might be */
+        /* When -basedir is used, current dir is basedir, not exe dir */
+        const char *locations[] = {
+            "config.cfg",  /* Current directory / basedir */
+            "../OASIS Omniverse/OQuake/build/config.cfg",  /* From basedir, go to OQuake build */
+            "../../OASIS Omniverse/OQuake/build/config.cfg",  /* Two levels up */
+            "OASIS Omniverse/OQuake/build/config.cfg",  /* Relative from repo root */
+            "build/config.cfg",  /* Relative to exe if in build folder */
+            "../build/config.cfg",  /* One level up from exe */
+            NULL
+        };
+        
+        /* Try to find and open config file */
+        for (int i = 0; locations[i]; i++) {
+            f = fopen(locations[i], "r");
+            if (f) {
+                q_strlcpy(found_path, locations[i], sizeof(found_path));
+                break;
+            }
+        }
+        
+        /* If still not found, try to get exe directory and search there */
+        if (!f) {
+#ifdef _WIN32
+            char exe_path[MAX_PATH] = {0};
+            char exe_dir[MAX_PATH] = {0};
+            char config_in_exe_dir[MAX_PATH] = {0};
+            
+            if (GetModuleFileNameA(NULL, exe_path, sizeof(exe_path))) {
+                /* Extract directory from exe path */
+                char *last_slash = strrchr(exe_path, '\\');
+                if (last_slash) {
+                    int dir_len = last_slash - exe_path;
+                    if (dir_len < sizeof(exe_dir)) {
+                        memcpy(exe_dir, exe_path, dir_len);
+                        exe_dir[dir_len] = 0;
+                        
+                        /* Try config.cfg in exe directory */
+                        q_snprintf(config_in_exe_dir, sizeof(config_in_exe_dir), "%s\\config.cfg", exe_dir);
+                        f = fopen(config_in_exe_dir, "r");
+                        if (f) {
+                            q_strlcpy(found_path, config_in_exe_dir, sizeof(found_path));
+                        } else {
+                            /* Try build/config.cfg relative to exe */
+                            q_snprintf(config_in_exe_dir, sizeof(config_in_exe_dir), "%s\\build\\config.cfg", exe_dir);
+                            f = fopen(config_in_exe_dir, "r");
+                            if (f) {
+                                q_strlcpy(found_path, config_in_exe_dir, sizeof(found_path));
+                            }
+                        }
+                    }
+                }
+            }
+#endif
+        }
+        
+        /* If still not found, try to construct absolute path from known location */
+        if (!f) {
+            /* Try common absolute paths */
+            const char *abs_paths[] = {
+                "C:/Source/OASIS-master/OASIS Omniverse/OQuake/build/config.cfg",
+                NULL
+            };
+            for (int i = 0; abs_paths[i]; i++) {
+                f = fopen(abs_paths[i], "r");
+                if (f) {
+                    q_strlcpy(found_path, abs_paths[i], sizeof(found_path));
+                    break;
+                }
+            }
+        }
+        
+        if (f) {
+            Con_Printf("OQuake: Loading config from: %s\n", found_path[0] ? found_path : "(found)");
+            config_loaded = 1;
+            
+            /* Parse config file line by line */
+            while (fgets(line, sizeof(line), f)) {
+                char *p = line;
+                /* Skip leading whitespace */
+                while (*p && (*p == ' ' || *p == '\t')) p++;
+                /* Skip empty lines and comments */
+                if (*p == '\n' || *p == '\r' || *p == 0) continue;
+                if (*p == '/' && p[1] == '/') continue;
+                if (*p == '#') continue;
+                
+                /* Look for "set <cvar> <value>" */
+                if (strncmp(p, "set ", 4) == 0) {
+                    p += 4;
+                    /* Skip whitespace after "set" */
+                    while (*p && (*p == ' ' || *p == '\t')) p++;
+                    
+                    char cvar_name[64] = {0};
+                    char cvar_value[256] = {0};
+                    int n = 0;
+                    
+                    /* Get CVAR name */
+                    while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_name) - 1) {
+                        cvar_name[n++] = *p++;
+                    }
+                    
+                    if (n > 0) {
+                        cvar_name[n] = 0;
+                        /* Skip whitespace before value */
+                        while (*p && (*p == ' ' || *p == '\t')) p++;
+                        
+                        /* Get value (may be quoted) */
+                        if (*p == '"') {
+                            p++; /* Skip opening quote */
+                            n = 0;
+                            while (*p && *p != '"' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
+                                cvar_value[n++] = *p++;
+                            }
+                        } else {
+                            n = 0;
+                            while (*p && *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r' && n < sizeof(cvar_value) - 1) {
+                                cvar_value[n++] = *p++;
+                            }
+                        }
+                        
+                        if (n > 0) {
+                            cvar_value[n] = 0;
+                            /* Set the CVAR if it matches one of ours */
+                            if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
+                                Cvar_Set("oquake_star_api_url", cvar_value);
+                            } else if (strcmp(cvar_name, "oquake_oasis_api_url") == 0) {
+                                Cvar_Set("oquake_oasis_api_url", cvar_value);
+                            } else if (strcmp(cvar_name, "oasis_star_beam_face") == 0) {
+                                Cvar_SetValueQuick(&oasis_star_beam_face, atoi(cvar_value));
+                            }
+                        }
+                    }
+                }
+            }
+            fclose(f);
+            Con_Printf("OQuake: Config file loaded successfully\n");
+        } else {
+            Con_Printf("OQuake: Config file not found in any standard location\n");
+            Con_Printf("OQuake: Tried: config.cfg, build/config.cfg, ../build/config.cfg, and absolute paths\n");
+            Con_Printf("OQuake: You can manually load it with: exec config.cfg\n");
+        }
+        
+        /* Also try using Cbuf_AddText as a fallback (exec command) */
+        /* Note: This may not be available in all Quake engines */
+        if (!config_loaded) {
+            extern void Cbuf_AddText(const char *text);
+            Cbuf_AddText("exec config.cfg\n");
+        }
+    }
 
-    g_star_config.base_url = "https://star-api.oasisplatform.world/api";
-    g_star_config.api_key = getenv("STAR_API_KEY");
-    g_star_config.avatar_id = getenv("STAR_AVATAR_ID");
+    /* Load config: CVAR first, then env var, then default */
+    const char* config_url = oquake_star_api_url.string;
+    if (!config_url || !config_url[0]) {
+        const char* env_url = getenv("STAR_API_URL");
+        if (env_url && env_url[0]) {
+            config_url = env_url;
+        } else {
+            config_url = "https://star-api.oasisplatform.world/api";
+        }
+    }
+    g_star_config.base_url = config_url;
+    
+    /* API key: CVAR -> env var */
+    const char* config_api_key = oquake_star_api_key.string;
+    if (!config_api_key || !config_api_key[0]) {
+        config_api_key = getenv("STAR_API_KEY");
+    }
+    g_star_config.api_key = config_api_key;
+    
+    /* Avatar ID: CVAR -> env var */
+    const char* config_avatar_id = oquake_star_avatar_id.string;
+    if (!config_avatar_id || !config_avatar_id[0]) {
+        config_avatar_id = getenv("STAR_AVATAR_ID");
+    }
+    g_star_config.avatar_id = config_avatar_id;
+    
     g_star_config.timeout_seconds = 10;
 
     result = star_api_init(&g_star_config);
     if (result != STAR_API_SUCCESS) {
         printf("OQuake STAR API: Failed to initialize: %s\n", star_api_get_last_error());
     } else {
-        username = getenv("STAR_USERNAME");
-        password = getenv("STAR_PASSWORD");
+        /* Username: CVAR -> env var */
+        username = oquake_star_username.string;
+        if (!username || !username[0]) {
+            username = getenv("STAR_USERNAME");
+        }
+        /* Password: CVAR -> env var */
+        password = oquake_star_password.string;
+        if (!password || !password[0]) {
+            password = getenv("STAR_PASSWORD");
+        }
         if (username && password) {
             result = star_api_authenticate(username, password);
             if (result == STAR_API_SUCCESS) {
@@ -1041,6 +1245,7 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star beamin   - Log in using STAR_USERNAME/STAR_PASSWORD or API key\n");
         Con_Printf("  star beamout  - Log out / disconnect from STAR\n");
         Con_Printf("  star face on|off|status - Toggle beam-in face switch\n");
+        Con_Printf("  star config   - Show current config values\n");
         Con_Printf("\n");
         return;
     }
@@ -1134,28 +1339,80 @@ void OQuake_STAR_Console_f(void) {
         if (runtime_user && runtime_pass && OQ_IsMockAnorakCredentials(runtime_user, runtime_pass)) {
             g_star_initialized = 1;
             q_strlcpy(g_star_username, runtime_user, sizeof(g_star_username));
+            /* Save to CVARs */
+            Cvar_Set("oquake_star_username", runtime_user);
+            Cvar_Set("oquake_star_password", runtime_pass);
             OQ_ApplyBeamFacePreference();
             Con_Printf("Beam-in successful (mock). Welcome, %s.\n", runtime_user);
             return;
         }
 
         Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
-        g_star_config.base_url = "https://star-api.oasisplatform.world/api";
-        g_star_config.api_key = getenv("STAR_API_KEY");
-        g_star_config.avatar_id = getenv("STAR_AVATAR_ID");
+        
+        /* Load API URL: CVAR -> env -> default */
+        const char* api_url = oquake_star_api_url.string;
+        if (!api_url || !api_url[0]) {
+            api_url = getenv("STAR_API_URL");
+            if (!api_url || !api_url[0]) {
+                api_url = "https://star-api.oasisplatform.world/api";
+            }
+        }
+        g_star_config.base_url = api_url;
+        
+        /* Load API key: runtime -> CVAR -> env */
+        const char* api_key = NULL;
+        if (runtime_user && runtime_pass) {
+            /* If username/password provided, use CVAR or env for API key */
+            api_key = oquake_star_api_key.string;
+            if (!api_key || !api_key[0]) {
+                api_key = getenv("STAR_API_KEY");
+            }
+        } else {
+            api_key = oquake_star_api_key.string;
+            if (!api_key || !api_key[0]) {
+                api_key = getenv("STAR_API_KEY");
+            }
+        }
+        g_star_config.api_key = api_key;
+        
+        /* Load Avatar ID: CVAR -> env */
+        const char* avatar_id = oquake_star_avatar_id.string;
+        if (!avatar_id || !avatar_id[0]) {
+            avatar_id = getenv("STAR_AVATAR_ID");
+        }
+        g_star_config.avatar_id = avatar_id;
         g_star_config.timeout_seconds = 10;
         star_api_result_t r = star_api_init(&g_star_config);
         if (r != STAR_API_SUCCESS) {
             Con_Printf("Beamin failed - init: %s\n", star_api_get_last_error());
             return;
         }
-        const char* username = runtime_user ? runtime_user : getenv("STAR_USERNAME");
-        const char* password = runtime_pass ? runtime_pass : getenv("STAR_PASSWORD");
+        /* Load username: runtime -> CVAR -> env */
+        const char* username = runtime_user;
+        if (!username || !username[0]) {
+            username = oquake_star_username.string;
+            if (!username || !username[0]) {
+                username = getenv("STAR_USERNAME");
+            }
+        }
+        
+        /* Load password: runtime -> CVAR -> env */
+        const char* password = runtime_pass;
+        if (!password || !password[0]) {
+            password = oquake_star_password.string;
+            if (!password || !password[0]) {
+                password = getenv("STAR_PASSWORD");
+            }
+        }
+        
         if (username && password) {
             r = star_api_authenticate(username, password);
             if (r == STAR_API_SUCCESS) {
                 g_star_initialized = 1;
                 q_strlcpy(g_star_username, username, sizeof(g_star_username));
+                /* Save to CVARs if provided via command */
+                if (runtime_user) Cvar_Set("oquake_star_username", runtime_user);
+                if (runtime_pass) Cvar_Set("oquake_star_password", runtime_pass);
                 OQ_ApplyBeamFacePreference();
                 Con_Printf("Logged in (beamin). Cross-game keys enabled.\n");
                 return;
@@ -1168,6 +1425,13 @@ void OQuake_STAR_Console_f(void) {
             // Try to get username from avatar_id or use a default
             if (g_star_config.avatar_id) {
                 q_strlcpy(g_star_username, "API User", sizeof(g_star_username));
+            }
+            /* Save API key and avatar ID to CVARs if they came from env */
+            if (api_key && !oquake_star_api_key.string[0]) {
+                Cvar_Set("oquake_star_api_key", api_key);
+            }
+            if (avatar_id && !oquake_star_avatar_id.string[0]) {
+                Cvar_Set("oquake_star_avatar_id", avatar_id);
             }
             OQ_ApplyBeamFacePreference();
             Con_Printf("Logged in with API key. Cross-game keys enabled.\n");
@@ -1208,6 +1472,60 @@ void OQuake_STAR_Console_f(void) {
             return;
         }
         Con_Printf("Unknown face option: %s. Use on|off|status.\n", Cmd_Argv(2) ? Cmd_Argv(2) : "(none)");
+        Con_Printf("\n");
+        return;
+    }
+    if (strcmp(sub, "config") == 0) {
+        const char* star_url = oquake_star_api_url.string;
+        const char* oasis_url = oquake_oasis_api_url.string;
+        int using_defaults = 0;
+        
+        /* Check if we're using default values (config file not loaded) */
+        if (star_url && star_url[0] && strcmp(star_url, "https://star-api.oasisplatform.world/api") == 0) {
+            using_defaults = 1;
+        }
+        if (oasis_url && oasis_url[0] && strcmp(oasis_url, "https://api.oasisplatform.world") == 0) {
+            using_defaults = 1;
+        }
+        
+        Con_Printf("\n");
+        Con_Printf("OQuake STAR Configuration:\n");
+        if (using_defaults) {
+            Con_Printf("  [WARNING: Using default values - config file may not be loaded]\n");
+            Con_Printf("  Try running: exec config.cfg\n");
+            Con_Printf("\n");
+        }
+        Con_Printf("  STAR API URL: %s\n", star_url && star_url[0] ? star_url : "(default: https://star-api.oasisplatform.world/api)");
+        Con_Printf("  OASIS API URL: %s\n", oasis_url && oasis_url[0] ? oasis_url : "(default: https://api.oasisplatform.world)");
+        Con_Printf("  Username: %s\n", oquake_star_username.string && oquake_star_username.string[0] ? oquake_star_username.string : "(not set)");
+        Con_Printf("  Password: %s\n", oquake_star_password.string && oquake_star_password.string[0] ? "***" : "(not set)");
+        Con_Printf("  API Key: %s\n", oquake_star_api_key.string && oquake_star_api_key.string[0] ? "***" : "(not set)");
+        Con_Printf("  Avatar ID: %s\n", oquake_star_avatar_id.string && oquake_star_avatar_id.string[0] ? oquake_star_avatar_id.string : "(not set)");
+        Con_Printf("\n");
+        Con_Printf("To set values, use:\n");
+        Con_Printf("  set oquake_star_api_url \"<url>\"\n");
+        Con_Printf("  set oquake_oasis_api_url \"<url>\"\n");
+        Con_Printf("  set oquake_star_username \"<username>\"\n");
+        Con_Printf("  set oquake_star_password \"<password>\"\n");
+        Con_Printf("  set oquake_star_api_key \"<key>\"\n");
+        Con_Printf("  set oquake_star_avatar_id \"<id>\"\n");
+        Con_Printf("\n");
+        Con_Printf("Or use: star beamin <username> <password>\n");
+        Con_Printf("\n");
+        Con_Printf("Config file locations to check:\n");
+        Con_Printf("  1. OASIS Omniverse\\OQuake\\build\\config.cfg\n");
+        Con_Printf("  2. Basedir directory (if using -basedir)\n");
+        Con_Printf("  3. Directory where OQUAKE.exe is located\n");
+        Con_Printf("  4. Your user profile directory\n");
+        Con_Printf("\n");
+        if (using_defaults) {
+            Con_Printf("To load config file, run: exec config.cfg\n");
+            Con_Printf("Note: Config file is created when you quit after changing CVARs.\n");
+            Con_Printf("You can create it manually in any of the above locations.\n");
+        } else {
+            Con_Printf("Note: Config file is created when you quit after changing CVARs.\n");
+            Con_Printf("You can create it manually in any of the above locations.\n");
+        }
         Con_Printf("\n");
         return;
     }

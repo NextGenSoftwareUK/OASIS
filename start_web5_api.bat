@@ -29,3 +29,4 @@ dotnet run --no-launch-profile --project "%WEB5_PROJECT%" -c Release --urls "htt
 
 pause
 
+

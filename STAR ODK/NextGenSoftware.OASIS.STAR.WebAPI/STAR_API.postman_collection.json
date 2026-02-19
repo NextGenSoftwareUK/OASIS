@@ -1,0 +1,4968 @@
+{
+	"info": {
+		"_postman_id": "star-api-collection-2024",
+		"name": "STAR API v5.0.0",
+		"description": "Complete STAR API collection with all endpoints including COSMIC ORM operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/health",
+							"host": ["{{host}}"],
+							"path": ["api", "health"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check (Alternative)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/health/health",
+							"host": ["{{host}}"],
+							"path": ["api", "health", "health"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "STAR",
+			"item": [
+				{
+					"name": "Get STAR Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/star/status",
+							"host": ["{{host}}"],
+							"path": ["api", "star", "status"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ignite STAR",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/star/ignite",
+							"host": ["{{host}}"],
+							"path": ["api", "star", "ignite"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Extinguish STAR",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/star/extinguish",
+							"host": ["{{host}}"],
+							"path": ["api", "star", "extinguish"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Avatar",
+			"item": [
+				{
+					"name": "Authenticate",
+					"request": {
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Username\": \"testuser@example.com\",\n    \"Password\": \"your-password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/avatar/authenticate",
+							"host": ["{{host}}"],
+							"path": ["api", "avatar", "authenticate"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/avatar/current",
+							"host": ["{{host}}"],
+							"path": ["api", "avatar", "current"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "COSMIC",
+			"description": "COSMIC ORM endpoints for managing the Omniverse object model",
+			"item": [
+				{
+					"name": "Get Omniverse",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/cosmic/omniverse",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "omniverse"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Children For Parent",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/cosmic/children/{{parentId}}?parentHolonType=Galaxy&childHolonType=SolarSystem",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "children", "{{parentId}}"],
+							"query": [
+								{"key": "parentHolonType", "value": "Galaxy"},
+								{"key": "childHolonType", "value": "SolarSystem"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Children For Parent",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/cosmic/search-children?searchTerm=earth&parentId={{parentId}}&parentHolonType=Galaxy&childHolonType=Planet",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "search-children"],
+							"query": [
+								{"key": "searchTerm", "value": "earth"},
+								{"key": "parentId", "value": "{{parentId}}"},
+								{"key": "parentHolonType", "value": "Galaxy"},
+								{"key": "childHolonType", "value": "Planet"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Omniverse",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"00000000-0000-0000-0000-000000000000\",\n    \"Name\": \"OASIS Omniverse\",\n    \"Description\": \"The complete OASIS Omniverse\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/cosmic/omniverse",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "omniverse"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Omniverse",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{omniverseId}}\",\n    \"Name\": \"Updated Omniverse Name\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/cosmic/omniverse?saveChildren=true&recursive=true",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "omniverse"],
+							"query": [
+								{"key": "saveChildren", "value": "true"},
+								{"key": "recursive", "value": "true"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Omniverse",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/cosmic/omniverse/{{omniverseId}}?softDelete=true",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "omniverse", "{{omniverseId}}"],
+							"query": [
+								{"key": "softDelete", "value": "true"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Multiverse",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"00000000-0000-0000-0000-000000000000\",\n    \"Name\": \"Multiverse 1\",\n    \"Description\": \"A new multiverse\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/cosmic/omniverse/{{omniverseId}}/multiverse",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "omniverse", "{{omniverseId}}", "multiverse"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Universe",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"00000000-0000-0000-0000-000000000000\",\n    \"Name\": \"Universe 1\",\n    \"Description\": \"A new universe\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/cosmic/multiverse/{{multiverseId}}/universe",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "multiverse", "{{multiverseId}}", "universe"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Galaxy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"00000000-0000-0000-0000-000000000000\",\n    \"Name\": \"Milky Way\",\n    \"Description\": \"Our home galaxy\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/cosmic/galaxy-cluster/{{galaxyClusterId}}/galaxy",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "galaxy-cluster", "{{galaxyClusterId}}", "galaxy"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Solar System",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"00000000-0000-0000-0000-000000000000\",\n    \"Name\": \"Solar System\",\n    \"Description\": \"Our solar system\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/cosmic/galaxy/{{galaxyId}}/solar-system",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "galaxy", "{{galaxyId}}", "solar-system"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Star",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"00000000-0000-0000-0000-000000000000\",\n    \"Name\": \"Sun\",\n    \"Description\": \"Our star\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/cosmic/galaxy/{{galaxyId}}/star",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "galaxy", "{{galaxyId}}", "star"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Planet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"00000000-0000-0000-0000-000000000000\",\n    \"Name\": \"Earth\",\n    \"Description\": \"Our home planet\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/cosmic/solar-system/{{solarSystemId}}/planet",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "solar-system", "{{solarSystemId}}", "planet"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Planets For Solar System",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/cosmic/solar-system/{{solarSystemId}}/planets",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "solar-system", "{{solarSystemId}}", "planets"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Solar Systems For Galaxy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/cosmic/galaxy/{{galaxyId}}/solar-systems",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "galaxy", "{{galaxyId}}", "solar-systems"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Planet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{planetId}}\",\n    \"Name\": \"Updated Planet Name\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/cosmic/planet?saveChildren=true&recursive=true",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "planet"],
+							"query": [
+								{"key": "saveChildren", "value": "true"},
+								{"key": "recursive", "value": "true"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Planet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/cosmic/planet/{{planetId}}?softDelete=true",
+							"host": ["{{host}}"],
+							"path": ["api", "cosmic", "planet", "{{planetId}}"],
+							"query": [
+								{"key": "softDelete", "value": "true"}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CelestialBodies",
+			"item": [
+				{
+					"name": "Get All Celestial Bodies",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Celestial Body By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Planet\",\n    \"Description\": \"A new celestial body\",\n    \"HolonType\": \"STARCelestialBody\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/celestialbodies",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{celestialBodyId}}\",\n    \"Name\": \"Updated Planet\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Celestial Bodies",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/search?query=earth",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "search"],
+							"query": [
+								{"key": "query", "value": "earth"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Celestial Bodies By Type",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/by-type/Planet",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "by-type", "Planet"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Celestial Bodies In Space",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/in-space/{{spaceId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "in-space", "{{spaceId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Celestial Body With Options",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Celestial Body\",\n    \"Description\": \"A new celestial body\",\n    \"HolonSubType\": \"STARCelestialBody\",\n    \"SourceFolderPath\": \"/path/to/source\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/create",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "create"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/load?version=0&holonType=Default",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "load"],
+							"query": [
+								{"key": "version", "value": "0"},
+								{"key": "holonType", "value": "Default"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Celestial Body From Path",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/load-from-path?path=/path/to/celestialbody&holonType=Default",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "load-from-path"],
+							"query": [
+								{"key": "path", "value": "/path/to/celestialbody"},
+								{"key": "holonType", "value": "Default"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Celestial Body From Published",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/load-from-published?publishedFilePath=/path/to/published",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "load-from-published"],
+							"query": [
+								{"key": "publishedFilePath", "value": "/path/to/published"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load All Celestial Bodies For Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/load-all-for-avatar?showAllVersions=false&version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "load-all-for-avatar"],
+							"query": [
+								{"key": "showAllVersions", "value": "false"},
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"SourcePath\": \"/path/to/source\",\n    \"LaunchTarget\": \"Desktop\",\n    \"PublishPath\": \"/path/to/publish\",\n    \"Edit\": false,\n    \"RegisterOnSTARNET\": true,\n    \"GenerateBinary\": true,\n    \"UploadToCloud\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/publish",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "publish"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/download?version=0&downloadPath=&reInstall=false",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "download"],
+							"query": [
+								{"key": "version", "value": "0"},
+								{"key": "downloadPath", "value": ""},
+								{"key": "reInstall", "value": "false"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Celestial Body Versions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/versions",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "versions"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Celestial Body Version",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/version/1.0.0",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "version", "1.0.0"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"NewDNA\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/edit",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "edit"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unpublish Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/unpublish?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "unpublish"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Republish Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/republish?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "republish"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/activate?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "activate"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate Celestial Body",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialbodies/{{celestialBodyId}}/deactivate?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialbodies", "{{celestialBodyId}}", "deactivate"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Missions",
+			"item": [
+				{
+					"name": "Get All Missions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions",
+							"host": ["{{host}}"],
+							"path": ["api", "missions"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Mission By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Mission\",\n    \"Description\": \"A new mission\",\n    \"MissionType\": \"Quest\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/missions",
+							"host": ["{{host}}"],
+							"path": ["api", "missions"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{missionId}}\",\n    \"Name\": \"Updated Mission\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clone Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"NewName\": \"Cloned Mission\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/clone",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "clone"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Missions By Type",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/by-type/Main",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "by-type", "Main"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Missions By Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/by-status/NotStarted",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "by-status", "NotStarted"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Missions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/search?query=dragon",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "search"],
+							"query": [
+								{"key": "query", "value": "dragon"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Mission With Options",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Mission\",\n    \"Description\": \"A new mission\",\n    \"HolonSubType\": \"Mission\",\n    \"SourceFolderPath\": \"/path/to/source\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/missions/create",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "create"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/load?version=0&holonType=Default",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "load"],
+							"query": [
+								{"key": "version", "value": "0"},
+								{"key": "holonType", "value": "Default"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Mission From Path",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/load-from-path?path=/path/to/mission&holonType=Default",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "load-from-path"],
+							"query": [
+								{"key": "path", "value": "/path/to/mission"},
+								{"key": "holonType", "value": "Default"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Mission From Published",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/load-from-published?publishedFilePath=/path/to/published",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "load-from-published"],
+							"query": [
+								{"key": "publishedFilePath", "value": "/path/to/published"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load All Missions For Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/load-all-for-avatar?showAllVersions=false&version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "load-all-for-avatar"],
+							"query": [
+								{"key": "showAllVersions", "value": "false"},
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"SourcePath\": \"/path/to/source\",\n    \"LaunchTarget\": \"Desktop\",\n    \"PublishPath\": \"/path/to/publish\",\n    \"Edit\": false,\n    \"RegisterOnSTARNET\": true,\n    \"GenerateBinary\": true,\n    \"UploadToCloud\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/publish",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "publish"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/download?version=0&downloadPath=&reInstall=false",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "download"],
+							"query": [
+								{"key": "version", "value": "0"},
+								{"key": "downloadPath", "value": ""},
+								{"key": "reInstall", "value": "false"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Mission Versions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/versions",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "versions"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Mission Version",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/version/1.0.0",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "version", "1.0.0"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"NewDNA\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/edit",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "edit"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unpublish Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/unpublish?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "unpublish"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Republish Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/republish?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "republish"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/activate?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "activate"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/deactivate?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "deactivate"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Mission",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "\"Mission completed successfully\"",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/complete",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "complete"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Mission Leaderboard",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/leaderboard?limit=50",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "leaderboard"],
+							"query": [
+								{"key": "limit", "value": "50"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Mission Rewards",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/{{missionId}}/rewards",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "{{missionId}}", "rewards"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Mission Stats",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/missions/stats",
+							"host": ["{{host}}"],
+							"path": ["api", "missions", "stats"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Holons",
+			"item": [
+				{
+					"name": "Get All Holons",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/holons",
+							"host": ["{{host}}"],
+							"path": ["api", "holons"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Holon By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/holons/{{holonId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "holons", "{{holonId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Holon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Holon\",\n    \"Description\": \"A new holon\",\n    \"HolonType\": \"Default\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/holons",
+							"host": ["{{host}}"],
+							"path": ["api", "holons"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Holon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{holonId}}\",\n    \"Name\": \"Updated Holon\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/holons/{{holonId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "holons", "{{holonId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Holon",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/holons/{{holonId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "holons", "{{holonId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Quests",
+			"item": [
+				{
+					"name": "Get All Quests",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests",
+							"host": ["{{host}}"],
+							"path": ["api", "quests"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quest By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Quest\",\n    \"Description\": \"A new quest\",\n    \"QuestType\": \"Main\",\n    \"Status\": \"NotStarted\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/quests",
+							"host": ["{{host}}"],
+							"path": ["api", "quests"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{questId}}\",\n    \"Name\": \"Updated Quest\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quests By Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/by-avatar/{{avatarId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "by-avatar", "{{avatarId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clone Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"NewName\": \"Cloned Quest\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/clone",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "clone"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quests By Type",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/by-type/Main",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "by-type", "Main"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quests By Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/by-status/NotStarted",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "by-status", "NotStarted"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Quests",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/search?query=dragon",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "search"],
+							"query": [
+								{"key": "query", "value": "dragon"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Quest With Options",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Quest\",\n    \"Description\": \"A new quest\",\n    \"HolonSubType\": \"Quest\",\n    \"SourceFolderPath\": \"/path/to/source\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/quests/create",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "create"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/load?version=0&holonType=Default",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "load"],
+							"query": [
+								{"key": "version", "value": "0"},
+								{"key": "holonType", "value": "Default"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Quest From Path",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/load-from-path?path=/path/to/quest&holonType=Default",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "load-from-path"],
+							"query": [
+								{"key": "path", "value": "/path/to/quest"},
+								{"key": "holonType", "value": "Default"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Quest From Published",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/load-from-published?publishedFilePath=/path/to/published",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "load-from-published"],
+							"query": [
+								{"key": "publishedFilePath", "value": "/path/to/published"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load All Quests For Avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/load-all-for-avatar?showAllVersions=false&version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "load-all-for-avatar"],
+							"query": [
+								{"key": "showAllVersions", "value": "false"},
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"SourcePath\": \"/path/to/source\",\n    \"LaunchTarget\": \"Desktop\",\n    \"PublishPath\": \"/path/to/publish\",\n    \"Edit\": false,\n    \"RegisterOnSTARNET\": true,\n    \"GenerateBinary\": true,\n    \"UploadToCloud\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/publish",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "publish"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/download?version=0&downloadPath=&reInstall=false",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "download"],
+							"query": [
+								{"key": "version", "value": "0"},
+								{"key": "downloadPath", "value": ""},
+								{"key": "reInstall", "value": "false"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quest Versions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/versions",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "versions"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Quest Version",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/version/1.0.0",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "version", "1.0.0"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"NewDNA\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/edit",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "edit"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unpublish Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/unpublish?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "unpublish"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Republish Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/republish?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "republish"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/activate?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "activate"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/deactivate?version=0",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "deactivate"],
+							"query": [
+								{"key": "version", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "\"Quest completed successfully\"",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/complete",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "complete"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quest Leaderboard",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/leaderboard?limit=50",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "leaderboard"],
+							"query": [
+								{"key": "limit", "value": "50"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quest Rewards",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/{{questId}}/rewards",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "{{questId}}", "rewards"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quest Stats",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/quests/stats",
+							"host": ["{{host}}"],
+							"path": ["api", "quests", "stats"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "NFTs",
+			"item": [
+				{
+					"name": "Get All NFTs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nfts",
+							"host": ["{{host}}"],
+							"path": ["api", "nfts"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get NFT By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nfts/{{nftId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "nfts", "{{nftId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create NFT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"Rare NFT\",\n    \"Description\": \"A rare collectible NFT\",\n    \"TokenId\": \"1\",\n    \"ContractAddress\": \"0x123...\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/nfts",
+							"host": ["{{host}}"],
+							"path": ["api", "nfts"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update NFT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{nftId}}\",\n    \"Name\": \"Updated NFT\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/nfts/{{nftId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "nfts", "{{nftId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete NFT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/nfts/{{nftId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "nfts", "{{nftId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "GeoNFTs",
+			"item": [
+				{
+					"name": "Get All GeoNFTs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/geonfts",
+							"host": ["{{host}}"],
+							"path": ["api", "geonfts"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get GeoNFT By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/geonfts/{{geonftId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "geonfts", "{{geonftId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create GeoNFT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"London Landmark NFT\",\n    \"Description\": \"A location-based NFT\",\n    \"Latitude\": 51.5074,\n    \"Longitude\": -0.1278\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/geonfts",
+							"host": ["{{host}}"],
+							"path": ["api", "geonfts"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update GeoNFT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{geonftId}}\",\n    \"Name\": \"Updated GeoNFT\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/geonfts/{{geonftId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "geonfts", "{{geonftId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete GeoNFT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/geonfts/{{geonftId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "geonfts", "{{geonftId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "OAPPs",
+			"item": [
+				{
+					"name": "Get All OAPPs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/oapps",
+							"host": ["{{host}}"],
+							"path": ["api", "oapps"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get OAPP By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/oapps/{{oappId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "oapps", "{{oappId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create OAPP",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New OAPP\",\n    \"Description\": \"A new OASIS Application\",\n    \"Version\": \"1.0.0\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/oapps",
+							"host": ["{{host}}"],
+							"path": ["api", "oapps"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update OAPP",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{oappId}}\",\n    \"Name\": \"Updated OAPP\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/oapps/{{oappId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "oapps", "{{oappId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete OAPP",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/oapps/{{oappId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "oapps", "{{oappId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Templates",
+			"item": [
+				{
+					"name": "Get All Templates",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/templates",
+							"host": ["{{host}}"],
+							"path": ["api", "templates"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Template By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/templates/{{templateId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "templates", "{{templateId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Template",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Template\",\n    \"Description\": \"A new template\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/templates",
+							"host": ["{{host}}"],
+							"path": ["api", "templates"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Template",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{templateId}}\",\n    \"Name\": \"Updated Template\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/templates/{{templateId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "templates", "{{templateId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Template",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/templates/{{templateId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "templates", "{{templateId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Runtimes",
+			"item": [
+				{
+					"name": "Get All Runtimes",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/runtimes",
+							"host": ["{{host}}"],
+							"path": ["api", "runtimes"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Runtime By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/runtimes/{{runtimeId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "runtimes", "{{runtimeId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Runtime",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Runtime\",\n    \"Description\": \"A new runtime environment\",\n    \"Version\": \"1.0.0\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/runtimes",
+							"host": ["{{host}}"],
+							"path": ["api", "runtimes"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Runtime",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{runtimeId}}\",\n    \"Name\": \"Updated Runtime\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/runtimes/{{runtimeId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "runtimes", "{{runtimeId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Runtime",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/runtimes/{{runtimeId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "runtimes", "{{runtimeId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Libraries",
+			"item": [
+				{
+					"name": "Get All Libraries",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/libraries",
+							"host": ["{{host}}"],
+							"path": ["api", "libraries"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Library By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/libraries/{{libraryId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "libraries", "{{libraryId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Library",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Library\",\n    \"Description\": \"A new library\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/libraries",
+							"host": ["{{host}}"],
+							"path": ["api", "libraries"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Library",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{libraryId}}\",\n    \"Name\": \"Updated Library\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/libraries/{{libraryId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "libraries", "{{libraryId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Library",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/libraries/{{libraryId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "libraries", "{{libraryId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Plugins",
+			"item": [
+				{
+					"name": "Get All Plugins",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/plugins",
+							"host": ["{{host}}"],
+							"path": ["api", "plugins"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Plugin By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/plugins/{{pluginId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "plugins", "{{pluginId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Plugin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Plugin\",\n    \"Description\": \"A new plugin\",\n    \"Version\": \"1.0.0\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/plugins",
+							"host": ["{{host}}"],
+							"path": ["api", "plugins"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Plugin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{pluginId}}\",\n    \"Name\": \"Updated Plugin\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/plugins/{{pluginId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "plugins", "{{pluginId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Plugin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/plugins/{{pluginId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "plugins", "{{pluginId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Zomes",
+			"item": [
+				{
+					"name": "Get All Zomes",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/zomes",
+							"host": ["{{host}}"],
+							"path": ["api", "zomes"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Zome By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/zomes/{{zomeId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "zomes", "{{zomeId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Zome",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Zome\",\n    \"Description\": \"A new Holochain zome\",\n    \"Version\": \"1.0.0\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/zomes",
+							"host": ["{{host}}"],
+							"path": ["api", "zomes"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Zome",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{zomeId}}\",\n    \"Name\": \"Updated Zome\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/zomes/{{zomeId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "zomes", "{{zomeId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Zome",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/zomes/{{zomeId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "zomes", "{{zomeId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CelestialSpaces",
+			"item": [
+				{
+					"name": "Get All Celestial Spaces",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialspaces",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialspaces"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Celestial Space By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialspaces/{{spaceId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialspaces", "{{spaceId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Celestial Space",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Celestial Space\",\n    \"Description\": \"A new celestial space\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/celestialspaces",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialspaces"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Celestial Space",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{spaceId}}\",\n    \"Name\": \"Updated Celestial Space\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/celestialspaces/{{spaceId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialspaces", "{{spaceId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Celestial Space",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/celestialspaces/{{spaceId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "celestialspaces", "{{spaceId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "InventoryItems",
+			"item": [
+				{
+					"name": "Get All Inventory Items",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/inventoryitems",
+							"host": ["{{host}}"],
+							"path": ["api", "inventoryitems"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Inventory Item By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/inventoryitems/{{itemId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "inventoryitems", "{{itemId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Inventory Item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"Sword of Power\",\n    \"Description\": \"A powerful sword\",\n    \"ItemType\": \"Weapon\",\n    \"Rarity\": \"Legendary\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/inventoryitems",
+							"host": ["{{host}}"],
+							"path": ["api", "inventoryitems"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Inventory Item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{itemId}}\",\n    \"Name\": \"Updated Item\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/inventoryitems/{{itemId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "inventoryitems", "{{itemId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Inventory Item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/inventoryitems/{{itemId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "inventoryitems", "{{itemId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chapters",
+			"item": [
+				{
+					"name": "Get All Chapters",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/chapters",
+							"host": ["{{host}}"],
+							"path": ["api", "chapters"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chapter By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/chapters/{{chapterId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "chapters", "{{chapterId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Chapter",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"New Chapter\",\n    \"Description\": \"A new chapter\",\n    \"ChapterNumber\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/chapters",
+							"host": ["{{host}}"],
+							"path": ["api", "chapters"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Chapter",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{chapterId}}\",\n    \"Name\": \"Updated Chapter\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/chapters/{{chapterId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "chapters", "{{chapterId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Chapter",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/chapters/{{chapterId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "chapters", "{{chapterId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Competition",
+			"item": [
+				{
+					"name": "Get Leaderboard",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/competition/leaderboard/Karma/Daily?limit=100&offset=0",
+							"host": ["{{host}}"],
+							"path": ["api", "competition", "leaderboard", "Karma", "Daily"],
+							"query": [
+								{"key": "limit", "value": "100"},
+								{"key": "offset", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Rank",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/competition/my-rank/Karma/Daily",
+							"host": ["{{host}}"],
+							"path": ["api", "competition", "my-rank", "Karma", "Daily"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar Rank",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/competition/rank/{{avatarId}}/Karma/Daily",
+							"host": ["{{host}}"],
+							"path": ["api", "competition", "rank", "{{avatarId}}", "Karma", "Daily"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Leagues",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/competition/leagues/Karma/Daily",
+							"host": ["{{host}}"],
+							"path": ["api", "competition", "leagues", "Karma", "Daily"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My League",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/competition/my-league/Karma/Daily",
+							"host": ["{{host}}"],
+							"path": ["api", "competition", "my-league", "Karma", "Daily"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Avatar League",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/competition/league/{{avatarId}}/Karma/Daily",
+							"host": ["{{host}}"],
+							"path": ["api", "competition", "league", "{{avatarId}}", "Karma", "Daily"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Active Tournaments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/competition/tournaments?competitionType=Karma",
+							"host": ["{{host}}"],
+							"path": ["api", "competition", "tournaments"],
+							"query": [
+								{"key": "competitionType", "value": "Karma"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Join Tournament",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/competition/tournaments/{{tournamentId}}/join",
+							"host": ["{{host}}"],
+							"path": ["api", "competition", "tournaments", "{{tournamentId}}", "join"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Competition Stats",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/competition/stats/Karma/Daily",
+							"host": ["{{host}}"],
+							"path": ["api", "competition", "stats", "Karma", "Daily"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Parks",
+			"item": [
+				{
+					"name": "Get All Parks",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/parks",
+							"host": ["{{host}}"],
+							"path": ["api", "parks"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Park By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/parks/{{parkId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "parks", "{{parkId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Park",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"Central Park\",\n    \"Description\": \"A beautiful park\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/parks",
+							"host": ["{{host}}"],
+							"path": ["api", "parks"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Park",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{parkId}}\",\n    \"Name\": \"Updated Park\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/parks/{{parkId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "parks", "{{parkId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Park",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/parks/{{parkId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "parks", "{{parkId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "GeoHotSpots",
+			"item": [
+				{
+					"name": "Get All GeoHotSpots",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/geohotspots",
+							"host": ["{{host}}"],
+							"path": ["api", "geohotspots"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get GeoHotSpot By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/geohotspots/{{hotspotId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "geohotspots", "{{hotspotId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create GeoHotSpot",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Name\": \"Popular Location\",\n    \"Description\": \"A popular hotspot\",\n    \"Latitude\": 51.5074,\n    \"Longitude\": -0.1278\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/geohotspots",
+							"host": ["{{host}}"],
+							"path": ["api", "geohotspots"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update GeoHotSpot",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "PUT",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Id\": \"{{hotspotId}}\",\n    \"Name\": \"Updated Hotspot\",\n    \"Description\": \"Updated description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/geohotspots/{{hotspotId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "geohotspots", "{{hotspotId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete GeoHotSpot",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/geohotspots/{{hotspotId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "geohotspots", "{{hotspotId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Eggs",
+			"item": [
+				{
+					"name": "Get All Eggs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/eggs/all?limit=50&offset=0",
+							"host": ["{{host}}"],
+							"path": ["api", "eggs", "all"],
+							"query": [
+								{"key": "limit", "value": "50"},
+								{"key": "offset", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Discovered Eggs",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/eggs/discovered?limit=50&offset=0",
+							"host": ["{{host}}"],
+							"path": ["api", "eggs", "discovered"],
+							"query": [
+								{"key": "limit", "value": "50"},
+								{"key": "offset", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Discover Egg",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "\"Common\"",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/eggs/discover?name=Golden Egg&locationId={{locationId}}&location=London&discoveryMethod=Exploration&eggRarity=Common",
+							"host": ["{{host}}"],
+							"path": ["api", "eggs", "discover"],
+							"query": [
+								{"key": "name", "value": "Golden Egg"},
+								{"key": "locationId", "value": "{{locationId}}"},
+								{"key": "location", "value": "London"},
+								{"key": "discoveryMethod", "value": "Exploration"},
+								{"key": "eggRarity", "value": "Common"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Hatch Egg",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/eggs/hatch/{{eggId}}",
+							"host": ["{{host}}"],
+							"path": ["api", "eggs", "hatch", "{{eggId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current Egg Quests",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/eggs/quests?limit=20&offset=0",
+							"host": ["{{host}}"],
+							"path": ["api", "eggs", "quests"],
+							"query": [
+								{"key": "limit", "value": "20"},
+								{"key": "offset", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Egg Quest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "\"Quest completed successfully\"",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/eggs/quests/{{questId}}/complete",
+							"host": ["{{host}}"],
+							"path": ["api", "eggs", "quests", "{{questId}}", "complete"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Egg Quest Leaderboard",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/eggs/quests/leaderboard?limit=50&offset=0",
+							"host": ["{{host}}"],
+							"path": ["api", "eggs", "quests", "leaderboard"],
+							"query": [
+								{"key": "limit", "value": "50"},
+								{"key": "offset", "value": "0"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Egg Collection Stats",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/eggs/stats",
+							"host": ["{{host}}"],
+							"path": ["api", "eggs", "stats"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Egg Types",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/eggs/types",
+							"host": ["{{host}}"],
+							"path": ["api", "eggs", "types"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chat",
+			"item": [
+				{
+					"name": "Send Message",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "POST",
+						"header": [{
+							"key": "Content-Type",
+							"value": "application/json"
+						}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ToAvatarId\": \"{{toAvatarId}}\",\n    \"Message\": \"Hello!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/chat",
+							"host": ["{{host}}"],
+							"path": ["api", "chat"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Messaging",
+			"item": [
+				{
+					"name": "Get Messages",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{
+								"key": "token",
+								"value": "{{token}}",
+								"type": "string"
+							}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/messaging",
+							"host": ["{{host}}"],
+							"path": ["api", "messaging"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "http://localhost:5001",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
