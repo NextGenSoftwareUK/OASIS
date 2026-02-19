@@ -78,6 +78,44 @@ static double g_inventory_last_refresh = 0.0;
 static char g_inventory_status[128] = "STAR inventory unavailable.";
 static int g_inventory_selected_row = 0;
 static int g_inventory_scroll_row = 0;
+
+/* Background thread for API calls */
+#ifdef _WIN32
+static HANDLE g_inventory_thread = NULL;
+static CRITICAL_SECTION g_inventory_thread_lock;
+static int g_inventory_refresh_in_progress = 0;
+static star_item_list_t* g_inventory_thread_result = NULL;
+static star_api_result_t g_inventory_thread_error = STAR_API_ERROR_NOT_INITIALIZED;
+static const char* g_inventory_thread_error_msg = NULL;
+
+/* Background thread for authentication */
+static HANDLE g_auth_thread = NULL;
+static CRITICAL_SECTION g_auth_thread_lock;
+static int g_auth_in_progress = 0;
+static star_api_result_t g_auth_result = STAR_API_ERROR_NOT_INITIALIZED;
+static const char* g_auth_error_msg = NULL;
+static char g_auth_username[64] = {0};
+static char g_auth_avatar_id[64] = {0};
+static int g_auth_success = 0;
+#else
+#include <pthread.h>
+static pthread_t g_inventory_thread = 0;
+static pthread_mutex_t g_inventory_thread_lock = PTHREAD_MUTEX_INITIALIZER;
+static int g_inventory_refresh_in_progress = 0;
+static star_item_list_t* g_inventory_thread_result = NULL;
+static star_api_result_t g_inventory_thread_error = STAR_API_ERROR_NOT_INITIALIZED;
+static const char* g_inventory_thread_error_msg = NULL;
+
+/* Background thread for authentication */
+static pthread_t g_auth_thread = 0;
+static pthread_mutex_t g_auth_thread_lock = PTHREAD_MUTEX_INITIALIZER;
+static int g_auth_in_progress = 0;
+static star_api_result_t g_auth_result = STAR_API_ERROR_NOT_INITIALIZED;
+static const char* g_auth_error_msg = NULL;
+static char g_auth_username[64] = {0};
+static char g_auth_avatar_id[64] = {0};
+static int g_auth_success = 0;
+#endif
 static qboolean g_inventory_key_was_down[MAX_KEYS];
 static char g_inventory_send_target[OQ_SEND_TARGET_MAX + 1];
 static int g_inventory_send_button = 0; /* 0=Send, 1=Cancel */
@@ -100,6 +138,7 @@ static int star_initialized(void);
 static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab);
 static void OQ_RefreshInventoryCache(void);
 static void OQ_ClampSelection(int filtered_count);
+static void OQ_ApplyBeamFacePreference(void);
 
 enum {
     OQ_GROUP_MODE_COUNT = 0,
@@ -596,34 +635,228 @@ static int OQ_IsMockAnorakCredentials(const char* username, const char* password
     return q_strcasecmp(username, "anorak") == 0 || q_strcasecmp(username, "avatar") == 0;
 }
 
-static void OQ_RefreshInventoryCache(void) {
+/* Authentication thread data */
+static char g_auth_thread_username[64] = {0};
+static char g_auth_thread_password[64] = {0};
+
+#ifdef _WIN32
+static DWORD WINAPI OQ_AuthenticationThread(LPVOID lpParam) {
+#else
+static void* OQ_AuthenticationThread(void* lpParam) {
+#endif
+    star_api_result_t auth_result = STAR_API_ERROR_NOT_INITIALIZED;
+    star_api_result_t avatar_result = STAR_API_ERROR_NOT_INITIALIZED;
+    char avatar_id_buf[64] = {0};
+    const char* error_msg = NULL;
+    
+    /* Copy credentials (they're set before thread starts) */
+    char username[64] = {0};
+    char password[64] = {0};
+    q_strlcpy(username, g_auth_thread_username, sizeof(username));
+    q_strlcpy(password, g_auth_thread_password, sizeof(password));
+    
+    /* Authenticate */
+    auth_result = star_api_authenticate(username, password);
+    if (auth_result == STAR_API_SUCCESS) {
+        /* Get avatar_id */
+        avatar_result = star_api_get_avatar_id(avatar_id_buf, sizeof(avatar_id_buf));
+        if (avatar_result != STAR_API_SUCCESS) {
+            error_msg = star_api_get_last_error();
+        }
+    } else {
+        error_msg = star_api_get_last_error();
+    }
+    
+    /* Store results */
+#ifdef _WIN32
+    EnterCriticalSection(&g_auth_thread_lock);
+#else
+    pthread_mutex_lock(&g_auth_thread_lock);
+#endif
+    g_auth_result = auth_result;
+    g_auth_error_msg = error_msg;
+    if (auth_result == STAR_API_SUCCESS) {
+        q_strlcpy(g_auth_username, username, sizeof(g_auth_username));
+        q_strlcpy(g_auth_avatar_id, avatar_id_buf, sizeof(g_auth_avatar_id));
+        g_auth_success = 1;
+    } else {
+        g_auth_success = 0;
+    }
+    g_auth_in_progress = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_auth_thread_lock);
+    return 0;
+#else
+    pthread_mutex_unlock(&g_auth_thread_lock);
+    return NULL;
+#endif
+}
+
+static void OQ_CheckAuthenticationComplete(void) {
+    int auth_complete = 0;
+    star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
+    const char* error_msg = NULL;
+    char username[64] = {0};
+    char avatar_id[64] = {0};
+    int success = 0;
+    
+#ifdef _WIN32
+    EnterCriticalSection(&g_auth_thread_lock);
+#else
+    pthread_mutex_lock(&g_auth_thread_lock);
+#endif
+    if (!g_auth_in_progress && g_auth_result != STAR_API_ERROR_NOT_INITIALIZED) {
+        /* Only process if there was actually an authentication attempt */
+        result = g_auth_result;
+        error_msg = g_auth_error_msg;
+        q_strlcpy(username, g_auth_username, sizeof(username));
+        q_strlcpy(avatar_id, g_auth_avatar_id, sizeof(avatar_id));
+        success = g_auth_success;
+        auth_complete = 1;
+        /* Reset for next use */
+        g_auth_result = STAR_API_ERROR_NOT_INITIALIZED;
+        g_auth_error_msg = NULL;
+        g_auth_username[0] = 0;
+        g_auth_avatar_id[0] = 0;
+        g_auth_success = 0;
+    }
+#ifdef _WIN32
+    LeaveCriticalSection(&g_auth_thread_lock);
+#else
+    pthread_mutex_unlock(&g_auth_thread_lock);
+#endif
+    
+    if (!auth_complete)
+        return;
+    
+    /* Process authentication result on main thread */
+    if (success && result == STAR_API_SUCCESS) {
+        g_star_initialized = 1;
+        q_strlcpy(g_star_username, username, sizeof(g_star_username));
+        Cvar_Set("oquake_star_username", username);
+        
+        if (avatar_id[0]) {
+            Cvar_Set("oquake_star_avatar_id", avatar_id);
+            /* Update g_star_config.avatar_id directly to ensure it's available for API calls */
+            g_star_config.avatar_id = oquake_star_avatar_id.string;
+            Con_Printf("Avatar ID: %s\n", avatar_id);
+        } else {
+            Con_Printf("Warning: Could not get avatar ID: %s\n", error_msg ? error_msg : "Unknown error");
+        }
+        
+        OQ_ApplyBeamFacePreference();
+        Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
+        
+        /* Trigger inventory refresh now that we're authenticated */
+        g_inventory_last_refresh = 0.0; /* Force refresh */
+    } else {
+        Con_Printf("Beamin (SSO) failed: %s\n", error_msg ? error_msg : "Unknown error");
+    }
+}
+
+#ifdef _WIN32
+static DWORD WINAPI OQ_InventoryRefreshThread(LPVOID lpParam) {
+#else
+static void* OQ_InventoryRefreshThread(void* lpParam) {
+#endif
     star_item_list_t* list = NULL;
-    star_api_result_t result;
-    size_t i;
-    int remote_ok = 0;
-    int pending_local = 0;
-
-    g_inventory_count = 0;
-    q_strlcpy(g_inventory_status, "STAR inventory unavailable.", sizeof(g_inventory_status));
-
+    star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
+    const char* api_error = NULL;
+    
     if (star_initialized()) {
-        int l;
-        for (l = 0; l < g_local_inventory_count; l++) {
-            if (!g_local_inventory_synced[l]) {
-                star_api_result_t add_result = star_api_add_item(
-                    g_local_inventory_entries[l].name,
-                    g_local_inventory_entries[l].description,
-                    "Quake",
-                    g_local_inventory_entries[l].item_type);
-                if (add_result == STAR_API_SUCCESS)
-                    g_local_inventory_synced[l] = true;
+        /* Check if avatar_id is set (required for inventory API) */
+        const char* avatar_id = oquake_star_avatar_id.string;
+        if (!avatar_id || !avatar_id[0]) {
+            avatar_id = getenv("STAR_AVATAR_ID");
+        }
+        if (!avatar_id || !avatar_id[0]) {
+            api_error = "Avatar ID not set. Use 'star beamin' or set STAR_AVATAR_ID";
+            result = STAR_API_ERROR_INVALID_PARAM;
+        } else {
+            /* Sync local items first */
+            int l;
+            for (l = 0; l < g_local_inventory_count; l++) {
+                if (!g_local_inventory_synced[l]) {
+                    star_api_result_t add_result = star_api_add_item(
+                        g_local_inventory_entries[l].name,
+                        g_local_inventory_entries[l].description,
+                        "Quake",
+                        g_local_inventory_entries[l].item_type);
+                    if (add_result == STAR_API_SUCCESS)
+                        g_local_inventory_synced[l] = true;
+                }
+            }
+            /* Call API in background thread */
+            result = star_api_get_inventory(&list);
+            if (result != STAR_API_SUCCESS) {
+                api_error = star_api_get_last_error();
+                if (!api_error || !api_error[0]) {
+                    api_error = "Unknown error";
+                }
+            } else if (list == NULL) {
+                /* Success but no list returned - this shouldn't happen but handle it */
+                result = STAR_API_ERROR_API_ERROR;
+                api_error = "Inventory API returned success but no data";
             }
         }
-        result = star_api_get_inventory(&list);
-        if (result == STAR_API_SUCCESS)
-            remote_ok = 1;
     }
+    
+    /* Store results in thread-safe way */
+#ifdef _WIN32
+    EnterCriticalSection(&g_inventory_thread_lock);
+#else
+    pthread_mutex_lock(&g_inventory_thread_lock);
+#endif
+    g_inventory_thread_result = list;
+    g_inventory_thread_error = result;
+    g_inventory_thread_error_msg = api_error;
+    g_inventory_refresh_in_progress = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inventory_thread_lock);
+    return 0;
+#else
+    pthread_mutex_unlock(&g_inventory_thread_lock);
+    return NULL;
+#endif
+}
 
+static void OQ_CheckInventoryRefreshComplete(void) {
+    star_item_list_t* list = NULL;
+    star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
+    const char* api_error = NULL;
+    int refresh_complete = 0;
+    
+#ifdef _WIN32
+    EnterCriticalSection(&g_inventory_thread_lock);
+#else
+    pthread_mutex_lock(&g_inventory_thread_lock);
+#endif
+    if (!g_inventory_refresh_in_progress && g_inventory_thread_error != STAR_API_ERROR_NOT_INITIALIZED) {
+        /* Only process if there was actually a refresh attempt */
+        list = g_inventory_thread_result;
+        result = g_inventory_thread_error;
+        api_error = g_inventory_thread_error_msg;
+        g_inventory_thread_result = NULL;
+        g_inventory_thread_error = STAR_API_ERROR_NOT_INITIALIZED;
+        g_inventory_thread_error_msg = NULL;
+        refresh_complete = 1;
+    }
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inventory_thread_lock);
+#else
+    pthread_mutex_unlock(&g_inventory_thread_lock);
+#endif
+    
+    if (!refresh_complete)
+        return;
+    
+    /* Process results on main thread */
+    size_t i;
+    int remote_ok = (result == STAR_API_SUCCESS && list != NULL);
+    int pending_local = 0;
+    
+    g_inventory_count = 0;
+    
     if (remote_ok && list && list->count > 0) {
         for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
             oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
@@ -631,11 +864,38 @@ static void OQ_RefreshInventoryCache(void) {
             q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
             q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
             g_inventory_count++;
+            
+            /* Mark local items as synced if they exist in remote inventory */
+            {
+                int l;
+                for (l = 0; l < g_local_inventory_count; l++) {
+                    if (!g_local_inventory_synced[l] && !strcmp(g_local_inventory_entries[l].name, list->items[i].name)) {
+                        g_local_inventory_synced[l] = true;
+                    }
+                }
+            }
         }
         star_api_free_item_list(list);
-        list = NULL;
+        
+        /* If we successfully loaded from remote, remove local items that are now synced */
+        /* This prevents showing "pending" items that are already in the remote inventory */
+        {
+            int l, write_idx = 0;
+            for (l = 0; l < g_local_inventory_count; l++) {
+                if (!g_local_inventory_synced[l]) {
+                    /* Keep only unsynced items */
+                    if (write_idx != l) {
+                        g_local_inventory_entries[write_idx] = g_local_inventory_entries[l];
+                        g_local_inventory_synced[write_idx] = g_local_inventory_synced[l];
+                    }
+                    write_idx++;
+                }
+            }
+            g_local_inventory_count = write_idx;
+        }
     }
-
+    
+    /* Add local items that aren't in remote */
     for (i = 0; i < (size_t)g_local_inventory_count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
         int j;
         int exists = 0;
@@ -653,7 +913,8 @@ static void OQ_RefreshInventoryCache(void) {
             g_inventory_count++;
         }
     }
-
+    
+    /* Count pending local items (only items that aren't synced) */
     {
         int l;
         for (l = 0; l < g_local_inventory_count; l++) {
@@ -661,9 +922,24 @@ static void OQ_RefreshInventoryCache(void) {
                 pending_local++;
         }
     }
-
+    
+    /* Update status message */
     if (g_inventory_count == 0) {
-        q_strlcpy(g_inventory_status, "Inventory is empty.", sizeof(g_inventory_status));
+        if (remote_ok) {
+            q_strlcpy(g_inventory_status, "STAR inventory is empty.", sizeof(g_inventory_status));
+        } else if (api_error) {
+            char error_msg[128];
+            q_strlcpy(error_msg, api_error, sizeof(error_msg));
+            if (strlen(error_msg) > 80) {
+                error_msg[77] = '.';
+                error_msg[78] = '.';
+                error_msg[79] = '.';
+                error_msg[80] = 0;
+            }
+            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR API error: %s", error_msg);
+        } else {
+            q_strlcpy(g_inventory_status, "Inventory is empty.", sizeof(g_inventory_status));
+        }
     } else if (remote_ok) {
         if (pending_local > 0)
             q_snprintf(
@@ -671,15 +947,29 @@ static void OQ_RefreshInventoryCache(void) {
         else
             q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR inventory synced (%d items)", g_inventory_count);
     } else if (star_initialized()) {
-        q_snprintf(
-            g_inventory_status, sizeof(g_inventory_status), "STAR API unavailable; showing local inventory (%d items)", g_inventory_count);
+        if (api_error) {
+            char error_msg[128];
+            q_strlcpy(error_msg, api_error, sizeof(error_msg));
+            if (strlen(error_msg) > 80) {
+                error_msg[77] = '.';
+                error_msg[78] = '.';
+                error_msg[79] = '.';
+                error_msg[80] = 0;
+            }
+            q_snprintf(
+                g_inventory_status, sizeof(g_inventory_status), "STAR API error: %s (showing local: %d items)", error_msg, g_inventory_count);
+        } else {
+            q_snprintf(
+                g_inventory_status, sizeof(g_inventory_status), "STAR API unavailable; showing local inventory (%d items)", g_inventory_count);
+        }
     } else {
-        q_snprintf(
-            g_inventory_status, sizeof(g_inventory_status), "Offline local inventory (%d items). Use: star beamin", g_inventory_count);
+        q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
     }
-
-    if (list)
-        star_api_free_item_list(list);
+    
+    if (api_error && api_error[0] && result != STAR_API_SUCCESS) {
+        Con_Printf("OQuake: Failed to load STAR inventory: %s\n", api_error);
+    }
+    
     g_inventory_last_refresh = realtime;
     {
         int rep_indices[OQ_MAX_INVENTORY_ITEMS];
@@ -689,6 +979,112 @@ static void OQ_RefreshInventoryCache(void) {
         qboolean pending[OQ_MAX_INVENTORY_ITEMS];
         OQ_ClampSelection(OQ_BuildGroupedRows(rep_indices, labels, modes, values, pending, OQ_MAX_INVENTORY_ITEMS));
     }
+}
+
+static void OQ_RefreshInventoryCache(void) {
+    /* Check if previous refresh completed */
+    OQ_CheckInventoryRefreshComplete();
+    
+    /* Don't start new refresh if one is already in progress */
+#ifdef _WIN32
+    EnterCriticalSection(&g_inventory_thread_lock);
+#else
+    pthread_mutex_lock(&g_inventory_thread_lock);
+#endif
+    if (g_inventory_refresh_in_progress) {
+#ifdef _WIN32
+        LeaveCriticalSection(&g_inventory_thread_lock);
+#else
+        pthread_mutex_unlock(&g_inventory_thread_lock);
+#endif
+        return;
+    }
+    
+    /* Check if we should refresh (throttle to once per second) */
+    if (realtime - g_inventory_last_refresh < 1.0) {
+#ifdef _WIN32
+        LeaveCriticalSection(&g_inventory_thread_lock);
+#else
+        pthread_mutex_unlock(&g_inventory_thread_lock);
+#endif
+        return;
+    }
+    
+    /* Check if authentication is in progress - wait for it to complete */
+#ifdef _WIN32
+    EnterCriticalSection(&g_auth_thread_lock);
+    int auth_in_progress = g_auth_in_progress;
+    LeaveCriticalSection(&g_auth_thread_lock);
+#else
+    pthread_mutex_lock(&g_auth_thread_lock);
+    int auth_in_progress = g_auth_in_progress;
+    pthread_mutex_unlock(&g_auth_thread_lock);
+#endif
+    
+    if (auth_in_progress) {
+        q_strlcpy(g_inventory_status, "Authenticating...", sizeof(g_inventory_status));
+#ifdef _WIN32
+        LeaveCriticalSection(&g_inventory_thread_lock);
+#else
+        pthread_mutex_unlock(&g_inventory_thread_lock);
+#endif
+        return;
+    }
+    
+    if (!star_initialized()) {
+        g_inventory_count = 0;
+        q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
+#ifdef _WIN32
+        LeaveCriticalSection(&g_inventory_thread_lock);
+#else
+        pthread_mutex_unlock(&g_inventory_thread_lock);
+#endif
+        return;
+    }
+    
+    /* Set status to syncing */
+    q_strlcpy(g_inventory_status, "Syncing...", sizeof(g_inventory_status));
+    g_inventory_refresh_in_progress = 1;
+    
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inventory_thread_lock);
+    
+    /* Clean up old thread if it exists */
+    if (g_inventory_thread != NULL) {
+        WaitForSingleObject(g_inventory_thread, 100); /* Wait up to 100ms */
+        if (WaitForSingleObject(g_inventory_thread, 0) == WAIT_TIMEOUT) {
+            /* Thread still running, terminate it */
+            TerminateThread(g_inventory_thread, 1);
+        }
+        CloseHandle(g_inventory_thread);
+        g_inventory_thread = NULL;
+    }
+    
+    /* Start background thread */
+    g_inventory_thread = CreateThread(NULL, 0, OQ_InventoryRefreshThread, NULL, 0, NULL);
+    if (g_inventory_thread == NULL) {
+        EnterCriticalSection(&g_inventory_thread_lock);
+        g_inventory_refresh_in_progress = 0;
+        LeaveCriticalSection(&g_inventory_thread_lock);
+        q_strlcpy(g_inventory_status, "Failed to start inventory refresh thread", sizeof(g_inventory_status));
+    }
+#else
+    pthread_mutex_unlock(&g_inventory_thread_lock);
+    
+    /* Clean up old thread if it exists */
+    if (g_inventory_thread != 0) {
+        pthread_join(g_inventory_thread, NULL);
+        g_inventory_thread = 0;
+    }
+    
+    /* Start background thread */
+    if (pthread_create(&g_inventory_thread, NULL, OQ_InventoryRefreshThread, NULL) != 0) {
+        pthread_mutex_lock(&g_inventory_thread_lock);
+        g_inventory_refresh_in_progress = 0;
+        pthread_mutex_unlock(&g_inventory_thread_lock);
+        q_strlcpy(g_inventory_status, "Failed to start inventory refresh thread", sizeof(g_inventory_status));
+    }
+#endif
 }
 
 static void OQ_InventoryToggle_f(void) {
@@ -1092,6 +1488,19 @@ void OQuake_STAR_Init(void) {
     const char* username;
     const char* password;
 
+    /* Initialize thread synchronization */
+#ifdef _WIN32
+    InitializeCriticalSection(&g_inventory_thread_lock);
+    InitializeCriticalSection(&g_auth_thread_lock);
+#else
+    /* pthread_mutex_t is statically initialized */
+#endif
+    g_inventory_refresh_in_progress = 0;
+    g_inventory_thread_result = NULL;
+    g_inventory_thread_error = STAR_API_ERROR_NOT_INITIALIZED;
+    g_auth_in_progress = 0;
+    g_auth_result = STAR_API_ERROR_NOT_INITIALIZED;
+
     Cvar_RegisterVariable(&oasis_star_anorak_face);
     Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
     Cvar_RegisterVariable(&oasis_star_beam_face);
@@ -1493,13 +1902,13 @@ void OQuake_STAR_Init(void) {
             result = star_api_authenticate(username, password);
             if (result == STAR_API_SUCCESS) {
                 g_star_initialized = 1;
-                printf("OQuake STAR API: Authenticated. Cross-game keys enabled.\n");
+                printf("OQuake STAR API: Authenticated. Cross-game assets enabled.\n");
             } else {
                 printf("OQuake STAR API: SSO failed: %s\n", star_api_get_last_error());
             }
         } else if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
-            printf("OQuake STAR API: Using API key. Cross-game keys enabled.\n");
+            printf("OQuake STAR API: Using API key. Cross-game assets enabled.\n");
         } else {
             printf("OQuake STAR API: Set STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID for cross-game keys.\n");
         }
@@ -1520,6 +1929,48 @@ void OQuake_STAR_Init(void) {
 }
 
 void OQuake_STAR_Cleanup(void) {
+    /* Wait for and cleanup inventory refresh thread */
+#ifdef _WIN32
+    if (g_inventory_thread != NULL) {
+        WaitForSingleObject(g_inventory_thread, 2000); /* Wait up to 2 seconds */
+        if (WaitForSingleObject(g_inventory_thread, 0) == WAIT_TIMEOUT) {
+            TerminateThread(g_inventory_thread, 1);
+        }
+        CloseHandle(g_inventory_thread);
+        g_inventory_thread = NULL;
+    }
+    DeleteCriticalSection(&g_inventory_thread_lock);
+    
+    /* Wait for and cleanup authentication thread */
+    if (g_auth_thread != NULL) {
+        WaitForSingleObject(g_auth_thread, 2000);
+        if (WaitForSingleObject(g_auth_thread, 0) == WAIT_TIMEOUT) {
+            TerminateThread(g_auth_thread, 1);
+        }
+        CloseHandle(g_auth_thread);
+        g_auth_thread = NULL;
+    }
+    DeleteCriticalSection(&g_auth_thread_lock);
+#else
+    if (g_inventory_thread != 0) {
+        pthread_join(g_inventory_thread, NULL);
+        g_inventory_thread = 0;
+    }
+    pthread_mutex_destroy(&g_inventory_thread_lock);
+    
+    if (g_auth_thread != 0) {
+        pthread_join(g_auth_thread, NULL);
+        g_auth_thread = 0;
+    }
+    pthread_mutex_destroy(&g_auth_thread_lock);
+#endif
+    
+    /* Free any pending inventory result */
+    if (g_inventory_thread_result != NULL) {
+        star_api_free_item_list(g_inventory_thread_result);
+        g_inventory_thread_result = NULL;
+    }
+    
     if (g_star_initialized) {
         star_api_cleanup();
         g_star_initialized = 0;
@@ -1838,18 +2289,76 @@ void OQuake_STAR_Console_f(void) {
         }
         
         if (username && password) {
-            r = star_api_authenticate(username, password);
-            if (r == STAR_API_SUCCESS) {
-                g_star_initialized = 1;
-                q_strlcpy(g_star_username, username, sizeof(g_star_username));
-                /* Save to CVARs if provided via command */
-                if (runtime_user) Cvar_Set("oquake_star_username", runtime_user);
-                if (runtime_pass) Cvar_Set("oquake_star_password", runtime_pass);
-                OQ_ApplyBeamFacePreference();
-                Con_Printf("Logged in (beamin). Cross-game keys enabled.\n");
+            /* Check if authentication is already in progress */
+#ifdef _WIN32
+            EnterCriticalSection(&g_auth_thread_lock);
+#else
+            pthread_mutex_lock(&g_auth_thread_lock);
+#endif
+            if (g_auth_in_progress) {
+#ifdef _WIN32
+                LeaveCriticalSection(&g_auth_thread_lock);
+#else
+                pthread_mutex_unlock(&g_auth_thread_lock);
+#endif
+                Con_Printf("Authentication already in progress. Please wait...\n");
                 return;
             }
-            Con_Printf("Beamin (SSO) failed: %s\n", star_api_get_last_error());
+            
+            /* Save credentials for thread */
+            q_strlcpy(g_auth_thread_username, username, sizeof(g_auth_thread_username));
+            q_strlcpy(g_auth_thread_password, password, sizeof(g_auth_thread_password));
+            g_auth_in_progress = 1;
+            g_auth_result = STAR_API_ERROR_NOT_INITIALIZED;
+            g_auth_error_msg = NULL;
+            g_auth_username[0] = 0;
+            g_auth_avatar_id[0] = 0;
+            g_auth_success = 0;
+            
+#ifdef _WIN32
+            LeaveCriticalSection(&g_auth_thread_lock);
+            
+            /* Clean up old thread if it exists */
+            if (g_auth_thread != NULL) {
+                WaitForSingleObject(g_auth_thread, 100);
+                if (WaitForSingleObject(g_auth_thread, 0) == WAIT_TIMEOUT) {
+                    TerminateThread(g_auth_thread, 1);
+                }
+                CloseHandle(g_auth_thread);
+                g_auth_thread = NULL;
+            }
+            
+            /* Start background authentication thread */
+            g_auth_thread = CreateThread(NULL, 0, OQ_AuthenticationThread, NULL, 0, NULL);
+            if (g_auth_thread == NULL) {
+                EnterCriticalSection(&g_auth_thread_lock);
+                g_auth_in_progress = 0;
+                LeaveCriticalSection(&g_auth_thread_lock);
+                Con_Printf("Failed to start authentication thread\n");
+                return;
+            }
+#else
+            pthread_mutex_unlock(&g_auth_thread_lock);
+            
+            /* Clean up old thread if it exists */
+            if (g_auth_thread != 0) {
+                pthread_join(g_auth_thread, NULL);
+                g_auth_thread = 0;
+            }
+            
+            /* Start background authentication thread */
+            if (pthread_create(&g_auth_thread, NULL, OQ_AuthenticationThread, NULL) != 0) {
+                pthread_mutex_lock(&g_auth_thread_lock);
+                g_auth_in_progress = 0;
+                pthread_mutex_unlock(&g_auth_thread_lock);
+                Con_Printf("Failed to start authentication thread\n");
+                return;
+            }
+#endif
+            
+            Con_Printf("Authenticating... Please wait...\n");
+            if (runtime_user) Cvar_Set("oquake_star_username", runtime_user);
+            if (runtime_pass) Cvar_Set("oquake_star_password", runtime_pass);
             return;
         }
         if (g_star_config.api_key && g_star_config.avatar_id) {
@@ -1866,7 +2375,7 @@ void OQuake_STAR_Console_f(void) {
                 Cvar_Set("oquake_star_avatar_id", avatar_id);
             }
             OQ_ApplyBeamFacePreference();
-            Con_Printf("Logged in with API key. Cross-game keys enabled.\n");
+            Con_Printf("Logged in with API key. Cross-game assets enabled.\n");
             return;
         }
         Con_Printf("Set STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID and try again.\n");
@@ -1983,6 +2492,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     int visible_end;
     char line[512];
 
+    /* Check if background operations completed */
+    OQ_CheckAuthenticationComplete();
+    OQ_CheckInventoryRefreshComplete();
+    
     OQ_PollInventoryHotkeys();
 
     if (!g_inventory_open || !cbx)
@@ -1992,7 +2505,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         OQ_RefreshInventoryCache();
 
     panel_w = q_min(glwidth - 48, 900);
-    panel_h = q_min(glheight - 96, 420);
+    panel_h = q_min(glheight - 96, 480);  /* Increased height to prevent text overlap */
     if (panel_w < 480) panel_w = 480;
     if (panel_h < 160) panel_h = 160;
     panel_x = (glwidth - panel_w) / 2;
@@ -2019,7 +2532,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, 10, 224, 0.60f);
         Draw_String(cbx, tab_name_x, tab_y, tab_name);
     }
-    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 8, "Arrows=Select  E=Use  Z=Send Avatar  X=Send Clan  I=Toggle  O/P=Switch Tabs");
+    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 16, "Arrows=Select  E=Use  Z=Send Avatar  X=Send Clan  I=Toggle  O/P=Switch Tabs");
 
     draw_y = panel_y + 54;
     grouped_count = OQ_BuildGroupedRows(
@@ -2039,8 +2552,16 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         draw_y += 8;
     }
 
+    /* Draw status message in bottom right corner */
+    if (g_inventory_status[0] && strcmp(g_inventory_status, "STAR inventory unavailable.") != 0) {
+        int status_len = (int)strlen(g_inventory_status);
+        int status_x = panel_x + panel_w - (status_len * 8) - 6;
+        int status_y = panel_y + panel_h - 16;
+        Draw_String(cbx, status_x, status_y, g_inventory_status);
+    }
+    
     if (grouped_count == 0)
-        Draw_String(cbx, panel_x + 6, draw_y, g_inventory_status);
+        Draw_String(cbx, panel_x + 6, draw_y, "No items");
 
     if (g_inventory_send_popup != OQ_SEND_POPUP_NONE) {
         int popup_w = q_min(panel_w - 80, 420);

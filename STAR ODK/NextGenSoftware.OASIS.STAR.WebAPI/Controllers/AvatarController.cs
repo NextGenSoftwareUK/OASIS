@@ -29,47 +29,36 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private readonly HttpClient _httpClient;
         private readonly string _web4OasisApiBaseUrl;
 
-        // TODO: May choose to have avatar inventory endpoints also in WEB5 in the future.
-        // For now, all avatar inventory operations delegate to WEB4 OASIS API.
-        // Keeping the STARAPI implementation commented out for potential future use.
-        //private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
-        //private static readonly SemaphoreSlim _bootLock = new(1, 1);
+        // STARAPI implementation for inventory endpoints (Web4 doesn't have /api/avatar/inventory)
+        private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
 
-        //private async Task EnsureStarApiBootedAsync()
-        //{
-        //    // Check if already booted and avatar is set
-        //    if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
-        //        Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
-        //        return;
+        private async Task EnsureStarApiBootedAsync()
+        {
+            if (_starAPI.IsOASISBooted)
+                return;
 
-        //    await _bootLock.WaitAsync();
-        //    try
-        //    {
-        //        // Double-check after acquiring lock
-        //        if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
-        //            Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
-        //            return;
+            await _bootLock.WaitAsync();
+            try
+            {
+                if (_starAPI.IsOASISBooted)
+                    return;
 
-        //        // Boot OASIS if not already booted
-        //        if (!_starAPI.IsOASISBooted)
-        //        {
-        //            var boot = await _starAPI.BootOASISAsync("admin", "admin");
-        //            if (boot.IsError)
-        //                throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
-        //        }
+                var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                if (boot.IsError)
+                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
 
-        //        // Set LoggedInAvatar to the authenticated avatar so InventoryItems property works
-        //        // This is required because InventoryItems property getter uses AvatarManager.LoggedInAvatar.AvatarId
-        //        if (Avatar != null)
-        //        {
-        //            AvatarManager.LoggedInAvatar = Avatar;
-        //        }
-        //    }
-        //    finally
-        //    {
-        //        _bootLock.Release();
-        //    }
-        //}
+                // Set LoggedInAvatar to the authenticated avatar so InventoryItems property works
+                if (Avatar != null)
+                {
+                    AvatarManager.LoggedInAvatar = Avatar;
+                }
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Forwards a request to WEB4 OASIS API and returns the response.
@@ -387,37 +376,34 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IInventoryItem>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetInventory()
         {
-            // Current implementation: Delegates to WEB4 OASIS API
-            return await ForwardToWeb4Async(HttpMethod.Get, "/api/avatar/inventory");
+            // Implement directly in WEB5 using STARAPI (Web4 doesn't have this endpoint)
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
 
-            // TODO: Potential future WEB5 STARAPI implementation (commented out for now):
-            //try
-            //{
-            //    if (AvatarId == Guid.Empty)
-            //    {
-            //        return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
-            //        {
-            //            IsError = true,
-            //            Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-            //        });
-            //    }
-
-            //    await EnsureStarApiBootedAsync();
-            //    var result = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
-            //    if (result.IsError)
-            //        return BadRequest(result);
-            //    
-            //    return Ok(result);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
-            //    {
-            //        IsError = true,
-            //        Message = $"Error loading avatar inventory: {ex.Message}",
-            //        Exception = ex
-            //    });
-            //}
+                await EnsureStarApiBootedAsync();
+                var result = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
+                if (result.IsError)
+                    return BadRequest(result);
+                
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
+                {
+                    IsError = true,
+                    Message = $"Error loading avatar inventory: {ex.Message}",
+                    Exception = ex
+                });
+            }
         }
 
         /// <summary>

@@ -9,8 +9,7 @@ echo ========================================
 echo.
 
 REM Get the script directory
-set "SCRIPT_DIR=%~dp0"
-set "PS_SCRIPT=%SCRIPT_DIR%OASIS Omniverse\STARAPIClient\start_local_web4_and_web5_apis.ps1"
+set "PS_SCRIPT=start_local_web4_and_web5_apis.ps1"
 
 REM Check if PowerShell script exists
 if not exist "%PS_SCRIPT%" (

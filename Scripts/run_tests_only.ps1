@@ -69,6 +69,14 @@ $process.StartInfo = $processInfo
 $process.Start() | Out-Null
 $web5Result = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 $process.WaitForExit()
+
+# Save full output to Test Results directory
+$testResultsDir = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\Test Results"
+New-Item -ItemType Directory -Path $testResultsDir -Force | Out-Null
+$testResultsFile = Join-Path $testResultsDir "test_results_web5.txt"
+$web5Result | Out-File -FilePath $testResultsFile -Encoding utf8
+Write-Host "Full test results saved to: $testResultsFile" -ForegroundColor Gray
+
 $web5Result | Select-String -Pattern "(=>|failures|passed|Failed|Passed|Total|200|400|500)" | ForEach-Object { Write-Host $_ }
 
 Write-Host ""

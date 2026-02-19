@@ -10,8 +10,8 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$web4Project = Join-Path $scriptDir "..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
-$web5Project = Join-Path $scriptDir "..\..\STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\NextGenSoftware.OASIS.STAR.WebAPI.csproj"
+$web4Project = Join-Path $scriptDir "..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
+$web5Project = Join-Path $scriptDir "..\STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\NextGenSoftware.OASIS.STAR.WebAPI.csproj"
 $stateFile = Join-Path $scriptDir ".local_api_processes.json"
 $startedProcesses = @()
 

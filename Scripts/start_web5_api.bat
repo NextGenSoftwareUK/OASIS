@@ -9,7 +9,7 @@ echo.
 
 REM Get the script directory
 set "SCRIPT_DIR=%~dp0"
-set "WEB5_PROJECT=%SCRIPT_DIR%STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\NextGenSoftware.OASIS.STAR.WebAPI.csproj"
+set "WEB5_PROJECT=%SCRIPT_DIR%../STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\NextGenSoftware.OASIS.STAR.WebAPI.csproj"
 
 REM Check if project exists
 if not exist "%WEB5_PROJECT%" (
