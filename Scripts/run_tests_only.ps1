@@ -50,7 +50,9 @@ $env:STARAPI_HARNESS_USE_FAKE_SERVER = "false"
 Write-Host "Environment variables set:" -ForegroundColor Yellow
 Write-Host "  STAR_WEBAPI_BASE_URL = $env:STAR_WEBAPI_BASE_URL" -ForegroundColor Gray
 
-cd "STAR ODK/TestProjects/NextGenSoftware.OASIS.STAR.WebAPI.TestHarness"
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$testHarnessPath = Join-Path $scriptDir "..\STAR ODK\TestProjects\NextGenSoftware.OASIS.STAR.WebAPI.TestHarness"
+cd $testHarnessPath
 
 # Use Start-Process to ensure environment variables are passed
 $processInfo = New-Object System.Diagnostics.ProcessStartInfo

@@ -876,26 +876,10 @@ static void OQ_CheckInventoryRefreshComplete(void) {
             }
         }
         star_api_free_item_list(list);
-        
-        /* If we successfully loaded from remote, remove local items that are now synced */
-        /* This prevents showing "pending" items that are already in the remote inventory */
-        {
-            int l, write_idx = 0;
-            for (l = 0; l < g_local_inventory_count; l++) {
-                if (!g_local_inventory_synced[l]) {
-                    /* Keep only unsynced items */
-                    if (write_idx != l) {
-                        g_local_inventory_entries[write_idx] = g_local_inventory_entries[l];
-                        g_local_inventory_synced[write_idx] = g_local_inventory_synced[l];
-                    }
-                    write_idx++;
-                }
-            }
-            g_local_inventory_count = write_idx;
-        }
+        list = NULL; /* Prevent double-free */
     }
     
-    /* Add local items that aren't in remote */
+    /* Add local items that aren't in remote to display */
     for (i = 0; i < (size_t)g_local_inventory_count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
         int j;
         int exists = 0;
@@ -912,6 +896,23 @@ static void OQ_CheckInventoryRefreshComplete(void) {
             q_strlcpy(dst->item_type, g_local_inventory_entries[i].item_type, sizeof(dst->item_type));
             g_inventory_count++;
         }
+    }
+    
+    /* After processing, remove all synced items from local inventory */
+    /* This prevents showing "pending" items that are already in the remote inventory */
+    if (remote_ok) {
+        int l, write_idx = 0;
+        for (l = 0; l < g_local_inventory_count; l++) {
+            if (!g_local_inventory_synced[l]) {
+                /* Keep only unsynced items */
+                if (write_idx != l) {
+                    g_local_inventory_entries[write_idx] = g_local_inventory_entries[l];
+                    g_local_inventory_synced[write_idx] = g_local_inventory_synced[l];
+                }
+                write_idx++;
+            }
+        }
+        g_local_inventory_count = write_idx;
     }
     
     /* Count pending local items (only items that aren't synced) */
@@ -943,9 +944,9 @@ static void OQ_CheckInventoryRefreshComplete(void) {
     } else if (remote_ok) {
         if (pending_local > 0)
             q_snprintf(
-                g_inventory_status, sizeof(g_inventory_status), "STAR synced (%d items), %d local pending", g_inventory_count, pending_local);
+                g_inventory_status, sizeof(g_inventory_status), "Synced (%d items), %d pending", g_inventory_count, pending_local);
         else
-            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR inventory synced (%d items)", g_inventory_count);
+            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Synced (%d items)", g_inventory_count);
     } else if (star_initialized()) {
         if (api_error) {
             char error_msg[128];
