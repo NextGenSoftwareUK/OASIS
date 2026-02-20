@@ -9,7 +9,7 @@ echo.
 
 REM Get the script directory
 set "SCRIPT_DIR=%~dp0"
-set "WEB4_PROJECT=%SCRIPT_DIR%ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
+set "WEB4_PROJECT=%SCRIPT_DIR%../ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
 
 REM Check if project exists
 if not exist "%WEB4_PROJECT%" (

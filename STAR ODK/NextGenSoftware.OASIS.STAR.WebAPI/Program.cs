@@ -8,6 +8,8 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using Microsoft.AspNetCore.Mvc.Filters;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
+using NextGenSoftware.OASIS.STAR.WebAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -275,7 +277,9 @@ app.Use(async (context, next) =>
             // Real exception - return 500
             if (enableGenericExceptionHandling)
             {
-                errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+                //errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+                errorResult.Message = $"Unexpected error: {ex.Message}";
+                errorResult.DetailedMessage = ex.ToString();
             }
             else
             {
@@ -290,6 +294,7 @@ app.Use(async (context, next) =>
     }
 });
 
+//TODO: Seems to be doing similar job to OASISMiddleware & JwtMiddleware? Do we still need?
 app.Use(async (context, next) =>
 {
     if (context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
@@ -312,7 +317,7 @@ app.Use(async (context, next) =>
                         if (bootResult.IsError)
                         {
                             // Log but don't fail - avatar loading will fail gracefully
-                            System.Diagnostics.Debug.WriteLine($"Warning: OASIS boot failed in middleware: {bootResult.Message}");
+                            OASISErrorHandling.HandleError($"Warning: OASIS boot failed in middleware: {bootResult.Message}");
                         }
                     }
 
@@ -335,6 +340,12 @@ app.Use(async (context, next) =>
     await next();
 });
 app.UseAuthorization();
+
+app.UseMiddleware<OASISMiddleware>();
+app.UseMiddleware<ErrorHandlerMiddleware>();
+app.UseMiddleware<JwtMiddleware>();
+app.UseMiddleware<SubscriptionMiddleware>();
+
 app.MapControllers();
 
 app.Run();
@@ -433,7 +444,9 @@ public class ExceptionFilter : IExceptionFilter
             // Real exception - return 500
             if (_enableGenericExceptionHandling)
             {
-                errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+                //errorResult.Message = "Oooops. Sorry something broke, it has been logged and we are looking into it!";
+                errorResult.Message = $"Unexpected error in {context.ActionDescriptor.DisplayName}: {ex.Message}";
+                errorResult.DetailedMessage = ex.ToString();
             }
             else
             {
