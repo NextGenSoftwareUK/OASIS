@@ -419,7 +419,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
                 await EnsureOASISBootedAsync();
                 EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
-                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await CosmicManager.SaveOmniverseAsync(omniverse);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null

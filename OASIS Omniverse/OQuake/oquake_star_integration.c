@@ -139,6 +139,7 @@ static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab);
 static void OQ_RefreshInventoryCache(void);
 static void OQ_ClampSelection(int filtered_count);
 static void OQ_ApplyBeamFacePreference(void);
+static void OQ_CheckAndSyncLocalItem(int index);
 
 enum {
     OQ_GROUP_MODE_COUNT = 0,
@@ -168,15 +169,21 @@ static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* des
         local_added = 1;
     }
 
-    if (g_star_initialized && !star_api_has_item(item_name)) {
-        result = star_api_add_item(item_name, description, "Quake", item_type);
-        if (result == STAR_API_SUCCESS) {
+    if (g_star_initialized) {
+        /* Check if item already exists in remote inventory */
+        if (star_api_has_item(item_name)) {
+            /* Item already exists in remote - mark as synced */
             if (i < g_local_inventory_count)
                 g_local_inventory_synced[i] = true;
-            remote_added = 1;
+        } else {
+            /* Item doesn't exist in remote - try to add it */
+            result = star_api_add_item(item_name, description, "Quake", item_type);
+            if (result == STAR_API_SUCCESS) {
+                if (i < g_local_inventory_count)
+                    g_local_inventory_synced[i] = true;
+                remote_added = 1;
+            }
         }
-    } else if (i < g_local_inventory_count && star_api_has_item(item_name)) {
-        g_local_inventory_synced[i] = true;
     }
 
     return local_added || remote_added;
@@ -774,16 +781,23 @@ static void* OQ_InventoryRefreshThread(void* lpParam) {
             result = STAR_API_ERROR_INVALID_PARAM;
         } else {
             /* Sync local items first */
+            /* Check if items already exist in remote before trying to add them */
             int l;
             for (l = 0; l < g_local_inventory_count; l++) {
                 if (!g_local_inventory_synced[l]) {
-                    star_api_result_t add_result = star_api_add_item(
-                        g_local_inventory_entries[l].name,
-                        g_local_inventory_entries[l].description,
-                        "Quake",
-                        g_local_inventory_entries[l].item_type);
-                    if (add_result == STAR_API_SUCCESS)
+                    /* First check if item already exists in remote */
+                    if (star_api_has_item(g_local_inventory_entries[l].name)) {
                         g_local_inventory_synced[l] = true;
+                    } else {
+                        /* Item doesn't exist - try to add it */
+                        star_api_result_t add_result = star_api_add_item(
+                            g_local_inventory_entries[l].name,
+                            g_local_inventory_entries[l].description,
+                            "Quake",
+                            g_local_inventory_entries[l].item_type);
+                        if (add_result == STAR_API_SUCCESS)
+                            g_local_inventory_synced[l] = true;
+                    }
                 }
             }
             /* Call API in background thread */
@@ -857,20 +871,29 @@ static void OQ_CheckInventoryRefreshComplete(void) {
     
     g_inventory_count = 0;
     
+    /* Store remote list items in a temporary array for checking */
+    char remote_item_names[OQ_MAX_INVENTORY_ITEMS][256];
+    int remote_item_count = 0;
+    
     if (remote_ok && list && list->count > 0) {
-        for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
+        for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS && remote_item_count < OQ_MAX_INVENTORY_ITEMS; i++) {
             oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
             q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
             q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
             q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
             g_inventory_count++;
             
+            /* Store item name for later checking */
+            q_strlcpy(remote_item_names[remote_item_count], list->items[i].name, sizeof(remote_item_names[remote_item_count]));
+            remote_item_count++;
+            
             /* Mark local items as synced if they exist in remote inventory */
             {
                 int l;
                 for (l = 0; l < g_local_inventory_count; l++) {
-                    if (!g_local_inventory_synced[l] && !strcmp(g_local_inventory_entries[l].name, list->items[i].name)) {
+                    if (!strcmp(g_local_inventory_entries[l].name, list->items[i].name)) {
                         g_local_inventory_synced[l] = true;
+                        break;
                     }
                 }
             }
@@ -879,8 +902,45 @@ static void OQ_CheckInventoryRefreshComplete(void) {
         list = NULL; /* Prevent double-free */
     }
     
+    /* Double-check synced status: if an item is in remote (via star_api_has_item or remote list), mark it as synced */
+    /* This handles items that were successfully synced via star_api_add_item but haven't appeared in remote list yet */
+    /* Also handles starting weapons/items that are in remote from previous session */
+    /* Priority: check remote list first (most accurate), then star_api_has_item as fallback */
+    /* Always check star_api_has_item as a final fallback, even if remote_ok is false */
+    {
+        int l;
+        for (l = 0; l < g_local_inventory_count; l++) {
+            if (!g_local_inventory_synced[l]) {
+                /* First check if item is in remote list (most accurate) */
+                int found_in_remote = 0;
+                if (remote_ok) {
+                    int r;
+                    for (r = 0; r < remote_item_count; r++) {
+                        if (!strcmp(g_local_inventory_entries[l].name, remote_item_names[r])) {
+                            found_in_remote = 1;
+                            break;
+                        }
+                    }
+                }
+                /* If not in remote list, check star_api_has_item as fallback */
+                /* This is important for items that exist in remote but aren't in the list (e.g., cache issues) */
+                if (found_in_remote) {
+                    g_local_inventory_synced[l] = true;
+                } else if (g_star_initialized && star_api_has_item(g_local_inventory_entries[l].name)) {
+                    g_local_inventory_synced[l] = true;
+                }
+            }
+        }
+    }
+    
     /* Add local items that aren't in remote to display */
+    /* Note: Items that are already marked as synced (from star_api_add_item) should NOT be added to display
+       because they're already in remote, even if they haven't appeared in the remote list yet */
     for (i = 0; i < (size_t)g_local_inventory_count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
+        /* Skip items that are already synced - they're in remote, just not in the list yet */
+        if (g_local_inventory_synced[i])
+            continue;
+            
         int j;
         int exists = 0;
         for (j = 0; j < g_inventory_count; j++) {
@@ -900,7 +960,8 @@ static void OQ_CheckInventoryRefreshComplete(void) {
     
     /* After processing, remove all synced items from local inventory */
     /* This prevents showing "pending" items that are already in the remote inventory */
-    if (remote_ok) {
+    /* Always remove synced items, regardless of remote_ok, because they were successfully synced via star_api_add_item */
+    {
         int l, write_idx = 0;
         for (l = 0; l < g_local_inventory_count; l++) {
             if (!g_local_inventory_synced[l]) {
@@ -916,13 +977,8 @@ static void OQ_CheckInventoryRefreshComplete(void) {
     }
     
     /* Count pending local items (only items that aren't synced) */
-    {
-        int l;
-        for (l = 0; l < g_local_inventory_count; l++) {
-            if (!g_local_inventory_synced[l])
-                pending_local++;
-        }
-    }
+    /* After compaction, all remaining items are unsynced */
+    pending_local = g_local_inventory_count;
     
     /* Update status message */
     if (g_inventory_count == 0) {

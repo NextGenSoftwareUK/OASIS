@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
@@ -376,85 +378,32 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IInventoryItem>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetInventory()
         {
-            // Implement directly in WEB5 using STARAPI (Web4 doesn't have this endpoint)
-            try
-            {
-                if (AvatarId == Guid.Empty)
-                {
-                    return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
-                    {
-                        IsError = true,
-                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-                    });
-                }
-
-                await EnsureStarApiBootedAsync();
-                var result = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
-                if (result.IsError)
-                    return BadRequest(result);
-                
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
-                {
-                    IsError = true,
-                    Message = $"Error loading avatar inventory: {ex.Message}",
-                    Exception = ex
-                });
-            }
+            return await ForwardToWeb4Async(HttpMethod.Get, "/api/avatar/inventory");
         }
 
         /// <summary>
         /// Adds an item to the avatar's inventory.
+        /// Accepts InventoryItem object directly (ASP.NET Core automatically deserializes JSON).
         /// Delegates to WEB4 OASIS API.
         /// </summary>
         [HttpPost("inventory")]
         [ProducesResponseType(typeof(OASISResult<IInventoryItem>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IInventoryItem>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> AddItemToInventory([FromBody] JsonElement payload)
+        public async Task<IActionResult> AddItemToInventory([FromBody] InventoryItem inventoryItem)
         {
-            // Current implementation: Delegates to WEB4 OASIS API
-            var json = payload.GetRawText();
+            if (inventoryItem == null)
+            {
+                return BadRequest(new OASISResult<IInventoryItem>
+                {
+                    IsError = true,
+                    Message = "InventoryItem is required."
+                });
+            }
+
+            // Serialize to JSON for forwarding to Web4
+            var json = System.Text.Json.JsonSerializer.Serialize(inventoryItem);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             return await ForwardToWeb4Async(HttpMethod.Post, "/api/avatar/inventory", content);
-
-            // TODO: Potential future WEB5 STARAPI implementation (commented out for now):
-            //try
-            //{
-            //    if (AvatarId == Guid.Empty)
-            //    {
-            //        return BadRequest(new OASISResult<IInventoryItem>
-            //        {
-            //            IsError = true,
-            //            Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-            //        });
-            //    }
-
-            //    var name = payload.TryGetProperty("Name", out var nameProp) && nameProp.ValueKind == JsonValueKind.String
-            //        ? nameProp.GetString() ?? "Inventory Item"
-            //        : "Inventory Item";
-            //    var description = payload.TryGetProperty("Description", out var descProp) && descProp.ValueKind == JsonValueKind.String
-            //        ? descProp.GetString() ?? string.Empty
-            //        : string.Empty;
-
-            //    await EnsureStarApiBootedAsync();
-            //    var result = await _starAPI.InventoryItems.CreateAsync(AvatarId, name, description, null, null, null);
-            //    if (result.IsError)
-            //        return BadRequest(result);
-            //    
-            //    return Ok(result);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(new OASISResult<IInventoryItem>
-            //    {
-            //        IsError = true,
-            //        Message = $"Error adding item to inventory: {ex.Message}",
-            //        Exception = ex
-            //    });
-            //}
         }
 
         /// <summary>
@@ -466,37 +415,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RemoveItemFromInventory(Guid itemId)
         {
-            // Current implementation: Delegates to WEB4 OASIS API
             return await ForwardToWeb4Async(HttpMethod.Delete, $"/api/avatar/inventory/{itemId}");
-
-            // TODO: Potential future WEB5 STARAPI implementation (commented out for now):
-            //try
-            //{
-            //    if (AvatarId == Guid.Empty)
-            //    {
-            //        return BadRequest(new OASISResult<bool>
-            //        {
-            //            IsError = true,
-            //            Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-            //        });
-            //    }
-
-            //    await EnsureStarApiBootedAsync();
-            //    var result = await _starAPI.InventoryItems.DeleteAsync(AvatarId, itemId, 0);
-            //    if (result.IsError)
-            //        return BadRequest(result);
-            //    
-            //    return Ok(result);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(new OASISResult<bool>
-            //    {
-            //        IsError = true,
-            //        Message = $"Error removing item from inventory: {ex.Message}",
-            //        Exception = ex
-            //    });
-            //}
         }
 
         /// <summary>
@@ -508,39 +427,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> HasItem(Guid itemId)
         {
-            // Current implementation: Delegates to WEB4 OASIS API
             return await ForwardToWeb4Async(HttpMethod.Get, $"/api/avatar/inventory/{itemId}/has");
-
-            // TODO: Potential future WEB5 STARAPI implementation (commented out for now):
-            //try
-            //{
-            //    if (AvatarId == Guid.Empty)
-            //    {
-            //        return BadRequest(new OASISResult<bool>
-            //        {
-            //            IsError = true,
-            //            Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-            //        });
-            //    }
-
-            //    await EnsureStarApiBootedAsync();
-            //    var inventoryResult = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
-            //    if (inventoryResult.IsError)
-            //        return BadRequest(inventoryResult);
-
-            //    var hasItem = inventoryResult.Result?.Any(i => i.Id == itemId) ?? false;
-            //    var result = new OASISResult<bool> { Result = hasItem, IsError = false, Message = hasItem ? "Avatar has the item." : "Avatar does not have the item." };
-            //    return Ok(result);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(new OASISResult<bool>
-            //    {
-            //        IsError = true,
-            //        Message = $"Error checking if avatar has item: {ex.Message}",
-            //        Exception = ex
-            //    });
-            //}
         }
 
         /// <summary>
@@ -552,41 +439,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> HasItemByName([FromQuery] string itemName)
         {
-            // Current implementation: Delegates to WEB4 OASIS API
             return await ForwardToWeb4Async(HttpMethod.Get, $"/api/avatar/inventory/has-by-name?itemName={Uri.EscapeDataString(itemName)}");
-
-            // TODO: Potential future WEB5 STARAPI implementation (commented out for now):
-            //try
-            //{
-            //    if (AvatarId == Guid.Empty)
-            //    {
-            //        return BadRequest(new OASISResult<bool>
-            //        {
-            //            IsError = true,
-            //            Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-            //        });
-            //    }
-
-            //    await EnsureStarApiBootedAsync();
-            //    var inventoryResult = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
-            //    if (inventoryResult.IsError)
-            //        return BadRequest(inventoryResult);
-
-            //    var hasItem = inventoryResult.Result?.Any(i =>
-            //        i.Name?.Equals(itemName, StringComparison.OrdinalIgnoreCase) == true ||
-            //        i.Description?.Contains(itemName, StringComparison.OrdinalIgnoreCase) == true) ?? false;
-            //    var result = new OASISResult<bool> { Result = hasItem, IsError = false, Message = hasItem ? $"Avatar has item '{itemName}'." : $"Avatar does not have item '{itemName}'." };
-            //    return Ok(result);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(new OASISResult<bool>
-            //    {
-            //        IsError = true,
-            //        Message = $"Error checking if avatar has item by name: {ex.Message}",
-            //        Exception = ex
-            //    });
-            //}
         }
 
         /// <summary>
@@ -598,43 +451,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IInventoryItem>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchInventory([FromQuery] string searchTerm)
         {
-            // Current implementation: Delegates to WEB4 OASIS API
             return await ForwardToWeb4Async(HttpMethod.Get, $"/api/avatar/inventory/search?searchTerm={Uri.EscapeDataString(searchTerm)}");
-
-            // TODO: Potential future WEB5 STARAPI implementation (commented out for now):
-            //try
-            //{
-            //    if (AvatarId == Guid.Empty)
-            //    {
-            //        return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
-            //        {
-            //            IsError = true,
-            //            Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-            //        });
-            //    }
-
-            //    await EnsureStarApiBootedAsync();
-            //    var inventoryResult = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, false, 0);
-            //    if (inventoryResult.IsError)
-            //        return BadRequest(inventoryResult);
-
-            //    var matchingItems = inventoryResult.Result?
-            //        .Where(i => i.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
-            //                    i.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true)
-            //        .Cast<IInventoryItem>()
-            //        .ToList() ?? new List<IInventoryItem>();
-            //    var result = new OASISResult<IEnumerable<IInventoryItem>> { Result = matchingItems, IsError = false, Message = $"Found {matchingItems.Count} matching items." };
-            //    return Ok(result);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(new OASISResult<IEnumerable<IInventoryItem>>
-            //    {
-            //        IsError = true,
-            //        Message = $"Error searching inventory: {ex.Message}",
-            //        Exception = ex
-            //    });
-            //}
         }
 
         /// <summary>
@@ -646,37 +463,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IInventoryItem>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetInventoryItem(Guid itemId)
         {
-            // Current implementation: Delegates to WEB4 OASIS API
             return await ForwardToWeb4Async(HttpMethod.Get, $"/api/avatar/inventory/{itemId}");
-
-            // TODO: Potential future WEB5 STARAPI implementation (commented out for now):
-            //try
-            //{
-            //    if (AvatarId == Guid.Empty)
-            //    {
-            //        return BadRequest(new OASISResult<IInventoryItem>
-            //        {
-            //            IsError = true,
-            //            Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-            //        });
-            //    }
-
-            //    await EnsureStarApiBootedAsync();
-            //    var result = await _starAPI.InventoryItems.LoadAsync(AvatarId, itemId, 0);
-            //    if (result.IsError)
-            //        return BadRequest(result);
-            //    
-            //    return Ok(result);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(new OASISResult<IInventoryItem>
-            //    {
-            //        IsError = true,
-            //        Message = $"Error getting inventory item: {ex.Message}",
-            //        Exception = ex
-            //    });
-            //}
         }
 
         #endregion
