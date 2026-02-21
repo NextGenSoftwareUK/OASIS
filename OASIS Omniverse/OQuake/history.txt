@@ -44,3 +44,13 @@ star config
 star face
 star face off
 star face on
+star beamin dellams test!
+star face
+star face off
+star face on
+star beamin anroak test!
+star beamin anorak test!
+star beamin dellams test!
+str
+star
+star config
