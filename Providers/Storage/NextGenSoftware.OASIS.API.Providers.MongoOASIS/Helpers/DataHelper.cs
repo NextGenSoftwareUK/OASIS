@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -259,7 +259,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 
             //oasisAvatar.Inventory = avatar.Result.Inventory;
 
-            if (avatar.Result.Achievements != null)
+            if (avatar.Result.Inventory != null)
             {
                 foreach (var item in avatar.Result.Inventory)
                     oasisAvatar.Inventory.Add((InventoryItem)item);

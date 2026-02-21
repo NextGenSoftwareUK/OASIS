@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using MongoDB.Bson;
+using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Options;
 using MongoDB.Bson.Serialization.Serializers;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serializers
@@ -13,33 +15,62 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
     /// </summary>
     public class MetaDataDictionarySerializer : DictionarySerializerBase<Dictionary<string, object>>
     {
-        public MetaDataDictionarySerializer() : base(DictionaryRepresentation.Document)
+        public MetaDataDictionarySerializer() : base(MongoDB.Bson.Serialization.Options.DictionaryRepresentation.Document)
         {
         }
 
-        protected override Dictionary<string, object> CreateDeserializedValue(BsonDeserializationContext context, BsonDeserializationArgs args)
+        protected override Dictionary<string, object> CreateInstance()
         {
             return new Dictionary<string, object>();
         }
 
-        protected override void AddItem(BsonDeserializationContext context, Dictionary<string, object> dictionary, BsonDeserializationArgs args)
+        protected override Dictionary<string, object> DeserializeValue(BsonDeserializationContext context, BsonDeserializationArgs args)
         {
             var reader = context.Reader;
-            var bsonType = reader.GetCurrentBsonType();
+            var currentType = reader.GetCurrentBsonType();
 
-            if (bsonType == BsonType.EndOfDocument)
+            if (currentType == BsonType.Array)
             {
-                reader.ReadEndDocument();
-                return;
+                // Stored as ArrayOfArrays: [ ["key1", value1], ["key2", value2], ... ]
+                return DeserializeArrayOfArrays(reader);
             }
 
-            var key = reader.ReadName();
-            object value = DeserializeValue(reader, bsonType);
-            
-            dictionary[key] = value;
+            // Stored as Document: { "key1": value1, "key2": value2, ... }
+            reader.ReadStartDocument();
+            var dictionary = new Dictionary<string, object>();
+
+            while (reader.ReadBsonType() != BsonType.EndOfDocument)
+            {
+                var key = reader.ReadName();
+                var bsonType = reader.GetCurrentBsonType();
+                dictionary[key] = ReadBsonValue(reader, bsonType);
+            }
+
+            reader.ReadEndDocument();
+            return dictionary;
         }
 
-        private object DeserializeValue(IBsonReader reader, BsonType bsonType)
+        private static Dictionary<string, object> DeserializeArrayOfArrays(IBsonReader reader)
+        {
+            reader.ReadStartArray();
+            var dictionary = new Dictionary<string, object>();
+
+            while (reader.ReadBsonType() != BsonType.EndOfDocument)
+            {
+                // Each element is [ key, value ]
+                reader.ReadStartArray();
+                var keyType = reader.ReadBsonType();
+                var key = keyType == BsonType.String ? reader.ReadString() : (ReadBsonValue(reader, keyType)?.ToString() ?? "");
+                var valueBsonType = reader.ReadBsonType();
+                dictionary[key] = ReadBsonValue(reader, valueBsonType);
+                reader.ReadEndArray();
+            }
+
+            reader.ReadEndArray();
+            return dictionary;
+        }
+
+        private static object ReadBsonValue(IBsonReader reader, BsonType bsonType)
         {
             switch (bsonType)
             {
@@ -71,9 +102,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 case BsonType.ObjectId:
                     return reader.ReadObjectId().ToString();
 
-                case BsonType.Guid:
-                    return reader.ReadGuid();
-
                 case BsonType.Binary:
                     return reader.ReadBytes();
 
@@ -82,15 +110,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
 
                 case BsonType.Document:
                     return DeserializeDocument(reader);
-
-                default:
-                    // For unknown types, read as BsonValue and convert
-                    var bsonValue = BsonValue.ReadFrom(reader);
-                    return ConvertBsonValue(bsonValue);
             }
+
+            // Skip unknown BSON type
+            reader.SkipValue();
+            return null;
         }
 
-        private object DeserializeArray(IBsonReader reader)
+        private static object DeserializeArray(IBsonReader reader)
         {
             reader.ReadStartArray();
             var list = new List<object>();
@@ -98,14 +125,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             while (reader.ReadBsonType() != BsonType.EndOfDocument)
             {
                 var bsonType = reader.GetCurrentBsonType();
-                list.Add(DeserializeValue(reader, bsonType));
+                list.Add(ReadBsonValue(reader, bsonType));
             }
 
             reader.ReadEndArray();
             return list.ToArray();
         }
 
-        private object DeserializeDocument(IBsonReader reader)
+        private static object DeserializeDocument(IBsonReader reader)
         {
             reader.ReadStartDocument();
             var dict = new Dictionary<string, object>();
@@ -114,67 +141,42 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             {
                 var key = reader.ReadName();
                 var bsonType = reader.GetCurrentBsonType();
-                dict[key] = DeserializeValue(reader, bsonType);
+                dict[key] = ReadBsonValue(reader, bsonType);
             }
 
             reader.ReadEndDocument();
             return dict;
         }
 
-        private object ConvertBsonValue(BsonValue bsonValue)
+        private static object ConvertBsonValue(BsonValue bsonValue)
         {
             if (bsonValue == null || bsonValue.IsBsonNull)
                 return null;
 
-            if (bsonValue.IsBsonBoolean)
-                return bsonValue.AsBoolean;
-
-            if (bsonValue.IsBsonInt32)
-                return bsonValue.AsInt32;
-
-            if (bsonValue.IsBsonInt64)
-                return bsonValue.AsInt64;
-
-            if (bsonValue.IsBsonDouble)
-                return bsonValue.AsDouble;
-
-            if (bsonValue.IsBsonDecimal128)
-                return (decimal)bsonValue.AsDecimal128;
-
-            if (bsonValue.IsBsonString)
-                return bsonValue.AsString;
-
-            if (bsonValue.IsBsonDateTime)
-                return bsonValue.ToUniversalTime();
-
-            if (bsonValue.IsBsonObjectId)
-                return bsonValue.AsObjectId.ToString();
-
-            if (bsonValue.IsBsonBinaryData)
-                return bsonValue.AsBsonBinaryData.Bytes;
-
-            if (bsonValue.IsBsonArray)
+            switch (bsonValue.BsonType)
             {
-                var array = new List<object>();
-                foreach (var item in bsonValue.AsBsonArray)
-                {
-                    array.Add(ConvertBsonValue(item));
-                }
-                return array.ToArray();
+                case BsonType.Boolean: return bsonValue.AsBoolean;
+                case BsonType.Int32: return bsonValue.AsInt32;
+                case BsonType.Int64: return bsonValue.AsInt64;
+                case BsonType.Double: return bsonValue.AsDouble;
+                case BsonType.Decimal128: return (decimal)bsonValue.AsDecimal128;
+                case BsonType.String: return bsonValue.AsString;
+                case BsonType.DateTime: return bsonValue.ToUniversalTime();
+                case BsonType.ObjectId: return bsonValue.AsObjectId.ToString();
+                case BsonType.Binary: return bsonValue.AsBsonBinaryData.Bytes;
+                case BsonType.Array:
+                    var array = new List<object>();
+                    foreach (var item in bsonValue.AsBsonArray)
+                        array.Add(ConvertBsonValue(item));
+                    return array.ToArray();
+                case BsonType.Document:
+                    var dict = new Dictionary<string, object>();
+                    foreach (var element in bsonValue.AsBsonDocument)
+                        dict[element.Name] = ConvertBsonValue(element.Value);
+                    return dict;
+                default:
+                    return bsonValue.ToString();
             }
-
-            if (bsonValue.IsBsonDocument)
-            {
-                var dict = new Dictionary<string, object>();
-                foreach (var element in bsonValue.AsBsonDocument)
-                {
-                    dict[element.Name] = ConvertBsonValue(element.Value);
-                }
-                return dict;
-            }
-
-            // Fallback: convert to string
-            return bsonValue.ToString();
         }
 
         protected override void SerializeValue(BsonSerializationContext context, BsonSerializationArgs args, Dictionary<string, object> dictionary)
@@ -214,9 +216,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             else if (valueType == typeof(string))
                 writer.WriteString((string)value);
             else if (valueType == typeof(DateTime))
-                writer.WriteDateTime(((DateTime)value).ToUniversalTime());
+            {
+                var dt = ((DateTime)value).ToUniversalTime();
+                var ms = (long)(dt - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+                writer.WriteDateTime(ms);
+            }
             else if (valueType == typeof(Guid))
-                writer.WriteGuid((Guid)value);
+                writer.WriteString(((Guid)value).ToString());
             else if (valueType.IsArray)
             {
                 writer.WriteStartArray();
@@ -236,11 +242,64 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 }
                 writer.WriteEndDocument();
             }
+            else if (value is JsonElement je)
+            {
+                SerializeJsonElement(writer, je);
+            }
             else
             {
-                // For other types, serialize as BSON value
+                // For other types, serialize via BsonSerializer
                 var bsonValue = BsonValue.Create(value);
-                bsonValue.WriteTo(writer);
+                BsonSerializer.Serialize(writer, bsonValue.GetType(), bsonValue);
+            }
+        }
+
+        private static void SerializeJsonElement(IBsonWriter writer, JsonElement je)
+        {
+            switch (je.ValueKind)
+            {
+                case JsonValueKind.Null:
+                    writer.WriteNull();
+                    break;
+                case JsonValueKind.String:
+                    writer.WriteString(je.GetString());
+                    break;
+                case JsonValueKind.Number:
+                    if (je.TryGetInt32(out int i32))
+                        writer.WriteInt32(i32);
+                    else if (je.TryGetInt64(out long i64))
+                        writer.WriteInt64(i64);
+                    else if (je.TryGetDouble(out double d))
+                        writer.WriteDouble(d);
+                    else if (je.TryGetDecimal(out decimal dec))
+                        writer.WriteDecimal128(dec);
+                    else
+                        writer.WriteDouble(je.GetDouble());
+                    break;
+                case JsonValueKind.True:
+                    writer.WriteBoolean(true);
+                    break;
+                case JsonValueKind.False:
+                    writer.WriteBoolean(false);
+                    break;
+                case JsonValueKind.Array:
+                    writer.WriteStartArray();
+                    foreach (var item in je.EnumerateArray())
+                        SerializeJsonElement(writer, item);
+                    writer.WriteEndArray();
+                    break;
+                case JsonValueKind.Object:
+                    writer.WriteStartDocument();
+                    foreach (var prop in je.EnumerateObject())
+                    {
+                        writer.WriteName(prop.Name);
+                        SerializeJsonElement(writer, prop.Value);
+                    }
+                    writer.WriteEndDocument();
+                    break;
+                default:
+                    writer.WriteString(je.ToString());
+                    break;
             }
         }
     }

@@ -73,13 +73,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (avatarDetail.Inventory == null)
                     avatarDetail.Inventory = new List<IInventoryItem>();
 
-                // Check if item already exists (by ID)
-                var existingItem = avatarDetail.Inventory.FirstOrDefault(i => i.Id == item.Id);
-                if (existingItem != null)
+                // If client did not send an Id (e.g. add-by-name flows), assign a new one so we don't false-match on Guid.Empty
+                if (item.Id == Guid.Empty)
+                    item.Id = Guid.NewGuid();
+
+                // Check if item already exists by ID (client sent an explicit id that is already in inventory)
+                var existingById = avatarDetail.Inventory.FirstOrDefault(i => i.Id == item.Id);
+                if (existingById != null)
                 {
                     result.IsError = true;
                     result.Message = "Item already exists in avatar inventory";
-                    result.Result = existingItem;
+                    result.Result = existingById;
+                    return result;
+                }
+
+                // Optionally treat add-by-name as idempotent: if same name exists, return success with existing item
+                var existingByName = avatarDetail.Inventory.FirstOrDefault(i =>
+                    i.Name?.Equals(item.Name, StringComparison.OrdinalIgnoreCase) == true);
+                if (existingByName != null)
+                {
+                    result.Result = existingByName;
+                    result.Message = "Item already exists in avatar inventory (matched by name)";
                     return result;
                 }
 

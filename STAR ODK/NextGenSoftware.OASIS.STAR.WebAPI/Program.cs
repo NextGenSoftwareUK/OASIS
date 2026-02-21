@@ -8,7 +8,6 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using Microsoft.AspNetCore.Mvc.Filters;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.STAR.WebAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -341,10 +340,9 @@ app.Use(async (context, next) =>
 });
 app.UseAuthorization();
 
-app.UseMiddleware<OASISMiddleware>();
-app.UseMiddleware<ErrorHandlerMiddleware>();
-app.UseMiddleware<JwtMiddleware>();
-app.UseMiddleware<SubscriptionMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.OASISMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.JwtMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.SubscriptionMiddleware>();
 
 app.MapControllers();
 
