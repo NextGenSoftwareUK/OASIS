@@ -59,6 +59,13 @@ if not exist "%NATIVEWRAPPER%\star_api.h" (echo star_api.h not found: %NATIVEWRA
 REM --- QuakeC tree ---
 if not exist "%QUAKE_SRC%" (echo Quake source not found: %QUAKE_SRC% & echo Edit QUAKE_SRC at top of script. & pause & exit /b 1)
 
+REM --- star_sync (generic async layer from STARAPIClient) ---
+set "STARAPICLIENT=%HERE%..\STARAPIClient"
+if exist "%STARAPICLIENT%\star_sync.c" (
+    copy /Y "%STARAPICLIENT%\star_sync.c" "%OQUAKE_INTEGRATION%\" >nul
+    copy /Y "%STARAPICLIENT%\star_sync.h" "%OQUAKE_INTEGRATION%\" >nul
+)
+
 echo.
 echo [OQuake] Installing...
 copy /Y "%OQUAKE_INTEGRATION%oquake_star_integration.c" "%QUAKE_SRC%\" >nul
@@ -67,6 +74,8 @@ copy /Y "%OQUAKE_INTEGRATION%oquake_version.h" "%QUAKE_SRC%\" >nul
 copy /Y "%OQUAKE_INTEGRATION%WINDOWS_INTEGRATION.md" "%QUAKE_SRC%\" >nul
 copy /Y "%OQUAKE_INTEGRATION%engine_oquake_hooks.c.example" "%QUAKE_SRC%\" >nul
 copy /Y "%NATIVEWRAPPER%\star_api.h" "%QUAKE_SRC%\" >nul
+if exist "%OQUAKE_INTEGRATION%star_sync.c" copy /Y "%OQUAKE_INTEGRATION%star_sync.c" "%QUAKE_SRC%\" >nul
+if exist "%OQUAKE_INTEGRATION%star_sync.h" copy /Y "%OQUAKE_INTEGRATION%star_sync.h" "%QUAKE_SRC%\" >nul
 copy /Y "%STAR_DLL%" "%QUAKE_SRC%\star_api.dll" >nul
 copy /Y "%STAR_LIB%" "%QUAKE_SRC%\star_api.lib" >nul
 echo   %QUAKE_SRC%
@@ -79,6 +88,8 @@ echo.
 echo [OQuake] Patching vkQuake source...
 set "APPLY_PS1=%OQUAKE_INTEGRATION%vkquake_oquake\apply_oquake_to_vkquake.ps1"
 if exist "%APPLY_PS1%" powershell -NoProfile -ExecutionPolicy Bypass -File "%APPLY_PS1%" -VkQuakeSrc "%VKQUAKE_SRC%"
+if exist "%OQUAKE_INTEGRATION%star_sync.c" copy /Y "%OQUAKE_INTEGRATION%star_sync.c" "%VKQUAKE_SRC%\Quake\" >nul
+if exist "%OQUAKE_INTEGRATION%star_sync.h" copy /Y "%OQUAKE_INTEGRATION%star_sync.h" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%STAR_DLL%" "%VKQUAKE_SRC%\Quake\star_api.dll" >nul
 copy /Y "%STAR_LIB%" "%VKQUAKE_SRC%\Quake\star_api.lib" >nul
 

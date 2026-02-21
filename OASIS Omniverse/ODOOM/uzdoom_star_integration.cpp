@@ -8,6 +8,7 @@
 
 #include "uzdoom_star_integration.h"
 #include "star_api.h"
+#include "star_sync.h"
 #include "odoom_branding.h"
 
 #include <cstdlib>
@@ -65,6 +66,8 @@ static bool g_star_has_last_pickup = false;
 static bool g_star_face_suppressed_for_session = false;
 /** Single source of truth for status bar face; only set by star face on/off and beam-in/out. */
 static bool g_star_show_anorak_face = false;
+/** True when we started async SSO auth so beamin command can show "Authenticating..." instead of "Beam-in failed". */
+static bool g_star_async_auth_pending = false;
 CVAR(Bool, oasis_star_anorak_face, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, oasis_star_beam_face, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(String, odoom_star_api_url, "https://star-api.oasisplatform.world/api", CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -104,8 +107,37 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 #endif
 }
 
+/** Poll async auth result and apply to g_star_initialized / username / avatar_id. Call every frame. */
+static void ODOOM_STAR_PollAsyncAuth(void)
+{
+	if (star_sync_auth_poll() != 1)
+		return;
+	int success = 0;
+	char username_buf[64] = {};
+	char avatar_id_buf[64] = {};
+	char error_buf[256] = {};
+	if (!star_sync_auth_get_result(&success, username_buf, sizeof(username_buf), avatar_id_buf, sizeof(avatar_id_buf), error_buf, sizeof(error_buf)))
+		return;
+	g_star_async_auth_pending = false;
+	if (success) {
+		g_star_initialized = true;
+		g_star_logged_runtime_auth_failure = false;
+		g_star_logged_missing_auth_config = false;
+		g_star_effective_username = username_buf;
+		g_star_effective_avatar_id = avatar_id_buf;
+		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
+		odoom_star_username = g_star_effective_username.c_str();
+		StarApplyBeamFacePreference();
+		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
+	} else {
+		Printf(PRINT_NONOTIFY, "Beam-in failed: %s\n", error_buf[0] ? error_buf : star_api_get_last_error());
+	}
+}
+
 void ODOOM_InventoryInputCaptureFrame(void)
 {
+	ODOOM_STAR_PollAsyncAuth();
+
 	FBaseCVar* openVar = FindCVar("odoom_inventory_open", nullptr);
 	const bool open = (openVar && openVar->GetRealType() == CVAR_Int && openVar->GetGenericRep(CVAR_Int).Int != 0);
 
@@ -576,18 +608,14 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	const char* username = g_star_effective_username.empty() ? nullptr : g_star_effective_username.c_str();
 	const char* password = g_star_effective_password.empty() ? nullptr : g_star_effective_password.c_str();
 	if (HasValue(username) && HasValue(password)) {
-		if (logVerbose) StarLogInfo("Beaming in... authenticating avatar via SSO.");
-		star_api_result_t auth = star_api_authenticate(username, password);
-		if (auth == STAR_API_SUCCESS) {
-			g_star_initialized = true;
-			g_star_logged_runtime_auth_failure = false;
-			g_star_logged_missing_auth_config = false;
-			odoom_star_username = g_star_effective_username.c_str();
-			StarApplyBeamFacePreference();
-			if (logVerbose) StarLogInfo("Beam-in successful (SSO). Cross-game features enabled.");
-			return true;
+		if (star_sync_auth_in_progress()) {
+			if (logVerbose) StarLogInfo("SSO auth already in progress.");
+			return false;
 		}
-		if (logVerbose) StarLogError("Beam-in failed (SSO): %s", star_api_get_last_error());
+		if (logVerbose) StarLogInfo("Beaming in... starting async SSO authentication.");
+		star_sync_auth_start(username, password);
+		g_star_async_auth_pending = true;
+		return false; /* Result will be applied in ODOOM_STAR_PollAsyncAuth. */
 	}
 
 	// API key + avatar mode: verify we can access inventory for this avatar.
@@ -644,6 +672,7 @@ static const char* GetKeycardDescription(int keynum) {
 }
 
 void UZDoom_STAR_Init(void) {
+	star_sync_init();
 	/* Always start with default Doom face until explicit beam-in. */
 	g_star_show_anorak_face = false;
 	oasis_star_anorak_face = false;
@@ -676,6 +705,8 @@ void UZDoom_STAR_Init(void) {
 }
 
 void UZDoom_STAR_Cleanup(void) {
+	star_sync_cleanup();
+	g_star_async_auth_pending = false;
 	if (g_star_client_ready) {
 		star_api_cleanup();
 		g_star_client_ready = false;
@@ -1128,6 +1159,11 @@ CCMD(star)
 			Printf("\n");
 			return;
 		}
+		if (g_star_async_auth_pending) {
+			Printf("Authenticating... Please wait.\n");
+			Printf("\n");
+			return;
+		}
 		g_star_face_suppressed_for_session = false;
 		Printf("Beam-in failed: %s\n", star_api_get_last_error());
 		Printf("\n");
@@ -1145,6 +1181,7 @@ CCMD(star)
 		}
 		g_star_client_ready = false;
 		g_star_initialized = false;
+		g_star_async_auth_pending = false;
 		g_star_face_suppressed_for_session = false;
 		g_star_effective_username.clear();
 		g_star_show_anorak_face = false;

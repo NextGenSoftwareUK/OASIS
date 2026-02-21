@@ -226,6 +226,27 @@ static pthread_mutex_t g_inv_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t g_inv_thread = 0;
 #endif
 
+static int g_sync_initialized = 0;
+
+void star_sync_init(void) {
+    if (g_sync_initialized) return;
+#ifdef _WIN32
+    InitializeCriticalSection(&g_auth_lock);
+    InitializeCriticalSection(&g_inv_lock);
+#endif
+    g_sync_initialized = 1;
+}
+
+void star_sync_cleanup(void) {
+    if (!g_sync_initialized) return;
+    star_sync_inventory_clear_result();
+#ifdef _WIN32
+    DeleteCriticalSection(&g_inv_lock);
+    DeleteCriticalSection(&g_auth_lock);
+#endif
+    g_sync_initialized = 0;
+}
+
 #ifdef _WIN32
 static DWORD WINAPI inventory_thread_proc(LPVOID param) {
 #else

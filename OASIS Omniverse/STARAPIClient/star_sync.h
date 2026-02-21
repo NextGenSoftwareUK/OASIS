@@ -20,6 +20,12 @@
 extern "C" {
 #endif
 
+/** Call once at game startup (e.g. from OQuake_STAR_Init). Required on Windows to initialize locks. */
+void star_sync_init(void);
+
+/** Call at game shutdown (e.g. from OQuake_STAR_Cleanup). Frees any pending inventory result and tears down locks. */
+void star_sync_cleanup(void);
+
 /* ---------------------------------------------------------------------------
  * Local item entry: one item to sync to remote (has_item then add_item if missing).
  * name, description, game_source, item_type are inputs; synced is output (1 when synced).
