@@ -175,3 +175,24 @@ await client.FlushQuestObjectiveJobsAsync();
 
 Queueing is optional. Existing direct APIs remain unchanged and can be used side-by-side with queued mode.
 
+## Game integration (async layer: `star_sync.h` / `star_sync.c`)
+
+For C/C++ games (e.g. OQUAKE, ODOOM) that run on the main/game thread and must not block on network, use the **generic async layer** in `star_sync.h` and `star_sync.c`. It provides:
+
+- **Async authentication** – start auth on a background thread, poll from the main loop, then read result (success, username, avatar_id, error).
+- **Async inventory refresh** – optionally sync a list of “local” items to the remote (has_item → add_item if missing), then get_inventory; poll from main thread and get the list + result.
+- **Single-item sync** – `star_sync_single_item()` for immediate sync of one item from the main thread (e.g. key pickup).
+
+### Build
+
+Compile your game sources and **include `star_sync.c`** in the build (or build a static lib from `star_sync.c`). Link with `star_api.lib` and the C runtime. Include `star_api.h` and `star_sync.h` where needed. On Windows the layer uses Win32 threads and `CRITICAL_SECTION`; elsewhere it uses `pthreads`.
+
+### Usage pattern
+
+1. **Init** – Call `star_api_init()` as usual (e.g. at startup).
+2. **Auth** – Call `star_sync_auth_start(username, password)`. Each frame (or where you draw status), call `star_sync_auth_poll()`: if it returns `1`, call `star_sync_auth_get_result()` to get success/username/avatar_id/error and update your game state (e.g. set avatar_id for later API calls); if it returns `0`, still in progress; if `-1`, no pending result.
+3. **Inventory** – When authenticated, call `star_sync_inventory_start(local_items, local_count, "GameName")` with your array of `star_sync_local_item_t` (or `NULL`/`0` to only fetch). Each frame call `star_sync_inventory_poll()`: if it returns `1`, call `star_sync_inventory_get_result()` to get the `star_item_list_t*`, process it, then call `star_api_free_item_list(list)` and optionally `star_sync_inventory_clear_result()`.
+4. **Single item** – For one-off sync (e.g. key pickup), call `star_sync_single_item(name, description, game_source, item_type)` from the main thread.
+
+Keep `local_items` and its `synced` flags valid until the inventory refresh completes (poll returns 1). The sync layer updates `synced` in the background. Using this layer keeps threading and sync logic out of game code and makes porting other games to OASIS easier.
+
