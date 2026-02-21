@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -309,6 +309,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             app.UseAuthorization();
 
+            app.UseMiddleware<OASISRequestContextMiddleware>();
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseMiddleware<JwtMiddleware>();

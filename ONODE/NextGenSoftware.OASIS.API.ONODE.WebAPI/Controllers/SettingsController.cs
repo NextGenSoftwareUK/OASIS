@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -116,6 +116,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("hyperdrive-settings")]
         public async Task<OASISResult<bool>> UpdateHyperDriveSettings([FromBody] Dictionary<string, object> settings)
         {
+            if (settings == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with HyperDrive settings." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 
@@ -157,6 +159,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("system-settings")]
         public async Task<OASISResult<bool>> UpdateSystemSettings([FromBody] Dictionary<string, object> settings)
         {
+            if (settings == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with system settings." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 
@@ -198,6 +202,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("subscription-settings")]
         public async Task<OASISResult<bool>> UpdateSubscriptionSettings([FromBody] Dictionary<string, object> settings)
         {
+            if (settings == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with subscription settings." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 
@@ -220,6 +226,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IAvatar>> UpdateSettings([FromBody] Dictionary<string, object> settings)
         {
             var result = new OASISResult<IAvatar>();
+            if (settings == null)
+            {
+                result.IsError = true;
+                result.Message = "The request body is required. Please provide a valid JSON object with settings (e.g. firstName, lastName, title).";
+                return result;
+            }
             try
             {
                 if (Avatar == null)
@@ -378,6 +390,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("notification-preferences")]
         public async Task<OASISResult<bool>> UpdateNotificationPreferences([FromBody] Dictionary<string, object> preferences)
         {
+            if (preferences == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with notification preferences." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 
@@ -419,6 +433,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("privacy-settings")]
         public async Task<OASISResult<bool>> UpdatePrivacySettings([FromBody] Dictionary<string, object> privacySettings)
         {
+            if (privacySettings == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with privacy settings." };
             if (Avatar == null)
             {
                 return new OASISResult<bool> 

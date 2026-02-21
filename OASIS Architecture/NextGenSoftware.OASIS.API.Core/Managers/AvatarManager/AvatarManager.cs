@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -30,10 +31,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         { 
             get
             {
-                //If there is no logged in user then default to the OASIS System Account Id. //TODO: May need to look into this in more detail later to work out all use/edge cases etc...
+                // Request-scoped avatar first (set by WEB4/WEB5 middleware) - safe for multiple concurrent clients
+                var requestAvatar = OASISRequestContext.CurrentAvatar;
+                if (requestAvatar != null)
+                    return requestAvatar;
+                var requestAvatarId = OASISRequestContext.CurrentAvatarId;
+                if (requestAvatarId.HasValue && requestAvatarId.Value != Guid.Empty)
+                    return new Avatar() { Id = requestAvatarId.Value };
+                // Fallback to static for non-API callers (e.g. CLI, desktop)
                 if (_loggedInAvatar == null && !string.IsNullOrEmpty(Instance.OASISDNA.OASIS.OASISSystemAccountId))
                     _loggedInAvatar = new Avatar() { Id = new Guid(Instance.OASISDNA.OASIS.OASISSystemAccountId) };
-
                 return _loggedInAvatar;
             }
             set
@@ -1374,6 +1381,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, CreateSessionRequest sessionData)
         {
             OASISResult<AvatarSession> result = new OASISResult<AvatarSession>();
+            if (sessionData == null)
+            {
+                result.IsError = true;
+                result.Message = "The session data is required. Please provide a valid request with ServiceName, ServiceType, and optional DeviceType, Location, etc.";
+                return result;
+            }
             string errorMessage = $"Error in CreateAvatarSessionAsync method in AvatarManager for avatar {avatarId}. Reason: ";
 
             try

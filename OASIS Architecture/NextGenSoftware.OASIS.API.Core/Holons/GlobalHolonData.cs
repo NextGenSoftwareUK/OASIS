@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -264,28 +264,40 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         public virtual async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon savingHolon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IHolon> result = await HolonManager.Instance.SaveHolonAsync(savingHolon, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            var avatarId = GetLoggedInAvatarId();
+            if (avatarId == Guid.Empty)
+                return new OASISResult<IHolon>(savingHolon) { IsError = true, Message = "The avatar has not been authenticated. Make sure you have authenticated first using the avatar/authenticate endpoint." };
+            OASISResult<IHolon> result = await HolonManager.Instance.SaveHolonAsync(savingHolon, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
             HandleSaveHolonResult(savingHolon, "SaveHolonAsync", ref result);
             return result;
         }
 
         public virtual OASISResult<IHolon> SaveHolon(IHolon savingHolon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IHolon> result = HolonManager.Instance.SaveHolon(savingHolon, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            var avatarId = GetLoggedInAvatarId();
+            if (avatarId == Guid.Empty)
+                return new OASISResult<IHolon>(savingHolon) { IsError = true, Message = "The avatar has not been authenticated. Make sure you have authenticated first using the avatar/authenticate endpoint." };
+            OASISResult<IHolon> result = HolonManager.Instance.SaveHolon(savingHolon, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
             HandleSaveHolonResult(savingHolon, "SaveHolon", ref result);
             return result;
         }
 
         public virtual async Task<OASISResult<T>> SaveHolonAsync<T>(IHolon savingHolon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            OASISResult<T> result = await HolonManager.Instance.SaveHolonAsync<T>(savingHolon, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            var avatarId = GetLoggedInAvatarId();
+            if (avatarId == Guid.Empty)
+                return new OASISResult<T> { IsError = true, Message = "The avatar has not been authenticated. Make sure you have authenticated first using the avatar/authenticate endpoint." };
+            OASISResult<T> result = await HolonManager.Instance.SaveHolonAsync<T>(savingHolon, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
             HandleSaveHolonResult(savingHolon, "SaveHolonAsync<T>", ref result);
             return result;
         }
 
         public virtual OASISResult<T> SaveHolon<T>(IHolon savingHolon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
-            OASISResult<T> result = HolonManager.Instance.SaveHolon<T>(savingHolon, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            var avatarId = GetLoggedInAvatarId();
+            if (avatarId == Guid.Empty)
+                return new OASISResult<T> { IsError = true, Message = "The avatar has not been authenticated. Make sure you have authenticated first using the avatar/authenticate endpoint." };
+            OASISResult<T> result = HolonManager.Instance.SaveHolon<T>(savingHolon, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
             HandleSaveHolonResult(savingHolon, "SaveHolon<T>", ref result);
             return result;
         }
@@ -298,7 +310,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (savingHolons.Count() == 0)
                 return new OASISResult<IEnumerable<IHolon>>(savingHolons) { Message = "Holons collection is empty.", IsWarning = true };
 
-            OASISResult<IEnumerable<IHolon>> result = await HolonManager.Instance.SaveHolonsAsync(savingHolons, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, false, providerType);
+            var avatarId = GetLoggedInAvatarId();
+            if (avatarId == Guid.Empty)
+                return new OASISResult<IEnumerable<IHolon>>(savingHolons) { IsError = true, Message = "The avatar has not been authenticated. Make sure you have authenticated first using the avatar/authenticate endpoint." };
+
+            OASISResult<IEnumerable<IHolon>> result = await HolonManager.Instance.SaveHolonsAsync(savingHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, false, providerType);
             HandleSaveHolonsResult(savingHolons, "SaveHolonsAsync", ref result);
             return result;
         }
@@ -311,7 +327,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (savingHolons.Count() == 0)
                 return new OASISResult<IEnumerable<IHolon>>(savingHolons) { Message = "Holons collection is empty.", IsWarning = true };
 
-            OASISResult<IEnumerable<IHolon>> result = HolonManager.Instance.SaveHolons(savingHolons, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            var avatarId = GetLoggedInAvatarId();
+            if (avatarId == Guid.Empty)
+                return new OASISResult<IEnumerable<IHolon>>(savingHolons) { IsError = true, Message = "The avatar has not been authenticated. Make sure you have authenticated first using the avatar/authenticate endpoint." };
+
+            OASISResult<IEnumerable<IHolon>> result = HolonManager.Instance.SaveHolons(savingHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
             HandleSaveHolonsResult(savingHolons, "SaveHolonsAsync", ref result);
             return result;
         }
@@ -326,7 +346,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (savingHolons.Count() == 0)
                 return new OASISResult<IEnumerable<T>>(savingHolons) { Message = "Holons collection is empty.", IsWarning = true };
 
-            OASISResult<IEnumerable<T>> saveHolonResult = await HolonManager.Instance.SaveHolonsAsync<T>(savingHolons, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, false, providerType);
+            var avatarId = GetLoggedInAvatarId();
+            if (avatarId == Guid.Empty)
+                return new OASISResult<IEnumerable<T>>(savingHolons) { IsError = true, Message = "The avatar has not been authenticated. Make sure you have authenticated first using the avatar/authenticate endpoint." };
+
+            OASISResult<IEnumerable<T>> saveHolonResult = await HolonManager.Instance.SaveHolonsAsync<T>(savingHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, false, providerType);
             OASISResult<IEnumerable<IHolon>> holonsResult = OASISResultHelper.CopyResult(saveHolonResult);
             HandleSaveHolonsResult(OASISResultHelper.CopyResult(result).Result, "SaveHolonsAsync<T>", ref holonsResult);
             return result;
@@ -342,11 +366,25 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             if (savingHolons.Count() == 0)
                 return new OASISResult<IEnumerable<T>>(savingHolons) { Message = "Holons collection is empty.", IsWarning = true };
 
-            OASISResult<IEnumerable<T>> saveHolonResult = HolonManager.Instance.SaveHolons(savingHolons, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
+            var avatarId = GetLoggedInAvatarId();
+            if (avatarId == Guid.Empty)
+                return new OASISResult<IEnumerable<T>>(savingHolons) { IsError = true, Message = "The avatar has not been authenticated. Make sure you have authenticated first using the avatar/authenticate endpoint." };
+
+            OASISResult<IEnumerable<T>> saveHolonResult = HolonManager.Instance.SaveHolons(savingHolons, avatarId, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
 
             OASISResult<IEnumerable<IHolon>> holonsResult = OASISResultHelper.CopyResult(saveHolonResult);
             HandleSaveHolonsResult(OASISResultHelper.CopyResult(result).Result, "SaveHolonsAsync<T>", ref holonsResult);
             return result;
+        }
+
+        private static Guid GetLoggedInAvatarId()
+        {
+            if (AvatarManager.LoggedInAvatar == null)
+                return Guid.Empty;
+            var id = AvatarManager.LoggedInAvatar.Id;
+            if (id != Guid.Empty)
+                return id;
+            return AvatarManager.LoggedInAvatar.AvatarId;
         }
 
         public virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentHolon, IHolon holon, List<IHolon> holons, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)

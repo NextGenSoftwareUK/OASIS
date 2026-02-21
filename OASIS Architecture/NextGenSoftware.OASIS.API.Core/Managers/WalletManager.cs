@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -738,6 +738,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<ISendWeb4TokenResponse>> SendTokenAsync(Guid avatarId, ISendWeb4TokenRequest request)
         {
             OASISResult<ISendWeb4TokenResponse> result = new OASISResult<ISendWeb4TokenResponse>(new SendWeb4TokenResponse());
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The send token request is required. Please provide a valid request with FromWalletAddress or FromProvider, ToWalletAddress, Amount, and ProviderType.";
+                return result;
+            }
             OASISResult<ITransactionResponse> blockchainResult = new OASISResult<ITransactionResponse>();
             string errorMessage = "Error Occured in SendTokenAsync function. Reason: ";
 
@@ -882,6 +888,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(Guid avatarId, ISendWeb4NFTRequest request)
         {
             OASISResult<ISendWeb4NFTResponse> result = new OASISResult<ISendWeb4NFTResponse>(new SendWeb4NFTResponse());
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The send NFT request is required. Please provide a valid request with FromWalletAddress or FromProvider, ToWalletAddress, and NFT details.";
+                return result;
+            }
             OASISResult<IWeb3NFTTransactionResponse> blockchainResult = new OASISResult<IWeb3NFTTransactionResponse>();
             string errorMessage = "Error Occured in SendNFTAsync function. Reason: ";
 
@@ -1044,6 +1056,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<ITransactionResponse> SendToken(Guid avatarId, ISendWeb4TokenRequest request)
         {
             OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The send token request is required. Please provide a valid request with FromWalletAddress or FromProvider, ToWalletAddress, Amount, and ProviderType.";
+                return result;
+            }
             string errorMessage = "Error Occured in SendToken function. Reason: ";
 
             if (string.IsNullOrEmpty(request.FromWalletAddress))
@@ -1338,6 +1356,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb4TokenRequest request)
         {
             OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The burn token request is required. Please provide a valid request with TokenAddress, ProviderType, and owner credentials.";
+                return result;
+            }
             string errorMessage = "Error occured in BurnTokenAsync. Reason: ";
 
             BurnWeb3TokenRequest burnWeb3TokenRequest = new BurnWeb3TokenRequest()
@@ -1396,6 +1420,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<ITransactionResponse> BurnToken(IBurnWeb4TokenRequest request)
         {
             OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The burn token request is required. Please provide a valid request with TokenAddress, ProviderType, and owner credentials.";
+                return result;
+            }
             string errorMessage = "Error occured in BurnToken. Reason: ";
 
             BurnWeb3TokenRequest burnWeb3TokenRequest = new BurnWeb3TokenRequest()
@@ -1454,6 +1484,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb4TokenRequest request)
         {
             OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The lock token request is required. Please provide a valid request with TokenAddress, Web3TokenId, and ProviderType.";
+                return result;
+            }
             string errorMessage = "Error occured in LockTokenAsync. Reason: ";
 
             LockWeb3TokenRequest lockWeb3TokenRequest = new LockWeb3TokenRequest()
@@ -1509,6 +1545,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<ITransactionResponse> LockToken(ILockWeb4TokenRequest request)
         {
             OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The lock token request is required. Please provide a valid request with TokenAddress, Web3TokenId, and ProviderType.";
+                return result;
+            }
             string errorMessage = "Error occured in LockToken. Reason: ";
 
             LockWeb3TokenRequest lockWeb3TokenRequest = new LockWeb3TokenRequest()
@@ -1564,6 +1606,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb4TokenRequest request)
         {
             OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The unlock token request is required. Please provide a valid request with TokenAddress, Web3TokenId, and ProviderType.";
+                return result;
+            }
             string errorMessage = "Error occured in UnlockTokenAsync. Reason: ";
 
             UnlockWeb3TokenRequest unlockWeb3TokenRequest = new UnlockWeb3TokenRequest()
@@ -1619,6 +1667,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb4TokenRequest request)
         {
             OASISResult<ITransactionResponse> result = new OASISResult<ITransactionResponse>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The unlock token request is required. Please provide a valid request with TokenAddress, Web3TokenId, and ProviderType.";
+                return result;
+            }
             string errorMessage = "Error occured in UnlockToken. Reason: ";
 
             UnlockWeb3TokenRequest unlockWeb3TokenRequest = new UnlockWeb3TokenRequest()

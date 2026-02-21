@@ -219,6 +219,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Chapter>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateChapterWithOptions([FromBody] CreateChapterRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Chapter> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.Chapters.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -350,6 +355,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Chapter>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishChapter(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Chapter> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Chapters.PublishAsync(
@@ -461,6 +468,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Chapter>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditChapter(Guid id, [FromBody] EditChapterRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Chapter> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Chapters.EditAsync(id, request.NewDNA, AvatarId);

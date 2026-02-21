@@ -50,11 +50,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (boot.IsError)
                     throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
 
-                // Set LoggedInAvatar to the authenticated avatar so InventoryItems property works
-                if (Avatar != null)
-                {
-                    AvatarManager.LoggedInAvatar = Avatar;
-                }
             }
             finally
             {

@@ -105,6 +105,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateRuntime([FromBody] CreateRuntimeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, RuntimeType, Version." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 // Create a new runtime using the RuntimeManager
@@ -128,6 +133,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRuntime(Guid id, [FromBody] UpdateRuntimeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and/or Description." });
             try
             {
                 // Load existing runtime
@@ -312,6 +319,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneRuntime(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.Runtimes.CloneAsync(AvatarId, id, request.NewName);
@@ -335,6 +344,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateRuntimeWithOptions([FromBody] CreateRuntimeWithOptionsRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.Runtimes.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -431,6 +445,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchRuntimes([FromBody] SearchRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<IEnumerable<object>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
                 var result = await _starAPI.Runtimes.SearchAsync<Runtime>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true, false, 0);
@@ -460,6 +476,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishRuntime(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Runtimes.PublishAsync(
@@ -493,6 +511,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DownloadRuntime(Guid id, [FromBody] DownloadRuntimeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with DestinationPath and optional Overwrite." });
             try
             {
                 var result = await _starAPI.Runtimes.DownloadAsync(AvatarId, id, 0, request.DestinationPath, request.Overwrite);
@@ -569,6 +589,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditRuntime(Guid id, [FromBody] EditRuntimeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Runtimes.EditAsync(id, request.NewDNA, AvatarId);
@@ -616,6 +638,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RepublishRuntime(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body for republish options." });
             try
             {
                 var result = await _starAPI.Runtimes.RepublishAsync(AvatarId, id, 0);

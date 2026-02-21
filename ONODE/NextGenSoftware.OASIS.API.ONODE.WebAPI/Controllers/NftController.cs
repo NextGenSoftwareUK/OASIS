@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -544,6 +544,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IWeb4NFT>> RemintNftAsync([FromBody] API.Core.Objects.NFT.Requests.RemintWeb4NFTRequest request)
         {
+            if (request == null)
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required. Please provide a valid Remint Web4 NFT request." };
             return await NFTManager.RemintNftAsync(request, Core.Enums.ResponseFormatType.SimpleText);
         }
 
@@ -559,6 +561,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IWeb4NFT>> ImportWeb3NFTAsync([FromBody] API.Core.Interfaces.NFT.Requests.IImportWeb3NFTRequest request)
         {
+            if (request == null)
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required. Please provide a valid Import Web3 NFT request." };
             return await NFTManager.ImportWeb3NFTAsync(request, Core.Enums.ResponseFormatType.SimpleText);
         }
 
@@ -627,6 +631,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IWeb4NFT>> ExportWeb4NFTAsync([FromBody] IWeb4NFT oasisNFT, string fullPathToExportTo, ProviderType providerType = ProviderType.Default)
         {
+            if (oasisNFT == null)
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required. Please provide a valid Web4 NFT object to export." };
             return await NFTManager.ExportWeb4NFTAsync(oasisNFT, fullPathToExportTo, providerType, Core.Enums.ResponseFormatType.SimpleText);
         }
 
@@ -725,6 +731,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IWeb4NFTCollection>> CreateWeb4NFTCollectionAsync([FromBody] API.Core.Interfaces.NFT.Requests.ICreateWeb4NFTCollectionRequest request, ProviderType providerType = ProviderType.Default)
         {
+            if (request == null)
+                return new OASISResult<IWeb4NFTCollection> { IsError = true, Message = "The request body is required. Please provide a valid JSON body for the Web4 NFT collection (e.g. Name, Description)." };
             return await NFTManager.CreateWeb4NFTCollectionAsync(request, providerType);
         }
 

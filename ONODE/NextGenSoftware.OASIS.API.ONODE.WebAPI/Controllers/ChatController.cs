@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +32,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("start-new-chat-session")]
         public async Task<OASISResult<string>> StartNewChatSession([FromBody] List<Guid> participantIds, [FromQuery] string sessionName = null)
         {
+            if (participantIds == null || participantIds.Count == 0)
+                return new OASISResult<string> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of participant IDs (at least one)." };
             // Use ChatManager for business logic
             return await ChatManager.Instance.StartNewChatSessionAsync(participantIds, sessionName);
         }
@@ -46,6 +48,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("send-message/{sessionId}")]
         public async Task<OASISResult<string>> SendMessage(string sessionId, [FromBody] string message)
         {
+            if (message == null)
+                return new OASISResult<string> { IsError = true, Message = "The request body is required. Please provide the message content." };
             // Use ChatManager for business logic
             return await ChatManager.Instance.SendMessageAsync(sessionId, Avatar.Id, message);
         }

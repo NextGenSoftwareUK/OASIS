@@ -51,12 +51,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                         throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
                 }
 
-                // Set LoggedInAvatar to the authenticated avatar so NFTs property works
-                // This is required because NFTs property getter uses AvatarManager.LoggedInAvatar.AvatarId
-                if (Avatar != null)
-                {
-                    AvatarManager.LoggedInAvatar = Avatar;
-                }
             }
             finally
             {
@@ -178,6 +172,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneNFT(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARNFT> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.NFTs.CloneAsync(AvatarId, id, request.NewName);
@@ -201,6 +197,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateNFTWithOptions([FromBody] CreateNFTRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARNFT> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.NFTs.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -366,6 +367,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishNFT(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARNFT> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.NFTs.PublishAsync(
@@ -477,6 +480,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditNFT(Guid id, [FromBody] EditNFTRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARNFT> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.NFTs.EditAsync(id, request.NewDNA, AvatarId);

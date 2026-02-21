@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -29,11 +29,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters
             // Check if this is a validation error (400) or real exception (500)
             bool isValidationError = ex is System.Text.Json.JsonException ||
                                     ex is OASISException ||
+                                    ex is ArgumentException ||
+                                    ex is ArgumentNullException ||
                                     ex.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
                                     ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
                                     ex.Message.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
                                     ex.Message.Contains("cannot be null", StringComparison.OrdinalIgnoreCase) ||
-                                    ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase);
+                                    ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("not valid", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("must be one of", StringComparison.OrdinalIgnoreCase);
             
             var errorResult = new OASISResult<object>
             {

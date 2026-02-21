@@ -176,6 +176,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneCelestialBodyMetaData(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.CelestialBodiesMetaDataDNA.CloneAsync(AvatarId, id, request.NewName);
@@ -200,6 +202,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<CelestialBodyMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishCelestialBodyMetaData(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.CelestialBodiesMetaDataDNA.PublishAsync(AvatarId, request.SourcePath, request.LaunchTarget, request.PublishPath, request.Edit, request.RegisterOnSTARNET, request.GenerateBinary, request.UploadToCloud);
@@ -281,6 +285,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<CelestialBodyMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCelestialBodyMetaDataWithOptions([FromBody] CreateCelestialBodyMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.CelestialBodiesMetaDataDNA.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -377,6 +386,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<CelestialBodyMetaDataDNA>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchCelestialBodiesMetaData([FromBody] SearchRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<IEnumerable<CelestialBodyMetaDataDNA>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
                 var result = await _starAPI.CelestialBodiesMetaDataDNA.SearchAsync<CelestialBodyMetaDataDNA>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true);
@@ -406,6 +417,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DownloadCelestialBodyMetaData(Guid id, [FromBody] DownloadCelestialBodyMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with DestinationPath." });
             try
             {
                 var result = await _starAPI.CelestialBodiesMetaDataDNA.DownloadAsync(AvatarId, id, "latest", request.DestinationPath);
@@ -454,6 +467,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<CelestialBodyMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditCelestialBodyMetaData(Guid id, [FromBody] EditCelestialBodyMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<CelestialBodyMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.CelestialBodiesMetaDataDNA.EditAsync(id, request.NewDNA, AvatarId);

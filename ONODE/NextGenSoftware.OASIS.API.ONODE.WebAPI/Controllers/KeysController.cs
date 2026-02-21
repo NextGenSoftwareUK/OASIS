@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -907,6 +907,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("create")]
         public async Task<OASISResult<KeyInfo>> CreateKey([FromBody] CreateKeyRequest keyRequest)
         {
+            if (keyRequest == null)
+                return new OASISResult<KeyInfo> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and Type." };
             try
             {
                 // TODO: Implement actual key creation logic
@@ -948,6 +950,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("{keyId}")]
         public async Task<OASISResult<KeyInfo>> UpdateKey(Guid keyId, [FromBody] UpdateKeyRequest keyRequest)
         {
+            if (keyRequest == null)
+                return new OASISResult<KeyInfo> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and Type." };
             try
             {
                 // TODO: Implement actual key update logic

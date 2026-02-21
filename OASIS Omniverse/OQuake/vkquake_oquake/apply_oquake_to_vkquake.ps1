@@ -120,6 +120,14 @@ if (Test-Path $HostC) {
         $content = $content -replace '(\#include\s+"quakedef\.h")', "`$1`r`n#include `"oquake_version.h`""
         $patched = $true
     }
+    # Call OQuake STAR item poll every frame so pickups are reported even if sbar isn't drawn
+    if ($content -notmatch 'OQuake_STAR_PollItems') {
+        if ($content -match '(\s+CL_ReadFromServer\s*\(\)\s*;)') {
+            $content = $content -replace '(\s+CL_ReadFromServer\s*\(\)\s*;)', "`$1`r`n		OQuake_STAR_PollItems ();"
+            $patched = $true
+            Write-Host "[OQuake] Patched host.c: added OQuake_STAR_PollItems() call" -ForegroundColor Green
+        }
+    }
 
     if ($content -match 'OQUAKE_VERSION_STR.*ENGINE_NAME_AND_VER') {
         $prEnginePatched = $true

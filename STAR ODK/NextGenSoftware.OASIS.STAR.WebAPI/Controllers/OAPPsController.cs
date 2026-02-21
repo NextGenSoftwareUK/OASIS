@@ -152,6 +152,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneOAPP(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.OAPPs.CloneAsync(AvatarId, id, request.NewName);
@@ -176,6 +178,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishOAPP(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<OAPP> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.OAPPs.PublishAsync(
@@ -278,6 +282,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateOAPPWithOptions([FromBody] CreateOAPPRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<OAPP> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.OAPPs.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -374,6 +383,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<OAPP>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchOAPPs([FromBody] SearchRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<IEnumerable<OAPP>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
                 var result = await _starAPI.OAPPs.SearchAsync<OAPP>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true, false, 0);
@@ -403,6 +414,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DownloadOAPP(Guid id, [FromBody] DownloadOAPPRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with DestinationPath and optional Overwrite." });
             try
             {
                 var result = await _starAPI.OAPPs.DownloadAsync(AvatarId, id, 0, request.DestinationPath, request.Overwrite);
@@ -451,6 +464,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditOAPP(Guid id, [FromBody] EditOAPPRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<OAPP> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.OAPPs.EditAsync(id, request.NewDNA, AvatarId);

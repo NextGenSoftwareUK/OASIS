@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -2344,7 +2344,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return HttpResponseHelper.FormatResponse(new OASISResult<IInventoryItem>
                     {
                         IsError = true,
-                        Message = "InventoryItem is required."
+                        Message = "The request body is required. Please provide a valid Inventory Item object with Name, Description, and optional HolonSubType."
                     }, HttpStatusCode.BadRequest);
                 }
 
