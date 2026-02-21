@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -353,7 +353,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string walletAddress, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-
+            if (avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "The avatar is required. Please provide a valid avatar object.");
+                return result;
+            }
             try
             {
                 if (!avatar.ProviderWallets.ContainsKey(providerTypeToLinkTo))
@@ -504,6 +508,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string providerKey, string walletAddress, string walletAddressSegwitP2SH = null, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            if (avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "The avatar is required. Please provide a valid avatar object.");
+                return result;
+            }
             string secret = "";
 
             try
@@ -942,7 +951,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string providerPrivateKey, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-
+            if (avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "The avatar is required. Please provide a valid avatar object.");
+                return result;
+            }
             try
             {
                 if (!avatar.ProviderWallets.ContainsKey(providerTypeToLinkTo))

@@ -103,7 +103,12 @@ private const string Starknet = "STARKNET";
         CancellationToken token = default)
     {
         var result = new OASISResult<CreateBridgeOrderResponse>();
-        
+        if (request == null)
+        {
+            result.IsError = true;
+            result.Message = "The request is required. Please provide a valid CreateBridgeOrderRequest.";
+            return result;
+        }
         try
         {
             // Validate request
@@ -745,6 +750,12 @@ private const string Starknet = "STARKNET";
     public async Task<OASISResult<bool>> RecordViewingKeyAsync(ViewingKeyAuditEntry entry, CancellationToken token = default)
     {
         var result = new OASISResult<bool>();
+        if (entry == null)
+        {
+            result.IsError = true;
+            result.Message = "The viewing key audit entry is required. Please provide a valid ViewingKeyAuditEntry.";
+            return result;
+        }
         try
         {
             await _viewingKeyAuditService.RecordViewingKeyAsync(entry, token);

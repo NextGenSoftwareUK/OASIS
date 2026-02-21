@@ -67,6 +67,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<StoredFile>> UploadFileAsync(Guid avatarId, string fileName, byte[] fileData, string contentType, Dictionary<string, object> metadata = null)
         {
             var result = new OASISResult<StoredFile>();
+            if (fileData == null)
+            {
+                result.IsError = true;
+                result.Message = "The file data is required. Please provide a valid byte array.";
+                return result;
+            }
             try
             {
                 var fileId = Guid.NewGuid();
@@ -240,6 +246,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> UpdateFileMetadataAsync(Guid avatarId, Guid fileId, Dictionary<string, object> metadata)
         {
             var result = new OASISResult<bool>();
+            if (metadata == null)
+            {
+                result.IsError = true;
+                result.Result = false;
+                result.Message = "The metadata is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             try
             {
                 if (!_userFiles.ContainsKey(avatarId))
