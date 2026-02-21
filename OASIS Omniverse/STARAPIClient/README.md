@@ -196,3 +196,13 @@ Compile your game sources and **include `star_sync.c`** in the build (or build a
 
 Keep `local_items` and its `synced` flags valid until the inventory refresh completes (poll returns 1). The sync layer updates `synced` in the background. Using this layer keeps threading and sync logic out of game code and makes porting other games to OASIS easier.
 
+### Inventory UI patterns (game-side)
+
+These patterns are implemented in OQUAKE’s integration; they are **not** part of `star_sync` (which is game-agnostic). Other games (e.g. ODOOM) can reuse the same ideas:
+
+1. **Single place for pickup reporting** – Report item/stats pickups from **one** call site (e.g. a per-frame poll in your main loop), not from both a frame poll and the HUD/sbar draw. Otherwise the same pickup can be sent twice (e.g. armor +2 instead of +1).
+
+2. **Show just-added items before the next fetch** – After you add an item (e.g. `star_api_add_item` or via local list + `star_sync_inventory_start`), the next async inventory result might not include it yet. When merging “remote list” + “local items” for display, **also show local items that are marked synced but not yet present in the remote list**. That way pickups appear immediately instead of only after the next fetch.
+
+3. **Append local to display on add** – When you add a pickup, push that entry into your visible inventory list (or equivalent) right away, so the user sees the new item without waiting for the next `star_sync_inventory_poll` result. `star_sync` does not manage your UI; the game is responsible for this.
+

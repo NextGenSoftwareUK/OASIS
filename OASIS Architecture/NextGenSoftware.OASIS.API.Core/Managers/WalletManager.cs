@@ -2885,6 +2885,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             string errorMessageTemplate = "Error in SaveProviderWalletsForAvatarById method in WalletManager saving wallets for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
@@ -2950,6 +2956,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             string errorMessageTemplate = "Error in SaveProviderWalletsForAvatarByIdAsync method in WalletManager saving wallets for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
@@ -3019,6 +3031,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> SaveProviderWalletsForAvatarByUsername(string username, Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             string errorMessageTemplate = "Error in SaveProviderWalletsForAvatarByUsername method in WalletManager saving wallets for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
@@ -3043,6 +3061,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByUsernameAsync(string username, Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             string errorMessageTemplate = "Error in SaveProviderWalletsForAvatarByUsernameAsync method in WalletManager saving wallets for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
@@ -3067,6 +3091,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> SaveProviderWalletsForAvatarByEmail(string email, Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             string errorMessageTemplate = "Error in SaveProviderWalletsForAvatarByEmail method in WalletManager saving wallets for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
@@ -3091,6 +3121,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByEmailAsync(string email, Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             string errorMessageTemplate = "Error in SaveProviderWalletsForAvatarByEmailAsync method in WalletManager saving wallets for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
@@ -3116,6 +3152,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> wallets)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;
 
@@ -3183,6 +3225,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> wallets)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;
 
@@ -3268,6 +3316,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByUsernameAsync(string username, Dictionary<ProviderType, List<IProviderWallet>> wallets)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             string errorMessage = "Error occured in SaveProviderWalletsForAvatarByUsernameAsync method in WalletManager. Reason: ";
 
             try
@@ -3290,6 +3344,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<bool> SaveProviderWalletsForAvatarByEmail(string email, Dictionary<ProviderType, List<IProviderWallet>> wallets)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             string errorMessage = "Error occured in SaveProviderWalletsForAvatarByEmail method in WalletManager. Reason: ";
 
             try
@@ -3312,6 +3372,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByEmailAsync(string email, Dictionary<ProviderType, List<IProviderWallet>> wallets)
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if (wallets == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallets dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             string errorMessage = "Error occured in SaveProviderWalletsForAvatarByEmail method in WalletManager. Reason: ";
 
             try

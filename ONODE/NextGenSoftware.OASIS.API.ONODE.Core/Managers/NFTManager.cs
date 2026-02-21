@@ -129,6 +129,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(Guid avatarId, ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<ISendWeb4NFTResponse> result = new OASISResult<ISendWeb4NFTResponse>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid ISendWeb4NFTRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in SendNFTAsync in NFTManager. Reason:";
 
             try
@@ -186,6 +192,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public OASISResult<ISendWeb4NFTResponse> SendNFT(Guid avatarId, ISendWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<ISendWeb4NFTResponse> result = new OASISResult<ISendWeb4NFTResponse>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid ISendWeb4NFTRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in SendNFT in NFTManager. Reason:";
 
             try
@@ -244,7 +256,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb4NFT>> RemintNftAsync(IRemintWeb4NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
-
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid IRemintWeb4NFTRequest.";
+                return result;
+            }
             //if (request.Web3NFTs != null && request.Web3NFTs.Count > 0)
             //{
             MintWeb4NFTRequest web4Request = new MintWeb4NFTRequest()
@@ -312,6 +329,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> RemintGeoNftAsync(IRemintWeb4GeoNFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IWeb4GeoSpatialNFT> result = new OASISResult<IWeb4GeoSpatialNFT>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid IRemintWeb4GeoNFTRequest.";
+                return result;
+            }
             OASISResult<IWeb4NFT> web4NFTResult = new OASISResult<IWeb4NFT>();
 
             if (request.Web3NFTs != null && request.Web3NFTs.Count > 0)
@@ -379,6 +402,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb4NFT>> MintNftAsync(IMintWeb4NFTRequest request, bool isGeoNFT = false, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid IMintWeb4NFTRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in MintNftAsync in NFTManager. Reason:";
 
             try
@@ -421,6 +450,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb4NFT>> ImportWeb3NFTAsync(IImportWeb3NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid IImportWeb3NFTRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in ImportWeb3NFT in NFTManager. Reason:";
             IAvatar currentAvatar = null;
 
@@ -460,6 +495,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb4NFT>> ImportWeb3NFT(IImportWeb3NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid IImportWeb3NFTRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in ImportWeb3NFT in NFTManager. Reason:";
             IAvatar currentAvatar = null;
 
@@ -1393,6 +1434,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> PlaceWeb4GeoNFTAsync(IPlaceWeb4GeoSpatialNFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IWeb4GeoSpatialNFT> result = new OASISResult<IWeb4GeoSpatialNFT>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid IPlaceWeb4GeoSpatialNFTRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in PlaceWeb4GeoNFTAsync in NFTManager. Reason:";
 
             try
@@ -1432,6 +1479,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public OASISResult<IWeb4GeoSpatialNFT> PlaceWeb4GeoNFT(IPlaceWeb4GeoSpatialNFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IWeb4GeoSpatialNFT> result = new OASISResult<IWeb4GeoSpatialNFT>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid IPlaceWeb4GeoSpatialNFTRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in PlaceWeb4GeoNFT in NFTManager. Reason:";
 
             try
@@ -1472,6 +1525,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> MintAndPlaceWeb4GeoNFTAsync(IMintAndPlaceWeb4GeoSpatialNFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IWeb4GeoSpatialNFT> result = new OASISResult<IWeb4GeoSpatialNFT>();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid IMintAndPlaceWeb4GeoSpatialNFTRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in MintAndPlaceGeoNFTAsync in NFTManager. Reason:";
 
             try
@@ -1814,6 +1873,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnWeb3NFTAsync(IBurnWeb3NFTRequest request)
         {
             OASISResult<IWeb3NFTTransactionResponse> result = new();
+            if (request == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid IBurnWeb3NFTRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in BurnWeb3NFTAsync in NFTManager. Reason:";
 
             try
@@ -2154,6 +2219,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb4NFTCollection>> CreateWeb4NFTCollectionAsync(ICreateWeb4NFTCollectionRequest createOASISNFTCollectionRequest, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4NFTCollection> result = new OASISResult<IWeb4NFTCollection>();
+            if (createOASISNFTCollectionRequest == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid ICreateWeb4NFTCollectionRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in CreateNFTCollectionAsync in NFTManager. Reason:";
 
             Web4NFTCollection OASISNFTCollection = new Web4NFTCollection()
@@ -2230,6 +2301,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<IWeb4GeoNFTCollection>> CreateWeb4GeoNFTCollectionAsyc(ICreateWeb4GeoNFTCollectionRequest createWeb4OASISGeoNFTCollectionRequest, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4GeoNFTCollection> result = new OASISResult<IWeb4GeoNFTCollection>();
+            if (createWeb4OASISGeoNFTCollectionRequest == null)
+            {
+                result.IsError = true;
+                result.Message = "The request is required. Please provide a valid ICreateWeb4GeoNFTCollectionRequest.";
+                return result;
+            }
             string errorMessage = "Error occured in CreateGeoNFTCollectionAsyc in NFTManager. Reason:";
 
             Web4GeoNFTCollection Web4OASISGeoNFTCollection = new Web4GeoNFTCollection()

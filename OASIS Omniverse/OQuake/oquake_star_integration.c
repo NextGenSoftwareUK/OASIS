@@ -1258,6 +1258,10 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         Cvar_Set("oquake_oasis_api_url", value);
         loaded = 1;
     }
+    if (OQ_ExtractJsonValue(json, "config_file", value, sizeof(value))) {
+        Cvar_Set("oquake_star_config_file", value);
+        loaded = 1;
+    }
     if (OQ_ExtractJsonValue(json, "beam_face", value, sizeof(value))) {
         Cvar_SetValueQuick(&oasis_star_beam_face, atoi(value));
         loaded = 1;
@@ -1291,6 +1295,7 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     FILE *f = fopen(json_path, "w");
     if (!f) return 0;
     
+    const char *config_file = oquake_star_config_file.string;
     const char *star_url = oquake_star_api_url.string;
     const char *oasis_url = oquake_oasis_api_url.string;
     int beam_face = (int)oasis_star_beam_face.value;
@@ -1301,6 +1306,7 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     const char *s_sigils = oquake_star_stack_sigils.string;
     
     fprintf(f, "{\n");
+    fprintf(f, "  \"config_file\": \"%s\",\n", config_file && config_file[0] ? config_file : "json");
     fprintf(f, "  \"star_api_url\": \"%s\",\n", star_url ? star_url : "");
     fprintf(f, "  \"oasis_api_url\": \"%s\",\n", oasis_url ? oasis_url : "");
     fprintf(f, "  \"beam_face\": %d,\n", beam_face);
@@ -1394,6 +1400,7 @@ static int OQ_SaveQuakeConfig(const char *cfg_path) {
         const char *star_url = oquake_star_api_url.string;
         const char *oasis_url = oquake_oasis_api_url.string;
         fprintf(f, "\n// OQuake STAR API Configuration (auto-generated)\n");
+        fprintf(f, "set oquake_star_config_file \"%s\"\n", oquake_star_config_file.string ? oquake_star_config_file.string : "json");
         fprintf(f, "set oquake_star_api_url \"%s\"\n", star_url ? star_url : "");
         fprintf(f, "set oquake_oasis_api_url \"%s\"\n", oasis_url ? oasis_url : "");
         fprintf(f, "set oasis_star_beam_face \"%d\"\n", (int)oasis_star_beam_face.value);
@@ -1405,6 +1412,20 @@ static int OQ_SaveQuakeConfig(const char *cfg_path) {
     }
     fclose(f);
     return 1;
+}
+
+/** Write current STAR cvars to oasisstar.json and config.cfg. Used on exit, star config save, star stack, star face. */
+static void OQ_SaveStarConfigToFiles(void) {
+    char json_path[512] = {0}, cfg_path[512] = {0};
+    int found_json = g_json_config_path[0] ? 1 : 0;
+    if (found_json)
+        q_strlcpy(json_path, g_json_config_path, sizeof(json_path));
+    else
+        found_json = OQ_FindConfigFile("oasisstar.json", json_path, sizeof(json_path));
+    if (OQ_FindConfigFile("config.cfg", cfg_path, sizeof(cfg_path)))
+        OQ_SaveQuakeConfig(cfg_path);
+    if (found_json)
+        OQ_SaveJsonConfig(json_path);
 }
 
 /* Sync config files - load from newer, save to older */
@@ -1540,7 +1561,9 @@ void OQuake_STAR_Init(void) {
                             
                             if (n > 0) {
                                 cvar_value[n] = 0;
-                                if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
+                                if (strcmp(cvar_name, "oquake_star_config_file") == 0) {
+                                    Cvar_Set("oquake_star_config_file", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
                                     Cvar_Set("oquake_star_api_url", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_oasis_api_url") == 0) {
                                     Cvar_Set("oquake_oasis_api_url", cvar_value);
@@ -1651,7 +1674,9 @@ void OQuake_STAR_Init(void) {
                             
                             if (n > 0) {
                                 cvar_value[n] = 0;
-                                if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
+                                if (strcmp(cvar_name, "oquake_star_config_file") == 0) {
+                                    Cvar_Set("oquake_star_config_file", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
                                     Cvar_Set("oquake_star_api_url", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_oasis_api_url") == 0) {
                                     Cvar_Set("oquake_oasis_api_url", cvar_value);
@@ -1745,7 +1770,9 @@ void OQuake_STAR_Init(void) {
                             
                             if (n > 0) {
                                 cvar_value[n] = 0;
-                                if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
+                                if (strcmp(cvar_name, "oquake_star_config_file") == 0) {
+                                    Cvar_Set("oquake_star_config_file", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_api_url") == 0) {
                                     Cvar_Set("oquake_star_api_url", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_oasis_api_url") == 0) {
                                     Cvar_Set("oquake_oasis_api_url", cvar_value);
@@ -1913,6 +1940,7 @@ void OQuake_STAR_Init(void) {
 }
 
 void OQuake_STAR_Cleanup(void) {
+    OQ_SaveStarConfigToFiles(); /* persist any STAR option changes on exit */
     star_sync_cleanup();
     if (g_star_initialized) {
         star_api_cleanup();
@@ -2143,7 +2171,13 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star beamin   - Log in using STAR_USERNAME/STAR_PASSWORD or API key\n");
         Con_Printf("  star beamout  - Log out / disconnect from STAR\n");
         Con_Printf("  star face on|off|status - Toggle beam-in face switch\n");
-        Con_Printf("  star config   - Show current config values\n");
+        Con_Printf("  star config        - Show current config (URLs, stack options)\n");
+        Con_Printf("  star config save   - Write config to files now (also saved on exit)\n");
+        Con_Printf("  star stack <armor|weapons|powerups|keys|sigils> <0|1> - Stack (1) or unlock (0)\n");
+        Con_Printf("  star seturl <url>       - Set STAR API URL (saved to config)\n");
+        Con_Printf("  star setoasisurl <url>  - Set OASIS API URL (saved to config)\n");
+        Con_Printf("  star configfile json|cfg - Prefer oasisstar.json or config.cfg\n");
+        Con_Printf("  star reloadconfig  - Reload from oasisstar.json\n");
         Con_Printf("\n");
         return;
     }
@@ -2354,6 +2388,7 @@ void OQuake_STAR_Console_f(void) {
         if (Cmd_Argv(2) && strcmp(Cmd_Argv(2), "on") == 0) {
             Cvar_SetValueQuick(&oasis_star_beam_face, 1);
             OQ_ApplyBeamFacePreference();
+            OQ_SaveStarConfigToFiles();
             Con_Printf("Beam-in face switch enabled.\n");
             Con_Printf("\n");
             return;
@@ -2361,6 +2396,7 @@ void OQuake_STAR_Console_f(void) {
         if (Cmd_Argv(2) && strcmp(Cmd_Argv(2), "off") == 0) {
             Cvar_SetValueQuick(&oasis_star_beam_face, 0);
             Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
+            OQ_SaveStarConfigToFiles();
             Con_Printf("Beam-in face switch disabled.\n");
             Con_Printf("\n");
             return;
@@ -2370,57 +2406,130 @@ void OQuake_STAR_Console_f(void) {
         return;
     }
     if (strcmp(sub, "config") == 0) {
+        const char* save_arg = (argc >= 3) ? Cmd_Argv(2) : NULL;
+        if (save_arg && strcmp(save_arg, "save") == 0) {
+            OQ_SaveStarConfigToFiles();
+            Con_Printf("Config saved to oasisstar.json and config.cfg (if paths found).\n");
+            return;
+        }
         const char* star_url = oquake_star_api_url.string;
         const char* oasis_url = oquake_oasis_api_url.string;
         int using_defaults = 0;
         
-        /* Check if we're using default values (config file not loaded) */
-        if (star_url && star_url[0] && strcmp(star_url, "https://star-api.oasisplatform.world/api") == 0) {
+        if (star_url && star_url[0] && strcmp(star_url, "https://star-api.oasisplatform.world/api") == 0)
             using_defaults = 1;
-        }
-        if (oasis_url && oasis_url[0] && strcmp(oasis_url, "https://api.oasisplatform.world") == 0) {
+        if (oasis_url && oasis_url[0] && strcmp(oasis_url, "https://api.oasisplatform.world") == 0)
             using_defaults = 1;
-        }
         
         Con_Printf("\n");
         Con_Printf("OQuake STAR Configuration:\n");
         if (using_defaults) {
             Con_Printf("  [WARNING: Using default values - config file may not be loaded]\n");
-            Con_Printf("  Try running: exec config.cfg\n");
+            Con_Printf("  Try running: exec config.cfg  or  star reloadconfig\n");
             Con_Printf("\n");
         }
+        Con_Printf("  Config file: %s\n", oquake_star_config_file.string && oquake_star_config_file.string[0] ? oquake_star_config_file.string : "json");
         Con_Printf("  STAR API URL: %s\n", star_url && star_url[0] ? star_url : "(default: https://star-api.oasisplatform.world/api)");
         Con_Printf("  OASIS API URL: %s\n", oasis_url && oasis_url[0] ? oasis_url : "(default: https://api.oasisplatform.world)");
         Con_Printf("  Username: %s\n", oquake_star_username.string && oquake_star_username.string[0] ? oquake_star_username.string : "(not set)");
         Con_Printf("  Password: %s\n", oquake_star_password.string && oquake_star_password.string[0] ? "***" : "(not set)");
         Con_Printf("  API Key: %s\n", oquake_star_api_key.string && oquake_star_api_key.string[0] ? "***" : "(not set)");
         Con_Printf("  Avatar ID: %s\n", oquake_star_avatar_id.string && oquake_star_avatar_id.string[0] ? oquake_star_avatar_id.string : "(not set)");
+        Con_Printf("  Beam face: %s\n", oasis_star_beam_face.value > 0.5f ? "on" : "off");
+        Con_Printf("  Stack (1) / Unlock (0) - ammo always stacks:\n");
+        Con_Printf("    stack_armor:    %s\n", atoi(oquake_star_stack_armor.string) ? "1 (stack)" : "0 (unlock)");
+        Con_Printf("    stack_weapons:  %s\n", atoi(oquake_star_stack_weapons.string) ? "1 (stack)" : "0 (unlock)");
+        Con_Printf("    stack_powerups: %s\n", atoi(oquake_star_stack_powerups.string) ? "1 (stack)" : "0 (unlock)");
+        Con_Printf("    stack_keys:     %s\n", atoi(oquake_star_stack_keys.string) ? "1 (stack)" : "0 (unlock)");
+        Con_Printf("    stack_sigils:   %s (OQuake only)\n", atoi(oquake_star_stack_sigils.string) ? "1 (stack)" : "0 (unlock)");
         Con_Printf("\n");
-        Con_Printf("To set values, use:\n");
-        Con_Printf("  set oquake_star_api_url \"<url>\"\n");
-        Con_Printf("  set oquake_oasis_api_url \"<url>\"\n");
-        Con_Printf("  set oquake_star_username \"<username>\"\n");
-        Con_Printf("  set oquake_star_password \"<password>\"\n");
-        Con_Printf("  set oquake_star_api_key \"<key>\"\n");
-        Con_Printf("  set oquake_star_avatar_id \"<id>\"\n");
+        Con_Printf("To set: star stack <armor|weapons|powerups|keys|sigils> <0|1> (sigils = OQuake only)\n");
+        Con_Printf("URLs: star seturl <url>   star setoasisurl <url>\n");
+        Con_Printf("Config file: star configfile json|cfg\n");
+        Con_Printf("To save now: star config save (also saved on exit)\n");
+        Con_Printf("Auth: set oquake_star_username \"...\" or star beamin <user> <pass>\n");
         Con_Printf("\n");
-        Con_Printf("Or use: star beamin <username> <password>\n");
-        Con_Printf("\n");
-        Con_Printf("Config file locations to check:\n");
-        Con_Printf("  1. OASIS Omniverse\\OQuake\\build\\config.cfg\n");
-        Con_Printf("  2. Basedir directory (if using -basedir)\n");
-        Con_Printf("  3. Directory where OQUAKE.exe is located\n");
-        Con_Printf("  4. Your user profile directory\n");
-        Con_Printf("\n");
-        if (using_defaults) {
-            Con_Printf("To load config file, run: exec config.cfg\n");
-            Con_Printf("Note: Config file is created when you quit after changing CVARs.\n");
-            Con_Printf("You can create it manually in any of the above locations.\n");
-        } else {
-            Con_Printf("Note: Config file is created when you quit after changing CVARs.\n");
-            Con_Printf("You can create it manually in any of the above locations.\n");
+        return;
+    }
+    if (strcmp(sub, "stack") == 0) {
+        if (argc < 4) {
+            Con_Printf("Usage: star stack <armor|weapons|powerups|keys|sigils> <0|1>\n");
+            Con_Printf("  1 = stack (each pickup adds quantity), 0 = unlock (one per type). Ammo always stacks.\n");
+            return;
         }
-        Con_Printf("\n");
+        const char* cat = Cmd_Argv(2);
+        const char* val = Cmd_Argv(3);
+        int on = (val[0] == '1' && val[1] == '\0') ? 1 : 0;
+        const char* cvar = NULL;
+        if (strcmp(cat, "armor") == 0) cvar = "oquake_star_stack_armor";
+        else if (strcmp(cat, "weapons") == 0) cvar = "oquake_star_stack_weapons";
+        else if (strcmp(cat, "powerups") == 0) cvar = "oquake_star_stack_powerups";
+        else if (strcmp(cat, "keys") == 0) cvar = "oquake_star_stack_keys";
+        else if (strcmp(cat, "sigils") == 0) cvar = "oquake_star_stack_sigils";
+        if (!cvar) {
+            Con_Printf("Unknown category: %s. Use armor|weapons|powerups|keys|sigils\n", cat);
+            return;
+        }
+        Cvar_Set(cvar, on ? "1" : "0");
+        OQ_SaveStarConfigToFiles();
+        Con_Printf("%s set to %s (%s). Config files updated.\n", cvar, on ? "1" : "0", on ? "stack" : "unlock");
+        return;
+    }
+    if (strcmp(sub, "seturl") == 0) {
+        if (argc < 3) {
+            Con_Printf("Usage: star seturl <star_api_url>\n");
+            return;
+        }
+        Cvar_Set("oquake_star_api_url", Cmd_Argv(2));
+        OQ_SaveStarConfigToFiles();
+        Con_Printf("STAR API URL set to: %s. Config files updated.\n", Cmd_Argv(2));
+        return;
+    }
+    if (strcmp(sub, "setoasisurl") == 0) {
+        if (argc < 3) {
+            Con_Printf("Usage: star setoasisurl <oasis_api_url>\n");
+            return;
+        }
+        Cvar_Set("oquake_oasis_api_url", Cmd_Argv(2));
+        OQ_SaveStarConfigToFiles();
+        Con_Printf("OASIS API URL set to: %s. Config files updated.\n", Cmd_Argv(2));
+        return;
+    }
+    if (strcmp(sub, "configfile") == 0) {
+        if (argc < 3) {
+            Con_Printf("Usage: star configfile json|cfg\n");
+            Con_Printf("  json - prefer oasisstar.json (default)\n");
+            Con_Printf("  cfg  - prefer config.cfg\n");
+            return;
+        }
+        const char* val = Cmd_Argv(2);
+        if (q_strcasecmp(val, "json") == 0) {
+            Cvar_Set("oquake_star_config_file", "json");
+            OQ_SaveStarConfigToFiles();
+            Con_Printf("Config file preference set to json. Config files updated.\n");
+            return;
+        }
+        if (q_strcasecmp(val, "cfg") == 0) {
+            Cvar_Set("oquake_star_config_file", "cfg");
+            OQ_SaveStarConfigToFiles();
+            Con_Printf("Config file preference set to cfg. Config files updated.\n");
+            return;
+        }
+        Con_Printf("Unknown value: %s. Use json or cfg.\n", val);
+        return;
+    }
+    if (strcmp(sub, "reloadconfig") == 0) {
+        if (g_json_config_path[0] && OQ_LoadJsonConfig(g_json_config_path)) {
+            Con_Printf("Reloaded config from: %s\n", g_json_config_path);
+            return;
+        }
+        char path[512];
+        if (OQ_FindConfigFile("oasisstar.json", path, sizeof(path)) && OQ_LoadJsonConfig(path)) {
+            q_strlcpy(g_json_config_path, path, sizeof(g_json_config_path));
+            Con_Printf("Reloaded config from: %s\n", path);
+            return;
+        }
+        Con_Printf("Could not find or load oasisstar.json. Try exec config.cfg for config.cfg.\n");
         return;
     }
     Con_Printf("Unknown STAR subcommand: '%s'. Type 'star' for list.\n", sub ? sub : "(null)");

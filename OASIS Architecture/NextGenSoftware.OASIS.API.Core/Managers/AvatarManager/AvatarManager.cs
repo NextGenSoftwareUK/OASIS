@@ -376,6 +376,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IAvatar> BeamOut(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            if (avatar == null)
+                return new OASISResult<IAvatar> { IsError = true, Message = "The avatar is required. Please provide a valid avatar object." };
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             avatar.LastBeamedOut = DateTime.Now;
             result = SaveAvatar(avatar, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
@@ -384,6 +386,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IAvatar>> BeamOutAsync(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            if (avatar == null)
+                return new OASISResult<IAvatar> { IsError = true, Message = "The avatar is required. Please provide a valid avatar object." };
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             avatar.LastBeamedOut = DateTime.Now;
             result = await SaveAvatarAsync(avatar, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
@@ -1435,6 +1439,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, UpdateSessionRequest sessionData)
         {
             OASISResult<AvatarSession> result = new OASISResult<AvatarSession>();
+            if (sessionData == null)
+            {
+                result.IsError = true;
+                result.Message = "The session data is required. Please provide a valid UpdateSessionRequest (e.g. Location, IpAddress, IsActive).";
+                return result;
+            }
             string errorMessage = $"Error in UpdateAvatarSessionAsync method in AvatarManager for avatar {avatarId}, session {sessionId}. Reason: ";
 
             try
