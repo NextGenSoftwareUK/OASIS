@@ -56,6 +56,8 @@ public class BridgeController : OASISControllerBase
         [FromBody] CreateBridgeOrderRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (request == null)
+            return BadRequest(new { error = "The request body is required. Please provide a valid JSON body with FromToken, ToToken, Amount.", isError = true });
         try
         {
             _logger.LogInformation("Creating bridge order: {FromToken} → {ToToken}, Amount: {Amount}",
@@ -210,6 +212,8 @@ public class BridgeController : OASISControllerBase
         [FromBody] CreateBridgeOrderRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (request == null)
+            return BadRequest(new { error = "The request body is required. Please provide a valid JSON body with FromToken, ToToken, Amount.", isError = true });
         try
         {
             request.EnableViewingKeyAudit = true;
@@ -240,6 +244,8 @@ public class BridgeController : OASISControllerBase
         [FromBody] ViewingKeyAuditEntry entry,
         CancellationToken cancellationToken = default)
     {
+        if (entry == null)
+            return BadRequest(new { error = "The request body is required. Please provide a valid viewing key audit entry.", isError = true });
         try
         {
             var result = await BridgeManager.RecordViewingKeyAsync(entry, cancellationToken);
@@ -267,6 +273,8 @@ public class BridgeController : OASISControllerBase
         [FromBody] ProofVerificationRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (request == null)
+            return BadRequest(new { error = "The request body is required. Please provide a valid JSON body with ProofPayload and ProofType.", isError = true });
         try
         {
             var result = await BridgeManager.VerifyProofAsync(request.ProofPayload, request.ProofType, cancellationToken);

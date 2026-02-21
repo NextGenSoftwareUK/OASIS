@@ -71,12 +71,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                         throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
                 }
 
-                // Set LoggedInAvatar to the authenticated avatar so Quests property works
-                // This is required because Quests property getter uses AvatarManager.LoggedInAvatar.AvatarId
-                if (Avatar != null)
-                {
-                    AvatarManager.LoggedInAvatar = Avatar;
-                }
             }
             finally
             {

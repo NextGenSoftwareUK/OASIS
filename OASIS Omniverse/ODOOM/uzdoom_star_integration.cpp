@@ -95,6 +95,8 @@ static std::string g_odoom_send_input_buffer;
 static bool g_odoom_send_key_was_down[256];
 static bool g_odoom_send_popup_was_open = false;
 
+static void StarApplyBeamFacePreference(void);
+
 /** Return 1 if key is currently down, 0 otherwise. Uses platform API when available. */
 static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 {

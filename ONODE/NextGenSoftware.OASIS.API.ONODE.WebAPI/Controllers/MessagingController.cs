@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -37,6 +37,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("send-message-to-avatar/{toAvatarId}")]
         public async Task<OASISResult<bool>> SendMessageToAvatar(Guid toAvatarId, [FromBody] string content, [FromQuery] MessagingType messageType = MessagingType.Direct)
         {
+            if (content == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide the message content." };
             // Use MessagingManager for business logic
             return await MessagingManager.Instance.SendMessageToAvatarAsync(Avatar.Id, toAvatarId, content, messageType);
         }
@@ -149,6 +151,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("mark-messages-read")]
         public async Task<OASISResult<bool>> MarkMessagesAsRead([FromBody] List<Guid> messageIds)
         {
+            if (messageIds == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of message IDs." };
             // Use MessagingManager for business logic
             return await MessagingManager.Instance.MarkMessagesAsReadAsync(Avatar.Id, messageIds);
         }
@@ -219,6 +223,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("mark-notifications-read")]
         public async Task<OASISResult<bool>> MarkNotificationsAsRead([FromBody] List<Guid> notificationIds)
         {
+            if (notificationIds == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of notification IDs." };
             // Use MessagingManager for business logic
             return await MessagingManager.Instance.MarkNotificationsAsReadAsync(Avatar.Id, notificationIds);
         }

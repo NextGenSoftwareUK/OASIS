@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
@@ -28,13 +29,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     else if (HttpContext.Items["Avatar"] is OASISResult<IAvatar> avatarResult && avatarResult.Result is not null)
                         avatar = avatarResult.Result;
 
-                    // Set AvatarManager.LoggedInAvatar so SaveAsync() methods can access the AvatarId
-                    // This is required because SaveAsync() uses AvatarManager.LoggedInAvatar.AvatarId internally
-                    if (avatar != null && (AvatarManager.LoggedInAvatar == null || AvatarManager.LoggedInAvatar.Id != avatar.Id))
-                    {
-                        AvatarManager.LoggedInAvatar = avatar;
-                    }
-
                     return avatar;
                 }
 
@@ -43,11 +37,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             set
             {
                 HttpContext.Items["Avatar"] = value;
-                // Set AvatarManager.LoggedInAvatar when Avatar is set
-                // This is required because SaveAsync() methods use AvatarManager.LoggedInAvatar.AvatarId internally
                 if (value != null)
                 {
-                    AvatarManager.LoggedInAvatar = value;
+                    OASISRequestContext.CurrentAvatarId = value.Id;
+                    OASISRequestContext.CurrentAvatar = value;
                 }
             }
         }
@@ -72,12 +65,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     avatarId = ResolveAvatarIdFromBearerToken();
                 }
 
-                // If we have an AvatarId but Avatar is not loaded, create a minimal avatar
-                // and set AvatarManager.LoggedInAvatar so SaveAsync() methods can access it
                 if (avatarId != Guid.Empty && Avatar == null)
                 {
-                    var minimalAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
-                    AvatarManager.LoggedInAvatar = minimalAvatar;
+                    OASISRequestContext.CurrentAvatarId = avatarId;
                 }
 
                 return avatarId;
@@ -135,13 +125,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             // Always log the error first
             OASISErrorHandling.HandleError($"Error in {operationName}: {ex.Message}", ex, includeStackTrace: true);
             
-            // Check if this is a validation error (400) or real exception (500)
+            // Check if this is a validation/client error (400) or real server bug (500)
             bool isValidationError = ex is OASISException ||
+                                    ex is ArgumentException ||
+                                    ex is ArgumentNullException ||
                                     ex.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
                                     ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
                                     ex.Message.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
                                     ex.Message.Contains("cannot be null", StringComparison.OrdinalIgnoreCase) ||
-                                    ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase);
+                                    ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("not valid", StringComparison.OrdinalIgnoreCase) ||
+                                    ex.Message.Contains("must be one of", StringComparison.OrdinalIgnoreCase);
             
             if (isValidationError)
             {
@@ -190,6 +184,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 
                 return StatusCode(500, errorResult);
             }
+        }
+
+        /// <summary>
+        /// Validates create-style request: Name is required, Description is optional. Returns BadRequest with friendly message if invalid.
+        /// Request body null should be checked by the controller before calling this (e.g. if (request == null) return BadRequest(...)).
+        /// </summary>
+        protected IActionResult? ValidateCreateRequest(string? name, string? description = null, bool requireName = true)
+        {
+            if (requireName && string.IsNullOrWhiteSpace(name))
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The Name field is required. Please provide a non-empty Name." });
+            return null;
         }
 
         /// <summary>
@@ -256,35 +261,26 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Ensures AvatarManager.LoggedInAvatar is set before calling manager methods that use SaveAsync().
-        /// This is critical because SaveAsync() methods use AvatarManager.LoggedInAvatar.AvatarId internally.
+        /// Ensures request-scoped avatar is set (OASISRequestContext) before calling manager methods that use SaveAsync().
+        /// SaveAsync() resolves the current avatar via AvatarManager.LoggedInAvatar, which reads from OASISRequestContext first.
         /// </summary>
         protected void EnsureLoggedInAvatar()
         {
-            // If AvatarManager.LoggedInAvatar is already set and matches our Avatar, we're good
-            if (AvatarManager.LoggedInAvatar != null && Avatar != null && 
-                AvatarManager.LoggedInAvatar.Id == Avatar.Id && Avatar.Id != Guid.Empty)
-            {
+            if (OASISRequestContext.CurrentAvatarId.HasValue && OASISRequestContext.CurrentAvatarId.Value != Guid.Empty)
                 return;
-            }
-
-            // Try to get Avatar from HttpContext first
             if (Avatar != null && Avatar.Id != Guid.Empty)
             {
-                AvatarManager.LoggedInAvatar = Avatar;
+                OASISRequestContext.CurrentAvatarId = Avatar.Id;
+                OASISRequestContext.CurrentAvatar = Avatar;
                 return;
             }
-
-            // If Avatar is not set, try to get AvatarId and create minimal avatar
             var avatarId = AvatarId;
             if (avatarId != Guid.Empty)
             {
-                // Create minimal avatar if we don't have one
+                OASISRequestContext.CurrentAvatarId = avatarId;
                 if (Avatar == null)
-                {
                     Avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
-                }
-                AvatarManager.LoggedInAvatar = Avatar;
+                OASISRequestContext.CurrentAvatar = Avatar;
             }
         }
 

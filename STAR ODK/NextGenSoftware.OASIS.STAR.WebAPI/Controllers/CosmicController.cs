@@ -439,7 +439,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
                 if (UseTestDataWhenLiveDataNotAvailable)
                 {
                     return Ok(new OASISResult<IOmiverse>
@@ -449,6 +448,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                         Message = "Omniverse saved successfully (using test mode - real data unavailable)"
                     });
                 }
+                // Use HandleException so validation/client errors → 400, real server bugs → 500 (not masked)
                 return HandleException<IOmiverse>(ex, "SaveOmniverse");
             }
         }
@@ -534,7 +534,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
                 if (UseTestDataWhenLiveDataNotAvailable)
                 {
                     return Ok(new OASISResult<IOmiverse>
@@ -544,6 +543,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                         Message = "Omniverse updated successfully (using test mode - real data unavailable)"
                     });
                 }
+                // Use HandleException so validation/client errors → 400, real server bugs → 500 (not masked)
                 return HandleException<IOmiverse>(ex, "UpdateOmniverse");
             }
         }

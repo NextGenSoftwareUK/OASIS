@@ -339,6 +339,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateHolonWithOptions([FromBody] CreateHolonRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARHolon> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.Holons.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -470,6 +475,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishHolon(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARHolon> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Holons.PublishAsync(
@@ -581,6 +588,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditHolon(Guid id, [FromBody] EditHolonRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARHolon> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Holons.EditAsync(id, request.NewDNA, AvatarId);

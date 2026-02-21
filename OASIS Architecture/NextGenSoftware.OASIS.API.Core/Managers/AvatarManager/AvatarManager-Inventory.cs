@@ -59,6 +59,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<IInventoryItem>> AddItemToAvatarInventoryAsync(Guid avatarId, IInventoryItem item, ProviderType providerType = ProviderType.Default)
         {
             var result = new OASISResult<IInventoryItem>();
+            if (item == null)
+            {
+                result.IsError = true;
+                result.Message = "The inventory item is required. Please provide a valid Inventory Item object in the request body.";
+                return result;
+            }
             try
             {
                 var avatarDetailResult = await LoadAvatarDetailAsync(avatarId, providerType);

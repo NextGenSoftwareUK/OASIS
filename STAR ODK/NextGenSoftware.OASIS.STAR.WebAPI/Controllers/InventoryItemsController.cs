@@ -219,6 +219,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<InventoryItem>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateInventoryItemWithOptions([FromBody] CreateInventoryItemRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<InventoryItem> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 await EnsureStarApiBootedAsync();
@@ -378,6 +383,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<InventoryItem>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishInventoryItem(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<InventoryItem> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.InventoryItems.PublishAsync(
@@ -489,6 +496,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<InventoryItem>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditInventoryItem(Guid id, [FromBody] EditInventoryItemRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<InventoryItem> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.InventoryItems.EditAsync(id, request.NewDNA, AvatarId);
@@ -608,6 +617,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<InventoryItem>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchInventoryItems([FromBody] SearchRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<IEnumerable<InventoryItem>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
                 var result = await _starAPI.InventoryItems.SearchAsync<InventoryItem>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true, false, 0);

@@ -275,6 +275,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialBody>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCelestialBodyWithOptions([FromBody] CreateCelestialBodyRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialBody> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.CelestialBodies.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -450,6 +455,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialBody>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishCelestialBody(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialBody> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.CelestialBodies.PublishAsync(
@@ -561,6 +568,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialBody>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditCelestialBody(Guid id, [FromBody] EditCelestialBodyRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialBody> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.CelestialBodies.EditAsync(id, request.NewDNA, AvatarId);
