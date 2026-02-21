@@ -61,12 +61,18 @@ if (-not $StarDll -and (Test-Path (Join-Path $NativeWrapper "build\Release\star_
     $StarLib = Join-Path $NativeWrapper "build\Release\star_api.lib"
 }
 
+$starSyncRoot = $OQuakeRoot
+if (-not (Test-Path (Join-Path $OQuakeRoot "star_sync.c"))) {
+    $starSyncRoot = Join-Path (Split-Path -Parent $OQuakeRoot) "STARAPIClient"
+}
 $files = @(
     @{ Src = Join-Path $OQuakeRoot "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
     @{ Src = Join-Path $OQuakeRoot "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
     @{ Src = Join-Path $OQuakeRoot "oquake_version.h"; Dest = "oquake_version.h" },
     @{ Src = Join-Path $ScriptDir "pr_ext_oquake.c"; Dest = "pr_ext_oquake.c" },
-    @{ Src = Join-Path $NativeWrapper "star_api.h"; Dest = "star_api.h" }
+    @{ Src = Join-Path $NativeWrapper "star_api.h"; Dest = "star_api.h" },
+    @{ Src = Join-Path $starSyncRoot "star_sync.c"; Dest = "star_sync.c" },
+    @{ Src = Join-Path $starSyncRoot "star_sync.h"; Dest = "star_sync.h" }
 )
 $copied = 0
 foreach ($f in $files) {
@@ -146,5 +152,30 @@ if (Test-Path $HostC) {
                 }
             }
         }
+    }
+}
+
+# Patch vkQuake Visual Studio project to include star_sync.c (fixes LNK2001 unresolved star_sync_*)
+$vcxprojPaths = @(
+    (Join-Path $VkQuakeSrc "Windows\VisualStudio\vkquake.vcxproj"),
+    (Join-Path $VkQuakeSrc "Windows\VisualStudio\Quake\Quake.vcxproj")
+)
+foreach ($vcxproj in $vcxprojPaths) {
+    if (-not (Test-Path $vcxproj)) { continue }
+    $projContent = Get-Content $vcxproj -Raw
+    if ($projContent -notmatch 'oquake_star_integration\.c') { continue }
+    if ($projContent -match 'star_sync\.c') { continue }
+    # Add star_sync.c: same path style as oquake_star_integration.c, with PCH disabled (star_sync.c has no quakedef.h)
+    if ($projContent -match '<ClCompile\s+Include="([^"]*?)oquake_star_integration\.c"') {
+        $pathPrefix = $Matches[1]   # e.g. "..\..\Quake\" or "Quake\"
+        $newBlock = @"
+    <ClCompile Include="$pathPrefix`star_sync.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+"@
+        $projContent = $projContent -replace '(<ClCompile\s+Include="[^"]*oquake_star_integration\.c"\s*/>)', "`$1`r`n$newBlock"
+        Set-Content -Path $vcxproj -Value $projContent -NoNewline
+        Write-Host "[OQuake] Added star_sync.c to project $(Split-Path -Leaf $vcxproj) (PCH disabled)" -ForegroundColor Green
+        break
     }
 }

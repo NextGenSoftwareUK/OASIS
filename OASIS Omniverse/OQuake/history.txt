@@ -54,3 +54,4 @@ star beamin dellams test!
 str
 star
 star config
+star beamin dellams test!
