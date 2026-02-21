@@ -112,11 +112,16 @@ The integration files are:
 
 - `uzdoom_star_integration.cpp`
 - `uzdoom_star_integration.h`
+- `star_sync.c` and `star_sync.h` (generic async layer from `OASIS Omniverse\STARAPIClient`)
 
 They should live in your UZDoom **src** folder (e.g. `C:\Source\UZDoom\src\`). If you are syncing from the OASIS repo, copy them from:
 
 - `OASIS-master\OASIS Omniverse\ODOOM\uzdoom_star_integration.cpp` → `UZDoom\src\`
 - `OASIS-master\OASIS Omniverse\ODOOM\uzdoom_star_integration.h` → `UZDoom\src\`
+- `OASIS-master\OASIS Omniverse\STARAPIClient\star_sync.c` → `UZDoom\src\`
+- `OASIS-master\OASIS Omniverse\STARAPIClient\star_sync.h` → `UZDoom\src\`
+
+**Build:** Add `star_sync.c` to the UZDoom CMake source list when `OASIS_STAR_API` is ON (so it is compiled and linked with the game).
 
 The UZDoom source tree already has the hooks in `d_main.cpp`, `p_interaction.cpp`, and `gamedata/a_keys.cpp` guarded by `#ifdef OASIS_STAR_API`.
 

@@ -276,6 +276,20 @@ if (Test-Path $aboutPath) {
     }
 }
 
+# 4b. CMake: add star_sync.c to build when OASIS_STAR_API is used (same list as uzdoom_star_integration.cpp)
+$cmakeFiles = @()
+if (Test-Path "$src\CMakeLists.txt") { $cmakeFiles += "$src\CMakeLists.txt" }
+if (Test-Path "$src\src\CMakeLists.txt") { $cmakeFiles += "$src\src\CMakeLists.txt" }
+foreach ($cmakePath in $cmakeFiles) {
+    if (-not (Test-Path $cmakePath)) { continue }
+    $cmakeContent = Get-Content $cmakePath -Raw
+    if ($cmakeContent -match 'uzdoom_star_integration\.cpp' -and $cmakeContent -notmatch 'star_sync\.c') {
+        $cmakeContent = $cmakeContent -replace '(\buzdoom_star_integration\.cpp\b)', "`$1`r`n    star_sync.c"
+        Set-Content -Path $cmakePath -Value $cmakeContent -NoNewline
+        $changes += "cmake(star_sync.c)"
+    }
+}
+
 # 5. Register ODOOM OQUAKE actors in ZScript compile list
 if (Test-Path $zscriptTxt) {
     $content = Get-Content $zscriptTxt -Raw

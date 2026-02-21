@@ -40,8 +40,9 @@ So: **odoom_version.txt** = source of truth; the rest are outputs. No redundancy
 
 | File | Description |
 |------|-------------|
-| **uzdoom_star_integration.cpp** | STAR API init, key pickup, door check, console commands. |
+| **uzdoom_star_integration.cpp** | STAR API init, key pickup, door check, console commands; uses star_sync for async auth. |
 | **uzdoom_star_integration.h** | Declarations for above. |
+| **star_sync.c** / **star_sync.h** | Generic async auth/inventory layer (from STARAPIClient); add star_sync.c to UZDoom build. |
 | **odoom_branding.h** | ODOOM name/version macros for C (used with OASIS_STAR_API). |
 
 ### Launcher Editor (optional UI)

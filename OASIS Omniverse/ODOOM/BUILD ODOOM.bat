@@ -110,11 +110,19 @@ if not defined PYTHON3_EXE (
     pause
     exit /b 1
 )
+REM --- star_sync (generic async layer from STARAPIClient) ---
+set "STARAPICLIENT=%HERE%..\STARAPIClient"
+if exist "%STARAPICLIENT%\star_sync.c" (
+    copy /Y "%STARAPICLIENT%\star_sync.c" "%ODOOM_INTEGRATION%\" >nul
+    copy /Y "%STARAPICLIENT%\star_sync.h" "%ODOOM_INTEGRATION%\" >nul
+)
 echo.
 echo [ODOOM][STEP] Installing integration files...
 echo [ODOOM][INFO] OASIS sprite source: %OASIS_SPRITES_SRC%
 copy /Y "%ODOOM_INTEGRATION%uzdoom_star_integration.cpp" "%UZDOOM_SRC%\src\uzdoom_star_integration.cpp" >nul
 copy /Y "%ODOOM_INTEGRATION%uzdoom_star_integration.h" "%UZDOOM_SRC%\src\uzdoom_star_integration.h" >nul
+if exist "%ODOOM_INTEGRATION%star_sync.c" copy /Y "%ODOOM_INTEGRATION%star_sync.c" "%UZDOOM_SRC%\src\star_sync.c" >nul
+if exist "%ODOOM_INTEGRATION%star_sync.h" copy /Y "%ODOOM_INTEGRATION%star_sync.h" "%UZDOOM_SRC%\src\star_sync.h" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_branding.h" "%UZDOOM_SRC%\src\odoom_branding.h" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_oquake_keys.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_keys.zs" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_oquake_items.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_items.zs" >nul
