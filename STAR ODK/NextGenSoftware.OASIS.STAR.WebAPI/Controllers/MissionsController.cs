@@ -335,6 +335,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CloneMission(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.Missions.CloneAsync(AvatarId, id, request.NewName);
@@ -472,6 +474,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Mission>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateMissionWithOptions([FromBody] CreateMissionRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Mission> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.Missions.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -645,6 +652,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Mission>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishMission(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Mission> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Missions.PublishAsync(
@@ -756,6 +765,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Mission>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditMission(Guid id, [FromBody] EditMissionRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Mission> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Missions.EditAsync(id, request.NewDNA, AvatarId);

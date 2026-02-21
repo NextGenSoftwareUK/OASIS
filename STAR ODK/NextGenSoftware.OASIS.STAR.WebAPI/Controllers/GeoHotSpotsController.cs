@@ -108,6 +108,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateGeoHotSpot([FromBody] GeoHotSpot hotSpot)
         {
+            if (hotSpot == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid Geo Hot Spot object." });
             try
             {
                 var result = await _starAPI.GeoHotSpots.UpdateAsync(AvatarId, hotSpot);
@@ -132,6 +134,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateGeoHotSpot(Guid id, [FromBody] GeoHotSpot hotSpot)
         {
+            if (hotSpot == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid Geo Hot Spot object." });
             try
             {
                 hotSpot.Id = id;
@@ -208,6 +212,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateGeoHotSpotWithOptions([FromBody] CreateGeoHotSpotRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.GeoHotSpots.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -339,6 +348,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishGeoHotSpot(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.GeoHotSpots.PublishAsync(
@@ -450,6 +461,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<GeoHotSpot>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditGeoHotSpot(Guid id, [FromBody] EditGeoHotSpotRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<GeoHotSpot> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.GeoHotSpots.EditAsync(id, request.NewDNA, AvatarId);

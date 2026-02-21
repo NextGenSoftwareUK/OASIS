@@ -2,6 +2,7 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
@@ -293,50 +294,60 @@ app.Use(async (context, next) =>
     }
 });
 
-//TODO: Seems to be doing similar job to OASISMiddleware & JwtMiddleware? Do we still need?
+// Request-scoped avatar context (AsyncLocal) - set per request, cleared in finally so multiple clients are safe
 app.Use(async (context, next) =>
 {
-    if (context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
+    try
     {
-        var authHeader = authHeaderValue.ToString();
-        if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        if (context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
         {
-            var token = authHeader["Bearer ".Length..].Trim();
-            var avatarId = ParseAvatarIdFromJwt(token);
-            if (avatarId != Guid.Empty)
+            var authHeader = authHeaderValue.ToString();
+            if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             {
-                try
+                var token = authHeader["Bearer ".Length..].Trim();
+                var avatarId = ParseAvatarIdFromJwt(token);
+                if (avatarId != Guid.Empty)
                 {
-                    // Ensure OASIS is booted before loading avatar
-                    if (!OASISBootLoader.IsOASISBooted)
+                    try
                     {
-                        var dnaPath = OASISBootLoader.OASISDNAPath ?? 
-                                     Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
-                        var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
-                        if (bootResult.IsError)
+                        if (!OASISBootLoader.IsOASISBooted)
                         {
-                            // Log but don't fail - avatar loading will fail gracefully
-                            OASISErrorHandling.HandleError($"Warning: OASIS boot failed in middleware: {bootResult.Message}");
+                            var dnaPath = OASISBootLoader.OASISDNAPath ?? 
+                                         Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
+                            var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
+                            if (bootResult.IsError)
+                                OASISErrorHandling.HandleError($"Warning: OASIS boot failed in middleware: {bootResult.Message}");
+                        }
+                        var avatarLoadResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId);
+                        if (!avatarLoadResult.IsError && avatarLoadResult.Result is not null)
+                        {
+                            context.Items["Avatar"] = avatarLoadResult.Result;
+                            OASISRequestContext.CurrentAvatarId = avatarId;
+                            OASISRequestContext.CurrentAvatar = avatarLoadResult.Result;
+                        }
+                        else
+                        {
+                            context.Items["AvatarId"] = avatarId;
+                            OASISRequestContext.CurrentAvatarId = avatarId;
+                            OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
                         }
                     }
-
-                    // Use async method like WEB4 JWT middleware does
-                    var avatarLoadResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId);
-                    if (!avatarLoadResult.IsError && avatarLoadResult.Result is not null)
+                    catch (Exception ex)
                     {
-                        context.Items["Avatar"] = avatarLoadResult.Result;
+                        System.Diagnostics.Debug.WriteLine($"Warning: Failed to load avatar in middleware: {ex.Message}");
+                        OASISRequestContext.CurrentAvatarId = avatarId;
+                        OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
                     }
-                }
-                catch (Exception ex)
-                {
-                    // Best-effort context hydration for local API routes - log but don't fail
-                    System.Diagnostics.Debug.WriteLine($"Warning: Failed to load avatar in middleware: {ex.Message}");
                 }
             }
         }
+        await next();
     }
-
-    await next();
+    finally
+    {
+        OASISRequestContext.CurrentAvatar = null;
+        OASISRequestContext.CurrentAvatarId = null;
+    }
 });
 app.UseAuthorization();
 
@@ -411,11 +422,15 @@ public class ExceptionFilter : IExceptionFilter
         // Check if this is a validation error (400) or real exception (500)
         bool isValidationError = ex is System.Text.Json.JsonException ||
                                  ex is OASISException ||
+                                 ex is ArgumentException ||
+                                 ex is ArgumentNullException ||
                                  ex.Message.Contains("required", StringComparison.OrdinalIgnoreCase) ||
                                  ex.Message.Contains("missing", StringComparison.OrdinalIgnoreCase) ||
                                  ex.Message.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
                                  ex.Message.Contains("cannot be null", StringComparison.OrdinalIgnoreCase) ||
-                                 ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase);
+                                 ex.Message.Contains("AvatarId is required", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("not valid", StringComparison.OrdinalIgnoreCase) ||
+                                 ex.Message.Contains("must be one of", StringComparison.OrdinalIgnoreCase);
         
         var errorResult = new OASISResult<object>
         {

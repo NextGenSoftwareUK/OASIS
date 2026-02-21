@@ -108,6 +108,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateZome([FromBody] STARZome zome)
         {
+            if (zome == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid Zome object." });
             try
             {
                 var result = await _starAPI.Zomes.UpdateAsync(AvatarId, zome);
@@ -122,6 +124,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateZome(Guid id, [FromBody] STARZome zome)
         {
+            if (zome == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid Zome object." });
             try
             {
                 zome.Id = id;
@@ -196,6 +200,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateZomeWithOptions([FromBody] CreateZomeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.Zomes.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -358,6 +367,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishZome(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Zomes.PublishAsync(
@@ -469,6 +480,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditZome(Guid id, [FromBody] EditZomeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Zomes.EditAsync(id, request.NewDNA, AvatarId);

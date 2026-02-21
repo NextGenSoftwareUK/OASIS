@@ -92,6 +92,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("oasisdna")]
         public async Task<IActionResult> UpdateOASISDNA([FromBody] OASISDNA oasisdna)
         {
+            if (oasisdna == null)
+                return BadRequest(new { message = "The request body is required. Please provide a valid OASISDNA configuration object." });
             try
             {
                 var result = await GetOnodeManager().UpdateOASISDNAAsync(oasisdna);
@@ -274,6 +276,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("config")]
         public async Task<IActionResult> UpdateNodeConfig([FromBody] NodeConfigRequest request)
         {
+            if (request == null)
+                return BadRequest(new { message = "The request body is required. Please provide a valid JSON body with Config." });
             try
             {
                 var result = await GetOnodeManager().UpdateNodeConfigAsync(request.Config);

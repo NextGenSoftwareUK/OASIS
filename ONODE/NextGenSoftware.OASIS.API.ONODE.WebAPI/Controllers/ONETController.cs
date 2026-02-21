@@ -92,6 +92,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("oasisdna")]
         public async Task<IActionResult> UpdateOASISDNA([FromBody] OASISDNA oasisdna)
         {
+            if (oasisdna == null)
+                return BadRequest(new { message = "The request body is required. Please provide a valid OASISDNA configuration object." });
             try
             {
                 var result = await GetOnetManager().UpdateOASISDNAAsync(oasisdna);
@@ -172,6 +174,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("network/connect")]
         public async Task<IActionResult> ConnectToNode([FromBody] ConnectNodeRequest request)
         {
+            if (request == null)
+                return BadRequest(new { message = "The request body is required. Please provide a valid JSON body with NodeId and NodeAddress." });
             try
             {
                 var result = await GetOnetManager().ConnectToNodeAsync(request.NodeId, request.NodeAddress);
@@ -194,6 +198,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("network/disconnect")]
         public async Task<IActionResult> DisconnectFromNode([FromBody] DisconnectNodeRequest request)
         {
+            if (request == null)
+                return BadRequest(new { message = "The request body is required. Please provide a valid JSON body with NodeId." });
             try
             {
                 var result = await GetOnetManager().DisconnectFromNodeAsync(request.NodeId);
@@ -296,6 +302,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("network/broadcast")]
         public async Task<IActionResult> BroadcastMessage([FromBody] BroadcastMessageRequest request)
         {
+            if (request == null)
+                return BadRequest(new { message = "The request body is required. Please provide a valid JSON body with Message and MessageType." });
             try
             {
                 var result = await GetOnetManager().BroadcastMessageAsync(request.Message, request.MessageType);

@@ -98,6 +98,28 @@ link_args : ['-lstar_api']  # or the path to star_api.lib
 
 ---
 
+## 4a. host.c – item/stats poll (recommended; apply script does this)
+
+So that pickups (armor, ammo, keys, etc.) are reported to STAR **every frame**, the apply script patches **host.c** to call **`OQuake_STAR_PollItems()`** right after `CL_ReadFromServer()`. That way items are tracked even if the status bar (sbar) is never drawn or your build doesn’t patch sbar.c.
+
+If you apply OQuake manually, add this in **`_Host_Frame`** (in host.c), right after `CL_ReadFromServer ();`:
+
+```c
+OQuake_STAR_PollItems ();
+```
+
+Ensure **`#include "oquake_star_integration.h"`** is at the top of host.c (needed for `OQuake_STAR_Init` and `OQuake_STAR_PollItems`).
+
+---
+
+## 4b. sbar.c – do not report pickups here when using the host.c poll
+
+If you use **OQuake_STAR_PollItems()** in host.c (section 4a, recommended), **do not** also call `OQuake_STAR_OnItemsChangedEx` / `OQuake_STAR_OnStatsChangedEx` from sbar.c. Otherwise each pickup is reported twice (e.g. armor shows +2 instead of +1).
+
+When the apply script has patched host.c with the poll, sbar.c should not call the STAR item/stats hooks. The poll in host.c is the single place that reports pickups.
+
+---
+
 ## 5. One-shot script (optional)
 
 From `OASIS Omniverse\OQuake`, run:

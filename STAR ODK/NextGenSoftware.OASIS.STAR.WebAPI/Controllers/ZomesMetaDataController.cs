@@ -107,6 +107,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateZomeMetaData([FromBody] ZomeMetaDataDNA metadata)
         {
+            if (metadata == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid Zome Metadata object." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.UpdateAsync(AvatarId, metadata);
@@ -131,6 +133,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateZomeMetaData(Guid id, [FromBody] ZomeMetaDataDNA metadata)
         {
+            if (metadata == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid Zome Metadata object." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.UpdateAsync(AvatarId, metadata);
@@ -176,6 +180,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneZomeMetaData(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.CloneAsync(AvatarId, id, request.NewName);
@@ -200,6 +206,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishZomeMetaData(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.PublishAsync(AvatarId, request.SourcePath, request.LaunchTarget, request.PublishPath, request.Edit, request.RegisterOnSTARNET, request.GenerateBinary, request.UploadToCloud);
@@ -281,6 +289,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateZomeMetaDataWithOptions([FromBody] CreateZomeMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -377,6 +390,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<ZomeMetaDataDNA>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchZomesMetaData([FromBody] SearchRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<IEnumerable<ZomeMetaDataDNA>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.SearchAsync<ZomeMetaDataDNA>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true);
@@ -406,6 +421,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DownloadZomeMetaData(Guid id, [FromBody] DownloadZomeMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with DestinationPath." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.DownloadAsync(AvatarId, id, "latest", request.DestinationPath);
@@ -454,6 +471,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditZomeMetaData(Guid id, [FromBody] EditZomeMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.EditAsync(id, request.NewDNA, AvatarId);
@@ -503,6 +522,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RepublishZomeMetaData(Guid id, [FromBody] PublishRequest request, [FromQuery] int version = 0)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body for republish options." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.RepublishAsync(AvatarId, id, version);

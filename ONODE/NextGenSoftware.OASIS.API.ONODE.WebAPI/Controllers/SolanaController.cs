@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
@@ -32,6 +32,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("Mint")]
         public async Task<OASISResult<MintNftResult>> MintNft([FromBody] MintWeb3NFTRequest request)
         {
+            if (request == null)
+                return new OASISResult<MintNftResult> { IsError = true, Message = "The request body is required. Please provide a valid Mint Web3 NFT request (e.g. Mint Public Key, Mint Decimals)." };
             return await _solanaService.MintNftAsync(request);
         }
 
@@ -45,6 +47,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("Send")]
         public async Task<OASISResult<SendTransactionResult>> SendTransaction([FromBody] SendTransactionRequest request)
         {
+            if (request == null)
+                return new OASISResult<SendTransactionResult> { IsError = true, Message = "The request body is required. Please provide a valid request with FromAccount and ToAccount (public keys)." };
             return await _solanaService.SendTransaction(request);
         }
     }

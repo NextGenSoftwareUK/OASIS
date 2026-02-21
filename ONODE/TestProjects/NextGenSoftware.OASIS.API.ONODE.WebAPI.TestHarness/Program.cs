@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Linq;
 
-var baseUrl = (Environment.GetEnvironmentVariable("OASIS_WEBAPI_BASE_URL") ?? "http://localhost:5003").TrimEnd('/');
+var baseUrl = (Environment.GetEnvironmentVariable("OASIS_WEBAPI_BASE_URL") ?? "http://localhost:5555").TrimEnd('/');
 var username = Environment.GetEnvironmentVariable("OASIS_WEBAPI_USERNAME") ?? "dellams";
 var password = Environment.GetEnvironmentVariable("OASIS_WEBAPI_PASSWORD") ?? "test!";
 
@@ -21,6 +21,7 @@ using var swaggerDoc = JsonDocument.Parse(await client.GetStringAsync($"{baseUrl
 var swaggerRoot = swaggerDoc.RootElement;
 var endpoints = ReadEndpoints(swaggerRoot).ToList();
 var failures = new List<string>();
+var failures400 = new List<string>();
 var orderedEndpoints = endpoints
     .OrderBy(e => IsDestructiveOnetEndpoint(e.Path) ? 1 : 0)
     .ThenBy(e => e.Path, StringComparer.OrdinalIgnoreCase)
@@ -56,11 +57,13 @@ foreach (var endpoint in orderedEndpoints)
             if (failures.Count <= 10)
                 Console.WriteLine($"  Error details: {errorPreview}");
         }
-        else if (code == 400 && failures.Count < 20)
+        else if (code == 400)
         {
             var body = await response.Content.ReadAsStringAsync();
             var errorPreview = body.Length > 300 ? body.Substring(0, 300) + "..." : body;
-            Console.WriteLine($"  {endpoint.Method} {endpoint.Path} => {code}: {errorPreview}");
+            failures400.Add($"{endpoint.Method} {endpoint.Path} => 400. {errorPreview}");
+            if (failures.Count + failures400.Count < 20)
+                Console.WriteLine($"  {endpoint.Method} {endpoint.Path} => {code}: {errorPreview}");
         }
     }
     catch (Exception ex)
@@ -70,9 +73,25 @@ foreach (var endpoint in orderedEndpoints)
     }
 }
 
+var reportDir = Path.Combine(AppContext.BaseDirectory, "Test Results");
+Directory.CreateDirectory(reportDir);
+var reportPath = Path.Combine(reportDir, "test_failures_web4.txt");
+using (var report = new StreamWriter(reportPath, append: false))
+{
+    report.WriteLine($"WEB4 Test Run {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}Z");
+    report.WriteLine($"500s: {failures.Count}");
+    foreach (var f in failures)
+        report.WriteLine(f);
+    report.WriteLine();
+    report.WriteLine($"400s: {failures400.Count}");
+    foreach (var f in failures400)
+        report.WriteLine(f);
+}
+Console.WriteLine($"\nFull failure list written to: {reportPath}");
+
 if (failures.Count > 0)
 {
-    Console.WriteLine($"\nFailures ({failures.Count}):");
+    Console.WriteLine($"\nFailures 5xx ({failures.Count}):");
     foreach (var failure in failures)
         Console.WriteLine(failure);
     Environment.ExitCode = 1;
@@ -81,6 +100,8 @@ else
 {
     Console.WriteLine("\nAll OASIS WEB4 endpoints returned non-5xx responses.");
 }
+if (failures400.Count > 0)
+    Console.WriteLine($"\n400s ({failures400.Count}) - see {reportPath}");
 
 static (string Url, HttpContent? Content) BuildRequest(JsonElement swaggerRoot, (string Method, string Path) endpoint, Guid? avatarId, string baseUrl)
 {
@@ -298,7 +319,7 @@ static string GetStringValue(string propertyName, JsonElement schema)
     if (lowerName.Contains("search") || lowerName.Contains("query") || lowerName.Contains("term"))
         return "test";
     if (lowerName.Contains("type"))
-        return "TestType";
+        return "Default";
     if (lowerName.Contains("status"))
         return "Active";
     if (lowerName.Contains("category"))
@@ -310,7 +331,7 @@ static string GetStringValue(string propertyName, JsonElement schema)
     if (lowerName.Contains("title") && !lowerName.Contains("name"))
         return "Mr";
     if (lowerName.Contains("holontype") || lowerName.Contains("holonType"))
-        return "Holon";
+        return "Default";
     if (lowerName.Contains("provider") && lowerName.Contains("type"))
         return "Default";
     if (lowerName.Contains("version"))
@@ -468,14 +489,20 @@ static string? GetQueryParameterValue(JsonElement param, string name, Guid? avat
 {
     var lowerName = name.ToLowerInvariant();
 
+    // Use schema enum first so we always send valid enum values (reduces 400s)
+    if (param.TryGetProperty("schema", out var schema) && schema.TryGetProperty("enum", out var enumProp) && enumProp.ValueKind == JsonValueKind.Array && enumProp.GetArrayLength() > 0)
+    {
+        return enumProp[0].GetString();
+    }
+
     if (param.TryGetProperty("required", out var required) && required.GetBoolean())
     {
         if (lowerName.Contains("search") || lowerName.Contains("query") || lowerName.Contains("term"))
             return "test";
         if (lowerName.Contains("itemname"))
             return "Test Item";
-        if (lowerName.Contains("type"))
-            return "TestType";
+        if (lowerName.Contains("type") || lowerName.Contains("holontype") || lowerName.Contains("holonType"))
+            return "Default";
         if (lowerName.Contains("status"))
             return "Active";
         if (lowerName.Contains("category"))
@@ -490,10 +517,11 @@ static string? GetQueryParameterValue(JsonElement param, string name, Guid? avat
             return "testuser";
     }
 
-    if (param.TryGetProperty("schema", out var schema) && schema.TryGetProperty("enum", out var enumProp) && enumProp.ValueKind == JsonValueKind.Array && enumProp.GetArrayLength() > 0)
-    {
-        return enumProp[0].GetString();
-    }
+    // Optional params that commonly need valid enum values to avoid 400
+    if (lowerName.Contains("provider") && lowerName.Contains("type"))
+        return "Default";
+    if (lowerName.Contains("holontype") || lowerName.Contains("holonType") || (lowerName == "type" && !lowerName.Contains("search")))
+        return "Default";
 
     if (param.TryGetProperty("schema", out var schema2))
     {
@@ -524,8 +552,8 @@ static string ResolvePath(string path, Guid? avatarId)
             return Guid.NewGuid().ToString();
         if (key.Contains("version"))
             return "1";
-        if (key.Contains("type"))
-            return "TestType";
+        if (key.Contains("holontype") || key.Contains("holonType") || key == "type")
+            return "Default";
         if (key.Contains("status"))
             return "Active";
         if (key.Contains("category"))
@@ -538,7 +566,7 @@ static string ResolvePath(string path, Guid? avatarId)
             return "test";
         if (key.Contains("itemname"))
             return "TestItem";
-        if (key.Contains("providerType"))
+        if (key.Contains("providertype"))
             return "Default";
         if (key.Contains("setGlobally"))
             return "false";

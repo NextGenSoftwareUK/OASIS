@@ -110,6 +110,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCelestialSpace([FromBody] STARCelestialSpace celestialSpace)
         {
+            if (celestialSpace == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid Celestial Space object." });
             try
             {
                 var result = await _starAPI.CelestialSpaces.UpdateAsync(AvatarId, celestialSpace);
@@ -134,6 +136,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateCelestialSpace(Guid id, [FromBody] STARCelestialSpace celestialSpace)
         {
+            if (celestialSpace == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid Celestial Space object." });
             try
             {
                 celestialSpace.Id = id;
@@ -275,6 +279,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCelestialSpaceWithOptions([FromBody] CreateCelestialSpaceRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.CelestialSpaces.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -406,6 +415,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishCelestialSpace(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.CelestialSpaces.PublishAsync(
@@ -517,6 +528,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditCelestialSpace(Guid id, [FromBody] EditCelestialSpaceRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.CelestialSpaces.EditAsync(id, request.NewDNA, AvatarId);

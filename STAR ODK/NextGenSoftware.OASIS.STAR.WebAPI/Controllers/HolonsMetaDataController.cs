@@ -281,6 +281,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<HolonMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateHolonMetaDataWithOptions([FromBody] CreateHolonMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<HolonMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.HolonsMetaDataDNA.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
