@@ -1,0 +1,52 @@
+OQuake (Quake + OASIS STAR API) – cross-game keys with ODOOM.
+See README.md and WINDOWS_INTEGRATION.md for setup and build.
+star
+star version
+star
+oasis_inventory_toggle#
+oasis_inventory_toggle
+star beamin
+star beamin anorak test!
+star beamin
+star beamin anorak test!
+star
+star beamin anorak test!
+star beamin anorak teat!
+star beamin anorak test!
+star
+star face
+star face status
+star face off
+star
+star beamin anorak test!
+star face off
+star face on
+star beamout
+star face off
+star face
+star beamin anorak test!
+star face on
+exec config.cfg
+star config
+star
+exec config.cfg
+star config
+exec config.cfg
+star config
+star beamin dellams test!
+star beamin dellans test!
+star config
+star beamin dellams test!
+star
+star beamin dellams test!
+star
+star config
+star face
+star face off
+star face on
+star beamin dellams test!
+star face
+star face off
+star face on
+star beamin anroak test!
+star beamin anorak test!

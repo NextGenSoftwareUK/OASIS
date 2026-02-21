@@ -1280,7 +1280,9 @@ static const char* get_key_description(const char* key_name) {
 
 static int OQ_ShouldUseAnorakFace(void) {
     const char* activeName = g_star_username[0] ? g_star_username : "";
-    return (oasis_star_beam_face.value > 0.5f) && (q_strcasecmp(activeName, "anorak") == 0);
+    return (oasis_star_beam_face.value > 0.5f) &&
+           (q_strcasecmp(activeName, "anorak") == 0 || q_strcasecmp(activeName, "avatar") == 0 ||
+            q_strcasecmp(activeName, "dellams") == 0);
 }
 
 static void OQ_ApplyBeamFacePreference(void) {
@@ -2659,6 +2661,12 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
     extern int glheight;
+
+    /* Poll for async beam-in completion every frame so login state and "Beamed In" update
+     * even when the inventory overlay is never opened. Face is correct because
+     * OQuake_STAR_ShouldUseAnorakFace() returns the live value. */
+    OQ_CheckAuthenticationComplete();
+
     if (!cbx)
         return;
 
@@ -2697,7 +2705,8 @@ void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
 }
 
 int OQuake_STAR_ShouldUseAnorakFace(void) {
-    return oasis_star_anorak_face.value > 0.5f;
+    /* Return live result so the engine always sees current state (e.g. after async beam-in) */
+    return g_star_initialized && OQ_ShouldUseAnorakFace();
 }
 
 const char* OQuake_STAR_GetUsername(void) {
