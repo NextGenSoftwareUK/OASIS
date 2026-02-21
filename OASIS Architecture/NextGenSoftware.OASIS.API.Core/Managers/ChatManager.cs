@@ -118,7 +118,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<string>> SendMessageAsync(string sessionId, Guid senderId, string message, MessageType messageType = MessageType.Text)
         {
             var result = new OASISResult<string>();
-            
+            if (message == null)
+            {
+                result.IsError = true;
+                result.Message = "The message content is required. Please provide a non-null string.";
+                return result;
+            }
             try
             {
                 // Validate session exists

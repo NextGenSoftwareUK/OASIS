@@ -1,0 +1,9 @@
+{
+  "star_api_url": "https://star-api.oasisplatform.world/api",
+  "oasis_api_url": "https://api.oasisplatform.world",
+  "beam_face": 1,
+  "stack_armor": 1,
+  "stack_weapons": 1,
+  "stack_powerups": 1,
+  "stack_keys": 1
+}

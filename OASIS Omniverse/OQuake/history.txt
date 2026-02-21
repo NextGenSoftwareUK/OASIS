@@ -55,3 +55,6 @@ str
 star
 star config
 star beamin dellams test!
+star
+star inventory
+star beamin
