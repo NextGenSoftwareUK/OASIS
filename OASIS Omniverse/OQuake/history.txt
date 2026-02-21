@@ -39,3 +39,8 @@ star config
 star beamin dellams test!
 star
 star beamin dellams test!
+star
+star config
+star face
+star face off
+star face on
