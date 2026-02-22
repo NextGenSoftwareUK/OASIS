@@ -1,6 +1,6 @@
 {
-  "star_api_url": "https://star-api.oasisplatform.world/api",
-  "oasis_api_url": "https://api.oasisplatform.world",
+  "star_api_url": "http://localhost:5556",
+  "oasis_api_url": "http://localhost:5555",
   "beam_face": 1,
   "stack_armor": 1,
   "stack_weapons": 1,

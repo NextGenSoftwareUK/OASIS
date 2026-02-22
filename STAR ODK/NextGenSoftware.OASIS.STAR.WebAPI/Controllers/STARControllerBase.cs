@@ -86,6 +86,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             get
             {
+                if (HttpContext?.RequestServices == null)
+                    return true; // Default when no request context (e.g. unit tests)
                 var config = HttpContext.RequestServices.GetService<Microsoft.Extensions.Configuration.IConfiguration>();
                 if (config == null)
                     return true; // Default to enabled
@@ -104,6 +106,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             get
             {
+                if (HttpContext?.RequestServices == null)
+                    return false; // Default when no request context (e.g. unit tests)
                 var config = HttpContext.RequestServices.GetService<Microsoft.Extensions.Configuration.IConfiguration>();
                 if (config == null)
                     return false; // Default to disabled
