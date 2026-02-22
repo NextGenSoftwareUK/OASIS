@@ -1,6 +1,4 @@
-using Microsoft.Azure.Documents.Client;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -51,16 +49,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (dbClientFactory == null)
                 {
-                    var documentClient = new DocumentClient(serviceEndpoint, authKey, new JsonSerializerSettings
-                    {
-                        NullValueHandling = NullValueHandling.Ignore,
-                        DefaultValueHandling = DefaultValueHandling.Ignore,
-                        ContractResolver = new CamelCasePropertyNamesContractResolver()
-                    });
-
-                    documentClient.OpenAsync().Wait();
-
-                    dbClientFactory = new CosmosDbClientFactory(databaseName, collectionNames, documentClient);
+                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey);
+                    dbClientFactory = new CosmosDbClientFactory(cosmosClient, databaseName, collectionNames);
                     OASISResult<bool> ensureDbSetupResult = dbClientFactory.EnsureDbSetupAsync().Result;
 
                     if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
@@ -90,16 +80,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (dbClientFactory == null)
                 {
-                    var documentClient = new DocumentClient(serviceEndpoint, authKey, new JsonSerializerSettings
-                    {
-                        NullValueHandling = NullValueHandling.Ignore,
-                        DefaultValueHandling = DefaultValueHandling.Ignore,
-                        ContractResolver = new CamelCasePropertyNamesContractResolver()
-                    });
-
-                    await documentClient.OpenAsync();
-
-                    dbClientFactory = new CosmosDbClientFactory(databaseName, collectionNames, documentClient);
+                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey);
+                    dbClientFactory = new CosmosDbClientFactory(cosmosClient, databaseName, collectionNames);
                     OASISResult<bool> ensureDbSetupResult = await dbClientFactory.EnsureDbSetupAsync();
 
                     if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)

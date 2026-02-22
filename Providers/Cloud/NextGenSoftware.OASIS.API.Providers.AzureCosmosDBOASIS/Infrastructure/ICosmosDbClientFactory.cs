@@ -1,7 +1,7 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
+namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
     public interface ICosmosDbClientFactory
     {
-        public ICosmosDbClient GetClient(string collectionName);        
+        ICosmosDbClient GetClient(string collectionName);
     }
 }

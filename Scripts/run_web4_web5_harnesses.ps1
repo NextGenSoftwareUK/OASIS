@@ -54,32 +54,16 @@ Write-Host "  STAR_WEBAPI_BASE_URL = $env:STAR_WEBAPI_BASE_URL" -ForegroundColor
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = (Resolve-Path (Join-Path $scriptDir "..")).Path
 $testHarnessPath = Join-Path $repoRoot "STAR ODK\TestProjects\NextGenSoftware.OASIS.STAR.WebAPI.TestHarness"
-Push-Location $testHarnessPath | Out-Null
-
-$processInfo = New-Object System.Diagnostics.ProcessStartInfo
-$processInfo.FileName = "dotnet"
-$processInfo.Arguments = "run --configuration Release"
-$processInfo.WorkingDirectory = Get-Location
-$processInfo.UseShellExecute = $false
-$processInfo.RedirectStandardOutput = $true
-$processInfo.RedirectStandardError = $true
-$processInfo.EnvironmentVariables["STAR_WEBAPI_BASE_URL"] = $Web5BaseUrl
-$processInfo.EnvironmentVariables["STARAPI_WEB5_BASE_URL"] = $Web5BaseUrl
-$processInfo.EnvironmentVariables["STARAPI_WEB4_BASE_URL"] = $Web4BaseUrl
-
-$process = New-Object System.Diagnostics.Process
-$process.StartInfo = $processInfo
-$process.Start() | Out-Null
-$web5Result = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
-$process.WaitForExit()
-Pop-Location | Out-Null
-
 $testResultsDir = Join-Path $repoRoot "STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\Test Results"
 New-Item -ItemType Directory -Path $testResultsDir -Force | Out-Null
 $testResultsFile = Join-Path $testResultsDir "test_results_web5.txt"
+
+Push-Location $testHarnessPath | Out-Null
+$web5Result = & dotnet run --configuration Release 2>&1 | ForEach-Object { Write-Host $_; $_ }
+Pop-Location | Out-Null
+
 $web5Result | Out-File -FilePath $testResultsFile -Encoding utf8
 Write-Host "Full test results saved to: $testResultsFile" -ForegroundColor Gray
-
 $web5Result | Select-String -Pattern "(=>|failures|passed|Failed|Passed|Total|200|400|500)" | ForEach-Object { Write-Host $_ }
 
 Write-Host ""
@@ -90,32 +74,19 @@ Write-Host "==============================================" -ForegroundColor Cya
 $env:OASIS_WEBAPI_BASE_URL = $Web4BaseUrl
 Write-Host "Environment variables set:" -ForegroundColor Yellow
 Write-Host "  OASIS_WEBAPI_BASE_URL = $env:OASIS_WEBAPI_BASE_URL" -ForegroundColor Gray
+Write-Host "Web4 harness may take several minutes (hitting all endpoints)..." -ForegroundColor Gray
 
 $web4HarnessPath = Join-Path $repoRoot "ONODE\TestProjects\NextGenSoftware.OASIS.API.ONODE.WebAPI.TestHarness"
-Push-Location $web4HarnessPath | Out-Null
-
-$processInfo = New-Object System.Diagnostics.ProcessStartInfo
-$processInfo.FileName = "dotnet"
-$processInfo.Arguments = "run --configuration Release"
-$processInfo.WorkingDirectory = Get-Location
-$processInfo.UseShellExecute = $false
-$processInfo.RedirectStandardOutput = $true
-$processInfo.RedirectStandardError = $true
-$processInfo.EnvironmentVariables["OASIS_WEBAPI_BASE_URL"] = $Web4BaseUrl
-
-$process = New-Object System.Diagnostics.Process
-$process.StartInfo = $processInfo
-$process.Start() | Out-Null
-$web4Result = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
-$process.WaitForExit()
-Pop-Location | Out-Null
-
 $testResultsDirWeb4 = Join-Path $repoRoot "ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Test Results"
 New-Item -ItemType Directory -Path $testResultsDirWeb4 -Force | Out-Null
 $testResultsFileWeb4 = Join-Path $testResultsDirWeb4 "test_results_web4.txt"
+
+Push-Location $web4HarnessPath | Out-Null
+$web4Result = & dotnet run --configuration Release 2>&1 | ForEach-Object { Write-Host $_; $_ }
+Pop-Location | Out-Null
+
 $web4Result | Out-File -FilePath $testResultsFileWeb4 -Encoding utf8
 Write-Host "Full test results saved to: $testResultsFileWeb4" -ForegroundColor Gray
-
 $web4Result | Select-String -Pattern "(=>|failures|passed|Failed|Passed|Total|200|400|500)" | ForEach-Object { Write-Host $_ }
 
 Write-Host ""
