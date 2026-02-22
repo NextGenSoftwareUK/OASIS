@@ -13,6 +13,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public GeoHotSpotsControllerTests()
         {
             _controller = new GeoHotSpotsController();
+            STARControllerTestHelper.SetUpControllerContext(_controller);
         }
 
         [Fact]
@@ -23,7 +24,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -37,7 +38,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -51,7 +52,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -66,7 +67,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -80,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
     }
 }

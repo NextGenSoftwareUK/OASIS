@@ -76,7 +76,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 // Return test data if setting is enabled and result is null, has error, or is empty
                 if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
                 {
-                    var testNFTs = TestDataHelper.GetTestNFTs(5).Cast<STARNFT>().ToList();
+                    var testNFTs = TestDataHelper.GetTestSTARNFTs(5);
                     return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARNFT>>(testNFTs, "NFTs retrieved successfully (using test data)"));
                 }
 
@@ -87,7 +87,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 // Return test data if setting is enabled, otherwise return error
                 if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    var testNFTs = TestDataHelper.GetTestNFTs(5).Cast<STARNFT>().ToList();
+                    var testNFTs = TestDataHelper.GetTestSTARNFTs(5);
                     return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARNFT>>(testNFTs, "NFTs retrieved successfully (using test data)"));
                 }
                 return HandleException<IEnumerable<STARNFT>>(ex, "GetAllNFTs");

@@ -324,6 +324,19 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "API key authentication configured.");
     }
 
+    /// <summary>Set avatar ID for subsequent API calls (e.g. after SSO when C++ has avatar_id from auth result). Does not change JWT.</summary>
+    public OASISResult<bool> SetAvatarId(string avatarId)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        lock (_stateLock)
+            _avatarId = string.IsNullOrWhiteSpace(avatarId) ? null : avatarId;
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(true, StarApiResultCode.Success, "Avatar ID set.");
+    }
+
     public OASISResult<bool> SetWeb4OasisApiBaseUrl(string web4OasisApiBaseUrl)
     {
         if (!IsInitialized())
@@ -556,6 +569,12 @@ public sealed class StarApiClient : IDisposable
     {
         if (!IsInitialized())
             return FailAndCallback<StarItem>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        string? avatarId;
+        lock (_stateLock)
+            avatarId = _avatarId;
+        if (string.IsNullOrWhiteSpace(avatarId))
+            return FailAndCallback<StarItem>("Avatar ID is not set. Complete beam-in (authenticate) first; add_item requires avatar context.", StarApiResultCode.NotInitialized);
 
         if (string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(gameSource))
             return FailAndCallback<StarItem>("Item name, description, and game source are required.", StarApiResultCode.InvalidParam);
@@ -2344,6 +2363,17 @@ public static unsafe class StarApiExports
         SetError(string.Empty);
         InvokeCallback(StarApiResultCode.Success);
         return (int)StarApiResultCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_avatar_id", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiSetAvatarId(sbyte* avatarId)
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        var result = client.SetAvatarId(PtrToString(avatarId) ?? string.Empty);
+        return (int)FinalizeResult(result);
     }
 
     private static StarApiClient? GetClient()
