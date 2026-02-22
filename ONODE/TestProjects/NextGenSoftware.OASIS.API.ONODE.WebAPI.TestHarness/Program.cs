@@ -8,7 +8,7 @@ var baseUrl = (Environment.GetEnvironmentVariable("OASIS_WEBAPI_BASE_URL") ?? "h
 var username = Environment.GetEnvironmentVariable("OASIS_WEBAPI_USERNAME") ?? "dellams";
 var password = Environment.GetEnvironmentVariable("OASIS_WEBAPI_PASSWORD") ?? "test!";
 
-using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(180) };
+using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
 var (token, avatarId) = await TryAuthenticateAsync(client, baseUrl, username, password);
 if (!string.IsNullOrWhiteSpace(token))
 {
@@ -48,6 +48,7 @@ foreach (var endpoint in orderedEndpoints)
         using var response = await client.SendAsync(request);
         var code = (int)response.StatusCode;
         Console.WriteLine($"{endpoint.Method} {endpoint.Path} => {code}");
+        Console.Out.Flush();
         
         if (code >= 500)
         {

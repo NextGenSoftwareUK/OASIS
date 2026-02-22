@@ -1,62 +1,54 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Cosmos;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
     public class CosmosDbClientFactory : ICosmosDbClientFactory
     {
+        private readonly CosmosClient _cosmosClient;
         private readonly string _databaseName;
         private readonly List<string> _collectionNames;
-        private readonly IDocumentClient _documentClient;
 
-        public CosmosDbClientFactory(string databaseName, List<string> collectionNames, IDocumentClient documentClient)
+        public CosmosDbClientFactory(CosmosClient cosmosClient, string databaseName, List<string> collectionNames)
         {
+            _cosmosClient = cosmosClient ?? throw new ArgumentNullException(nameof(cosmosClient));
             _databaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
             _collectionNames = collectionNames ?? throw new ArgumentNullException(nameof(collectionNames));
-            _documentClient = documentClient ?? throw new ArgumentNullException(nameof(documentClient));
         }
 
         public ICosmosDbClient GetClient(string collectionName)
         {
             if (!_collectionNames.Contains(collectionName))
-            {
                 throw new ArgumentException($"Unable to find collection: {collectionName}");
-            }
 
-            return new CosmosDbClient(_databaseName, collectionName, _documentClient);
+            var container = _cosmosClient.GetContainer(_databaseName, collectionName);
+            return new CosmosDbClient(container);
         }
 
         public async Task<OASISResult<bool>> EnsureDbSetupAsync()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
+            var result = new OASISResult<bool>();
             try
             {
-                await _documentClient.ReadDatabaseAsync(UriFactory.CreateDatabaseUri(_databaseName));
+                var database = _cosmosClient.GetDatabase(_databaseName);
+                await database.ReadAsync();
 
                 foreach (var collectionName in _collectionNames)
                 {
-                    DocumentCollection collection = await _documentClient.ReadDocumentCollectionAsync(
-                        UriFactory.CreateDocumentCollectionUri(_databaseName, collectionName));
-
-                    if (collection == null)
-                    {
-                        result.Message = $"Error occured in EnsureDbSetupAsync method in AzureCosmosDBOASIS Provider. Reason: collection {collection} is null.";
-                        result.IsError = true;
-                        return result;
-                    }
+                    var container = database.GetContainer(collectionName);
+                    await container.ReadContainerAsync();
                 }
+
+                result.Result = true;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in EnsureDbSetupAsync in AzureCosmosDBOASIS Provider. Reason: {ex}");
             }
 
-            result.Result = true;
             return result;
         }
     }

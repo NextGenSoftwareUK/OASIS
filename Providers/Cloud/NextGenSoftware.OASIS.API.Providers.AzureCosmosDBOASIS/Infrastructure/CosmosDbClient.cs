@@ -1,68 +1,108 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
     public class CosmosDbClient : ICosmosDbClient
     {
-        private readonly string _databaseName;
-        private readonly string _collectionName;
-        private readonly IDocumentClient _documentClient;
+        private readonly Container _container;
 
-        public CosmosDbClient(string databaseName, string collectionName, IDocumentClient documentClient)
+        public CosmosDbClient(Container container)
         {
-            _databaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
-            _collectionName = collectionName ?? throw new ArgumentNullException(nameof(collectionName));
-            _documentClient = documentClient ?? throw new ArgumentNullException(nameof(documentClient));
+            _container = container ?? throw new ArgumentNullException(nameof(container));
         }
 
-        public async Task<Document> ReadDocumentAsync(string documentId, RequestOptions options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {            
-            return await _documentClient.ReadDocumentAsync(
-                UriFactory.CreateDocumentUri(_databaseName, _collectionName, documentId), options, cancellationToken);
+        public async Task<string> ReadDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+        {
+            var pk = partitionKey ?? PartitionKey.None;
+            var response = await _container.ReadItemStreamAsync(documentId, pk, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                throw new CosmosException(response.ErrorMessage ?? "Read failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+            using var reader = new StreamReader(response.Content);
+            return await reader.ReadToEndAsync();
         }
 
-        public Document ReadDocumentByField(string fieldName, string fieldValue, int version = 0, RequestOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public string ReadDocumentByField(string fieldName, string fieldValue, int version = 0)
         {
-            string query = string.Concat("SELECT * FROM root r where ", fieldName, "=", fieldValue);
-
+            var query = new QueryDefinition($"SELECT * FROM c WHERE c.{fieldName} = @value")
+                .WithParameter("@value", fieldValue);
             if (version > 0)
-                query = string.Concat(query, " and version = ", version);
+                query = new QueryDefinition($"SELECT * FROM c WHERE c.{fieldName} = @value AND c.version = @version")
+                    .WithParameter("@value", fieldValue)
+                    .WithParameter("@version", version);
 
-            return _documentClient.CreateDocumentQuery<Document>(UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName).ToString(), query).FirstOrDefault();
+            using var iterator = _container.GetItemQueryStreamIterator(query);
+            if (!iterator.HasMoreResults)
+                return null;
+            var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
+            if (!response.IsSuccessStatusCode)
+                throw new CosmosException(response.ErrorMessage ?? "Query failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+            using var reader = new StreamReader(response.Content);
+            var content = reader.ReadToEnd();
+            var obj = JObject.Parse(content);
+            var docs = obj["Documents"] as JArray;
+            if (docs == null || !docs.Any())
+                return null;
+            return docs.First().ToString();
         }
 
-        public IQueryable<Document> ReadAllDocuments()
-        {            
-            return _documentClient.CreateDocumentQuery<Document>(UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName).ToString(), "SELECT * FROM root r ");
-        }
-
-        public async Task<Document> CreateDocumentAsync(object document, RequestOptions options = null,
-            bool disableAutomaticIdGeneration = false, CancellationToken cancellationToken = default(CancellationToken))
+        public List<string> ReadAllDocuments()
         {
-            return await _documentClient.CreateDocumentAsync(
-                UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName), document, options,
-                disableAutomaticIdGeneration, cancellationToken);
+            var list = new List<string>();
+            var query = new QueryDefinition("SELECT * FROM c");
+            using var iterator = _container.GetItemQueryStreamIterator(query);
+            while (iterator.HasMoreResults)
+            {
+                var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
+                if (!response.IsSuccessStatusCode)
+                    throw new CosmosException(response.ErrorMessage ?? "Query failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+                using var reader = new StreamReader(response.Content);
+                var content = reader.ReadToEnd();
+                var obj = JObject.Parse(content);
+                var docs = obj["Documents"] as JArray;
+                if (docs != null)
+                {
+                    foreach (var doc in docs)
+                        list.Add(doc.ToString());
+                }
+            }
+            return list;
         }
 
-        public async Task<Document> ReplaceDocumentAsync(string documentId, object document,
-            RequestOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<string> CreateDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
-            return await _documentClient.ReplaceDocumentAsync(
-                UriFactory.CreateDocumentUri(_databaseName, _collectionName, documentId), document, options,
-                cancellationToken);
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(document)));
+            var pk = partitionKey ?? PartitionKey.None;
+            var response = await _container.CreateItemStreamAsync(stream, pk, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                throw new CosmosException(response.ErrorMessage ?? "Create failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+            using var reader = new StreamReader(response.Content);
+            return await reader.ReadToEndAsync();
         }
 
-        public async Task<Document> DeleteDocumentAsync(string documentId, RequestOptions options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public async Task ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
-            return await _documentClient.DeleteDocumentAsync(
-                UriFactory.CreateDocumentUri(_databaseName, _collectionName, documentId), options, cancellationToken);
+            var pk = partitionKey ?? PartitionKey.None;
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(document)));
+            var response = await _container.ReplaceItemStreamAsync(stream, documentId, pk, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                throw new CosmosException(response.ErrorMessage ?? "Replace failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+        }
+
+        public async Task DeleteDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+        {
+            var pk = partitionKey ?? PartitionKey.None;
+            var response = await _container.DeleteItemAsync<object>(documentId, pk, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                throw new CosmosException(response.ErrorMessage ?? "Delete failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
         }
     }
 }
