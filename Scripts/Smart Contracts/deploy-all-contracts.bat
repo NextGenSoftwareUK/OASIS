@@ -10,4 +10,8 @@ if not exist "deploy-all-contracts.ps1" (
 )
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "deploy-all-contracts.ps1" %*
-exit /b %ERRORLEVEL%
+set EXITCODE=%ERRORLEVEL%
+echo.
+echo Press any key to close...
+pause >nul
+exit /b %EXITCODE%
