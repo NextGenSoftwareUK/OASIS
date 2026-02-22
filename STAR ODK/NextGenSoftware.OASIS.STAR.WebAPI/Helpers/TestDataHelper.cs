@@ -349,19 +349,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Helpers
         }
 
         /// <summary>
-        /// Gets test list of NFTs
+        /// Gets test list of NFTs (as IHolon for generic use).
         /// </summary>
         public static List<IHolon> GetTestNFTs(int count = 5)
         {
-            var nfts = new List<IHolon>();
+            return GetTestSTARNFTs(count).Cast<IHolon>().ToList();
+        }
+
+        /// <summary>
+        /// Gets test list of STAR NFTs for controller test data.
+        /// </summary>
+        public static List<STARNFT> GetTestSTARNFTs(int count = 5)
+        {
+            var nfts = new List<STARNFT>();
             for (int i = 1; i <= count; i++)
             {
-                var nft = new Holon
+                var nft = new STARNFT
                 {
                     Id = Guid.NewGuid(),
                     Name = $"Test NFT {i}",
                     Description = $"This is a test NFT number {i}",
-                    HolonType = HolonType.All,
+                    HolonType = HolonType.Web5NFT,
                     CreatedDate = DateTime.UtcNow.AddDays(-i),
                     ModifiedDate = DateTime.UtcNow.AddDays(-i),
                     CreatedByAvatarId = _testAvatarId
