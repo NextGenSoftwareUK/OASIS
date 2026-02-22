@@ -1,3 +1,6 @@
+# Start WEB4 (ONODE) and WEB5 (STAR) APIs locally in serial. Saves process state to .local_api_processes.json so stop_web4_and_web5_apis.ps1 can stop them.
+# Use -NoWait to leave APIs running in the background (e.g. for run_web4_web5_harnesses.ps1).
+
 param(
     [string]$Configuration = "Release",
     [string]$Web4OasisApiBaseUrl = "http://localhost:5555",
@@ -160,12 +163,12 @@ try
     $resolvedWeb4Target = Normalize-ApiBaseUrl -Url $Web4OasisApiBaseUrl
     $resolvedWeb5Target = Normalize-ApiBaseUrl -Url $Web5StarApiBaseUrl
 
-    Write-Host "Starting local WEB4 OASIS API first (sequential startup)..."
+    Write-Host "Starting local WEB4 OASIS API (serial: first)..."
     $web4Process = Start-LocalApi -ProjectPath $web4Project -Urls $resolvedWeb4Target
     $resolvedWeb4 = Wait-ForAnyUrl -BaseUrls @($resolvedWeb4Target, "http://localhost:5003") -Process $web4Process -TimeoutSeconds $StartupTimeoutSeconds
     Write-Host "WEB4 OASIS API ready at: $resolvedWeb4 (pid: $($web4Process.Id))"
 
-    Write-Host "Starting local WEB5 STAR API second (sequential startup)..."
+    Write-Host "Starting local WEB5 STAR API (serial: second)..."
     $web5Process = Start-LocalApi -ProjectPath $web5Project -Urls $resolvedWeb5Target
     $resolvedWeb5 = Wait-ForAnyUrl -BaseUrls @($resolvedWeb5Target, "http://localhost:5055") -Process $web5Process -TimeoutSeconds $StartupTimeoutSeconds
     Write-Host "WEB5 STAR API ready at: $resolvedWeb5 (pid: $($web5Process.Id))"
@@ -194,4 +197,3 @@ finally
         Remove-ProcessState
     }
 }
-

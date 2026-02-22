@@ -1,4 +1,6 @@
-# Script to run test harnesses against already running APIs
+# Run WEB4 and WEB5 API test harnesses against already-running APIs.
+# WEB4 and WEB5 must be running (e.g. start_web4_and_web5_apis.ps1). Uses default URLs unless -Web4BaseUrl / -Web5BaseUrl are set.
+
 param(
     [string]$Web4BaseUrl = "http://localhost:5555",
     [string]$Web5BaseUrl = "http://localhost:5556"
@@ -7,7 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host "==============================================" -ForegroundColor Cyan
-Write-Host "Running Tests Against Running APIs" -ForegroundColor Cyan
+Write-Host "Running WEB4 & WEB5 Test Harnesses" -ForegroundColor Cyan
 Write-Host "==============================================" -ForegroundColor Cyan
 Write-Host "WEB4 OASIS API: $Web4BaseUrl" -ForegroundColor Yellow
 Write-Host "WEB5 STAR API:  $Web5BaseUrl" -ForegroundColor Yellow
@@ -40,7 +42,6 @@ Write-Host "==============================================" -ForegroundColor Cya
 Write-Host "Running WEB5 STAR API Test Harness" -ForegroundColor Cyan
 Write-Host "==============================================" -ForegroundColor Cyan
 
-# Set environment variables for STAR API test harness
 $env:STAR_WEBAPI_BASE_URL = $Web5BaseUrl
 $env:STARAPI_WEB5_BASE_URL = $Web5BaseUrl
 $env:STARAPI_WEB4_BASE_URL = $Web4BaseUrl
@@ -51,10 +52,10 @@ Write-Host "Environment variables set:" -ForegroundColor Yellow
 Write-Host "  STAR_WEBAPI_BASE_URL = $env:STAR_WEBAPI_BASE_URL" -ForegroundColor Gray
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$testHarnessPath = Join-Path $scriptDir "..\STAR ODK\TestProjects\NextGenSoftware.OASIS.STAR.WebAPI.TestHarness"
-cd $testHarnessPath
+$repoRoot = (Resolve-Path (Join-Path $scriptDir "..")).Path
+$testHarnessPath = Join-Path $repoRoot "STAR ODK\TestProjects\NextGenSoftware.OASIS.STAR.WebAPI.TestHarness"
+Push-Location $testHarnessPath | Out-Null
 
-# Use Start-Process to ensure environment variables are passed
 $processInfo = New-Object System.Diagnostics.ProcessStartInfo
 $processInfo.FileName = "dotnet"
 $processInfo.Arguments = "run --configuration Release"
@@ -71,9 +72,9 @@ $process.StartInfo = $processInfo
 $process.Start() | Out-Null
 $web5Result = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 $process.WaitForExit()
+Pop-Location | Out-Null
 
-# Save full output to Test Results directory
-$testResultsDir = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\Test Results"
+$testResultsDir = Join-Path $repoRoot "STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\Test Results"
 New-Item -ItemType Directory -Path $testResultsDir -Force | Out-Null
 $testResultsFile = Join-Path $testResultsDir "test_results_web5.txt"
 $web5Result | Out-File -FilePath $testResultsFile -Encoding utf8
@@ -86,15 +87,13 @@ Write-Host "==============================================" -ForegroundColor Cya
 Write-Host "Running WEB4 OASIS API Test Harness" -ForegroundColor Cyan
 Write-Host "==============================================" -ForegroundColor Cyan
 
-# Set environment variable for WEB4 test harness
 $env:OASIS_WEBAPI_BASE_URL = $Web4BaseUrl
-
 Write-Host "Environment variables set:" -ForegroundColor Yellow
 Write-Host "  OASIS_WEBAPI_BASE_URL = $env:OASIS_WEBAPI_BASE_URL" -ForegroundColor Gray
 
-cd "../../../ONODE/TestProjects/NextGenSoftware.OASIS.API.ONODE.WebAPI.TestHarness"
+$web4HarnessPath = Join-Path $repoRoot "ONODE\TestProjects\NextGenSoftware.OASIS.API.ONODE.WebAPI.TestHarness"
+Push-Location $web4HarnessPath | Out-Null
 
-# Use Start-Process to ensure environment variables are passed
 $processInfo = New-Object System.Diagnostics.ProcessStartInfo
 $processInfo.FileName = "dotnet"
 $processInfo.Arguments = "run --configuration Release"
@@ -109,8 +108,9 @@ $process.StartInfo = $processInfo
 $process.Start() | Out-Null
 $web4Result = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 $process.WaitForExit()
+Pop-Location | Out-Null
+
 $web4Result | Select-String -Pattern "(=>|failures|passed|Failed|Passed|Total|200|400|500)" | ForEach-Object { Write-Host $_ }
 
 Write-Host ""
 Write-Host "Test run complete!" -ForegroundColor Green
-

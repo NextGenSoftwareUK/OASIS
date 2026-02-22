@@ -292,7 +292,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            app.UseHttpsRedirection();
+            // Skip HTTPS redirect in Testing so WebApplicationFactory (HTTP-only test server) does not throw
+            if (!string.Equals(env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
+                app.UseHttpsRedirection();
 
             app.UseRouting();
             //app.UseSession();

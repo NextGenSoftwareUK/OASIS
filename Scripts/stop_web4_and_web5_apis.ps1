@@ -1,3 +1,6 @@
+# Stop WEB4 and WEB5 APIs started by start_web4_and_web5_apis.ps1 (uses .local_api_processes.json).
+# Use -UsePortFallback to also stop any process listening on typical API ports (5003, 5004, 5055, 5056).
+
 param(
     [switch]$UsePortFallback
 )
@@ -99,4 +102,3 @@ if (-not $stopped)
 {
     Write-Host "No local WEB4/WEB5 API processes were stopped."
 }
-

@@ -33,7 +33,8 @@ public class MultiUserAndLoadTests
         var tasks = ids.Select((avatarId, index) => Task.Run(async () =>
         {
             NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = avatarId;
-            NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = new Avatar { Id = avatarId, Username = $"user_{index}" };
+            var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId, Username = $"user_{index}" };
+            NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = avatar;
             await Task.Yield();
             await Task.Delay(1);
             results[index] = NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId;
@@ -56,7 +57,8 @@ public class MultiUserAndLoadTests
         var tasks = ids.Select((avatarId, index) => Task.Run(async () =>
         {
             var username = $"user_{index}_{avatarId:N}";
-            NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = new Avatar { Id = avatarId, Username = username };
+            var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId, Username = username };
+            NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = avatar;
             NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = avatarId;
             await Task.Yield();
             await Task.Delay(1);
@@ -74,7 +76,7 @@ public class MultiUserAndLoadTests
     [Fact]
     public async Task ONODE_API_Load_Concurrent_Http_Requests_Completes_Without_Exception()
     {
-        await using var factory = new WebApplicationFactory<Startup>();
+        await using var factory = new ONODEWebAPIApplicationFactory();
         var client = factory.CreateClient();
         var exceptions = new List<Exception>();
         var completed = 0;
@@ -107,7 +109,7 @@ public class MultiUserAndLoadTests
     [Fact]
     public async Task ONODE_API_Load_Many_Concurrent_Get_Requests_Succeeds()
     {
-        await using var factory = new WebApplicationFactory<Startup>();
+        await using var factory = new ONODEWebAPIApplicationFactory();
         var client = factory.CreateClient();
         const int totalRequests = 200;
         var responses = new HttpResponseMessage[totalRequests];

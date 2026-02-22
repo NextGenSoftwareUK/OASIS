@@ -30,6 +30,12 @@ static int g_star_initialized = 0;
 static int g_star_console_registered = 0;
 static char g_star_username[64] = {0};
 static char g_json_config_path[512] = {0};
+/* Last pickup synced to STAR (for star lastpickup). */
+static char g_star_last_pickup_name[256] = {0};
+static char g_star_last_pickup_desc[512] = {0};
+static char g_star_last_pickup_type[64] = {0};
+static qboolean g_star_has_last_pickup = false;
+static qboolean g_star_debug_logging = false;
 
 /* key binding helpers from keys.c */
 extern char *keybindings[MAX_KEYS];
@@ -678,6 +684,13 @@ static int OQ_IsMockAnorakCredentials(const char* username, const char* password
     if (strcmp(password, "test!") != 0)
         return 0;
     return q_strcasecmp(username, "anorak") == 0 || q_strcasecmp(username, "avatar") == 0;
+}
+
+/* 1 if current user is dellams or anorak (for add, pickup keycard, bossnft, deploynft). */
+static qboolean OQ_AllowPrivilegedCommands(void) {
+    const char* u = g_star_username[0] ? g_star_username : (oquake_star_username.string && oquake_star_username.string[0] ? oquake_star_username.string : "");
+    if (!u || !u[0]) return false;
+    return (q_strcasecmp(u, "dellams") == 0 || q_strcasecmp(u, "anorak") == 0);
 }
 
 static void OQ_CheckAuthenticationComplete(void) {
@@ -2162,10 +2175,17 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star version        - Show integration and API status\n");
         Con_Printf("  star status         - Show init state and last error\n");
         Con_Printf("  star inventory      - List items in STAR inventory\n");
+        Con_Printf("  star lastpickup     - Show most recent synced pickup\n");
         Con_Printf("  star has <item>     - Check if you have an item (e.g. silver_key)\n");
-        Con_Printf("  star add <item> [desc] [type] - Add item\n");
+        Con_Printf("  star add <item> [desc] [type] - Add item (dellams/anorak only)\n");
         Con_Printf("  star use <item> [context]     - Use item\n");
-        Con_Printf("  star pickup keycard <silver|gold> - Add OQuake key (convenience)\n");
+        Con_Printf("  star quest start|objective|complete ... - Quest progress\n");
+        Con_Printf("  star bossnft <name> [desc]    - Create boss NFT (dellams/anorak only)\n");
+        Con_Printf("  star deploynft <nft_id> <game> [loc] - Deploy boss NFT\n");
+        Con_Printf("  star pickup keycard <silver|gold> - Add OQuake key (dellams/anorak only)\n");
+        Con_Printf("  star debug on|off|status - Toggle STAR debug logging\n");
+        Con_Printf("  star send_avatar <user> <item_class> - Send item to avatar\n");
+        Con_Printf("  star send_clan <clan> <item_class>   - Send item to clan\n");
         Con_Printf("  star beamin <username> <password> - Log in inside Quake\n");
         Con_Printf("  star beamed in <username> <password> - Alias for beamin\n");
         Con_Printf("  star beamin   - Log in using STAR_USERNAME/STAR_PASSWORD or API key\n");
@@ -2191,6 +2211,7 @@ void OQuake_STAR_Console_f(void) {
             Con_Printf("Usage: star pickup keycard <silver|gold>\n");
             return;
         }
+        if (!OQ_AllowPrivilegedCommands()) { Con_Printf("Only dellams or anorak can use star pickup keycard.\n"); return; }
         const char* color = Cmd_Argv(3);
         const char* name = NULL;
         const char* desc = NULL;
@@ -2198,8 +2219,13 @@ void OQuake_STAR_Console_f(void) {
         else if (strcmp(color, "gold") == 0) { name = OQUAKE_ITEM_GOLD_KEY; desc = get_key_description(name); }
         else { Con_Printf("Unknown keycard: %s. Use silver|gold.\n", color); return; }
         star_api_result_t r = star_api_add_item(name, desc, "Quake", "KeyItem");
-        if (r == STAR_API_SUCCESS) Con_Printf("Added %s to STAR inventory.\n", name);
-        else Con_Printf("Failed: %s\n", star_api_get_last_error());
+        if (r == STAR_API_SUCCESS) {
+            Con_Printf("Added %s to STAR inventory.\n", name);
+            q_strlcpy(g_star_last_pickup_name, name, sizeof(g_star_last_pickup_name));
+            q_strlcpy(g_star_last_pickup_desc, desc ? desc : "", sizeof(g_star_last_pickup_desc));
+            q_strlcpy(g_star_last_pickup_type, "KeyItem", sizeof(g_star_last_pickup_type));
+            g_star_has_last_pickup = true;
+        } else Con_Printf("Failed: %s\n", star_api_get_last_error());
         return;
     }
     if (strcmp(sub, "version") == 0) {
@@ -2236,13 +2262,19 @@ void OQuake_STAR_Console_f(void) {
         return;
     }
     if (strcmp(sub, "add") == 0) {
+        if (!OQ_AllowPrivilegedCommands()) { Con_Printf("Only dellams or anorak can use star add.\n"); return; }
         if (argc < 3) { Con_Printf("Usage: star add <item_name> [description] [item_type]\n"); return; }
         const char* name = Cmd_Argv(2);
         const char* desc = argc > 3 ? Cmd_Argv(3) : "Added from console";
         const char* type = argc > 4 ? Cmd_Argv(4) : "Miscellaneous";
         star_api_result_t r = star_api_add_item(name, desc, "Quake", type);
-        if (r == STAR_API_SUCCESS) Con_Printf("Added '%s' to STAR inventory.\n", name);
-        else Con_Printf("Failed to add '%s': %s\n", name, star_api_get_last_error());
+        if (r == STAR_API_SUCCESS) {
+            Con_Printf("Added '%s' to STAR inventory.\n", name);
+            q_strlcpy(g_star_last_pickup_name, name, sizeof(g_star_last_pickup_name));
+            q_strlcpy(g_star_last_pickup_desc, desc ? desc : "", sizeof(g_star_last_pickup_desc));
+            q_strlcpy(g_star_last_pickup_type, type ? type : "Miscellaneous", sizeof(g_star_last_pickup_type));
+            g_star_has_last_pickup = true;
+        } else Con_Printf("Failed to add '%s': %s\n", name, star_api_get_last_error());
         return;
     }
     if (strcmp(sub, "use") == 0) {
@@ -2251,6 +2283,77 @@ void OQuake_STAR_Console_f(void) {
         int ok = star_api_use_item(Cmd_Argv(2), ctx);
         Con_Printf("Use '%s' (context %s): %s\n", Cmd_Argv(2), ctx, ok ? "ok" : "failed");
         if (!ok) Con_Printf("  %s\n", star_api_get_last_error());
+        return;
+    }
+    if (strcmp(sub, "lastpickup") == 0) {
+        if (!g_star_has_last_pickup) {
+            Con_Printf("No pickup has been synced to STAR yet in this session.\n");
+            return;
+        }
+        Con_Printf("Last STAR-synced pickup:\n  name: %s\n  type: %s\n  desc: %s\n", g_star_last_pickup_name, g_star_last_pickup_type, g_star_last_pickup_desc);
+        return;
+    }
+    if (strcmp(sub, "quest") == 0) {
+        if (argc < 3) { Con_Printf("Usage: star quest start|objective|complete ...\n"); return; }
+        const char* qsub = Cmd_Argv(2);
+        if (strcmp(qsub, "start") == 0) {
+            if (argc < 4) { Con_Printf("Usage: star quest start <quest_id>\n"); return; }
+            star_api_result_t r = star_api_start_quest(Cmd_Argv(3));
+            Con_Printf(r == STAR_API_SUCCESS ? "Quest started.\n" : "Failed: %s\n", star_api_get_last_error());
+            return;
+        }
+        if (strcmp(qsub, "objective") == 0) {
+            if (argc < 5) { Con_Printf("Usage: star quest objective <quest_id> <objective_id>\n"); return; }
+            star_api_result_t r = star_api_complete_quest_objective(Cmd_Argv(3), Cmd_Argv(4), "Quake");
+            Con_Printf(r == STAR_API_SUCCESS ? "Objective completed.\n" : "Failed: %s\n", star_api_get_last_error());
+            return;
+        }
+        if (strcmp(qsub, "complete") == 0) {
+            if (argc < 4) { Con_Printf("Usage: star quest complete <quest_id>\n"); return; }
+            star_api_result_t r = star_api_complete_quest(Cmd_Argv(3));
+            Con_Printf(r == STAR_API_SUCCESS ? "Quest completed.\n" : "Failed: %s\n", star_api_get_last_error());
+            return;
+        }
+        Con_Printf("Unknown: star quest %s. Use start|objective|complete.\n", qsub);
+        return;
+    }
+    if (strcmp(sub, "bossnft") == 0) {
+        if (!OQ_AllowPrivilegedCommands()) { Con_Printf("Only dellams or anorak can use star bossnft.\n"); return; }
+        if (argc < 3) { Con_Printf("Usage: star bossnft <boss_name> [description]\n"); return; }
+        const char* name = Cmd_Argv(2);
+        const char* desc = argc > 3 ? Cmd_Argv(3) : "Boss from OQuake";
+        char nft_id[64] = {0};
+        star_api_result_t r = star_api_create_boss_nft(name, desc, "Quake", "{}", nft_id);
+        if (r == STAR_API_SUCCESS) Con_Printf("Boss NFT created. ID: %s\n", nft_id[0] ? nft_id : "(none)");
+        else Con_Printf("Failed: %s\n", star_api_get_last_error());
+        return;
+    }
+    if (strcmp(sub, "deploynft") == 0) {
+        if (argc < 4) { Con_Printf("Usage: star deploynft <nft_id> <target_game> [location]\n"); return; }
+        const char* loc = argc > 4 ? Cmd_Argv(4) : "";
+        star_api_result_t r = star_api_deploy_boss_nft(Cmd_Argv(2), Cmd_Argv(3), loc);
+        Con_Printf(r == STAR_API_SUCCESS ? "NFT deploy requested.\n" : "Failed: %s\n", star_api_get_last_error());
+        return;
+    }
+    if (strcmp(sub, "debug") == 0) {
+        if (argc < 3 || !Cmd_Argv(2) || strcmp(Cmd_Argv(2), "status") == 0) {
+            Con_Printf("STAR debug logging is %s\n", g_star_debug_logging ? "on" : "off");
+            Con_Printf("Usage: star debug on|off|status\n");
+            return;
+        }
+        if (strcmp(Cmd_Argv(2), "on") == 0) { g_star_debug_logging = true; Con_Printf("STAR debug logging enabled.\n"); return; }
+        if (strcmp(Cmd_Argv(2), "off") == 0) { g_star_debug_logging = false; Con_Printf("STAR debug logging disabled.\n"); return; }
+        Con_Printf("Unknown debug option: %s. Use on|off|status.\n", Cmd_Argv(2));
+        return;
+    }
+    if (strcmp(sub, "send_avatar") == 0) {
+        if (argc < 4) { Con_Printf("Usage: star send_avatar <username> <item_class>\n"); return; }
+        Con_Printf("Send to avatar: \"%s\" item \"%s\" (STAR send API not yet implemented).\n", Cmd_Argv(2), Cmd_Argv(3));
+        return;
+    }
+    if (strcmp(sub, "send_clan") == 0) {
+        if (argc < 4) { Con_Printf("Usage: star send_clan <clan_name> <item_class>\n"); return; }
+        Con_Printf("Send to clan: \"%s\" item \"%s\" (STAR send API not yet implemented).\n", Cmd_Argv(2), Cmd_Argv(3));
         return;
     }
     if (strcmp(sub, "beamin") == 0 || (strcmp(sub, "beamed") == 0 && argc >= 3 && strcmp(Cmd_Argv(2), "in") == 0)) {

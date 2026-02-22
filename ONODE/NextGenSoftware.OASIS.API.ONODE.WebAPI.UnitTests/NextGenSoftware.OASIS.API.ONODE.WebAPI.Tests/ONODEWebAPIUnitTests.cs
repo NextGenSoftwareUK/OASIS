@@ -17,7 +17,7 @@ public class ONODEWebAPIUnitTests
         
         // Assert
         onodeWebAPI.Should().NotBeNull();
-        onodeWebAPI.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
+        ONODEWebAPI.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]

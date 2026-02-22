@@ -1,3 +1,6 @@
+# Run STAR API Client test suite: unit tests, integration tests, and console harness (OASIS Omniverse STARAPIClient).
+# Expects to be run from OASIS Omniverse\STARAPIClient (or set paths accordingly). Use -HarnessMode fake|real-local|real-live.
+
 param(
     [switch]$SkipHarness,
     [bool]$KillStaleTestHosts = $true,
@@ -215,10 +218,10 @@ if (-not $SkipHarness)
         elseif ($HarnessMode -eq "real-local")
         {
             Write-Host ""
-            Write-Host "Starting local WEB4 OASIS API (sequential startup)..."
+            Write-Host "Starting local WEB4 OASIS API (serial: first)..."
             $web4Process = Start-LocalApi -ProjectPath $localWeb4Project -Urls $resolvedWeb4
             $resolvedWeb4 = Wait-ForAnyUrl -BaseUrls @($resolvedWeb4, "http://localhost:5003") -Process $web4Process -TimeoutSeconds $RealLocalStartupTimeoutSeconds
-            Write-Host "Starting local WEB5 STAR API (sequential startup)..."
+            Write-Host "Starting local WEB5 STAR API (serial: second)..."
             $web5Process = Start-LocalApi -ProjectPath $localWeb5Project -Urls $resolvedWeb5
             $resolvedWeb5 = Wait-ForAnyUrl -BaseUrls @($resolvedWeb5, "http://localhost:5055") -Process $web5Process -TimeoutSeconds $RealLocalStartupTimeoutSeconds
             Write-Host "Resolved local WEB5 STAR API URL: $resolvedWeb5"
@@ -262,4 +265,3 @@ Write-Host "Artifacts:"
 Write-Host " - Unit: $unitResultsDir"
 Write-Host " - Integration: $integrationResultsDir"
 Write-Host " - Harness: $harnessResultsDir"
-
