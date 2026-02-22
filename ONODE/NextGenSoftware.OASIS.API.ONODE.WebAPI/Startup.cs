@@ -14,7 +14,6 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
 
@@ -71,7 +70,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 Configuration.GetSection(NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions.SectionName));
             services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ITokenMetadataByMintService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TokenMetadataByMintService>();
             services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ISolanaSplTokenBalanceService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SolanaSplTokenBalanceService>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ISaintMintRecordService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SaintMintRecordService>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IBaptiseSaintMintStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.BaptiseSaintMintStore>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IBaptiseRunAuditStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.BaptiseRunAuditStore>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ISaintBlessingEligibilityService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SaintBlessingEligibilityService>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ITopTokenHoldersService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TopTokenHoldersService>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IWalletPfpService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.WalletPfpService>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.IRecentTokenRecipientsService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.RecentTokenRecipientsService>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ITelegramFlowStateStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TelegramFlowStateStore>();
             services.AddSingleton<TelegramNftMintFlowService>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.DropToHoldersExecutionService>();
             services.AddSingleton<WorldService>();
             services.AddSingleton<QuestRegistryService>();
             services.AddSingleton<QuestProofService>();
