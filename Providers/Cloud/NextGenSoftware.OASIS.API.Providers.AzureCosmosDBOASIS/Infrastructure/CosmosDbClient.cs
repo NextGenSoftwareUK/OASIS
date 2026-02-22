@@ -100,9 +100,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         public async Task DeleteDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
             var pk = partitionKey ?? PartitionKey.None;
-            var response = await _container.DeleteItemAsync<object>(documentId, pk, null, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Delete failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+            await _container.DeleteItemAsync<object>(documentId, pk, null, cancellationToken);
         }
     }
 }
