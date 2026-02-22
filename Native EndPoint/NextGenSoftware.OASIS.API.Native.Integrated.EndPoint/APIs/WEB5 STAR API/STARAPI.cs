@@ -81,9 +81,6 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         public string OASISVersion { get; set; }
         public OASISDNA OASISDNA { get; set; }
 
-        /// <summary>When true, property getters return managers created with Guid.Empty so integration tests can assert NotBeNull without booting OASIS.</summary>
-        public static bool AllowPropertyAccessWhenNotBootedForTesting { get; set; }
-
         //public AvatarManager Avatar
         //{
         //    get
@@ -153,9 +150,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_missions == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _missions = new MissionManager(Guid.Empty, STARDNA, null);
-                    else if (!OASISAPI.IsOASISBooted)
+                    if (!OASISAPI.IsOASISBooted)
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Missions property!");
                     else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISSystemAccountId))
                         throw new OASISException("No avatar is beamed in. Please beam in before accessing the Missions property!");
@@ -174,9 +169,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_chapters == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _chapters = new ChapterManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _chapters = new ChapterManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Chapters property!");
@@ -192,9 +185,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_quests == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _quests = new QuestManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _quests = new QuestManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Quests property!");
@@ -210,9 +201,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_game == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _game = new GameManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _game = new GameManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Game property!");
@@ -228,9 +217,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_inventoryItems == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _inventoryItems = new InventoryItemManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _inventoryItems = new InventoryItemManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the InventoryItems propertyv!");
@@ -246,9 +233,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_geoHotSpots == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _geoHotSpots = new GeoHotSpotManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _geoHotSpots = new GeoHotSpotManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the GeoHotSpots property!");
@@ -264,9 +249,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_nfts == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _nfts = new STARNFTManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _nfts = new STARNFTManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the NFTs property!");
@@ -283,9 +266,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_geoNFTs == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _geoNFTs = new STARGeoNFTManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _geoNFTs = new STARGeoNFTManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the GeoNFTs property!");
@@ -301,9 +282,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_map == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _map = new MapManager(Guid.Empty, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _map = new MapManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Map property!");
@@ -351,9 +330,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_oapps == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _oapps = new OAPPManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _oapps = new OAPPManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the OAPPs property!");
@@ -369,9 +346,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_oappTemplates == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _oappTemplates = new OAPPTemplateManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _oappTemplates = new OAPPTemplateManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the OAPPTemplates property!");
@@ -387,9 +362,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             {
                 if (_runtimes == null)
                 {
-                    if (AllowPropertyAccessWhenNotBootedForTesting && !OASISAPI.IsOASISBooted)
-                        _runtimes = new RuntimeManager(Guid.Empty, STARDNA, null);
-                    else if (OASISAPI.IsOASISBooted)
+                    if (OASISAPI.IsOASISBooted)
                         _runtimes = new RuntimeManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Runtimes property!");
@@ -407,10 +380,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 {
                     if (!OASISAPI.IsOASISBooted)
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Libraries property!");
-
                     else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISSystemAccountId))
                         throw new OASISException("No avatar is beamed in. Please beam in before accessing the Libraries property!");
-
                     else
                         _libs = new LibraryManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                 }
@@ -491,10 +462,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 {
                     if (!OASISAPI.IsOASISBooted)
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the CelestialBodiesMetaDataDNA property!");
-
                     else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISSystemAccountId))
                         throw new OASISException("No avatar is beamed in. Please beam in before accessing the CelestialBodiesMetaDataDNA property!");
-
                     else
                         _celestialBodiesDNA = new CelestialBodyMetaDataDNAManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                 }
@@ -511,10 +480,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 {
                     if (!OASISAPI.IsOASISBooted)
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the ZomesMetaDataDNA property!");
-
                     else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISSystemAccountId))
                         throw new OASISException("No avatar is beamed in. Please beam in before accessing the ZomesMetaDataDNA property!");
-
                     else
                         _zomesDNA = new ZomeMetaDataDNAManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                 }
@@ -531,10 +498,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 {
                     if (!OASISAPI.IsOASISBooted)
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the HolonsMetaDataDNA property!");
-
                     else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISSystemAccountId))
                         throw new OASISException("No avatar is beamed in. Please beam in before accessing the HolonsMetaDataDNA property!");
-
                     else
                         _holonsDNA = new HolonMetaDataDNAManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                 }
@@ -551,10 +516,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 {
                     if (!OASISAPI.IsOASISBooted)
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Plugins property!");
-
                     else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISSystemAccountId))
                         throw new OASISException("No avatar is beamed in. Please beam in before accessing the Plugins property!");
-
                     else
                         _plugins = new PluginManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
                 }

@@ -974,7 +974,7 @@ static void OQ_RefreshInventoryCache(void) {
             d->synced = g_local_inventory_synced[l] ? 1 : 0;
         }
     }
-    star_sync_inventory_start(g_star_sync_local_items, g_local_inventory_count, "Quake");
+    star_sync_inventory_start(g_star_sync_local_items, g_local_inventory_count, "Quake", NULL, NULL);
 }
 
 static void OQ_InventoryToggle_f(void) {

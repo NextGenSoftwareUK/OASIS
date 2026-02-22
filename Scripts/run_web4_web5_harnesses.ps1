@@ -20,20 +20,20 @@ Write-Host "Verifying APIs are running..." -ForegroundColor Cyan
 try {
     $web4Health = Invoke-WebRequest -Uri "$Web4BaseUrl/api/health" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
     if ($web4Health.StatusCode -eq 200) {
-        Write-Host "✓ WEB4 API is running" -ForegroundColor Green
+        Write-Host "[OK] WEB4 API is running" -ForegroundColor Green
     }
 } catch {
-    Write-Host "✗ WEB4 API is not responding at $Web4BaseUrl/api/health" -ForegroundColor Red
+    Write-Host "[FAIL] WEB4 API is not responding at $Web4BaseUrl/api/health" -ForegroundColor Red
     exit 1
 }
 
 try {
     $web5Health = Invoke-WebRequest -Uri "$Web5BaseUrl/api/health" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
     if ($web5Health.StatusCode -eq 200) {
-        Write-Host "✓ WEB5 API is running" -ForegroundColor Green
+        Write-Host "[OK] WEB5 API is running" -ForegroundColor Green
     }
 } catch {
-    Write-Host "✗ WEB5 API is not responding at $Web5BaseUrl/api/health" -ForegroundColor Red
+    Write-Host "[FAIL] WEB5 API is not responding at $Web5BaseUrl/api/health" -ForegroundColor Red
     exit 1
 }
 
@@ -109,6 +109,12 @@ $process.Start() | Out-Null
 $web4Result = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
 $process.WaitForExit()
 Pop-Location | Out-Null
+
+$testResultsDirWeb4 = Join-Path $repoRoot "ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Test Results"
+New-Item -ItemType Directory -Path $testResultsDirWeb4 -Force | Out-Null
+$testResultsFileWeb4 = Join-Path $testResultsDirWeb4 "test_results_web4.txt"
+$web4Result | Out-File -FilePath $testResultsFileWeb4 -Encoding utf8
+Write-Host "Full test results saved to: $testResultsFileWeb4" -ForegroundColor Gray
 
 $web4Result | Select-String -Pattern "(=>|failures|passed|Failed|Passed|Total|200|400|500)" | ForEach-Object { Write-Host $_ }
 

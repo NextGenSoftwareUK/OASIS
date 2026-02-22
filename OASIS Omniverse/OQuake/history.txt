@@ -58,3 +58,4 @@ star beamin dellams test!
 star
 star inventory
 star beamin
+star beamin dellams test!
