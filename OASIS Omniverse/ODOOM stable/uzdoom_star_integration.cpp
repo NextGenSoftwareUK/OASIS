@@ -278,6 +278,56 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 #endif
 }
 
+/** Push g_odoom_cached_inventory to CVars so ZScript overlay can display it (same data as "star inventory" command). */
+static void ODOOM_UpdateStarInventoryCVars(void) {
+	static char listBuf[24576];  /* one line per item: name\tdesc\ttype\tgame\n, max 64 items */
+	FBaseCVar* countVar = FindCVar("odoom_star_inventory_count", nullptr);
+	FBaseCVar* listVar = FindCVar("odoom_star_inventory_list", nullptr);
+	if (!countVar || !listVar) return;
+
+	if (!g_odoom_cached_inventory || g_odoom_cached_inventory->count == 0) {
+		UCVarValue u;
+		u.Int = 0;
+		countVar->SetGenericRep(u, CVAR_Int);
+		UCVarValue v;
+		v.String = (char*)("");
+		listVar->SetGenericRep(v, CVAR_String);
+		return;
+	}
+
+	size_t n = g_odoom_cached_inventory->count;
+	if (n > 64) n = 64;
+	size_t off = 0;
+	for (size_t i = 0; i < n && off < sizeof(listBuf) - 320; i++) {
+		const star_item_t* it = &g_odoom_cached_inventory->items[i];
+		char name[256], desc[256], type[64], game[64];
+		auto copySafe = [](char* dst, const char* src, int maxLen) {
+			int j = 0;
+			while (src[j] && j < maxLen - 1) {
+				char c = src[j];
+				if (c == '\t' || c == '\n' || c == '\r') c = ' ';
+				dst[j++] = c;
+			}
+			dst[j] = '\0';
+		};
+		copySafe(name, it->name, 256);
+		copySafe(desc, it->description, 256);
+		copySafe(type, it->item_type, 64);
+		copySafe(game, it->game_source, 64);
+		int wr = snprintf(listBuf + off, (size_t)(sizeof(listBuf) - off), "%s\t%s\t%s\t%s\n", name, desc, type, game);
+		if (wr > 0 && (size_t)wr < sizeof(listBuf) - off) off += (size_t)wr;
+		else break;
+	}
+	listBuf[off] = '\0';
+
+	UCVarValue u;
+	u.Int = (int)n;
+	countVar->SetGenericRep(u, CVAR_Int);
+	UCVarValue v;
+	v.String = listBuf;
+	listVar->SetGenericRep(v, CVAR_String);
+}
+
 /** Start background inventory sync if we have pending items and no sync in progress. */
 static void ODOOM_StartInventorySyncIfNeeded(void) {
 	if (!g_star_initialized || star_sync_inventory_in_progress())
@@ -351,6 +401,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 			if (g_odoom_cached_inventory)
 				star_api_free_item_list(g_odoom_cached_inventory);
 			g_odoom_cached_inventory = list;
+			ODOOM_UpdateStarInventoryCVars();  /* so overlay popup shows STAR items (like OQuake) */
 			star_sync_inventory_clear_result();
 		}
 		g_odoom_in_flight_count = 0;
@@ -955,6 +1006,7 @@ void UZDoom_STAR_Cleanup(void) {
 	if (g_odoom_cached_inventory) {
 		star_api_free_item_list(g_odoom_cached_inventory);
 		g_odoom_cached_inventory = nullptr;
+		ODOOM_UpdateStarInventoryCVars();
 	}
 	star_sync_cleanup();
 	g_star_async_auth_pending = false;
@@ -1247,12 +1299,33 @@ CCMD(star)
 			return;
 		}
 		if (star_sync_inventory_in_progress()) {
-			Printf("Syncing...\n");
+			Printf("Syncing... (run 'star inventory' again in a moment)\n");
 			Printf("\n");
 			return;
 		}
+		/* Poll once in case sync already finished but frame hook never ran (e.g. engine not patched) */
+		if (star_sync_inventory_poll() == 1) {
+			star_item_list_t* list = nullptr;
+			star_api_result_t res = STAR_API_ERROR_API_ERROR;
+			char err_buf[256] = {};
+			if (star_sync_inventory_get_result(&list, &res, err_buf, sizeof(err_buf))) {
+				if (g_odoom_cached_inventory)
+					star_api_free_item_list(g_odoom_cached_inventory);
+				g_odoom_cached_inventory = list;
+				ODOOM_UpdateStarInventoryCVars();
+				star_sync_inventory_clear_result();
+				size_t count = g_odoom_cached_inventory ? g_odoom_cached_inventory->count : 0;
+				if (count == 0) { Printf("Inventory is empty.\n"); Printf("\n"); return; }
+				Printf("STAR inventory (%zu items):\n", count);
+				for (size_t i = 0; i < count; i++) {
+					Printf("  %s - %s (%s, %s)\n", g_odoom_cached_inventory->items[i].name, g_odoom_cached_inventory->items[i].description, g_odoom_cached_inventory->items[i].game_source, g_odoom_cached_inventory->items[i].item_type);
+				}
+				Printf("\n");
+				return;
+			}
+		}
 		star_sync_inventory_start(nullptr, 0, "ODOOM", nullptr, nullptr);
-		Printf("Syncing...\n");
+		Printf("Syncing... (run 'star inventory' again in a few seconds)\n");
 		Printf("\n");
 		return;
 	}

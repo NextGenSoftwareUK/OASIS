@@ -94,6 +94,12 @@ static HttpResponse http_request(const std::string& method, const std::string& u
         return response;
     }
     
+    // Timeouts (milliseconds) so request doesn't block forever
+    int timeout_ms = (g_state.config.timeout_seconds > 0) ? (g_state.config.timeout_seconds * 1000) : 30000;
+    WinHttpSetOption(hRequest, WINHTTP_OPTION_CONNECT_TIMEOUT, &timeout_ms, sizeof(timeout_ms));
+    WinHttpSetOption(hRequest, WINHTTP_OPTION_SEND_TIMEOUT, &timeout_ms, sizeof(timeout_ms));
+    WinHttpSetOption(hRequest, WINHTTP_OPTION_RECEIVE_TIMEOUT, &timeout_ms, sizeof(timeout_ms));
+    
     // Add headers
     std::wstring headers = L"Authorization: Bearer " + std::wstring(g_state.config.api_key, g_state.config.api_key + strlen(g_state.config.api_key));
     headers += L"\r\nContent-Type: application/json\r\n";
@@ -287,7 +293,7 @@ bool star_api_has_item(const char* item_name) {
         return false;
     }
     
-    std::string url = std::string(g_state.config.base_url) + "/api/inventoryitems/user/" + g_state.config.avatar_id;
+    std::string url = std::string(g_state.config.base_url) + "/api/inventoryitems/by-avatar/" + g_state.config.avatar_id;
     HttpResponse response = http_request("GET", url);
     
     if (!response.success) {
@@ -306,20 +312,46 @@ bool star_api_has_item(const char* item_name) {
            lower_data.find("\"description\":\"" + search_name) != std::string::npos;
 }
 
+// Minimal JSON field extractor: find "key": then return value (string or until next comma/}). Handles escaped quotes in value.
+static void extract_json_string(const std::string& json, const std::string& key, char* out, size_t out_size) {
+    if (!out || out_size == 0) return;
+    out[0] = '\0';
+    std::string search = "\"" + key + "\"";
+    size_t pos = json.find(search);
+    if (pos == std::string::npos) return;
+    pos = json.find(':', pos + search.size());
+    if (pos == std::string::npos) return;
+    pos = json.find_first_of("\"", pos + 1);
+    if (pos == std::string::npos) return;
+    size_t start = pos + 1;
+    size_t i = start;
+    size_t out_len = 0;
+    while (i < json.size() && out_len < out_size - 1) {
+        if (json[i] == '\\' && i + 1 < json.size()) { i += 2; continue; }
+        if (json[i] == '"') break;
+        out[out_len++] = json[i++];
+    }
+    out[out_len] = '\0';
+}
+
+// Parse inventory JSON: Result array of objects with Name, Description, MetaData.GameSource, MetaData.ItemType (or top-level)
 star_api_result_t star_api_get_inventory(star_item_list_t** item_list) {
     if (!g_state.initialized || !item_list) {
         set_error("Not initialized or invalid parameter");
         return STAR_API_ERROR_INVALID_PARAM;
     }
+    if (!g_state.config.avatar_id || !g_state.config.avatar_id[0]) {
+        set_error("Avatar ID not set; beam in first");
+        return STAR_API_ERROR_INVALID_PARAM;
+    }
     
-    std::string url = std::string(g_state.config.base_url) + "/api/inventoryitems/user/" + g_state.config.avatar_id;
+    std::string url = std::string(g_state.config.base_url) + "/api/inventoryitems/by-avatar/" + g_state.config.avatar_id;
     HttpResponse response = http_request("GET", url);
     
     if (!response.success) {
         return STAR_API_ERROR_API_ERROR;
     }
     
-    // Allocate item list
     *item_list = (star_item_list_t*)malloc(sizeof(star_item_list_t));
     if (!*item_list) {
         set_error("Memory allocation failed");
@@ -327,13 +359,73 @@ star_api_result_t star_api_get_inventory(star_item_list_t** item_list) {
     }
     
     (*item_list)->count = 0;
-    (*item_list)->capacity = 10;
+    (*item_list)->capacity = 32;
     (*item_list)->items = (star_item_t*)malloc(sizeof(star_item_t) * (*item_list)->capacity);
+    if (!(*item_list)->items) {
+        free(*item_list);
+        *item_list = nullptr;
+        set_error("Memory allocation failed");
+        return STAR_API_ERROR_INIT_FAILED;
+    }
     
-    // Simple parsing - in production, use proper JSON library
-    // For now, return empty list
-    (*item_list)->count = 0;
-    
+    const std::string& data = response.data;
+    size_t idx = 0;
+    size_t pos = 0;
+    size_t arr_start = data.find("\"Result\"");
+    if (arr_start == std::string::npos) arr_start = data.find("\"result\"");
+    if (arr_start != std::string::npos)
+        pos = data.find('[', arr_start);
+    if (pos == std::string::npos)
+        pos = data.find('[');  /* fallback: direct array */
+    if (pos == std::string::npos) pos = 0;
+    for (;;) {
+        size_t obj_start = data.find('{', pos);
+        if (obj_start == std::string::npos) break;
+        int depth = 1;
+        size_t i = obj_start + 1;
+        while (i < data.size() && depth > 0) {
+            if (data[i] == '{') depth++;
+            else if (data[i] == '}') depth--;
+            i++;
+        }
+        size_t obj_end = (depth == 0) ? i - 1 : std::string::npos;
+        if (obj_end == std::string::npos) break;
+        std::string obj = data.substr(obj_start, obj_end - obj_start + 1);
+        if (obj.find("\"Name\"") != std::string::npos || obj.find("\"name\"") != std::string::npos) {
+            if (idx >= (*item_list)->capacity) {
+                size_t new_cap = (*item_list)->capacity * 2;
+                star_item_t* new_items = (star_item_t*)realloc((*item_list)->items, sizeof(star_item_t) * new_cap);
+                if (!new_items) break;
+                (*item_list)->items = new_items;
+                (*item_list)->capacity = new_cap;
+            }
+            star_item_t* it = &(*item_list)->items[idx];
+            memset(it, 0, sizeof(star_item_t));
+            extract_json_string(obj, "Id", it->id, sizeof(it->id));
+            extract_json_string(obj, "Name", it->name, sizeof(it->name));
+            if (it->name[0] == '\0') extract_json_string(obj, "name", it->name, sizeof(it->name));
+            extract_json_string(obj, "Description", it->description, sizeof(it->description));
+            if (it->description[0] == '\0') extract_json_string(obj, "description", it->description, sizeof(it->description));
+            size_t meta_start = obj.find("\"MetaData\"");
+            if (meta_start != std::string::npos) {
+                size_t meta_obj = obj.find('{', meta_start);
+                size_t meta_end = (meta_obj != std::string::npos) ? obj.find('}', meta_obj) : std::string::npos;
+                if (meta_obj != std::string::npos && meta_end != std::string::npos) {
+                    std::string meta = obj.substr(meta_obj, meta_end - meta_obj + 1);
+                    extract_json_string(meta, "GameSource", it->game_source, sizeof(it->game_source));
+                    extract_json_string(meta, "ItemType", it->item_type, sizeof(it->item_type));
+                }
+            }
+            if (it->game_source[0] == '\0') extract_json_string(obj, "GameSource", it->game_source, sizeof(it->game_source));
+            if (it->game_source[0] == '\0') extract_json_string(obj, "game_source", it->game_source, sizeof(it->game_source));
+            if (it->item_type[0] == '\0') extract_json_string(obj, "ItemType", it->item_type, sizeof(it->item_type));
+            if (it->item_type[0] == '\0') extract_json_string(obj, "item_type", it->item_type, sizeof(it->item_type));
+            if (it->item_type[0] == '\0') strncpy(it->item_type, "Item", sizeof(it->item_type) - 1);
+            idx++;
+        }
+        pos = obj_end + 1;
+    }
+    (*item_list)->count = idx;
     return STAR_API_SUCCESS;
 }
 

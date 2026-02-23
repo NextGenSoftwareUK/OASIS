@@ -1295,12 +1295,33 @@ CCMD(star)
 			return;
 		}
 		if (star_sync_inventory_in_progress()) {
-			Printf("Syncing...\n");
+			Printf("Syncing... (run 'star inventory' again in a moment)\n");
 			Printf("\n");
 			return;
 		}
+		/* Poll once in case sync already finished but frame hook never ran */
+		if (star_sync_inventory_poll() == 1) {
+			star_item_list_t* list = nullptr;
+			star_api_result_t res = STAR_API_ERROR_API_ERROR;
+			char err_buf[256] = {};
+			if (star_sync_inventory_get_result(&list, &res, err_buf, sizeof(err_buf))) {
+				if (g_odoom_cached_inventory)
+					star_api_free_item_list(g_odoom_cached_inventory);
+				g_odoom_cached_inventory = list;
+				ODOOM_UpdateStarInventoryCVars();
+				star_sync_inventory_clear_result();
+				size_t count = g_odoom_cached_inventory ? g_odoom_cached_inventory->count : 0;
+				if (count == 0) { Printf("Inventory is empty.\n"); Printf("\n"); return; }
+				Printf("STAR inventory (%zu items):\n", count);
+				for (size_t i = 0; i < count; i++) {
+					Printf("  %s - %s (%s, %s)\n", g_odoom_cached_inventory->items[i].name, g_odoom_cached_inventory->items[i].description, g_odoom_cached_inventory->items[i].game_source, g_odoom_cached_inventory->items[i].item_type);
+				}
+				Printf("\n");
+				return;
+			}
+		}
 		star_sync_inventory_start(nullptr, 0, "ODOOM", nullptr, nullptr);
-		Printf("Syncing...\n");
+		Printf("Syncing... (run 'star inventory' again in a few seconds)\n");
 		Printf("\n");
 		return;
 	}
