@@ -38,6 +38,14 @@ class OASISInventoryOverlayHandler : EventHandler
 	private int sendMaxQty;
 	private String sendInputLine;  // name built from odoom_send_last_char (C++ sets one char per frame)
 
+	// Cached list for RenderOverlay (ui context can't call play-context helpers; filled in WorldTick)
+	private int cachedStarCount;
+	private DynArray cachedStarNames;
+	private DynArray cachedStarDescs;
+	private DynArray cachedStarTypes;
+	private DynArray cachedStarGames;
+	private DynArray cachedTabItems;
+
 	const TAB_KEYS = 0;
 	const TAB_POWERUPS = 1;
 	const TAB_WEAPONS = 2;
@@ -153,14 +161,21 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 
 			int starCount = 0;
-			Array<String> starNames, starDescs, starTypes, starGames;
+			array<String> starNames, starDescs, starTypes, starGames;
 			starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames);
-			Array<Inventory> tabItems;
+			array<Inventory> tabItems;
 			BuildTabInventory(p.mo, tabItems);
 			int listCount = starCount + tabItems.Size();
 			Inventory selectedItem = null;
 			if (selectedAbsolute < starCount) selectedItem = null;  // STAR row, no Use
 			else if (selectedAbsolute - starCount < tabItems.Size()) selectedItem = tabItems[selectedAbsolute - starCount];
+			// Cache for RenderOverlay (ui cannot call play-context functions; store refs to current frame's arrays)
+			cachedStarCount = starCount;
+			cachedStarNames = starNames;
+			cachedStarDescs = starDescs;
+			cachedStarTypes = starTypes;
+			cachedStarGames = starGames;
+			cachedTabItems = tabItems;
 			if (sendPopupMode == 0)
 			{
 			int maxOffset = listCount - MAX_VISIBLE_ROWS;
@@ -336,7 +351,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		}
 	}
 
-	private ui bool IsItemInActiveTab(Inventory item, int tabIndex)
+	private bool IsItemInActiveTab(Inventory item, int tabIndex)
 	{
 		if (item == null || item.Amount <= 0) return false;
 		if (tabIndex == TAB_KEYS) return item is "Key";
@@ -348,7 +363,7 @@ class OASISInventoryOverlayHandler : EventHandler
 	}
 
 	// STAR item matches tab (same data as "star inventory" command, from odoom_star_inventory_list).
-	private ui bool IsStarItemInTab(String itemType, String itemName, int tabIndex)
+	private bool IsStarItemInTab(String itemType, String itemName, int tabIndex)
 	{
 		String t = itemType;
 		String n = itemName;
@@ -366,7 +381,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		return true;
 	}
 
-	private ui void BuildTabInventory(Actor owner, out Array<Inventory> outItems)
+	private void BuildTabInventory(Actor owner, out array<Inventory> outItems)
 	{
 		outItems.Clear();
 		if (owner == null) return;
@@ -382,7 +397,7 @@ class OASISInventoryOverlayHandler : EventHandler
 
 	// Parse odoom_star_inventory_list (format "name\tdesc\ttype\tgame\n" per line) and append STAR items for active tab to display list.
 	// Returns number of STAR rows added. Row data appended to starNames, starDescs, starTypes, starGames.
-	private ui int BuildStarItemsForTab(out Array<String> starNames, out Array<String> starDescs, out Array<String> starTypes, out Array<String> starGames)
+	private int BuildStarItemsForTab(out array<String> starNames, out array<String> starDescs, out array<String> starTypes, out array<String> starGames)
 	{
 		starNames.Clear();
 		starDescs.Clear();
@@ -392,11 +407,11 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (listVar == null) return 0;
 		String listStr = listVar.GetString();
 		if (listStr.Length() == 0) return 0;
-		Array<String> lines;
+		array<String> lines;
 		listStr.Split(lines, "\n", false);
 		for (int i = 0; i < lines.Size(); i++)
 		{
-			Array<String> parts;
+			array<String> parts;
 			lines[i].Split(parts, "\t", false);
 			if (parts.Size() < 4) continue;
 			String name = parts[0];
@@ -437,11 +452,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		}
 		else
 		{
-		Array<String> starNames, starDescs, starTypes, starGames;
-		int starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames);
-		Array<Inventory> tabItems;
-		BuildTabInventory(p.mo, tabItems);
-		int listCount = starCount + tabItems.Size();
+		// Use cached list from WorldTick (ui cannot call play-context BuildStarItemsForTab/BuildTabInventory)
+		int starCount = (cachedStarNames is null) ? 0 : cachedStarCount;
+		int tabSize = (cachedTabItems is null) ? 0 : cachedTabItems.Size();
+		int listCount = starCount + tabSize;
 		int maxOffset = listCount - MAX_VISIBLE_ROWS;
 		if (maxOffset < 0) maxOffset = 0;
 		int drawOffset = scrollOffset;
@@ -486,20 +500,19 @@ class OASISInventoryOverlayHandler : EventHandler
 
 			bool selected = (i == selectedRow);
 
-			if (idx < starCount)
+			if (idx < starCount && cachedStarNames != null && cachedStarDescs != null && cachedStarGames != null)
 			{
 				// STAR (cross-game) item - same data as "star inventory" command
-				String itemLabel = starNames[idx];
-				String itemDesc = starDescs[idx];
+				String itemLabel = cachedStarNames[idx];
+				String itemDesc = cachedStarDescs[idx];
 				if (itemDesc.Length() > 0) itemLabel = itemDesc;
-				String suffix = " [" + starGames[idx] + "]";
-				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_TAN, 54, y + 1, itemLabel + suffix, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_TAN, 54, y + 1, String.Format("%s [%s]", itemLabel, cachedStarGames[idx]), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-			else
+			else if (cachedTabItems != null)
 			{
 				int localIdx = idx - starCount;
-				if (localIdx >= tabItems.Size()) break;
-				let item = tabItems[localIdx];
+				if (localIdx >= cachedTabItems.Size()) break;
+				let item = cachedTabItems[localIdx];
 				TextureID icon = item.Icon;
 				if (icon.IsValid())
 				{

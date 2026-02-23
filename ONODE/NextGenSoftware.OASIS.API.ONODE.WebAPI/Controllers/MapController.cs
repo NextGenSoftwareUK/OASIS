@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (holonDNA == null)
                 return BadRequest(new OASISResult<bool>(false) { IsError = true, Message = "holonDNA is required." });
-            return new(MapManager.CreateAndDrawRouteOnMapBetweenHolons(holonDNA.FromHolon, holonDNA.ToHolon));
+            return new(new OASISResult<bool>(MapManager.CreateAndDrawRouteOnMapBetweenHolons(holonDNA.FromHolon, holonDNA.ToHolon)));
         }
 
         ///// <summary>
@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (points == null)
                 return BadRequest(new OASISResult<bool>(false) { IsError = true, Message = "points is required." });
-            return new(MapManager.CreateAndDrawRouteOnMapBeweenPoints(points));
+            return new(new OASISResult<bool>(MapManager.CreateAndDrawRouteOnMapBeweenPoints(points)));
         }
 
         ///// <summary>
@@ -299,7 +299,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (holon == null)
                 return BadRequest(new OASISResult<bool>(false) { IsError = true, Message = "holon is required." });
-            return new(MapManager.ZoomToHolonOnMap(holon));
+            return new(new OASISResult<bool>(MapManager.ZoomToHolonOnMap(holon)));
         }
 
         /// <summary>
@@ -312,7 +312,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (quest == null)
                 return BadRequest(new OASISResult<bool>(false) { IsError = true, Message = "quest is required." });
-            return new(MapManager.ZoomToQuestOnMap(quest));
+            return new(new OASISResult<bool>(MapManager.ZoomToQuestOnMap(quest)));
         }
 
 

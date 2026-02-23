@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
         }
         
         [HttpPost]
-        public async Task<ActionResult<OASISResult<string>>>> Create(ManageOlandUnitRequestDto request)
+        public async Task<ActionResult<OASISResult<string>>> Create(ManageOlandUnitRequestDto request)
         {
             if (request == null)
                 return BadRequest(new OASISResult<string>(default) { IsError = true, Message = "Request body is required." });
@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<OASISResult<string>>>> Update(ManageOlandUnitRequestDto request, Guid id)
+        public async Task<ActionResult<OASISResult<string>>> Update(ManageOlandUnitRequestDto request, Guid id)
         {
             if (request == null)
                 return BadRequest(new OASISResult<string>(default) { IsError = true, Message = "Request body is required." });
