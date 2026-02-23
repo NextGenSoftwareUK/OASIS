@@ -81,9 +81,15 @@ if not exist "%UZDOOM_SRC%\src\d_main.cpp" (
     pause
     exit /b 1
 )
+set "STAR_DEPLOY_PS1=%HERE%..\STARAPIClient\publish_and_deploy_star_api.ps1"
+if not exist "%DOOM_FOLDER%\star_api.dll" if exist "%STAR_DEPLOY_PS1%" (
+    echo [ODOOM][STEP] star_api missing; running STARAPIClient publish and deploy...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%STAR_DEPLOY_PS1%"
+    if errorlevel 1 echo [ODOOM][ERROR] Deploy failed. & pause & exit /b 1
+)
 if not exist "%DOOM_FOLDER%\star_api.dll" (
     echo star_api not found: %DOOM_FOLDER%
-    echo Build NativeWrapper or copy star_api.dll/lib from Doom folder.
+    echo Run STARAPIClient\publish_and_deploy_star_api.ps1 or copy star_api.dll/lib into Doom folder.
     pause
     exit /b 1
 )
@@ -92,10 +98,13 @@ if not exist "%DOOM_FOLDER%\star_api.lib" (
     pause
     exit /b 1
 )
-if not exist "%NATIVEWRAPPER%\star_api.h" (
-    echo star_api.h not found: %NATIVEWRAPPER%
+if not exist "%NATIVEWRAPPER%\star_api.h" if not exist "%DOOM_FOLDER%\star_api.h" (
+    echo star_api.h not found in %NATIVEWRAPPER% or %DOOM_FOLDER%
     pause
     exit /b 1
+)
+if not exist "%NATIVEWRAPPER%\star_api.h" if exist "%DOOM_FOLDER%\star_api.h" (
+    copy /Y "%DOOM_FOLDER%\star_api.h" "%NATIVEWRAPPER%\star_api.h" >nul
 )
 
 set "PYTHON3_EXE="

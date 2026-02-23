@@ -1,5 +1,3 @@
-OQuake (Quake + OASIS STAR API) – cross-game keys with ODOOM.
-See README.md and WINDOWS_INTEGRATION.md for setup and build.
 star
 star version
 star
@@ -60,4 +58,6 @@ star inventory
 star beamin
 star beamin dellams test!
 star beamin dellams
+star beamin dellams test!
+star beamin dellams test
 star beamin dellams test!

@@ -35,6 +35,7 @@ class OASISInventoryOverlayHandler : EventHandler
 	private int sendQuantity;
 	private int sendButtonFocus;  // 0=Send, 1=Cancel
 	private String sendItemClass;
+	private String sendItemDisplayLabel;  // e.g. "Silver Key (OQUAKE) x2" - shown above name box
 	private int sendMaxQty;
 	private String sendInputLine;  // name built from odoom_send_last_char (C++ sets one char per frame)
 
@@ -164,9 +165,10 @@ class OASISInventoryOverlayHandler : EventHandler
 			array<Inventory> tabItems;
 			BuildTabInventory(p.mo, tabItems);
 
-			// Group STAR by short label (like OQuake): same label = one row, sum count
+			// Group STAR by short label (like OQuake): same label = one row, sum count; keep first raw name per group for send
 			array<String> starGroupLabels;
 			array<int> starGroupCounts;
+			array<String> starGroupFirstNames;
 			for (int i = 0; i < starCount; i++)
 			{
 				String label = StarItemShortLabel(starNames[i], starGames[i]);
@@ -177,6 +179,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				{
 					starGroupLabels.Push(label);
 					starGroupCounts.Push(1);
+					starGroupFirstNames.Push(starNames[i]);
 				}
 				else
 					starGroupCounts[r]++;
@@ -222,15 +225,20 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 
 			int listCount = starGroupCount + localGroupCount;
-			Inventory selectedItem = null;
-			if (selectedAbsolute < starGroupCount) selectedItem = null;
-			else if (selectedAbsolute - starGroupCount < localGroupCount) selectedItem = tabItems[localGroupRepIdx[selectedAbsolute - starGroupCount]];
-			if (sendPopupMode == 0)
-			{
 			int maxOffset = listCount - MAX_VISIBLE_ROWS;
 			if (maxOffset < 0) maxOffset = 0;
 			if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
 			if (selectedAbsolute < 0) selectedAbsolute = 0;
+			Inventory selectedItem = null;
+			int groupAmountForSend = 0;
+			if (selectedAbsolute >= starGroupCount && selectedAbsolute - starGroupCount < localGroupCount)
+			{
+				int gidx = selectedAbsolute - starGroupCount;
+				selectedItem = tabItems[localGroupRepIdx[gidx]];
+				groupAmountForSend = localGroupAmount[gidx];
+			}
+			if (sendPopupMode == 0)
+			{
 
 			// Selection: arrows only (from captured key CVars). Do not use W/S so they don't move list or player.
 			bool selUp = keyUpPressed || (lookUpDown && !wasLookUpDown) || (jumpDown && !wasJumpDown);
@@ -263,29 +271,53 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 			}
 
-			// A or Z = Send to Avatar, C or X = Send to Clan - open send popup (OQuake-style); only for local actor items
-			if ((keyAPressed || keyZPressed) && selectedItem != null && selectedItem.Amount > 0)
+			// A or Z = Send to Avatar, C or X = Send to Clan - open send popup for STAR or local items
+			bool canSendStar = (selectedAbsolute < starGroupCount && starGroupCount > 0 && starGroupCounts[selectedAbsolute] > 0);
+			bool canSendLocal = (selectedItem != null && (selectedItem.Amount > 0 || groupAmountForSend > 0));
+			if ((keyAPressed || keyZPressed) && (canSendStar || canSendLocal))
 			{
 				sendPopupMode = 1;
-				sendQuantity = selectedItem.Amount;
-				if (sendQuantity < 1) sendQuantity = 1;
+				if (canSendStar)
+				{
+					sendMaxQty = starGroupCounts[selectedAbsolute];
+					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[selectedAbsolute]);
+					sendItemDisplayLabel = (starGroupCounts[selectedAbsolute] > 1) ? String.Format("%s x%d", starGroupLabels[selectedAbsolute], starGroupCounts[selectedAbsolute]) : starGroupLabels[selectedAbsolute];
+				}
+				else
+				{
+					sendMaxQty = groupAmountForSend > 0 ? groupAmountForSend : selectedItem.Amount;
+					if (sendMaxQty < 1) sendMaxQty = 1;
+					sendItemClass = selectedItem.GetClassName();
+					String dispName = GetItemDisplayNamePlay(selectedItem);
+					sendItemDisplayLabel = (sendMaxQty > 1) ? String.Format("%s x%d", dispName, sendMaxQty) : dispName;
+				}
+				sendQuantity = sendMaxQty;
 				sendButtonFocus = 0;
-				sendItemClass = selectedItem.GetClassName();
-				sendMaxQty = selectedItem.Amount;
 				sendInputLine = "";
 				CVar lineVar = CVar.FindCVar("odoom_send_input_line");
 				if (lineVar != null) lineVar.SetString("");
 				CVar cv = CVar.FindCVar("odoom_send_popup_open");
 				if (cv != null) cv.SetInt(1);
 			}
-			if ((keyCPressed || keyXPressed) && selectedItem != null && selectedItem.Amount > 0)
+			if ((keyCPressed || keyXPressed) && (canSendStar || canSendLocal))
 			{
 				sendPopupMode = 2;
-				sendQuantity = selectedItem.Amount;
-				if (sendQuantity < 1) sendQuantity = 1;
+				if (canSendStar)
+				{
+					sendMaxQty = starGroupCounts[selectedAbsolute];
+					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[selectedAbsolute]);
+					sendItemDisplayLabel = (starGroupCounts[selectedAbsolute] > 1) ? String.Format("%s x%d", starGroupLabels[selectedAbsolute], starGroupCounts[selectedAbsolute]) : starGroupLabels[selectedAbsolute];
+				}
+				else
+				{
+					sendMaxQty = groupAmountForSend > 0 ? groupAmountForSend : selectedItem.Amount;
+					if (sendMaxQty < 1) sendMaxQty = 1;
+					sendItemClass = selectedItem.GetClassName();
+					String dispName = GetItemDisplayNamePlay(selectedItem);
+					sendItemDisplayLabel = (sendMaxQty > 1) ? String.Format("%s x%d", dispName, sendMaxQty) : dispName;
+				}
+				sendQuantity = sendMaxQty;
 				sendButtonFocus = 0;
-				sendItemClass = selectedItem.GetClassName();
-				sendMaxQty = selectedItem.Amount;
 				sendInputLine = "";
 				CVar lineVar = CVar.FindCVar("odoom_send_input_line");
 				if (lineVar != null) lineVar.SetString("");
@@ -638,22 +670,24 @@ class OASISInventoryOverlayHandler : EventHandler
 			String title = (sendPopupMode == 2) ? "SEND TO CLAN" : "SEND TO AVATAR";
 			String label = (sendPopupMode == 2) ? "Clan" : "Username";
 			int popupW = 200;
-			int popupH = 88;
+			int popupH = 98;
 			int popupX = (320 - popupW) / 2;
 			int popupY = (200 - popupH) / 2;
 			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 4, title, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_UNTRANSLATED, popupX + 8, popupY + 20, String.Format("%s: %s_", label, sendInputLine), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			if (sendItemDisplayLabel.Length() > 0)
+				screen.DrawText(f, Font.CR_WHITE, popupX + 8, popupY + 16, String.Format("Sending: %s", sendItemDisplayLabel), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_UNTRANSLATED, popupX + 8, popupY + 26, String.Format("%s: %s_", label, sendInputLine), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			String qtyText = String.Format("Quantity: %d / %d (Arrows)", sendQuantity, sendMaxQty);
-			screen.DrawText(f, Font.CR_UNTRANSLATED, popupX + 8, popupY + 32, qtyText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + 44, "Left=Send  Right=Cancel  Enter=Confirm", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_UNTRANSLATED, popupX + 8, popupY + 38, qtyText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + 50, "Left=Send  Right=Cancel  Enter=Confirm", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (sendButtonFocus == 0)
-				screen.DrawText(f, Font.CR_GREEN, popupX + 16, popupY + 60, "[SEND]", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_GREEN, popupX + 16, popupY + 66, "[SEND]", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			else
-				screen.DrawText(f, Font.CR_GRAY, popupX + 16, popupY + 60, "SEND", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_GRAY, popupX + 16, popupY + 66, "SEND", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (sendButtonFocus == 1)
-				screen.DrawText(f, Font.CR_GREEN, popupX + 80, popupY + 60, "[CANCEL]", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_GREEN, popupX + 80, popupY + 66, "[CANCEL]", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			else
-				screen.DrawText(f, Font.CR_GRAY, popupX + 80, popupY + 60, "CANCEL", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_GRAY, popupX + 80, popupY + 66, "CANCEL", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		}
 	}
 }

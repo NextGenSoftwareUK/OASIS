@@ -25,6 +25,12 @@
 #include <sys/stat.h>
 #endif
 
+#ifndef STAR_API_HAS_SEND_ITEM
+/* Forward declare send-item API when using an older star_api.h. Link with updated star_api.lib. */
+star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_avatar_id, const char* item_name, int quantity, const char* item_id);
+star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
+#endif
+
 static star_api_config_t g_star_config;
 static int g_star_initialized = 0;
 static int g_star_console_registered = 0;
@@ -78,6 +84,7 @@ typedef struct oquake_inventory_entry_s {
     char name[256];
     char description[512];
     char item_type[64];
+    char id[64];  /* STAR inventory item Guid (empty for local-only entries) */
 } oquake_inventory_entry_t;
 
 static oquake_inventory_entry_t g_inventory_entries[OQ_MAX_INVENTORY_ITEMS];
@@ -143,6 +150,7 @@ static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* des
         q_strlcpy(dst->name, item_name, sizeof(dst->name));
         q_strlcpy(dst->description, description ? description : "", sizeof(dst->description));
         q_strlcpy(dst->item_type, item_type ? item_type : "Item", sizeof(dst->item_type));
+        dst->id[0] = '\0';
         g_local_inventory_synced[i] = false;
         local_added = 1;
     }
@@ -183,6 +191,7 @@ static int OQ_AddInventoryEvent(const char* item_prefix, const char* description
         q_strlcpy(dst->name, item_name, sizeof(dst->name));
         q_strlcpy(dst->description, description ? description : "", sizeof(dst->description));
         q_strlcpy(dst->item_type, item_type ? item_type : "Item", sizeof(dst->item_type));
+        dst->id[0] = '\0';
         g_local_inventory_synced[g_local_inventory_count] = false;
         g_local_inventory_count++;
         local_added = 1;
@@ -558,14 +567,23 @@ static void OQ_SendSelectedItem(void)
     if (qty > available)
         qty = available;
 
-    q_snprintf(
-        g_inventory_status,
-        sizeof(g_inventory_status),
-        "Mock sent %d x '%s' to %s '%s'.",
-        qty,
-        item->name,
-        send_kind,
-        g_inventory_send_target);
+    {
+        const char* item_id;
+        if (item->id[0] != '\0')
+            item_id = (const char*)item->id;
+        else
+            item_id = NULL;
+        star_api_result_t res = STAR_API_SUCCESS;
+        if (g_inventory_send_popup == OQ_SEND_POPUP_CLAN)
+            res = (star_api_result_t)star_api_send_item_to_clan(g_inventory_send_target, item->name, qty, item_id);
+        else
+            res = (star_api_result_t)star_api_send_item_to_avatar(g_inventory_send_target, item->name, qty, item_id);
+        if (res == STAR_API_SUCCESS)
+            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Sent %d x '%s' to %s.", qty, item->name, send_kind);
+        else
+            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Send failed: %s", star_api_get_last_error());
+        OQ_RefreshInventoryCache();
+    }
     g_inventory_send_popup = OQ_SEND_POPUP_NONE;
 }
 
@@ -758,6 +776,7 @@ static void OQ_CheckInventoryRefreshComplete(void) {
                 q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
                 q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
                 q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
+                q_strlcpy(dst->id, list->items[i].id, sizeof(dst->id));
                 g_inventory_count++;
                 q_strlcpy(remote_item_names[remote_item_count], list->items[i].name, sizeof(remote_item_names[remote_item_count]));
                 remote_item_count++;
@@ -836,6 +855,7 @@ static void OQ_CheckInventoryRefreshComplete(void) {
             q_strlcpy(dst->name, g_local_inventory_entries[i].name, sizeof(dst->name));
             q_strlcpy(dst->description, g_local_inventory_entries[i].description, sizeof(dst->description));
             q_strlcpy(dst->item_type, g_local_inventory_entries[i].item_type, sizeof(dst->item_type));
+            dst->id[0] = '\0';  /* local entries have no STAR id until synced */
             g_inventory_count++;
         }
     }
@@ -940,6 +960,7 @@ static void OQ_AppendLocalToDisplay(void) {
             q_strlcpy(dst->name, g_local_inventory_entries[i].name, sizeof(dst->name));
             q_strlcpy(dst->description, g_local_inventory_entries[i].description, sizeof(dst->description));
             q_strlcpy(dst->item_type, g_local_inventory_entries[i].item_type, sizeof(dst->item_type));
+            dst->id[0] = '\0';
             g_inventory_count++;
         }
     }
@@ -2730,18 +2751,29 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
     if (g_inventory_send_popup != OQ_SEND_POPUP_NONE) {
         int popup_w = q_min(panel_w - 80, 420);
-        int popup_h = 96;
+        int popup_h = 108;
         int popup_x = panel_x + (panel_w - popup_w) / 2;
         int popup_y = panel_y + (panel_h - popup_h) / 2;
         const char* title = g_inventory_send_popup == OQ_SEND_POPUP_CLAN ? "SEND TO CLAN" : "SEND TO AVATAR";
         const char* label = g_inventory_send_popup == OQ_SEND_POPUP_CLAN ? "Clan" : "Username";
         int mode = OQ_GROUP_MODE_COUNT;
         int available = 1;
+        char send_item_label[OQ_GROUP_LABEL_MAX];
 
         Draw_Fill(cbx, popup_x, popup_y, popup_w, popup_h, 0, 0.9f);
         Draw_String(cbx, popup_x + 8, popup_y + 8, title);
+        /* Show which item we are sending above the name box */
+        send_item_label[0] = '\0';
+        if (OQ_GetSelectedItem()) {
+            OQ_GetGroupedDisplayInfo(OQ_GetSelectedItem(), send_item_label, sizeof(send_item_label), &mode, &available);
+            if (mode != OQ_GROUP_MODE_COUNT && available > 1)
+                q_snprintf(line, sizeof(line), "Sending: %s x%d", send_item_label, g_inventory_send_quantity);
+            else
+                q_snprintf(line, sizeof(line), "Sending: %s", send_item_label);
+            Draw_String(cbx, popup_x + 8, popup_y + 18, line);
+        }
         q_snprintf(line, sizeof(line), "%s: %s%s", label, g_inventory_send_target, ((int)(realtime * 2) & 1) ? "_" : "");
-        Draw_String(cbx, popup_x + 8, popup_y + 24, line);
+        Draw_String(cbx, popup_x + 8, popup_y + 30, line);
         OQ_GetSelectedGroupInfo(NULL, &mode, &available, NULL, 0);
         if (mode != OQ_GROUP_MODE_COUNT)
             available = 1;
@@ -2752,16 +2784,16 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (g_inventory_send_quantity > available)
             g_inventory_send_quantity = available;
         q_snprintf(line, sizeof(line), "Quantity: %d / %d (Up/Down)", g_inventory_send_quantity, available);
-        Draw_String(cbx, popup_x + 8, popup_y + 36, line);
-        Draw_String(cbx, popup_x + 8, popup_y + 48, "Left=Send  Right=Cancel");
+        Draw_String(cbx, popup_x + 8, popup_y + 42, line);
+        Draw_String(cbx, popup_x + 8, popup_y + 54, "Left=Send  Right=Cancel");
 
         if (g_inventory_send_button == 0)
-            Draw_Fill(cbx, popup_x + 8, popup_y + 72, 64, 10, 224, 0.65f);
-        Draw_String(cbx, popup_x + 16, popup_y + 73, "SEND");
+            Draw_Fill(cbx, popup_x + 8, popup_y + 78, 64, 10, 224, 0.65f);
+        Draw_String(cbx, popup_x + 16, popup_y + 79, "SEND");
 
         if (g_inventory_send_button == 1)
-            Draw_Fill(cbx, popup_x + 84, popup_y + 72, 72, 10, 224, 0.65f);
-        Draw_String(cbx, popup_x + 92, popup_y + 73, "CANCEL");
+            Draw_Fill(cbx, popup_x + 84, popup_y + 78, 72, 10, 224, 0.65f);
+        Draw_String(cbx, popup_x + 92, popup_y + 79, "CANCEL");
     }
 }
 
