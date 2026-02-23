@@ -321,12 +321,8 @@ static void ODOOM_STAR_PollAsyncAuth(void)
 		g_star_effective_avatar_id = avatar_id_buf;
 		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 		odoom_star_username = g_star_effective_username.c_str();
-		/* Re-init so the STAR API client (NativeWrapper) gets the new avatar_id; otherwise add_item/get_inventory use the old (null) avatar and items don't persist. */
-		if (g_star_client_ready) {
-			star_api_cleanup();
-			g_star_client_ready = false;
-		}
-		if (star_api_init(&g_star_config) == STAR_API_SUCCESS)
+		/* Same as OQuake: do not cleanup/init after SSO success (that wipes the JWT we just got). Client already has avatar from login. */
+		if (!g_star_client_ready && star_api_init(&g_star_config) == STAR_API_SUCCESS)
 			g_star_client_ready = true;
 		StarApplyBeamFacePreference();
 		if (g_star_client_ready && !star_sync_inventory_in_progress())
