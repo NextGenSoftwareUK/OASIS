@@ -64,13 +64,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISRuntimeVersion { get; set; } = "4.4.4";
-        public static string OASISAPIVersion { get; set; } = "4.4.4";
+        public static string OASISRuntimeVersion { get; set; } = "4.5.0";
+        public static string OASISAPIVersion { get; set; } = "4.5.0";
         public static string COSMICVersion { get; set; } = "2.1.1";
-        public static string STARODKVersion { get; set; } = "3.3.3";
-        public static string STARRuntimeVersion { get; set; } = "3.3.3";
-        public static string STARNETVersion { get; set; } = "2.2.2";
-        public static string STARAPIVersion { get; set; } = "1.1.1";
+        public static string STARODKVersion { get; set; } = "3.4.0";
+        public static string STARRuntimeVersion { get; set; } = "3.4.0";
+        public static string STARNETVersion { get; set; } = "2.3.0";
+        public static string STARAPIVersion { get; set; } = "1.2.0";
 
         public static string DotNetVersion
         {
