@@ -38,7 +38,7 @@ namespace OASIS.Omniverse.UnityHost.API
         }
 
         private const int MaxRetries = 3;
-        private const int RequestTimeoutSeconds = 8;
+        private const int RequestTimeoutSeconds = 30;
         private const int CircuitFailureThreshold = 6;
         private const int CircuitCooldownSeconds = 20;
         private const float CacheTtlSeconds = 180f;
@@ -70,7 +70,7 @@ namespace OASIS.Omniverse.UnityHost.API
 
             _httpClient = new HttpClient
             {
-                Timeout = TimeSpan.FromSeconds(20)
+                Timeout = TimeSpan.FromSeconds(45)
             };
 
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

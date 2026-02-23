@@ -461,7 +461,54 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             return await ForwardToWeb4Async(HttpMethod.Get, $"/api/avatar/inventory/{itemId}");
         }
 
+        /// <summary>
+        /// Sends an item from the authenticated avatar's inventory to another avatar.
+        /// Target is the recipient's username or avatar Id. Forwards to WEB4 OASIS API.
+        /// </summary>
+        [HttpPost("inventory/send-to-avatar")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SendItemToAvatar([FromBody] SendItemRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Target) || string.IsNullOrWhiteSpace(request.ItemName))
+            {
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "Target and ItemName are required." });
+            }
+            var json = System.Text.Json.JsonSerializer.Serialize(request);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            return await ForwardToWeb4Async(HttpMethod.Post, "/api/avatar/inventory/send-to-avatar", content);
+        }
+
+        /// <summary>
+        /// Sends an item from the authenticated avatar's inventory to a clan.
+        /// Target is the clan name. Forwards to WEB4 OASIS API.
+        /// </summary>
+        [HttpPost("inventory/send-to-clan")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SendItemToClan([FromBody] SendItemRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Target) || string.IsNullOrWhiteSpace(request.ItemName))
+            {
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "Target (clan name) and ItemName are required." });
+            }
+            var json = System.Text.Json.JsonSerializer.Serialize(request);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            return await ForwardToWeb4Async(HttpMethod.Post, "/api/avatar/inventory/send-to-clan", content);
+        }
+
         #endregion
+    }
+
+    /// <summary>
+    /// Request body for sending an inventory item to another avatar or to a clan (WEB5 forwards to WEB4).
+    /// </summary>
+    public class SendItemRequest
+    {
+        public string Target { get; set; } = string.Empty;
+        public string ItemName { get; set; } = string.Empty;
+        public Guid? ItemId { get; set; }
+        public int Quantity { get; set; } = 1;
     }
 
     public class AuthenticateRequest

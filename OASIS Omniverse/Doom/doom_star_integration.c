@@ -43,7 +43,7 @@ void Doom_STAR_Init(void) {
     g_star_config.base_url = "https://star-api.oasisplatform.world/api";
     g_star_config.api_key = getenv("STAR_API_KEY");  // Optional
     g_star_config.avatar_id = getenv("STAR_AVATAR_ID");  // Optional
-    g_star_config.timeout_seconds = 10;
+    g_star_config.timeout_seconds = 30;
     
     star_api_result_t result = star_api_init(&g_star_config);
     if (result != STAR_API_SUCCESS) {
