@@ -65,6 +65,10 @@ star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* targe
 star_api_result_t star_api_get_avatar_id(char* avatar_id_out, size_t avatar_id_size);
 /** Set avatar ID on the client (e.g. after SSO from C++ auth result). Does not change JWT. */
 star_api_result_t star_api_set_avatar_id(const char* avatar_id);
+/** Send item from current avatar's inventory to another avatar. Target = username or avatar Id. item_id optional (NULL or empty = match by name). */
+star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_avatar_id, const char* item_name, int quantity, const char* item_id);
+/** Send item from current avatar's inventory to a clan. Target = clan name (or username). item_id optional (NULL or empty = match by name). */
+star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
 const char* star_api_get_last_error(void);
 void star_api_set_callback(star_api_callback_t callback, void* user_data);
 

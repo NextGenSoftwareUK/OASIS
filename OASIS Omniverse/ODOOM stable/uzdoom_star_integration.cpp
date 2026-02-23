@@ -12,6 +12,13 @@
 
 #include "uzdoom_star_integration.h"
 #include "star_api.h"
+#ifndef STAR_API_HAS_SEND_ITEM
+/* Forward declare send-item API when using an older star_api.h (e.g. in UZDoom tree). Link with updated star_api.lib. */
+extern "C" {
+star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_avatar_id, const char* item_name, int quantity, const char* item_id);
+star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
+}
+#endif
 #include "star_sync.h"
 #include "odoom_branding.h"
 
@@ -123,6 +130,7 @@ static bool g_odoom_send_key_was_down[256];
 static bool g_odoom_send_popup_was_open = false;
 
 static void StarApplyBeamFacePreference(void);
+static bool StarInitialized(void);
 
 /*-----------------------------------------------------------------------------
  * OASIS STAR Config - oasisstar.json (parity with OQuake)
@@ -606,10 +614,32 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		if (qty < 1) qty = 1;
 		if (target && target[0] && itemClass && itemClass[0])
 		{
-			if (toClan)
-				Printf("Send to clan: \"%s\" item \"%s\" x%d (STAR send API not yet implemented).\n", target, itemClass, qty);
+			const char* starItemName = (std::strncmp(itemClass, "STAR:", 5) == 0) ? (itemClass + 5) : nullptr;
+			if (starItemName && starItemName[0])
+			{
+				/* STAR item send: call STAR API send-to-avatar or send-to-clan */
+				if (StarInitialized())
+				{
+					/* ItemId not available from ZScript popup; pass NULL to match by name */
+					star_api_result_t res = toClan
+						? star_api_send_item_to_clan(target, starItemName, qty, nullptr)
+						: star_api_send_item_to_avatar(target, starItemName, qty, nullptr);
+					if (res == STAR_API_SUCCESS)
+						Printf("Sent %s x%d to %s.\n", starItemName, qty, toClan ? "clan" : "avatar");
+					else
+						Printf("Send failed: %s\n", star_api_get_last_error());
+				}
+				else
+					Printf("STAR API not initialized; cannot send item. Beam in first.\n");
+			}
 			else
-				Printf("Send to avatar: \"%s\" item \"%s\" x%d (STAR send API not yet implemented).\n", target, itemClass, qty);
+			{
+				/* Local (Doom) item send */
+				if (toClan)
+					Printf("Send to clan: \"%s\" item \"%s\" x%d (local send not yet implemented).\n", target, itemClass, qty);
+				else
+					Printf("Send to avatar: \"%s\" item \"%s\" x%d (local send not yet implemented).\n", target, itemClass, qty);
+			}
 		}
 		{ UCVarValue u; u.Int = 0; doItVar->SetGenericRep(u, CVAR_Int); }
 		if (sendOpenVar) { UCVarValue u; u.Int = 0; sendOpenVar->SetGenericRep(u, CVAR_Int); }
