@@ -278,16 +278,6 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 #endif
 }
 
-/** Return true if item name is in the cached inventory (avoids main-thread API call when cache is valid). */
-static bool ODOOM_CachedHasItem(const char* keyname) {
-	if (!keyname || !g_odoom_cached_inventory) return false;
-	for (size_t i = 0; i < g_odoom_cached_inventory->count; i++) {
-		if (strcmp(g_odoom_cached_inventory->items[i].name, keyname) == 0)
-			return true;
-	}
-	return false;
-}
-
 /** Start background inventory sync if we have pending items and no sync in progress. */
 static void ODOOM_StartInventorySyncIfNeeded(void) {
 	if (!g_star_initialized || star_sync_inventory_in_progress())
@@ -310,9 +300,9 @@ static void ODOOM_StartInventorySyncIfNeeded(void) {
  * star_sync uses background threads for auth and (in OQuake) inventory; direct star_api_* calls run on the calling thread. */
 static void ODOOM_STAR_PollAsyncAuth(void)
 {
-	/* When not pending, only poll every 12th frame (~5 Hz) to reduce overhead; when pending, poll every frame. */
+	/* When not pending, only poll every 6th frame (~10 Hz) to reduce overhead; when pending, poll every frame. */
 	static int s_auth_poll_skip = 0;
-	if (!g_star_async_auth_pending && (s_auth_poll_skip++ % 12 != 0))
+	if (!g_star_async_auth_pending && (s_auth_poll_skip++ % 6 != 0))
 		return;
 	if (star_sync_auth_poll() != 1)
 		return;
@@ -342,8 +332,6 @@ static void ODOOM_STAR_PollAsyncAuth(void)
 		if (g_star_client_ready && !star_sync_inventory_in_progress())
 			star_sync_inventory_start(nullptr, 0, "ODOOM", nullptr, nullptr);
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
-		if (!g_star_effective_avatar_id.empty())
-			Printf(PRINT_NONOTIFY, "STAR: avatar_id set (use same login in OQuake for shared inventory).\n");
 	} else {
 		Printf(PRINT_NONOTIFY, "Beam-in failed: %s\n", error_buf[0] ? error_buf : star_api_get_last_error());
 	}
@@ -353,15 +341,8 @@ void ODOOM_InventoryInputCaptureFrame(void)
 {
 	ODOOM_STAR_PollAsyncAuth();
 
-	/* Poll async inventory (background thread); when idle poll less often to reduce lock contention. */
-	static int s_inv_poll_skip = 0;
-	int inv_poll = -1;
-	if (g_odoom_in_flight_count > 0 || g_odoom_pending_sync_count > 0)
-		inv_poll = star_sync_inventory_poll();
-	else if (star_sync_inventory_in_progress())
-		inv_poll = star_sync_inventory_poll();
-	else if ((s_inv_poll_skip++ % 8) == 0)
-		inv_poll = star_sync_inventory_poll();
+	/* Poll async inventory (background thread); cache result and start next batch if pending. */
+	int inv_poll = star_sync_inventory_poll();
 	if (inv_poll == 1) {
 		star_item_list_t* list = nullptr;
 		star_api_result_t res = STAR_API_ERROR_API_ERROR;
@@ -1097,10 +1078,9 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 		return 0;
 	}
 
-	/* 1) Check Doom keycard in cross-game inventory (use cache when available to avoid main-thread API call). */
+	/* 1) Check Doom keycard in cross-game inventory */
 	const char* keyname = GetKeycardName(keynum);
-	bool has_key = keyname && (ODOOM_CachedHasItem(keyname) || star_api_has_item(keyname));
-	if (has_key) {
+	if (keyname && star_api_has_item(keyname)) {
 		StarLogInfo("Door access granted via shared inventory key: %s", keyname);
 		bool used = star_api_use_item(keyname, "odoom_door");
 		if (!used) {
