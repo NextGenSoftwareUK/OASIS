@@ -5,11 +5,12 @@ using System.Text.RegularExpressions;
 using System.Linq;
 
 var baseUrl = (Environment.GetEnvironmentVariable("OASIS_WEBAPI_BASE_URL") ?? "http://localhost:5555").TrimEnd('/');
-var username = Environment.GetEnvironmentVariable("OASIS_WEBAPI_USERNAME") ?? "dellams";
-var password = Environment.GetEnvironmentVariable("OASIS_WEBAPI_PASSWORD") ?? "test!";
+// Single place for test user: set env OASIS_WEBAPI_USERNAME / OASIS_WEBAPI_PASSWORD or change defaults below
+HarnessConfig.Username = Environment.GetEnvironmentVariable("OASIS_WEBAPI_USERNAME") ?? "dellams";
+HarnessConfig.Password = Environment.GetEnvironmentVariable("OASIS_WEBAPI_PASSWORD") ?? "test!";
 
 using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-var (token, avatarId) = await TryAuthenticateAsync(client, baseUrl, username, password);
+var (token, avatarId) = await TryAuthenticateAsync(client, baseUrl, HarnessConfig.Username, HarnessConfig.Password);
 if (!string.IsNullOrWhiteSpace(token))
 {
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -112,9 +113,19 @@ static (string Url, HttpContent? Content) BuildRequest(JsonElement swaggerRoot, 
 
     if (endpoint.Method is "POST" or "PUT" or "PATCH")
     {
-        var requestBody = GenerateRequestBody(swaggerRoot, endpoint);
-        if (requestBody != null)
-            content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        var pathLower = endpoint.Path.ToLowerInvariant();
+        if (pathLower.Contains("sessions/logout"))
+            content = new StringContent(JsonSerializer.Serialize(new List<string>()), Encoding.UTF8, "application/json");
+        else if (pathLower.Contains("chat") && pathLower.Contains("send-message"))
+            content = new StringContent(JsonSerializer.Serialize("Test message"), Encoding.UTF8, "application/json");
+        else if (pathLower.Contains("start-new-chat-session"))
+            content = new StringContent(JsonSerializer.Serialize(new List<Guid> { avatarId ?? Guid.NewGuid() }), Encoding.UTF8, "application/json");
+        else
+        {
+            var requestBody = GenerateRequestBody(swaggerRoot, endpoint);
+            if (requestBody != null)
+                content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        }
     }
     else if (endpoint.Method == "GET")
     {
@@ -211,6 +222,15 @@ static Dictionary<string, object> GenerateObjectFromSchema(JsonElement schema, J
         if (value != null && (isRequired || ShouldIncludeOptionalProperty(propName, propSchema, swaggerRoot)))
             result[propName] = value;
     }
+
+    if (result.TryGetValue("Password", out var pwd))
+        result["ConfirmPassword"] = pwd;
+    else if (result.TryGetValue("password", out var pwd2))
+        result["confirmPassword"] = pwd2;
+    if (result.TryGetValue("NewPassword", out var newPwd))
+        result["ConfirmNewPassword"] = newPwd;
+    else if (result.TryGetValue("newPassword", out var newPwd2))
+        result["confirmNewPassword"] = newPwd2;
 
     return result;
 }
@@ -313,10 +333,12 @@ static string GetStringValue(string propertyName, JsonElement schema)
         return "/test/path";
     if (lowerName.Contains("token"))
         return "test-token-123";
+    if (lowerName == "avatartype")
+        return "User";
     if (lowerName.Contains("username"))
-        return "testuser";
+        return HarnessConfig.Username;
     if (lowerName.Contains("password"))
-        return "testpass123";
+        return HarnessConfig.Password;
     if (lowerName.Contains("search") || lowerName.Contains("query") || lowerName.Contains("term"))
         return "test";
     if (lowerName.Contains("type"))
@@ -412,16 +434,20 @@ static Dictionary<string, object> GenerateDefaultBody(string path)
 
     if (lowerPath.Contains("avatar") && lowerPath.Contains("register"))
     {
-        body["username"] = "testuser" + Guid.NewGuid().ToString().Substring(0, 8);
+        var pwd = "TestPass123!";
+        body["username"] = HarnessConfig.Username + "_test_" + Guid.NewGuid().ToString().Substring(0, 8);
         body["email"] = $"test{Guid.NewGuid().ToString().Substring(0, 8)}@example.com";
-        body["password"] = "TestPass123!";
+        body["password"] = pwd;
+        body["confirmPassword"] = pwd;
         body["firstName"] = "Test";
         body["lastName"] = "User";
+        body["avatarType"] = "User";
+        body["acceptTerms"] = true;
     }
     else if (lowerPath.Contains("avatar") && lowerPath.Contains("authenticate"))
     {
-        body["username"] = "testuser";
-        body["password"] = "testpass";
+        body["username"] = HarnessConfig.Username;
+        body["password"] = HarnessConfig.Password;
     }
     else if (lowerPath.Contains("forgot-password"))
     {
@@ -429,9 +455,11 @@ static Dictionary<string, object> GenerateDefaultBody(string path)
     }
     else if (lowerPath.Contains("reset-password"))
     {
-        body["Token"] = "test-reset-token";
-        body["Email"] = "test@example.com";
-        body["Password"] = "TestPass123!";
+        var pwd = "TestPass123!";
+        body["token"] = "test-reset-token";
+        body["oldPassword"] = pwd;
+        body["newPassword"] = pwd;
+        body["confirmNewPassword"] = pwd;
     }
     else if (lowerPath.Contains("validate-reset-token"))
     {
@@ -440,6 +468,15 @@ static Dictionary<string, object> GenerateDefaultBody(string path)
     else if (lowerPath.Contains("verify-email"))
     {
         body["Token"] = "test-verify-token";
+    }
+    else if (lowerPath.Contains("avatar") && lowerPath.Contains("sessions") && !lowerPath.Contains("logout"))
+    {
+        body["serviceName"] = "TestHarness";
+        body["serviceType"] = "website";
+        body["deviceType"] = "desktop";
+        body["deviceName"] = "TestHarness";
+        body["location"] = "Test";
+        body["ipAddress"] = "127.0.0.1";
     }
     else if (lowerPath.Contains("admin") && (lowerPath.Contains("oland") || lowerPath.Contains("olandunit")))
     {
@@ -543,7 +580,7 @@ static string? GetQueryParameterValue(JsonElement param, string name, Guid? avat
         if (lowerName.Contains("email"))
             return "test@example.com";
         if (lowerName.Contains("username"))
-            return "testuser";
+            return HarnessConfig.Username;
     }
 
     // Optional params that commonly need valid enum values to avoid 400
@@ -586,8 +623,12 @@ static string ResolvePath(string path, Guid? avatarId)
             return "Active";
         if (key.Contains("category"))
             return "TestCategory";
+        if (key.Contains("includeusernames"))
+            return "true";
+        if (key.Contains("includeids"))
+            return "true";
         if (key.Contains("username"))
-            return "testuser";
+            return HarnessConfig.Username;
         if (key.Contains("email"))
             return "test@example.com";
         if (key.Contains("search") || key.Contains("query") || key.Contains("term"))
@@ -608,10 +649,14 @@ static string ResolvePath(string path, Guid? avatarId)
             return "false";
         if (key.Contains("showdetailedsettings"))
             return "false";
-        if (key.Contains("includeusernames"))
+        if (key.Contains("softdelete"))
+            return "false";
+        if (key.Contains("loadchildren"))
             return "true";
-        if (key.Contains("includeids"))
-            return "true";
+        if (key.Contains("recursive"))
+            return "false";
+        if (key.Contains("continueonerror"))
+            return "false";
         if (key.Contains("removeduplicates"))
             return "false";
         if (key.Contains("includenames"))
@@ -625,7 +670,7 @@ static string ResolvePath(string path, Guid? avatarId)
         if (key.Contains("holochainagentid"))
             return "test-agent-id";
         if (key.Contains("karmatype"))
-            return "Positive";
+            return path.ToLowerInvariant().Contains("negative") ? "Negative" : "Positive";
         if (key.Contains("weighting"))
             return "1.0";
         if (key.Contains("model"))
@@ -786,4 +831,10 @@ static async Task<bool> IsApiHealthyAsync(HttpClient client, string baseUrl)
     {
         return false;
     }
+}
+
+static class HarnessConfig
+{
+    public static string Username { get; set; } = "";
+    public static string Password { get; set; } = "";
 }

@@ -12,11 +12,11 @@ This guide covers integrating the OASIS STAR API into **ODOOM** (UZDoom-based, a
 - **CMake** 3.16+
 - **Python 3.6+** (required by UZDoom’s build; [python.org](https://www.python.org/downloads/) – add to PATH or use default install so the script can find it)
 - **UZDoom** fork cloned (e.g. `C:\Source\UZDoom`)
-- **OASIS** repo with NativeWrapper and Doom folder (e.g. `C:\Source\OASIS-master`)
+- **OASIS** repo with STARAPIClient and Doom folder (e.g. `C:\Source\OASIS-master`)
 
 ## Automated build (recommended)
 
-**No wrapper build** – the script uses the existing `star_api.dll` and `star_api.lib` from `OASIS Omniverse\Doom\` (same build used for the other Doom port). `star_api.h` is taken from `NativeWrapper`.
+**No separate client build** – the script uses the existing `star_api.dll` and `star_api.lib` from `OASIS Omniverse\Doom\` (same build used for the other Doom port). `star_api.h` is taken from **STARAPIClient** (ODOOM uses STARAPIClient, not NativeWrapper).
 
 From the OASIS repo, in `OASIS Omniverse\ODOOM\`, run the single script:
 
@@ -30,7 +30,7 @@ To **build and launch** ODOOM in one go:
 BUILD ODOOM.bat run
 ```
 
-The script: copies integration files into the UZDoom source `src`, configures with STAR (header from NativeWrapper, lib/dll from Doom folder), builds, and copies the exe as **ODOOM.exe** plus DLLs to `ODOOM\build\`. If your UZDoom clone is not at `C:\Source\UZDoom`, edit the `UZDOOM_SRC` variable at the top of `BUILD ODOOM.bat`. CMake and Visual Studio must be in PATH (or run from **Developer Command Prompt for VS 2022**).
+The script: copies integration files into the UZDoom source `src`, configures with STAR (header from STARAPIClient, lib/dll from Doom folder), builds, and copies the exe as **ODOOM.exe** plus DLLs to `ODOOM\build\`. If your UZDoom clone is not at `C:\Source\UZDoom`, edit the `UZDOOM_SRC` variable at the top of `BUILD ODOOM.bat`. CMake and Visual Studio must be in PATH (or run from **Developer Command Prompt for VS 2022**).
 
 ### ODOOM branding (name and version)
 
@@ -102,9 +102,9 @@ When `oasis_banner.png` is present in `OASIS Omniverse\ODOOM\`, the build script
 
 ## Manual steps (optional)
 
-### Step 1: STAR API wrapper (pre-built)
+### Step 1: STAR API client (pre-built)
 
-Use the existing build from the other Doom port: `OASIS Omniverse\Doom\` should already contain `star_api.dll` and `star_api.lib`. The header `star_api.h` is in `OASIS Omniverse\NativeWrapper\`. No need to build the wrapper again.
+Use the existing build from the other Doom port: `OASIS Omniverse\Doom\` should already contain `star_api.dll` and `star_api.lib`. The header `star_api.h` is in `OASIS Omniverse\STARAPIClient\`. ODOOM uses **STARAPIClient** (not NativeWrapper). No need to build the client again if the Doom folder already has the lib/dll.
 
 ### Step 2: Integration files in ODOOM source (UZDoom)
 
@@ -135,11 +135,11 @@ mkdir build -Force
 cd build
 cmake .. -G "Visual Studio 17 2022" -A x64 `
   -DOASIS_STAR_API=ON `
-  -DSTAR_API_DIR="C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper" `
+  -DSTAR_API_DIR="C:/Source/OASIS-master/OASIS Omniverse/STARAPIClient" `
   -DSTAR_API_LIB_DIR="C:/Source/OASIS-master/OASIS Omniverse/Doom"
 ```
 
-`STAR_API_DIR` = path to NativeWrapper (for `star_api.h`). `STAR_API_LIB_DIR` = path to Doom folder (for pre-built `star_api.lib`). Use forward slashes.
+`STAR_API_DIR` = path to **STARAPIClient** (for `star_api.h`). ODOOM uses STARAPIClient, not NativeWrapper. `STAR_API_LIB_DIR` = path to Doom folder (for pre-built `star_api.lib`). Use forward slashes.
 
 ### Step 4: Build ODOOM
 
@@ -198,7 +198,7 @@ No `OASIS_STAR_API` or `STAR_API_DIR`; the STAR hooks are compiled out.
 ## Troubleshooting
 
 - **star_api.lib not found**  
-  Use pre-built wrapper: set `STAR_API_LIB_DIR` to the Doom folder (`OASIS Omniverse\Doom`) that contains `star_api.lib` and `star_api.dll`. Set `STAR_API_DIR` to the NativeWrapper folder (for `star_api.h`).
+  Use pre-built client: set `STAR_API_LIB_DIR` to the Doom folder (`OASIS Omniverse\Doom`) that contains `star_api.lib` and `star_api.dll`. Set `STAR_API_DIR` to the **STARAPIClient** folder (for `star_api.h`). ODOOM uses STARAPIClient, not NativeWrapper.
 
 - **star_api.dll missing at runtime**  
   Copy `star_api.dll` from `OASIS Omniverse\Doom\` to the same directory as `ODOOM.exe`.
