@@ -199,7 +199,8 @@ public sealed class StarApiClient : IDisposable
             try
             {
                 using var rawDoc = JsonDocument.Parse(response.Result);
-                var rawJwt = FindStringRecursive(rawDoc.RootElement, "JwtToken") ?? FindStringRecursive(rawDoc.RootElement, "Token");
+                var rawJwt = FindStringRecursive(rawDoc.RootElement, "JwtToken") ?? FindStringRecursive(rawDoc.RootElement, "Token")
+                    ?? FindStringRecursive(rawDoc.RootElement, "accessToken") ?? FindStringRecursive(rawDoc.RootElement, "access_token");
                 var rawRefresh = FindStringRecursive(rawDoc.RootElement, "RefreshToken");
                 var rawId = FindStringRecursive(rawDoc.RootElement, "Id") ?? FindStringRecursive(rawDoc.RootElement, "AvatarId");
 
@@ -475,7 +476,12 @@ public sealed class StarApiClient : IDisposable
 
         try
         {
-        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, cancellationToken).ConfigureAwait(false);
+            var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, cancellationToken).ConfigureAwait(false);
+            if (response.IsError && ParseCode(response.ErrorCode, StarApiResultCode.ApiError) == StarApiResultCode.Network)
+            {
+                await Task.Delay(200, cancellationToken).ConfigureAwait(false);
+                response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, cancellationToken).ConfigureAwait(false);
+            }
             if (response.IsError)
                 return FailAndCallback<List<StarItem>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
@@ -1058,11 +1064,21 @@ public sealed class StarApiClient : IDisposable
 
         var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-clan", payload, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
-            return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        {
+            var msg = response.Message ?? string.Empty;
+            if (msg.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
+                msg = "Clan not found.";
+            return FailAndCallback<bool>(msg, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out _, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
-            return FailAndCallback<bool>(parseErrorMessage, parseErrorCode);
+        {
+            var msg = parseErrorMessage ?? string.Empty;
+            if (msg.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
+                msg = "Clan not found.";
+            return FailAndCallback<bool>(msg, parseErrorCode);
+        }
 
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Item sent to clan.");
@@ -1105,16 +1121,19 @@ public sealed class StarApiClient : IDisposable
             {
                 if (!string.IsNullOrWhiteSpace(_avatarId))
                     request.Headers.TryAddWithoutValidation("X-Avatar-Id", _avatarId);
-                
-                // Explicitly set Authorization header so it is always sent (avoids 401/405 when gateway or API require it)
-                if (!string.IsNullOrWhiteSpace(_jwtToken))
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
-                else if (_httpClient.DefaultRequestHeaders.Authorization != null)
-                    request.Headers.Authorization = _httpClient.DefaultRequestHeaders.Authorization;
+
+                /* Always set Authorization on the request so it is sent (some gateways return 405 when missing). */
+                var bearerToken = _jwtToken;
+                if (string.IsNullOrWhiteSpace(bearerToken) && _httpClient.DefaultRequestHeaders.Authorization?.Scheme == "Bearer")
+                    bearerToken = _httpClient.DefaultRequestHeaders.Authorization.Parameter;
+                if (!string.IsNullOrWhiteSpace(bearerToken))
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             }
 
             using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            /* Read as bytes then decode to avoid "Error copying to stream" when connection is closed mid-transfer. */
+            var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+            var responseBody = bytes.Length > 0 ? Encoding.UTF8.GetString(bytes) : string.Empty;
 
             if (!response.IsSuccessStatusCode)
             {
@@ -1129,7 +1148,10 @@ public sealed class StarApiClient : IDisposable
         }
         catch (Exception ex)
         {
-            return Fail<string>($"Network call failed: {ex.Message}", StarApiResultCode.Network, ex);
+            var msg = ex.InnerException != null && !string.IsNullOrWhiteSpace(ex.InnerException.Message)
+                ? $"Network call failed: {ex.Message} ({ex.InnerException.Message})"
+                : $"Network call failed: {ex.Message}";
+            return Fail<string>(msg, StarApiResultCode.Network, ex);
         }
     }
 
@@ -1307,7 +1329,9 @@ public sealed class StarApiClient : IDisposable
             ?? FindStringRecursive(element, "AvatarId");
         Guid.TryParse(idText, out var id);
         var jwt = GetStringProperty(element, "JwtToken") ?? FindStringRecursive(element, "JwtToken")
-            ?? GetStringProperty(element, "Token") ?? FindStringRecursive(element, "Token");
+            ?? GetStringProperty(element, "Token") ?? FindStringRecursive(element, "Token")
+            ?? GetStringProperty(element, "accessToken") ?? FindStringRecursive(element, "accessToken")
+            ?? GetStringProperty(element, "access_token") ?? FindStringRecursive(element, "access_token");
         var refresh = GetStringProperty(element, "RefreshToken") ?? FindStringRecursive(element, "RefreshToken");
 
         if (id != Guid.Empty || !string.IsNullOrWhiteSpace(jwt) || !string.IsNullOrWhiteSpace(refresh))
@@ -2398,6 +2422,13 @@ public static unsafe class StarApiExports
             quantity < 1 ? 1 : quantity,
             guid).GetAwaiter().GetResult();
 
+        if (result.IsError && !string.IsNullOrEmpty(result.Message) && result.Message.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            SetError("Clan not found.");
+            var code = ExtractCode(result);
+            InvokeCallback(code);
+            return (int)code;
+        }
         return (int)FinalizeResult(result);
     }
 

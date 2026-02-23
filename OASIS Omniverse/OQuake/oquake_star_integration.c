@@ -31,6 +31,10 @@ star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_av
 star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
 #endif
 
+/* Forward declare callbacks so they can be used before their definitions. */
+static void OQ_OnSendItemDone(void* user_data);
+static void OQ_OnInventoryDone(void* user_data);
+
 static star_api_config_t g_star_config;
 static int g_star_initialized = 0;
 static int g_star_console_registered = 0;
@@ -85,6 +89,7 @@ typedef struct oquake_inventory_entry_s {
     char description[512];
     char item_type[64];
     char id[64];  /* STAR inventory item Guid (empty for local-only entries) */
+    char game_source[64];  /* e.g. ODOOM, OQUAKE - for display (ODOOM)/(OQUAKE) */
 } oquake_inventory_entry_t;
 
 static oquake_inventory_entry_t g_inventory_entries[OQ_MAX_INVENTORY_ITEMS];
@@ -151,6 +156,7 @@ static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* des
         q_strlcpy(dst->description, description ? description : "", sizeof(dst->description));
         q_strlcpy(dst->item_type, item_type ? item_type : "Item", sizeof(dst->item_type));
         dst->id[0] = '\0';
+        q_strlcpy(dst->game_source, "Quake", sizeof(dst->game_source));
         g_local_inventory_synced[i] = false;
         local_added = 1;
     }
@@ -192,6 +198,7 @@ static int OQ_AddInventoryEvent(const char* item_prefix, const char* description
         q_strlcpy(dst->description, description ? description : "", sizeof(dst->description));
         q_strlcpy(dst->item_type, item_type ? item_type : "Item", sizeof(dst->item_type));
         dst->id[0] = '\0';
+        q_strlcpy(dst->game_source, "Quake", sizeof(dst->game_source));
         g_local_inventory_synced[g_local_inventory_count] = false;
         g_local_inventory_count++;
         local_added = 1;
@@ -254,6 +261,20 @@ static int OQ_ParsePickupDelta(const char* description)
     return atoi(plus + 1);
 }
 
+static void OQ_AppendGameSourceTag(const oquake_inventory_entry_t* item, char* label, size_t label_size)
+{
+    const char* gs;
+    if (!item || !label || label_size < 2)
+        return;
+    gs = item->game_source;
+    if (!gs || !gs[0])
+        return;
+    if (strstr(gs, "Doom") || strstr(gs, "ODOOM") || strstr(gs, "doom"))
+        q_strlcat(label, " (ODOOM)", label_size);
+    else if (strstr(gs, "Quake") || strstr(gs, "OQUAKE") || strstr(gs, "quake"))
+        q_strlcat(label, " (OQUAKE)", label_size);
+}
+
 static void OQ_GetGroupedDisplayInfo(const oquake_inventory_entry_t* item, char* label, size_t label_size, int* mode, int* value)
 {
     const char* name = item ? item->name : "";
@@ -265,128 +286,130 @@ static void OQ_GetGroupedDisplayInfo(const oquake_inventory_entry_t* item, char*
         q_strlcpy(label, "Shells", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = OQ_ParsePickupDelta(desc);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_nails_", 19)) {
         q_strlcpy(label, "Nails", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = OQ_ParsePickupDelta(desc);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_rockets_", 21)) {
         q_strlcpy(label, "Rockets", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = OQ_ParsePickupDelta(desc);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_cells_", 19)) {
         q_strlcpy(label, "Cells", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = OQ_ParsePickupDelta(desc);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_armor_green", 24)) {
         q_strlcpy(label, "Green Armor", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = OQ_ParsePickupDelta(desc);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_armor_yellow", 25)) {
         q_strlcpy(label, "Yellow Armor", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = OQ_ParsePickupDelta(desc);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_armor_red", 22)) {
         q_strlcpy(label, "Red Armor", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = OQ_ParsePickupDelta(desc);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_health_", 20)) {
         q_strlcpy(label, "Health", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = OQ_ParsePickupDelta(desc);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_quad_", 18)) {
         q_strlcpy(label, "Quad Damage", label_size);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_suit_", 18)) {
         q_strlcpy(label, "Biosuit", label_size);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_invisibility_", 26)) {
         q_strlcpy(label, "Ring of Shadows", label_size);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_invulnerability_", 28)) {
         q_strlcpy(label, "Pentagram of Protection", label_size);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_megahealth_", 24)) {
         q_strlcpy(label, "Megahealth", label_size);
-        return;
+        goto finish;
     }
     /* Stack-style weapon events (when stack_weapons is 1) */
-    if (!strncmp(name, "quake_pickup_weapon_shotgun", 27)) { q_strlcpy(label, "Shotgun", label_size); return; }
-    if (!strncmp(name, "quake_pickup_weapon_super_shotgun", 32)) { q_strlcpy(label, "Super Shotgun", label_size); return; }
-    if (!strncmp(name, "quake_pickup_weapon_nailgun", 26)) { q_strlcpy(label, "Nailgun", label_size); return; }
-    if (!strncmp(name, "quake_pickup_weapon_super_nailgun", 31)) { q_strlcpy(label, "Super Nailgun", label_size); return; }
-    if (!strncmp(name, "quake_pickup_weapon_grenade_launcher", 36)) { q_strlcpy(label, "Grenade Launcher", label_size); return; }
-    if (!strncmp(name, "quake_pickup_weapon_rocket_launcher", 35)) { q_strlcpy(label, "Rocket Launcher", label_size); return; }
-    if (!strncmp(name, "quake_pickup_weapon_lightning", 29)) { q_strlcpy(label, "Lightning Gun", label_size); return; }
-    if (!strncmp(name, "quake_pickup_weapon_super_lightning", 34)) { q_strlcpy(label, "Super Lightning", label_size); return; }
+    if (!strncmp(name, "quake_pickup_weapon_shotgun", 27)) { q_strlcpy(label, "Shotgun", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_weapon_super_shotgun", 32)) { q_strlcpy(label, "Super Shotgun", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_weapon_nailgun", 26)) { q_strlcpy(label, "Nailgun", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_weapon_super_nailgun", 31)) { q_strlcpy(label, "Super Nailgun", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_weapon_grenade_launcher", 36)) { q_strlcpy(label, "Grenade Launcher", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_weapon_rocket_launcher", 35)) { q_strlcpy(label, "Rocket Launcher", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_weapon_lightning", 29)) { q_strlcpy(label, "Lightning Gun", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_weapon_super_lightning", 34)) { q_strlcpy(label, "Super Lightning", label_size); goto finish; }
     /* Stack-style sigil events (when stack_sigils is 1) */
-    if (!strncmp(name, "quake_pickup_sigil_1", 20)) { q_strlcpy(label, "Sigil Piece 1", label_size); return; }
-    if (!strncmp(name, "quake_pickup_sigil_2", 20)) { q_strlcpy(label, "Sigil Piece 2", label_size); return; }
-    if (!strncmp(name, "quake_pickup_sigil_3", 20)) { q_strlcpy(label, "Sigil Piece 3", label_size); return; }
-    if (!strncmp(name, "quake_pickup_sigil_4", 20)) { q_strlcpy(label, "Sigil Piece 4", label_size); return; }
+    if (!strncmp(name, "quake_pickup_sigil_1", 20)) { q_strlcpy(label, "Sigil Piece 1", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_sigil_2", 20)) { q_strlcpy(label, "Sigil Piece 2", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_sigil_3", 20)) { q_strlcpy(label, "Sigil Piece 3", label_size); goto finish; }
+    if (!strncmp(name, "quake_pickup_sigil_4", 20)) { q_strlcpy(label, "Sigil Piece 4", label_size); goto finish; }
 
     if (!strcmp(name, OQUAKE_ITEM_SILVER_KEY)) {
         q_strlcpy(label, "Silver Key", label_size);
-        return;
+        goto finish;
     }
     if (!strcmp(name, OQUAKE_ITEM_GOLD_KEY)) {
         q_strlcpy(label, "Gold Key", label_size);
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_key_silver_", 24)) {
         q_strlcpy(label, "Silver Key", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = 1;
-        return;
+        goto finish;
     }
     if (!strncmp(name, "quake_pickup_key_gold_", 22)) {
         q_strlcpy(label, "Gold Key", label_size);
         *mode = OQ_GROUP_MODE_SUM;
         *value = 1;
-        return;
+        goto finish;
     }
     /* Unlock-style names (when stack_* is 0) */
-    if (!strcmp(name, "quake_armor_green")) { q_strlcpy(label, "Green Armor", label_size); *mode = OQ_GROUP_MODE_SUM; *value = 1; return; }
-    if (!strcmp(name, "quake_armor_yellow")) { q_strlcpy(label, "Yellow Armor", label_size); *mode = OQ_GROUP_MODE_SUM; *value = 1; return; }
-    if (!strcmp(name, "quake_armor_red")) { q_strlcpy(label, "Red Armor", label_size); *mode = OQ_GROUP_MODE_SUM; *value = 1; return; }
-    if (!strcmp(name, "quake_weapon_shotgun")) { q_strlcpy(label, "Shotgun", label_size); return; }
-    if (!strcmp(name, "quake_weapon_super_shotgun")) { q_strlcpy(label, "Super Shotgun", label_size); return; }
-    if (!strcmp(name, "quake_weapon_nailgun")) { q_strlcpy(label, "Nailgun", label_size); return; }
-    if (!strcmp(name, "quake_weapon_super_nailgun")) { q_strlcpy(label, "Super Nailgun", label_size); return; }
-    if (!strcmp(name, "quake_weapon_grenade_launcher")) { q_strlcpy(label, "Grenade Launcher", label_size); return; }
-    if (!strcmp(name, "quake_weapon_rocket_launcher")) { q_strlcpy(label, "Rocket Launcher", label_size); return; }
-    if (!strcmp(name, "quake_weapon_lightning")) { q_strlcpy(label, "Lightning Gun", label_size); return; }
-    if (!strcmp(name, "quake_weapon_super_lightning")) { q_strlcpy(label, "Super Lightning", label_size); return; }
-    if (!strcmp(name, "quake_powerup_megahealth")) { q_strlcpy(label, "Megahealth", label_size); return; }
-    if (!strcmp(name, "quake_powerup_invisibility")) { q_strlcpy(label, "Ring of Shadows", label_size); return; }
-    if (!strcmp(name, "quake_powerup_invulnerability")) { q_strlcpy(label, "Pentagram of Protection", label_size); return; }
-    if (!strcmp(name, "quake_powerup_suit")) { q_strlcpy(label, "Biosuit", label_size); return; }
-    if (!strcmp(name, "quake_powerup_quad")) { q_strlcpy(label, "Quad Damage", label_size); return; }
-    if (!strcmp(name, "quake_sigil_1")) { q_strlcpy(label, "Sigil Piece 1", label_size); return; }
-    if (!strcmp(name, "quake_sigil_2")) { q_strlcpy(label, "Sigil Piece 2", label_size); return; }
-    if (!strcmp(name, "quake_sigil_3")) { q_strlcpy(label, "Sigil Piece 3", label_size); return; }
-    if (!strcmp(name, "quake_sigil_4")) { q_strlcpy(label, "Sigil Piece 4", label_size); return; }
+    if (!strcmp(name, "quake_armor_green")) { q_strlcpy(label, "Green Armor", label_size); *mode = OQ_GROUP_MODE_SUM; *value = 1; goto finish; }
+    if (!strcmp(name, "quake_armor_yellow")) { q_strlcpy(label, "Yellow Armor", label_size); *mode = OQ_GROUP_MODE_SUM; *value = 1; goto finish; }
+    if (!strcmp(name, "quake_armor_red")) { q_strlcpy(label, "Red Armor", label_size); *mode = OQ_GROUP_MODE_SUM; *value = 1; goto finish; }
+    if (!strcmp(name, "quake_weapon_shotgun")) { q_strlcpy(label, "Shotgun", label_size); goto finish; }
+    if (!strcmp(name, "quake_weapon_super_shotgun")) { q_strlcpy(label, "Super Shotgun", label_size); goto finish; }
+    if (!strcmp(name, "quake_weapon_nailgun")) { q_strlcpy(label, "Nailgun", label_size); goto finish; }
+    if (!strcmp(name, "quake_weapon_super_nailgun")) { q_strlcpy(label, "Super Nailgun", label_size); goto finish; }
+    if (!strcmp(name, "quake_weapon_grenade_launcher")) { q_strlcpy(label, "Grenade Launcher", label_size); goto finish; }
+    if (!strcmp(name, "quake_weapon_rocket_launcher")) { q_strlcpy(label, "Rocket Launcher", label_size); goto finish; }
+    if (!strcmp(name, "quake_weapon_lightning")) { q_strlcpy(label, "Lightning Gun", label_size); goto finish; }
+    if (!strcmp(name, "quake_weapon_super_lightning")) { q_strlcpy(label, "Super Lightning", label_size); goto finish; }
+    if (!strcmp(name, "quake_powerup_megahealth")) { q_strlcpy(label, "Megahealth", label_size); goto finish; }
+    if (!strcmp(name, "quake_powerup_invisibility")) { q_strlcpy(label, "Ring of Shadows", label_size); goto finish; }
+    if (!strcmp(name, "quake_powerup_invulnerability")) { q_strlcpy(label, "Pentagram of Protection", label_size); goto finish; }
+    if (!strcmp(name, "quake_powerup_suit")) { q_strlcpy(label, "Biosuit", label_size); goto finish; }
+    if (!strcmp(name, "quake_powerup_quad")) { q_strlcpy(label, "Quad Damage", label_size); goto finish; }
+    if (!strcmp(name, "quake_sigil_1")) { q_strlcpy(label, "Sigil Piece 1", label_size); goto finish; }
+    if (!strcmp(name, "quake_sigil_2")) { q_strlcpy(label, "Sigil Piece 2", label_size); goto finish; }
+    if (!strcmp(name, "quake_sigil_3")) { q_strlcpy(label, "Sigil Piece 3", label_size); goto finish; }
+    if (!strcmp(name, "quake_sigil_4")) { q_strlcpy(label, "Sigil Piece 4", label_size); goto finish; }
 
     q_strlcpy(label, name, label_size);
+finish:
+    OQ_AppendGameSourceTag(item, label, label_size);
 }
 
 static int OQ_BuildGroupedRows(
@@ -568,21 +591,14 @@ static void OQ_SendSelectedItem(void)
         qty = available;
 
     {
-        const char* item_id;
-        if (item->id[0] != '\0')
-            item_id = (const char*)item->id;
-        else
-            item_id = NULL;
-        star_api_result_t res = STAR_API_SUCCESS;
-        if (g_inventory_send_popup == OQ_SEND_POPUP_CLAN)
-            res = (star_api_result_t)star_api_send_item_to_clan(g_inventory_send_target, item->name, qty, item_id);
-        else
-            res = (star_api_result_t)star_api_send_item_to_avatar(g_inventory_send_target, item->name, qty, item_id);
-        if (res == STAR_API_SUCCESS)
-            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Sent %d x '%s' to %s.", qty, item->name, send_kind);
-        else
-            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Send failed: %s", star_api_get_last_error());
-        OQ_RefreshInventoryCache();
+        const char* item_id = (item->id[0] != '\0') ? (const char*)item->id : NULL;
+        if (star_sync_send_item_in_progress()) {
+            q_strlcpy(g_inventory_status, "Send already in progress.", sizeof(g_inventory_status));
+        } else {
+            star_sync_send_item_start(g_inventory_send_target, item->name, qty,
+                (g_inventory_send_popup == OQ_SEND_POPUP_CLAN) ? 1 : 0, item_id, OQ_OnSendItemDone, NULL);
+            q_strlcpy(g_inventory_status, "Sending...", sizeof(g_inventory_status));
+        }
     }
     g_inventory_send_popup = OQ_SEND_POPUP_NONE;
 }
@@ -711,97 +727,127 @@ static qboolean OQ_AllowPrivilegedCommands(void) {
     return (q_strcasecmp(u, "dellams") == 0 || q_strcasecmp(u, "anorak") == 0);
 }
 
-static void OQ_CheckAuthenticationComplete(void) {
-    int poll = star_sync_auth_poll();
-    if (poll != 1)
+/** Called from main thread by star_sync_pump() when auth completes. */
+static void OQ_OnAuthDone(void* user_data) {
+    int success = 0;
+    char username[64] = {0};
+    char avatar_id[64] = {0};
+    char error_msg[256] = {0};
+    (void)user_data;
+    if (!star_sync_auth_get_result(&success, username, sizeof(username), avatar_id, sizeof(avatar_id), error_msg, sizeof(error_msg)))
         return;
-    {
-        int success = 0;
-        char username[64] = {0};
-        char avatar_id[64] = {0};
-        char error_msg[256] = {0};
-        if (!star_sync_auth_get_result(&success, username, sizeof(username), avatar_id, sizeof(avatar_id), error_msg, sizeof(error_msg)))
-            return;
-        if (success) {
-            g_star_initialized = 1;
-            q_strlcpy(g_star_username, username, sizeof(g_star_username));
-            Cvar_Set("oquake_star_username", username);
-            if (avatar_id[0]) {
-                Cvar_Set("oquake_star_avatar_id", avatar_id);
-                g_star_config.avatar_id = oquake_star_avatar_id.string;
-                Con_Printf("Avatar ID: %s\n", avatar_id);
-            } else {
-                Con_Printf("Warning: Could not get avatar ID: %s\n", error_msg[0] ? error_msg : "Unknown error");
-            }
-            OQ_ApplyBeamFacePreference();
-            Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
-            g_inventory_last_refresh = 0.0;
+    if (success) {
+        g_star_initialized = 1;
+        q_strlcpy(g_star_username, username, sizeof(g_star_username));
+        Cvar_Set("oquake_star_username", username);
+        if (avatar_id[0]) {
+            Cvar_Set("oquake_star_avatar_id", avatar_id);
+            g_star_config.avatar_id = oquake_star_avatar_id.string;
+            Con_Printf("Avatar ID: %s\n", avatar_id);
         } else {
-            Con_Printf("Beamin (SSO) failed: %s\n", error_msg[0] ? error_msg : "Unknown error");
+            Con_Printf("Warning: Could not get avatar ID: %s\n", error_msg[0] ? error_msg : "Unknown error");
         }
+        OQ_ApplyBeamFacePreference();
+        Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
+        g_inventory_last_refresh = 0.0;
+        /* Start inventory fetch in background so popup has data when opened. */
+        if (!star_sync_inventory_in_progress()) {
+            q_strlcpy(g_inventory_status, "Syncing...", sizeof(g_inventory_status));
+            int l;
+            for (l = 0; l < g_local_inventory_count; l++) {
+                star_sync_local_item_t* d = &g_star_sync_local_items[l];
+                oquake_inventory_entry_t* s = &g_local_inventory_entries[l];
+                q_strlcpy(d->name, s->name, sizeof(d->name));
+                q_strlcpy(d->description, s->description, sizeof(d->description));
+                q_strlcpy(d->game_source, "Quake", sizeof(d->game_source));
+                q_strlcpy(d->item_type, s->item_type, sizeof(d->item_type));
+                d->synced = g_local_inventory_synced[l] ? 1 : 0;
+            }
+            star_sync_inventory_start(g_star_sync_local_items, g_local_inventory_count, "Quake", OQ_OnInventoryDone, NULL);
+        }
+    } else {
+        Con_Printf("Beamin (SSO) failed: %s\n", error_msg[0] ? error_msg : "Unknown error");
     }
 }
 
-static void OQ_CheckInventoryRefreshComplete(void) {
-    int poll = star_sync_inventory_poll();
-    if (poll != 1)
+/** Called from main thread by star_sync_pump() when send-item completes. */
+static void OQ_OnSendItemDone(void* user_data) {
+    int success = 0;
+    char err_buf[384] = {0};
+    (void)user_data;
+    if (!star_sync_send_item_get_result(&success, err_buf, sizeof(err_buf)))
         return;
-    {
-        star_item_list_t* list = NULL;
-        star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
-        char api_error_buf[256] = {0};
-        if (!star_sync_inventory_get_result(&list, &result, api_error_buf, sizeof(api_error_buf)))
-            return;
-        const char* api_error = api_error_buf[0] ? api_error_buf : NULL;
-        /* Copy back synced flags from sync layer */
-        {
-            int l;
-            for (l = 0; l < g_local_inventory_count; l++)
-                g_local_inventory_synced[l] = (qboolean)g_star_sync_local_items[l].synced;
-        }
-    /* Process results on main thread */
+    if (success) {
+        q_strlcpy(g_inventory_status, "Item sent.", sizeof(g_inventory_status));
+        Con_Printf("OQuake: Item sent.\n");
+    } else {
+        q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Send failed: %s", err_buf[0] ? err_buf : "Unknown error");
+        Con_Printf("OQuake: Send failed: %s\n", err_buf[0] ? err_buf : "Unknown error");
+    }
+    OQ_RefreshInventoryCache();
+}
+
+static void OQ_ProcessInventoryResult(star_item_list_t* list, star_api_result_t result, const char* api_error);
+
+/** Called from main thread by star_sync_pump() when inventory refresh completes. */
+static void OQ_OnInventoryDone(void* user_data) {
+    star_item_list_t* list = NULL;
+    star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
+    char api_error_buf[256] = {0};
+    (void)user_data;
+    if (!star_sync_inventory_get_result(&list, &result, api_error_buf, sizeof(api_error_buf)))
+        return;
+    OQ_ProcessInventoryResult(list, result, api_error_buf[0] ? api_error_buf : NULL);
+    if (list)
+        star_api_free_item_list(list);
+}
+
+static void OQ_CheckAuthenticationComplete(void) {
+    star_sync_pump();
+}
+
+static void OQ_ProcessInventoryResult(star_item_list_t* list, star_api_result_t result, const char* api_error) {
     size_t i;
     int remote_ok = (result == STAR_API_SUCCESS && list != NULL);
     int pending_local = 0;
-    
-    g_inventory_count = 0;
-    
-    /* Store remote list items in a temporary array for checking */
     char remote_item_names[OQ_MAX_INVENTORY_ITEMS][256];
     int remote_item_count = 0;
-    
-        if (remote_ok && list && list->count > 0) {
-            for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS && remote_item_count < OQ_MAX_INVENTORY_ITEMS; i++) {
-                oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
-                q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
-                q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
-                q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
-                q_strlcpy(dst->id, list->items[i].id, sizeof(dst->id));
-                g_inventory_count++;
-                q_strlcpy(remote_item_names[remote_item_count], list->items[i].name, sizeof(remote_item_names[remote_item_count]));
-                remote_item_count++;
-                {
-                    int l;
-                    for (l = 0; l < g_local_inventory_count; l++) {
-                        if (!strcmp(g_local_inventory_entries[l].name, list->items[i].name)) {
-                            g_local_inventory_synced[l] = true;
-                            break;
-                        }
+
+    /* Copy back synced flags from sync layer */
+    {
+        int l;
+        for (l = 0; l < g_local_inventory_count; l++)
+            g_local_inventory_synced[l] = (qboolean)g_star_sync_local_items[l].synced;
+    }
+    g_inventory_count = 0;
+
+    if (remote_ok && list && list->count > 0) {
+        for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS && remote_item_count < OQ_MAX_INVENTORY_ITEMS; i++) {
+            oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
+            q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
+            q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
+            q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
+            q_strlcpy(dst->id, list->items[i].id, sizeof(dst->id));
+            q_strlcpy(dst->game_source, list->items[i].game_source, sizeof(dst->game_source));
+            g_inventory_count++;
+            q_strlcpy(remote_item_names[remote_item_count], list->items[i].name, sizeof(remote_item_names[remote_item_count]));
+            remote_item_count++;
+            {
+                int l;
+                for (l = 0; l < g_local_inventory_count; l++) {
+                    if (!strcmp(g_local_inventory_entries[l].name, list->items[i].name)) {
+                        g_local_inventory_synced[l] = true;
+                        break;
                     }
                 }
             }
         }
-    
-    /* Double-check synced status: if an item is in remote (via star_api_has_item or remote list), mark it as synced */
-    /* This handles items that were successfully synced via star_api_add_item but haven't appeared in remote list yet */
-    /* Also handles starting weapons/items that are in remote from previous session */
-    /* Priority: check remote list first (most accurate), then star_api_has_item as fallback */
-    /* Always check star_api_has_item as a final fallback, even if remote_ok is false */
+    }
+
     {
         int l;
         for (l = 0; l < g_local_inventory_count; l++) {
             if (!g_local_inventory_synced[l]) {
-                /* First check if item is in remote list (most accurate) */
                 int found_in_remote = 0;
                 if (remote_ok) {
                     int r;
@@ -812,8 +858,6 @@ static void OQ_CheckInventoryRefreshComplete(void) {
                         }
                     }
                 }
-                /* If not in remote list, check star_api_has_item as fallback */
-                /* This is important for items that exist in remote but aren't in the list (e.g., cache issues) */
                 if (found_in_remote) {
                     g_local_inventory_synced[l] = true;
                 } else if (g_star_initialized && star_api_has_item(g_local_inventory_entries[l].name)) {
@@ -822,10 +866,8 @@ static void OQ_CheckInventoryRefreshComplete(void) {
             }
         }
     }
-    
-    /* Add local items to display: unsynced (pending), or synced but not yet in remote list (just added) */
+
     for (i = 0; i < (size_t)g_local_inventory_count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
-        /* Skip if already in display */
         int j, exists = 0;
         for (j = 0; j < g_inventory_count; j++) {
             if (!strcmp(g_inventory_entries[j].name, g_local_inventory_entries[i].name)) {
@@ -835,7 +877,6 @@ static void OQ_CheckInventoryRefreshComplete(void) {
         }
         if (exists)
             continue;
-        /* Synced items: only add if not in remote list yet (so just-added items show immediately) */
         if (g_local_inventory_synced[i]) {
             int in_remote = 0;
             if (remote_ok) {
@@ -848,26 +889,23 @@ static void OQ_CheckInventoryRefreshComplete(void) {
                 }
             }
             if (in_remote)
-                continue; /* already in display from remote list */
+                continue;
         }
         {
             oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
             q_strlcpy(dst->name, g_local_inventory_entries[i].name, sizeof(dst->name));
             q_strlcpy(dst->description, g_local_inventory_entries[i].description, sizeof(dst->description));
             q_strlcpy(dst->item_type, g_local_inventory_entries[i].item_type, sizeof(dst->item_type));
-            dst->id[0] = '\0';  /* local entries have no STAR id until synced */
+            dst->id[0] = '\0';
+            q_strlcpy(dst->game_source, "Quake", sizeof(dst->game_source));
             g_inventory_count++;
         }
     }
-    
-    /* After processing, remove all synced items from local inventory */
-    /* This prevents showing "pending" items that are already in the remote inventory */
-    /* Always remove synced items, regardless of remote_ok, because they were successfully synced via star_api_add_item */
+
     {
         int l, write_idx = 0;
         for (l = 0; l < g_local_inventory_count; l++) {
             if (!g_local_inventory_synced[l]) {
-                /* Keep only unsynced items */
                 if (write_idx != l) {
                     g_local_inventory_entries[write_idx] = g_local_inventory_entries[l];
                     g_local_inventory_synced[write_idx] = g_local_inventory_synced[l];
@@ -877,12 +915,8 @@ static void OQ_CheckInventoryRefreshComplete(void) {
         }
         g_local_inventory_count = write_idx;
     }
-    
-    /* Count pending local items (only items that aren't synced) */
-    /* After compaction, all remaining items are unsynced */
     pending_local = g_local_inventory_count;
-    
-    /* Update status message */
+
     if (g_inventory_count == 0) {
         if (remote_ok) {
             q_strlcpy(g_inventory_status, "STAR inventory is empty.", sizeof(g_inventory_status));
@@ -890,10 +924,7 @@ static void OQ_CheckInventoryRefreshComplete(void) {
             char error_msg[128];
             q_strlcpy(error_msg, api_error, sizeof(error_msg));
             if (strlen(error_msg) > 80) {
-                error_msg[77] = '.';
-                error_msg[78] = '.';
-                error_msg[79] = '.';
-                error_msg[80] = 0;
+                error_msg[77] = '.'; error_msg[78] = '.'; error_msg[79] = '.'; error_msg[80] = 0;
             }
             q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR API error: %s", error_msg);
         } else {
@@ -901,8 +932,7 @@ static void OQ_CheckInventoryRefreshComplete(void) {
         }
     } else if (remote_ok) {
         if (pending_local > 0)
-            q_snprintf(
-                g_inventory_status, sizeof(g_inventory_status), "Synced (%d items), %d pending", g_inventory_count, pending_local);
+            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Synced (%d items), %d pending", g_inventory_count, pending_local);
         else
             q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Synced (%d items)", g_inventory_count);
     } else if (star_initialized()) {
@@ -910,25 +940,17 @@ static void OQ_CheckInventoryRefreshComplete(void) {
             char error_msg[128];
             q_strlcpy(error_msg, api_error, sizeof(error_msg));
             if (strlen(error_msg) > 80) {
-                error_msg[77] = '.';
-                error_msg[78] = '.';
-                error_msg[79] = '.';
-                error_msg[80] = 0;
+                error_msg[77] = '.'; error_msg[78] = '.'; error_msg[79] = '.'; error_msg[80] = 0;
             }
-            q_snprintf(
-                g_inventory_status, sizeof(g_inventory_status), "STAR API error: %s (showing local: %d items)", error_msg, g_inventory_count);
+            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR API error: %s (showing local: %d items)", error_msg, g_inventory_count);
         } else {
-            q_snprintf(
-                g_inventory_status, sizeof(g_inventory_status), "STAR API unavailable; showing local inventory (%d items)", g_inventory_count);
+            q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR API unavailable; showing local inventory (%d items)", g_inventory_count);
         }
     } else {
         q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
     }
-    
-    if (api_error && api_error[0] && result != STAR_API_SUCCESS) {
+    if (api_error && api_error[0] && result != STAR_API_SUCCESS)
         Con_Printf("OQuake: Failed to load STAR inventory: %s\n", api_error);
-    }
-    
     g_inventory_last_refresh = realtime;
     {
         int rep_indices[OQ_MAX_INVENTORY_ITEMS];
@@ -938,10 +960,10 @@ static void OQ_CheckInventoryRefreshComplete(void) {
         qboolean pending[OQ_MAX_INVENTORY_ITEMS];
         OQ_ClampSelection(OQ_BuildGroupedRows(rep_indices, labels, modes, values, pending, OQ_MAX_INVENTORY_ITEMS));
     }
-        if (list)
-            star_api_free_item_list(list);
-        star_sync_inventory_clear_result();
-    }
+}
+
+static void OQ_CheckInventoryRefreshComplete(void) {
+    star_sync_pump();
 }
 
 /** Append any local items not already in g_inventory_entries so pickups show immediately. */
@@ -961,13 +983,13 @@ static void OQ_AppendLocalToDisplay(void) {
             q_strlcpy(dst->description, g_local_inventory_entries[i].description, sizeof(dst->description));
             q_strlcpy(dst->item_type, g_local_inventory_entries[i].item_type, sizeof(dst->item_type));
             dst->id[0] = '\0';
+            q_strlcpy(dst->game_source, g_local_inventory_entries[i].game_source[0] ? g_local_inventory_entries[i].game_source : "Quake", sizeof(dst->game_source));
             g_inventory_count++;
         }
     }
 }
 
 static void OQ_RefreshInventoryCache(void) {
-    OQ_CheckInventoryRefreshComplete();
     if (star_sync_inventory_in_progress())
         return;
     if (realtime - g_inventory_last_refresh < 1.0)
@@ -995,7 +1017,7 @@ static void OQ_RefreshInventoryCache(void) {
             d->synced = g_local_inventory_synced[l] ? 1 : 0;
         }
     }
-    star_sync_inventory_start(g_star_sync_local_items, g_local_inventory_count, "Quake", NULL, NULL);
+    star_sync_inventory_start(g_star_sync_local_items, g_local_inventory_count, "Quake", OQ_OnInventoryDone, NULL);
 }
 
 static void OQ_InventoryToggle_f(void) {
@@ -1927,7 +1949,7 @@ void OQuake_STAR_Init(void) {
     }
     g_star_config.avatar_id = config_avatar_id;
     
-    g_star_config.timeout_seconds = 10;
+    g_star_config.timeout_seconds = 30;
 
     result = star_api_init(&g_star_config);
     if (result != STAR_API_SUCCESS) {
@@ -2262,18 +2284,33 @@ void OQuake_STAR_Console_f(void) {
     }
     if (strcmp(sub, "inventory") == 0) {
         if (!star_initialized()) { Con_Printf("STAR API not initialized. %s\n", star_api_get_last_error()); return; }
-        star_item_list_t* list = NULL;
-        star_api_result_t r = star_api_get_inventory(&list);
-        if (r != STAR_API_SUCCESS) {
-            Con_Printf("Failed to get inventory: %s\n", star_api_get_last_error());
+        if (star_sync_inventory_in_progress()) {
+            Con_Printf("Inventory sync in progress. Open the inventory popup or run 'star inventory' again in a moment.\n");
             return;
         }
-        if (!list || list->count == 0) { Con_Printf("Inventory is empty.\n"); if (list) star_api_free_item_list(list); return; }
-        Con_Printf("STAR inventory (%u items):\n", (unsigned)list->count);
-        for (size_t i = 0; i < list->count; i++) {
-            Con_Printf("  %s - %s (%s, %s)\n", list->items[i].name, list->items[i].description, list->items[i].game_source, list->items[i].item_type);
+        if (g_inventory_count > 0) {
+            size_t i;
+            Con_Printf("STAR inventory (%d items):\n", g_inventory_count);
+            for (i = 0; i < (size_t)g_inventory_count; i++) {
+                Con_Printf("  %s - %s (%s, %s)\n", g_inventory_entries[i].name, g_inventory_entries[i].description, g_inventory_entries[i].game_source, g_inventory_entries[i].item_type);
+            }
+            return;
         }
-        star_api_free_item_list(list);
+        /* Start async fetch; result will fill cache and popup. */
+        {
+            int l;
+            for (l = 0; l < g_local_inventory_count; l++) {
+                star_sync_local_item_t* d = &g_star_sync_local_items[l];
+                oquake_inventory_entry_t* s = &g_local_inventory_entries[l];
+                q_strlcpy(d->name, s->name, sizeof(d->name));
+                q_strlcpy(d->description, s->description, sizeof(d->description));
+                q_strlcpy(d->game_source, "Quake", sizeof(d->game_source));
+                q_strlcpy(d->item_type, s->item_type, sizeof(d->item_type));
+                d->synced = g_local_inventory_synced[l] ? 1 : 0;
+            }
+            star_sync_inventory_start(g_star_sync_local_items, g_local_inventory_count, "Quake", OQ_OnInventoryDone, NULL);
+        }
+        Con_Printf("Fetching inventory in background. Open the inventory popup or run 'star inventory' again in a moment.\n");
         return;
     }
     if (strcmp(sub, "has") == 0) {
@@ -2437,7 +2474,7 @@ void OQuake_STAR_Console_f(void) {
             avatar_id = getenv("STAR_AVATAR_ID");
         }
         g_star_config.avatar_id = avatar_id;
-        g_star_config.timeout_seconds = 10;
+        g_star_config.timeout_seconds = 30;
         star_api_result_t r = star_api_init(&g_star_config);
         if (r != STAR_API_SUCCESS) {
             Con_Printf("Beamin failed - init: %s\n", star_api_get_last_error());
@@ -2466,7 +2503,7 @@ void OQuake_STAR_Console_f(void) {
                 Con_Printf("Authentication already in progress. Please wait...\n");
                 return;
             }
-            star_sync_auth_start(username, password);
+            star_sync_auth_start(username, password, OQ_OnAuthDone, NULL);
             Con_Printf("Authenticating... Please wait...\n");
             if (runtime_user) Cvar_Set("oquake_star_username", runtime_user);
             if (runtime_pass) Cvar_Set("oquake_star_password", runtime_pass);
