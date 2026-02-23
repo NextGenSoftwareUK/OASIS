@@ -423,6 +423,34 @@ static Dictionary<string, object> GenerateDefaultBody(string path)
         body["username"] = "testuser";
         body["password"] = "testpass";
     }
+    else if (lowerPath.Contains("forgot-password"))
+    {
+        body["Email"] = "test@example.com";
+    }
+    else if (lowerPath.Contains("reset-password"))
+    {
+        body["Token"] = "test-reset-token";
+        body["Email"] = "test@example.com";
+        body["Password"] = "TestPass123!";
+    }
+    else if (lowerPath.Contains("validate-reset-token"))
+    {
+        body["Token"] = "test-reset-token";
+    }
+    else if (lowerPath.Contains("verify-email"))
+    {
+        body["Token"] = "test-verify-token";
+    }
+    else if (lowerPath.Contains("admin") && (lowerPath.Contains("oland") || lowerPath.Contains("olandunit")))
+    {
+        body["Price"] = 1m;
+        body["Discount"] = 0m;
+        body["OlandsCount"] = 1;
+        body["TopSize"] = 1m;
+        body["RightSize"] = 1m;
+        body["UnitOfMeasure"] = "m";
+        body["IsRemoved"] = false;
+    }
     else if (lowerPath.Contains("inventory"))
     {
         body["Name"] = "Test Item";
@@ -549,11 +577,10 @@ static string ResolvePath(string path, Guid? avatarId)
         var key = m.Groups[1].Value.ToLowerInvariant();
         if (key.Contains("avatarid") && avatarId.HasValue)
             return avatarId.Value.ToString();
-        if (key.Contains("id"))
-            return Guid.NewGuid().ToString();
+        // Resolve known path params before generic "id" (providerType contains "id")
         if (key.Contains("version"))
             return "1";
-        if (key.Contains("holontype") || key.Contains("holonType") || key == "type")
+        if (key.Contains("holontype") || key == "type")
             return "Default";
         if (key.Contains("status"))
             return "Active";
@@ -569,40 +596,45 @@ static string ResolvePath(string path, Guid? avatarId)
             return "TestItem";
         if (key.Contains("providertype"))
             return "Default";
-        if (key.Contains("setGlobally"))
+        if (key.Contains("setglobally"))
             return "false";
-        if (key.Contains("autoReplicationMode"))
+        if (key.Contains("autoreplicationmode"))
             return "Auto";
-        if (key.Contains("autoFailOverMode"))
+        if (key.Contains("autofailovermode"))
             return "Auto";
-        if (key.Contains("autoLoadBalanceMode"))
+        if (key.Contains("autoloadbalancemode"))
             return "Auto";
-        if (key.Contains("waitForAutoReplicationResult"))
+        if (key.Contains("waitforautoreplicationresult"))
             return "false";
-        if (key.Contains("showDetailedSettings"))
+        if (key.Contains("showdetailedsettings"))
             return "false";
-        if (key.Contains("includeUsernames"))
+        if (key.Contains("includeusernames"))
             return "true";
-        if (key.Contains("includeIds"))
+        if (key.Contains("includeids"))
             return "true";
-        if (key.Contains("removeDuplicates"))
+        if (key.Contains("removeduplicates"))
             return "false";
-        if (key.Contains("includeUserNames"))
+        if (key.Contains("includenames"))
             return "true";
-        if (key.Contains("JWTToken"))
+        if (key.Contains("jwttoken"))
             return "test-token";
-        if (key.Contains("telosAccountName"))
+        if (key.Contains("telosaccountname"))
             return "testaccount";
-        if (key.Contains("eosioAccountName"))
+        if (key.Contains("eosioaccountname"))
             return "testaccount";
-        if (key.Contains("holochainAgentID"))
+        if (key.Contains("holochainagentid"))
             return "test-agent-id";
-        if (key.Contains("karmaType"))
+        if (key.Contains("karmatype"))
             return "Positive";
         if (key.Contains("weighting"))
             return "1.0";
         if (key.Contains("model"))
             return "Default";
+        if (key.Contains("value"))
+            return "1";
+        // Only treat as GUID when key is "id" or ends with "id" (e.g. sessionId, giftId) - not providerType
+        if (key == "id" || key.EndsWith("id"))
+            return Guid.NewGuid().ToString();
         return "test";
     });
 }

@@ -152,24 +152,17 @@ class OASISInventoryOverlayHandler : EventHandler
 				selectedAbsolute = 0;
 			}
 
-			int listCount = 0;
+			int starCount = 0;
+			Array<String> starNames, starDescs, starTypes, starGames;
+			starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames);
+			Array<Inventory> tabItems;
+			BuildTabInventory(p.mo, tabItems);
+			int listCount = starCount + tabItems.Size();
 			Inventory selectedItem = null;
+			if (selectedAbsolute < starCount) selectedItem = null;  // STAR row, no Use
+			else if (selectedAbsolute - starCount < tabItems.Size()) selectedItem = tabItems[selectedAbsolute - starCount];
 			if (sendPopupMode == 0)
 			{
-			for (let inv = p.mo.Inv; inv != null; inv = inv.Inv)
-			{
-				if (inv.Amount <= 0) continue;
-				bool inTab = false;
-				if (activeTab == TAB_KEYS && inv is "Key") inTab = true;
-				else if (activeTab == TAB_POWERUPS && inv is "Powerup") inTab = true;
-				else if (activeTab == TAB_WEAPONS && inv is "Weapon") inTab = true;
-				else if (activeTab == TAB_AMMO && inv is "Ammo") inTab = true;
-				else if (activeTab == TAB_ARMOR && inv is "Armor") inTab = true;
-				else if (activeTab == TAB_ITEMS && !(inv is "Key") && !(inv is "Powerup") && !(inv is "Weapon") && !(inv is "Armor") && !(inv is "Ammo")) inTab = true;
-				if (!inTab) continue;
-				if (listCount == selectedAbsolute) selectedItem = inv;
-				listCount++;
-			}
 			int maxOffset = listCount - MAX_VISIBLE_ROWS;
 			if (maxOffset < 0) maxOffset = 0;
 			if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
@@ -206,7 +199,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 			}
 
-			// A or Z = Send to Avatar, C or X = Send to Clan - open send popup (OQuake-style)
+			// A or Z = Send to Avatar, C or X = Send to Clan - open send popup (OQuake-style); only for local actor items
 			if ((keyAPressed || keyZPressed) && selectedItem != null && selectedItem.Amount > 0)
 			{
 				sendPopupMode = 1;
@@ -354,6 +347,25 @@ class OASISInventoryOverlayHandler : EventHandler
 		return !(item is "Key") && !(item is "Powerup") && !(item is "Weapon") && !(item is "Armor") && !(item is "Ammo");
 	}
 
+	// STAR item matches tab (same data as "star inventory" command, from odoom_star_inventory_list).
+	private ui bool IsStarItemInTab(String itemType, String itemName, int tabIndex)
+	{
+		String t = itemType;
+		String n = itemName;
+		if (tabIndex == TAB_KEYS) return t.IndexOf("Key") >= 0 || n.IndexOf("key") >= 0;
+		if (tabIndex == TAB_POWERUPS) return t.IndexOf("Powerup") >= 0 || t == "Powerup";
+		if (tabIndex == TAB_WEAPONS) return t.IndexOf("Weapon") >= 0 || t == "Weapon";
+		if (tabIndex == TAB_AMMO) return t.IndexOf("Ammo") >= 0 || t == "Ammo";
+		if (tabIndex == TAB_ARMOR) return t.IndexOf("Armor") >= 0 || t == "Armor";
+		// TAB_ITEMS: everything that didn't match other tabs
+		if (t.IndexOf("Key") >= 0 || n.IndexOf("key") >= 0) return false;
+		if (t.IndexOf("Powerup") >= 0 || t == "Powerup") return false;
+		if (t.IndexOf("Weapon") >= 0 || t == "Weapon") return false;
+		if (t.IndexOf("Ammo") >= 0 || t == "Ammo") return false;
+		if (t.IndexOf("Armor") >= 0 || t == "Armor") return false;
+		return true;
+	}
+
 	private ui void BuildTabInventory(Actor owner, out Array<Inventory> outItems)
 	{
 		outItems.Clear();
@@ -366,6 +378,38 @@ class OASISInventoryOverlayHandler : EventHandler
 				outItems.Push(inv);
 			}
 		}
+	}
+
+	// Parse odoom_star_inventory_list (format "name\tdesc\ttype\tgame\n" per line) and append STAR items for active tab to display list.
+	// Returns number of STAR rows added. Row data appended to starNames, starDescs, starTypes, starGames.
+	private ui int BuildStarItemsForTab(out Array<String> starNames, out Array<String> starDescs, out Array<String> starTypes, out Array<String> starGames)
+	{
+		starNames.Clear();
+		starDescs.Clear();
+		starTypes.Clear();
+		starGames.Clear();
+		CVar listVar = CVar.FindCVar("odoom_star_inventory_list");
+		if (listVar == null) return 0;
+		String listStr = listVar.GetString();
+		if (listStr.Length() == 0) return 0;
+		Array<String> lines;
+		listStr.Split(lines, "\n", false);
+		for (int i = 0; i < lines.Size(); i++)
+		{
+			Array<String> parts;
+			lines[i].Split(parts, "\t", false);
+			if (parts.Size() < 4) continue;
+			String name = parts[0];
+			String desc = parts[1];
+			String typ = parts[2];
+			String game = parts[3];
+			if (!IsStarItemInTab(typ, name, activeTab)) continue;
+			starNames.Push(name);
+			starDescs.Push(desc);
+			starTypes.Push(typ);
+			starGames.Push(game);
+		}
+		return starNames.Size();
 	}
 
 	private ui String ItemDisplayName(Inventory item)
@@ -393,9 +437,11 @@ class OASISInventoryOverlayHandler : EventHandler
 		}
 		else
 		{
+		Array<String> starNames, starDescs, starTypes, starGames;
+		int starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames);
 		Array<Inventory> tabItems;
 		BuildTabInventory(p.mo, tabItems);
-		int listCount = tabItems.Size();
+		int listCount = starCount + tabItems.Size();
 		int maxOffset = listCount - MAX_VISIBLE_ROWS;
 		if (maxOffset < 0) maxOffset = 0;
 		int drawOffset = scrollOffset;
@@ -436,22 +482,34 @@ class OASISInventoryOverlayHandler : EventHandler
 		for (int i = 0; i < MAX_VISIBLE_ROWS; i++)
 		{
 			int idx = drawOffset + i;
-			if (idx >= tabItems.Size()) break;
+			if (idx >= listCount) break;
 
 			bool selected = (i == selectedRow);
 
-			let item = tabItems[idx];
-			TextureID icon = item.Icon;
-			if (icon.IsValid())
+			if (idx < starCount)
 			{
-				screen.DrawTexture(icon, true, 40, y, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_DestWidth, 10, DTA_DestHeight, 10);
+				// STAR (cross-game) item - same data as "star inventory" command
+				String itemLabel = starNames[idx];
+				String itemDesc = starDescs[idx];
+				if (itemDesc.Length() > 0) itemLabel = itemDesc;
+				String suffix = " [" + starGames[idx] + "]";
+				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_TAN, 54, y + 1, itemLabel + suffix, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-
-			String itemLabel = ItemDisplayName(item);
-			String itemDesc = itemLabel;
-			if (item.Amount > 1) itemDesc = String.Format("%s  x%d", itemLabel, item.Amount);
-			screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_UNTRANSLATED, 54, y + 1, itemDesc, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-
+			else
+			{
+				int localIdx = idx - starCount;
+				if (localIdx >= tabItems.Size()) break;
+				let item = tabItems[localIdx];
+				TextureID icon = item.Icon;
+				if (icon.IsValid())
+				{
+					screen.DrawTexture(icon, true, 40, y, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_DestWidth, 10, DTA_DestHeight, 10);
+				}
+				String itemLabel = ItemDisplayName(item);
+				String itemDesc = itemLabel;
+				if (item.Amount > 1) itemDesc = String.Format("%s  x%d", itemLabel, item.Amount);
+				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_UNTRANSLATED, 54, y + 1, itemDesc, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
 			y += 16;
 		}
 		}
