@@ -1,7 +1,7 @@
 /**
  * ODOOM - OASIS STAR API Integration Implementation
  *
- * Build this file as part of ODOOM (UZDoom) with STAR_API_DIR pointing to OASIS NativeWrapper.
+ * Build this file as part of ODOOM (UZDoom) with STAR API from STARAPIClient (not NativeWrapper).
  * Keycard pickups are reported to STAR; door/lock checks can use cross-game inventory.
  * In-game console: "star" command for testing (star version, star inventory, star add, etc.).
  *
@@ -371,13 +371,7 @@ static void ODOOM_STAR_PollAsyncAuth(void)
 		g_star_effective_avatar_id = avatar_id_buf;
 		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 		odoom_star_username = g_star_effective_username.c_str();
-		/* Re-init so the STAR API client (NativeWrapper) gets the new avatar_id; otherwise add_item/get_inventory use the old (null) avatar and items don't persist. */
-		if (g_star_client_ready) {
-			star_api_cleanup();
-			g_star_client_ready = false;
-		}
-		if (star_api_init(&g_star_config) == STAR_API_SUCCESS)
-			g_star_client_ready = true;
+		/* Do NOT cleanup+init after auth (same as OQuake). Cleanup+init breaks star add / inventory. */
 		StarApplyBeamFacePreference();
 		if (g_star_client_ready && !star_sync_inventory_in_progress())
 			star_sync_inventory_start(nullptr, 0, "ODOOM", nullptr, nullptr);

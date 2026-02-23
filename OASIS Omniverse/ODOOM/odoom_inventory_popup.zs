@@ -38,13 +38,11 @@ class OASISInventoryOverlayHandler : EventHandler
 	private int sendMaxQty;
 	private String sendInputLine;  // name built from odoom_send_last_char (C++ sets one char per frame)
 
-	// Cached list for RenderOverlay (ui context can't call play-context helpers; filled in WorldTick)
+	// Cached list for RenderOverlay (ui cannot call play-context; no array members in this ZScript build)
 	private int cachedStarCount;
-	private DynArray cachedStarNames;
-	private DynArray cachedStarDescs;
-	private DynArray cachedStarTypes;
-	private DynArray cachedStarGames;
-	private DynArray cachedTabItems;
+	private String cachedStarListForTab;   // "name\tdesc\tgame\n" per STAR item in current tab
+	private int cachedLocalCount;
+	private String cachedLocalListForTab;  // "displayName\tamount\n" per actor item in current tab
 
 	const TAB_KEYS = 0;
 	const TAB_POWERUPS = 1;
@@ -169,13 +167,22 @@ class OASISInventoryOverlayHandler : EventHandler
 			Inventory selectedItem = null;
 			if (selectedAbsolute < starCount) selectedItem = null;  // STAR row, no Use
 			else if (selectedAbsolute - starCount < tabItems.Size()) selectedItem = tabItems[selectedAbsolute - starCount];
-			// Cache for RenderOverlay (ui cannot call play-context functions; store refs to current frame's arrays)
+			// Cache for RenderOverlay as strings (no array members in this ZScript build)
 			cachedStarCount = starCount;
-			cachedStarNames = starNames;
-			cachedStarDescs = starDescs;
-			cachedStarTypes = starTypes;
-			cachedStarGames = starGames;
-			cachedTabItems = tabItems;
+			cachedStarListForTab = "";
+			for (int i = 0; i < starCount; i++)
+			{
+				String label = (starDescs[i].Length() > 0) ? starDescs[i] : starNames[i];
+				cachedStarListForTab = String.Format("%s%s\t%s\n", cachedStarListForTab, label, starGames[i]);
+			}
+			cachedLocalCount = tabItems.Size();
+			cachedLocalListForTab = "";
+			for (int i = 0; i < tabItems.Size(); i++)
+			{
+				String disp = GetItemDisplayNamePlay(tabItems[i]);
+				String line = (tabItems[i].Amount > 1) ? String.Format("%s  x%d", disp, tabItems[i].Amount) : disp;
+				cachedLocalListForTab = String.Format("%s%s\n", cachedLocalListForTab, line);
+			}
 			if (sendPopupMode == 0)
 			{
 			int maxOffset = listCount - MAX_VISIBLE_ROWS;
@@ -372,13 +379,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (tabIndex == TAB_WEAPONS) return t.IndexOf("Weapon") >= 0 || t == "Weapon";
 		if (tabIndex == TAB_AMMO) return t.IndexOf("Ammo") >= 0 || t == "Ammo";
 		if (tabIndex == TAB_ARMOR) return t.IndexOf("Armor") >= 0 || t == "Armor";
-		// TAB_ITEMS: everything that didn't match other tabs
-		if (t.IndexOf("Key") >= 0 || n.IndexOf("key") >= 0) return false;
-		if (t.IndexOf("Powerup") >= 0 || t == "Powerup") return false;
-		if (t.IndexOf("Weapon") >= 0 || t == "Weapon") return false;
-		if (t.IndexOf("Ammo") >= 0 || t == "Ammo") return false;
-		if (t.IndexOf("Armor") >= 0 || t == "Armor") return false;
-		return true;
+		return true; // TAB_ITEMS: everything else
 	}
 
 	private void BuildTabInventory(Actor owner, out array<Inventory> outItems)
@@ -427,6 +428,17 @@ class OASISInventoryOverlayHandler : EventHandler
 		return starNames.Size();
 	}
 
+	// Play-context version for building cachedLocalListForTab in WorldTick
+	private String GetItemDisplayNamePlay(Inventory item)
+	{
+		if (item == null) return "";
+		if (item is "OQGoldKey") return "Golden Key";
+		if (item is "OQSilverKey") return "Silver Key";
+		String tag = item.GetTag("");
+		if (tag.Length() > 0) return tag;
+		return item.GetClassName();
+	}
+
 	private ui String ItemDisplayName(Inventory item)
 	{
 		if (item == null) return "";
@@ -452,9 +464,9 @@ class OASISInventoryOverlayHandler : EventHandler
 		}
 		else
 		{
-		// Use cached list from WorldTick (ui cannot call play-context BuildStarItemsForTab/BuildTabInventory)
-		int starCount = (cachedStarNames is null) ? 0 : cachedStarCount;
-		int tabSize = (cachedTabItems is null) ? 0 : cachedTabItems.Size();
+		// Use cached list from WorldTick (ui cannot call play-context; cache is string-based)
+		int starCount = cachedStarCount;
+		int tabSize = cachedLocalCount;
 		int listCount = starCount + tabSize;
 		int maxOffset = listCount - MAX_VISIBLE_ROWS;
 		if (maxOffset < 0) maxOffset = 0;
@@ -492,6 +504,12 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		screen.DrawText(f, Font.CR_DARKGRAY, -16, 46, "Arrows=Select E=Use A=Avatar C=Clan I=Close O/P=Tabs", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
+		// Parse cache strings into lines for indexing (local arrays only; no array members)
+		array<String> starLines;
+		array<String> localLines;
+		if (cachedStarListForTab.Length() > 0) cachedStarListForTab.Split(starLines, "\n", false);
+		if (cachedLocalListForTab.Length() > 0) cachedLocalListForTab.Split(localLines, "\n", false);
+
 		int y = 58;
 		for (int i = 0; i < MAX_VISIBLE_ROWS; i++)
 		{
@@ -500,28 +518,22 @@ class OASISInventoryOverlayHandler : EventHandler
 
 			bool selected = (i == selectedRow);
 
-			if (idx < starCount && cachedStarNames != null && cachedStarDescs != null && cachedStarGames != null)
+			if (idx < starCount && idx < starLines.Size())
 			{
-				// STAR (cross-game) item - same data as "star inventory" command
-				String itemLabel = cachedStarNames[idx];
-				String itemDesc = cachedStarDescs[idx];
-				if (itemDesc.Length() > 0) itemLabel = itemDesc;
-				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_TAN, 54, y + 1, String.Format("%s [%s]", itemLabel, cachedStarGames[idx]), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				array<String> parts;
+				starLines[idx].Split(parts, "\t", false);
+				String label = (parts.Size() >= 1) ? parts[0] : "";
+				String game = (parts.Size() >= 2) ? parts[1] : "";
+				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_TAN, 54, y + 1, String.Format("%s [%s]", label, game), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-			else if (cachedTabItems != null)
+			else
 			{
 				int localIdx = idx - starCount;
-				if (localIdx >= cachedTabItems.Size()) break;
-				let item = cachedTabItems[localIdx];
-				TextureID icon = item.Icon;
-				if (icon.IsValid())
+				if (localIdx >= 0 && localIdx < localLines.Size())
 				{
-					screen.DrawTexture(icon, true, 40, y, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_DestWidth, 10, DTA_DestHeight, 10);
+					String itemDesc = localLines[localIdx];
+					screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_UNTRANSLATED, 54, y + 1, itemDesc, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				}
-				String itemLabel = ItemDisplayName(item);
-				String itemDesc = itemLabel;
-				if (item.Amount > 1) itemDesc = String.Format("%s  x%d", itemLabel, item.Amount);
-				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_UNTRANSLATED, 54, y + 1, itemDesc, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			y += 16;
 		}

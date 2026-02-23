@@ -26,7 +26,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
         {
             if (request == null)
                 return BadRequest(new OASISResult<string>(default) { IsError = true, Message = "Request body is required." });
-            return Ok(await _olandService.CreateOland(request));
+            try
+            {
+                return Ok(await _olandService.CreateOland(request));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new OASISResult<string>(default) { IsError = true, Message = ex.Message });
+            }
         }
 
         [HttpPut("{id:guid}")]
@@ -34,25 +41,53 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
         {
             if (request == null)
                 return BadRequest(new OASISResult<string>(default) { IsError = true, Message = "Request body is required." });
-            return Ok(await _olandService.UpdateOland(request, id));
+            try
+            {
+                return Ok(await _olandService.UpdateOland(request, id));
+            }
+            catch (Exception ex)
+            {
+                return Ok(new OASISResult<string>(default) { IsError = true, Message = ex.Message });
+            }
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<OASISResult<bool>> Delete(Guid id)
         {
-            return await _olandService.DeleteOland(id);
+            try
+            {
+                return await _olandService.DeleteOland(id);
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>(false) { IsError = true, Message = ex.Message };
+            }
         }
 
         [HttpGet("{id:guid}")]
         public async Task<OASISResult<IOLand>> Get(Guid id)
         {
-            return await _olandService.GetOland(id);
+            try
+            {
+                return await _olandService.GetOland(id);
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IOLand>(default) { IsError = true, Message = ex.Message };
+            }
         }
 
         [HttpGet("GetAll")]
         public async Task<OASISResult<IEnumerable<IOLand>>> GetAll()
         {
-            return await _olandService.GetAllOlands();
+            try
+            {
+                return await _olandService.GetAllOlands();
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IEnumerable<IOLand>>(default) { IsError = true, Message = ex.Message };
+            }
         }
     }
 }
