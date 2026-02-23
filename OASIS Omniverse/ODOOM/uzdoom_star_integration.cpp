@@ -1,7 +1,7 @@
 /**
  * ODOOM - OASIS STAR API Integration Implementation
  *
- * Build this file as part of ODOOM (UZDoom) with STAR_API_DIR pointing to OASIS NativeWrapper.
+ * Build this file as part of ODOOM (UZDoom) with STAR API from STARAPIClient (not NativeWrapper).
  * Keycard pickups are reported to STAR; door/lock checks can use cross-game inventory.
  * In-game console: "star" command for testing (star version, star inventory, star add, etc.).
  *
@@ -280,7 +280,7 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 
 /** Push g_odoom_cached_inventory to CVars so ZScript overlay can display it (same data as "star inventory" command). */
 static void ODOOM_UpdateStarInventoryCVars(void) {
-	static char listBuf[24576];  /* one line per item: name\\tdesc\\ttype\\tgame\\n, max 64 items */
+	static char listBuf[24576];  /* one line per item: name\tdesc\ttype\tgame\n, max 64 items */
 	FBaseCVar* countVar = FindCVar("odoom_star_inventory_count", nullptr);
 	FBaseCVar* listVar = FindCVar("odoom_star_inventory_list", nullptr);
 	if (!countVar || !listVar) return;
@@ -371,9 +371,7 @@ static void ODOOM_STAR_PollAsyncAuth(void)
 		g_star_effective_avatar_id = avatar_id_buf;
 		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 		odoom_star_username = g_star_effective_username.c_str();
-		/* Same as OQuake: do not cleanup/init after SSO success (that wipes the JWT we just got). Client already has avatar from login. */
-		if (!g_star_client_ready && star_api_init(&g_star_config) == STAR_API_SUCCESS)
-			g_star_client_ready = true;
+		/* Do NOT cleanup+init after auth (same as OQuake). Cleanup+init breaks star add / inventory. */
 		StarApplyBeamFacePreference();
 		if (g_star_client_ready && !star_sync_inventory_in_progress())
 			star_sync_inventory_start(nullptr, 0, "ODOOM", nullptr, nullptr);
@@ -1299,7 +1297,7 @@ CCMD(star)
 			Printf("\n");
 			return;
 		}
-		/* Poll once in case sync already finished but frame hook never ran */
+		/* Poll once in case sync already finished but frame hook never ran (e.g. engine not patched) */
 		if (star_sync_inventory_poll() == 1) {
 			star_item_list_t* list = nullptr;
 			star_api_result_t res = STAR_API_ERROR_API_ERROR;

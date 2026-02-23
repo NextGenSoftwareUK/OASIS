@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -309,7 +309,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     }
 
                     OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
-                    response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result);
+                    var holons = Mapper.Convert<IHolon, Holon>(result.Result);
+                    response.Result.Result = holons as IList<Holon> ?? holons?.ToList() ?? new List<Holon>();
 
                     return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
                 }
@@ -1337,15 +1338,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("load-data")]
         public async Task<OASISHttpResponseMessage<string>> LoadData(LoadDataRequest request)
         {
-            OASISConfigResult<string> configResult = ConfigureOASISEngine<string>(request);
+            try
+            {
+                OASISConfigResult<string> configResult = ConfigureOASISEngine<string>(request);
 
-            if (configResult.IsError && configResult.Response != null)
-                return configResult.Response;
+                if (configResult.IsError && configResult.Response != null)
+                    return configResult.Response;
 
-            OASISResult<string> response = AvatarManager.Instance.LoadData(request.Key, AvatarId);
-            ResetOASISSettings(request, configResult);
+                OASISResult<string> response = AvatarManager.Instance.LoadData(request?.Key, AvatarId);
+                ResetOASISSettings(request, configResult);
 
-            return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+            }
+            catch (Exception ex)
+            {
+                return TestDataHelper.CreateErrorResponse<string>($"Error loading data: {ex.Message}", ex, System.Net.HttpStatusCode.OK);
+            }
         }
 
         /// <summary>

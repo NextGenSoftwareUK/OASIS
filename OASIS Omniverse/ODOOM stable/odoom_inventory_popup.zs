@@ -163,26 +163,68 @@ class OASISInventoryOverlayHandler : EventHandler
 			starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames);
 			array<Inventory> tabItems;
 			BuildTabInventory(p.mo, tabItems);
-			int listCount = starCount + tabItems.Size();
-			Inventory selectedItem = null;
-			if (selectedAbsolute < starCount) selectedItem = null;  // STAR row, no Use
-			else if (selectedAbsolute - starCount < tabItems.Size()) selectedItem = tabItems[selectedAbsolute - starCount];
-			// Cache for RenderOverlay as strings (no array members in this ZScript build)
-			cachedStarCount = starCount;
-			cachedStarListForTab = "";
+
+			// Group STAR by short label (like OQuake): same label = one row, sum count
+			array<String> starGroupLabels;
+			array<int> starGroupCounts;
 			for (int i = 0; i < starCount; i++)
 			{
-				String label = (starDescs[i].Length() > 0) ? starDescs[i] : starNames[i];
-				cachedStarListForTab = String.Format("%s%s\t%s\n", cachedStarListForTab, label, starGames[i]);
+				String label = StarItemShortLabel(starNames[i], starGames[i]);
+				int r = 0;
+				for (r = 0; r < starGroupLabels.Size(); r++)
+					if (starGroupLabels[r] == label) break;
+				if (r >= starGroupLabels.Size())
+				{
+					starGroupLabels.Push(label);
+					starGroupCounts.Push(1);
+				}
+				else
+					starGroupCounts[r]++;
 			}
-			cachedLocalCount = tabItems.Size();
-			cachedLocalListForTab = "";
+			int starGroupCount = starGroupLabels.Size();
+			cachedStarCount = starGroupCount;
+			cachedStarListForTab = "";
+			for (int i = 0; i < starGroupCount; i++)
+			{
+				String line = (starGroupCounts[i] > 1) ? String.Format("%s x%d", starGroupLabels[i], starGroupCounts[i]) : starGroupLabels[i];
+				cachedStarListForTab = String.Format("%s%s\n", cachedStarListForTab, line);
+			}
+
+			// Group local items by class name (like OQuake): same item type = one row, sum amounts
+			array<String> localGroupClass;
+			array<String> localGroupDisp;
+			array<int> localGroupAmount;
+			array<int> localGroupRepIdx;
 			for (int i = 0; i < tabItems.Size(); i++)
 			{
-				String disp = GetItemDisplayNamePlay(tabItems[i]);
-				String line = (tabItems[i].Amount > 1) ? String.Format("%s  x%d", disp, tabItems[i].Amount) : disp;
+				String cls = tabItems[i].GetClassName();
+				int amt = tabItems[i].Amount;
+				int r = 0;
+				for (r = 0; r < localGroupClass.Size(); r++)
+					if (localGroupClass[r] == cls) break;
+				if (r >= localGroupClass.Size())
+				{
+					localGroupClass.Push(cls);
+					localGroupDisp.Push(GetItemDisplayNamePlay(tabItems[i]));
+					localGroupAmount.Push(amt);
+					localGroupRepIdx.Push(i);
+				}
+				else
+					localGroupAmount[r] += amt;
+			}
+			int localGroupCount = localGroupClass.Size();
+			cachedLocalCount = localGroupCount;
+			cachedLocalListForTab = "";
+			for (int i = 0; i < localGroupCount; i++)
+			{
+				String line = (localGroupAmount[i] > 1) ? String.Format("%s  x%d", localGroupDisp[i], localGroupAmount[i]) : localGroupDisp[i];
 				cachedLocalListForTab = String.Format("%s%s\n", cachedLocalListForTab, line);
 			}
+
+			int listCount = starGroupCount + localGroupCount;
+			Inventory selectedItem = null;
+			if (selectedAbsolute < starGroupCount) selectedItem = null;
+			else if (selectedAbsolute - starGroupCount < localGroupCount) selectedItem = tabItems[localGroupRepIdx[selectedAbsolute - starGroupCount]];
 			if (sendPopupMode == 0)
 			{
 			int maxOffset = listCount - MAX_VISIBLE_ROWS;
@@ -379,7 +421,61 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (tabIndex == TAB_WEAPONS) return t.IndexOf("Weapon") >= 0 || t == "Weapon";
 		if (tabIndex == TAB_AMMO) return t.IndexOf("Ammo") >= 0 || t == "Ammo";
 		if (tabIndex == TAB_ARMOR) return t.IndexOf("Armor") >= 0 || t == "Armor";
-		return true; // TAB_ITEMS: everything else
+		// TAB_ITEMS: only items that don't fit Keys, Powerups, Weapons, Ammo, or Armor
+		if (tabIndex == TAB_ITEMS)
+			return (t.IndexOf("Key") < 0 && n.IndexOf("key") < 0) && (t.IndexOf("Powerup") < 0 && t != "Powerup") && (t.IndexOf("Weapon") < 0 && t != "Weapon") && (t.IndexOf("Ammo") < 0 && t != "Ammo") && (t.IndexOf("Armor") < 0 && t != "Armor");
+		return true;
+	}
+
+	// Short display label for STAR items (like OQuake): "Shotgun (OQUAKE)" instead of "quake_pickup_weapon_shotgun".
+	private String StarItemShortLabel(String name, String game)
+	{
+		String n = name;
+		String g = (game.Length() > 0) ? game : "STAR";
+		if (g == "QUAKE" || g == "Quake" || g == "quake") g = "OQUAKE";
+		if (n.IndexOf("quake_pickup_shells") >= 0) return String.Format("Shells (%s)", g);
+		if (n.IndexOf("quake_pickup_nails") >= 0) return String.Format("Nails (%s)", g);
+		if (n.IndexOf("quake_pickup_rockets") >= 0) return String.Format("Rockets (%s)", g);
+		if (n.IndexOf("quake_pickup_cells") >= 0) return String.Format("Cells (%s)", g);
+		if (n.IndexOf("quake_pickup_armor_green") >= 0 || n == "quake_armor_green") return String.Format("Green Armor (%s)", g);
+		if (n.IndexOf("quake_pickup_armor_yellow") >= 0 || n == "quake_armor_yellow") return String.Format("Yellow Armor (%s)", g);
+		if (n.IndexOf("quake_pickup_armor_red") >= 0 || n == "quake_armor_red") return String.Format("Red Armor (%s)", g);
+		if (n.IndexOf("quake_pickup_health") >= 0) return String.Format("Health (%s)", g);
+		if (n.IndexOf("quake_pickup_quad") >= 0 || n == "quake_powerup_quad") return String.Format("Quad Damage (%s)", g);
+		if (n.IndexOf("quake_pickup_suit") >= 0 || n == "quake_powerup_suit") return String.Format("Biosuit (%s)", g);
+		if (n.IndexOf("quake_pickup_invisibility") >= 0 || n == "quake_powerup_invisibility") return String.Format("Ring of Shadows (%s)", g);
+		if (n.IndexOf("quake_pickup_invulnerability") >= 0 || n == "quake_powerup_invulnerability") return String.Format("Pentagram of Protection (%s)", g);
+		if (n.IndexOf("quake_pickup_megahealth") >= 0 || n == "quake_powerup_megahealth") return String.Format("Megahealth (%s)", g);
+		if (n.IndexOf("super_shotgun") >= 0) return String.Format("Super Shotgun (%s)", g);
+		if (n.IndexOf("shotgun") >= 0) return String.Format("Shotgun (%s)", g);
+		if (n.IndexOf("super_nailgun") >= 0) return String.Format("Super Nailgun (%s)", g);
+		if (n.IndexOf("nailgun") >= 0) return String.Format("Nailgun (%s)", g);
+		if (n.IndexOf("grenade_launcher") >= 0 || n.IndexOf("grenade") >= 0) return String.Format("Grenade Launcher (%s)", g);
+		if (n.IndexOf("rocket_launcher") >= 0 || n.IndexOf("rocket") >= 0) return String.Format("Rocket Launcher (%s)", g);
+		if (n.IndexOf("super_lightning") >= 0) return String.Format("Super Lightning (%s)", g);
+		if (n.IndexOf("lightning") >= 0) return String.Format("Lightning Gun (%s)", g);
+		if (n.IndexOf("quake_pickup_sigil_1") >= 0 || n == "quake_sigil_1") return String.Format("Sigil Piece 1 (%s)", g);
+		if (n.IndexOf("quake_pickup_sigil_2") >= 0 || n == "quake_sigil_2") return String.Format("Sigil Piece 2 (%s)", g);
+		if (n.IndexOf("quake_pickup_sigil_3") >= 0 || n == "quake_sigil_3") return String.Format("Sigil Piece 3 (%s)", g);
+		if (n.IndexOf("quake_pickup_sigil_4") >= 0 || n == "quake_sigil_4") return String.Format("Sigil Piece 4 (%s)", g);
+		// OQuake keys: silver_key = Silver Key, gold_key = Gold Key (OQUAKE_ITEM_* in OQuake)
+		if (n.IndexOf("silver_key") >= 0 || n.IndexOf("key_silver") >= 0 || n.IndexOf("Silver") >= 0) return String.Format("Silver Key (%s)", g);
+		if (n.IndexOf("gold_key") >= 0 || n.IndexOf("key_gold") >= 0 || n.IndexOf("Gold") >= 0) return String.Format("Gold Key (%s)", g);
+		if (n.IndexOf("red_keycard") >= 0 || n.IndexOf("red_key") >= 0) return String.Format("Red Keycard (%s)", g);
+		if (n.IndexOf("blue_keycard") >= 0 || n.IndexOf("blue_key") >= 0) return String.Format("Blue Keycard (%s)", g);
+		if (n.IndexOf("yellow_keycard") >= 0 || n.IndexOf("yellow_key") >= 0) return String.Format("Yellow Keycard (%s)", g);
+		if (n.IndexOf("keycard") >= 0 || n.IndexOf("key") >= 0) return String.Format("Key (%s)", g);  // generic key (OQuake uses Silver Key / Gold Key)
+		// ODOOM/Doom: clip, bulletbox, shell, etc. (check after Quake rockets/lightning)
+		if (n.IndexOf("Clip") >= 0 || n.IndexOf("clip") >= 0 || n.IndexOf("Bullet") >= 0) return String.Format("Bullets (%s)", g);
+		if (n.IndexOf("Shell") >= 0 || n.IndexOf("shell") >= 0) return String.Format("Shells (%s)", g);
+		if (n.IndexOf("Cell") >= 0 || n.IndexOf("cell") >= 0) return String.Format("Cells (%s)", g);
+		if (n.IndexOf("Armor") >= 0 || n.IndexOf("armor") >= 0) return String.Format("Armor (%s)", g);
+		if (n.IndexOf("Stimpack") >= 0 || n.IndexOf("stimpack") >= 0) return String.Format("Stimpack (%s)", g);
+		if (n.IndexOf("Medikit") >= 0 || n.IndexOf("medikit") >= 0) return String.Format("Medikit (%s)", g);
+		if (n.IndexOf("Backpack") >= 0 || n.IndexOf("backpack") >= 0) return String.Format("Backpack (%s)", g);
+		if (n.IndexOf("Weapon") >= 0 || n.IndexOf("weapon") >= 0) return String.Format("Weapon (%s)", g);
+		if (n.Length() > 24) return String.Format("%s (%s)", n.Left(21), g);
+		return String.Format("%s (%s)", n, g);
 	}
 
 	private void BuildTabInventory(Actor owner, out array<Inventory> outItems)
@@ -520,19 +616,16 @@ class OASISInventoryOverlayHandler : EventHandler
 
 			if (idx < starCount && idx < starLines.Size())
 			{
-				array<String> parts;
-				starLines[idx].Split(parts, "\t", false);
-				String label = (parts.Size() >= 1) ? parts[0] : "";
-				String game = (parts.Size() >= 2) ? parts[1] : "";
-				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_TAN, 54, y + 1, String.Format("%s [%s]", label, game), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				String line = starLines[idx];
+				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_TAN, 54, y + 1, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			else
 			{
 				int localIdx = idx - starCount;
 				if (localIdx >= 0 && localIdx < localLines.Size())
 				{
-					String itemDesc = localLines[localIdx];
-					screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_UNTRANSLATED, 54, y + 1, itemDesc, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+					String line = localLines[localIdx];
+					screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_UNTRANSLATED, 54, y + 1, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				}
 			}
 			y += 16;
