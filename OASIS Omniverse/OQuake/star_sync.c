@@ -349,9 +349,9 @@ void star_sync_inventory_start(star_sync_local_item_t* local_items,
 #endif
     if (g_inv_in_progress) {
 #ifdef _WIN32
-        LeaveCriticalSection(&g_inv_lock);
+    LeaveCriticalSection(&g_inv_lock);
 #else
-        pthread_mutex_unlock(&g_inv_lock);
+    pthread_mutex_unlock(&g_inv_lock);
 #endif
         return;
     }

@@ -2538,6 +2538,92 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Sends an item from the authenticated avatar's inventory to another avatar.
+        /// Target is the recipient's username or avatar Id. Works for all items (STAR and local).
+        /// </summary>
+        [HttpPost("inventory/send-to-avatar")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<bool>> SendItemToAvatar([FromBody] SendItemRequest request)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+                if (request == null || string.IsNullOrWhiteSpace(request.Target) || string.IsNullOrWhiteSpace(request.ItemName))
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Target and ItemName are required."
+                    }, HttpStatusCode.BadRequest);
+                }
+                var quantity = request.Quantity < 1 ? 1 : request.Quantity;
+                var result = await AvatarManager.SendItemToAvatarAsync(AvatarId, request.Target.Trim(), request.ItemName.Trim(), quantity, request.ItemId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error sending item to avatar: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Sends an item from the authenticated avatar's inventory to a clan.
+        /// Target is the clan name (or username when clan resolution is not yet implemented). Works for all items (STAR and local).
+        /// </summary>
+        [HttpPost("inventory/send-to-clan")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<bool>> SendItemToClan([FromBody] SendItemRequest request)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+                if (request == null || string.IsNullOrWhiteSpace(request.Target) || string.IsNullOrWhiteSpace(request.ItemName))
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Target (clan name) and ItemName are required."
+                    }, HttpStatusCode.BadRequest);
+                }
+                var quantity = request.Quantity < 1 ? 1 : request.Quantity;
+                var result = await AvatarManager.SendItemToClanAsync(AvatarId, request.Target.Trim(), request.ItemName.Trim(), quantity, request.ItemId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error sending item to clan: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
         #endregion
     }
 }

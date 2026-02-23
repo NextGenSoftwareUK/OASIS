@@ -150,7 +150,7 @@ public sealed class StarApiClient : IDisposable
             _baseApiUrl = normalizedBaseUrl;
             _oasisBaseUrl = oasisBaseUrl;
             _avatarId = string.IsNullOrWhiteSpace(config.AvatarId) ? null : config.AvatarId;
-            _jwtToken = null;
+            _jwtToken = string.IsNullOrWhiteSpace(config.ApiKey) ? null : config.ApiKey;
             _refreshToken = null;
             _lastError = string.Empty;
             _initialized = true;
@@ -199,7 +199,7 @@ public sealed class StarApiClient : IDisposable
             try
             {
                 using var rawDoc = JsonDocument.Parse(response.Result);
-                var rawJwt = FindStringRecursive(rawDoc.RootElement, "JwtToken");
+                var rawJwt = FindStringRecursive(rawDoc.RootElement, "JwtToken") ?? FindStringRecursive(rawDoc.RootElement, "Token");
                 var rawRefresh = FindStringRecursive(rawDoc.RootElement, "RefreshToken");
                 var rawId = FindStringRecursive(rawDoc.RootElement, "Id") ?? FindStringRecursive(rawDoc.RootElement, "AvatarId");
 
@@ -1004,6 +1004,70 @@ public sealed class StarApiClient : IDisposable
         return Success(nfts, StarApiResultCode.Success, $"Loaded {nfts.Count} NFT(s).");
     }
 
+    /// <summary>Sends an item from the current avatar's inventory to another avatar. Target is username or avatar Id. Optionally pass itemId (Guid) to send that specific item. Works for all items (STAR and local).</summary>
+    public async Task<OASISResult<bool>> SendItemToAvatarAsync(string targetUsernameOrAvatarId, string itemName, int quantity = 1, Guid? itemId = null, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(targetUsernameOrAvatarId) || string.IsNullOrWhiteSpace(itemName))
+            return FailAndCallback<bool>("Target and item name are required.", StarApiResultCode.InvalidParam);
+        if (quantity < 1) quantity = 1;
+
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WriteString("Target", targetUsernameOrAvatarId.Trim());
+            writer.WriteString("ItemName", itemName.Trim());
+            if (itemId.HasValue && itemId.Value != Guid.Empty)
+                writer.WriteString("ItemId", itemId.Value.ToString());
+            writer.WriteNumber("Quantity", quantity);
+            writer.WriteEndObject();
+        });
+
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-avatar", payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+            return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out _, out var parseErrorCode, out var parseErrorMessage);
+        if (!parseResult)
+            return FailAndCallback<bool>(parseErrorMessage, parseErrorCode);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(true, StarApiResultCode.Success, "Item sent to avatar.");
+    }
+
+    /// <summary>Sends an item from the current avatar's inventory to a clan. Target is clan name (or username). Optionally pass itemId (Guid) to send that specific item. Works for all items (STAR and local).</summary>
+    public async Task<OASISResult<bool>> SendItemToClanAsync(string clanNameOrTargetUsername, string itemName, int quantity = 1, Guid? itemId = null, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(clanNameOrTargetUsername) || string.IsNullOrWhiteSpace(itemName))
+            return FailAndCallback<bool>("Clan name (or target) and item name are required.", StarApiResultCode.InvalidParam);
+        if (quantity < 1) quantity = 1;
+
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WriteString("Target", clanNameOrTargetUsername.Trim());
+            writer.WriteString("ItemName", itemName.Trim());
+            if (itemId.HasValue && itemId.Value != Guid.Empty)
+                writer.WriteString("ItemId", itemId.Value.ToString());
+            writer.WriteNumber("Quantity", quantity);
+            writer.WriteEndObject();
+        });
+
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-clan", payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+            return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out _, out var parseErrorCode, out var parseErrorMessage);
+        if (!parseResult)
+            return FailAndCallback<bool>(parseErrorMessage, parseErrorCode);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(true, StarApiResultCode.Success, "Item sent to clan.");
+    }
+
     public OASISResult<string> GetLastError()
     {
         lock (_stateLock)
@@ -1042,10 +1106,11 @@ public sealed class StarApiClient : IDisposable
                 if (!string.IsNullOrWhiteSpace(_avatarId))
                     request.Headers.TryAddWithoutValidation("X-Avatar-Id", _avatarId);
                 
-                // Explicitly set Authorization header if JWT token is available
-                // This ensures the token is sent even if DefaultRequestHeaders isn't working
+                // Explicitly set Authorization header so it is always sent (avoids 401/405 when gateway or API require it)
                 if (!string.IsNullOrWhiteSpace(_jwtToken))
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+                else if (_httpClient.DefaultRequestHeaders.Authorization != null)
+                    request.Headers.Authorization = _httpClient.DefaultRequestHeaders.Authorization;
             }
 
             using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -1241,7 +1306,8 @@ public sealed class StarApiClient : IDisposable
             ?? FindStringRecursive(element, "Id")
             ?? FindStringRecursive(element, "AvatarId");
         Guid.TryParse(idText, out var id);
-        var jwt = GetStringProperty(element, "JwtToken") ?? FindStringRecursive(element, "JwtToken");
+        var jwt = GetStringProperty(element, "JwtToken") ?? FindStringRecursive(element, "JwtToken")
+            ?? GetStringProperty(element, "Token") ?? FindStringRecursive(element, "Token");
         var refresh = GetStringProperty(element, "RefreshToken") ?? FindStringRecursive(element, "RefreshToken");
 
         if (id != Guid.Empty || !string.IsNullOrWhiteSpace(jwt) || !string.IsNullOrWhiteSpace(refresh))
@@ -2295,6 +2361,42 @@ public static unsafe class StarApiExports
             PtrToString(nftId) ?? string.Empty,
             PtrToString(targetGame) ?? string.Empty,
             PtrToString(location)).GetAwaiter().GetResult();
+
+        return (int)FinalizeResult(result);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_send_item_to_avatar", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiSendItemToAvatar(sbyte* targetUsernameOrAvatarId, sbyte* itemName, int quantity, sbyte* itemId)
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        var idStr = PtrToString(itemId);
+        Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
+        var result = client.SendItemToAvatarAsync(
+            PtrToString(targetUsernameOrAvatarId) ?? string.Empty,
+            PtrToString(itemName) ?? string.Empty,
+            quantity < 1 ? 1 : quantity,
+            guid).GetAwaiter().GetResult();
+
+        return (int)FinalizeResult(result);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_send_item_to_clan", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiSendItemToClan(sbyte* clanNameOrTarget, sbyte* itemName, int quantity, sbyte* itemId)
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        var idStr = PtrToString(itemId);
+        Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
+        var result = client.SendItemToClanAsync(
+            PtrToString(clanNameOrTarget) ?? string.Empty,
+            PtrToString(itemName) ?? string.Empty,
+            quantity < 1 ? 1 : quantity,
+            guid).GetAwaiter().GetResult();
 
         return (int)FinalizeResult(result);
     }

@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
             }
             catch (Exception ex)
             {
-                return Ok(new OASISResult<string>(default) { IsError = true, Message = ex.Message });
+                return StatusCode(500, new OASISResult<string>(default) { IsError = true, Message = ex.Message });
             }
         }
 
@@ -47,46 +47,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.Admin
             }
             catch (Exception ex)
             {
-                return Ok(new OASISResult<string>(default) { IsError = true, Message = ex.Message });
+                return StatusCode(500, new OASISResult<string>(default) { IsError = true, Message = ex.Message });
             }
         }
 
         [HttpDelete("{id:guid}")]
-        public async Task<OASISResult<bool>> Delete(Guid id)
+        public async Task<ActionResult<OASISResult<bool>>> Delete(Guid id)
         {
             try
             {
-                return await _olandService.DeleteOland(id);
+                return Ok(await _olandService.DeleteOland(id));
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>(false) { IsError = true, Message = ex.Message };
+                return StatusCode(500, new OASISResult<bool>(false) { IsError = true, Message = ex.Message });
             }
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<OASISResult<IOLand>> Get(Guid id)
+        public async Task<ActionResult<OASISResult<IOLand>>> Get(Guid id)
         {
             try
             {
-                return await _olandService.GetOland(id);
+                return Ok(await _olandService.GetOland(id));
             }
             catch (Exception ex)
             {
-                return new OASISResult<IOLand>(default) { IsError = true, Message = ex.Message };
+                return StatusCode(500, new OASISResult<IOLand>(default) { IsError = true, Message = ex.Message });
             }
         }
 
         [HttpGet("GetAll")]
-        public async Task<OASISResult<IEnumerable<IOLand>>> GetAll()
+        public async Task<ActionResult<OASISResult<IEnumerable<IOLand>>>> GetAll()
         {
             try
             {
-                return await _olandService.GetAllOlands();
+                return Ok(await _olandService.GetAllOlands());
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IOLand>>(default) { IsError = true, Message = ex.Message };
+                return StatusCode(500, new OASISResult<IEnumerable<IOLand>>(default) { IsError = true, Message = ex.Message });
             }
         }
     }

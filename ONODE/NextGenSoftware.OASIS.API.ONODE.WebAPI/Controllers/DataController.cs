@@ -1336,23 +1336,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("load-data")]
-        public async Task<OASISHttpResponseMessage<string>> LoadData(LoadDataRequest request)
+        public async Task<ActionResult<OASISHttpResponseMessage<string>>> LoadData(LoadDataRequest request)
         {
             try
             {
                 OASISConfigResult<string> configResult = ConfigureOASISEngine<string>(request);
 
                 if (configResult.IsError && configResult.Response != null)
-                    return configResult.Response;
+                    return Ok(configResult.Response);
 
                 OASISResult<string> response = AvatarManager.Instance.LoadData(request?.Key, AvatarId);
                 ResetOASISSettings(request, configResult);
 
-                return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
+                return Ok(HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings));
             }
             catch (Exception ex)
             {
-                return TestDataHelper.CreateErrorResponse<string>($"Error loading data: {ex.Message}", ex, System.Net.HttpStatusCode.OK);
+                var errorResponse = TestDataHelper.CreateErrorResponse<string>($"Error loading data: {ex.Message}", ex, System.Net.HttpStatusCode.InternalServerError);
+                return StatusCode(500, errorResponse);
             }
         }
 
@@ -1363,7 +1364,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("load-data/{key}/{value}")]
-        public async Task<OASISHttpResponseMessage<string>> LoadData(string key)
+        public async Task<ActionResult<OASISHttpResponseMessage<string>>> LoadData(string key)
         {
             return await LoadData(new LoadDataRequest
             {
@@ -1382,7 +1383,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("load-data/{key}/{value}/{providerType}/{setGlobally}")]
-        public async Task<OASISHttpResponseMessage<string>> LoadData(string key, string providerType = "", bool setGlobally = false)
+        public async Task<ActionResult<OASISHttpResponseMessage<string>>> LoadData(string key, string providerType = "", bool setGlobally = false)
         {
             return await LoadData(new LoadDataRequest()
             {
@@ -1415,7 +1416,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet("load-data/{key}/{value}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
-        public async Task<OASISHttpResponseMessage<string>> LoadData(string key, string providerType = "", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
+        public async Task<ActionResult<OASISHttpResponseMessage<string>>> LoadData(string key, string providerType = "", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         {
             return await LoadData(new LoadDataRequest()
             {
