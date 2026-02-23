@@ -1,0 +1,4 @@
+# ODOOM - single place for all version strings (build scripts, in-game console, HUD, headers).
+# Edit these two lines only: line 1 = version, line 2 = build number.
+1.0
+1
