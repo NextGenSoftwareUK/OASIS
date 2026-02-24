@@ -498,17 +498,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Sends an item from the sender's inventory to a clan.
-        /// Clan name is resolved as a target (e.g. username representing the clan for now); when clan entity exists, can be extended to multiple recipients.
-        /// Uses clan-specific result messages (e.g. "Clan not found", "Sent to clan").
+        /// Sends an item from the sender's inventory to a clan (clan treasury).
+        /// Resolves clan by name via ClanManager; uses clan-specific result messages.
         /// </summary>
-        public async Task<OASISResult<bool>> SendItemToClanAsync(Guid senderAvatarId, string clanNameOrTargetUsername, string itemName, int quantity = 1, Guid? itemId = null, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> SendItemToClanAsync(Guid senderAvatarId, string clanName, string itemName, int quantity = 1, Guid? itemId = null, ProviderType providerType = ProviderType.Default)
         {
-            if (string.IsNullOrWhiteSpace(clanNameOrTargetUsername))
+            if (string.IsNullOrWhiteSpace(clanName))
             {
                 return new OASISResult<bool> { IsError = true, Message = "Clan name is required." };
             }
-            return await SendItemToAvatarAsync(senderAvatarId, clanNameOrTargetUsername.Trim(), itemName, quantity, itemId, providerType, forClan: true).ConfigureAwait(false);
+
+            var clanResult = await ClanManager.Instance.LoadClanByNameAsync(clanName.Trim(), providerType).ConfigureAwait(false);
+            if (clanResult.IsError || clanResult.Result == null)
+            {
+                return new OASISResult<bool> { IsError = true, Message = clanResult.Message ?? "Clan not found." };
+            }
+
+            return await ClanManager.Instance.SendItemToClanAsync(senderAvatarId, clanResult.Result.Id, itemName.Trim(), quantity, itemId, providerType).ConfigureAwait(false);
         }
 
         #endregion
