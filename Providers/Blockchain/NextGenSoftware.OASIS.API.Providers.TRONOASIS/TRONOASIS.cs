@@ -3114,7 +3114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 //    keyPair.WalletAddressLegacy = tronAddress;
                 //}
 
-                result.Result = new KeyPairAndWallet()
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.KeyPairAndWallet()
                 {                     
                     PrivateKey = privateKey,
                     PublicKey = publicKey,
