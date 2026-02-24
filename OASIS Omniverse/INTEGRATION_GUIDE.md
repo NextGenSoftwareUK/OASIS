@@ -70,7 +70,7 @@ Quake_STAR_OnKeyPickup("silver_key");  // Adds to STAR API
 
 #### 2. Cross-Game Item Usage
 
-When a player tries to use an item (e.g., open a door), the game checks both local and cross-game inventory. **Optimization:** Prefer checking the **already-loaded inventory (local cache)** first—e.g. the list you got from `star_api_get_inventory` after beam-in—and only call `star_api_has_item` / `star_api_use_item` as a **last resort** for edge cases (e.g. cache not loaded). This minimizes API calls and keeps door/lock checks fast.
+When a player tries to use an item (e.g., open a door), the game checks both local and cross-game inventory. The **local inventory cache** lives in the **STAR API client** (STARAPIClient): `star_api_get_inventory`, `star_api_has_item`, and `star_api_use_item` use the client’s cache first and only hit the API when the cache is null or the item is not found. Games (ODOOM, OQuake, etc.) can call these APIs directly; no need to keep a separate game-side inventory list for door/has/use. See STARAPIClient README for “STARAPIClient vs star_sync” and “Local inventory cache”.
 
 ```c
 // In Quake: Check if player can open door
