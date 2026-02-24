@@ -2,6 +2,65 @@
 
 This project ports the C++ WEB5 STAR API wrapper to C# while preserving the same C ABI entry points used by existing C and C++ game integrations.
 
+## STARAPIClient vs star_sync (why both?)
+
+**STARAPIClient** (this project)
+
+- **Role:** API client.
+- **What it does:** Implements the C ABI (`star_api_has_item`, `star_api_get_inventory`, `star_api_use_item`, etc.) and performs the actual HTTP calls to the STAR backend. Games link against the client DLL and call `star_api_*` from C/C++.
+- **Cache:** Holds the local inventory cache (see below). GetInventory / HasItem / UseItem use it first and only hit the API when the cache is empty or invalidated.
+
+**star_sync**
+
+- **Role:** Generic game-integration layer (C library: `star_sync.c` / `star_sync.h`). Sits between the game and the client.
+- **What it does:** Provides async auth and async inventory on background threads, with completion on the main thread via `star_sync_pump()`, so games don’t implement threading. Can sync local items (e.g. push pickups with `has_item` / `add_item`) before fetching inventory. Same flow for ODOOM, OQuake, and other games.
+- **Cache:** Does not hold a cache; it calls `star_api_*` and benefits from the client’s cache.
+
+**Why both:** The client does HTTP and caching; star_sync does threading and flow so games stay simple and reusable. Games typically use both: `star_sync_*` for async auth and inventory (e.g. `star_sync_inventory_start` after beam-in), and `star_api_*` for door checks, has_item, use_item, etc.
+
+### Why is star_sync in C? Could it live in STARAPIClient (C#)?
+
+**Why it’s in C today**
+
+- Games (ODOOM, OQuake) are C/C++. They compile and link `star_sync.c` with the game; star_sync then calls `star_api_*`, which is implemented by the STARAPIClient DLL. So the chain is: game (C++) → star_sync (C) → star_api (C ABI) → STARAPIClient (C#). C was a natural fit for a small, portable layer that only does threading and flow and stays client-agnostic (it just calls the C ABI).
+
+**Could star_sync be moved into STARAPIClient?**
+
+- Yes. The same C entry points (`star_sync_init`, `star_sync_pump`, `star_sync_inventory_start`, etc.) could be implemented in C# and exported from the client DLL. Background work would use `Task`/async; `star_sync_pump()` would call into C# to run any completed callbacks on the “main” thread (the one that called pump).
+
+**Pros of moving star_sync into STARAPIClient (C#)**
+
+- One codebase and one DLL: no separate C sync library to build or ship.
+- Sync and client share the same process and cache with no extra ABI crossing.
+- One place for all STAR integration; no platform-specific C threading (Win32 vs pthreads) in star_sync.
+
+**Cons of moving star_sync into STARAPIClient (C#)**
+
+- Sync becomes tied to this client. Any other implementation of `star_api_*` (e.g. a C++-only client) would need its own sync or a C sync that calls that client.
+- The “pump + callback on main thread” design has to be done carefully in C# (marshalling completion from background tasks into the C-called pump).
+
+**Pros of keeping star_sync in C**
+
+- Client-agnostic: star_sync only depends on the C ABI, so it works with any `star_api_*` implementation (this client or another).
+- Familiar for C/C++ game devs: “sync is a small C lib that calls the same star_api I call.”
+
+**Cons of keeping star_sync in C**
+
+- Two artifacts to maintain (STARAPIClient + star_sync.c/h) and, in C, platform-specific threading code.
+
+**Recommendation:** **Move star_sync into STARAPIClient.** You already use a single client (STARAPIClient) for ODOOM and OQuake, so keeping sync client-agnostic doesn’t buy much in practice. One C# DLL and one codebase is easier to maintain, version, and ship; sync and cache live in the same process with no extra ABI boundary. The main cost is implementing the pump + main-thread callback contract carefully in C#. If you later introduce another `star_api_*` implementation, you can either add a minimal C shim for sync or re-extract a small sync layer. For the current setup, consolidating in STARAPIClient is the better trade-off.
+
+## Local inventory cache (where it lives)
+
+The **local cache** is kept **inside STARAPIClient** (in memory). Behaviour:
+
+- **GetInventoryAsync** / **star_api_get_inventory**: Return the cached list when present; only call the API when the cache is null (e.g. first load or after `InvalidateInventoryCache()`).
+- **HasItemAsync** / **star_api_has_item**: Resolve from the cache when available; only call the API (via GetInventory) when the cache is null.
+- **UseItemAsync** / **star_api_use_item**: Use inventory (from cache when available) to decide if the item exists, then call the API to record use.
+- **AddItemAsync** / **SendItemToAvatarAsync** / **SendItemToClanAsync**: On success, the client updates the cache (add one item, or remove the sent item(s)) so the next get/has reflects the change without a refetch.
+
+So games (ODOOM, OQuake, etc.) get cache-first behaviour automatically: no need to keep a separate game-side inventory list for door/has/use. Call `star_api_has_item` and `star_api_get_inventory` as needed; the client uses the cache and only hits the API when necessary. Use **InvalidateInventoryCache()** when you know the inventory changed outside this client (e.g. after receiving items from another source).
+
 ## API URI Configuration
 
 - WEB5 STAR API URI:
@@ -23,7 +82,7 @@ This project ports the C++ WEB5 STAR API wrapper to C# while preserving the same
 - Uses `UnmanagedCallersOnly` exports (no COM or reverse P/Invoke marshaling glue).
 - Built as NativeAOT for direct native DLL loading and fast startup.
 - Uses a shared `HttpClient` instance and minimal allocation interop conversions.
-- **Inventory optimization:** For door/lock checks and similar logic, prefer the **already-loaded inventory (local cache)**; call `HasItemAsync` / `UseItemAsync` (or `star_api_has_item` / `star_api_use_item`) only as a **last resort** when the cache is unavailable or for edge cases. This reduces API usage and keeps gameplay responsive.
+- **Local inventory cache:** The client keeps a single in-memory cache of the last loaded inventory. `GetInventory`, `HasItem`, and `UseItem` use this cache first and only hit the API when the cache is null or the item is not found (for has_item). Cache is updated on add/send so games get correct state without extra refetches. See [Local inventory cache](#local-inventory-cache-where-it-lives) above.
 - Includes an optional add-item job queue (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`) for high-frequency item collection events.
 - Includes optional high-throughput queues for:
   - add item (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`)
