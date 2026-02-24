@@ -59,6 +59,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<IInventoryItem>> AddItemToAvatarInventoryAsync(Guid avatarId, IInventoryItem item, ProviderType providerType = ProviderType.Default)
         {
             var result = new OASISResult<IInventoryItem>();
+            if (item == null)
+            {
+                result.IsError = true;
+                result.Message = "The inventory item is required. Please provide a valid Inventory Item object in the request body.";
+                return result;
+            }
             try
             {
                 var avatarDetailResult = await LoadAvatarDetailAsync(avatarId, providerType);
@@ -73,13 +79,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (avatarDetail.Inventory == null)
                     avatarDetail.Inventory = new List<IInventoryItem>();
 
-                // Check if item already exists (by ID)
-                var existingItem = avatarDetail.Inventory.FirstOrDefault(i => i.Id == item.Id);
-                if (existingItem != null)
+                // If client did not send an Id (e.g. add-by-name flows), assign a new one so we don't false-match on Guid.Empty
+                if (item.Id == Guid.Empty)
+                    item.Id = Guid.NewGuid();
+
+                // Check if item already exists by ID (client sent an explicit id that is already in inventory)
+                var existingById = avatarDetail.Inventory.FirstOrDefault(i => i.Id == item.Id);
+                if (existingById != null)
                 {
                     result.IsError = true;
                     result.Message = "Item already exists in avatar inventory";
-                    result.Result = existingItem;
+                    result.Result = existingById;
+                    return result;
+                }
+
+                // Optionally treat add-by-name as idempotent: if same name exists, return success with existing item
+                var existingByName = avatarDetail.Inventory.FirstOrDefault(i =>
+                    i.Name?.Equals(item.Name, StringComparison.OrdinalIgnoreCase) == true);
+                if (existingByName != null)
+                {
+                    result.Result = existingByName;
+                    result.Message = "Item already exists in avatar inventory (matched by name)";
                     return result;
                 }
 
@@ -346,7 +366,160 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return GetAvatarInventoryItemAsync(avatarId, itemId, providerType).Result;
         }
 
+        /// <summary>
+        /// Sends an item from the sender's inventory to another avatar (or to a clan when forClan is true).
+        /// Target can be username or avatar Id (as string). When itemId is provided, that specific item is sent; otherwise items are matched by name.
+        /// When forClan is true, target is treated as clan name and result messages use "clan" wording (e.g. "Clan not found").
+        /// </summary>
+        public async Task<OASISResult<bool>> SendItemToAvatarAsync(Guid senderAvatarId, string targetUsernameOrAvatarId, string itemName, int quantity = 1, Guid? itemId = null, ProviderType providerType = ProviderType.Default, bool forClan = false)
+        {
+            var result = new OASISResult<bool>();
+            if (string.IsNullOrWhiteSpace(targetUsernameOrAvatarId) || string.IsNullOrWhiteSpace(itemName))
+            {
+                result.IsError = true;
+                result.Message = forClan ? "Clan name and item name are required." : "Target (username or avatar id) and item name are required.";
+                return result;
+            }
+            if (quantity < 1) quantity = 1;
+            try
+            {
+                var senderDetailResult = await LoadAvatarDetailAsync(senderAvatarId, providerType);
+                if (senderDetailResult.IsError || senderDetailResult.Result == null)
+                {
+                    result.IsError = true;
+                    result.Message = $"Error loading sender avatar: {senderDetailResult.Message}";
+                    return result;
+                }
+                var senderDetail = senderDetailResult.Result;
+                if (senderDetail.Inventory == null || senderDetail.Inventory.Count == 0)
+                {
+                    result.IsError = true;
+                    result.Message = "Sender inventory is empty.";
+                    return result;
+                }
+                List<IInventoryItem> matching;
+                if (itemId.HasValue && itemId.Value != Guid.Empty)
+                {
+                    var byId = senderDetail.Inventory.FirstOrDefault(i => i.Id == itemId.Value);
+                    if (byId == null)
+                    {
+                        result.IsError = true;
+                        result.Message = $"Item with Id {itemId.Value} not found in sender inventory.";
+                        return result;
+                    }
+                    matching = new List<IInventoryItem> { byId };
+                    quantity = 1;
+                }
+                else
+                {
+                    matching = senderDetail.Inventory
+                        .Where(i => i.Name?.Equals(itemName, StringComparison.OrdinalIgnoreCase) == true)
+                        .Take(quantity)
+                        .ToList();
+                }
+                if (matching.Count == 0)
+                {
+                    result.IsError = true;
+                    result.Message = $"Item '{itemName}' not found in sender inventory or insufficient quantity.";
+                    return result;
+                }
+                Guid targetAvatarId;
+                if (Guid.TryParse(targetUsernameOrAvatarId.Trim(), out var parsedId) && parsedId != Guid.Empty)
+                {
+                    targetAvatarId = parsedId;
+                }
+                else
+                {
+                    var targetAvatarResult = await LoadAvatarAsync(targetUsernameOrAvatarId.Trim(), false, true, providerType);
+                    if (targetAvatarResult.IsError || targetAvatarResult.Result == null)
+                    {
+                        result.IsError = true;
+                        result.Message = forClan ? $"Clan not found: {targetUsernameOrAvatarId}" : $"Target avatar not found: {targetUsernameOrAvatarId}";
+                        return result;
+                    }
+                    targetAvatarId = targetAvatarResult.Result.Id;
+                }
+                if (targetAvatarId == senderAvatarId)
+                {
+                    result.IsError = true;
+                    result.Message = "Cannot send item to yourself.";
+                    return result;
+                }
+                var template = matching[0];
+                foreach (var item in matching)
+                {
+                    senderDetail.Inventory.Remove(item);
+                }
+                var saveSenderResult = await SaveAvatarDetailAsync(senderDetail);
+                if (saveSenderResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = $"Error updating sender inventory: {saveSenderResult.Message}";
+                    return result;
+                }
+                var targetDetailResult = await LoadAvatarDetailAsync(targetAvatarId, providerType);
+                if (targetDetailResult.IsError || targetDetailResult.Result == null)
+                {
+                    result.IsError = true;
+                    result.Message = forClan ? $"Error loading clan: {targetDetailResult.Message}" : $"Error loading target avatar: {targetDetailResult.Message}";
+                    return result;
+                }
+                var targetDetail = targetDetailResult.Result;
+                if (targetDetail.Inventory == null) targetDetail.Inventory = new List<IInventoryItem>();
+                for (int i = 0; i < matching.Count; i++)
+                {
+                    var newItem = new InventoryItem
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = template.Name,
+                        Description = template.Description,
+                        HolonType = template.HolonType,
+                        MetaData = template.MetaData != null ? new Dictionary<string, object>(template.MetaData) : null
+                    };
+                    targetDetail.Inventory.Add(newItem);
+                }
+                var saveTargetResult = await SaveAvatarDetailAsync(targetDetail);
+                if (saveTargetResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = forClan ? $"Error updating clan inventory: {saveTargetResult.Message}" : $"Error updating target inventory: {saveTargetResult.Message}";
+                    return result;
+                }
+                result.Result = true;
+                result.Message = forClan ? $"Sent {matching.Count} x '{itemName}' to clan." : $"Sent {matching.Count} x '{itemName}' to avatar.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = forClan ? $"Error sending item to clan: {ex.Message}" : $"Error sending item to avatar: {ex.Message}";
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Sends an item from the sender's inventory to a clan (clan treasury).
+        /// Resolves clan by name via ClanManager; uses clan-specific result messages.
+        /// </summary>
+        public async Task<OASISResult<bool>> SendItemToClanAsync(Guid senderAvatarId, string clanName, string itemName, int quantity = 1, Guid? itemId = null, ProviderType providerType = ProviderType.Default)
+        {
+            if (string.IsNullOrWhiteSpace(clanName))
+            {
+                return new OASISResult<bool> { IsError = true, Message = "Clan name is required." };
+            }
+
+            var clanResult = await ClanManager.Instance.LoadClanByNameAsync(clanName.Trim(), providerType).ConfigureAwait(false);
+            if (clanResult.IsError || clanResult.Result == null)
+            {
+                return new OASISResult<bool> { IsError = true, Message = clanResult.Message ?? "Clan not found." };
+            }
+
+            return await ClanManager.Instance.SendItemToClanAsync(senderAvatarId, clanResult.Result.Id, itemName.Trim(), quantity, itemId, providerType).ConfigureAwait(false);
+        }
+
         #endregion
     }
 }
+
+
 

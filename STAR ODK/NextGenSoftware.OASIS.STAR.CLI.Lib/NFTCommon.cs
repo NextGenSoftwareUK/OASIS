@@ -1,4 +1,4 @@
-﻿using ADRaffy.ENSNormalize;
+using ADRaffy.ENSNormalize;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -15,7 +15,9 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
 using NextGenSoftware.Utilities;
+using Newtonsoft.Json;
 using Solnet.Rpc.Models;
+using System.IO;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -1110,6 +1112,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
 
+            if (web4NFT != null && web4NFT.ParentWeb5NFTIds != null && web4NFT.ParentWeb5NFTIds.Count > 0)
+            {
+                foreach (Guid id in web4NFT.ParentWeb5NFTIds)
+                    DisplayProperty("Parent Web5 Id:", id.ToString(), displayFieldLength);
+            }
+
             if ((web4NFT != null && nft.Title != web4NFT.Title) || web4NFT == null)
                 DisplayProperty("Title", nft.Title, displayFieldLength);
 
@@ -1283,86 +1291,144 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<T5>> UpdateSTARNETHolonAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, string starnetDNAKeyForWeb4Object, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, string> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default) 
+        //public async Task<OASISResult<T5>> UpdateSTARNETHolonAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, string starnetDNAKeyForWeb4Object, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, string> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default) 
+        public async Task<OASISResult<T5>> UpdateSTARNETHolonAsync<T1, T2, T3, T4, T5>(Guid web5NFTId, string starnetDNAKeyForWeb4Object, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, OASISResult<T5> result, ProviderType providerType = ProviderType.Default)
             where T1 : ISTARNETHolon, new()
             where T2 : IDownloadedSTARNETHolon, new()
             where T3 : IInstalledSTARNETHolon, new()
             where T4 : ISTARNETDNA, new()
         {
-            Guid web5Id = Guid.Empty;
 
-            if (metaData != null && metaData.ContainsKey(web5IdMetaDataKey) && metaData[web5IdMetaDataKey] != null && Guid.TryParse(metaData[web5IdMetaDataKey].ToString(), out web5Id))
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Updating WEB5 STAR {STARNETManager.STARNETHolonUIName} with updated WEB4 OASIS {STARNETManager.STARNETHolonUIName} data...");
+            OASISResult<T1> starNFTCollection = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, web5NFTId, providerType: providerType);
+
+            //TODO: DO WE WANT TO UPDATE ALL VERSIONS LIKE WE DO FOR DELETE BELOW?
+            if (starNFTCollection != null && starNFTCollection.Result != null && !starNFTCollection.IsError)
             {
-                Console.WriteLine("");
-                CLIEngine.ShowWorkingMessage($"Updating WEB5 STAR {STARNETManager.STARNETHolonUIName} with updated WEB4 OASIS {STARNETManager.STARNETHolonUIName} data...");
-                OASISResult<T1> starNFTCollection = await STARNETManager.LoadAsync(STAR.BeamedInAvatar.Id, web5Id, providerType: providerType);
+                starNFTCollection.Result.STARNETDNA.MetaData[starnetDNAKeyForWeb4Object] = result.Result;
+                starNFTCollection = await STARNETManager.UpdateAsync(STAR.BeamedInAvatar.Id, starNFTCollection.Result, updateDNAJSONFile: true, providerType: providerType);
 
                 if (starNFTCollection != null && starNFTCollection.Result != null && !starNFTCollection.IsError)
-                {
-                    starNFTCollection.Result.STARNETDNA.MetaData[starnetDNAKeyForWeb4Object] = result.Result;
-                    starNFTCollection = await STARNETManager.UpdateAsync(STAR.BeamedInAvatar.Id, starNFTCollection.Result, updateDNAJSONFile: true, providerType: providerType);
-
-                    if (starNFTCollection != null && starNFTCollection.Result != null && !starNFTCollection.IsError)
-                        CLIEngine.ShowSuccessMessage($"WEB5 STAR {STARNETManager.STARNETHolonUIName} Successfully Updated.");
-                    else
-                    {
-                        string msg = starNFTCollection != null ? starNFTCollection.Message : "";
-                        OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB5 STAR {STARNETManager.STARNETHolonUIName} after updating WEB4 OASIS {STARNETManager.STARNETHolonUIName}. Reason: {msg}");
-                    }
-                }
+                    CLIEngine.ShowSuccessMessage($"WEB5 STAR {STARNETManager.STARNETHolonUIName} Successfully Updated.");
                 else
                 {
                     string msg = starNFTCollection != null ? starNFTCollection.Message : "";
-                    OASISErrorHandling.HandleError(ref result, $"Error Occured Loading WEB5 STAR {STARNETManager.STARNETHolonUIName}. Reason: {msg}");
+                    OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB5 STAR {STARNETManager.STARNETHolonUIName} after updating WEB4 OASIS {STARNETManager.STARNETHolonUIName}. Reason: {msg}");
                 }
             }
-
+            else
+            {
+                string msg = starNFTCollection != null ? starNFTCollection.Message : "";
+                OASISErrorHandling.HandleError(ref result, $"Error Occured Loading WEB5 STAR {STARNETManager.STARNETHolonUIName}. Reason: {msg}");
+            }
+            
             return result;
         }
 
-        public async Task<OASISResult<T5>> DeleteAllSTARNETVersionsAsync<T1, T2, T3, T4, T5>(string web5IdMetaDataKey, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, Dictionary<string, string> metaData, OASISResult<T5> result, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T5>> DeleteAllSTARNETVersionsAsync<T1, T2, T3, T4, T5>(Guid web5NFTId, ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager, OASISResult<T5> result, ProviderType providerType = ProviderType.Default)
             where T1 : ISTARNETHolon, new()
             where T2 : IDownloadedSTARNETHolon, new()
             where T3 : IInstalledSTARNETHolon, new()
             where T4 : ISTARNETDNA, new()
         {
-            Guid web5Id = Guid.Empty;
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Deleting All WEB5 STAR {STARNETManager.STARNETHolonUIName} Versions...");
 
-            if (metaData != null && metaData.ContainsKey(web5IdMetaDataKey) && metaData[web5IdMetaDataKey] != null && Guid.TryParse(metaData[web5IdMetaDataKey].ToString(), out web5Id))
+            OASISResult<IEnumerable<T1>> versionsResult = await STARNETManager.LoadVersionsAsync(web5NFTId, providerType);
+
+            if (versionsResult != null && versionsResult.Result != null && !versionsResult.IsError)
             {
-                Console.WriteLine("");
-                CLIEngine.ShowWorkingMessage($"Deleting All WEB5 STAR {STARNETManager.STARNETHolonUIName} Versions...");
-
-                OASISResult<IEnumerable<T1>> versionsResult = await STARNETManager.LoadVersionsAsync(web5Id, providerType);
-
-                if (versionsResult != null && versionsResult.Result != null && !versionsResult.IsError)
+                foreach (T1 version in versionsResult.Result)
                 {
-                    foreach (T1 version in versionsResult.Result)
-                    {
-                        OASISResult<T1> deleteResult = await STARNETManager.DeleteAsync(STAR.BeamedInAvatar.Id, web5Id, version.STARNETDNA.VersionSequence, providerType: providerType);
+                    OASISResult<T1> deleteResult = await STARNETManager.DeleteAsync(STAR.BeamedInAvatar.Id, web5NFTId, version.STARNETDNA.VersionSequence, providerType: providerType);
 
-                        if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
-                            CLIEngine.ShowSuccessMessage($"Successfully Deleted Version {version.STARNETDNA.Version}.");
-                        else
-                        {
-                            string msg = versionsResult != null ? versionsResult.Message : "";
-                            OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB5 STAR {STARNETManager.STARNETHolonUIName} Version {version.STARNETDNA.Version}. Reason: {msg}");
-                        }
+                    if (deleteResult != null && deleteResult.Result != null && !deleteResult.IsError)
+                        CLIEngine.ShowSuccessMessage($"Successfully Deleted Version {version.STARNETDNA.Version}.");
+                    else
+                    {
+                        string msg = versionsResult != null ? versionsResult.Message : "";
+                        OASISErrorHandling.HandleError(ref result, $"Error Occured Deleting WEB5 STAR {STARNETManager.STARNETHolonUIName} Version {version.STARNETDNA.Version}. Reason: {msg}");
                     }
                 }
-                else
-                {
-                    string msg = versionsResult != null ? versionsResult.Message : "";
-                    OASISErrorHandling.HandleError(ref result, $"Error Occured Loading WEB5 STAR {STARNETManager.STARNETHolonUIName} versions. Reason: {msg}");
-                }   
             }
-
+            else
+            {
+                string msg = versionsResult != null ? versionsResult.Message : "";
+                OASISErrorHandling.HandleError(ref result, $"Error Occured Loading WEB5 STAR {STARNETManager.STARNETHolonUIName} versions. Reason: {msg}");
+            }   
+    
             return result;
         }
 
         private void DisplayProperty(string heading, string value, int displayFieldLength, bool displayColon = true)
         {
             CLIEngine.DisplayProperty(heading, value, displayFieldLength, displayColon);
+        }
+
+        /// <summary>
+        /// Writes WEB4 and WEB3 NFT JSON files to the given path (used by NFTCollections and GeoNFTCollections).
+        /// </summary>
+        public static OASISResult<bool> UpdateWeb4AndWeb3NFTJSONFiles(IWeb4NFT NFT, string path)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                File.WriteAllText(Path.Combine(path, $"WEB4_NFT_{NFT.Id}.json"), JsonConvert.SerializeObject(NFT));
+                if (!string.IsNullOrEmpty(NFT.JSONMetaData))
+                    File.WriteAllText(Path.Combine(path, $"WEB4_JSONMetaData_{NFT.Id}.json"), NFT.JSONMetaData);
+                if (NFT.Web3NFTs != null)
+                {
+                    foreach (IWeb3NFT web3Nft in NFT.Web3NFTs)
+                    {
+                        File.WriteAllText(Path.Combine(path, $"WEB3_NFT_{web3Nft.Id}.json"), JsonConvert.SerializeObject(web3Nft));
+                        if (!string.IsNullOrEmpty(web3Nft.JSONMetaData))
+                            File.WriteAllText(Path.Combine(path, $"WEB3_JSONMetaData_{web3Nft.Id}.json"), web3Nft.JSONMetaData);
+                    }
+                }
+                result.Result = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 and WEB3 NFT JSON files. Reason: {e.Message}");
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Writes WEB4 NFT Collection JSON to the given path (used by NFTCollections).
+        /// </summary>
+        public static OASISResult<bool> UpdateWeb4AndWeb3NFTJSONFiles(IWeb4NFTCollection collection, string path)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                File.WriteAllText(Path.Combine(path, $"WEB4_NFT_Collection_{collection.Id}.json"), JsonConvert.SerializeObject(collection));
+                result.Result = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 NFT Collection JSON files. Reason: {e.Message}");
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Writes WEB4 Geo NFT Collection JSON to the given path (used by GeoNFTCollections).
+        /// </summary>
+        public static OASISResult<bool> UpdateWeb4AndWeb3NFTJSONFiles(IWeb4GeoNFTCollection collection, string path)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                File.WriteAllText(Path.Combine(path, $"WEB4_GeoNFT_Collection_{collection.Id}.json"), JsonConvert.SerializeObject(collection));
+                result.Result = true;
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 Geo NFT Collection JSON files. Reason: {e.Message}");
+            }
+            return result;
         }
     }
 }

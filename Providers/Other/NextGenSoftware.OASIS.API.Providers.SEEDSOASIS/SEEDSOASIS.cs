@@ -1635,6 +1635,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             }
         }
 
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+            using var sha256 = SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
+
         #endregion
     }
 }

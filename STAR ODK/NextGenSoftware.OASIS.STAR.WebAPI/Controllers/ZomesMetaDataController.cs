@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -37,16 +38,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMetaData = new List<ZomeMetaDataDNA>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<ZomeMetaDataDNA>>(testMetaData, "Zomes Metadata retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<ZomeMetaDataDNA>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading Zomes Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                    var testMetaData = new List<ZomeMetaDataDNA>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<ZomeMetaDataDNA>>(testMetaData, "Zomes Metadata retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<ZomeMetaDataDNA>>(ex, "GetAllZomesMetaData");
             }
         }
 
@@ -65,16 +75,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<ZomeMetaDataDNA>(null, "Zome Metadata retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<ZomeMetaDataDNA>(null, "Zome Metadata retrieved successfully (using test data)"));
+                }
+                return HandleException<ZomeMetaDataDNA>(ex, "GetZomeMetaData");
             }
         }
 
@@ -90,6 +107,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateZomeMetaData([FromBody] ZomeMetaDataDNA metadata)
         {
+            if (metadata == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid Zome Metadata object." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.UpdateAsync(AvatarId, metadata);
@@ -97,12 +116,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error creating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "creating Zome Metadata");
             }
         }
 
@@ -119,6 +133,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateZomeMetaData(Guid id, [FromBody] ZomeMetaDataDNA metadata)
         {
+            if (metadata == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid Zome Metadata object." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.UpdateAsync(AvatarId, metadata);
@@ -126,12 +142,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error updating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "updating Zome Metadata");
             }
         }
 
@@ -154,12 +165,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting Zome Metadata");
             }
         }
 
@@ -174,6 +180,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneZomeMetaData(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.CloneAsync(AvatarId, id, request.NewName);
@@ -181,12 +189,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning Zome Metadata");
             }
         }
 
@@ -203,6 +206,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishZomeMetaData(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.PublishAsync(AvatarId, request.SourcePath, request.LaunchTarget, request.PublishPath, request.Edit, request.RegisterOnSTARNET, request.GenerateBinary, request.UploadToCloud);
@@ -210,12 +215,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error publishing Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "publishing Zome Metadata");
             }
         }
 
@@ -289,6 +289,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateZomeMetaDataWithOptions([FromBody] CreateZomeMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -296,12 +301,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error creating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "creating Zome Metadata");
             }
         }
 
@@ -324,12 +324,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Zome Metadata from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "loading Zome Metadata from path");
             }
         }
 
@@ -352,12 +347,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading Zome Metadata from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "loading Zome Metadata from published file");
             }
         }
 
@@ -400,6 +390,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<ZomeMetaDataDNA>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchZomesMetaData([FromBody] SearchRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<IEnumerable<ZomeMetaDataDNA>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.SearchAsync<ZomeMetaDataDNA>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true);
@@ -429,6 +421,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DownloadZomeMetaData(Guid id, [FromBody] DownloadZomeMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with DestinationPath." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.DownloadAsync(AvatarId, id, "latest", request.DestinationPath);
@@ -436,12 +430,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading Zome Metadata");
             }
         }
 
@@ -465,12 +454,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error loading version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "loading version");
             }
         }
 
@@ -487,6 +471,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditZomeMetaData(Guid id, [FromBody] EditZomeMetaDataRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.EditAsync(id, request.NewDNA, AvatarId);
@@ -494,12 +480,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error editing Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "editing Zome Metadata");
             }
         }
 
@@ -523,12 +504,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "unpublishing Zome Metadata");
             }
         }
 
@@ -546,6 +522,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<ZomeMetaDataDNA>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RepublishZomeMetaData(Guid id, [FromBody] PublishRequest request, [FromQuery] int version = 0)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<ZomeMetaDataDNA> { IsError = true, Message = "The request body is required. Please provide a valid JSON body for republish options." });
             try
             {
                 var result = await _starAPI.ZomesMetaDataDNA.RepublishAsync(AvatarId, id, version);
@@ -553,12 +531,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error republishing Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "republishing Zome Metadata");
             }
         }
 
@@ -582,12 +555,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error activating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "activating Zome Metadata");
             }
         }
 
@@ -611,12 +579,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ZomeMetaDataDNA>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating Zome Metadata: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<ZomeMetaDataDNA>(ex, "deactivating Zome Metadata");
             }
         }
     }

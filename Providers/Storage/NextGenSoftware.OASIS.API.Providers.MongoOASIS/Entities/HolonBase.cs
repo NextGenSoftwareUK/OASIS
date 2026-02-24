@@ -38,11 +38,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
 
-        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
+        // MetaData uses MetaDataDictionarySerializer (registered globally); do not use BsonDictionaryOptionsAttribute - that serializer is not configurable via attributes.
         //[BsonElement("MetaData2")]
-
         //[BsonDiscriminator("OASISGeoSpatialNFT")]
-        
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
 
         public Guid HolonId { get; set; } //Unique id within the OASIS.
@@ -70,6 +68,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();
 
         public bool IsActive { get; set; }
+        /// <summary>Derived from DeletedDate; true when soft-deleted (IHolonBase).</summary>
+        public bool IsDeleted => DeletedDate != DateTime.MinValue;
 
         //  [BsonRepresentation(BsonType.ObjectId)]
         public string CreatedByAvatarId { get; set; }

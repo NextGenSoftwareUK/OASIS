@@ -1,265 +1,113 @@
-﻿using NextGenSoftware.OASIS.STAR.WebAPI;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.STAR.DNA;
 using Xunit;
 using FluentAssertions;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests;
 
+[Collection("OASISBoot")]
 public class STARWebAPIIntegrationTests
 {
-    [Fact]
-    public async Task STARWebAPI_Should_Initialize_Successfully()
+    private readonly OASISFixture _fixture;
+
+    public STARWebAPIIntegrationTests(OASISFixture fixture)
     {
-        // Arrange & Act
-        var starWebAPI = new STARWebAPI();
-        
-        // Assert
-        starWebAPI.Should().NotBeNull();
-        starWebAPI.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture = fixture;
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Avatar_Operations()
+    public void STARAPI_Should_Initialize_Successfully()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Avatar.Should().NotBeNull();
-        starWebAPI.Avatar.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Holon_Operations()
+    public void STARAPI_Should_Support_Mission_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Holon.Should().NotBeNull();
-        starWebAPI.Holon.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.Missions.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Key_Operations()
+    public void STARAPI_Should_Support_Chapter_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Key.Should().NotBeNull();
-        starWebAPI.Key.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.Chapters.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Map_Operations()
+    public void STARAPI_Should_Support_Quest_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Map.Should().NotBeNull();
-        starWebAPI.Map.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.Quests.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_NFT_Operations()
+    public void STARAPI_Should_Support_Game_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.NFT.Should().NotBeNull();
-        starWebAPI.NFT.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.Game.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Search_Operations()
+    public void STARAPI_Should_Support_Inventory_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Search.Should().NotBeNull();
-        starWebAPI.Search.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.InventoryItems.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Wallet_Operations()
+    public void STARAPI_Should_Support_GeoHotSpot_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Wallet.Should().NotBeNull();
-        starWebAPI.Wallet.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.GeoHotSpots.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Data_Operations()
+    public void STARAPI_Should_Support_NFT_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Data.Should().NotBeNull();
-        starWebAPI.Data.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.NFTs.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Storage_Operations()
+    public void STARAPI_Should_Support_GeoNFT_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Storage.Should().NotBeNull();
-        starWebAPI.Storage.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.GeoNFTs.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Link_Operations()
+    public void STARAPI_Should_Support_Map_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Link.Should().NotBeNull();
-        starWebAPI.Link.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.Map.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Log_Operations()
+    public void STARAPI_Should_Support_Park_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Log.Should().NotBeNull();
-        starWebAPI.Log.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.Parks.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Quest_Operations()
+    public void STARAPI_Should_Support_OAPP_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Quest.Should().NotBeNull();
-        starWebAPI.Quest.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.OAPPs.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Mission_Operations()
+    public void STARAPI_Should_Support_CelestialBody_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Mission.Should().NotBeNull();
-        starWebAPI.Mission.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.CelestialBodies.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Park_Operations()
+    public void STARAPI_Should_Support_CelestialSpace_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Park.Should().NotBeNull();
-        starWebAPI.Park.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.CelestialSpaces.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_Inventory_Operations()
+    public void STARAPI_Should_Support_Zome_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Inventory.Should().NotBeNull();
-        starWebAPI.Inventory.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.Zomes.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task STARWebAPI_Should_Support_OAPP_Operations()
+    public void STARAPI_Should_Support_Holon_Operations()
     {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.OAPP.Should().NotBeNull();
-        starWebAPI.OAPP.ProviderType.Should().Be(ProviderType.STAR);
-    }
-
-    [Fact]
-    public async Task STARWebAPI_Should_Support_Zome_Operations()
-    {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Zome.Should().NotBeNull();
-        starWebAPI.Zome.ProviderType.Should().Be(ProviderType.STAR);
-    }
-
-    [Fact]
-    public async Task STARWebAPI_Should_Support_CelestialBody_Operations()
-    {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.CelestialBody.Should().NotBeNull();
-        starWebAPI.CelestialBody.ProviderType.Should().Be(ProviderType.STAR);
-    }
-
-    [Fact]
-    public async Task STARWebAPI_Should_Support_CelestialSpace_Operations()
-    {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.CelestialSpace.Should().NotBeNull();
-        starWebAPI.CelestialSpace.ProviderType.Should().Be(ProviderType.STAR);
-    }
-
-    [Fact]
-    public async Task STARWebAPI_Should_Support_Chapter_Operations()
-    {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.Chapter.Should().NotBeNull();
-        starWebAPI.Chapter.ProviderType.Should().Be(ProviderType.STAR);
-    }
-
-    [Fact]
-    public async Task STARWebAPI_Should_Support_GeoHotSpot_Operations()
-    {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.GeoHotSpot.Should().NotBeNull();
-        starWebAPI.GeoHotSpot.ProviderType.Should().Be(ProviderType.STAR);
-    }
-
-    [Fact]
-    public async Task STARWebAPI_Should_Support_GeoNFT_Operations()
-    {
-        // Arrange
-        var starWebAPI = new STARWebAPI();
-        
-        // Act & Assert
-        starWebAPI.GeoNFT.Should().NotBeNull();
-        starWebAPI.GeoNFT.ProviderType.Should().Be(ProviderType.STAR);
+        _fixture.StarAPI.Holons.Should().NotBeNull();
     }
 }

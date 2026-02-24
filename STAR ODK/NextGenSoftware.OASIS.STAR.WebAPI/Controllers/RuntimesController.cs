@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -35,16 +36,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Runtimes.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testRuntimes = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testRuntimes, "Runtimes retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<object>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading runtimes: {ex.Message}",
-                    Exception = ex
-                });
+                    var testRuntimes = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testRuntimes, "Runtimes retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<object>>(ex, "GetAllRuntimes");
             }
         }
 
@@ -63,16 +73,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Runtimes.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Runtime retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading runtime: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Runtime retrieved successfully (using test data)"));
+                }
+                return HandleException<object>(ex, "GetRuntime");
             }
         }
 
@@ -88,6 +105,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateRuntime([FromBody] CreateRuntimeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, RuntimeType, Version." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 // Create a new runtime using the RuntimeManager
@@ -104,18 +126,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating runtime");
             }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRuntime(Guid id, [FromBody] UpdateRuntimeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and/or Description." });
             try
             {
                 // Load existing runtime
@@ -142,12 +161,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error updating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "updating runtime");
             }
         }
 
@@ -161,12 +175,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting runtime");
             }
         }
 
@@ -275,12 +284,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error starting runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "starting runtime");
             }
         }
 
@@ -294,12 +298,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error stopping runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "stopping runtime");
             }
         }
 
@@ -313,18 +312,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error getting runtime status: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "getting runtime status");
             }
         }
 
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneRuntime(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.Runtimes.CloneAsync(AvatarId, id, request.NewName);
@@ -332,12 +328,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning runtime");
             }
         }
 
@@ -353,6 +344,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateRuntimeWithOptions([FromBody] CreateRuntimeWithOptionsRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.Runtimes.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -360,12 +356,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating runtime");
             }
         }
 
@@ -388,12 +379,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading runtime from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading runtime from path");
             }
         }
 
@@ -416,12 +402,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading runtime from published: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading runtime from published");
             }
         }
 
@@ -464,6 +445,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchRuntimes([FromBody] SearchRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<IEnumerable<object>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
                 var result = await _starAPI.Runtimes.SearchAsync<Runtime>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true, false, 0);
@@ -493,6 +476,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishRuntime(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Runtimes.PublishAsync(
@@ -509,12 +494,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error publishing runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "publishing runtime");
             }
         }
 
@@ -531,6 +511,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DownloadRuntime(Guid id, [FromBody] DownloadRuntimeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with DestinationPath and optional Overwrite." });
             try
             {
                 var result = await _starAPI.Runtimes.DownloadAsync(AvatarId, id, 0, request.DestinationPath, request.Overwrite);
@@ -538,12 +520,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading runtime");
             }
         }
 
@@ -595,12 +572,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading runtime version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading runtime version");
             }
         }
 
@@ -617,6 +589,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditRuntime(Guid id, [FromBody] EditRuntimeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Runtimes.EditAsync(id, request.NewDNA, AvatarId);
@@ -624,12 +598,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error editing runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "editing runtime");
             }
         }
 
@@ -652,12 +621,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "unpublishing runtime");
             }
         }
 
@@ -674,6 +638,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RepublishRuntime(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body for republish options." });
             try
             {
                 var result = await _starAPI.Runtimes.RepublishAsync(AvatarId, id, 0);
@@ -681,12 +647,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error republishing runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "republishing runtime");
             }
         }
 
@@ -709,12 +670,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error activating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "activating runtime");
             }
         }
 
@@ -737,12 +693,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating runtime: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "deactivating runtime");
             }
         }
     }

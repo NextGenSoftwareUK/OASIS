@@ -36,6 +36,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("start-video-call")]
         public async Task<OASISResult<string>> StartVideoCall([FromBody] List<Guid> participantIds, [FromQuery] string callName = null)
         {
+            if (participantIds == null || participantIds.Count == 0)
+                return new OASISResult<string> { IsError = true, Message = "The request body is required. Please provide a valid JSON array of participant IDs (at least one)." };
             // Use VideoManager for business logic
             return await VideoManager.Instance.StartVideoCallAsync(Avatar.Id, participantIds, VideoCallType.Group, callName);
         }

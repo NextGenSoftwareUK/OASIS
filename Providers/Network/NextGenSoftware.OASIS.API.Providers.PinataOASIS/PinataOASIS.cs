@@ -939,7 +939,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 var lookup = await FindPinnedHolonByIdAsync(id);
                 if (lookup.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, lookup.Message);
+                    result.IsError = lookup.IsError;
+                    result.Message = lookup.Message;
+                    result.Exception = lookup.Exception;
                     return result;
                 }
 
@@ -1153,7 +1155,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Pinata provider: {activateResult.Message}");
@@ -1204,7 +1206,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Pinata provider: {activateResult.Message}");

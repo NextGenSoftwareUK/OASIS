@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -34,8 +35,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("social-feed")]
         public async Task<OASISResult<List<SocialPost>>> GetSocialFeed()
         {
-            // Use SocialManager for business logic
-            return await SocialManager.Instance.GetSocialFeedAsync(Avatar.Id);
+            try
+            {
+                OASISResult<List<SocialPost>> result = null;
+                try
+                {
+                    // Use SocialManager for business logic
+                    result = await SocialManager.Instance.GetSocialFeedAsync(Avatar.Id);
+                }
+                catch
+                {
+                    // If real data unavailable, use test data
+                }
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return new OASISResult<List<SocialPost>>
+                    {
+                        Result = new List<SocialPost>(),
+                        IsError = false,
+                        Message = "Social feed retrieved successfully (using test data)"
+                    };
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return new OASISResult<List<SocialPost>>
+                    {
+                        Result = new List<SocialPost>(),
+                        IsError = false,
+                        Message = "Social feed retrieved successfully (using test data)"
+                    };
+                }
+                return new OASISResult<List<SocialPost>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving social feed: {ex.Message}",
+                    Exception = ex
+                };
+            }
         }
 
         /// <summary>
@@ -78,8 +122,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("registered-providers")]
         public async Task<OASISResult<List<SocialProvider>>> GetRegisteredProviders()
         {
-            // Use SocialManager for business logic
-            return await SocialManager.Instance.GetRegisteredProvidersAsync(Avatar.Id);
+            try
+            {
+                OASISResult<List<SocialProvider>> result = null;
+                try
+                {
+                    // Use SocialManager for business logic
+                    result = await SocialManager.Instance.GetRegisteredProvidersAsync(Avatar.Id);
+                }
+                catch
+                {
+                    // If real data unavailable, use test data
+                }
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return new OASISResult<List<SocialProvider>>
+                    {
+                        Result = new List<SocialProvider>(),
+                        IsError = false,
+                        Message = "Registered providers retrieved successfully (using test data)"
+                    };
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return new OASISResult<List<SocialProvider>>
+                    {
+                        Result = new List<SocialProvider>(),
+                        IsError = false,
+                        Message = "Registered providers retrieved successfully (using test data)"
+                    };
+                }
+                return new OASISResult<List<SocialProvider>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving registered providers: {ex.Message}",
+                    Exception = ex
+                };
+            }
         }
     }
 }

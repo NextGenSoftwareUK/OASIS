@@ -1234,7 +1234,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
@@ -1285,7 +1285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
@@ -2689,16 +2689,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     }
                 }
 
-                // Lock token by transferring to bridge pool account on Holochain
+                // Lock token by transferring to bridge pool account on Holochain (one NFT – no amount)
                 var bridgePoolAccount = "holo-pool";
-                // Cast to concrete type to access Amount property if available
-                var lockRequest = request as LockWeb3TokenRequest;
-                var amount = lockRequest?.Amount ?? 1m;
                 var tokenLock = new
                 {
                     from = request.FromWalletAddress,
                     to = bridgePoolAccount,
-                    amount = amount,
+                    amount = 1m,
                     symbol = "HOT",
                     timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
                 };
@@ -2891,8 +2888,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         {
                             var transaction = new WalletTransaction
                             {
-                                TransactionId = txElement.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:tx:{(txElement.TryGetProperty("hash", out var hash) ? hash.GetString() : (txElement.TryGetProperty("from", out var fromVal) ? fromVal.GetString() : "unknown"))}"),
-                                FromWalletAddress = txElement.TryGetProperty("from", out var from) ? from.GetString() : "",
+                                TransactionId = txElement.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:tx:{(txElement.TryGetProperty("hash", out var hash) ? hash.GetString() : (txElement.TryGetProperty("from", out var fromAddr) ? fromAddr.GetString() : "unknown"))}"),
+                                FromWalletAddress = txElement.TryGetProperty("from", out var fromWallet) ? fromWallet.GetString() : "",
                                 ToWalletAddress = txElement.TryGetProperty("to", out var to) ? to.GetString() : "",
                                 Amount = txElement.TryGetProperty("amount", out var amount) ? (double)amount.GetDecimal() : 0.0,
                                 Description = txElement.TryGetProperty("memo", out var memo) ? memo.GetString() : "",

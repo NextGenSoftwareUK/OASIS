@@ -1602,7 +1602,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
@@ -1653,7 +1653,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");

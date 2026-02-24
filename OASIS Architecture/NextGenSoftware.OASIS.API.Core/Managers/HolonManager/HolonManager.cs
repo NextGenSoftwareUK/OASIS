@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -379,6 +379,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> SaveSettingsAsync(Guid avatarId, string category, Dictionary<string, object> settings)
         {
             var result = new OASISResult<bool>();
+            if (settings == null)
+            {
+                result.IsError = true;
+                result.Message = "The settings dictionary is required. Please provide a valid dictionary (can be empty).";
+                return result;
+            }
             try
             {
                 // Get or create the settings holon for this category

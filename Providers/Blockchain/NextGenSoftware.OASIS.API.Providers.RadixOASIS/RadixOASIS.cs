@@ -3,7 +3,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
@@ -282,21 +284,25 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
+            // Like other providers: token address from MetaData or config, mint-to from MetaData or wallet
+            var tokenAddress = request?.MetaData?.GetValueOrDefault("TokenAddress") ?? _config.OasisBlueprintAddress ?? "";
+            if (string.IsNullOrWhiteSpace(tokenAddress))
             {
-                OASISErrorHandling.HandleError(ref result, "Token address is required");
+                OASISErrorHandling.HandleError(ref result, "Token address is required (set in request.MetaData[\"TokenAddress\"] or config)");
                 return result;
             }
 
-            // Get wallet for signing
             var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
-                request.MintToAvatarId != Guid.Empty ? request.MintToAvatarId : Guid.NewGuid(), 
+                request.MintedByAvatarId != Guid.Empty ? request.MintedByAvatarId : Guid.NewGuid(), 
                 ProviderType.Value);
             if (walletResult.IsError || walletResult.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet for minting");
                 return result;
             }
+
+            var mintAmount = request.Amount;
+            var mintToAddress = request?.MetaData?.GetValueOrDefault("ToWalletAddress") ?? walletResult.Result.WalletAddress;
 
             // Build transaction manifest for token minting
             var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
@@ -307,12 +313,12 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                     new
                     {
                         kind = "CallMethod",
-                        componentAddress = request.TokenAddress,
+                        componentAddress = tokenAddress,
                         methodName = "mint",
                         args = new[]
                         {
-                            new { kind = "Decimal", value = request.Amount.ToString() },
-                            new { kind = "Address", value = request.ToWalletAddress ?? walletResult.Result.Address }
+                            new { kind = "Decimal", value = mintAmount.ToString() },
+                            new { kind = "Address", value = mintToAddress }
                         }
                     }
                 },
@@ -396,7 +402,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
 
             // Get wallet for signing
             var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
-                request.FromAvatarId != Guid.Empty ? request.FromAvatarId : Guid.NewGuid(), 
+                request.BurntByAvatarId != Guid.Empty ? request.BurntByAvatarId : Guid.NewGuid(), 
                 ProviderType.Value);
             if (walletResult.IsError || walletResult.Result == null)
             {
@@ -404,7 +410,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Build transaction manifest for token burning
+            // Burn ONE NFT at TokenAddress (NFTTokenAddress) – no amount, single NFT
             var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
             var manifest = new
             {
@@ -417,8 +423,8 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                         methodName = "burn",
                         args = new[]
                         {
-                            new { kind = "Decimal", value = request.Amount.ToString() },
-                            new { kind = "Address", value = request.FromWalletAddress ?? walletResult.Result.Address }
+                            new { kind = "NonFungibleLocalId", value = "1" },
+                            new { kind = "Address", value = walletResult.Result.WalletAddress }
                         }
                     }
                 },
@@ -500,12 +506,12 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Lock tokens by transferring to a lock contract or using lock function
+            // Lock ONE NFT at TokenAddress (NFTTokenAddress) – no amount, single NFT
             var lockContractAddress = _config.OasisBlueprintAddress ?? request.TokenAddress;
-            
-            // Get wallet for signing
+            var fromWalletAddress = request.FromWalletAddress;
+
             var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
-                request.FromAvatarId != Guid.Empty ? request.FromAvatarId : Guid.NewGuid(), 
+                request.LockedByAvatarId != Guid.Empty ? request.LockedByAvatarId : Guid.NewGuid(), 
                 ProviderType.Value);
             if (walletResult.IsError || walletResult.Result == null)
             {
@@ -513,7 +519,9 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Build transaction manifest for token locking
+            if (string.IsNullOrWhiteSpace(fromWalletAddress))
+                fromWalletAddress = walletResult.Result.WalletAddress;
+
             var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
             var manifest = new
             {
@@ -527,8 +535,8 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                         args = new[]
                         {
                             new { kind = "Address", value = request.TokenAddress },
-                            new { kind = "Decimal", value = request.Amount.ToString() },
-                            new { kind = "Address", value = request.FromWalletAddress ?? walletResult.Result.Address }
+                            new { kind = "NonFungibleLocalId", value = "1" },
+                            new { kind = "Address", value = fromWalletAddress }
                         }
                     }
                 },
@@ -610,12 +618,11 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Unlock tokens by calling unlock function on lock contract
+            // Unlock ONE NFT at TokenAddress (NFTTokenAddress) – no amount, single NFT
             var lockContractAddress = _config.OasisBlueprintAddress ?? request.TokenAddress;
-            
-            // Get wallet for signing
+
             var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
-                request.ToAvatarId != Guid.Empty ? request.ToAvatarId : Guid.NewGuid(), 
+                request.UnlockedByAvatarId != Guid.Empty ? request.UnlockedByAvatarId : Guid.NewGuid(), 
                 ProviderType.Value);
             if (walletResult.IsError || walletResult.Result == null)
             {
@@ -623,7 +630,6 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            // Build transaction manifest for token unlocking
             var network = _config.NetworkId == 1 ? "mainnet" : "stokenet";
             var manifest = new
             {
@@ -637,8 +643,8 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                         args = new[]
                         {
                             new { kind = "Address", value = request.TokenAddress },
-                            new { kind = "Decimal", value = request.Amount.ToString() },
-                            new { kind = "Address", value = request.ToWalletAddress ?? walletResult.Result.Address }
+                            new { kind = "NonFungibleLocalId", value = "1" },
+                            new { kind = "Address", value = walletResult.Result.WalletAddress }
                         }
                     }
                 },
@@ -928,7 +934,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAllAvatarsAsync(version);
+                return await AvatarManager.Instance.LoadAllAvatarsAsync(false, true, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
             // Query all avatars from Radix OASIS blueprint component using Gateway API
@@ -994,7 +1000,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAvatarAsync(id, version);
+                return await AvatarManager.Instance.LoadAvatarAsync(id, false, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
             // Query avatar by ID from Radix OASIS blueprint component using Gateway API
@@ -1062,7 +1068,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAvatarByEmailAsync(email, version);
+                return await AvatarManager.Instance.LoadAvatarByEmailAsync(email, false, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
             // Query avatar by email from Radix OASIS blueprint component using Gateway API
@@ -1130,7 +1136,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAvatarByUsernameAsync(username, version);
+                return await AvatarManager.Instance.LoadAvatarAsync(username, false, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
             // Query avatar by username from Radix OASIS blueprint component using Gateway API
@@ -1198,7 +1204,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAvatarDetailAsync(id, version);
+                return await AvatarManager.Instance.LoadAvatarDetailAsync(id, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
             // Query avatar detail by ID from Radix OASIS blueprint component using Gateway API
@@ -1410,7 +1416,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             string avatarDetailId = avatarDetail.Id.ToString();
 
             // Get wallet for signing
-            var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatarDetail.AvatarId, ProviderType.Value);
+            var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatarDetail.Id, ProviderType.Value);
             if (walletResult.IsError || walletResult.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet for avatar detail");
@@ -1988,7 +1994,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await SearchManager.Instance.SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                return await SearchManager.Instance.SearchAsync(searchParams, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, null, true, loadChildren, recursive, maxChildDepth, continueOnError, version);
             }
 
             // Extract search query from searchParams
@@ -2094,7 +2100,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await HolonManager.Instance.LoadHolonAsync(id, Guid.Empty, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                return await HolonManager.Instance.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version);
             }
 
             // Query holon by ID from Radix OASIS blueprint component using Gateway API
@@ -2172,7 +2178,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await HolonManager.Instance.LoadHolonAsync(providerKey, Guid.Empty, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                return await HolonManager.Instance.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
             }
 
             // Query holon by provider key from Radix OASIS blueprint component using Gateway API
@@ -2250,7 +2256,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await HolonManager.Instance.LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                return await HolonManager.Instance.LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, curentChildDepth, HolonType.All, version, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
             }
 
             // Query holons for parent from Radix OASIS blueprint component using Gateway API
@@ -2328,7 +2334,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await HolonManager.Instance.LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                return await HolonManager.Instance.LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, curentChildDepth, HolonType.All, version, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
             }
 
             // First load the parent holon to get its ID
@@ -2373,7 +2379,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await HolonManager.Instance.LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                return await HolonManager.Instance.LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, curentChildDepth, HolonType.All, version, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
             }
 
             // Serialize metadata to JSON for query
@@ -2440,24 +2446,13 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
     {
         // Convert single key-value pair to dictionary and use the main method
         var metaKeyValuePairs = new Dictionary<string, string> { { metaKey, metaValue } };
-        return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.ExactMatch, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+        return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.All, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         // RadixOASIS focuses on bridge operations - delegate storage to ProviderManager
-        return HolonManager.Instance.LoadHolonsByMetaData(
-            metaKey,
-            metaValue,
-            holonType: type,
-            loadChildren: loadChildren,
-            recursive: recursive,
-            maxChildDepth: maxChildDepth,
-            continueOnError: continueOnError,
-            loadChildrenFromProvider: loadChildrenFromProvider,
-            currentChildDepth: curentChildDepth,
-            version: version,
-            providerType: Core.Enums.ProviderType.Default);
+        return HolonManager.Instance.LoadHolonsByMetaData(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, 0, HolonType.All, version, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
     }
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -2479,15 +2474,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await HolonManager.Instance.LoadAllHolonsAsync(
-                    holonType: type,
-                    loadChildren: loadChildren,
-                    recursive: recursive,
-                    maxChildDepth: maxChildDepth,
-                    continueOnError: continueOnError,
-                    loadChildrenFromProvider: loadChildrenFromProvider,
-                    currentChildDepth: curentChildDepth,
-                    version: version);
+                return await HolonManager.Instance.LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
             }
 
             // Query all holons from Radix OASIS blueprint component using Gateway API
@@ -2539,10 +2526,6 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             OASISErrorHandling.HandleError(ref result, $"Error loading holons from Radix: {ex.Message}", ex);
         }
         return result;
-            loadChildrenFromProvider: loadChildrenFromProvider,
-            childHolonType: HolonType.All,
-            version: version,
-            providerType: Core.Enums.ProviderType.Default);
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -2773,7 +2756,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await HolonManager.Instance.DeleteHolonAsync(id);
+                return await HolonManager.Instance.DeleteHolonAsync(id, Guid.Empty, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
             }
 
             // First load the holon to return it
@@ -2916,7 +2899,11 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await HolonManager.Instance.ImportAsync(holons);
+                var fallback = ProviderManager.Instance.GetStorageProvider(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
+                if (fallback != null && fallback != this)
+                    return await fallback.ImportAsync(holons);
+                OASISErrorHandling.HandleError(ref result, "No OASIS blueprint configured and no other storage provider available for Import fallback.");
+                return result;
             }
 
             // Serialize holons to JSON
@@ -3027,7 +3014,11 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.ExportAllDataForAvatarByIdAsync(avatarId, version);
+                var fallback = ProviderManager.Instance.GetStorageProvider(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
+                if (fallback != null && fallback != this)
+                    return await fallback.ExportAllDataForAvatarByIdAsync(avatarId, version);
+                OASISErrorHandling.HandleError(ref result, "No OASIS blueprint configured and no other storage provider available for ExportAllDataForAvatarById fallback.");
+                return result;
             }
 
             // Query export data for avatar from Radix OASIS blueprint component using Gateway API
@@ -3137,7 +3128,11 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await HolonManager.Instance.ExportAllAsync(version);
+                var fallback = ProviderManager.Instance.GetStorageProvider(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
+                if (fallback != null && fallback != this)
+                    return await fallback.ExportAllAsync(version);
+                OASISErrorHandling.HandleError(ref result, "No OASIS blueprint configured and no other storage provider available for ExportAll fallback.");
+                return result;
             }
 
             // Query all export data from Radix OASIS blueprint component using Gateway API
@@ -3203,7 +3198,11 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAvatarByProviderKeyAsync(providerKey, version);
+                var fallback = ProviderManager.Instance.GetStorageProvider(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
+                if (fallback != null && fallback != this)
+                    return await fallback.LoadAvatarByProviderKeyAsync(providerKey, version);
+                OASISErrorHandling.HandleError(ref result, "No OASIS blueprint configured and no other storage provider available for LoadAvatarByProviderKey fallback.");
+                return result;
             }
 
             // Query avatar by provider key from Radix OASIS blueprint component using Gateway API
@@ -3271,7 +3270,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAvatarDetailByEmailAsync(email, version);
+                return await AvatarManager.Instance.LoadAvatarDetailByEmailAsync(email, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
             // Query avatar detail by email from Radix OASIS blueprint component using Gateway API
@@ -3339,7 +3338,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAvatarDetailByUsernameAsync(username, version);
+                return await AvatarManager.Instance.LoadAvatarDetailByUsernameAsync(username, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
             // Query avatar detail by username from Radix OASIS blueprint component using Gateway API
@@ -3407,7 +3406,7 @@ public class RadixOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (string.IsNullOrEmpty(_config.OasisBlueprintAddress))
             {
                 // No blueprint configured - delegate to ProviderManager as fallback
-                return await AvatarManager.Instance.LoadAllAvatarDetailsAsync(version);
+                return await AvatarManager.Instance.LoadAllAvatarDetailsAsync(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default, version);
             }
 
             // Query all avatar details from Radix OASIS blueprint component using Gateway API

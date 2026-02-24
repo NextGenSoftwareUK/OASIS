@@ -166,7 +166,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                     var accountData = JsonSerializer.Deserialize<JsonElement>(responseContent);
                     
                     // Parse account data from EOSIO RPC response
-                    var account = new GetAccountResponseDto
+                    return new GetAccountResponseDto
                     {
                         AccountName = telosAccountName,
                         Created = accountData.TryGetProperty("created", out var created) ? created.GetString() : "",
@@ -175,14 +175,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                         NetWeight = accountData.TryGetProperty("net_weight", out var netWeight) ? netWeight.GetString() : "0 TLOS",
                         CpuWeight = accountData.TryGetProperty("cpu_weight", out var cpuWeight) ? cpuWeight.GetString() : "0 TLOS"
                     };
-                    
-                    return account;
                 }
-                else
-                {
-                    // Return empty account if not found
-                    return new GetAccountResponseDto { AccountName = telosAccountName };
-                }
+                return new GetAccountResponseDto { AccountName = telosAccountName };
             }
             catch
             {
@@ -1405,7 +1399,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                     var matchingHolons = allHolonsResult.Result.Where(h =>
                     {
                         if (h == null) return false;
-                        var searchText = (searchParams?.SearchGroups?.FirstOrDefault() as SearchTextGroup)?.SearchQuery?.ToLower() ?? "";
+                        var searchText = (searchParams?.SearchGroups?.FirstOrDefault() as NextGenSoftware.OASIS.API.Core.Objects.Search.ISearchTextGroup)?.SearchQuery?.ToLower() ?? "";
                         return (!string.IsNullOrEmpty(searchText) && (
                             h.Name?.ToLower().Contains(searchText) == true ||
                             h.Description?.ToLower().Contains(searchText) == true ||
@@ -1421,7 +1415,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                     var matchingAvatars = allAvatarsResult.Result.Where(a =>
                     {
                         if (a == null) return false;
-                        var searchText = (searchParams?.SearchGroups?.FirstOrDefault() as SearchTextGroup)?.SearchQuery?.ToLower() ?? "";
+                        var searchText = (searchParams?.SearchGroups?.FirstOrDefault() as NextGenSoftware.OASIS.API.Core.Objects.Search.ISearchTextGroup)?.SearchQuery?.ToLower() ?? "";
                         return (!string.IsNullOrEmpty(searchText) && (
                             a.Username?.ToLower().Contains(searchText) == true ||
                             a.Email?.ToLower().Contains(searchText) == true ||
@@ -1447,7 +1441,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                 searchResults.NumberOfResults = searchResults.SearchResultHolons.Count;
                 result.Result = searchResults;
                 result.IsError = false;
-                result.Message = $"Found {searchResults.NumberOfResults} results matching '{(searchParams?.SearchGroups?.FirstOrDefault() as SearchTextGroup)?.SearchQuery}'";
+                result.Message = $"Found {searchResults.NumberOfResults} results matching '{(searchParams?.SearchGroups?.FirstOrDefault() as NextGenSoftware.OASIS.API.Core.Objects.Search.ISearchTextGroup)?.SearchQuery}'";
             }
             catch (Exception ex)
             {
@@ -1925,7 +1919,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                                 name = holon.Name ?? "",
                                 description = holon.Description ?? "",
                                 holon_type = holon.HolonType.ToString(),
-                                parent_holon_id = holon.ParentHolonId == Guid.Empty ? "" : holon.ParentHolonId.ToString(),
+                                parent_holon_id = holon.ParentHolonId != Guid.Empty ? holon.ParentHolonId.ToString() : "",
                                 metadata = holon.MetaData != null ? JsonSerializer.Serialize(holon.MetaData) : "{}"
                             }
                         }
@@ -3736,6 +3730,66 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         }
 
         /// <summary>
+        /// Parse Telos blockchain response to Holon object
+        /// </summary>
+        private IHolon ParseTelosToHolon(JsonElement telosData)
+        {
+            try
+            {
+                var holon = new Holon();
+                
+                if (telosData.TryGetProperty("id", out var id))
+                    holon.Id = Guid.TryParse(id.GetString(), out var guid) ? guid : Guid.NewGuid();
+                
+                if (telosData.TryGetProperty("name", out var name))
+                    holon.Name = name.GetString();
+                
+                if (telosData.TryGetProperty("description", out var description))
+                    holon.Description = description.GetString();
+                
+                if (telosData.TryGetProperty("holon_type", out var holonType) || telosData.TryGetProperty("holonType", out holonType))
+                {
+                    if (Enum.TryParse<HolonType>(holonType.GetString(), out var type))
+                        holon.HolonType = type;
+                }
+                
+                if (telosData.TryGetProperty("parent_holon_id", out var parentId) || telosData.TryGetProperty("parentHolonId", out parentId))
+                {
+                    if (Guid.TryParse(parentId.GetString(), out var parentGuid))
+                        holon.ParentHolonId = parentGuid;
+                }
+                
+                if (telosData.TryGetProperty("created_date", out var createdDate) || telosData.TryGetProperty("createdDate", out createdDate))
+                {
+                    if (DateTime.TryParse(createdDate.GetString(), out var created))
+                        holon.CreatedDate = created;
+                }
+                
+                if (telosData.TryGetProperty("modified_date", out var modifiedDate) || telosData.TryGetProperty("modifiedDate", out modifiedDate))
+                {
+                    if (DateTime.TryParse(modifiedDate.GetString(), out var modified))
+                        holon.ModifiedDate = modified;
+                }
+                
+                // Parse metadata if present
+                if (telosData.TryGetProperty("metadata", out var metadata) || telosData.TryGetProperty("metaData", out metadata))
+                {
+                    holon.MetaData = new Dictionary<string, object>();
+                    foreach (var prop in metadata.EnumerateObject())
+                    {
+                        holon.MetaData[prop.Name] = prop.Value.GetString();
+                    }
+                }
+                
+                return holon;
+            }
+            catch (Exception)
+            {
+                return new Holon();
+            }
+        }
+
+        /// <summary>
         /// Parse Telos blockchain response to AvatarDetail object
         /// </summary>
         private IAvatarDetail ParseTelosToAvatarDetail(JsonElement telosData)
@@ -3775,38 +3829,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             {
                 var telosData = JsonSerializer.Deserialize<JsonElement>(telosJson);
                 return ParseTelosToHolon(telosData);
-            }
-            catch (Exception)
-            {
-                return new Holon();
-            }
-        }
-
-        /// <summary>
-        /// Parse Telos blockchain response to Holon object
-        /// </summary>
-        private IHolon ParseTelosToHolon(JsonElement telosData)
-        {
-            try
-            {
-                var holon = new Holon();
-                
-                if (telosData.TryGetProperty("id", out var id))
-                    holon.Id = Guid.TryParse(id.GetString(), out var guid) ? guid : Guid.NewGuid();
-                
-                if (telosData.TryGetProperty("name", out var name))
-                    holon.Name = name.GetString();
-                
-                if (telosData.TryGetProperty("description", out var description))
-                    holon.Description = description.GetString();
-                
-                if (telosData.TryGetProperty("holon_type", out var holonType) || telosData.TryGetProperty("holonType", out holonType))
-                {
-                    if (Enum.TryParse<HolonType>(holonType.GetString(), out var type))
-                        holon.HolonType = type;
-                }
-                
-                return holon;
             }
             catch (Exception)
             {

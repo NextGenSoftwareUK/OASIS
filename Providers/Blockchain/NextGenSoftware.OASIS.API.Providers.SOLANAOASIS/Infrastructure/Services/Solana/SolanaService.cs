@@ -24,7 +24,6 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     ];
 
 
-    //TODO: Finish porting!
     public async Task<OASISResult<decimal>> GetAccountBalanceAsync(IGetWeb3WalletBalanceRequest request)
     {
         OASISResult<decimal> result = new OASISResult<decimal>();

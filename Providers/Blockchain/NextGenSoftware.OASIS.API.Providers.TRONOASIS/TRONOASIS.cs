@@ -1664,7 +1664,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
@@ -1715,7 +1715,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
@@ -3114,7 +3114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 //    keyPair.WalletAddressLegacy = tronAddress;
                 //}
 
-                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.KeyPairAndWallet()
+                result.Result = new KeyPairAndWallet()
                 {                     
                     PrivateKey = privateKey,
                     PublicKey = publicKey,

@@ -131,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -189,7 +189,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -246,7 +246,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -302,7 +302,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -359,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -367,36 +367,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     }
                 }
 
-                // Load avatar detail from ActivityPub instance
+                // Load avatar detail from ActivityPub instance (parse as AvatarDetail, do not build from Avatar)
                 var apiUrl = $"{_instanceUrl}/api/v1/accounts/{id}";
-                
                 var httpResponse = await _httpClient.GetAsync(apiUrl);
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse ActivityPub JSON and create AvatarDetail object
-                    // Parse ActivityPub JSON and create Avatar object
-                    var avatar = ParseActivityPubToAvatar(content);
-                    if (avatar != null)
+                    var avatarDetail = ParseActivityPubToAvatarDetail(content);
+                    if (avatarDetail != null)
                     {
-                        // Convert Avatar to AvatarDetail
-                        var avatarDetail = new AvatarDetail
-                        {
-                            Id = avatar.Id,
-                            Username = avatar.Username,
-                            Email = avatar.Email,
-                            FirstName = avatar.Username, // Use username as first name for ActivityPub
-                            LastName = "", // ActivityPub doesn't have separate last name
-                            CreatedDate = avatar.CreatedDate,
-                            ModifiedDate = avatar.ModifiedDate,
-                            AvatarType = avatar.AvatarType,
-                            Description = avatar.Username, // Use username as description
-                            MetaData = avatar.MetaData
-                        };
-                        
                         response.Result = avatarDetail;
                         response.IsError = false;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        response.Message = "Avatar detail loaded from ActivityPub successfully";
                     }
                     else
                     {
@@ -430,7 +412,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -438,40 +420,28 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     }
                 }
 
-                // Load avatar detail by email from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/search?q={avatarEmail}";
-                
+                // Load avatar detail by email: search accounts then parse as AvatarDetail (do not build from Avatar)
+                var apiUrl = $"{_instanceUrl}/api/v1/accounts/search?q={Uri.EscapeDataString(avatarEmail)}";
                 var httpResponse = await _httpClient.GetAsync(apiUrl);
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse ActivityPub JSON and create AvatarDetail object
-                    // Parse ActivityPub JSON and create Avatar object
-                    var avatar = ParseActivityPubToAvatar(content);
-                    if (avatar != null)
+                    var avatarDetail = ParseActivityPubToAvatarDetail(content);
+                    if (avatarDetail != null && string.Equals(avatarDetail.Email, avatarEmail, StringComparison.OrdinalIgnoreCase))
                     {
-                        // Convert Avatar to AvatarDetail
-                        var avatarDetail = new AvatarDetail
-                        {
-                            Id = avatar.Id,
-                            Username = avatar.Username,
-                            Email = avatar.Email,
-                            FirstName = avatar.Username, // Use username as first name for ActivityPub
-                            LastName = "", // ActivityPub doesn't have separate last name
-                            CreatedDate = avatar.CreatedDate,
-                            ModifiedDate = avatar.ModifiedDate,
-                            AvatarType = avatar.AvatarType,
-                            Description = avatar.Username, // Use username as description
-                            MetaData = avatar.MetaData
-                        };
-                        
                         response.Result = avatarDetail;
                         response.IsError = false;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        response.Message = "Avatar detail loaded from ActivityPub by email successfully";
+                    }
+                    else if (avatarDetail != null)
+                    {
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded from ActivityPub search (email match best-effort)";
                     }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response or no match by email");
                     }
                 }
                 else
@@ -501,7 +471,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -509,36 +479,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     }
                 }
 
-                // Load avatar detail by username from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/lookup?acct={avatarUsername}";
-                
+                // Load avatar detail by username from ActivityPub instance (parse as AvatarDetail, do not build from Avatar)
+                var apiUrl = $"{_instanceUrl}/api/v1/accounts/lookup?acct={Uri.EscapeDataString(avatarUsername)}";
                 var httpResponse = await _httpClient.GetAsync(apiUrl);
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse ActivityPub JSON and create AvatarDetail object
-                    // Parse ActivityPub JSON and create Avatar object
-                    var avatar = ParseActivityPubToAvatar(content);
-                    if (avatar != null)
+                    var avatarDetail = ParseActivityPubToAvatarDetail(content);
+                    if (avatarDetail != null)
                     {
-                        // Convert Avatar to AvatarDetail
-                        var avatarDetail = new AvatarDetail
-                        {
-                            Id = avatar.Id,
-                            Username = avatar.Username,
-                            Email = avatar.Email,
-                            FirstName = avatar.Username, // Use username as first name for ActivityPub
-                            LastName = "", // ActivityPub doesn't have separate last name
-                            CreatedDate = avatar.CreatedDate,
-                            ModifiedDate = avatar.ModifiedDate,
-                            AvatarType = avatar.AvatarType,
-                            Description = avatar.Username, // Use username as description
-                            MetaData = avatar.MetaData
-                        };
-                        
                         response.Result = avatarDetail;
                         response.IsError = false;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        response.Message = "Avatar detail loaded from ActivityPub by username successfully";
                     }
                     else
                     {
@@ -572,7 +524,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -628,7 +580,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -636,30 +588,43 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     }
                 }
 
-                // Load all avatar details from ActivityPub instance
+                // Load all avatar details from accounts endpoint; parse each as AvatarDetail (do not build from Avatar)
                 var apiUrl = $"{_instanceUrl}/api/v1/accounts";
-                
                 var httpResponse = await _httpClient.GetAsync(apiUrl);
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse ActivityPub JSON and create AvatarDetail collection
-                    // Parse ActivityPub JSON and create Avatar object
-                    var avatar = ParseActivityPubToAvatar(content);
-                    if (avatar != null)
+                    var list = new List<IAvatarDetail>();
+                    try
                     {
-                        response.Result = new List<IAvatarDetail> { (IAvatarDetail)avatar };
-                        response.IsError = false;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        using var doc = JsonDocument.Parse(content);
+                        var root = doc.RootElement;
+                        if (root.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var item in root.EnumerateArray())
+                            {
+                                var detail = ParseActivityPubToAvatarDetail(item.GetRawText());
+                                if (detail != null) list.Add(detail);
+                            }
+                        }
+                        else
+                        {
+                            var detail = ParseActivityPubToAvatarDetail(content);
+                            if (detail != null) list.Add(detail);
+                        }
                     }
-                    else
+                    catch
                     {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                        var detail = ParseActivityPubToAvatarDetail(content);
+                        if (detail != null) list.Add(detail);
                     }
+                    response.Result = list;
+                    response.IsError = false;
+                    response.Message = $"Loaded {list.Count} avatar details from ActivityPub";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load all avatar details from ActivityPub instance: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar details from ActivityPub instance: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
@@ -684,7 +649,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -731,7 +696,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -778,7 +743,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -823,7 +788,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -868,7 +833,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -913,7 +878,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -965,7 +930,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1019,7 +984,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1073,7 +1038,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1127,7 +1092,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1174,7 +1139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1219,7 +1184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1268,7 +1233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1322,7 +1287,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1422,6 +1387,55 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 // Return null if parsing fails
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Parse ActivityPub Actor/Person JSON to AvatarDetail. Tries full deserialize first; then maps ActivityPub fields (id, preferredUsername, name, summary).
+        /// Avatar and AvatarDetail are separate; this does not build detail from an Avatar.
+        /// </summary>
+        private IAvatarDetail ParseActivityPubToAvatarDetail(string activityPubJson)
+        {
+            if (string.IsNullOrWhiteSpace(activityPubJson)) return null;
+            try
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+                var detail = JsonSerializer.Deserialize<AvatarDetail>(activityPubJson, options);
+                if (detail != null && detail.Id != Guid.Empty) return detail;
+            }
+            catch { /* fallback to Actor mapping */ }
+            try
+            {
+                using var doc = JsonDocument.Parse(activityPubJson);
+                var root = doc.RootElement;
+                var idStr = root.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
+                var preferredUsername = root.TryGetProperty("preferredUsername", out var pu) ? pu.GetString() : null;
+                var name = root.TryGetProperty("name", out var n) ? n.GetString() : null;
+                var summary = root.TryGetProperty("summary", out var s) ? s.GetString() : null;
+                var email = root.TryGetProperty("email", out var e) ? e.GetString() : null;
+                Guid id;
+                if (!string.IsNullOrEmpty(idStr) && Guid.TryParse(idStr, out id)) { }
+                else
+                {
+                    var input = idStr ?? preferredUsername ?? "activitypub";
+                    using var sha = System.Security.Cryptography.SHA256.Create();
+                    var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(input));
+                    var guidBytes = new byte[16];
+                    Array.Copy(hash, 0, guidBytes, 0, 16);
+                    id = new Guid(guidBytes);
+                }
+                return new AvatarDetail
+                {
+                    Id = id,
+                    Username = preferredUsername ?? name ?? idStr ?? "",
+                    Email = email ?? "",
+                    FirstName = name ?? preferredUsername ?? "",
+                    LastName = "",
+                    Description = summary ?? "",
+                    CreatedDate = default,
+                    ModifiedDate = default
+                };
+            }
+            catch { return null; }
         }
 
         /// <summary>
@@ -1548,7 +1562,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1638,7 +1652,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1709,7 +1723,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
@@ -1776,7 +1790,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");

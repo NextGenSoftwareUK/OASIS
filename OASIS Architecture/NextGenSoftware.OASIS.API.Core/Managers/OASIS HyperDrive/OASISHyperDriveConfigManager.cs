@@ -51,7 +51,12 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public OASISResult<bool> UpdateConfiguration(OASISHyperDriveConfig config)
         {
             var result = new OASISResult<bool>();
-
+            if (config == null)
+            {
+                result.IsError = true;
+                result.Message = "The configuration is required. Please provide a valid OASISHyperDriveConfig.";
+                return result;
+            }
             try
             {
                 lock (_lockObject)

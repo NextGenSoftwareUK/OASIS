@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -38,16 +39,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialBodies.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBodies = TestDataHelper.GetTestCelestialBodies(5).Cast<STARCelestialBody>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARCelestialBody>>(testBodies, "Celestial bodies retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARCelestialBody>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading celestial bodies: {ex.Message}",
-                    Exception = ex
-                });
+                    var testBodies = TestDataHelper.GetTestCelestialBodies(5).Cast<STARCelestialBody>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARCelestialBody>>(testBodies, "Celestial bodies retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARCelestialBody>>(ex, "GetAllCelestialBodies");
             }
         }
 
@@ -66,16 +76,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialBodies.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body retrieved successfully (using test data)"));
+                }
+                return HandleException<STARCelestialBody>(ex, "GetCelestialBody");
             }
         }
 
@@ -98,12 +117,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error creating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "creating celestial body");
             }
         }
 
@@ -128,12 +142,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error updating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "updating celestial body");
             }
         }
 
@@ -156,12 +165,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting celestial body");
             }
         }
 
@@ -271,19 +275,33 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialBody>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCelestialBodyWithOptions([FromBody] CreateCelestialBodyRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialBody> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.CelestialBodies.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body created successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error creating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body created successfully (using test data)"));
+                }
+                return HandleException<STARCelestialBody>(ex, "creating celestial body");
             }
         }
 
@@ -303,18 +321,30 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<STARCelestialBody>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
+
                 var result = await _starAPI.CelestialBodies.LoadAsync(AvatarId, id, version, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body loaded successfully (using test data)"));
+                }
+                return HandleException<STARCelestialBody>(ex, "loading celestial body");
             }
         }
 
@@ -333,18 +363,30 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<STARCelestialBody>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
+
                 var result = await _starAPI.CelestialBodies.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading celestial body from path: {ex.Message}",
-                    Exception = ex
-                });
+                    var testBody = TestDataHelper.GetTestCelestialBodies(1).FirstOrDefault() as STARCelestialBody;
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialBody>(testBody, "Celestial body loaded successfully (using test data)"));
+                }
+                return HandleException<STARCelestialBody>(ex, "loading celestial body from path");
             }
         }
 
@@ -367,12 +409,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial body from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "loading celestial body from published file");
             }
         }
 
@@ -418,6 +455,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialBody>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishCelestialBody(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialBody> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.CelestialBodies.PublishAsync(
@@ -434,12 +473,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error publishing celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "publishing celestial body");
             }
         }
 
@@ -465,12 +499,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error downloading celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARCelestialBody>(ex, "downloading celestial body");
             }
         }
 
@@ -522,12 +551,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial body version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "loading celestial body version");
             }
         }
 
@@ -544,6 +568,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialBody>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditCelestialBody(Guid id, [FromBody] EditCelestialBodyRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialBody> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.CelestialBodies.EditAsync(id, request.NewDNA, AvatarId);
@@ -551,12 +577,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error editing celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "editing celestial body");
             }
         }
 
@@ -580,12 +601,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "unpublishing celestial body");
             }
         }
 
@@ -609,12 +625,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error republishing celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "republishing celestial body");
             }
         }
 
@@ -638,12 +649,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error activating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "activating celestial body");
             }
         }
 
@@ -667,12 +673,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialBody>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating celestial body: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialBody>(ex, "deactivating celestial body");
             }
         }
     }

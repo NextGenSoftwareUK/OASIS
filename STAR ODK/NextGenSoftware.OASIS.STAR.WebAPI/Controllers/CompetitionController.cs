@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.WebAPI.Attributes;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -36,7 +37,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             [FromQuery] int limit = 100, 
             [FromQuery] int offset = 0)
         {
-            return await CompetitionManager.Instance.GetLeaderboardAsync(competitionType, seasonType, limit, offset);
+            try
+            {
+                var result = await CompetitionManager.Instance.GetLeaderboardAsync(competitionType, seasonType, limit, offset);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testEntries = new List<LeaderboardEntry>();
+                    return TestDataHelper.CreateSuccessResult<List<LeaderboardEntry>>(testEntries, "Leaderboard retrieved successfully (using test data)");
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testEntries = new List<LeaderboardEntry>();
+                    return TestDataHelper.CreateSuccessResult<List<LeaderboardEntry>>(testEntries, "Leaderboard retrieved successfully (using test data)");
+                }
+                return TestDataHelper.CreateErrorResult<List<LeaderboardEntry>>($"Error loading leaderboard: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
@@ -49,7 +72,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("my-rank/{competitionType}/{seasonType}")]
         public async Task<OASISResult<LeaderboardEntry>> GetMyRank(CompetitionType competitionType, SeasonType seasonType)
         {
-            return await CompetitionManager.Instance.GetAvatarRankAsync(Avatar.Id, competitionType, seasonType);
+            try
+            {
+                var result = await CompetitionManager.Instance.GetAvatarRankAsync(Avatar.Id, competitionType, seasonType);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return TestDataHelper.CreateSuccessResult<LeaderboardEntry>(null, "Rank retrieved successfully (using test data)");
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return TestDataHelper.CreateSuccessResult<LeaderboardEntry>(null, "Rank retrieved successfully (using test data)");
+                }
+                return TestDataHelper.CreateErrorResult<LeaderboardEntry>($"Error loading rank: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
@@ -62,7 +105,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("rank/{avatarId}/{competitionType}/{seasonType}")]
         public async Task<OASISResult<LeaderboardEntry>> GetAvatarRank(Guid avatarId, CompetitionType competitionType, SeasonType seasonType)
         {
-            return await CompetitionManager.Instance.GetAvatarRankAsync(avatarId, competitionType, seasonType);
+            try
+            {
+                var result = await CompetitionManager.Instance.GetAvatarRankAsync(avatarId, competitionType, seasonType);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return TestDataHelper.CreateSuccessResult<LeaderboardEntry>(null, "Rank retrieved successfully (using test data)");
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return TestDataHelper.CreateSuccessResult<LeaderboardEntry>(null, "Rank retrieved successfully (using test data)");
+                }
+                return TestDataHelper.CreateErrorResult<LeaderboardEntry>($"Error loading rank: {ex.Message}", ex);
+            }
         }
 
         #endregion

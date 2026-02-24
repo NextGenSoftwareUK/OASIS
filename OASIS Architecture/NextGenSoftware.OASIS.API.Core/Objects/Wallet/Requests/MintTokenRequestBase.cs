@@ -13,6 +13,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests
         public string Title { get; set; }
         public string Description { get; set; }
         public string MemoText { get; set; }
+        public decimal Amount { get; set; }
         //public EnumValue<ProviderType> ProviderType { get; set; }
     }
 }

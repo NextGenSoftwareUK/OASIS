@@ -305,15 +305,84 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe(long latitude, long longitude, int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IPlayer>>();
-            OASISErrorHandling.HandleError(ref response, "GetPlayersNearMe is not supported by Aptos blockchain provider");
-            return response;
+            // Players are avatars, so get avatars and convert to players
+            var avatarsResult = GetAvatarsNearMe(latitude, longitude, version);
+            if (avatarsResult.IsError || avatarsResult.Result == null)
+            {
+                return new OASISResult<IEnumerable<IPlayer>>
+                {
+                    IsError = avatarsResult.IsError,
+                    Message = avatarsResult.Message
+                };
+            }
+            
+            // Convert avatars to players
+            var players = avatarsResult.Result.Where(a => a is IPlayer).Cast<IPlayer>().ToList();
+            return new OASISResult<IEnumerable<IPlayer>>
+            {
+                Result = players,
+                IsError = false,
+                Message = $"Found {players.Count} players near location"
+            };
         }
 
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long latitude, long longitude, int version = 0, HolonType holonType = HolonType.All)
+        {   
+            return GetHolonsNearMeAsync(latitude, longitude, holonType, version).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(long latitude, long longitude, HolonType type, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref response, "GetHolonsNearMe is not supported by Aptos blockchain provider");
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load all holons and filter by geospatial distance
+                var allHolonsResult = await LoadAllHolonsAsync(type, version: version);
+                if (allHolonsResult.IsError || allHolonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons: {allHolonsResult.Message}");
+                    return response;
+                }
+
+                // Filter holons by geospatial distance (using metadata for location)
+                var nearbyHolons = new List<IHolon>();
+                var centerLat = latitude / 1000000.0; // Convert from microdegrees to degrees
+                var centerLon = longitude / 1000000.0;
+                const int radiusInMeters = 10000; // Default 10km radius
+
+                foreach (var holon in allHolonsResult.Result)
+                {
+                    if (holon.MetaData != null && 
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lonObj))
+                    {
+                        if (double.TryParse(latObj?.ToString(), out var holonLat) &&
+                            double.TryParse(lonObj?.ToString(), out var holonLon))
+                        {
+                            var distance = GeoHelper.CalculateDistance(centerLat, centerLon, holonLat, holonLon);
+                            if (distance <= radiusInMeters)
+                            {
+                                nearbyHolons.Add(holon);
+                            }
+                        }
+                    }
+                }
+
+                response.Result = nearbyHolons;
+                response.IsError = false;
+                response.Message = $"Found {nearbyHolons.Count} holons near location";
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error getting holons near location: {ex.Message}");
+            }
             return response;
         }
 
@@ -3103,7 +3172,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 //}
 
                 //result.Result = keyPair;
-                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.KeyPairAndWallet
+                result.Result = new KeyPairAndWallet
                 {
                     PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
                     PublicKey = account.PublicKey.Key,
@@ -3723,7 +3792,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         {
                             request.FromWalletAddress,
                             request.ToWalletAddress,
-                            request.TokenId ?? CreateDeterministicGuid($"{ProviderType.Value}:nft:{request.FromWalletAddress}:{request.ToWalletAddress}").ToString(), // Use token ID from request
+                            request.TokenId ?? request.FromNFTTokenAddress ?? CreateDeterministicGuid($"{ProviderType.Value}:nft:{request.FromWalletAddress}:{request.ToWalletAddress}").ToString(), // Use NFT ID from request
                             "1" // quantity
                         }
                     };
@@ -3741,7 +3810,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
                         // Extract NFT ID and transaction hash from response
                         var txHash = transactionResult?.GetProperty("hash")?.GetString() ?? "";
-                        var nftIdStr = request.TokenId ?? "";
+                        var nftIdStr = request.TokenId ?? request.FromNFTTokenAddress ?? "";
                         Guid nftId;
                         if (!Guid.TryParse(nftIdStr, out nftId))
                         {
@@ -3753,6 +3822,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         response.Result = new Web3NFTTransactionResponse
                         {
                             TransactionResult = txHash,
+                            SendNFTTransactionResult = txHash,
                             Web3NFT = new Web3NFT
                             {
                                 Id = nftId,
@@ -3789,7 +3859,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
@@ -3921,7 +3991,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
