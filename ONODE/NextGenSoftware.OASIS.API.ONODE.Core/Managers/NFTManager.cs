@@ -1107,6 +1107,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForAvatarFromAllProvidersAsync(Guid avatarId)
+        {
+            return await LoadAllWeb4NFTsForAvatarAsync(avatarId, ProviderType.Default);
+        }
+
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsForMintAddressFromAllProvidersAsync(string mintWalletAddress)
+        {
+            return await LoadAllWeb4NFTsForMintAddressAsync(mintWalletAddress, ProviderType.Default);
+        }
+
         public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> LoadAllWeb4GeoNFTsForAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IWeb4GeoSpatialNFT>> result = new OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>();
