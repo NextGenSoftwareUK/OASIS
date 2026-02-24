@@ -14,6 +14,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests
         public string Title { get; set; }
         public string Description { get; set; }
         public string MemoText { get; set; }
+        public decimal Amount { get; set; }
+        //public string ToWalletAddress { get; set; }
         //public EnumValue<ProviderType> ProviderType { get; set; }
     }
 }

@@ -9,6 +9,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using System.Threading;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -21,6 +23,28 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class InventoryItemsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
+
+        private static async Task EnsureStarApiBootedAsync()
+        {
+            if (_starAPI.IsOASISBooted)
+                return;
+
+            await _bootLock.WaitAsync();
+            try
+            {
+                if (_starAPI.IsOASISBooted)
+                    return;
+
+                var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                if (boot.IsError)
+                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Retrieves all inventory items in the system.
@@ -35,15 +59,34 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.InventoryItems.LoadAllAsync(AvatarId, 0);
+                OASISResult<IEnumerable<InventoryItem>> result = null;
+                if (AvatarId != Guid.Empty)
+                {
+                    await EnsureStarApiBootedAsync();
+                    result = await _starAPI.InventoryItems.LoadAllAsync(AvatarId, 0);
+                }
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testItems = TestDataHelper.GetTestInventoryItems(5).Cast<InventoryItem>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<InventoryItem>>(testItems, "Inventory items retrieved successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    var testItems = TestDataHelper.GetTestInventoryItems(5).Cast<InventoryItem>().ToList();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<InventoryItem>>(testItems, "Inventory items retrieved successfully (using test data)"));
+                }
                 return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
                 {
                     IsError = true,
-                    Message = $"Error loading inventory items: {ex.Message}",
+                    Message = $"Error loading inventory items for AvatarId {AvatarId}: {ex.Message}",
                     Exception = ex
                 });
             }
@@ -64,16 +107,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.InventoryItems.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testItem = TestDataHelper.GetTestInventoryItem(id) as InventoryItem;
+                    return Ok(TestDataHelper.CreateSuccessResult<InventoryItem>(testItem, "Inventory item retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                    var testItem = TestDataHelper.GetTestInventoryItem(id) as InventoryItem;
+                    return Ok(TestDataHelper.CreateSuccessResult<InventoryItem>(testItem, "Inventory item retrieved successfully (using test data)"));
+                }
+                return HandleException<InventoryItem>(ex, "loading inventory item");
             }
         }
 
@@ -91,6 +143,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await _starAPI.InventoryItems.UpdateAsync(AvatarId, (InventoryItem)item);
                 return Ok(result);
             }
@@ -99,7 +152,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<InventoryItem>
                 {
                     IsError = true,
-                    Message = $"Error creating inventory item: {ex.Message}",
+                    Message = $"Error creating inventory item for AvatarId {AvatarId}: {ex}",
                     Exception = ex
                 });
             }
@@ -116,12 +169,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error updating inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "updating inventory item");
             }
         }
 
@@ -130,17 +178,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.DeleteAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting inventory item");
             }
         }
 
@@ -175,8 +219,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<InventoryItem>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateInventoryItemWithOptions([FromBody] CreateInventoryItemRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<InventoryItem> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
@@ -185,7 +235,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<InventoryItem>
                 {
                     IsError = true,
-                    Message = $"Error creating inventory item: {ex.Message}",
+                    Message = $"Error creating inventory item for AvatarId {AvatarId}: {ex}",
                     Exception = ex
                 });
             }
@@ -207,18 +257,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<InventoryItem>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.InventoryItems.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error loading inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "loading inventory item");
             }
         }
 
@@ -237,18 +284,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<InventoryItem>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.InventoryItems.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error loading inventory item from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "loading inventory item from path");
             }
         }
 
@@ -271,12 +315,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error loading inventory item from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "loading inventory item from published file");
             }
         }
 
@@ -295,7 +334,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (AvatarId == Guid.Empty)
+                {
+                    return BadRequest(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    });
+                }
+
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.InventoryItems.LoadAllForAvatarAsync(AvatarId, showAllVersions, version);
+                
+                // Ensure result is properly initialized
+                if (result == null)
+                {
+                    return Ok(new OASISResult<IEnumerable<InventoryItem>>
+                    {
+                        IsError = false,
+                        Result = new List<InventoryItem>(),
+                        Message = "No inventory items found for avatar."
+                    });
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
@@ -322,6 +383,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<InventoryItem>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishInventoryItem(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<InventoryItem> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.InventoryItems.PublishAsync(
@@ -338,12 +401,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error publishing inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "publishing inventory item");
             }
         }
 
@@ -369,12 +427,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedInventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error downloading inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedInventoryItem>(ex, "downloading inventory item");
             }
         }
 
@@ -426,12 +479,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error loading inventory item version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "loading inventory item version");
             }
         }
 
@@ -448,6 +496,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<InventoryItem>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditInventoryItem(Guid id, [FromBody] EditInventoryItemRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<InventoryItem> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.InventoryItems.EditAsync(id, request.NewDNA, AvatarId);
@@ -455,12 +505,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error editing inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "editing inventory item");
             }
         }
 
@@ -484,12 +529,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "unpublishing inventory item");
             }
         }
 
@@ -513,12 +553,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error republishing inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "republishing inventory item");
             }
         }
 
@@ -542,12 +577,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error activating inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "activating inventory item");
             }
         }
 
@@ -571,12 +601,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<InventoryItem>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating inventory item: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<InventoryItem>(ex, "deactivating inventory item");
             }
         }
 
@@ -592,6 +617,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<InventoryItem>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchInventoryItems([FromBody] SearchRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<IEnumerable<InventoryItem>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
                 var result = await _starAPI.InventoryItems.SearchAsync<InventoryItem>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true, false, 0);
@@ -615,7 +642,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.InventoryItem;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<InventoryItem, STARNETDNA> CreateOptions { get; set; } = null;
+        public ISTARNETCreateOptions<InventoryItem, STARNETDNA>? CreateOptions { get; set; } = null;
     }
 
     public class EditInventoryItemRequest

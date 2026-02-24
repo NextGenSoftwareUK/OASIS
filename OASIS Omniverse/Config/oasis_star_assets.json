@@ -1,0 +1,102 @@
+{
+  "description": "OASIS STAR API cross-game asset catalog for placing ODOOM/OQUAKE assets in maps. Used by UDBScript and map converter.",
+  "version": "1.0",
+  "odoom": {
+    "keycards": [
+      { "id": "blue_keycard", "name": "Blue Keycard", "doomThingType": 5, "category": "key" },
+      { "id": "red_keycard", "name": "Red Keycard", "doomThingType": 13, "category": "key" },
+      { "id": "yellow_keycard", "name": "Yellow Keycard", "doomThingType": 6, "category": "key" },
+      { "id": "skull_red", "name": "Red Skull Key", "doomThingType": 38, "category": "key" },
+      { "id": "skull_blue", "name": "Blue Skull Key", "doomThingType": 39, "category": "key" },
+      { "id": "skull_yellow", "name": "Yellow Skull Key", "doomThingType": 40, "category": "key" }
+    ],
+    "weapons": [
+      { "id": "shotgun", "name": "Shotgun", "doomThingType": 2001, "category": "weapon" },
+      { "id": "chaingun", "name": "Chaingun", "doomThingType": 2002, "category": "weapon" },
+      { "id": "rocket_launcher", "name": "Rocket Launcher", "doomThingType": 2003, "category": "weapon" },
+      { "id": "plasma_rifle", "name": "Plasma Rifle", "doomThingType": 2004, "category": "weapon" },
+      { "id": "chainsaw", "name": "Chainsaw", "doomThingType": 2005, "category": "weapon" },
+      { "id": "bfg9000", "name": "BFG 9000", "doomThingType": 2006, "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "clip", "name": "Clip", "doomThingType": 2007, "category": "ammo" },
+      { "id": "shells", "name": "Shells", "doomThingType": 2008, "category": "ammo" },
+      { "id": "rocket", "name": "Rocket", "doomThingType": 2010, "category": "ammo" },
+      { "id": "cell", "name": "Cell", "doomThingType": 2047, "category": "ammo" },
+      { "id": "cell_pack", "name": "Cell Pack", "doomThingType": 2048, "category": "ammo" },
+      { "id": "ammo_box", "name": "Ammo Box", "doomThingType": 2049, "category": "ammo" }
+    ],
+    "health": [
+      { "id": "medikit", "name": "Medikit", "doomThingType": 2011, "category": "health" },
+      { "id": "stimpack", "name": "Stimpack", "doomThingType": 2012, "category": "health" },
+      { "id": "soul_sphere", "name": "Soul Sphere", "doomThingType": 2013, "category": "health" },
+      { "id": "health_potion", "name": "Health Potion", "doomThingType": 2014, "category": "health" },
+      { "id": "armor_bonus", "name": "Armor Bonus", "doomThingType": 2015, "category": "health" },
+      { "id": "armor_helmet", "name": "Armor Helmet", "doomThingType": 2016, "category": "health" }
+    ],
+    "monsters": [
+      { "id": "zombieman", "name": "Zombieman", "doomThingType": 3004, "category": "monster" },
+      { "id": "sergeant", "name": "Sergeant", "doomThingType": 9, "category": "monster" },
+      { "id": "imp", "name": "Imp", "doomThingType": 3001, "category": "monster" },
+      { "id": "demon", "name": "Demon", "doomThingType": 3002, "category": "monster" },
+      { "id": "spectre", "name": "Spectre", "doomThingType": 58, "category": "monster" },
+      { "id": "cacodemon", "name": "Cacodemon", "doomThingType": 3005, "category": "monster" },
+      { "id": "baron", "name": "Baron of Hell", "doomThingType": 3003, "category": "monster" },
+      { "id": "hell_knight", "name": "Hell Knight", "doomThingType": 69, "category": "monster" },
+      { "id": "lost_soul", "name": "Lost Soul", "doomThingType": 3006, "category": "monster" },
+      { "id": "revenant", "name": "Revenant", "doomThingType": 65, "category": "monster" },
+      { "id": "mancubus", "name": "Mancubus", "doomThingType": 66, "category": "monster" },
+      { "id": "arch_vile", "name": "Arch-Vile", "doomThingType": 64, "category": "monster" },
+      { "id": "pain_elemental", "name": "Pain Elemental", "doomThingType": 68, "category": "monster" },
+      { "id": "arachnotron", "name": "Arachnotron", "doomThingType": 67, "category": "monster" },
+      { "id": "spider_mastermind", "name": "Spider Mastermind", "doomThingType": 7, "category": "monster" },
+      { "id": "cyberdemon", "name": "Cyberdemon", "doomThingType": 16, "category": "monster" }
+    ]
+  },
+  "oquake": {
+    "keycards": [
+      { "id": "silver_key", "name": "Silver Key", "quakeClassname": "key_silver", "category": "key", "doomEquivalent": "red_keycard" },
+      { "id": "gold_key", "name": "Gold Key", "quakeClassname": "key_gold", "category": "key", "doomEquivalent": "blue_keycard" }
+    ],
+    "weapons": [
+      { "id": "shotgun", "name": "Shotgun", "quakeClassname": "weapon_shotgun", "category": "weapon" },
+      { "id": "supershotgun", "name": "Super Shotgun", "quakeClassname": "weapon_supershotgun", "category": "weapon" },
+      { "id": "nailgun", "name": "Nailgun", "quakeClassname": "weapon_nailgun", "category": "weapon" },
+      { "id": "supernailgun", "name": "Super Nailgun", "quakeClassname": "weapon_supernailgun", "category": "weapon" },
+      { "id": "grenadelauncher", "name": "Grenade Launcher", "quakeClassname": "weapon_grenadelauncher", "category": "weapon" },
+      { "id": "rocketlauncher", "name": "Rocket Launcher", "quakeClassname": "weapon_rocketlauncher", "category": "weapon" },
+      { "id": "lightning", "name": "Thunderbolt", "quakeClassname": "weapon_lightning", "category": "weapon" }
+    ],
+    "ammo": [
+      { "id": "shells", "name": "Shells", "quakeClassname": "item_shells", "category": "ammo" },
+      { "id": "spikes", "name": "Nails", "quakeClassname": "item_spikes", "category": "ammo" },
+      { "id": "rockets", "name": "Rockets", "quakeClassname": "item_rockets", "category": "ammo" },
+      { "id": "cells", "name": "Cells", "quakeClassname": "item_cells", "category": "ammo" }
+    ],
+    "health": [
+      { "id": "health", "name": "Health", "quakeClassname": "item_health", "category": "health" },
+      { "id": "health_small", "name": "Small Health", "quakeClassname": "item_health_small", "category": "health" },
+      { "id": "armor1", "name": "Green Armor", "quakeClassname": "item_armor1", "category": "health" },
+      { "id": "armor2", "name": "Yellow Armor", "quakeClassname": "item_armor2", "category": "health" },
+      { "id": "armorInv", "name": "Mega Armor", "quakeClassname": "item_armorInv", "category": "health" }
+    ],
+    "monsters": [
+      { "id": "grunt", "name": "Grunt", "quakeClassname": "monster_grunt", "category": "monster" },
+      { "id": "ogre", "name": "Ogre", "quakeClassname": "monster_ogre", "category": "monster" },
+      { "id": "demon", "name": "Demon", "quakeClassname": "monster_demon", "category": "monster" },
+      { "id": "dog", "name": "Rottweiler", "quakeClassname": "monster_dog", "category": "monster" },
+      { "id": "shambler", "name": "Shambler", "quakeClassname": "monster_shambler", "category": "monster" },
+      { "id": "zombie", "name": "Zombie", "quakeClassname": "monster_zombie", "category": "monster" },
+      { "id": "hell_knight", "name": "Hell Knight", "quakeClassname": "monster_hell_knight", "category": "monster" },
+      { "id": "enforcer", "name": "Enforcer", "quakeClassname": "monster_enforcer", "category": "monster" },
+      { "id": "fish", "name": "Fish", "quakeClassname": "monster_fish", "category": "monster" },
+      { "id": "spawn", "name": "Spawn", "quakeClassname": "monster_spawn", "category": "monster" }
+    ]
+  },
+  "crossGameMapping": {
+    "key_silver_to_doom": 13,
+    "key_gold_to_doom": 5,
+    "red_keycard_to_quake": "key_silver",
+    "blue_keycard_to_quake": "key_gold"
+  }
+}

@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
-using Cryptography.ECDSA;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
@@ -25,13 +24,13 @@ using Solnet.Rpc.Builders;
 using Solnet.Rpc.Models;
 using Solnet.Rpc.Utilities;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Utilities;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using Newtonsoft.Json;
 using NextGenSoftware.Utilities.ExtentionMethods;
 using System.Linq;
@@ -84,153 +83,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolanaOASIS);
         this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         this._rpcClient = ClientFactory.GetClient(hostUri);
-        
-        Console.WriteLine($"=== SOLANAOASIS CONSTRUCTOR ===");
-        Console.WriteLine($"HostUri: {hostUri}");
-        Console.WriteLine($"PrivateKey (first 20): {privateKey?.Substring(0, Math.Min(20, privateKey?.Length ?? 0))}...");
-        Console.WriteLine($"PrivateKey (last 20): ...{privateKey?.Substring(Math.Max(0, (privateKey?.Length ?? 0) - 20))}");
-        Console.WriteLine($"PrivateKey Length: {privateKey?.Length ?? 0}");
-        Console.WriteLine($"PublicKey: {publicKey}");
-        
-        // Create Account from private and public key strings (Base58 format)
-        // Test harness approach: Create PrivateKey and PublicKey objects first, then use their .Key properties
-        // This ensures proper Base58 decoding and validation
-        try
-        {
-            // IMPORTANT: Match the test harness approach exactly!
-            // Test harness: Creates PrivateKey from Base58 of full 64-byte keypair, then uses PrivateKey.Key for Account constructor
-            // The Account constructor expects the Base58 string of the FULL 64-byte keypair, not a 32-byte private key
-            PrivateKey privateKeyObj;
-            PublicKey publicKeyObj;
-            
-            // CRITICAL DISCOVERY: PrivateKey.KeyBytes fails with "Invalid base58 data" when the Base58 string is a 64-byte keypair
-            // The test harness works, but we're getting the same error. The issue is that Solnet.Wallet.PrivateKey
-            // can't decode a 64-byte keypair Base58 string when accessing KeyBytes.
-            // 
-            // SOLUTION: Decode the Base58 string ourselves, extract the 32-byte private key, and create Account from bytes
-            // OR: Use the Account constructor that accepts byte arrays if available
-            // OR: The Account might need the Base58 string but decode it differently internally
-            
-            // CRITICAL: Match the test harness approach EXACTLY
-            // Test harness: Base64 -> bytes -> Base58 (using Cryptography.ECDSA.Base58) -> PrivateKey -> PrivateKey.Key
-            // The test harness passes PrivateKey.Key (Base58 of full 64-byte keypair) to Account constructor
-            byte[] keyBytes;
-            string base58Key;
-            
-            try
-            {
-                // Check if the key is Base64 (contains +, /, or =) or Base58
-                bool isBase64 = privateKey.Contains('+') || privateKey.Contains('/') || privateKey.EndsWith("==") || privateKey.EndsWith("=");
-                
-                if (isBase64)
-                {
-                    Console.WriteLine($"⚠️  INFO: PrivateKey appears to be Base64 format. Converting to Base58 (matching test harness)...");
-                    // Step 1: Decode Base64 to bytes (same as test harness)
-                    keyBytes = Convert.FromBase64String(privateKey);
-                    Console.WriteLine($"✅ Base64 decoded to bytes. Length: {keyBytes?.Length ?? 0} bytes");
-                    
-                    // Step 2: Encode bytes to Base58 using Cryptography.ECDSA.Base58 (SAME as test harness)
-                    // If Cryptography.ECDSA is not available, fallback to NBitcoin
-                    try
-                    {
-                        base58Key = Cryptography.ECDSA.Base58.Encode(keyBytes);
-                        Console.WriteLine($"✅ Converted to Base58 using Cryptography.ECDSA.Base58. Length: {base58Key?.Length ?? 0}");
-                    }
-                    catch
-                    {
-                        // Fallback to NBitcoin if Cryptography.ECDSA is not available
-                        base58Key = NBitcoin.DataEncoders.Encoders.Base58.EncodeData(keyBytes);
-                        Console.WriteLine($"✅ Converted to Base58 using NBitcoin (fallback). Length: {base58Key?.Length ?? 0}");
-                    }
-                }
-                else
-                {
-                    // Already Base58, use it directly
-                    base58Key = privateKey;
-                    Console.WriteLine($"✅ PrivateKey is already Base58 format. Length: {base58Key?.Length ?? 0}");
-                }
-                
-                // Step 3: Create PrivateKey from Base58 string (SAME as test harness: new PrivateKey(_privateKeyBase58))
-                // This Base58 string represents the FULL 64-byte keypair, not just the 32-byte private key
-                privateKeyObj = new PrivateKey(base58Key);
-                Console.WriteLine($"✅ Created PrivateKey from Base58 string. Key length: {privateKeyObj.Key?.Length ?? 0}");
-                
-                // Step 4: Use PrivateKey.Key (Base58 of full 64-byte keypair) for Account constructor
-                // This is exactly what the test harness does: TestData.PrivateKey.Key
-            }
-            catch (Exception decodeEx)
-            {
-                Console.WriteLine($"❌ ERROR: Failed to process PrivateKey: {decodeEx.GetType().FullName}: {decodeEx.Message}");
-                if (decodeEx.InnerException != null)
-                    Console.WriteLine($"   Inner: {decodeEx.InnerException.GetType().FullName}: {decodeEx.InnerException.Message}");
-                throw new Exception($"Invalid PrivateKey: {decodeEx.Message}", decodeEx);
-            }
-            
-            try
-            {
-                publicKeyObj = new PublicKey(publicKey);
-                Console.WriteLine($"✅ PublicKey object created. Key: {publicKeyObj.Key}");
-            }
-            catch (Exception pubEx)
-            {
-                Console.WriteLine($"❌ ERROR: Failed to create PublicKey object: {pubEx.GetType().FullName}: {pubEx.Message}");
-                throw new Exception($"Invalid PublicKey Base58 string: {pubEx.Message}", pubEx);
-            }
-            
-            // Use PrivateKey.Key (Base58 of full 64-byte keypair) - EXACTLY like test harness does
-            // Test harness: new SolanaOASIS(TestData.HostUri, TestData.PrivateKey.Key, TestData.PublicKey.Key)
-            string privateKeyToUse = privateKeyObj.Key;
-            Console.WriteLine($"Using PrivateKey.Key (Base58 of full 64-byte keypair, matching test harness). Length: {privateKeyToUse?.Length ?? 0}");
-            
-            // Create Account using PrivateKey.Key (Base58 of full 64-byte keypair) and PublicKey.Key
-            // This matches the test harness approach exactly
-            try
-            {
-                this._oasisSolanaAccount = new Account(privateKeyToUse, publicKeyObj.Key);
-                Console.WriteLine($"✅ Account created using PrivateKey.Key (Base58 of full 64-byte keypair) and PublicKey.Key");
-                Console.WriteLine($"✅ Account created successfully. PublicKey: {this._oasisSolanaAccount.PublicKey.Key}");
-            }
-            catch (Exception accountEx)
-            {
-                Console.WriteLine($"❌ ERROR: Failed to create Account: {accountEx.GetType().FullName}: {accountEx.Message}");
-                if (accountEx.InnerException != null)
-                    Console.WriteLine($"   Inner: {accountEx.InnerException.GetType().FullName}: {accountEx.InnerException.Message}");
-                throw new Exception($"Failed to create Account: {accountEx.Message}", accountEx);
-            }
-            
-            // CRITICAL: Verify the Account's PrivateKey can be used for signing
-            // This is where the "Invalid base58 data" error occurs
-            // NOTE: We log the error but don't throw, so the provider can still be created
-            // This allows us to debug the signing issue without preventing provider registration
-            try
-            {
-                byte[] testMessage = new byte[] { 1, 2, 3 };
-                byte[] signature = this._oasisSolanaAccount.Sign(testMessage);
-                Console.WriteLine($"✅ Account signing test successful! Signature length: {signature?.Length ?? 0}");
-            }
-            catch (Exception signEx)
-            {
-                Console.WriteLine($"⚠️  WARNING: Account signing test FAILED (provider will still be created): {signEx.GetType().FullName}: {signEx.Message}");
-                if (signEx.InnerException != null)
-                    Console.WriteLine($"   Inner: {signEx.InnerException.GetType().FullName}: {signEx.InnerException.Message}");
-                Console.WriteLine($"   This error will occur during NFT minting. Provider created but signing will fail.");
-                Console.WriteLine($"   PrivateKey Base58 string length: {privateKeyToUse?.Length ?? 0}");
-                // DON'T throw - allow provider to be created so we can debug further
-                // The signing error will occur during actual minting, which we can then debug
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"=== ERROR CREATING ACCOUNT ===");
-            Console.WriteLine($"Exception Type: {ex.GetType().FullName}");
-            Console.WriteLine($"Message: {ex.Message}");
-            if (ex.InnerException != null)
-                Console.WriteLine($"Inner: {ex.InnerException.GetType().FullName}: {ex.InnerException.Message}");
-            Console.WriteLine($"Stack: {ex.StackTrace}");
-            Console.WriteLine($"=== END ERROR ===");
-            throw;
-        }
-        Console.WriteLine($"=== END CONSTRUCTOR ===");
+        this._oasisSolanaAccount = new(privateKey, publicKey);
 
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
@@ -244,55 +97,16 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         try
         {
-            // Validate Account was created successfully
-            if (_oasisSolanaAccount == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "SolanaOASIS Account is null. Provider was not initialized correctly. Check PrivateKey and PublicKey in OASIS_DNA.json.");
-                return result;
-            }
-
-            // Validate RPC client
-            if (_rpcClient == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana RPC client is null. Check ConnectionString in OASIS_DNA.json.");
-                return result;
-            }
-
-            Console.WriteLine($"=== ACTIVATING SOLANAOASIS PROVIDER ===");
-            Console.WriteLine($"Account PublicKey: {_oasisSolanaAccount.PublicKey.Key}");
-            Console.WriteLine($"RPC Client: {(_rpcClient != null ? "NOT NULL" : "NULL")}");
-
             _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
             _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
-
-            // Verify service was created
-            if (_solanaService == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Failed to create SolanaService. Check Account and RPC client.");
-                return result;
-            }
-
-            Console.WriteLine($"SolanaService created successfully");
-            Console.WriteLine($"=== PROVIDER ACTIVATED SUCCESSFULLY ===");
 
             result.Result = true;
             IsProviderActivated = true;
         }
         catch (Exception e)
         {
-            Console.WriteLine($"=== ERROR ACTIVATING SOLANAOASIS PROVIDER ===");
-            Console.WriteLine($"Exception Type: {e.GetType().FullName}");
-            Console.WriteLine($"Message: {e.Message}");
-            if (e.InnerException != null)
-            {
-                Console.WriteLine($"Inner Exception Type: {e.InnerException.GetType().FullName}");
-                Console.WriteLine($"Inner Message: {e.InnerException.Message}");
-            }
-            Console.WriteLine($"Stack Trace: {e.StackTrace}");
-            Console.WriteLine($"=== END ACTIVATION ERROR ===");
-            
             OASISErrorHandling.HandleError(ref result,
-                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e.Message}. Inner: {(e.InnerException != null ? e.InnerException.Message : "None")}", e);
+                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e}");
         }
 
         return result;
@@ -1010,7 +824,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             // Delete avatar from Solana program
             // Real Solana implementation: Load avatar first to get provider key, then delete
-            var avatarResult = await LoadAvatarAsync(id);
+            var avatarResult = await LoadAvatarAsync(id, 0);
             if (avatarResult.IsError || avatarResult.Result == null)
             {
                 OASISErrorHandling.HandleError(ref result, $"Avatar not found for deletion: {avatarResult.Message}");
@@ -1247,9 +1061,10 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                         try
                         {
                             // Parse account data to check if it's a holon with matching ID
-                            var accountDataString = GetAccountDataAsString(account.Account.Data);
-                            if (!string.IsNullOrEmpty(accountDataString))
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Count > 0)
                             {
+                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
                                 var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
                                 
                                 if (holonDto != null && holonDto.Id == id)
@@ -1659,7 +1474,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                         break;
                 }
 
-                //TODO: Need to apply this to Mongo & IPFS, etc too...
+                // Note: Child saving logic is provider-specific. For cross-provider persistence, use ProviderManager to save to multiple providers.
                 if ((saveChildren && !recursive && currentChildDepth == 0) || saveChildren && recursive &&
                     currentChildDepth >= 0 &&
                     (maxChildDepth == 0 || (maxChildDepth > 0 && currentChildDepth <= maxChildDepth)))
@@ -1728,10 +1543,11 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                     {
                         try
                         {
-                            var accountDataString = GetAccountDataAsString(account.Account.Data);
-                            if (!string.IsNullOrEmpty(accountDataString))
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Count > 0)
                             {
-                                var searchQuery = (searchParams?.SearchGroups?.FirstOrDefault() as SearchTextGroup)?.SearchQuery;
+                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
+                                var searchQuery = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery ?? "";
                                 // Try parsing as avatar
                                 try
                                 {
@@ -2382,13 +2198,24 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                     {
                         try
                         {
-                            var accountDataString = GetAccountDataAsString(account.Account.Data);
-                            if (!string.IsNullOrEmpty(accountDataString))
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Count > 0)
                             {
+                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
                                 var holonDto = JsonConvert.DeserializeObject<SolanaHolonDto>(accountDataString);
-                                var holon = holonDto?.GetHolon();
-                                if (holon != null && holon.CreatedByAvatarId == avatarId)
-                                    holons.Add(holon);
+                                
+                                if (holonDto != null && holonDto.CreatedByAvatarId == avatarId)
+                                {
+                                    holonDto.PublicKey = account.PublicKey;
+                                    holonDto.AccountInfo = account.Account;
+                                    holonDto.Lamports = account.Account.Lamports;
+                                    
+                                    var holon = holonDto.GetHolon();
+                                    if (holon != null)
+                                    {
+                                        holons.Add(holon);
+                                    }
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -2609,164 +2436,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-    {
-        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
-    }
-
-    public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-    {
-        var result = new OASISResult<string>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Get wallet addresses for both avatars
-            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.Value, fromAvatarId);
-            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.Value, toAvatarId);
-
-            if (fromWalletResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting from wallet address: {fromWalletResult.Message}");
-                return result;
-            }
-
-            if (toWalletResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting to wallet address: {toWalletResult.Message}");
-                return result;
-            }
-
-            // Send transaction
-            // SendTransaction is provided by SolanaService as SendTransaction(SendTransactionRequest)
-            var transactionResult = await _solanaService.SendTransaction(new SendTransactionRequest
-            {
-                FromAccount = new BaseAccountRequest { PublicKey = fromWalletResult.Result },
-                ToAccount = new BaseAccountRequest { PublicKey = toWalletResult.Result },
-                Amount = (ulong)amount,
-                MemoText = token
-            });
-            if (transactionResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
-                return result;
-            }
-
-            result.Result = transactionResult.Result.TransactionHash;
-            result.IsError = false;
-            result.Message = "Transaction sent successfully";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error sending transaction by ID from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername,
-        string toAvatarUsername, decimal amount, string token)
-    {
-        var result = new OASISResult<string>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Load avatars by username
-            var fromAvatarResult = await LoadAvatarByUsernameAsync(fromAvatarUsername);
-            var toAvatarResult = await LoadAvatarByUsernameAsync(toAvatarUsername);
-
-            if (fromAvatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading from avatar: {fromAvatarResult.Message}");
-                return result;
-            }
-
-            if (toAvatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading to avatar: {toAvatarResult.Message}");
-                return result;
-            }
-
-            // Send transaction by ID
-            return await SendTransactionByIdAsync(fromAvatarResult.Result.Id, toAvatarResult.Result.Id, amount, token);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error sending transaction by username from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername,
-        decimal amount, string token)
-    {
-        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
-    }
-
-    public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail,
-        decimal amount, string token)
-    {
-        var result = new OASISResult<string>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Load avatars by email
-            var fromAvatarResult = await LoadAvatarByEmailAsync(fromAvatarEmail);
-            var toAvatarResult = await LoadAvatarByEmailAsync(toAvatarEmail);
-
-            if (fromAvatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading from avatar: {fromAvatarResult.Message}");
-                return result;
-            }
-
-            if (toAvatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading to avatar: {toAvatarResult.Message}");
-                return result;
-            }
-
-            // Send transaction by ID
-            return await SendTransactionByIdAsync(fromAvatarResult.Result.Id, toAvatarResult.Result.Id, amount, token);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error sending transaction by email from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount,
-        string token)
-    {
-        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
-    }
-
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
     {
         return ImportAsync(holons).Result;
@@ -2794,41 +2463,239 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return ExportAllAsync(version).Result;
     }
 
-    //OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId,
-    //    Guid toAvatarId, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    {
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
+    }
 
-    //Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTransactionByIdAsync(
-    //    Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        var errorMessageTemplate = "Error occurred in SendTransactionByIdAsync (with token) method in SolanaOASIS while sending transaction. Reason: ";
 
-    //Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(
-    //    string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+        try
+        {
+            // Get wallet addresses for avatars
+            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.SolanaOASIS);
+            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.SolanaOASIS);
 
-    //OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendTransactionByUsername(
-    //    string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+            if (fromWalletResult.IsError || toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                return result;
+            }
 
-    //Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(
-    //    string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+            // If token is provided, use SPL token transfer; otherwise use native SOL transfer
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                // Use SPL token transfer via TokenProgram
+                var fromPublicKey = new PublicKey(fromWalletResult.Result.WalletAddress);
+                var toPublicKey = new PublicKey(toWalletResult.Result.WalletAddress);
+                var tokenMint = new PublicKey(token);
+                
+                // Convert amount to lamports (SPL tokens use their own decimals, but we'll use 9 for consistency)
+                var tokenAmount = (ulong)(amount * 1_000_000_000m);
+                
+                // Get associated token accounts
+                var fromTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPublicKey, tokenMint);
+                var toTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPublicKey, tokenMint);
+                
+                // Build token transfer transaction
+                var blockHashResult = await _rpcClient.GetLatestBlockHashAsync();
+                if (!blockHashResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get latest block hash: {blockHashResult.Reason}");
+                    return result;
+                }
+                
+                var transferInstruction = TokenProgram.Transfer(
+                    fromTokenAccount,
+                    toTokenAccount,
+                    tokenAmount,
+                    fromPublicKey);
+                
+                byte[] tx = new TransactionBuilder()
+                    .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                    .SetFeePayer(fromPublicKey)
+                    .AddInstruction(transferInstruction)
+                    .Build(_oasisSolanaAccount);
+                
+                var sendResult = await _rpcClient.SendTransactionAsync(tx);
+                if (!sendResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction: {sendResult.Reason}");
+                    return result;
+                }
+                
+                result.Result = new TransactionResponse { TransactionResult = sendResult.Result };
+                result.IsError = false;
+                result.Message = "Token transaction sent successfully";
+            }
+            else
+            {
+                // Use native SOL transfer (delegate to existing method)
+                result = await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessageTemplate}{ex.Message}", ex);
+        }
+        
+        return result;
+    }
 
-    //OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail,
-    //    string toAvatarEmail, decimal amount, string token)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        var errorMessageTemplate = "Error occurred in SendTransactionByUsernameAsync (with token) method in SolanaOASIS while sending transaction. Reason: ";
+
+        try
+        {
+            // Get wallet addresses for avatars by username
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, fromAvatarUsername);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, toAvatarUsername);
+
+            if (fromWalletResult.IsError || toWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result) || string.IsNullOrWhiteSpace(toWalletResult.Result))
+            {
+                OASISErrorHandling.HandleError(ref result, "Error getting wallet addresses for avatars");
+                return result;
+            }
+
+            var fromWallet = fromWalletResult.Result;
+            var toWallet = toWalletResult.Result;
+
+            // If token is provided, use SPL token transfer; otherwise use native SOL transfer
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                var fromPublicKey = new PublicKey(fromWallet);
+                var toPublicKey = new PublicKey(toWallet);
+                var tokenMint = new PublicKey(token);
+                var tokenAmount = (ulong)(amount * 1_000_000_000m);
+                
+                var fromTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPublicKey, tokenMint);
+                var toTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPublicKey, tokenMint);
+                
+                var blockHashResult = await _rpcClient.GetLatestBlockHashAsync();
+                if (!blockHashResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get latest block hash: {blockHashResult.Reason}");
+                    return result;
+                }
+                
+                var transferInstruction = TokenProgram.Transfer(fromTokenAccount, toTokenAccount, tokenAmount, fromPublicKey);
+                
+                byte[] tx = new TransactionBuilder()
+                    .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                    .SetFeePayer(fromPublicKey)
+                    .AddInstruction(transferInstruction)
+                    .Build(_oasisSolanaAccount);
+                
+                var sendResult = await _rpcClient.SendTransactionAsync(tx);
+                if (!sendResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction: {sendResult.Reason}");
+                    return result;
+                }
+                
+                result.Result = new TransactionResponse { TransactionResult = sendResult.Result };
+                result.IsError = false;
+                result.Message = "Token transaction sent successfully";
+            }
+            else
+            {
+                // Use native SOL transfer (delegate to existing method)
+                result = await SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount);
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessageTemplate}{ex.Message}", ex);
+        }
+        
+        return result;
+    }
+
+    public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    {
+        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
+    }
+
+    public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        var errorMessageTemplate = "Error occurred in SendTransactionByEmailAsync (with token) method in SolanaOASIS while sending transaction. Reason: ";
+
+        try
+        {
+            // Get wallet addresses for avatars by email
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, fromAvatarEmail);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, toAvatarEmail);
+
+            if (fromWalletResult.IsError || toWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result) || string.IsNullOrWhiteSpace(toWalletResult.Result))
+            {
+                OASISErrorHandling.HandleError(ref result, "Error getting wallet addresses for avatars");
+                return result;
+            }
+
+            var fromWallet = fromWalletResult.Result;
+            var toWallet = toWalletResult.Result;
+
+            // If token is provided, use SPL token transfer; otherwise use native SOL transfer
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                var fromPublicKey = new PublicKey(fromWallet);
+                var toPublicKey = new PublicKey(toWallet);
+                var tokenMint = new PublicKey(token);
+                var tokenAmount = (ulong)(amount * 1_000_000_000m);
+                
+                var fromTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPublicKey, tokenMint);
+                var toTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPublicKey, tokenMint);
+                
+                var blockHashResult = await _rpcClient.GetLatestBlockHashAsync();
+                if (!blockHashResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get latest block hash: {blockHashResult.Reason}");
+                    return result;
+                }
+                
+                var transferInstruction = TokenProgram.Transfer(fromTokenAccount, toTokenAccount, tokenAmount, fromPublicKey);
+                
+                byte[] tx = new TransactionBuilder()
+                    .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                    .SetFeePayer(fromPublicKey)
+                    .AddInstruction(transferInstruction)
+                    .Build(_oasisSolanaAccount);
+                
+                var sendResult = await _rpcClient.SendTransactionAsync(tx);
+                if (!sendResult.WasSuccessful)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction: {sendResult.Reason}");
+                    return result;
+                }
+                
+                result.Result = new TransactionResponse { TransactionResult = sendResult.Result };
+                result.IsError = false;
+                result.Message = "Token transaction sent successfully";
+            }
+            else
+            {
+                // Use native SOL transfer (delegate to existing method)
+                result = await SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount);
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessageTemplate}{ex.Message}", ex);
+        }
+        
+        return result;
+    }
+
+    public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    {
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
+    }
 
     public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest transation)
     {
@@ -2841,51 +2708,17 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         ArgumentNullException.ThrowIfNull(transaction);
 
         OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
-        var savedConsoleOut = Console.Out; // SolanaService.MintNftAsync sets Console to NullTextWriter before returning; restore so our send logs appear
 
         try
         {
-            // Detailed validation of provider state
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, 
-                    "Solana provider is not activated. IsProviderActivated = false. Please activate the provider before minting NFTs.");
-                return result;
-            }
-
-            if (_solanaService == null)
-            {
-                OASISErrorHandling.HandleError(ref result, 
-                    "Solana provider _solanaService is null. Provider activation may have failed. Check activation logs.");
-                return result;
-            }
-
-            if (_oasisSolanaAccount == null)
-            {
-                OASISErrorHandling.HandleError(ref result, 
-                    "Solana provider _oasisSolanaAccount is null. Provider was not initialized correctly. Check PrivateKey and PublicKey in OASIS_DNA.json.");
-                return result;
-            }
-
-            Console.WriteLine($"=== MINTNFTAsync VALIDATION ===");
-            Console.WriteLine($"IsProviderActivated: {IsProviderActivated}");
-            Console.WriteLine($"_solanaService is null: {_solanaService == null}");
-            Console.WriteLine($"_oasisSolanaAccount is null: {_oasisSolanaAccount == null}");
-            if (_oasisSolanaAccount != null)
-                Console.WriteLine($"Account PublicKey: {_oasisSolanaAccount.PublicKey.Key}");
-            Console.WriteLine($"=== END VALIDATION ===");
-
             OASISResult<MintNftResult> solanaNftTransactionResult
                 = await _solanaService.MintNftAsync(transaction as MintWeb3NFTRequest);
 
-            Console.SetOut(savedConsoleOut); // Restore so send-after-mint logs are visible (SolanaService redirects to NullTextWriter)
-
             if (solanaNftTransactionResult.IsError ||
-                solanaNftTransactionResult.Result == null ||
                 string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
             {
                 OASISErrorHandling.HandleError(ref result,
-                    solanaNftTransactionResult.Message ?? "Solana mint returned no result or transaction hash.",
+                    solanaNftTransactionResult.Message,
                     solanaNftTransactionResult.Exception);
                 return result;
             }
@@ -2897,7 +2730,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             {
                 MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash,
                 NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount,
-                OASISMintWalletAddress = _oasisSolanaAccount.PublicKey.Key,
+                OASISMintWalletAddress = _oasisSolanaAccount.PublicKey,
                 JSONMetaDataURL = transaction.JSONMetaDataURL,
                 Symbol = transaction.Symbol
             };
@@ -2912,38 +2745,28 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             //    Web4OASISNFT = (Web4OASISNFT)oasisNFT.Result;
             //}
 
-            // Send NFT to user wallet after mint (provider does it so we don't depend on NFTManager build).
-            Console.WriteLine($"=== SOLANA PROVIDER: SendToAddressAfterMinting = {(string.IsNullOrEmpty(transaction.SendToAddressAfterMinting) ? "(empty - send will be skipped)" : transaction.SendToAddressAfterMinting)} ===");
-            if (!string.IsNullOrEmpty(transaction.SendToAddressAfterMinting))
-            {
-                var sendRequest = new SendWeb3NFTRequest
-                {
-                    FromWalletAddress = _oasisSolanaAccount.PublicKey.Key,
-                    ToWalletAddress = transaction.SendToAddressAfterMinting,
-                    TokenAddress = solanaNftTransactionResult.Result.MintAccount,
-                    Amount = 1
-                };
-                Console.WriteLine($"=== SOLANA PROVIDER: Sending NFT to {sendRequest.ToWalletAddress} (mint: {sendRequest.TokenAddress}) ===");
-                OASISResult<IWeb3NFTTransactionResponse> sendNftResult = await SendNFTAsync(sendRequest);
-                if (sendNftResult.IsError)
-                {
-                    Console.WriteLine($"=== SOLANA PROVIDER: Send NFT FAILED. Reason: {sendNftResult.Message} ===");
-                    OASISErrorHandling.HandleWarning(ref result,
-                        $"Error occured sending minted NFT to {transaction.SendToAddressAfterMinting}. Reason: {sendNftResult.Message}");
-                }
-                else if (sendNftResult.Result != null && !string.IsNullOrEmpty(sendNftResult.Result.TransactionResult) && result.Result is Web3NFTTransactionResponse web3Response)
-                {
-                    string sendTxHash = sendNftResult.Result.TransactionResult;
-                    web3Response.SendNFTTransactionResult = sendTxHash;
-                    Web3NFT.SendNFTTransactionHash = sendTxHash; // So NFTManager skips its redundant send
-                    Console.WriteLine($"=== SOLANA PROVIDER: Send NFT SUCCEEDED. TxHash: {sendTxHash} ===");
-                }
-                else
-                    Console.WriteLine($"=== SOLANA PROVIDER: Send NFT returned no tx hash (Result null or empty) ===");
-            }
+            //This is now handled by NFTManager! ;-)
+            //if (!string.IsNullOrEmpty(transaction.SendToAddressAfterMinting))
+            //{
+            //    OASISResult<IWeb4NFTTransactionRespone> sendNftResult = await SendNFTAsync(new NFTWalletTransactionRequest()
+            //    {
+            //        FromWalletAddress = _oasisSolanaAccount.PublicKey,
+            //        ToWalletAddress = transaction.SendToAddressAfterMinting,
+            //        TokenAddress = solanaNftTransactionResult.Result.MintAccount,
+            //        Amount = 1
+            //    });
+            //    if (sendNftResult.IsError)
+            //    {
+            //        OASISErrorHandling.HandleWarning(ref result,
+            //            $"Error occured sending minted NFT to {transaction.SendToAddressAfterMinting}. Reason: {sendNftResult.Message}");
+            //    }
+            //    else
+            //        result.Result.SendNFTTransactionResult = sendNftResult.Result.TransactionResult;
+            //}
 
             result.Result.Web3NFT = Web3NFT;
             result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
+           
         }
         catch (Exception e)
         {
@@ -3117,93 +2940,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    /// <summary>
-    /// Load token/NFT metadata using a specific RPC URL (e.g. mainnet for Solscan memecoin lookup when ConnectionString is devnet).
-    /// </summary>
-    public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataWithRpcAsync(string mint, string rpcUrl)
-    {
-        OASISResult<IWeb3NFT> result = new();
-        if (string.IsNullOrWhiteSpace(rpcUrl))
-            return result;
-
-        try
-        {
-            var rpcClient = ClientFactory.GetClient(rpcUrl);
-            var tempService = new SolanaService(_oasisSolanaAccount, rpcClient);
-            OASISResult<GetNftResult> response = await tempService.LoadNftAsync(mint).ConfigureAwait(false);
-            if (response.IsLoaded && response.Result != null)
-            {
-                result.IsLoaded = true;
-                result.IsError = false;
-                result.Result = response.Result.ToOasisNft();
-            }
-            else
-            {
-                result.IsError = true;
-                result.Message = response?.Message ?? "Token metadata not found.";
-            }
-        }
-        catch (Exception e)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                $"Error in SolanaOASIS LoadOnChainNFTDataWithRpcAsync. Reason: {e.Message}");
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// Get SPL token balance for a wallet's associated token account (ATA) for a given mint.
-    /// Uses mainnet RPC when rpcUrl is provided; otherwise uses the provider's default RPC.
-    /// </summary>
-    /// <param name="walletAddress">Owner wallet public key (base58).</param>
-    /// <param name="mintAddress">Token mint public key (base58).</param>
-    /// <param name="rpcUrl">Optional RPC URL (e.g. mainnet); when null/empty uses default connection.</param>
-    /// <returns>Balance as decimal (amount / 10^decimals), or 0 if no ATA or error.</returns>
-    public async Task<OASISResult<decimal>> GetSplTokenBalanceAsync(string walletAddress, string mintAddress, string rpcUrl = null)
-    {
-        var result = new OASISResult<decimal>();
-        result.Result = 0;
-        if (string.IsNullOrWhiteSpace(walletAddress) || string.IsNullOrWhiteSpace(mintAddress))
-        {
-            OASISErrorHandling.HandleError(ref result, "Wallet address and mint address are required.");
-            return result;
-        }
-
-        try
-        {
-            var client = string.IsNullOrWhiteSpace(rpcUrl) ? _rpcClient : ClientFactory.GetClient(rpcUrl.Trim());
-            var ownerPubkey = new PublicKey(walletAddress.Trim());
-            var mintPubkey = new PublicKey(mintAddress.Trim());
-            var ata = DeriveAssociatedTokenAccount(ownerPubkey, mintPubkey);
-
-            var balanceResult = await client.GetTokenAccountBalanceAsync(ata).ConfigureAwait(false);
-            if (balanceResult.WasSuccessful && balanceResult.Result?.Value != null)
-            {
-                var val = balanceResult.Result.Value;
-                var amount = val.AmountUlong;
-                var decimals = val.Decimals;
-                result.Result = decimals > 0 ? (decimal)amount / (decimal)Math.Pow(10, decimals) : (decimal)amount;
-                result.IsError = false;
-            }
-            else if (!balanceResult.WasSuccessful && (balanceResult.Reason?.Contains("could not find") == true || balanceResult.Reason?.Contains("Account does not exist") == true))
-            {
-                result.Result = 0;
-                result.IsError = false;
-            }
-            else if (!balanceResult.WasSuccessful)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Token balance lookup failed: {balanceResult.Reason}");
-            }
-        }
-        catch (Exception e)
-        {
-            OASISErrorHandling.HandleError(ref result, $"GetSplTokenBalanceAsync error: {e.Message}", e);
-        }
-
-        return result;
-    }
-
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
         string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
         int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
@@ -3235,20 +2971,25 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                     {
                         try
                         {
-                            var accountDataString = GetAccountDataAsString(account.Account.Data);
-                            if (!string.IsNullOrEmpty(accountDataString))
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Count > 0)
                             {
+                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
                                 var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
+                                
                                 if (holonDto != null)
                                 {
                                     holonDto.PublicKey = account.PublicKey;
                                     holonDto.AccountInfo = account.Account;
                                     holonDto.Lamports = account.Account.Lamports;
+                                    
                                     var holon = holonDto.GetHolon();
-                                    if (holon != null && holon.MetaData != null &&
+                                    if (holon != null && holon.MetaData != null && 
                                         holon.MetaData.ContainsKey(metaKey) &&
                                         holon.MetaData[metaKey]?.ToString()?.Equals(metaValue, StringComparison.OrdinalIgnoreCase) == true)
+                                    {
                                         holons.Add(holon);
+                                    }
                                 }
                             }
                         }
@@ -3316,15 +3057,18 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                     {
                         try
                         {
-                            var accountDataString = GetAccountDataAsString(account.Account.Data);
-                            if (!string.IsNullOrEmpty(accountDataString))
+                            var accountData = account.Account.Data;
+                            if (accountData != null && accountData.Count > 0)
                             {
+                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
                                 var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
+                                
                                 if (holonDto != null)
                                 {
                                     holonDto.PublicKey = account.PublicKey;
                                     holonDto.AccountInfo = account.Account;
                                     holonDto.Lamports = account.Account.Lamports;
+                                    
                                     var holon = holonDto.GetHolon();
                                     if (holon != null && holon.MetaData != null)
                                     {
@@ -4063,7 +3807,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             //    keyPair.WalletAddressLegacy = account.PublicKey.Key;
             //}
 
-            result.Result = new NextGenSoftware.OASIS.API.Core.Objects.KeyPairAndWallet()
+            result.Result = new KeyPairAndWallet()
             {
                 PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
                 PublicKey = account.PublicKey.Key,
@@ -4237,8 +3981,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             var lockRequest = new LockWeb3TokenRequest
             {
                 FromWalletPrivateKey = senderPrivateKey,
-                FromWalletAddress = senderAccountAddress, //TODO: Needed?
-                Amount = amount,
+                FromWalletAddress = senderAccountAddress,
                 TokenAddress = string.Empty // Empty for native SOL
             };
 
@@ -4641,36 +4384,19 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             return false;
         }
-    }
-
-    /// <summary>
-    /// Converts Solana Account.Data (List&lt;string&gt; base64 or byte[]) to UTF-8 string.
-    /// </summary>
-    private static string GetAccountDataAsString(object data)
-    {
-        if (data == null) return null;
-        byte[] bytes = null;
-        if (data is List<string> list && list.Count > 0)
-        {
-            try { bytes = list.SelectMany(s => Convert.FromBase64String(s ?? "")).ToArray(); }
-            catch { return null; }
         }
-        else if (data is byte[] b && b.Length > 0)
-            bytes = b;
-        return bytes != null && bytes.Length > 0 ? Encoding.UTF8.GetString(bytes) : null;
-    }
 
-    /// <summary>
-    /// Creates a deterministic GUID from input string using SHA-256 hash
-    /// </summary>
-    private static Guid CreateDeterministicGuid(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-            return Guid.Empty;
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
 
-        using var sha256 = System.Security.Cryptography.SHA256.Create();
-        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-        return new Guid(bytes.Take(16).ToArray());
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
     }
     #endregion
-}

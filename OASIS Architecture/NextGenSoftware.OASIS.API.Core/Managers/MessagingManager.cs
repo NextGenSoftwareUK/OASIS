@@ -41,6 +41,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> SendMessageToAvatarAsync(Guid fromAvatarId, Guid toAvatarId, string content, MessagingType messageType = MessagingType.Direct)
         {
             var result = new OASISResult<bool>();
+            if (content == null)
+            {
+                result.IsError = true;
+                result.Result = false;
+                result.Message = "The message content is required. Please provide a non-null string.";
+                return result;
+            }
             try
             {
                 var message = new Message
@@ -238,6 +245,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<bool>> MarkNotificationsAsReadAsync(Guid avatarId, List<Guid> notificationIds)
         {
             var result = new OASISResult<bool>();
+            if (notificationIds == null)
+            {
+                result.IsError = true;
+                result.Result = false;
+                result.Message = "The notification IDs list is required. Please provide a valid list (can be empty).";
+                return result;
+            }
             try
             {
                 if (_notifications.ContainsKey(avatarId))

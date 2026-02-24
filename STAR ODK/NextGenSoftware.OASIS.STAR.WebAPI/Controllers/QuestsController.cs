@@ -12,6 +12,10 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using System.Collections.Concurrent;
+using System.Threading;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -24,6 +28,55 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class QuestsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
+        private QuestManager CreateQuestManager() => new QuestManager(AvatarId, new STARDNA());
+
+        private IActionResult ValidateAvatarId<T>()
+        {
+            // Skip validation if test mode is enabled - let the method try to execute and return test data on failure
+            if (UseTestDataWhenLiveDataNotAvailable)
+                return null;
+                
+            if (AvatarId == Guid.Empty)
+            {
+                return BadRequest(new OASISResult<T>
+                {
+                    IsError = true,
+                    Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                });
+            }
+            return null;
+        }
+
+        private async Task EnsureStarApiBootedAsync()
+        {
+            // Check if already booted and avatar is set
+            if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
+                Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
+                return;
+
+            await _bootLock.WaitAsync();
+            try
+            {
+                // Double-check after acquiring lock
+                if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
+                    Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
+                    return;
+
+                // Boot OASIS if not already booted
+                if (!_starAPI.IsOASISBooted)
+                {
+                    var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                    if (boot.IsError)
+                        throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+                }
+
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Retrieves all quests in the system.
@@ -39,16 +92,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Quests.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuests = TestDataHelper.GetTestQuests(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Quest>>(testQuests, "Quests retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<Quest>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading quests: {ex.Message}",
-                    Exception = ex
-                });
+                    var testQuests = TestDataHelper.GetTestQuests(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Quest>>(testQuests, "Quests retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<Quest>>(ex, "GetAllQuests");
             }
         }
 
@@ -67,16 +129,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Quests.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuest = TestDataHelper.GetTestQuest(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading quest: {ex.Message}",
-                    Exception = ex
-                });
+                    var testQuest = TestDataHelper.GetTestQuest(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest retrieved successfully (using test data)"));
+                }
+                return HandleException<Quest>(ex, "GetIQuest");
             }
         }
 
@@ -94,17 +165,39 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (quest == null)
+                {
+                    return BadRequest(new OASISResult<IQuest>
+                    {
+                        IsError = true,
+                        Message = "Quest cannot be null. Please provide a valid Quest object in the request body."
+                    });
+                }
+
+                var avatarCheck = ValidateAvatarId<IQuest>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch (OASISException ex)
             {
                 return BadRequest(new OASISResult<IQuest>
                 {
                     IsError = true,
-                    Message = $"Error creating quest: {ex.Message}",
+                    Message = ex.Message,
                     Exception = ex
                 });
+            }
+            catch (Exception ex)
+            {
+                return HandleException<IQuest>(ex, "CreateQuest");
             }
         }
 
@@ -123,18 +216,39 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (quest == null)
+                {
+                    return BadRequest(new OASISResult<IQuest>
+                    {
+                        IsError = true,
+                        Message = "Quest cannot be null. Please provide a valid Quest object in the request body."
+                    });
+                }
+
+                var avatarCheck = ValidateAvatarId<IQuest>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
                 quest.Id = id;
                 var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch (OASISException ex)
             {
                 return BadRequest(new OASISResult<IQuest>
                 {
                     IsError = true,
-                    Message = $"Error updating quest: {ex.Message}",
+                    Message = ex.Message,
                     Exception = ex
                 });
+            }
+            catch (Exception ex)
+            {
+                return HandleException<IQuest>(ex, "updating quest");
             }
         }
 
@@ -157,12 +271,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting quest");
             }
         }
 
@@ -214,12 +323,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning quest");
             }
         }
 
@@ -352,16 +456,28 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Quests.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest created successfully (using test data)"));
+                }
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error creating quest: {ex.Message}",
-                    Exception = ex
-                });
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest created successfully (using test data)"));
+                }
+                return HandleException<Quest>(ex, "creating quest");
             }
         }
 
@@ -381,18 +497,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<Quest>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Quests.LoadAsync(AvatarId, id, version, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading quest: {ex.Message}",
-                    Exception = ex
-                });
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest loaded successfully (using test data)"));
+                }
+                return HandleException<Quest>(ex, "loading quest");
             }
         }
 
@@ -411,18 +538,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<Quest>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Quests.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading quest from path: {ex.Message}",
-                    Exception = ex
-                });
+                    var testQuest = TestDataHelper.GetTestQuest();
+                    return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest loaded successfully (using test data)"));
+                }
+                return HandleException<Quest>(ex, "loading quest from path");
             }
         }
 
@@ -445,12 +583,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error loading quest from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "loading quest from published file");
             }
         }
 
@@ -512,12 +645,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error publishing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "publishing quest");
             }
         }
 
@@ -543,12 +671,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedQuest>
-                {
-                    IsError = true,
-                    Message = $"Error downloading quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedQuest>(ex, "downloading quest");
             }
         }
 
@@ -600,12 +723,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error loading quest version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "loading quest version");
             }
         }
 
@@ -629,12 +747,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error editing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "editing quest");
             }
         }
 
@@ -658,12 +771,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "unpublishing quest");
             }
         }
 
@@ -687,12 +795,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error republishing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "republishing quest");
             }
         }
 
@@ -716,12 +819,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error activating quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "activating quest");
             }
         }
 
@@ -745,12 +843,57 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Quest>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Quest>(ex, "deactivating quest");
+            }
+        }
+
+        /// <summary>
+        /// Starts a quest for the authenticated avatar.
+        /// </summary>
+        [HttpPost("{id}/start")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> StartQuest(Guid id, [FromBody] string startNotes = null)
+        {
+            try
+            {
+                var result = await CreateQuestManager().StartQuestAsync(AvatarId, id, startNotes);
+                if (result.IsError)
+                    return BadRequest(result);
+                
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<bool>(ex, "starting quest");
+            }
+        }
+
+        /// <summary>
+        /// Completes an objective (sub-quest) for a quest.
+        /// </summary>
+        [HttpPost("{id}/objectives/{objectiveId}/complete")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CompleteQuestObjective(Guid id, Guid objectiveId, [FromBody] CompleteQuestObjectiveRequest request = null)
+        {
+            try
+            {
+                var result = await CreateQuestManager().CompleteQuestObjectiveAsync(
+                    AvatarId,
+                    id,
+                    objectiveId,
+                    request?.GameSource,
+                    request?.CompletionNotes);
+
+                if (result.IsError)
+                    return BadRequest(result);
+                
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<bool>(ex, "completing quest objective");
             }
         }
 
@@ -769,24 +912,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement quest completion logic
-                // This would involve updating quest status, awarding rewards, etc.
-                var result = new OASISResult<bool>
-                {
-                    Result = true,
-                    IsError = false,
-                    Message = "Quest completed successfully"
-                };
+                var result = await CreateQuestManager().CompleteQuestAsync(AvatarId, id, completionNotes);
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error completing quest: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "completing quest");
             }
         }
 
@@ -805,13 +939,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement quest leaderboard logic
+                var managerResult = await CreateQuestManager().GetQuestLeaderboardAsync(id, limit);
                 var result = new OASISResult<IEnumerable<QuestLeaderboard>>
                 {
-                    Result = new List<QuestLeaderboard>(),
-                    IsError = false,
-                    Message = "Quest leaderboard retrieved successfully"
+                    Result = managerResult.Result,
+                    IsError = managerResult.IsError,
+                    Message = managerResult.Message,
+                    ErrorCode = managerResult.ErrorCode,
+                    Exception = managerResult.Exception
                 };
+
+                if (result.IsError)
+                    return BadRequest(result);
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -839,13 +979,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement quest rewards logic
+                var managerResult = await CreateQuestManager().GetQuestRewardsAsync(id);
                 var result = new OASISResult<IEnumerable<QuestReward>>
                 {
-                    Result = new List<QuestReward>(),
-                    IsError = false,
-                    Message = "Quest rewards retrieved successfully"
+                    Result = managerResult.Result,
+                    IsError = managerResult.IsError,
+                    Message = managerResult.Message,
+                    ErrorCode = managerResult.ErrorCode,
+                    Exception = managerResult.Exception
                 };
+
+                if (result.IsError)
+                    return BadRequest(result);
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -872,21 +1018,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement quest statistics logic
-                var stats = new Dictionary<string, object>
-                {
-                    ["totalQuests"] = 0,
-                    ["completedQuests"] = 0,
-                    ["activeQuests"] = 0,
-                    ["totalRewards"] = 0
-                };
+                var result = await CreateQuestManager().GetQuestStatsAsync(AvatarId);
+                if (result.IsError)
+                    return BadRequest(result);
 
-                var result = new OASISResult<Dictionary<string, object>>
-                {
-                    Result = stats,
-                    IsError = false,
-                    Message = "Quest statistics retrieved successfully"
-                };
                 return Ok(result);
             }
             catch (Exception ex)
@@ -907,11 +1042,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.Quest;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<Quest, STARNETDNA> CreateOptions { get; set; } = null;
+        public ISTARNETCreateOptions<Quest, STARNETDNA>? CreateOptions { get; set; } = null;
     }
 
     public class EditQuestRequest
     {
         public STARNETDNA NewDNA { get; set; } = null;
+    }
+
+    public class CompleteQuestObjectiveRequest
+    {
+        public string GameSource { get; set; } = "";
+        public string CompletionNotes { get; set; } = "";
     }
 }

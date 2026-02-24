@@ -106,6 +106,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("checkout/session")]
         public async Task<ActionResult<CreateCheckoutSessionResponse>> CreateCheckoutSession([FromBody] CreateCheckoutSessionRequest request)
         {
+            if (request == null)
+                return BadRequest(new { IsError = true, Message = "The request body is required. Please provide a valid JSON body with PlanId and optional SuccessUrl, CancelUrl." });
             if (!ModelState.IsValid)
                 return BadRequest(new { IsError = true, Message = "Invalid request" });
 
@@ -534,6 +536,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("toggle-pay-as-you-go")]
         public async Task<IActionResult> TogglePayAsYouGo([FromBody] TogglePayAsYouGoRequest request)
         {
+            if (request == null)
+                return BadRequest(new { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Enabled." });
             try
             {
                 // Get user ID from authentication token
@@ -652,6 +656,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [HttpPost("update-hyperdrive-config")]
     public async Task<ActionResult<OASISResult<bool>>> UpdateHyperDriveConfig([FromBody] UpdateHyperDriveConfigRequest request)
     {
+        if (request == null)
+            return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with PlanType and PayAsYouGoEnabled." });
         try
         {
             var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -777,6 +783,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [HttpPost("check-hyperdrive-quota")]
     public ActionResult<OASISResult<QuotaCheckResult>> CheckHyperDriveQuota([FromBody] QuotaCheckRequest request)
     {
+        if (request == null)
+            return BadRequest(new OASISResult<QuotaCheckResult> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with OperationType." });
         try
         {
             var dna = OASISDNAManager.OASISDNA.OASIS;

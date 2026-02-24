@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private IHolon PrepareHolonForSaving(IHolon holon, Guid avatarId, bool extractMetaData)
         {
+            // Callers (SaveHolon overloads) validate holon != null and return OASISResult before calling here.
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
 

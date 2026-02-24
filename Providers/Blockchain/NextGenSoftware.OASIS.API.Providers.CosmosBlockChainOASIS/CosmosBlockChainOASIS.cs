@@ -1205,7 +1205,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
                 if (softDelete)
                 {
-                    // For soft delete, update the avatar with a deleted flag
+                    // For soft delete, set DeletedDate (IsDeleted is derived from it)
                     avatarResult.Result.DeletedDate = DateTime.UtcNow;
                     var saveResult = await SaveAvatarAsync(avatarResult.Result);
                     result.Result = !saveResult.IsError;

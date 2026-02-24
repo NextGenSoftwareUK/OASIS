@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -66,8 +67,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
                     context.Items["Avatar"] = avatarResult.Result;
-                    //AvatarManager.LoggedInAvatarSessions[context.Session.Id] = avatarResult.Result; //TODO: Maybe not good idea to set this because its static so will be shared with all client sessions?!
-                    //string test = context.User.Identity.Name;
+                    OASISRequestContext.CurrentAvatarId = id;
+                    OASISRequestContext.CurrentAvatar = avatarResult.Result;
                 }
             }
             catch (Exception ex)

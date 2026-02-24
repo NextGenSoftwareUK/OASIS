@@ -1,27 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
-using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class HolonsControllerTests
     {
-        private readonly Mock<ILogger<HolonsController>> _mockLogger;
         private readonly HolonsController _controller;
 
         public HolonsControllerTests()
         {
-            _mockLogger = new Mock<ILogger<HolonsController>>();
             _controller = new HolonsController();
+            STARControllerTestHelper.SetUpControllerContext(_controller);
         }
 
         [Fact]
@@ -32,7 +24,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -46,23 +38,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
         public async Task CreateHolon_WithValidHolon_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockHolon = new Mock<IHolon>();
-            mockHolon.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockHolon.Setup(x => x.Name).Returns("Test Holon");
+            var holon = new STARHolon { Id = Guid.NewGuid(), Name = "Test Holon" };
 
             // Act
-            var result = await _controller.CreateHolon(mockHolon.Object);
+            var result = await _controller.CreateHolon(holon);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -70,16 +60,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockHolon = new Mock<IHolon>();
-            mockHolon.Setup(x => x.Id).Returns(id);
-            mockHolon.Setup(x => x.Name).Returns("Updated Holon");
+            var holon = new STARHolon { Id = id, Name = "Updated Holon" };
 
             // Act
-            var result = await _controller.UpdateHolon(id, mockHolon.Object);
+            var result = await _controller.UpdateHolon(id, holon);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -93,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
     }
 }

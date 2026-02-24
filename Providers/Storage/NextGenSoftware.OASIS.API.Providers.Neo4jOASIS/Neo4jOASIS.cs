@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -512,14 +512,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     foreach (var record in records)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        avatars.Add(new AvatarDetail
+                        avatars.Add(new Avatar
                         {
                             Id = Guid.Parse(node["Id"].As<string>()),
                             Username = node["Username"].As<string>(),
                             Email = node["Email"].As<string>(),
                             CreatedDate = node["CreatedDate"].As<DateTime>(),
                             ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        } as IAvatar);
+                        });
                     }
                     
                     response.Result = avatars;
@@ -563,14 +563,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new AvatarDetail
+                        response.Result = new Avatar
                         {
                             Id = Guid.Parse(node["Id"].As<string>()),
                             Username = node["Username"].As<string>(),
                             Email = node["Email"].As<string>(),
                             CreatedDate = node["CreatedDate"].As<DateTime>(),
                             ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        } as IAvatar;
+                        };
                         response.IsError = false;
                         response.Message = "Avatar loaded successfully from Neo4j";
                     }
@@ -616,14 +616,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new AvatarDetail
+                        response.Result = new Avatar
                         {
                             Id = Guid.Parse(node["Id"].As<string>()),
                             Username = node["Username"].As<string>(),
                             Email = node["Email"].As<string>(),
                             CreatedDate = node["CreatedDate"].As<DateTime>(),
                             ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        } as IAvatar;
+                        };
                         response.IsError = false;
                         response.Message = "Avatar loaded successfully from Neo4j by provider key";
                     }
@@ -669,14 +669,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new AvatarDetail
+                        response.Result = new Avatar
                         {
                             Id = Guid.Parse(node["Id"].As<string>()),
                             Username = node["Username"].As<string>(),
                             Email = node["Email"].As<string>(),
                             CreatedDate = node["CreatedDate"].As<DateTime>(),
                             ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        } as IAvatar;
+                        };
                         response.IsError = false;
                         response.Message = "Avatar loaded successfully from Neo4j by username";
                     }
@@ -722,14 +722,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new AvatarDetail
+                        response.Result = new Avatar
                         {
                             Id = Guid.Parse(node["Id"].As<string>()),
                             Username = node["Username"].As<string>(),
                             Email = node["Email"].As<string>(),
                             CreatedDate = node["CreatedDate"].As<DateTime>(),
                             ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        } as IAvatar;
+                        };
                         response.IsError = false;
                         response.Message = "Avatar loaded successfully from Neo4j by email";
                     }
@@ -1113,14 +1113,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new AvatarDetail
+                        response.Result = new Avatar
                         {
                             Id = Guid.Parse(node["Id"].As<string>()),
                             Username = node["Username"].As<string>(),
                             Email = node["Email"].As<string>(),
                             CreatedDate = node["CreatedDate"].As<DateTime>(),
                             ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        } as IAvatar;
+                        };
                         response.IsError = false;
                         response.Message = "Avatar saved successfully to Neo4j";
                     }
@@ -1282,7 +1282,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 }
 
                 var query = softDelete 
-                    ? "MATCH (a:Avatar {ProviderKey: $providerKey}) SET a.IsDeleted = true, a.DeletedDate = datetime() RETURN a"
+                    ? "MATCH (a:Avatar {ProviderKey: $providerKey}) SET a.DeletedDate = datetime() RETURN a"
                     : "MATCH (a:Avatar {ProviderKey: $providerKey}) DETACH DELETE a RETURN a";
                 var parameters = new { providerKey };
                 
@@ -1678,7 +1678,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         {
             // Convert single key-value pair to dictionary and use the main method
             var metaKeyValuePairs = new Dictionary<string, string> { { metaKey, metaValue } };
-            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.ExactMatch, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            return await LoadHolonsByMetaDataAsync(metaKeyValuePairs, MetaKeyValuePairMatchMode.All, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1702,7 +1702,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 var whereClauses = new List<string>();
                 foreach (var kvp in metaKeyValuePairs)
                 {
-                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.ExactMatch)
+                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
                     {
                         whereClauses.Add($"h.MetaData.`{kvp.Key}` = $metaValue_{kvp.Key}");
                     }
@@ -2155,10 +2155,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                                 HolonType = Enum.Parse<HolonType>(record["HolonType"].As<string>()),
                                 CreatedDate = record["CreatedDate"].As<DateTime>(),
                                 ModifiedDate = record["ModifiedDate"].As<DateTime>(),
-                                ProviderKey = record["ProviderKey"].As<string>()
+                                ProviderUniqueStorageKey = new Dictionary<ProviderType, string> { { Core.Enums.ProviderType.Neo4jOASIS, record["ProviderKey"].As<string>() } }
                             };
                             
-                            if (record["ParentHolonId"] != null && !record["ParentHolonId"].IsNull)
+                            if (record["ParentHolonId"] != null)
                             {
                                 holon.ParentHolonId = Guid.Parse(record["ParentHolonId"].As<string>());
                             }
@@ -2203,7 +2203,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 }
 
                 // First load the avatar to get the ID
-                var avatarResult = await LoadAvatarAsync(avatarUsername, version);
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
                 if (avatarResult.IsError || avatarResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref response, $"Avatar with username {avatarUsername} not found");
@@ -2306,10 +2306,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                                 HolonType = Enum.Parse<HolonType>(record["HolonType"].As<string>()),
                                 CreatedDate = record["CreatedDate"].As<DateTime>(),
                                 ModifiedDate = record["ModifiedDate"].As<DateTime>(),
-                                ProviderKey = record["ProviderKey"].As<string>()
+                                ProviderUniqueStorageKey = new Dictionary<ProviderType, string> { { Core.Enums.ProviderType.Neo4jOASIS, record["ProviderKey"].As<string>() } }
                             };
                             
-                            if (record["ParentHolonId"] != null && !record["ParentHolonId"].IsNull)
+                            if (record["ParentHolonId"] != null)
                             {
                                 holon.ParentHolonId = Guid.Parse(record["ParentHolonId"].As<string>());
                             }
@@ -2377,7 +2377,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                             Id = Guid.Parse(node["Id"].As<string>()),
                             Username = node["Username"].As<string>(),
                             Email = node["Email"].As<string>()
-                        } as IAvatar);
+                        });
                     }
                     
                     response.Result = players;

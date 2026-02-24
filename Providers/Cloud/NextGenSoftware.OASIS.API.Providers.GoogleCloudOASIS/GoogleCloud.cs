@@ -154,7 +154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -239,7 +239,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -331,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -423,7 +423,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -522,7 +522,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -585,7 +585,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -666,7 +666,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -723,7 +723,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -808,7 +808,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -879,7 +879,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -973,7 +973,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1059,7 +1059,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1154,7 +1154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1249,7 +1249,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1345,7 +1345,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1450,7 +1450,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1548,7 +1548,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = ActivateProviderAsync().Result;
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1643,7 +1643,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1730,7 +1730,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1817,7 +1817,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1893,7 +1893,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -1945,7 +1945,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2020,7 +2020,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2083,7 +2083,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2146,7 +2146,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2324,7 +2324,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2401,7 +2401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2496,7 +2496,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2591,7 +2591,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2686,7 +2686,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2781,7 +2781,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2887,7 +2887,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -2960,7 +2960,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -3046,7 +3046,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -3131,7 +3131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -3224,7 +3224,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -3292,7 +3292,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
@@ -3370,7 +3370,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");

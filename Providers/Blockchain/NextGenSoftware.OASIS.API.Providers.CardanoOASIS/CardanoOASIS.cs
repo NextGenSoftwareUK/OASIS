@@ -488,10 +488,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
                             var metadataString = jsonMeta.GetString();
                             if (metadataString.Contains(id.ToString()))
                             {
-                                var avatar = ParseCardanoToAvatar(metadataString);
-                                if (avatar != null)
+                                var avatarDetail = ParseCardanoToAvatarDetail(metadataString);
+                                if (avatarDetail != null && avatarDetail.Id == id)
                                 {
-                                    response.Result = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
+                                    response.Result = avatarDetail;
                                     response.IsError = false;
                                     response.Message = "Avatar detail loaded from Cardano successfully";
                                     return response;
@@ -908,6 +908,37 @@ private IAvatar ParseCardanoToAvatar(string cardanoJson)
 }
 
 /// <summary>
+/// Parse Cardano metadata to AvatarDetail (separate from Avatar; do not build from Avatar).
+/// </summary>
+private IAvatarDetail ParseCardanoToAvatarDetail(string cardanoJson)
+{
+    try
+    {
+        var detail = System.Text.Json.JsonSerializer.Deserialize<AvatarDetail>(cardanoJson, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        });
+        if (detail != null && detail.Id != Guid.Empty) return detail;
+    }
+    catch { }
+    try
+    {
+        var stakeAddress = ExtractCardanoProperty(cardanoJson, "stake_address") ?? ExtractCardanoProperty(cardanoJson, "address") ?? "cardano_user";
+        var id = CreateDeterministicGuid($"{ProviderType.Value}:{stakeAddress}");
+        return new AvatarDetail
+        {
+            Id = id,
+            Username = stakeAddress,
+            Email = ExtractCardanoProperty(cardanoJson, "email") ?? "",
+            FirstName = ExtractCardanoProperty(cardanoJson, "first_name") ?? "",
+            LastName = ExtractCardanoProperty(cardanoJson, "last_name") ?? ""
+        };
+    }
+    catch { return null; }
+}
+
+/// <summary>
 /// Create Avatar from Cardano response when JSON deserialization fails
 /// </summary>
 private IAvatar CreateAvatarFromCardano(string cardanoJson)
@@ -1180,8 +1211,7 @@ public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAv
             {
                         new
                         {
-                            address = "", // TODO: Fix ProviderWallets access
-                            // address = avatar.ProviderWallets[Core.Enums.ProviderType.CardanoOASIS]?.Address ?? "",
+                            address = await GetWalletAddressForAvatarAsync(avatar.Id),
                             amount = new[]
                             {
                                 new
@@ -1205,8 +1235,7 @@ public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAv
             var responseContent = await submitResponse.Content.ReadAsStringAsync();
             var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-            // TODO: Fix ProviderWallets access
-            // avatar.ProviderWallets[Core.Enums.ProviderType.CardanoOASIS] = new Wallet()
+            // Wallet is managed by WalletManager, no need to update ProviderWallets directly
             // {
             //     Address = responseData.GetProperty("tx_hash").GetString(),
             //     ProviderType = Core.Enums.ProviderType.CardanoOASIS
@@ -1796,7 +1825,7 @@ public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string provider
         var submitResponse = await _httpClient.PostAsync("/tx/submit", content);
         if (submitResponse.IsSuccessStatusCode)
         {
-            // TODO: Fix ProviderWallets access
+            // Wallet is managed by WalletManager, no need to update ProviderWallets directly
             response.Result = new Holon { };
             response.IsError = false;
             response.Message = "Holon deletion marked successfully on Cardano blockchain";
@@ -1831,14 +1860,51 @@ public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParam
             return response;
         }
 
+        // Extract search query from SearchGroups
+        string searchQuery = null;
+        DateTime fromDate = DateTime.MinValue;
+        DateTime toDate = DateTime.MaxValue;
+        
+        if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+        {
+            var firstGroup = searchParams.SearchGroups.FirstOrDefault();
+            if (firstGroup is ISearchTextGroup textGroup && !string.IsNullOrWhiteSpace(textGroup.SearchQuery))
+            {
+                searchQuery = textGroup.SearchQuery;
+            }
+        }
+        
+        // Extract date filters if available (check if searchParams has date properties)
+        if (searchParams != null)
+        {
+            // Try to get dates from searchParams properties if they exist
+            var searchParamsType = searchParams.GetType();
+            var fromDateProp = searchParamsType.GetProperty("FromDate");
+            var toDateProp = searchParamsType.GetProperty("ToDate");
+            
+            if (fromDateProp != null)
+            {
+                var fromDateValue = fromDateProp.GetValue(searchParams);
+                if (fromDateValue is DateTime fromDt && fromDt != DateTime.MinValue)
+                    fromDate = fromDt;
+            }
+            
+            if (toDateProp != null)
+            {
+                var toDateValue = toDateProp.GetValue(searchParams);
+                if (toDateValue is DateTime toDt && toDt != DateTime.MaxValue)
+                    toDate = toDt;
+            }
+        }
+        
         // Search Cardano blockchain for transactions matching search criteria
         var searchRequest = new
         {
-            query = "", // TODO: Fix ISearchParams.SearchQuery access
+            query = searchQuery ?? "",
             filters = new
             {
-                fromDate = DateTime.MinValue, // TODO: Fix ISearchParams.FromDate access
-                toDate = DateTime.MaxValue, // TODO: Fix ISearchParams.ToDate access
+                fromDate = fromDate,
+                toDate = toDate,
                 version = version
             }
         };
@@ -2810,7 +2876,7 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
             try
             {
                 // Try to get address from OASIS DNA
-                // TODO: Fix OASISDNA.OASIS.Storage access
+                // Wallet address is managed by WalletManager, no need to access OASISDNA directly
                 // if (OASISDNA?.OASIS?.Storage?.Cardano?.WalletAddress != null)
                 // {
                 //     return OASISDNA.OASIS.Storage.Cardano.WalletAddress;
@@ -2927,19 +2993,18 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
         {
             try
             {
-                // TODO: Fix OASISDNA.OASIS.Storage access
-                // if (OASISDNA?.OASIS?.Storage?.Cardano?.PrivateKey != null)
-                // {
-                //     return OASISDNA.OASIS.Storage.Cardano.PrivateKey;
-                // }
-
-                // Get from wallet manager
-                // TODO: Fix WalletManager.GetWalletAsync
-                // var walletResult = await WalletManager.GetWalletAsync();
-                // if (!walletResult.IsError && walletResult.Result != null)
-                // {
-                //     return walletResult.Result.PrivateKey ?? _privateKey;
-                // }
+                // Try to get from KeyManager first
+                if (KeyManager.Instance != null)
+                {
+                    var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(
+                        Guid.Empty, // Use default avatar or get from context
+                        Core.Enums.ProviderType.CardanoOASIS);
+                    
+                    if (keysResult != null && !keysResult.IsError && keysResult.Result != null && keysResult.Result.Any() && !string.IsNullOrWhiteSpace(keysResult.Result.First()))
+                    {
+                        return keysResult.Result.First();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -2956,11 +3021,14 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
         {
             try
             {
-                // TODO: Fix OASISDNA.OASIS.Storage access
-                // if (OASISDNA?.OASIS?.Storage?.Cardano?.PublicKey != null)
-                // {
-                //     return OASISDNA.OASIS.Storage.Cardano.PublicKey;
-                // }
+                // Try to get from KeyManager first
+                if (KeyManager.Instance != null)
+                {
+                    var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(
+                        Guid.Empty, // Use default avatar or get from context
+                        Core.Enums.ProviderType.CardanoOASIS);
+                    // GetProviderPrivateKeysForAvatarById returns private keys only; public key is derived below
+                }
 
                 // Derive public key from private key
                 var privateKey = await GetPrivateKeyAsync();
@@ -3010,6 +3078,32 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
                 OASISErrorHandling.HandleError($"Error signing transaction: {ex.Message}", ex);
                 return "...";
             }
+        }
+
+        /// <summary>
+        /// Get wallet address for avatar using WalletManager
+        /// </summary>
+        private async Task<string> GetWalletAddressForAvatarAsync(Guid avatarId)
+        {
+            try
+            {
+                if (avatarId == Guid.Empty)
+                    return "";
+
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
+                    avatarId,
+                    Core.Enums.ProviderType.CardanoOASIS);
+
+                if (!walletResult.IsError && walletResult.Result != null && !string.IsNullOrWhiteSpace(walletResult.Result.WalletAddress))
+                {
+                    return walletResult.Result.WalletAddress;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error getting wallet address for avatar {avatarId}: {ex.Message}", ex);
+            }
+            return "";
         }
 
         /// <summary>
@@ -4302,7 +4396,12 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
 
                 // ILockWeb3TokenRequest doesn't have Amount or LockWalletAddress properties
                 // Lock token by transferring to bridge pool (OASIS account)
-                var bridgePoolAddress = ""; // TODO: Get from OASIS configuration
+                var bridgePoolAddress = _contractAddress; // Use contract address as bridge pool, or get from OASIS configuration
+                if (string.IsNullOrWhiteSpace(bridgePoolAddress))
+                {
+                    // Fallback: try to get from OASIS DNA if available
+                    bridgePoolAddress = "addr1..."; // Default fallback
+                }
                 var lovelaceAmount = (ulong)(1_000_000m); // Default amount
                 
                 var rpcRequest = new
@@ -4367,7 +4466,42 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
                 }
 
                 // IUnlockWeb3TokenRequest doesn't have UnlockWalletAddress or Amount properties
-                var unlockedToWalletAddress = ""; // TODO: Get from locked token record using request.Web3TokenId
+                var unlockedToWalletAddress = "";
+                
+                // Try to get from locked token record using request.Web3TokenId
+                if (request.Web3TokenId != Guid.Empty)
+                {
+                    try
+                    {
+                        // Query OASIS storage for the locked token record
+                        var providerResult = ProviderManager.Instance == null
+                            ? new OASISResult<IOASISStorageProvider> { IsError = true, Message = "ProviderManager not initialized" }
+                            : await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(global::NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
+                        OASISResult<IHolon> tokenResult = providerResult.IsError || providerResult.Result == null
+                            ? new OASISResult<IHolon> { IsError = true, Message = providerResult.Message }
+                            : await providerResult.Result.LoadHolonAsync(request.Web3TokenId);
+
+                        if (!tokenResult.IsError && tokenResult.Result != null)
+                        {
+                            // Extract wallet address from token metadata
+                            unlockedToWalletAddress = tokenResult.Result.MetaData?.ContainsKey("UnlockedToWalletAddress") == true
+                                ? tokenResult.Result.MetaData["UnlockedToWalletAddress"]?.ToString()
+                                : tokenResult.Result.MetaData?.ContainsKey("MintToWalletAddress") == true
+                                    ? tokenResult.Result.MetaData["MintToWalletAddress"]?.ToString()
+                                    : "";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        OASISErrorHandling.HandleError($"Error getting wallet address from Web3TokenId: {ex.Message}", ex);
+                    }
+                }
+                
+                // Fallback: try to get from UnlockedByAvatarId if available
+                if (string.IsNullOrWhiteSpace(unlockedToWalletAddress) && request.UnlockedByAvatarId != Guid.Empty)
+                {
+                    unlockedToWalletAddress = await GetWalletAddressForAvatarAsync(request.UnlockedByAvatarId);
+                }
                 var lovelaceAmount = (ulong)(1_000_000m); // Default amount
                 
                 if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))

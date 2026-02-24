@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Drawing;
 using MongoDB.Driver;
@@ -4873,14 +4873,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "end":
                         CLIEngine.ShowWorkingMessage($"Ending game session for game {gameId}...");
-                        result = await gameManager.EndGameAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
-                        if (!result.IsError)
+                        var endResult = await gameManager.EndGameAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        if (!endResult.IsError)
                         {
                             CLIEngine.ShowSuccessMessage("Game session ended successfully.");
                         }
                         else
                         {
-                            CLIEngine.ShowErrorMessage($"Failed to end game session: {result.Message}");
+                            CLIEngine.ShowErrorMessage($"Failed to end game session: {endResult.Message}");
                         }
                         break;
 
@@ -4954,14 +4954,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "unloadlevel":
                         CLIEngine.ShowWorkingMessage($"Unloading level '{level}' for game {gameId}...");
-                        result = await gameManager.UnloadLevelAsync(gameId, level, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
-                        if (!result.IsError && result.Result)
+                        var unloadLevelResult = await gameManager.UnloadLevelAsync(gameId, level);
+                        if (!unloadLevelResult.IsError && unloadLevelResult.Result)
                         {
                             CLIEngine.ShowSuccessMessage($"Level '{level}' unloaded successfully.");
                         }
                         else
                         {
-                            CLIEngine.ShowErrorMessage($"Failed to unload level: {result.Message}");
+                            CLIEngine.ShowErrorMessage($"Failed to unload level: {unloadLevelResult.Message}");
                         }
                         break;
 
@@ -5062,7 +5062,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
 
                         CLIEngine.ShowWorkingMessage($"Unloading area {areaId} for game {gameId}...");
-                        var unloadResult = await gameManager.UnloadAreaAsync(gameId, areaId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        var unloadResult = await gameManager.UnloadAreaAsync(gameId, areaId);
                         if (!unloadResult.IsError && unloadResult.Result)
                         {
                             CLIEngine.ShowSuccessMessage("Area unloaded successfully.");
@@ -5091,7 +5091,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                         CLIEngine.ShowWorkingMessage($"Jumping to area at ({x}, {y}, {z}) for game {gameId}...");
                         var jumpResult = await gameManager.JumpToAreaAsync(gameId, x, y, z, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
-                        if (!jumpResult.IsError && jumpResult.Result)
+                        if (!jumpResult.IsError && jumpResult.Result != Guid.Empty)
                         {
                             CLIEngine.ShowSuccessMessage($"Jumped to area successfully.");
                         }
@@ -5125,7 +5125,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 }
 
                 var gameManager = new NextGenSoftware.OASIS.API.ONODE.Core.Managers.GameManager(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
-                OASISResult<bool> result;
+                OASISResult<bool> result = default;
 
                 switch (command.ToLower())
                 {
@@ -5201,17 +5201,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         if (command.ToLower() == "setmastervolume")
                         {
                             CLIEngine.ShowWorkingMessage($"Setting master volume to {volume} for game {gameId}...");
-                            result = await gameManager.SetMasterVolumeAsync(gameId, volume, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                            result = await gameManager.SetMasterVolumeAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty, volume);
                         }
                         else if (command.ToLower() == "setvoicevolume")
                         {
                             CLIEngine.ShowWorkingMessage($"Setting voice volume to {volume} for game {gameId}...");
-                            result = await gameManager.SetVoiceVolumeAsync(gameId, volume, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                            result = await gameManager.SetVoiceVolumeAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty, volume);
                         }
                         else
                         {
                             CLIEngine.ShowWorkingMessage($"Setting sound volume to {volume} for game {gameId}...");
-                            result = await gameManager.SetSoundVolumeAsync(gameId, volume, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                            result = await gameManager.SetSoundVolumeAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty, volume);
                         }
 
                         if (!result.IsError && result.Result)
@@ -5239,7 +5239,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             return;
                         }
 
-                        OASISResult<float> volumeResult;
+                        OASISResult<double> volumeResult;
                         if (command.ToLower() == "getmastervolume")
                         {
                             volumeResult = await gameManager.GetMasterVolumeAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
@@ -5298,7 +5298,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
 
                         CLIEngine.ShowWorkingMessage($"Setting video setting to {videoSetting} for game {gameId}...");
-                        var result = await gameManager.SetVideoSettingAsync(gameId, videoSetting, STAR.BeamedInAvatar?.Id ?? Guid.Empty);
+                        var result = await gameManager.SetVideoSettingAsync(gameId, STAR.BeamedInAvatar?.Id ?? Guid.Empty, videoSetting);
                         if (!result.IsError && result.Result)
                         {
                             CLIEngine.ShowSuccessMessage($"Video setting set to {videoSetting} successfully.");

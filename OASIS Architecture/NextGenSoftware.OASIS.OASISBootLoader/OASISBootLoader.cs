@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -38,13 +37,18 @@ using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 using NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
+using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
+using NextGenSoftware.OASIS.API.Providers.BNBChainOASIS;
+using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
+using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
+using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
+//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
+//using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
+//using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
+//using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
+//using NextGenSoftware.OASIS.API.Providers.XRPLOASIS;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Utilities;
-//using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
-//using NextGenSoftware.OASIS.API.Providers.BNBChainOASIS;
-//using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
-//using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
-//using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
 //using NextGenSoftware.OASIS.API.Providers.PolkaDotOASIS;
 
@@ -60,13 +64,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISRuntimeVersion { get; set; } = "4.4.4";
-        public static string OASISAPIVersion { get; set; } = "4.4.4";
+        public static string OASISRuntimeVersion { get; set; } = "4.5.0";
+        public static string OASISAPIVersion { get; set; } = "4.5.0";
         public static string COSMICVersion { get; set; } = "2.1.1";
-        public static string STARODKVersion { get; set; } = "3.3.3";
-        public static string STARRuntimeVersion { get; set; } = "3.3.3";
-        public static string STARNETVersion { get; set; } = "2.2.2";
-        public static string STARAPIVersion { get; set; } = "1.1.1";
+        public static string STARODKVersion { get; set; } = "3.4.0";
+        public static string STARRuntimeVersion { get; set; } = "3.4.0";
+        public static string STARNETVersion { get; set; } = "2.3.0";
+        public static string STARAPIVersion { get; set; } = "1.2.0";
 
         public static string DotNetVersion
         {
@@ -562,76 +566,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
-        /// <summary>
-        /// Switches the Solana provider to the given cluster (devnet or mainnet) so NFT mint and other Solana calls use the right RPC and wallet.
-        /// Call this before mint when the request specifies X-Solana-Cluster: mainnet (or cluster=mainnet).
-        /// </summary>
-        /// <param name="cluster">"mainnet" or "mainnet-beta" for mainnet; anything else (e.g. "devnet") uses devnet.</param>
-        /// <returns>Result with the active storage provider (Solana) or error if mainnet requested but mainnet config missing.</returns>
-        public static async Task<OASISResult<IOASISStorageProvider>> EnsureSolanaClusterAsync(string cluster)
-        {
-            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
-            try
-            {
-                if (!IsOASISBooted && !IsOASISBooting)
-                {
-                    var bootResult = BootOASIS(OASISDNAPath);
-                    if (bootResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, string.Concat("Error booting OASIS. Reason: ", bootResult.Message));
-                        return result;
-                    }
-                }
-
-                var solana = OASISDNA?.OASIS?.StorageProviders?.SolanaOASIS;
-                if (solana == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "SolanaOASIS config not found in OASIS_DNA.");
-                    return result;
-                }
-
-                bool useMainnet = string.Equals(cluster, "mainnet", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(cluster, "mainnet-beta", StringComparison.OrdinalIgnoreCase);
-
-                string connectionString;
-                string privateKey;
-                string publicKey;
-
-                if (useMainnet && !string.IsNullOrWhiteSpace(solana.MainnetConnectionString) && !string.IsNullOrWhiteSpace(solana.MainnetPrivateKey) && !string.IsNullOrWhiteSpace(solana.MainnetPublicKey))
-                {
-                    connectionString = solana.MainnetConnectionString;
-                    privateKey = solana.MainnetPrivateKey;
-                    publicKey = solana.MainnetPublicKey;
-                }
-                else
-                {
-                    if (useMainnet && (string.IsNullOrWhiteSpace(solana.MainnetConnectionString) || string.IsNullOrWhiteSpace(solana.MainnetPrivateKey) || string.IsNullOrWhiteSpace(solana.MainnetPublicKey)))
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Mainnet requested but MainnetConnectionString, MainnetPrivateKey, and MainnetPublicKey must be set in OASIS_DNA SolanaOASIS.");
-                        return result;
-                    }
-                    connectionString = solana.ConnectionString;
-                    privateKey = solana.PrivateKey;
-                    publicKey = solana.PublicKey;
-                }
-
-                if (ProviderManager.Instance.IsProviderRegistered(ProviderType.SolanaOASIS))
-                    ProviderManager.Instance.UnRegisterProvider(ProviderType.SolanaOASIS);
-
-                var solanaOasis = new SolanaOASIS(connectionString, privateKey, publicKey);
-                solanaOasis.OnStorageProviderError += SolanaOASIS_StorageProviderError;
-                ProviderManager.Instance.RegisterProvider(solanaOasis);
-                result = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(ProviderType.SolanaOASIS, true);
-                if (!result.IsError)
-                    result.Result = ProviderManager.Instance.CurrentStorageProvider;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"EnsureSolanaClusterAsync failed: {ex.Message}");
-            }
-            return result;
-        }
-
         public static async Task<OASISResult<IOASISStorageProvider>> GetAndActivateStorageProviderAsync(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
@@ -684,20 +618,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     BootOASIS(OASISDNAPath);
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
-
-                // Add diagnostic info for BaseOASIS (RegisterProviderInternal already calls RegisterProvider, so just check status)
-                if (providerType == ProviderType.BaseOASIS)
-                {
-                    bool isNowRegistered = ProviderManager.Instance.IsProviderRegistered(providerType);
-                    string debugMsg = result.Result != null 
-                        ? $"BaseOASIS Registration: result.Result is NOT null, IsProviderRegistered = {isNowRegistered}, ProviderType.Value = {result.Result.ProviderType?.Value}"
-                        : "BaseOASIS Registration: result.Result IS NULL - provider creation failed!";
-                    if (!string.IsNullOrEmpty(result.Message))
-                        result.Message = $"{result.Message}; {debugMsg}";
-                    else
-                        result.Message = debugMsg;
-                    LoggingManager.Log(debugMsg, LogType.Info);
-                }
 
                 if (ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot && activateProviderIfOASISProviderBootTypeIsHot)
                     ProviderManager.Instance.ActivateProvider(result.Result);
@@ -1180,14 +1100,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.AvalancheOASIS:
                         {
-                            var chainIdHex = OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainId ?? "0x0";
-                            var chainId = chainIdHex.StartsWith("0x") 
-                                ? BigInteger.Parse(chainIdHex.Substring(2), System.Globalization.NumberStyles.HexNumber)
-                                : BigInteger.Parse(chainIdHex);
                             var avalancheProvider = new AvalancheOASIS(
                                 OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint ?? "https://api.avax.network/ext/bc/C/rpc",
                                 OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainPrivateKey ?? "",
-                                chainId,
                                 OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ContractAddress ?? "");
                             avalancheProvider.OnStorageProviderError += AvalancheOASIS_StorageProviderError;
                             result.Result = avalancheProvider;
@@ -1220,23 +1135,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.BaseOASIS:
                         {
-                            LoggingManager.Log("DEBUG: Creating BaseOASIS provider instance...", LogType.Info);
-                            
-                            // Null-safe access to BaseOASIS config
-                            string rpcEndpoint = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.RpcEndpoint ?? "https://mainnet.base.org";
-                            string chainPrivateKey = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.ChainPrivateKey ?? "";
-                            string contractAddress = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.ContractAddress ?? "";
-                            string chainIdStr = OASISDNA?.OASIS?.StorageProviders?.BaseOASIS?.ChainId ?? "8453";
-                            BigInteger chainId = chainIdStr.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-                                ? BigInteger.Parse(chainIdStr.Substring(2), NumberStyles.HexNumber)
-                                : BigInteger.Parse(chainIdStr, CultureInfo.InvariantCulture);
-                            
-                            LoggingManager.Log($"DEBUG: BaseOASIS config - RpcEndpoint: {rpcEndpoint}, ChainPrivateKey: {(string.IsNullOrEmpty(chainPrivateKey) ? "empty" : "set")}, ContractAddress: {(string.IsNullOrEmpty(contractAddress) ? "empty" : "set")}", LogType.Info);
-                            
-                            var baseProvider = new BaseOASIS(rpcEndpoint, chainPrivateKey, chainId, contractAddress);
+                            var chainIdHex = OASISDNA.OASIS.StorageProviders.BaseOASIS.ChainId ?? "0x2105";
+                            var chainId = chainIdHex.StartsWith("0x") 
+                                ? BigInteger.Parse(chainIdHex.Substring(2), System.Globalization.NumberStyles.HexNumber)
+                                : BigInteger.Parse(chainIdHex);
+                            var baseProvider = new BaseOASIS(
+                                OASISDNA.OASIS.StorageProviders.BaseOASIS.RpcEndpoint ?? "https://mainnet.base.org",
+                                OASISDNA.OASIS.StorageProviders.BaseOASIS.ChainPrivateKey ?? "",
+                                chainId,
+                                OASISDNA.OASIS.StorageProviders.BaseOASIS.ContractAddress ?? "");
                             baseProvider.OnStorageProviderError += BaseOASIS_StorageProviderError;
                             result.Result = baseProvider;
-                            LoggingManager.Log($"DEBUG: BaseOASIS created. ProviderType.Value = {baseProvider.ProviderType?.Value}, ProviderType.Name = {baseProvider.ProviderType?.Name}, result.Result is null = {result.Result == null}", LogType.Info);
                         }
                         break;
 
@@ -1304,26 +1213,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
 
                     if (result.Result != null)
-                    {
-                        LoggingManager.Log($"DEBUG: About to register provider. ProviderType = {result.Result.ProviderType?.Value}, ProviderName = {result.Result.ProviderName}", LogType.Info);
-                        bool registered = ProviderManager.Instance.RegisterProvider(result.Result);
-                        bool isRegistered = ProviderManager.Instance.IsProviderRegistered(providerType);
-                        LoggingManager.Log($"DEBUG: RegisterProvider returned: {registered}. IsProviderRegistered check: {isRegistered}", LogType.Info);
-                        
-                        // For BaseOASIS, add diagnostic info to result message
-                        if (providerType == ProviderType.BaseOASIS)
-                        {
-                            result.Message = $"RegisterProvider returned: {registered}, IsProviderRegistered: {isRegistered}, ProviderType.Value: {result.Result.ProviderType?.Value}";
-                        }
-                    }
-                    else
-                    {
-                        LoggingManager.Log($"DEBUG: result.Result is NULL for providerType {providerType}!", LogType.Error);
-                        if (providerType == ProviderType.BaseOASIS)
-                        {
-                            result.Message = "ERROR: result.Result is NULL - provider creation failed!";
-                        }
-                    }
+                        ProviderManager.Instance.RegisterProvider(result.Result);
                 }
                 else
                     result.Result = (IOASISStorageProvider)ProviderManager.Instance.GetProvider(providerType);

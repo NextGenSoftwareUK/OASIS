@@ -719,11 +719,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
                     return result;
                 }
 
-                // Lock token by creating a private note in the bridge pool
+                // Lock one NFT/token by creating a private note in the bridge pool
                 var bridgePoolAddress = _bridgeService.GetBridgePoolAddress();
-                // ILockWeb3TokenRequest has FromWalletAddress directly, but Amount might be in concrete class
-                var amount = (request as LockWeb3TokenRequest)?.Amount ?? 0m;
                 var fromWalletAddress = request.FromWalletAddress ?? string.Empty;
+                var amount = 1m; // One NFT/token per request
 
                 var lockResult = await _midenService.LockOnMidenAsync(
                     bridgePoolAddress,
@@ -2301,29 +2300,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS
                     }
                 }
 
-                // Generate key pair from Miden API
-                var apiResult = await _apiClient.PostAsync<KeyPairAndWallet>("/api/wallets/generate-keypair", new { });
-                
-                if (!apiResult.IsError && apiResult.Result != null)
+                // Generate key pair: use KeyHelper (IKeyPairAndWallet from Utilities via KeyManager/Core); API could be used with a matching DTO if needed
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
                 {
-                    result.Result = apiResult.Result;
+                    result.Result = keyPair;
                     result.IsError = false;
-                    result.Message = "Key pair generated successfully from Miden";
+                    result.Message = "Key pair generated successfully for Miden";
                 }
                 else
                 {
-                    // Fallback: Use KeyHelper if API is not available
-                    var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                    if (keyPair != null)
-                    {
-                        result.Result = keyPair;
-                        result.IsError = false;
-                        result.Message = "Key pair generated successfully using KeyHelper";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to generate key pair from Miden: {apiResult.Message}");
-                    }
+                    OASISErrorHandling.HandleError(ref result, "Failed to generate key pair from Miden");
                 }
             }
             catch (Exception ex)

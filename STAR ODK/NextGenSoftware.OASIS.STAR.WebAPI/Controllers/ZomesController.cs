@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -38,16 +39,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Zomes.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testZomes = new List<STARZome>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARZome>>(testZomes, "Zomes retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARZome>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading zomes: {ex.Message}",
-                    Exception = ex
-                });
+                    var testZomes = new List<STARZome>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARZome>>(testZomes, "Zomes retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARZome>>(ex, "GetAllZomes");
             }
         }
 
@@ -66,16 +76,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Zomes.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<STARZome>(null, "Zome retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading zome: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<STARZome>(null, "Zome retrieved successfully (using test data)"));
+                }
+                return HandleException<STARZome>(ex, "GetZome");
             }
         }
 
@@ -91,6 +108,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateZome([FromBody] STARZome zome)
         {
+            if (zome == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid Zome object." });
             try
             {
                 var result = await _starAPI.Zomes.UpdateAsync(AvatarId, zome);
@@ -98,18 +117,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error creating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "creating zome");
             }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateZome(Guid id, [FromBody] STARZome zome)
         {
+            if (zome == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid Zome object." });
             try
             {
                 zome.Id = id;
@@ -118,12 +134,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error updating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "updating zome");
             }
         }
 
@@ -137,12 +148,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting zome");
             }
         }
 
@@ -194,6 +200,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateZomeWithOptions([FromBody] CreateZomeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.Zomes.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -201,12 +212,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error creating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "creating zome");
             }
         }
 
@@ -226,18 +232,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<STARZome>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Zomes.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error loading zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "loading zome");
             }
         }
 
@@ -256,18 +259,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<STARZome>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Zomes.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error loading zome from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "loading zome from path");
             }
         }
 
@@ -290,12 +290,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error loading zome from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "loading zome from published file");
             }
         }
 
@@ -372,6 +367,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishZome(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Zomes.PublishAsync(
@@ -388,12 +385,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error publishing zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "publishing zome");
             }
         }
 
@@ -419,12 +411,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARZome>
-                {
-                    IsError = true,
-                    Message = $"Error downloading zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARZome>(ex, "downloading zome");
             }
         }
 
@@ -476,12 +463,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error loading zome version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "loading zome version");
             }
         }
 
@@ -498,6 +480,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditZome(Guid id, [FromBody] EditZomeRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARZome> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Zomes.EditAsync(id, request.NewDNA, AvatarId);
@@ -505,12 +489,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error editing zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "editing zome");
             }
         }
 
@@ -534,12 +513,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "unpublishing zome");
             }
         }
 
@@ -563,12 +537,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error republishing zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "republishing zome");
             }
         }
 
@@ -592,12 +561,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error activating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "activating zome");
             }
         }
 
@@ -621,12 +585,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARZome>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating zome: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARZome>(ex, "deactivating zome");
             }
         }
     }

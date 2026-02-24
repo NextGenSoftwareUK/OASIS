@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
@@ -24,12 +17,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class SolanaController : OASISControllerBase
     {
         private readonly ISolanaService _solanaService;
-        private readonly ISolanaSplTokenBalanceService _splTokenBalanceService;
 
-        public SolanaController(ISolanaService solanaService, ISolanaSplTokenBalanceService splTokenBalanceService)
+        public SolanaController(ISolanaService solanaService)
         {
             _solanaService = solanaService;
-            _splTokenBalanceService = splTokenBalanceService;
         }
 
         /// <summary>
@@ -41,6 +32,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("Mint")]
         public async Task<OASISResult<MintNftResult>> MintNft([FromBody] MintWeb3NFTRequest request)
         {
+            if (request == null)
+                return new OASISResult<MintNftResult> { IsError = true, Message = "The request body is required. Please provide a valid Mint Web3 NFT request (e.g. Mint Public Key, Mint Decimals)." };
             return await _solanaService.MintNftAsync(request);
         }
 
@@ -54,119 +47,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("Send")]
         public async Task<OASISResult<SendTransactionResult>> SendTransaction([FromBody] SendTransactionRequest request)
         {
+            if (request == null)
+                return new OASISResult<SendTransactionResult> { IsError = true, Message = "The request body is required. Please provide a valid request with FromAccount and ToAccount (public keys)." };
             return await _solanaService.SendTransaction(request);
         }
-
-        /// <summary>
-        /// Get SPL token balance for a wallet's associated token account (ATA) for a given mint.
-        /// Uses mainnet RPC when configured in OASIS_DNA (SolanaOASIS.MainnetConnectionString).
-        /// AllowAnonymous so the Telegram bot (or other callers) can gate actions by token balance without auth.
-        /// </summary>
-        /// <param name="wallet">Owner wallet public key (base58).</param>
-        /// <param name="mint">Token mint public key (base58).</param>
-        /// <returns>Balance as decimal (human-readable amount).</returns>
-        [AllowAnonymous]
-        [HttpGet]
-        [Route("spl-token-balance")]
-        [ProducesResponseType(typeof(OASISResult<decimal>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<decimal>> GetSplTokenBalance([FromQuery] string wallet, [FromQuery] string mint)
-        {
-            return await _splTokenBalanceService.GetBalanceAsync(wallet, mint).ConfigureAwait(false);
-        }
-    }
-
-    /// <summary>
-    /// Helper to inspect top token holders (e.g. for $SAINT) and find a wallet's rank. Uses same RPC as /ordain.
-    /// </summary>
-    [Route("api/[controller]")]
-    [ApiController]
-    public class TokenHoldersController : OASISControllerBase
-    {
-        private readonly ITopTokenHoldersService _topTokenHoldersService;
-        private readonly IWalletPfpService _walletPfpService;
-        private readonly ISaintNameStore _saintNameStore;
-
-        public TokenHoldersController(ITopTokenHoldersService topTokenHoldersService, IWalletPfpService walletPfpService = null, ISaintNameStore saintNameStore = null)
-        {
-            _topTokenHoldersService = topTokenHoldersService;
-            _walletPfpService = walletPfpService;
-            _saintNameStore = saintNameStore;
-        }
-
-        /// <summary>
-        /// Get top holders for a token mint (e.g. $SAINT). Optionally pass wallet to get that wallet's rank (1-based). When includePfp=true, resolves each holder's profile image via Helius DAS. Saint names (when set via Saints/name) are always included when store is available.
-        /// </summary>
-        [AllowAnonymous]
-        [HttpGet]
-        [Route("top-holders")]
-        public async Task<ActionResult<TopHoldersResponse>> GetTopHolders([FromQuery] string mint, [FromQuery] int topN = 50, [FromQuery] string wallet = null, [FromQuery] bool includePfp = false)
-        {
-            if (string.IsNullOrWhiteSpace(mint))
-                return BadRequest("mint query parameter required (e.g. 9VTxmdpCD9dKsJZaBccHsBwYcebGV6iCZtKA8et5pump).");
-            if (topN <= 0 || topN > 200)
-                topN = 50;
-            var holders = await _topTokenHoldersService.GetTopHoldersAsync(mint.Trim(), topN).ConfigureAwait(false);
-            if (holders == null || holders.Count == 0)
-                return Ok(new TopHoldersResponse { Mint = mint, Holders = new List<HolderEntry>(), WalletRank = null, Message = "No holders returned (RPC may have failed or mint invalid)." });
-            var list = new List<HolderEntry>();
-            var searchWallet = wallet?.Trim();
-            int? rank = null;
-            for (var i = 0; i < holders.Count; i++)
-            {
-                var (addr, balance) = holders[i];
-                list.Add(new HolderEntry { Rank = i + 1, WalletAddress = addr, Balance = balance });
-                if (!string.IsNullOrEmpty(searchWallet) && string.Equals(addr, searchWallet, StringComparison.OrdinalIgnoreCase))
-                    rank = i + 1;
-            }
-
-            if (includePfp && _walletPfpService != null)
-            {
-                var tasks = list.Select(async entry =>
-                {
-                    var url = await _walletPfpService.GetPfpUrlAsync(entry.WalletAddress).ConfigureAwait(false);
-                    entry.ImageUrl = url;
-                });
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-            }
-
-            if (_saintNameStore != null)
-            {
-                var names = await _saintNameStore.GetSaintNamesByWalletsAsync(list.Select(e => e.WalletAddress)).ConfigureAwait(false);
-                foreach (var entry in list)
-                {
-                    var key = entry.WalletAddress?.Trim()?.ToLowerInvariant();
-                    if (key != null && names.TryGetValue(key, out var saintName))
-                        entry.SaintName = saintName;
-                }
-            }
-
-            return Ok(new TopHoldersResponse
-            {
-                Mint = mint,
-                Holders = list,
-                WalletRank = rank,
-                Message = rank.HasValue ? $"Wallet {searchWallet} is rank #{rank}." : (string.IsNullOrEmpty(searchWallet) ? null : $"Wallet {searchWallet} is not in the top {topN} holders.")
-            });
-        }
-    }
-
-    public class TopHoldersResponse
-    {
-        public string Mint { get; set; }
-        public List<HolderEntry> Holders { get; set; }
-        public int? WalletRank { get; set; }
-        public string Message { get; set; }
-    }
-
-    public class HolderEntry
-    {
-        public int Rank { get; set; }
-        public string WalletAddress { get; set; }
-        public decimal Balance { get; set; }
-        /// <summary>Profile picture URL (e.g. first NFT image) when requested via includePfp=true.</summary>
-        public string ImageUrl { get; set; }
-        /// <summary>Saint display name when set via Saints/name API (e.g. "St. Max of the Diamond Hands").</summary>
-        public string SaintName { get; set; }
     }
 }
